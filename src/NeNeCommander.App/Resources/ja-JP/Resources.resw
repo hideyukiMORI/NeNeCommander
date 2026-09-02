@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="CommanderWindow.Title" xml:space="preserve"><value>NeNe Commander</value></data>
+  <data name="LeftPaneLabel.Text" xml:space="preserve"><value>アクティブペイン</value></data>
+  <data name="RightPaneLabel.Text" xml:space="preserve"><value>パッシブペイン</value></data>
+  <data name="LeftAddress.Header" xml:space="preserve"><value>場所</value></data>
+  <data name="LeftAddress.Text" xml:space="preserve"><value>C:\</value></data>
+  <data name="RightAddress.Header" xml:space="preserve"><value>場所</value></data>
+  <data name="RightAddress.Text" xml:space="preserve"><value>\\wsl.localhost\Ubuntu-22.04\home</value></data>
+</root>

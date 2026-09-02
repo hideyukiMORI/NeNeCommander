@@ -1,0 +1,23 @@
+{
+  "stryker-config": {
+    "configuration": "Release",
+    "mutation-level": "Complete",
+    "test-runner": "mtp",
+    "break-on-initial-test-failure": true,
+    "concurrency": 4,
+    "reporters": [
+      "cleartext",
+      "json"
+    ],
+    "thresholds": {
+      "high": 100,
+      "low": 95,
+      "break": 90
+    },
+    "mutate": [
+      "**/*.cs",
+      "!**/*.g.cs",
+      "!**/*.Generated.cs"
+    ]
+  }
+}

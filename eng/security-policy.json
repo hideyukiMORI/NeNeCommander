@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "deepReviewCron": "23 2 */3 * *",
+  "maximumReviewAgeHours": 96,
+  "nuGetAuditLevel": "low",
+  "adversarialRepeatCount": 3,
+  "mutationLevel": "Complete",
+  "allowedActionRepositories": [
+    "actions/checkout",
+    "actions/dependency-review-action",
+    "actions/setup-dotnet",
+    "actions/upload-artifact",
+    "github/codeql-action"
+  ],
+  "mutationProjects": [
+    {
+      "path": "src/NeNeCommander.Domain/NeNeCommander.Domain.csproj",
+      "breakAt": 95
+    },
+    {
+      "path": "src/NeNeCommander.Application/NeNeCommander.Application.csproj",
+      "breakAt": 95
+    },
+    {
+      "path": "src/NeNeCommander.Infrastructure.Windows/NeNeCommander.Infrastructure.Windows.csproj",
+      "breakAt": 90
+    },
+    {
+      "path": "src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj",
+      "breakAt": 90
+    }
+  ]
+}

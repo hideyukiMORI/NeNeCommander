@@ -1,0 +1,681 @@
+[CmdletBinding()]
+param(
+    [Parameter()]
+    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+
+    [Parameter()]
+    [switch] $Quiet
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$root = [System.IO.Path]::GetFullPath($RepositoryRoot)
+$violations = [System.Collections.Generic.List[string]]::new()
+
+function Add-Violation {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Rule,
+
+        [Parameter(Mandatory)]
+        [string] $Message
+    )
+
+    $violations.Add("[$Rule] $Message")
+}
+
+function Get-RelativePath {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Path
+    )
+
+    return [System.IO.Path]::GetRelativePath($root, $Path).Replace('\', '/')
+}
+
+function Get-RepositoryFiles {
+    param(
+        [Parameter(Mandatory)]
+        [string[]] $Extensions,
+
+        [Parameter(Mandatory)]
+        [string[]] $Roots
+    )
+
+    $found = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+    foreach ($relativeRoot in $Roots) {
+        $searchRoot = Join-Path $root $relativeRoot
+        if (-not (Test-Path -LiteralPath $searchRoot -PathType Container)) {
+            continue
+        }
+
+        $files = Get-ChildItem -LiteralPath $searchRoot -File -Recurse | Where-Object {
+            $Extensions -contains $_.Extension.ToLowerInvariant() -and
+            $_.FullName -notmatch '[\\/](bin|obj|artifacts|Generated Files)[\\/]'
+        }
+        foreach ($file in $files) {
+            $found.Add($file)
+        }
+    }
+
+    return $found
+}
+
+function Assert-TextContains {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Rule,
+
+        [Parameter(Mandatory)]
+        [string] $Path,
+
+        [Parameter(Mandatory)]
+        [string] $Pattern,
+
+        [Parameter(Mandatory)]
+        [string] $Description
+    )
+
+    $content = Get-Content -LiteralPath $Path -Raw
+    if ($content -notmatch $Pattern) {
+        Add-Violation -Rule $Rule -Message "$(Get-RelativePath -Path $Path): $Description"
+    }
+}
+
+$requiredFiles = @(
+    'AGENT.md',
+    'AGENTS.md',
+    'CLAUDE.md',
+    'README.md',
+    '.editorconfig',
+    '.gitattributes',
+    '.gitignore',
+    'Directory.Build.props',
+    'Directory.Packages.props',
+    'NuGet.Config',
+    'global.json',
+    'docs/PROJECT_CHARTER.md',
+    'docs/PROJECT_STATE.md',
+    'docs/ARCHITECTURE_CONSTITUTION.md',
+    'docs/COMMAND_MODEL.md',
+    'docs/PROJECT_LAYOUT.md',
+    'docs/CODING_RULES.md',
+    'docs/QUALITY_GATES.md',
+    'docs/TEST_STRATEGY.md',
+    'docs/SECURITY_MODEL.md',
+    'docs/DEVELOPMENT_WORKFLOW.md',
+    'docs/COMMIT_CONVENTIONS.md',
+    'docs/KEYBOARD_MODEL.md',
+    'docs/FILESYSTEM_BOUNDARIES.md',
+    'docs/DESIGN_HANDOFF.md',
+    'docs/GLOSSARY.md',
+    'docs/adr/README.md',
+    'docs/waivers/README.md',
+    'docs/quality/GATE_PROOFS.md',
+    'eng/architecture.json',
+    'eng/adversarial-cases.json',
+    'eng/bootstrap.ps1',
+    'eng/validate-commit-message.ps1',
+    'eng/check.ps1',
+    'eng/verify-coverage.ps1',
+    'eng/coverage.settings',
+    'eng/prove-gates.ps1',
+    'eng/security-policy.json',
+    'eng/security-check.ps1',
+    'eng/prove-security.ps1',
+    'eng/deep-review.ps1',
+    '.config/dotnet-tools.json',
+    'stryker-config.json',
+    '.github/dependabot.yml',
+    '.github/workflows/dependency-review.yml',
+    '.github/workflows/security-deep-review.yml',
+    '.github/workflows/quality.yml',
+    '.github/copilot-instructions.md',
+    '.githooks/pre-commit',
+    '.githooks/commit-msg'
+)
+
+foreach ($relativePath in $requiredFiles) {
+    $fullPath = Join-Path $root $relativePath
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Add-Violation -Rule 'DOC-001' -Message "Required file is missing: $relativePath"
+    }
+}
+
+if ($violations.Count -eq 0) {
+    foreach ($compatibilityPath in @('AGENT.md', 'CLAUDE.md')) {
+        $compatibilityContent = Get-Content -LiteralPath (Join-Path $root $compatibilityPath) -Raw
+        if ($compatibilityContent -notmatch '\[AGENTS\.md\]\(AGENTS\.md\)') {
+            Add-Violation -Rule 'DOC-002' -Message "$compatibilityPath must point to the sole AGENTS.md constitution."
+        }
+    }
+
+    $copilotCompatibility = Get-Content -LiteralPath (Join-Path $root '.github/copilot-instructions.md') -Raw
+    if ($copilotCompatibility -notmatch '\[\.\./AGENTS\.md\]\(\.\./AGENTS\.md\)') {
+        Add-Violation -Rule 'DOC-002' -Message '.github/copilot-instructions.md must point to the sole AGENTS.md constitution.'
+    }
+
+    $agentConstitution = Join-Path $root 'AGENTS.md'
+    foreach ($requiredLink in @(
+        'docs/PROJECT_STATE.md',
+        'docs/ARCHITECTURE_CONSTITUTION.md',
+        'docs/CODING_RULES.md',
+        'docs/QUALITY_GATES.md',
+        'eng/check.ps1'
+    )) {
+        Assert-TextContains -Rule 'DOC-003' -Path $agentConstitution -Pattern ([regex]::Escape($requiredLink)) -Description "missing mandatory link to $requiredLink"
+    }
+}
+
+$coverageSettingsPath = Join-Path $root 'eng/coverage.settings'
+if (Test-Path -LiteralPath $coverageSettingsPath -PathType Leaf) {
+    [xml] $coverageSettings = Get-Content -LiteralPath $coverageSettingsPath -Raw
+    $excludedAttributes = @($coverageSettings.SelectNodes('/Configuration/CodeCoverage/Attributes/Exclude/Attribute'))
+    $excludedSources = @($coverageSettings.SelectNodes('/Configuration/CodeCoverage/Sources/Exclude/Source'))
+    if ($excludedAttributes.Count -ne 1 -or
+        $excludedAttributes[0].InnerText -cne '^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$') {
+        Add-Violation -Rule 'QLT-008' -Message 'Coverage may exclude only GeneratedCodeAttribute members.'
+    }
+    $expectedExcludedSources = @(
+        '.*[\\/]obj[\\/].*',
+        '.*[\\/]Views[\\/]CommanderWindow\.xaml\.cs$'
+    )
+    if ($excludedSources.Count -ne $expectedExcludedSources.Count) {
+        Add-Violation -Rule 'QLT-008' -Message 'Coverage source exclusions do not match ADR-0008.'
+    }
+    else {
+        for ($index = 0; $index -lt $expectedExcludedSources.Count; $index++) {
+            if ($excludedSources[$index].InnerText -cne $expectedExcludedSources[$index]) {
+                Add-Violation -Rule 'QLT-008' -Message 'Coverage source exclusions do not match ADR-0008.'
+                break
+            }
+        }
+    }
+}
+
+$normativeDocuments = @(
+    'AGENTS.md',
+    'docs/PROJECT_CHARTER.md',
+    'docs/PROJECT_STATE.md',
+    'docs/ARCHITECTURE_CONSTITUTION.md',
+    'docs/COMMAND_MODEL.md',
+    'docs/PROJECT_LAYOUT.md',
+    'docs/CODING_RULES.md',
+    'docs/QUALITY_GATES.md',
+    'docs/TEST_STRATEGY.md',
+    'docs/SECURITY_MODEL.md',
+    'docs/DEVELOPMENT_WORKFLOW.md',
+    'docs/COMMIT_CONVENTIONS.md',
+    'docs/KEYBOARD_MODEL.md',
+    'docs/FILESYSTEM_BOUNDARIES.md',
+    'docs/DESIGN_HANDOFF.md',
+    'docs/GLOSSARY.md',
+    'docs/adr/README.md',
+    'docs/waivers/README.md',
+    'docs/quality/GATE_PROOFS.md'
+)
+
+$ruleDeclarations = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::Ordinal)
+foreach ($relativePath in $normativeDocuments) {
+    $fullPath = Join-Path $root $relativePath
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        continue
+    }
+
+    $content = Get-Content -LiteralPath $fullPath -Raw
+    if ($content -notmatch '(?m)^Status: normative\s*$') {
+        Add-Violation -Rule 'DOC-004' -Message "$relativePath must declare exactly 'Status: normative'."
+    }
+
+    $matches = [regex]::Matches($content, '(?m)^### (?<id>(?:ARC|CMD|CS|KBD|FS|QLT|TST|SEC|GIT)-\d{3}) —[^\r\n]+')
+    foreach ($match in $matches) {
+        $ruleId = $match.Groups['id'].Value
+        if ($ruleDeclarations.ContainsKey($ruleId)) {
+            Add-Violation -Rule 'RULE-001' -Message "Duplicate declaration $ruleId in $relativePath and $($ruleDeclarations[$ruleId])."
+        }
+        else {
+            $ruleDeclarations.Add($ruleId, $relativePath)
+        }
+
+        $sectionStart = $match.Index + $match.Length
+        $nextHeading = $content.IndexOf("`n### ", $sectionStart, [System.StringComparison]::Ordinal)
+        if ($nextHeading -lt 0) {
+            $nextHeading = $content.Length
+        }
+
+        $section = $content.Substring($sectionStart, $nextHeading - $sectionStart)
+        if ($section -notmatch '(?m)^- Status: \*\*(active|planned|impossible|rejected)\*\*\s*$') {
+            Add-Violation -Rule 'RULE-002' -Message "$ruleId in $relativePath lacks one recognized status."
+        }
+    }
+}
+
+if ($ruleDeclarations.Count -lt 40) {
+    Add-Violation -Rule 'RULE-003' -Message "Expected at least 40 declared rules; found $($ruleDeclarations.Count)."
+}
+
+$globalJsonPath = Join-Path $root 'global.json'
+if (Test-Path -LiteralPath $globalJsonPath -PathType Leaf) {
+    $globalSettings = Get-Content -LiteralPath $globalJsonPath -Raw | ConvertFrom-Json
+    if ($globalSettings.sdk.version -ne '10.0.400' -or $globalSettings.sdk.rollForward -ne 'disable' -or $globalSettings.sdk.allowPrerelease -ne $false) {
+        Add-Violation -Rule 'CFG-001' -Message 'global.json must pin stable SDK 10.0.400 with rollForward disabled.'
+    }
+
+    if ($globalSettings.'msbuild-sdks'.'MSTest.Sdk' -ne '4.3.3') {
+        Add-Violation -Rule 'CFG-002' -Message 'global.json must pin MSTest.Sdk 4.3.3.'
+    }
+}
+
+$buildPropsPath = Join-Path $root 'Directory.Build.props'
+if (Test-Path -LiteralPath $buildPropsPath -PathType Leaf) {
+    $requiredBuildSettings = @{
+        'LangVersion' = '14.0'
+        'Nullable' = 'enable'
+        'ImplicitUsings' = 'disable'
+        'TreatWarningsAsErrors' = 'true'
+        'CodeAnalysisTreatWarningsAsErrors' = 'true'
+        'EnforceCodeStyleInBuild' = 'true'
+        'EnableNETAnalyzers' = 'true'
+        'AnalysisLevel' = '10.0-recommended'
+        'Deterministic' = 'true'
+        'GenerateDocumentationFile' = 'true'
+        'RestorePackagesWithLockFile' = 'true'
+        'NuGetAudit' = 'true'
+        'NuGetAuditMode' = 'all'
+        'NuGetAuditLevel' = 'low'
+    }
+
+    [xml] $buildProps = Get-Content -LiteralPath $buildPropsPath -Raw
+    foreach ($setting in $requiredBuildSettings.GetEnumerator()) {
+        $nodes = $buildProps.SelectNodes("//PropertyGroup/$($setting.Key)")
+        if ($nodes.Count -ne 1 -or $nodes[0].InnerText -cne $setting.Value) {
+            Add-Violation -Rule 'CFG-003' -Message "Directory.Build.props must set $($setting.Key) exactly once to '$($setting.Value)'."
+        }
+    }
+}
+
+$editorConfigPath = Join-Path $root '.editorconfig'
+if (Test-Path -LiteralPath $editorConfigPath -PathType Leaf) {
+    $editorConfig = Get-Content -LiteralPath $editorConfigPath -Raw
+    foreach ($requiredEditorSetting in @(
+        'root = true',
+        'csharp_style_var_elsewhere = false:error',
+        'csharp_style_namespace_declarations = file_scoped:error',
+        'dotnet_diagnostic.CS1591.severity = error',
+        'dotnet_diagnostic.IDE0055.severity = error'
+    )) {
+        if ($editorConfig -notmatch "(?m)^$([regex]::Escape($requiredEditorSetting))\s*$") {
+            Add-Violation -Rule 'CFG-004' -Message ".editorconfig is missing protected setting: $requiredEditorSetting"
+        }
+    }
+}
+
+$configurationFiles = Get-RepositoryFiles -Extensions @('.cs', '.csproj', '.props', '.targets') -Roots @('.')
+$configurationPatterns = [ordered]@{
+    'CS-020:#pragma warning disable' = '(?im)#pragma\s+warning\s+disable'
+    'CS-020:SuppressMessage' = '(?i)SuppressMessage'
+    'CS-020:NoWarn' = '(?i)<NoWarn(?:\s|>)'
+    'CS-020:WarningsNotAsErrors' = '(?i)<WarningsNotAsErrors(?:\s|>)'
+    'CS-020:warnings-as-errors disabled' = '(?i)<(?:TreatWarningsAsErrors|CodeAnalysisTreatWarningsAsErrors)>\s*false\s*</'
+    'CS-005:nullable disabled' = '(?im)#nullable\s+disable|<Nullable>\s*disable\s*</Nullable>'
+}
+
+foreach ($file in $configurationFiles) {
+    $relativePath = Get-RelativePath -Path $file.FullName
+    if ($relativePath -match '^eng/fixtures/') {
+        continue
+    }
+
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    foreach ($entry in $configurationPatterns.GetEnumerator()) {
+        $parts = $entry.Key.Split(':', 2)
+        if ($content -match $entry.Value) {
+            Add-Violation -Rule $parts[0] -Message "$relativePath contains prohibited $($parts[1])."
+        }
+    }
+}
+
+$statePath = Join-Path $root 'docs/PROJECT_STATE.md'
+$stage = $null
+$productionPermission = $null
+if (Test-Path -LiteralPath $statePath -PathType Leaf) {
+    $stateContent = Get-Content -LiteralPath $statePath -Raw
+    $stageMatch = [regex]::Match($stateContent, '(?m)^- Stage: `(?<value>[^`]+)`\s*$')
+    $permissionMatch = [regex]::Match($stateContent, '(?m)^- Production code: `(?<value>permitted|prohibited)`\s*$')
+    if (-not $stageMatch.Success -or -not $permissionMatch.Success) {
+        Add-Violation -Rule 'STATE-001' -Message 'PROJECT_STATE.md must declare exact stage and production-code markers.'
+    }
+    else {
+        $stage = $stageMatch.Groups['value'].Value
+        $productionPermission = $permissionMatch.Groups['value'].Value
+    }
+}
+
+$implementationFiles = Get-RepositoryFiles -Extensions @('.cs', '.xaml', '.csproj') -Roots @('src', 'tests')
+if ($stage -eq 'policy-foundation') {
+    if ($productionPermission -ne 'prohibited') {
+        Add-Violation -Rule 'STATE-002' -Message 'policy-foundation must prohibit production code.'
+    }
+
+    foreach ($file in $implementationFiles) {
+        Add-Violation -Rule 'STATE-003' -Message "Implementation or test file is prohibited during policy-foundation: $(Get-RelativePath -Path $file.FullName)"
+    }
+}
+elseif ($stage -eq 'implementation') {
+    if ($productionPermission -ne 'permitted') {
+        Add-Violation -Rule 'STATE-004' -Message 'implementation stage must explicitly permit production code.'
+    }
+}
+elseif ($null -ne $stage) {
+    Add-Violation -Rule 'STATE-005' -Message "Unknown project stage: $stage"
+}
+
+$manifestPath = Join-Path $root 'eng/architecture.json'
+$manifest = $null
+if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+    try {
+        $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    }
+    catch {
+        Add-Violation -Rule 'ARC-002' -Message "eng/architecture.json is invalid JSON: $($_.Exception.Message)"
+    }
+}
+
+if ($null -ne $manifest) {
+    $projectNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $projectPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($project in @($manifest.projects)) {
+        if (-not $projectNames.Add([string] $project.name)) {
+            Add-Violation -Rule 'ARC-002' -Message "Duplicate project name in architecture manifest: $($project.name)"
+        }
+
+        $normalizedPath = ([string] $project.path).Replace('\', '/')
+        if (-not $projectPaths.Add($normalizedPath)) {
+            Add-Violation -Rule 'ARC-002' -Message "Duplicate project path in architecture manifest: $normalizedPath"
+        }
+    }
+
+    foreach ($project in @($manifest.projects)) {
+        foreach ($reference in @($project.projectReferences)) {
+            if (-not $projectNames.Contains([string] $reference)) {
+                Add-Violation -Rule 'ARC-002' -Message "$($project.name) references undeclared project $reference."
+            }
+        }
+    }
+
+    $incomingCounts = @{}
+    $outgoingReferences = @{}
+    foreach ($project in @($manifest.projects)) {
+        $projectName = [string] $project.name
+        $incomingCounts[$projectName] = 0
+        $outgoingReferences[$projectName] = @($project.projectReferences | ForEach-Object { [string] $_ })
+    }
+
+    foreach ($references in $outgoingReferences.Values) {
+        foreach ($reference in $references) {
+            if ($incomingCounts.ContainsKey($reference)) {
+                $incomingCounts[$reference] = [int] $incomingCounts[$reference] + 1
+            }
+        }
+    }
+
+    $ready = [System.Collections.Generic.Queue[string]]::new()
+    foreach ($entry in $incomingCounts.GetEnumerator()) {
+        if ([int] $entry.Value -eq 0) {
+            $ready.Enqueue([string] $entry.Key)
+        }
+    }
+
+    $visitedProjectCount = 0
+    while ($ready.Count -gt 0) {
+        $projectName = $ready.Dequeue()
+        $visitedProjectCount++
+        foreach ($reference in @($outgoingReferences[$projectName])) {
+            $incomingCounts[$reference] = [int] $incomingCounts[$reference] - 1
+            if ([int] $incomingCounts[$reference] -eq 0) {
+                $ready.Enqueue($reference)
+            }
+        }
+    }
+
+    if ($visitedProjectCount -ne $projectNames.Count) {
+        Add-Violation -Rule 'ARC-002' -Message 'The architecture manifest contains a project-reference cycle.'
+    }
+
+    if ($stage -eq 'implementation') {
+        $solutionPath = Join-Path $root ([string] $manifest.solution)
+        if (-not (Test-Path -LiteralPath $solutionPath -PathType Leaf)) {
+            Add-Violation -Rule 'ARC-002' -Message "Declared solution is missing: $($manifest.solution)"
+        }
+
+        $actualProjects = Get-ChildItem -LiteralPath $root -Filter '*.csproj' -File -Recurse | Where-Object {
+            $_.FullName -notmatch '[\\/](bin|obj|artifacts)[\\/]'
+        }
+        $actualPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($actualProject in $actualProjects) {
+            [void] $actualPaths.Add((Get-RelativePath -Path $actualProject.FullName))
+        }
+
+        foreach ($declaredPath in $projectPaths) {
+            if (-not $actualPaths.Contains($declaredPath)) {
+                Add-Violation -Rule 'ARC-002' -Message "Declared project is missing: $declaredPath"
+            }
+        }
+
+        foreach ($actualPath in $actualPaths) {
+            if (-not $projectPaths.Contains($actualPath)) {
+                Add-Violation -Rule 'ARC-002' -Message "Project is not declared in architecture manifest: $actualPath"
+            }
+        }
+
+        $pathByName = @{}
+        foreach ($project in @($manifest.projects)) {
+            $pathByName[[string] $project.name] = ([string] $project.path).Replace('\', '/')
+        }
+
+        [xml] $centralPackages = Get-Content -LiteralPath (Join-Path $root 'Directory.Packages.props') -Raw
+        $centralPackageNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($itemGroup in @($centralPackages.Project.SelectNodes('ItemGroup'))) {
+            foreach ($packageVersion in @($itemGroup.SelectNodes('PackageVersion'))) {
+                if ($null -ne $packageVersion) {
+                    [void] $centralPackageNames.Add([string] $packageVersion.Include)
+                }
+            }
+        }
+
+        foreach ($project in @($manifest.projects)) {
+            $projectPath = Join-Path $root ([string] $project.path)
+            if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
+                continue
+            }
+
+            [xml] $projectXml = Get-Content -LiteralPath $projectPath -Raw
+            $declaredReferences = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($referenceName in @($project.projectReferences)) {
+                [void] $declaredReferences.Add([string] $referenceName)
+            }
+
+            $actualReferenceNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($itemGroup in @($projectXml.Project.SelectNodes('ItemGroup'))) {
+                foreach ($referenceNode in @($itemGroup.SelectNodes('ProjectReference'))) {
+                    if ($null -eq $referenceNode) {
+                        continue
+                    }
+
+                    $referenceFullPath = [System.IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $projectPath) ([string] $referenceNode.Include)))
+                    $referenceRelativePath = [System.IO.Path]::GetRelativePath($root, $referenceFullPath).Replace('\', '/')
+                    $matchedName = $null
+                    foreach ($candidate in $pathByName.GetEnumerator()) {
+                        if ($candidate.Value -ieq $referenceRelativePath) {
+                            $matchedName = $candidate.Key
+                            break
+                        }
+                    }
+
+                    if ($null -eq $matchedName) {
+                        Add-Violation -Rule 'ARC-002' -Message "$($project.name) has a reference to undeclared path $referenceRelativePath."
+                    }
+                    else {
+                        [void] $actualReferenceNames.Add([string] $matchedName)
+                    }
+                }
+            }
+
+            foreach ($referenceName in $declaredReferences) {
+                if (-not $actualReferenceNames.Contains($referenceName)) {
+                    Add-Violation -Rule 'ARC-002' -Message "$($project.name) is missing declared reference $referenceName."
+                }
+            }
+
+            foreach ($referenceName in $actualReferenceNames) {
+                if (-not $declaredReferences.Contains($referenceName)) {
+                    Add-Violation -Rule 'ARC-002' -Message "$($project.name) has forbidden reference $referenceName."
+                }
+            }
+
+            $allowedPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($packageName in @($project.packageReferences)) {
+                [void] $allowedPackages.Add([string] $packageName)
+                if (-not $centralPackageNames.Contains([string] $packageName)) {
+                    Add-Violation -Rule 'CS-024' -Message "$($project.name) allows $packageName but no central version is declared."
+                }
+            }
+
+            $actualPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($itemGroup in @($projectXml.Project.SelectNodes('ItemGroup'))) {
+                foreach ($packageNode in @($itemGroup.SelectNodes('PackageReference'))) {
+                    if ($null -eq $packageNode) {
+                        continue
+                    }
+
+                    $packageName = [string] $packageNode.Include
+                    [void] $actualPackages.Add($packageName)
+                    if ($packageNode.HasAttribute('Version') -or $packageNode.HasAttribute('VersionOverride')) {
+                        Add-Violation -Rule 'CS-024' -Message "$($project.name) sets a project-local version for $packageName."
+                    }
+                }
+            }
+
+            foreach ($packageName in $actualPackages) {
+                if (-not $allowedPackages.Contains($packageName)) {
+                    Add-Violation -Rule 'CS-024' -Message "$($project.name) uses non-allowlisted package $packageName."
+                }
+            }
+        }
+    }
+}
+
+$sourceFiles = Get-RepositoryFiles -Extensions @('.cs') -Roots @('src', 'tests')
+$sourcePatterns = [ordered]@{
+    'CS-003:project-owned value type' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:readonly\s+)?(?:record\s+struct|struct)\s+[A-Za-z_]'
+    'CS-004:project-owned enum' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*enum\s+[A-Za-z_]'
+    'CS-010:direct wall clock' = '\b(?:DateTime|DateTimeOffset)\.(?:Now|UtcNow)\b'
+    'CS-010:direct identifier generation' = '\bGuid\.NewGuid\s*\('
+    'CS-010:direct environment access' = '\bEnvironment\.'
+    'CS-014:global using' = '(?m)^\s*global\s+using\s+'
+    'CS-014:primary constructor' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:sealed\s+|abstract\s+|partial\s+)*(?:class|record(?:\s+class)?)\s+[A-Za-z_]\w*\s*\('
+    'CS-016:blocking task result' = '\.(?:Result|Wait)\b'
+    'CS-016:blocking awaiter' = '\.GetAwaiter\s*\(\s*\)\s*\.GetResult\s*\('
+    'CS-016:Task.Run' = '\bTask\.Run\s*\('
+    'CS-016:async void' = '\basync\s+void\s+'
+    'CS-017:broad exception catch' = '\bcatch\s*\(\s*(?:System\.)?Exception\b'
+    'CS-021:manual property notification' = '\bINotifyPropertyChanged\b'
+    'CS-021:manual command implementation' = '\bSystem\.Windows\.Input\.ICommand\b|\bnew\s+(?:Async)?RelayCommand\b'
+}
+
+$bannedNamePattern = '(?i)\b(?:Manager|Helper|Helpers|Util|Utils|Utility|Utilities|Common|Misc|Base|General)\b'
+foreach ($file in $sourceFiles) {
+    $relativePath = Get-RelativePath -Path $file.FullName
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    foreach ($entry in $sourcePatterns.GetEnumerator()) {
+        $parts = $entry.Key.Split(':', 2)
+        if ($content -match $entry.Value) {
+            Add-Violation -Rule $parts[0] -Message "$relativePath contains prohibited $($parts[1])."
+        }
+    }
+
+    if ($relativePath -notmatch '^src/NeNeCommander\.Infrastructure\.Windows/' -and $content -match '\bSystem\.IO\b') {
+        Add-Violation -Rule 'CS-018' -Message "$relativePath accesses System.IO outside Windows infrastructure."
+    }
+
+    $pathSegments = $relativePath.Split('/')
+    foreach ($segment in $pathSegments) {
+        $nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($segment)
+        if ($nameWithoutExtension -match $bannedNamePattern) {
+            Add-Violation -Rule 'CS-011' -Message "$relativePath contains prohibited vague name '$nameWithoutExtension'."
+        }
+    }
+
+    $topLevelTypes = [regex]::Matches($content, '(?m)^(?:public|internal|file)?\s*(?:sealed\s+|abstract\s+|static\s+|partial\s+)*(?:class|record(?:\s+class)?|interface)\s+(?<name>[A-Za-z_]\w*)')
+    if ($topLevelTypes.Count -gt 1) {
+        Add-Violation -Rule 'CS-012' -Message "$relativePath declares more than one top-level type."
+    }
+    $expectedTypeName = if ($file.Name.EndsWith('.xaml.cs', [System.StringComparison]::Ordinal)) {
+        $file.Name.Substring(0, $file.Name.Length - '.xaml.cs'.Length)
+    }
+    else {
+        $file.BaseName
+    }
+    if ($topLevelTypes.Count -eq 1 -and $expectedTypeName -cne $topLevelTypes[0].Groups['name'].Value) {
+        Add-Violation -Rule 'CS-012' -Message "$relativePath must match type $($topLevelTypes[0].Groups['name'].Value)."
+    }
+
+    if ($content -match '(?s)\([^)]*\bbool\s+[A-Za-z_]\w*[^)]*\)') {
+        Add-Violation -Rule 'CS-002' -Message "$relativePath contains a boolean mode parameter."
+    }
+}
+
+$xamlFiles = Get-RepositoryFiles -Extensions @('.xaml') -Roots @('src')
+foreach ($file in $xamlFiles) {
+    $relativePath = Get-RelativePath -Path $file.FullName
+    if ($relativePath -match '/Themes/') {
+        continue
+    }
+
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    if ($content -match '#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?') {
+        Add-Violation -Rule 'CS-023' -Message "$relativePath contains a hard-coded color outside Themes."
+    }
+
+    if ($content -match '\b(?:Margin|Padding|CornerRadius|FontSize|MinWidth|MinHeight|RowSpacing|ColumnSpacing)="[0-9]') {
+        Add-Violation -Rule 'CS-023' -Message "$relativePath contains a hard-coded semantic layout value."
+    }
+}
+
+$activeWaivers = Get-ChildItem -LiteralPath (Join-Path $root 'docs/waivers') -Filter '*.md' -File -ErrorAction SilentlyContinue | Where-Object {
+    $_.Name -notin @('README.md', '0000-template.md')
+}
+foreach ($waiver in $activeWaivers) {
+    $content = Get-Content -LiteralPath $waiver.FullName -Raw
+    if ($content -notmatch '(?m)^Status: active\s*$') {
+        Add-Violation -Rule 'WAIVER-001' -Message "$(Get-RelativePath -Path $waiver.FullName) must be active or removed from the active waiver directory."
+        continue
+    }
+
+    $createdMatch = [regex]::Match($content, '(?m)^- Created: `(?<date>\d{4}-\d{2}-\d{2})`\s*$')
+    $expiresMatch = [regex]::Match($content, '(?m)^- Expires: `(?<date>\d{4}-\d{2}-\d{2})`\s*$')
+    if (-not $createdMatch.Success -or -not $expiresMatch.Success) {
+        Add-Violation -Rule 'WAIVER-002' -Message "$(Get-RelativePath -Path $waiver.FullName) lacks exact created and expiry dates."
+        continue
+    }
+
+    $created = [DateTime]::ParseExact($createdMatch.Groups['date'].Value, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+    $expires = [DateTime]::ParseExact($expiresMatch.Groups['date'].Value, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+    if (($expires - $created).TotalDays -gt 30 -or $expires -lt [DateTime]::UtcNow.Date) {
+        Add-Violation -Rule 'WAIVER-003' -Message "$(Get-RelativePath -Path $waiver.FullName) exceeds 30 days or is expired."
+    }
+}
+
+if ($violations.Count -gt 0) {
+    foreach ($violation in $violations) {
+        Write-Error $violation -ErrorAction Continue
+    }
+
+    Write-Error "Conformance failed with $($violations.Count) violation(s)."
+    exit 1
+}
+
+if (-not $Quiet) {
+    Write-Host "Conformance passed: $($ruleDeclarations.Count) unique normative rules; stage '$stage'."
+}

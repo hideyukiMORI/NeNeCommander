@@ -1,0 +1,20 @@
+.vs/
+.vscode/
+.idea/
+**/bin/
+**/obj/
+TestResults/
+artifacts/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.cer
+*.pfx
+*.log
+coverage/
+Generated Files/

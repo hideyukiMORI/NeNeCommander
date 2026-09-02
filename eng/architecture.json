@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "solution": "NeNeCommander.slnx",
+  "projects": [
+    {
+      "name": "NeNeCommander.Domain",
+      "path": "src/NeNeCommander.Domain/NeNeCommander.Domain.csproj",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Application",
+      "path": "src/NeNeCommander.Application/NeNeCommander.Application.csproj",
+      "projectReferences": ["NeNeCommander.Domain"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Infrastructure.Windows",
+      "path": "src/NeNeCommander.Infrastructure.Windows/NeNeCommander.Infrastructure.Windows.csproj",
+      "projectReferences": ["NeNeCommander.Application", "NeNeCommander.Domain"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Presentation.WinUI",
+      "path": "src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj",
+      "projectReferences": ["NeNeCommander.Application"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.App",
+      "path": "src/NeNeCommander.App/NeNeCommander.App.csproj",
+      "projectReferences": ["NeNeCommander.Infrastructure.Windows", "NeNeCommander.Presentation.WinUI"],
+      "packageReferences": ["Microsoft.WindowsAppSDK"]
+    },
+    {
+      "name": "NeNeCommander.Domain.Tests",
+      "path": "tests/NeNeCommander.Domain.Tests/NeNeCommander.Domain.Tests.csproj",
+      "projectReferences": ["NeNeCommander.Domain"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Application.Tests",
+      "path": "tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj",
+      "projectReferences": ["NeNeCommander.Application", "NeNeCommander.Domain"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Infrastructure.Windows.Tests",
+      "path": "tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj",
+      "projectReferences": ["NeNeCommander.Application", "NeNeCommander.Domain", "NeNeCommander.Infrastructure.Windows"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Presentation.WinUI.Tests",
+      "path": "tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj",
+      "projectReferences": ["NeNeCommander.Presentation.WinUI"],
+      "packageReferences": []
+    },
+    {
+      "name": "NeNeCommander.Architecture.Tests",
+      "path": "tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj",
+      "projectReferences": ["NeNeCommander.App", "NeNeCommander.Application", "NeNeCommander.Domain", "NeNeCommander.Infrastructure.Windows", "NeNeCommander.Presentation.WinUI"],
+      "packageReferences": []
+    }
+  ],
+  "testSdk": "MSTest.Sdk"
+}

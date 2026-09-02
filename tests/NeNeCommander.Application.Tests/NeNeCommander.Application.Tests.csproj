@@ -1,0 +1,12 @@
+<Project Sdk="MSTest.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NeNeCommander.Application.Tests</RootNamespace>
+    <AssemblyName>NeNeCommander.Application.Tests</AssemblyName>
+    <TestingExtensionsProfile>Default</TestingExtensionsProfile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/NeNeCommander.Application/NeNeCommander.Application.csproj" />
+    <ProjectReference Include="../../src/NeNeCommander.Domain/NeNeCommander.Domain.csproj" />
+  </ItemGroup>
+</Project>

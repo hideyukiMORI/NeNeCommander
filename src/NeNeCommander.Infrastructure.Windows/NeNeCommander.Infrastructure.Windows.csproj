@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <RootNamespace>NeNeCommander.Infrastructure.Windows</RootNamespace>
+    <AssemblyName>NeNeCommander.Infrastructure.Windows</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NeNeCommander.Application/NeNeCommander.Application.csproj" />
+    <ProjectReference Include="../NeNeCommander.Domain/NeNeCommander.Domain.csproj" />
+  </ItemGroup>
+</Project>

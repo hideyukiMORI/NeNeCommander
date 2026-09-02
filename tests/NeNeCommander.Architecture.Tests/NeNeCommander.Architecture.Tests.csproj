@@ -1,0 +1,18 @@
+<Project Sdk="MSTest.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <RootNamespace>NeNeCommander.Architecture.Tests</RootNamespace>
+    <AssemblyName>NeNeCommander.Architecture.Tests</AssemblyName>
+    <TestingExtensionsProfile>Default</TestingExtensionsProfile>
+    <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+    <AppxGeneratePrisForPortableLibrariesEnabled>false</AppxGeneratePrisForPortableLibrariesEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/NeNeCommander.App/NeNeCommander.App.csproj" />
+    <ProjectReference Include="../../src/NeNeCommander.Application/NeNeCommander.Application.csproj" />
+    <ProjectReference Include="../../src/NeNeCommander.Domain/NeNeCommander.Domain.csproj" />
+    <ProjectReference Include="../../src/NeNeCommander.Infrastructure.Windows/NeNeCommander.Infrastructure.Windows.csproj" />
+    <ProjectReference Include="../../src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj" />
+  </ItemGroup>
+</Project>

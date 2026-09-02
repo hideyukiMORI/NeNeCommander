@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NeNeCommander.App/NeNeCommander.App.csproj" />
+    <Project Path="src/NeNeCommander.Application/NeNeCommander.Application.csproj" />
+    <Project Path="src/NeNeCommander.Domain/NeNeCommander.Domain.csproj" />
+    <Project Path="src/NeNeCommander.Infrastructure.Windows/NeNeCommander.Infrastructure.Windows.csproj" />
+    <Project Path="src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj" />
+    <Project Path="tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj" />
+    <Project Path="tests/NeNeCommander.Domain.Tests/NeNeCommander.Domain.Tests.csproj" />
+    <Project Path="tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj" />
+    <Project Path="tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj" />
+  </Folder>
+</Solution>

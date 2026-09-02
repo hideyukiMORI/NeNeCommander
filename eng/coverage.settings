@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <IncludeTestAssembly>False</IncludeTestAssembly>
+  <CodeCoverage>
+    <EnableStaticNativeInstrumentation>False</EnableStaticNativeInstrumentation>
+    <EnableDynamicNativeInstrumentation>False</EnableDynamicNativeInstrumentation>
+    <Attributes>
+      <Exclude>
+        <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+      </Exclude>
+    </Attributes>
+    <Sources>
+      <Exclude>
+        <Source>.*[\\/]obj[\\/].*</Source>
+        <Source>.*[\\/]Views[\\/]CommanderWindow\.xaml\.cs$</Source>
+      </Exclude>
+    </Sources>
+  </CodeCoverage>
+</Configuration>

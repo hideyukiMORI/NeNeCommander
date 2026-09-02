@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="NeNeCommander.App.Views.CommanderWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Uid="CommanderWindow">
+    <Grid
+        x:Name="InputSurface"
+        AutomationProperties.AutomationId="CommanderDualPane"
+        Background="{StaticResource SurfaceWindowBrush}"
+        CharacterReceived="OnCharacterReceived"
+        ColumnSpacing="{StaticResource SpacingPaneGap}"
+        KeyDown="OnKeyDown"
+        Padding="{StaticResource SpacingWindowOuter}">
+        <Grid.Resources>
+            <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                    <ResourceDictionary Source="ms-appx:///Themes/DesignTokens.xaml" />
+                </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            Grid.Column="0"
+            Background="{StaticResource SurfacePaneBrush}"
+            BorderBrush="{StaticResource FocusRingBrush}"
+            BorderThickness="{ThemeResource FocusVisualPrimaryThickness}"
+            CornerRadius="{StaticResource RadiusPane}"
+            Padding="{StaticResource SpacingPaneInner}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    x:Uid="LeftPaneLabel"
+                    FontSize="{StaticResource TypographyPaneTitleSize}"
+                    Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBox
+                    x:Name="LeftAddress"
+                    x:Uid="LeftAddress"
+                    Grid.Row="1"
+                    AutomationProperties.AutomationId="LeftAddress"
+                    Margin="{StaticResource SpacingAddressBottom}" />
+                <ListView
+                    x:Name="LeftFileList"
+                    Grid.Row="2"
+                    AutomationProperties.AutomationId="LeftFileList"
+                    MinHeight="{StaticResource DensityRowMinimumHeight}" />
+            </Grid>
+        </Border>
+
+        <Border
+            Grid.Column="1"
+            Background="{StaticResource SurfacePaneBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="{ThemeResource FocusVisualSecondaryThickness}"
+            CornerRadius="{StaticResource RadiusPane}"
+            Padding="{StaticResource SpacingPaneInner}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    x:Uid="RightPaneLabel"
+                    FontSize="{StaticResource TypographyPaneTitleSize}"
+                    Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBox
+                    x:Name="RightAddress"
+                    x:Uid="RightAddress"
+                    Grid.Row="1"
+                    AutomationProperties.AutomationId="RightAddress"
+                    Margin="{StaticResource SpacingAddressBottom}" />
+                <ListView
+                    x:Name="RightFileList"
+                    Grid.Row="2"
+                    AutomationProperties.AutomationId="RightFileList"
+                    MinHeight="{StaticResource DensityRowMinimumHeight}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

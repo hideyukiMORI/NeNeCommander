@@ -1,0 +1,517 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Domain.Paths;
+
+namespace NeNeCommander.Application.Tests;
+
+/// <summary>Proves serialized, preflighted, and fail-closed filesystem mutation behavior.</summary>
+[TestClass]
+public sealed class FileOperationGatewayTests
+{
+    /// <summary>Proves an unregistered request variant fails closed without touching a provider.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenRequestVariantIsUnsupportedThrowsWithoutProviderAccess()
+    {
+        FileOperationRequest request = new UnsupportedFileOperationRequest([ParsePath("C:\\source")]);
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        using FileOperationGateway gateway = new(port);
+
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () => await gateway.ExecuteAsync(request, CancellationToken.None));
+        Assert.IsEmpty(port.Calls);
+    }
+
+    /// <summary>Proves complete preflight precedes ordered composite effects.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenMoveSucceedsReportsOrderedEffectsAfterCompletePreflight()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        MoveRequest request = CreateMove([first, second]);
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        for (int index = 0; index < 2; index++)
+        {
+            port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+            port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+            port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        }
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(6, outcome.Effects);
+        Assert.HasCount(9, port.Calls);
+        Assert.AreEqual("Inspect:C:\\first", port.Calls[0]);
+        Assert.AreEqual("Inspect:C:\\second", port.Calls[1]);
+        Assert.AreEqual("Preflight:D:\\destination", port.Calls[2]);
+        Assert.AreEqual("Copy:C:\\first", port.Calls[3]);
+        Assert.AreEqual("Verify:C:\\first", port.Calls[4]);
+        Assert.AreEqual("Delete:C:\\first", port.Calls[5]);
+        Assert.AreEqual("Copy:C:\\second", port.Calls[6]);
+        Assert.AreEqual("Verify:C:\\second", port.Calls[7]);
+        Assert.AreEqual("Delete:C:\\second", port.Calls[8]);
+    }
+
+    /// <summary>Proves a later inspection failure prevents every mutation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-018")]
+    public async Task ExecuteAsyncWhenLaterSourceFailsInspectionNoMutationStarts()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([first, second]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(2, port.Calls);
+    }
+
+    /// <summary>Proves a preflight collision prevents every mutation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-006")]
+    public async Task ExecuteAsyncWhenPreflightFindsConflictNoMutationStarts()
+    {
+        FileSystemPath source = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(source, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(2, port.Calls);
+    }
+
+    /// <summary>Proves verification failure never deletes the source.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenCopiedIdentityCannotBeVerifiedSourceIsNotDeleted()
+    {
+        FileSystemPath source = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(source, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.HasCount(4, port.Calls);
+        Assert.AreEqual("Verify:C:\\source", port.Calls[3]);
+    }
+
+    /// <summary>Proves cancellation reports completed effects and starts no new step.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenCancellationArrivesAfterCopyReportsCopyAndStartsNoNewStep()
+    {
+        using CancellationTokenSource source = new();
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterCopy,
+            source.Cancel);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), source.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.HasCount(3, port.Calls);
+    }
+
+    /// <summary>Proves permanent deletion requires exact confirmation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-008")]
+    public async Task ExecuteAsyncWhenPermanentDeleteIsUnconfirmedRejectsWithoutMutation()
+    {
+        FileSystemPath path = ParsePath("\\\\server\\share\\source");
+        DeleteRequest request = CreateDelete([path], null);
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.PermanentOnly));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, outcome.Failure);
+        Assert.HasCount(1, port.Calls);
+    }
+
+    /// <summary>Proves confirmed permanent deletion uses the permanent provider mode.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenPermanentDeleteIsConfirmedUsesPermanentMode()
+    {
+        FileSystemPath path = ParsePath("\\\\server\\share\\source");
+        DeleteRequest unconfirmed = CreateDelete([path], null);
+        PermanentDeletionConfirmation confirmation = PermanentDeletionConfirmation.CreateFor(unconfirmed);
+        DeleteRequest confirmed = CreateDelete([path], confirmation);
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.PermanentOnly));
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(confirmed, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.AreSame(FileOperationEffectKind.PermanentlyDeleted, outcome.Effects[0].Kind);
+        Assert.AreEqual("Delete:" + path.CanonicalText, port.Calls[1]);
+    }
+
+    /// <summary>Proves recycle capability avoids permanent deletion.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenRecycleIsSupportedUsesRecycleModeWithoutConfirmation()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateDelete([path], null), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.AreSame(FileOperationEffectKind.Recycled, outcome.Effects[0].Kind);
+        Assert.AreEqual("Recycle:" + path.CanonicalText, port.Calls[1]);
+    }
+
+    /// <summary>Proves concurrent dispatch is rejected deterministically.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-014")]
+    public async Task ExecuteAsyncWhenAnotherRequestOwnsGatewayReentrantRequestIsRejected()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        BlockingInspectionPort port = BlockingInspectionPort.Create(
+            Inspection(path, DeletionCapability.Recycle));
+        using FileOperationGateway gateway = new(port);
+
+        Task<FileOperationOutcome> firstExecution = gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+        FileOperationOutcome second = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+        port.Release();
+        FileOperationOutcome first = await firstExecution;
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, second.Completion);
+        Assert.AreSame(FileOperationFailureKind.Reentrant, second.Failure);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, first.Completion);
+    }
+
+    /// <summary>Proves pre-cancelled work performs no provider call.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenAlreadyCancelledReturnsCancelledWithoutCallingPort()
+    {
+        using CancellationTokenSource source = new();
+        source.Cancel();
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateMove([ParsePath("C:\\source")]),
+            source.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.IsEmpty(port.Calls);
+    }
+
+    /// <summary>Proves move inspection cancellation stops before the next source.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenMoveInspectionIsCancelledStopsBeforeNextSource()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateMove([first, second]),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(1, port.Calls);
+    }
+
+    /// <summary>Proves delete inspection cancellation stops before the next source.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenDeleteInspectionIsCancelledStopsBeforeNextSource()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateDelete([first, second], null),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(1, port.Calls);
+    }
+
+    /// <summary>Proves cancellation after move preflight starts no copy.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenCancellationArrivesAfterPreflightStartsNoCopy()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterPreflight,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(2, port.Calls);
+    }
+
+    /// <summary>Proves delete inspection failure starts no mutation.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenDeleteInspectionFailsStartsNoMutation()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateDelete([path], null),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.NotFound, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(1, port.Calls);
+    }
+
+    /// <summary>Proves copy failure reports no completed effect.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenCopyFailsReportsNoCompletedEffect()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Failed(FileOperationFailureKind.Copy));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(3, port.Calls);
+    }
+
+    /// <summary>Proves cancellation after verification preserves two exact effects.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenCancellationArrivesAfterVerificationStartsNoDelete()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterVerification,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(2, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Verified, outcome.Effects[1].Kind);
+        Assert.HasCount(4, port.Calls);
+    }
+
+    /// <summary>Proves move source-deletion failure preserves copy and verification effects.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenMoveSourceDeletionFailsReportsPartialCompletion()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Delete, outcome.Failure);
+        Assert.HasCount(2, outcome.Effects);
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+    }
+
+    /// <summary>Proves move cancellation between sources starts no second copy.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenMoveCancellationArrivesBetweenSourcesStopsBatch()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterDeletion,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateMove([first, second]),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(3, outcome.Effects);
+        Assert.HasCount(6, port.Calls);
+    }
+
+    /// <summary>Proves delete cancellation between sources starts no second deletion.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenDeleteCancellationArrivesBetweenSourcesStopsBatch()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterDeletion,
+            cancellation.Cancel);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.Recycle));
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateDelete([first, second], null),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.HasCount(3, port.Calls);
+    }
+
+    /// <summary>Proves provider deletion failure returns an exact rejection.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenDeleteFailsReturnsProviderFailure()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueueDeletion(ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateDelete([path], null),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+    }
+
+    /// <summary>Proves confirmation cannot authorize a different source count or ordering.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenPermanentConfirmationDoesNotMatchExactSourcesRejectsMutation()
+    {
+        FileSystemPath first = ParsePath("\\\\server\\share\\first");
+        FileSystemPath second = ParsePath("\\\\server\\share\\second");
+        DeleteRequest oneSource = CreateDelete([first], null);
+        DeleteRequest ordered = CreateDelete([first, second], null);
+
+        FileOperationOutcome countMismatch = await ExecutePermanentDeleteAsync(
+            [first, second],
+            PermanentDeletionConfirmation.CreateFor(oneSource));
+        FileOperationOutcome orderMismatch = await ExecutePermanentDeleteAsync(
+            [second, first],
+            PermanentDeletionConfirmation.CreateFor(ordered));
+
+        Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, countMismatch.Failure);
+        Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, orderMismatch.Failure);
+    }
+
+    private static async Task<FileOperationOutcome> ExecutePermanentDeleteAsync(
+        FileSystemPath[] sources,
+        PermanentDeletionConfirmation confirmation)
+    {
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        foreach (FileSystemPath source in sources)
+        {
+            port.EnqueueInspection(Inspection(source, DeletionCapability.PermanentOnly));
+        }
+        using FileOperationGateway gateway = new(port);
+        return await gateway.ExecuteAsync(CreateDelete(sources, confirmation), CancellationToken.None);
+    }
+
+    private static FileInspectionOutcome Inspection(
+        FileSystemPath path,
+        DeletionCapability capability)
+    {
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(
+            FileIdentity.Parse("identity:" + path.CanonicalText));
+        return FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(path, identity.Identity, capability));
+    }
+
+    private static MoveRequest CreateMove(FileSystemPath[] sources)
+    {
+        FileOperationRequestCreation outcome = MoveRequest.Create(sources, ParsePath("D:\\destination"));
+        return Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
+    }
+
+    private static DeleteRequest CreateDelete(
+        FileSystemPath[] sources,
+        PermanentDeletionConfirmation? confirmation)
+    {
+        FileOperationRequestCreation outcome = DeleteRequest.Create(sources, confirmation);
+        return Assert.IsInstanceOfType<DeleteRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
+    }
+
+    private static FileSystemPath ParsePath(string input)
+    {
+        return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(input)).Path;
+    }
+}

@@ -1,0 +1,60 @@
+name: security-deep-review
+
+on:
+  schedule:
+    - cron: '23 2 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  adversarial-review:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Read project stage
+        id: project-state
+        shell: pwsh
+        run: |
+          $state = Get-Content -LiteralPath './docs/PROJECT_STATE.md' -Raw
+          $isImplementation = $state -match '(?m)^- Stage: `implementation`\s*$'
+          "implementation=$($isImplementation.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+      - name: Initialize CodeQL
+        if: steps.project-state.outputs.implementation == 'true'
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          languages: csharp
+          build-mode: none
+          queries: security-and-quality
+
+      - name: Run deep review
+        shell: pwsh
+        run: pwsh -NoProfile -File ./eng/deep-review.ps1 -ReportPath ./artifacts/security/deep-review.json
+
+      - name: Analyze with CodeQL
+        if: always() && steps.project-state.outputs.implementation == 'true'
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          category: /language:csharp
+
+      - name: Preserve review evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: security-deep-review
+          path: artifacts/security/
+          if-no-files-found: error
+          retention-days: 30

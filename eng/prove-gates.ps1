@@ -1,0 +1,124 @@
+[CmdletBinding()]
+param(
+    [Parameter()]
+    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$root = [System.IO.Path]::GetFullPath($RepositoryRoot)
+$tempParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$proofRoot = Join-Path $tempParent ("NeNeCommander-GateProof-" + [Guid]::NewGuid().ToString('N'))
+$proofRoot = [System.IO.Path]::GetFullPath($proofRoot)
+
+if (-not $proofRoot.StartsWith($tempParent, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Resolved proof root escaped the operating-system temporary directory.'
+}
+
+function Copy-Foundation {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Destination
+    )
+
+    New-Item -ItemType Directory -Path $Destination | Out-Null
+    foreach ($item in Get-ChildItem -LiteralPath $root -Force) {
+        if ($item.Name -in @('.git', '.vs', 'bin', 'obj', 'artifacts')) {
+            continue
+        }
+
+        Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse
+    }
+}
+
+function Assert-ConformanceFailure {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Name,
+
+        [Parameter(Mandatory)]
+        [string] $ExpectedRule,
+
+        [Parameter(Mandatory)]
+        [scriptblock] $Mutate
+    )
+
+    $caseRoot = Join-Path $proofRoot $Name
+    Copy-Foundation -Destination $caseRoot
+    & $Mutate $caseRoot
+
+    $output = (& pwsh -NoProfile -File (Join-Path $caseRoot 'eng/conformance.ps1') -RepositoryRoot $caseRoot -Quiet 2>&1) -join "`n"
+    if ($LASTEXITCODE -eq 0) {
+        throw "Negative proof '$Name' unexpectedly passed."
+    }
+
+    if ($output -notmatch "\[$([regex]::Escape($ExpectedRule))\]") {
+        throw "Negative proof '$Name' failed for the wrong reason. Expected $ExpectedRule. Output: $output"
+    }
+}
+
+try {
+    New-Item -ItemType Directory -Path $proofRoot | Out-Null
+
+    Assert-ConformanceFailure -Name 'missing-document' -ExpectedRule 'DOC-001' -Mutate {
+        param($caseRoot)
+        Remove-Item -LiteralPath (Join-Path $caseRoot 'docs/GLOSSARY.md')
+    }
+
+    Assert-ConformanceFailure -Name 'duplicate-rule' -ExpectedRule 'RULE-001' -Mutate {
+        param($caseRoot)
+        Add-Content -LiteralPath (Join-Path $caseRoot 'docs/GLOSSARY.md') -Value "`r`n### ARC-001 — Invalid duplicate`r`n`r`n- Status: **active**`r`n"
+    }
+
+    Assert-ConformanceFailure -Name 'weakened-build' -ExpectedRule 'CFG-003' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'Directory.Build.props'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('<TreatWarningsAsErrors>true</TreatWarningsAsErrors>', '<TreatWarningsAsErrors>false</TreatWarningsAsErrors>')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'suppression' -ExpectedRule 'CS-020' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'Violation.cs') -Value "#pragma warning disable CS0168`r`ninternal sealed class Violation { }`r`n"
+    }
+
+    Assert-ConformanceFailure -Name 'production-interlock' -ExpectedRule 'STATE-003' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'docs/PROJECT_STATE.md'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('- Stage: `implementation`', '- Stage: `policy-foundation`')
+        $content = $content.Replace('- Production code: `permitted`', '- Production code: `prohibited`')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    $invalidMessage = Join-Path $proofRoot 'invalid-commit-message.txt'
+    Set-Content -LiteralPath $invalidMessage -Value 'Implement filesystem safety'
+    & pwsh -NoProfile -File (Join-Path $root 'eng/validate-commit-message.ps1') -MessageFile $invalidMessage *> $null
+    if ($LASTEXITCODE -eq 0) {
+        throw 'Invalid commit message unexpectedly passed.'
+    }
+
+    $validMessage = Join-Path $proofRoot 'valid-commit-message.txt'
+    Set-Content -LiteralPath $validMessage -Value 'feat(core): ファイル操作の安全境界を実装する (#1)'
+    & pwsh -NoProfile -File (Join-Path $root 'eng/validate-commit-message.ps1') -MessageFile $validMessage *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Valid commit message unexpectedly failed.'
+    }
+
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build settings, suppressions, production interlock, and commit messages.'
+}
+finally {
+    if (Test-Path -LiteralPath $proofRoot) {
+        $resolvedProofRoot = [System.IO.Path]::GetFullPath((Resolve-Path -LiteralPath $proofRoot).Path)
+        if (-not $resolvedProofRoot.StartsWith($tempParent, [System.StringComparison]::OrdinalIgnoreCase) -or
+            -not ([System.IO.Path]::GetFileName($resolvedProofRoot).StartsWith('NeNeCommander-GateProof-', [System.StringComparison]::Ordinal))) {
+            throw 'Refusing to clean an unverified proof root.'
+        }
+
+        Remove-Item -LiteralPath $resolvedProofRoot -Recurse -Force
+    }
+}

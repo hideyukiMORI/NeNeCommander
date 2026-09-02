@@ -1,0 +1,39 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using NeNeCommander.Domain.Paths;
+
+namespace NeNeCommander.Application.FileOperations;
+
+/// <summary>
+/// Defines the sole provider-neutral side-effect boundary used by <see cref="FileOperationGateway"/>.
+/// </summary>
+public interface IFileOperationPort
+{
+    /// <summary>Captures identity and capabilities before any mutation begins.</summary>
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken);
+
+    /// <summary>Validates destination containment, recursion, capability, and every source collision.</summary>
+    public Task<ProviderStepOutcome> PreflightMoveAsync(
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination,
+        CancellationToken cancellationToken);
+
+    /// <summary>Copies one frozen source entry beneath a validated destination.</summary>
+    public Task<ProviderStepOutcome> CopyAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken);
+
+    /// <summary>Verifies a copied entry against the frozen source identity and content contract.</summary>
+    public Task<ProviderStepOutcome> VerifyCopyAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken);
+
+    /// <summary>Deletes one frozen entry using the explicitly selected execution mode.</summary>
+    public Task<ProviderStepOutcome> DeleteAsync(
+        FileEntrySnapshot source,
+        DeletionExecutionMode mode,
+        CancellationToken cancellationToken);
+}
