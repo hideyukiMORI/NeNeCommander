@@ -10,6 +10,14 @@ Status: normative
 - Active initial work item: `#1`
 - Policy foundation authorized by hide on: `2026-09-02`
 
+## Current checkpoint
+
+- Verified implementation baseline: `a386406b6269b7de14cad9653c0270ac391e6ecc`
+- Daily report: [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md)
+- Handoff: [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
+- Next product vertical slice: not started; open a focused Issue and branch before implementation.
+- Open security follow-up: [Issue #2](https://github.com/hideyukiMORI/NeNeCommander/issues/2)
+
 ## Implementation transition
 
 The implementation stage was activated on 2026-09-02 by the same change that:
