@@ -7,6 +7,7 @@ Status: normative
 | required policy files | repository foundation passes | missing required document is rejected | active |
 | unique normative rule IDs | all declarations are unique and active | duplicate rule declaration is rejected | active |
 | protected build settings | root settings match pinned values | warnings-as-errors removal is rejected | active |
+| restore/build configuration coherence | locked restore evaluates `Configuration=Release` | default-configuration restore is rejected | active |
 | suppression prohibition | clean source is accepted | pragma suppression is rejected | active |
 | production stage interlock | foundation contains no `src` implementation | production source during foundation is rejected | active |
 | project graph | manifest parses and has unique projects | undeclared/missing reference is rejected | activates with implementation |

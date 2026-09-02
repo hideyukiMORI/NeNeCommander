@@ -10,7 +10,7 @@ The canonical gate stops at the first failing stage:
 
 1. pinned SDK and repository-state validation;
 2. policy and conformance validation;
-3. locked dependency restore;
+3. locked dependency restore evaluated with the Release build configuration;
 4. formatting verification;
 5. Release build with warnings as errors;
 6. deterministic unit and contract tests;
@@ -112,6 +112,13 @@ Restore, generation, build, and test must not modify committed sources or lock f
 - Enforcement: `eng/deep-review.ps1` and scheduled CI.
 
 The default branch runs deep security, adversarial, dependency, and mutation analysis every third UTC calendar day. It does not replace the PR gate. A release requires a successful deep-review result no older than 96 hours.
+
+### QLT-014 — Restore and build evaluate the same configuration
+
+- Status: **active**
+- Enforcement: `eng/check.ps1`, `eng/conformance.ps1`, and negative gate proof.
+
+The canonical gate performs its single locked restore with `Configuration=Release` before the Release build. Configuration-conditional runtime and build packs must be resolved on a clean runner; a default-configuration restore followed by a Release `--no-restore` build is prohibited.
 
 ## Test tiers
 

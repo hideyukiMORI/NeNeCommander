@@ -79,6 +79,14 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
+    Assert-ConformanceFailure -Name 'configuration-mismatched-restore' -ExpectedRule 'QLT-014' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'eng/check.ps1'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('dotnet restore $solution -p:Configuration=Release --locked-mode', 'dotnet restore $solution --locked-mode')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
     Assert-ConformanceFailure -Name 'suppression' -ExpectedRule 'CS-020' -Mutate {
         param($caseRoot)
         $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
@@ -109,7 +117,7 @@ try {
         throw 'Valid commit message unexpectedly failed.'
     }
 
-    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build settings, suppressions, production interlock, and commit messages.'
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, and commit messages.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {

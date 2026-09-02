@@ -18,3 +18,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0006: Use MSTest on Microsoft.Testing.Platform](0006-microsoft-testing-platform.md)
 - [ADR-0007: Use the NENE2 Issue-driven public repository lifecycle](0007-issue-driven-public-repository.md)
 - [ADR-0008: Isolate the framework UI coverage boundary](0008-framework-ui-coverage-boundary.md)
+- [ADR-0009: Restore dependencies under the build configuration](0009-release-configuration-restore.md)

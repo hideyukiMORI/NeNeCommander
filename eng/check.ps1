@@ -54,7 +54,7 @@ try {
         $solution = Join-Path $root ([string] $manifest.solution)
 
         Write-Host '==> Locked restore'
-        & dotnet restore $solution --locked-mode
+        & dotnet restore $solution -p:Configuration=Release --locked-mode
         if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }
 
         Write-Host '==> Formatting'

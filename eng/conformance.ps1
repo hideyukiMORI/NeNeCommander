@@ -168,6 +168,15 @@ if ($violations.Count -eq 0) {
     }
 }
 
+$canonicalGatePath = Join-Path $root 'eng/check.ps1'
+if (Test-Path -LiteralPath $canonicalGatePath -PathType Leaf) {
+    $canonicalGate = Get-Content -LiteralPath $canonicalGatePath -Raw
+    $releaseRestorePattern = '(?m)^\s*& dotnet restore \$solution -p:Configuration=Release --locked-mode\s*$'
+    if ([regex]::Matches($canonicalGate, $releaseRestorePattern).Count -ne 1) {
+        Add-Violation -Rule 'QLT-014' -Message 'The canonical gate must perform exactly one locked restore evaluated with Configuration=Release.'
+    }
+}
+
 $coverageSettingsPath = Join-Path $root 'eng/coverage.settings'
 if (Test-Path -LiteralPath $coverageSettingsPath -PathType Leaf) {
     [xml] $coverageSettings = Get-Content -LiteralPath $coverageSettingsPath -Raw
