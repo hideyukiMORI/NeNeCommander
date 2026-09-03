@@ -13,8 +13,10 @@ namespace NeNeCommander.Application.Panes;
 /// Only <see cref="UserIntent.ActivateOtherPane"/> changes the active side; every other pane intent
 /// reaches the active pane's session alone, so a read in flight always lands in the pane that
 /// started it. <see cref="UserIntent.Move"/>, <see cref="UserIntent.Copy"/>, and <see cref="UserIntent.Delete"/> run through the sole
-/// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs, and only
-/// <see cref="UserIntent.Confirm"/> or <see cref="UserIntent.Escape"/> leave a pending confirmation.
+/// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs except
+/// <see cref="UserIntent.Escape"/>, which cancels the session-owned token the running operation
+/// observes, and only <see cref="UserIntent.Confirm"/> or <see cref="UserIntent.Escape"/> leave a
+/// pending confirmation.
 /// </summary>
 public sealed class DualPaneSession
 {
@@ -23,6 +25,7 @@ public sealed class DualPaneSession
     private readonly PaneSession _right;
     private PaneSide _activeSide;
     private OperationActivity _operation;
+    private Action _cancelRunningOperation;
 
     /// <summary>Initializes the coordinator over two distinct pane sessions with the left pane active.</summary>
     /// <param name="left">Left pane session.</param>
@@ -43,6 +46,7 @@ public sealed class DualPaneSession
         _gateway = gateway;
         _activeSide = PaneSide.Left;
         _operation = OperationActivity.Idle;
+        _cancelRunningOperation = CancelNothing;
     }
 
     /// <summary>Gets the current immutable snapshot of both panes and the operation activity.</summary>
@@ -69,8 +73,8 @@ public sealed class DualPaneSession
     /// <summary>
     /// Applies one intent: activation switches the active side without touching either pane's
     /// focus; move, copy, and delete start gateway operations; confirm and escape resolve a pending
-    /// confirmation; every other intent is handled by the active pane's session. Every intent
-    /// is frozen while an operation runs.
+    /// confirmation; every other intent is handled by the active pane's session. While an operation
+    /// runs, escape requests its cancellation and every other intent is frozen.
     /// </summary>
     /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
     /// <param name="cancellationToken">Token observed by any read or operation the intent starts.</param>
@@ -79,6 +83,10 @@ public sealed class DualPaneSession
     {
         if (_operation is OperationRunning)
         {
+            if (intent == UserIntent.Escape)
+            {
+                _cancelRunningOperation();
+            }
             return Task.FromResult(Current);
         }
         if (_operation is OperationAwaitingConfirmation awaiting)
@@ -160,7 +168,12 @@ public sealed class DualPaneSession
 
         FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
         _operation = new OperationRunning(kind);
-        FileOperationOutcome outcome = await _gateway.ExecuteAsync(request, cancellationToken);
+        FileOperationOutcome outcome;
+        using (CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        {
+            _cancelRunningOperation = owned.Cancel;
+            outcome = await _gateway.ExecuteAsync(request, owned.Token);
+        }
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {
             _operation = new OperationAwaitingConfirmation(unconfirmed);
@@ -171,6 +184,10 @@ public sealed class DualPaneSession
         _ = await _left.RefreshAsync(cancellationToken);
         _ = await _right.RefreshAsync(cancellationToken);
         return Current;
+    }
+
+    private static void CancelNothing()
+    {
     }
 
     private static IReadOnlyList<FileSystemPath> SelectSources(PaneState state)

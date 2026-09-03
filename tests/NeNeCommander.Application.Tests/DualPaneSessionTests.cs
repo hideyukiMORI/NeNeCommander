@@ -192,6 +192,80 @@ public sealed class DualPaneSessionTests
         Assert.IsEmpty(fixture.Port.Calls);
     }
 
+    /// <summary>Proves escape during a running operation cancels it at the gateway's next observation point and the next operation starts fresh.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task HandleAsyncWhenEscapeArrivesDuringOperationCancelsAtNextObservationPoint()
+    {
+        Fixture? running = null;
+        using Fixture fixture = Fixture.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            () => _ = running?.Panes.HandleAsync(UserIntent.Escape, CancellationToken.None));
+        running = fixture;
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+
+        DualPaneSnapshot cancelled = await fixture.Panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(cancelled.Operation);
+        Assert.AreSame(OperationKind.Copy, completed.Kind);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, completed.Outcome.Completion);
+        Assert.IsEmpty(completed.Outcome.Effects);
+        Assert.HasCount(2, fixture.Port.Calls);
+        Assert.AreEqual("Preflight:C:\\right", fixture.Port.Calls[1]);
+        Assert.HasCount(2, fixture.Left.Requests);
+        Assert.HasCount(2, fixture.Right.Requests);
+
+        running = null;
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File))));
+
+        DualPaneSnapshot second = await fixture.Panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        Assert.AreSame(
+            FileOperationCompletionKind.Succeeded,
+            Assert.IsInstanceOfType<OperationCompleted>(second.Operation).Outcome.Completion);
+        Assert.HasCount(6, fixture.Port.Calls);
+    }
+
+    /// <summary>Proves a non-escape intent during a running operation neither cancels it nor changes the snapshot.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-014")]
+    public async Task HandleAsyncWhenOtherIntentArrivesDuringOperationDoesNotCancelIt()
+    {
+        Fixture? running = null;
+        using Fixture fixture = Fixture.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            () => _ = running?.Panes.HandleAsync(UserIntent.MoveNext, CancellationToken.None));
+        running = fixture;
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File))));
+
+        DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        Assert.AreSame(
+            FileOperationCompletionKind.Succeeded,
+            Assert.IsInstanceOfType<OperationCompleted>(snapshot.Operation).Outcome.Completion);
+        Assert.HasCount(4, fixture.Port.Calls);
+        Assert.AreSame(leftListing.Entries[0].Path, Focus(snapshot.Left));
+    }
+
     /// <summary>Proves an explicit selection is moved instead of the focus item and focus is kept on refresh.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenMoveHasSelectionMovesSelectionAndKeepsFocus()
@@ -503,7 +577,12 @@ public sealed class DualPaneSessionTests
 
         internal static Fixture Create()
         {
-            ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+            return Create(null, null);
+        }
+
+        internal static Fixture Create(ScriptedCallbackPoint? callbackPoint, Action? callback)
+        {
+            ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(callbackPoint, callback);
             return new Fixture(
                 ScriptedDirectoryReadPort.Create(),
                 ScriptedDirectoryReadPort.Create(),
