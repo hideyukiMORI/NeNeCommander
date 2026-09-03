@@ -100,9 +100,10 @@ public sealed class WindowsLocalFileOperationAdapterTests
         WindowsLocalFileOperationAdapter adapter = new();
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
-        FileEntrySnapshot folder = await InspectAsync(adapter, ParsePath(root.CreateDirectory("tree")));
+        _ = root.CreateDirectory("tree");
         _ = root.CreateDirectory("tree\\inner");
         _ = root.WriteFile("dest\\A.TXT", "x");
+        FileEntrySnapshot folder = await InspectAsync(adapter, ParsePath(root.Resolve("tree")));
 
         ProviderStepOutcome collision = await adapter.PreflightMoveAsync([file], destination, CancellationToken.None);
         ProviderStepOutcome intoItself = await adapter.PreflightMoveAsync(
