@@ -27,7 +27,7 @@ public sealed class ProjectDependencyTests
             "NeNeCommander.Application",
             GetProjectReferences(typeof(KeyboardIntentMapper).Assembly));
         Assert.AreEqual(
-            "NeNeCommander.Application,NeNeCommander.Infrastructure.Windows,NeNeCommander.Presentation.WinUI",
+            "NeNeCommander.Application,NeNeCommander.Domain,NeNeCommander.Infrastructure.Windows,NeNeCommander.Presentation.WinUI",
             GetProjectReferences(typeof(CommanderApplication).Assembly));
     }
 
