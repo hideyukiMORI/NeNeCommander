@@ -19,3 +19,5 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0007: Use the NENE2 Issue-driven public repository lifecycle](0007-issue-driven-public-repository.md)
 - [ADR-0008: Isolate the framework UI coverage boundary](0008-framework-ui-coverage-boundary.md)
 - [ADR-0009: Restore dependencies under the build configuration](0009-release-configuration-restore.md)
+- [ADR-0010: Read directories through one provider-neutral query port](0010-directory-read-port.md)
+- [ADR-0011: Windows integration tests own an isolated temporary root](0011-windows-integration-test-root.md)

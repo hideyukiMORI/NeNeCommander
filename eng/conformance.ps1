@@ -604,8 +604,9 @@ foreach ($file in $sourceFiles) {
         }
     }
 
-    if ($relativePath -notmatch '^src/NeNeCommander\.Infrastructure\.Windows/' -and $content -match '\bSystem\.IO\b') {
-        Add-Violation -Rule 'CS-018' -Message "$relativePath accesses System.IO outside Windows infrastructure."
+    $platformApiOwners = '^(?:src/NeNeCommander\.Infrastructure\.Windows|tests/NeNeCommander\.Infrastructure\.Windows\.Tests)/'
+    if ($relativePath -notmatch $platformApiOwners -and $content -match '\bSystem\.IO\b') {
+        Add-Violation -Rule 'CS-018' -Message "$relativePath accesses System.IO outside Windows infrastructure and its integration tests."
     }
 
     $pathSegments = $relativePath.Split('/')

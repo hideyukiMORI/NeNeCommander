@@ -4,11 +4,17 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
-  <data name="CommanderWindow.Title" xml:space="preserve"><value>NeNe Commander</value></data>
+  <data name="CommanderWindowTitle" xml:space="preserve"><value>NeNe Commander</value></data>
   <data name="LeftPaneLabel.Text" xml:space="preserve"><value>Active pane</value></data>
   <data name="RightPaneLabel.Text" xml:space="preserve"><value>Passive pane</value></data>
   <data name="LeftAddress.Header" xml:space="preserve"><value>Location</value></data>
-  <data name="LeftAddress.Text" xml:space="preserve"><value>C:\</value></data>
   <data name="RightAddress.Header" xml:space="preserve"><value>Location</value></data>
   <data name="RightAddress.Text" xml:space="preserve"><value>\\wsl.localhost\Ubuntu-22.04\home</value></data>
+  <data name="PaneStatusComplete" xml:space="preserve"><value>Listing complete</value></data>
+  <data name="PaneStatusBounded" xml:space="preserve"><value>Listing stopped at the entry limit</value></data>
+  <data name="PaneStatusEntriesOmitted" xml:space="preserve"><value>Some entries cannot be shown</value></data>
+  <data name="PaneStatusAccessDenied" xml:space="preserve"><value>Access to this location was denied</value></data>
+  <data name="PaneStatusNotFound" xml:space="preserve"><value>This location is not a directory</value></data>
+  <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>This location is unavailable</value></data>
+  <data name="PaneStatusCancelled" xml:space="preserve"><value>Listing was cancelled</value></data>
 </root>

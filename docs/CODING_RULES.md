@@ -134,7 +134,7 @@ Catch only exceptions that can be normalized or enriched. Platform adapters tran
 - Status: **active**
 - Enforcement: namespace and forbidden-API scan.
 
-`System.IO`, Win32, Windows Storage, shell execution, registry, process APIs, WSL invocation, and OS capability probing belong only to `NeNeCommander.Infrastructure.Windows` or the executable composition root when startup itself requires them. Domain, application, and presentation code consume ports.
+`System.IO`, Win32, Windows Storage, shell execution, registry, process APIs, WSL invocation, and OS capability probing belong only to `NeNeCommander.Infrastructure.Windows` or the executable composition root when startup itself requires them. Domain, application, and presentation code consume ports. `NeNeCommander.Infrastructure.Windows.Tests` may use `System.IO` only through the test-owned temporary root harness defined by ADR-0011.
 
 ### CS-019 — Generated code is deterministic
 

@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
@@ -27,6 +28,9 @@ public sealed class NullGuardTests
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.Recycle);
         PaneState state = Assert.IsInstanceOfType<PaneStateAccepted>(
             PaneState.Create(path, [path], capacity)).State;
+        DirectoryEntry entry = DirectoryEntry.Create(path, "source", DirectoryEntryKind.File);
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(
+            DirectoryListing.Create(path, [entry], DirectoryListingCompleteness.Complete, 0)).Listing;
 
         AssertStaticNullGuard(typeof(FileEntrySnapshot), nameof(FileEntrySnapshot.Create),
             [null, identity, DeletionCapability.Recycle]);
@@ -49,6 +53,18 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create), [path, new[] { path }, null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [null, UserIntent.MoveNext]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [state, null]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [null, "name", DirectoryEntryKind.File]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [path, null, DirectoryEntryKind.File]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [path, "name", null]);
+        AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
+            [null, new[] { entry }, DirectoryListingCompleteness.Complete, 0]);
+        AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
+            [path, null, DirectoryListingCompleteness.Complete, 0]);
+        AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
+            [path, new[] { entry }, null, 0]);
+        AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
+        AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
+        AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
 
         ConstructorInfo constructor = typeof(FileOperationGateway).GetConstructor([typeof(IFileOperationPort)]) ??
             throw new AssertFailedException("The public gateway constructor was not found.");
@@ -57,6 +73,7 @@ public sealed class NullGuardTests
         _ = Assert.IsInstanceOfType<ArgumentNullException>(constructorFailure.InnerException);
 
         Assert.AreSame(snapshot.Path, path);
+        Assert.AreSame(listing.Entries[0], entry);
     }
 
     /// <summary>Proves the asynchronous gateway rejects an absent request before provider access.</summary>

@@ -10,6 +10,7 @@ Status: normative
 | restore/build configuration coherence | locked restore evaluates `Configuration=Release` | default-configuration restore is rejected | active |
 | suppression prohibition | clean source is accepted | pragma suppression is rejected | active |
 | production stage interlock | foundation contains no `src` implementation | production source during foundation is rejected | active |
+| platform API boundary | `System.IO` inside Windows infrastructure and its integration tests is accepted | `System.IO` in any other test or production project is rejected | active |
 | project graph | manifest parses and has unique projects | undeclared/missing reference is rejected | activates with implementation |
 | dependency allowlist | declared packages match the manifest | unlisted/versioned project package is rejected | activates with implementation |
 | C# restricted subset | compliant syntax is accepted | forbidden struct, enum, async blocking, and ambient API fixtures are rejected | activates with implementation |

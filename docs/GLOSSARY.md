@@ -17,6 +17,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
+| entry | One direct child of a read location with its validated path, provider-reported name, and closed kind. |
+| listing | An immutable `DirectoryListing`: the deterministically ordered entries of one location plus its completeness and unrepresentable-entry count. |
+| entry boundary | The positive number of provider entries after which a read stops and reports a bounded listing. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
 | gate | An executable check called by `eng/check.ps1` locally and in CI. |
 | waiver | A narrow, owned, expiring exception that does not weaken a protected invariant. |

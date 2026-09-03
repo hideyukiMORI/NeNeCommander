@@ -86,6 +86,13 @@ Operations preserve only metadata promised by the source/destination capability 
 
 Disconnected shares, stopped WSL distributions, removed drives, permission changes, and vanished files produce typed outcomes and a refreshable pane state. They do not crash the UI or cause automatic fallback to another location.
 
+### FS-011 — Directory reads are bounded and fail closed
+
+- Status: **active**
+- Enforcement: `IDirectoryReadPort` adapter contract tests and listing tests.
+
+A read returns the direct entries of one validated location through `IDirectoryReadPort` and never recurses or follows links. The adapter stops at the request's entry boundary and reports a bounded listing, observes cancellation before enumeration and before each entry, and reports denied, missing, or non-directory locations as typed failures instead of an empty listing. Hidden and system entries are reported; visibility is a later pane transition. An entry whose name the path model rejects is counted as unrepresentable, not shown and not silently dropped. Ordering is decided by `DirectoryListing`, never by provider enumeration order.
+
 ## Test safety
 
 Live filesystem integration is split from deterministic provider contract tests. Live WSL mutation tests are opt-in and require `NENE_COMMANDER_WSL_TEST_ROOT` to identify a dedicated empty test-owned directory. The harness rejects a distribution root, `/home`, a user home, `/mnt`, the repository, or any ancestor of them. Cleanup verifies the resolved target before deleting it.

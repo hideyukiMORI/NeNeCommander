@@ -103,6 +103,13 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
+    Assert-ConformanceFailure -Name 'platform-api-outside-infrastructure' -ExpectedRule 'CS-018' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'IoViolation.cs') -Value "using System.IO;`r`ninternal sealed class IoViolation { }`r`n"
+    }
+
     $invalidMessage = Join-Path $proofRoot 'invalid-commit-message.txt'
     Set-Content -LiteralPath $invalidMessage -Value 'Implement filesystem safety'
     & pwsh -NoProfile -File (Join-Path $root 'eng/validate-commit-message.ps1') -MessageFile $invalidMessage *> $null
@@ -117,7 +124,7 @@ try {
         throw 'Valid commit message unexpectedly failed.'
     }
 
-    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, and commit messages.'
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, and commit messages.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {
