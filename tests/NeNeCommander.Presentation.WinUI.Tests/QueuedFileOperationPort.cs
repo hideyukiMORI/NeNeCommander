@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,11 +6,35 @@ using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
-internal sealed class UnusedFileOperationPort : IFileOperationPort
+internal sealed class QueuedFileOperationPort : IFileOperationPort
 {
+    private readonly Queue<FileInspectionOutcome> _inspections;
+    private readonly Queue<ProviderStepOutcome> _steps;
+
+    private QueuedFileOperationPort()
+    {
+        _inspections = [];
+        _steps = [];
+    }
+
+    internal static QueuedFileOperationPort Create()
+    {
+        return new QueuedFileOperationPort();
+    }
+
+    internal void EnqueueInspection(FileInspectionOutcome outcome)
+    {
+        _inspections.Enqueue(outcome);
+    }
+
+    internal void EnqueueStep(ProviderStepOutcome outcome)
+    {
+        _steps.Enqueue(outcome);
+    }
+
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
     {
-        throw new InvalidOperationException("Presentation tests never reach the file-operation port.");
+        return Task.FromResult(_inspections.Dequeue());
     }
 
     public Task<ProviderStepOutcome> PreflightMoveAsync(
@@ -19,7 +42,7 @@ internal sealed class UnusedFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        throw new InvalidOperationException("Presentation tests never reach the file-operation port.");
+        return Task.FromResult(_steps.Dequeue());
     }
 
     public Task<ProviderStepOutcome> CopyAsync(
@@ -27,7 +50,7 @@ internal sealed class UnusedFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        throw new InvalidOperationException("Presentation tests never reach the file-operation port.");
+        return Task.FromResult(_steps.Dequeue());
     }
 
     public Task<ProviderStepOutcome> VerifyCopyAsync(
@@ -35,7 +58,7 @@ internal sealed class UnusedFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        throw new InvalidOperationException("Presentation tests never reach the file-operation port.");
+        return Task.FromResult(_steps.Dequeue());
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -43,6 +66,6 @@ internal sealed class UnusedFileOperationPort : IFileOperationPort
         DeletionExecutionMode mode,
         CancellationToken cancellationToken)
     {
-        throw new InvalidOperationException("Presentation tests never reach the file-operation port.");
+        return Task.FromResult(_steps.Dequeue());
     }
 }

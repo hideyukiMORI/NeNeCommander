@@ -72,6 +72,57 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(OperationStatus.MoveRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
     }
 
+    /// <summary>Proves each gateway completion and the running state map to one operation status.</summary>
+    [TestMethod]
+    public async Task PresentWhenMoveCompletesTranslatesEachCompletionKind()
+    {
+        using CancellationTokenSource cancellation = new();
+        await cancellation.CancelAsync();
+        Assert.AreSame(OperationStatus.MoveSucceeded, await MoveStatusAsync(port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        }, CancellationToken.None));
+        Assert.AreSame(OperationStatus.MoveRejected, await MoveStatusAsync(port =>
+            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None));
+        Assert.AreSame(OperationStatus.MovePartiallyCompleted, await MoveStatusAsync(port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        }, CancellationToken.None));
+        Assert.AreSame(OperationStatus.MoveCancelled, await MoveStatusAsync(port => { }, cancellation.Token));
+    }
+
+    private static async Task<OperationStatus> MoveStatusAsync(
+        Action<QueuedFileOperationPort> script,
+        CancellationToken cancellationToken)
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
+        port.EnqueueInspection(FileInspectionOutcome.Succeeded(
+            FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
+        script(port);
+
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, cancellationToken);
+
+        return DualPanePresenter.Present(snapshot).OperationStatus;
+    }
     /// <summary>Proves each frame names distinct semantic border resources.</summary>
     [TestMethod]
     public void ResourceKeysWhenFrameIsReadNameExactSemanticResources()
@@ -115,9 +166,19 @@ public sealed class DualPanePresenterTests
         out ScriptedDirectoryReadPort right,
         out FileOperationGateway gateway)
     {
+        return CreatePanes(out left, out right, out gateway, out QueuedFileOperationPort _);
+    }
+
+    private static DualPaneSession CreatePanes(
+        out ScriptedDirectoryReadPort left,
+        out ScriptedDirectoryReadPort right,
+        out FileOperationGateway gateway,
+        out QueuedFileOperationPort port)
+    {
         left = ScriptedDirectoryReadPort.Create();
         right = ScriptedDirectoryReadPort.Create();
-        gateway = new FileOperationGateway(new UnusedFileOperationPort());
+        port = QueuedFileOperationPort.Create();
+        gateway = new FileOperationGateway(port);
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
         return new DualPaneSession(
