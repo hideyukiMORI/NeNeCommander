@@ -14,6 +14,8 @@ Filesystem behavior is selected from a parsed provider boundary and an explicit 
 
 `\\wsl.localhost\<Distro>\...` and legacy `\\wsl$\<Distro>\...` inputs both parse as `WslPath`. Display and persistence render the canonical `\\wsl.localhost\<Distro>\...` form. Internally, provider kind and segments are stored separately; string prefix checks outside the parser are prohibited.
 
+`FileSystemPath.Parent` is the only way to derive the containing location. Each variant derives it from its own root and segments without re-parsing, preserves provider identity rules, and returns absence at the drive, share, or distribution root.
+
 ### FS-001 — Normalize without changing identity
 
 - Status: **active**

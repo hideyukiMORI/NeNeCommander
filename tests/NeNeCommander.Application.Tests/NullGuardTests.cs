@@ -65,6 +65,8 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [null, capacity, null]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [listing, null, null]);
 
         ConstructorInfo constructor = typeof(FileOperationGateway).GetConstructor([typeof(IFileOperationPort)]) ??
             throw new AssertFailedException("The public gateway constructor was not found.");
@@ -76,6 +78,39 @@ public sealed class NullGuardTests
         Assert.AreSame(listing.Entries[0], entry);
     }
 
+    /// <summary>Proves the pane session rejects absent collaborators and arguments before any read.</summary>
+    [TestMethod]
+    public void PaneSessionWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        ConstructorInfo constructor = typeof(PaneSession).GetConstructor(
+            [typeof(IDirectoryReadPort), typeof(VisiblePageCapacity), typeof(int)]) ??
+            throw new AssertFailedException("The public session constructor was not found.");
+        PaneSession session = new(port, capacity, DirectoryListing.EntryBoundaryLimit);
+
+        AssertConstructorNullGuard(constructor, [null, capacity, 1]);
+        AssertConstructorNullGuard(constructor, [port, null, 1]);
+        AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
+        AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
+        Assert.IsEmpty(port.Requests);
+    }
+
+    private static void AssertConstructorNullGuard(ConstructorInfo constructor, object?[] arguments)
+    {
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => constructor.Invoke(arguments));
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
+
+    private static void AssertInstanceNullGuard(object instance, string methodName, object?[] arguments)
+    {
+        MethodInfo method = GetSinglePublicStaticOrInstanceMethod(instance.GetType(), methodName);
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(instance, arguments));
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
     /// <summary>Proves the asynchronous gateway rejects an absent request before provider access.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenRequestIsNullThrowsArgumentNullException()

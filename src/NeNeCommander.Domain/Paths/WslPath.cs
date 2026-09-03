@@ -20,6 +20,21 @@ public sealed record WslPath : FileSystemPath
     /// <summary>Gets the normalized absolute Linux path.</summary>
     public string LinuxPath { get; }
 
+    /// <inheritdoc />
+    public override FileSystemPath? Parent =>
+        LinuxPath.Length == 1 ? null : new WslPath(RemoveLastSegment(CanonicalText, RootLength), DistributionName, ParentLinuxPath);
+
+    private int RootLength => "\\\\wsl.localhost\\".Length + DistributionName.Length + 1;
+
+    private string ParentLinuxPath
+    {
+        get
+        {
+            int lastSeparator = LinuxPath.LastIndexOf('/');
+            return lastSeparator == 0 ? "/" : LinuxPath[..lastSeparator];
+        }
+    }
+
     internal override bool HasSameIdentity(FileSystemPath other)
     {
         return other is WslPath wsl &&

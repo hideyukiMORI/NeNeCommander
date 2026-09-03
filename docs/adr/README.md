@@ -21,3 +21,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0009: Restore dependencies under the build configuration](0009-release-configuration-restore.md)
 - [ADR-0010: Read directories through one provider-neutral query port](0010-directory-read-port.md)
 - [ADR-0011: Windows integration tests own an isolated temporary root](0011-windows-integration-test-root.md)
+- [ADR-0012: Coordinate pane navigation through one session](0012-pane-session-navigation.md)

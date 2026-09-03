@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Domain.Paths;
 
@@ -40,6 +41,33 @@ public static class PaneReducer
         int currentIndex = GetFocusIndex(state);
         int targetIndex = Math.Clamp(currentIndex + offset, 0, state.VisibleItems.Count - 1);
         return state.Transition(state.VisibleItems[targetIndex], state.Selection);
+    }
+
+    /// <summary>
+    /// Applies a successful location change: the listing becomes the visible snapshot, selection
+    /// is cleared, and focus lands on the preferred item when it exists, otherwise on the first item.
+    /// </summary>
+    /// <param name="listing">Validated listing of the new location.</param>
+    /// <param name="visiblePageCapacity">Validated visible-row capacity carried across locations.</param>
+    /// <param name="preferredFocus">Item to focus when present, or absence to focus the first item.</param>
+    /// <returns>The new valid state.</returns>
+    public static PaneState Navigate(
+        DirectoryListing listing,
+        VisiblePageCapacity visiblePageCapacity,
+        FileSystemPath? preferredFocus)
+    {
+        ArgumentNullException.ThrowIfNull(listing);
+        ArgumentNullException.ThrowIfNull(visiblePageCapacity);
+
+        PaneState state = PaneState.FromListing(listing, visiblePageCapacity);
+        if (preferredFocus is null)
+        {
+            return state;
+        }
+
+        FileSystemPath? preferred = state.VisibleItems.FirstOrDefault(item =>
+            FileSystemPathIdentityComparer.Instance.Equals(item, preferredFocus));
+        return preferred is null ? state : state.Transition(preferred, state.Selection);
     }
 
     private static int GetMovementOffset(PaneState state, UserIntent intent)
