@@ -14,13 +14,23 @@
         PreviewKeyDown="OnKeyDown"
         Loaded="OnLoaded"
         Padding="{StaticResource SpacingWindowOuter}">
+        <Grid.Resources>
+            <DataTemplate x:Key="DirectoryEntryTemplate" x:DataType="directories:DirectoryEntry">
+                <TextBlock
+                    FontSize="{StaticResource TypographyBodySize}"
+                    Foreground="{StaticResource TextPrimaryBrush}"
+                    Text="{x:Bind Name}" />
+            </DataTemplate>
+        </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Border
+            x:Name="LeftPaneBorder"
             Grid.Column="0"
+            AutomationProperties.AutomationId="LeftPaneBorder"
             Background="{StaticResource SurfacePaneBrush}"
             BorderBrush="{StaticResource FocusRingBrush}"
             BorderThickness="{StaticResource BorderActivePaneThickness}"
@@ -54,22 +64,16 @@
                     x:Name="LeftFileList"
                     Grid.Row="3"
                     AutomationProperties.AutomationId="LeftFileList"
+                    ItemTemplate="{StaticResource DirectoryEntryTemplate}"
                     MinHeight="{StaticResource DensityRowMinimumHeight}"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="directories:DirectoryEntry">
-                            <TextBlock
-                                FontSize="{StaticResource TypographyBodySize}"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                Text="{x:Bind Name}" />
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    SelectionMode="Single" />
             </Grid>
         </Border>
 
         <Border
+            x:Name="RightPaneBorder"
             Grid.Column="1"
+            AutomationProperties.AutomationId="RightPaneBorder"
             Background="{StaticResource SurfacePaneBrush}"
             BorderBrush="{StaticResource BorderSubtleBrush}"
             BorderThickness="{StaticResource BorderPassivePaneThickness}"
@@ -77,6 +81,7 @@
             Padding="{StaticResource SpacingPaneInner}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -91,11 +96,20 @@
                     Grid.Row="1"
                     AutomationProperties.AutomationId="RightAddress"
                     Margin="{StaticResource SpacingAddressBottom}" />
+                <TextBlock
+                    x:Name="RightStatus"
+                    Grid.Row="2"
+                    AutomationProperties.AutomationId="RightStatus"
+                    FontSize="{StaticResource TypographyBodySize}"
+                    Foreground="{StaticResource TextPrimaryBrush}"
+                    Margin="{StaticResource SpacingAddressBottom}" />
                 <ListView
                     x:Name="RightFileList"
-                    Grid.Row="2"
+                    Grid.Row="3"
                     AutomationProperties.AutomationId="RightFileList"
-                    MinHeight="{StaticResource DensityRowMinimumHeight}" />
+                    ItemTemplate="{StaticResource DirectoryEntryTemplate}"
+                    MinHeight="{StaticResource DensityRowMinimumHeight}"
+                    SelectionMode="Single" />
             </Grid>
         </Border>
     </Grid>

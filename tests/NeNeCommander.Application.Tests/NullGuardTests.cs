@@ -97,6 +97,29 @@ public sealed class NullGuardTests
         Assert.IsEmpty(port.Requests);
     }
 
+    /// <summary>Proves the dual-pane coordinator and its snapshot reject absent collaborators and arguments.</summary>
+    [TestMethod]
+    public void DualPaneSessionWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        PaneSession left = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
+        PaneSession right = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
+        ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor([typeof(PaneSession), typeof(PaneSession)]) ??
+            throw new AssertFailedException("The public dual-pane constructor was not found.");
+        DualPaneSession panes = new(left, right);
+        FileSystemPath path = ParsePath("C:\\source");
+
+        AssertConstructorNullGuard(constructor, [null, right]);
+        AssertConstructorNullGuard(constructor, [left, null]);
+        AssertInstanceNullGuard(panes, nameof(DualPaneSession.NavigateAsync), [null, path, CancellationToken.None]);
+        AssertInstanceNullGuard(panes, nameof(DualPaneSession.NavigateAsync), [PaneSide.Left, null, CancellationToken.None]);
+        AssertInstanceNullGuard(panes, nameof(DualPaneSession.HandleAsync), [null, CancellationToken.None]);
+        AssertInstanceNullGuard(panes.Current, nameof(DualPaneSnapshot.Of), [null]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [null, PaneSnapshot.Initial, PaneSide.Left]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, null, PaneSide.Left]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, null]);
+    }
     /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
     [TestMethod]
     public void ConstructPaneStateRecordsWhenRequiredArgumentIsNullThrowsArgumentNullException()

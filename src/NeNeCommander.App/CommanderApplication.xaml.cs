@@ -14,10 +14,12 @@ namespace NeNeCommander;
 public partial class CommanderApplication : Microsoft.UI.Xaml.Application
 {
     /// <summary>
-    /// Initial left-pane location until drive discovery and persisted locations exist.
-    /// It is parsed once here so no other layer interprets path text.
+    /// Initial pane locations until drive discovery and persisted locations exist.
+    /// They are parsed once here so no other layer interprets path text.
     /// </summary>
     private const string InitialLeftLocationText = "C:\\";
+
+    private const string InitialRightLocationText = "C:\\Users";
 
     /// <summary>
     /// Visible rows assumed for half-page movement until the pane measures its own height.
@@ -39,14 +41,21 @@ public partial class CommanderApplication : Microsoft.UI.Xaml.Application
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
         WindowsLocalDirectoryReader directoryReader = new();
-        PaneSession leftPane = new(directoryReader, CreateVisiblePageCapacity(), DirectoryListing.EntryBoundaryLimit);
-        _window = new CommanderWindow(keyboardIntentMapper, leftPane, ParseInitialLeftLocation());
+        VisiblePageCapacity capacity = CreateVisiblePageCapacity();
+        DualPaneSession panes = new(
+            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
+            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit));
+        _window = new CommanderWindow(
+            keyboardIntentMapper,
+            panes,
+            ParseInitialLocation(InitialLeftLocationText),
+            ParseInitialLocation(InitialRightLocationText));
         _window.Activate();
     }
 
-    private static FileSystemPath ParseInitialLeftLocation()
+    private static FileSystemPath ParseInitialLocation(string text)
     {
-        return FileSystemPath.Parse(InitialLeftLocationText) is PathParseSuccess location
+        return FileSystemPath.Parse(text) is PathParseSuccess location
             ? location.Path
             : throw new InvalidOperationException("The composed initial location is not a valid path.");
     }
