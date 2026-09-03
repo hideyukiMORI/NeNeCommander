@@ -9,17 +9,17 @@ Status: normative
 - Public repository: `https://github.com/hideyukiMORI/NeNeCommander`
 - Active initial work item: `#1` (closed)
 - Completed vertical slice: [Issue #3](https://github.com/hideyukiMORI/NeNeCommander/issues/3) (closed by PR #4)
-- Active work item: [Issue #6](https://github.com/hideyukiMORI/NeNeCommander/issues/6)
+- Completed vertical slice: [Issue #6](https://github.com/hideyukiMORI/NeNeCommander/issues/6) (closed by PR #7)
 - Policy foundation authorized by hide on: `2026-09-02`
 
 ## Current checkpoint
 
-- Verified implementation baseline: `de8f197ef0d25372cb2433003f2ec35a3d88bf54`
-- Daily report: [`docs/reports/2026-09-03-directory-listing-daily-report.md`](reports/2026-09-03-directory-listing-daily-report.md)
-- Handoff: [`docs/handoffs/2026-09-03-directory-listing-handoff.md`](handoffs/2026-09-03-directory-listing-handoff.md)
-- Previous checkpoint: [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md) and [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
-- Completed product vertical slice: one Windows local directory read and projected onto the left pane (ADR-0010, ADR-0011).
-- Current product vertical slice: keyboard focus movement and directory entry/parent navigation in the left pane ([Issue #6](https://github.com/hideyukiMORI/NeNeCommander/issues/6), ADR-0012).
+- Verified implementation baseline: `b60e56d3c8aab4796bd1ea46b2c0f217c92b3037`
+- Daily report: [`docs/reports/2026-09-03-pane-navigation-daily-report.md`](reports/2026-09-03-pane-navigation-daily-report.md)
+- Handoff: [`docs/handoffs/2026-09-03-pane-navigation-handoff.md`](handoffs/2026-09-03-pane-navigation-handoff.md)
+- Previous checkpoints: [`docs/reports/2026-09-03-directory-listing-daily-report.md`](reports/2026-09-03-directory-listing-daily-report.md), [`docs/handoffs/2026-09-03-directory-listing-handoff.md`](handoffs/2026-09-03-directory-listing-handoff.md), [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md), [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
+- Completed product vertical slices: one Windows local directory read projected onto the left pane (ADR-0010, ADR-0011); keyboard focus movement and directory entry/parent navigation in the left pane (ADR-0012).
+- Next product vertical slice: the right pane as a second pane session with `Tab` switching the active pane; not started, open a focused Issue and branch before implementation.
 - Open security follow-up: [Issue #2](https://github.com/hideyukiMORI/NeNeCommander/issues/2)
 
 ## Implementation transition
