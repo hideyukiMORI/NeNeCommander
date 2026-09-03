@@ -39,7 +39,7 @@ public sealed class DualPaneSession
 
     /// <summary>Reads a location into one side regardless of which side is active.</summary>
     /// <param name="side">Pane to read into.</param>
-    /// <param name="location">Validated location to read.</param>
+    /// <param name="location">Validated location to read; absence is rejected by the pane session.</param>
     /// <param name="cancellationToken">Token observed by the read.</param>
     /// <returns>The snapshot current after the read completed or was superseded.</returns>
     public Task<DualPaneSnapshot> NavigateAsync(
@@ -48,7 +48,6 @@ public sealed class DualPaneSession
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(side);
-        ArgumentNullException.ThrowIfNull(location);
         return ReportAfterAsync(SessionOf(side).NavigateAsync(location, cancellationToken));
     }
 
@@ -56,12 +55,11 @@ public sealed class DualPaneSession
     /// Applies one intent: activation switches the active side without touching either pane's
     /// focus; every other intent is handled by the active pane's session.
     /// </summary>
-    /// <param name="intent">Typed user intent.</param>
+    /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
     /// <param name="cancellationToken">Token observed by any read the intent starts.</param>
     /// <returns>The resulting snapshot.</returns>
     public Task<DualPaneSnapshot> HandleAsync(UserIntent intent, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(intent);
         if (intent == UserIntent.ActivateOtherPane)
         {
             _activeSide = _activeSide.Other;

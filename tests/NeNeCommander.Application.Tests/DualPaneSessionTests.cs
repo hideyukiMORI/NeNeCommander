@@ -43,6 +43,9 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(rightListing, Assert.IsInstanceOfType<PaneContentListed>(snapshot.Right.Content).Listing);
         Assert.AreSame(PaneContent.Absent, snapshot.Left.Content);
         Assert.AreSame(PaneSide.Left, snapshot.ActiveSide);
+        Assert.AreSame(snapshot.Right, snapshot.Of(PaneSide.Right));
+        Assert.AreSame(snapshot.Left, snapshot.Of(PaneSide.Left));
+        Assert.AreNotSame(snapshot.Left, snapshot.Right);
     }
 
     /// <summary>Proves activation toggles the side without touching either pane's focus.</summary>
@@ -123,7 +126,10 @@ public sealed class DualPaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         PaneSession shared = new(port, Capacity(4), DirectoryListing.EntryBoundaryLimit);
 
-        _ = Assert.ThrowsExactly<ArgumentException>(() => new DualPaneSession(shared, shared));
+        ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(() => new DualPaneSession(shared, shared));
+
+        Assert.AreEqual("right", failure.ParamName);
+        Assert.StartsWith("Each pane side requires its own session.", failure.Message);
     }
 
     private static FileSystemPath? Focus(PaneSnapshot snapshot)
