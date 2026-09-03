@@ -19,7 +19,6 @@ public static class DualPanePresenter
         ArgumentNullException.ThrowIfNull(snapshot);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
-        OperationAwaitingConfirmation? pending = snapshot.Operation as OperationAwaitingConfirmation;
         return new DualPanePresentation(
             PaneListingPresenter.Present(snapshot.Left),
             leftFrame,
@@ -27,8 +26,18 @@ public static class DualPanePresenter
             rightFrame,
             snapshot.ActiveSide,
             TranslateOperation(snapshot.Operation),
-            pending is null ? 0 : pending.Request.Sources.Count,
-            pending is null ? KeyboardContext.FileList : KeyboardContext.Modal);
+            TranslateDetail(snapshot.Operation),
+            snapshot.Operation is OperationAwaitingConfirmation ? KeyboardContext.Modal : KeyboardContext.FileList);
+    }
+
+    private static OperationDetail TranslateDetail(OperationActivity activity)
+    {
+        return activity switch
+        {
+            OperationAwaitingConfirmation pending => new OperationItemCountDetail(pending.Request.Sources.Count),
+            OperationRunning running => new OperationProgressDetail(running.Progress),
+            _ => OperationDetail.None,
+        };
     }
 
     private static OperationStatus TranslateOperation(OperationActivity activity)

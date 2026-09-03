@@ -17,7 +17,7 @@ public sealed record DualPanePresentation
         PaneFrame rightFrame,
         PaneSide activeSide,
         OperationStatus operationStatus,
-        int confirmationItemCount,
+        OperationDetail detail,
         KeyboardContext inputContext)
     {
         ArgumentNullException.ThrowIfNull(left);
@@ -26,7 +26,7 @@ public sealed record DualPanePresentation
         ArgumentNullException.ThrowIfNull(rightFrame);
         ArgumentNullException.ThrowIfNull(activeSide);
         ArgumentNullException.ThrowIfNull(operationStatus);
-        ArgumentOutOfRangeException.ThrowIfNegative(confirmationItemCount);
+        ArgumentNullException.ThrowIfNull(detail);
         ArgumentNullException.ThrowIfNull(inputContext);
         Left = left;
         LeftFrame = leftFrame;
@@ -34,7 +34,7 @@ public sealed record DualPanePresentation
         RightFrame = rightFrame;
         ActiveSide = activeSide;
         OperationStatus = operationStatus;
-        ConfirmationItemCount = confirmationItemCount;
+        Detail = detail;
         InputContext = inputContext;
     }
 
@@ -56,8 +56,8 @@ public sealed record DualPanePresentation
     /// <summary>Gets the status of the file-operation activity.</summary>
     public OperationStatus OperationStatus { get; }
 
-    /// <summary>Gets the number of items a pending confirmation names, or zero when none is pending.</summary>
-    public int ConfirmationItemCount { get; }
+    /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
+    public OperationDetail Detail { get; }
 
     /// <summary>
     /// Gets the keyboard context the operation state imposes on the file list: modal while a

@@ -17,8 +17,8 @@ using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.App.Views;
 
-/// <summary>Hosts the design-neutral dual-pane shell and forwards typed keyboard intents.</summary>
-public sealed partial class CommanderWindow : Window
+/// <summary>Hosts the design-neutral dual-pane shell, forwards typed keyboard intents, and renders progress as it is reported.</summary>
+public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 {
     private readonly FileSystemPath _initialLeftLocation;
     private readonly FileSystemPath _initialRightLocation;
@@ -50,6 +50,12 @@ public sealed partial class CommanderWindow : Window
         _resources = new ResourceLoader();
         InitializeComponent();
         Title = _resources.GetString("CommanderWindowTitle");
+    }
+
+    /// <inheritdoc />
+    public void OperationProgressed(DualPaneSnapshot snapshot)
+    {
+        RenderPanes(snapshot);
     }
 
     private void OnLoaded(object _, RoutedEventArgs args)
@@ -102,11 +108,31 @@ public sealed partial class CommanderWindow : Window
         RenderFrame(presentation.LeftFrame, LeftPaneBorder);
         RenderFrame(presentation.RightFrame, RightPaneBorder);
         OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
-        OperationDetail.Text = presentation.ConfirmationItemCount == 0
-            ? string.Empty
-            : presentation.ConfirmationItemCount.ToString(CultureInfo.CurrentCulture);
+        RenderDetail(presentation.Detail);
         _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+    }
+
+    private void RenderDetail(OperationDetail detail)
+    {
+        switch (detail)
+        {
+            case OperationItemCountDetail count:
+                OperationDetailCount.Text = count.Count.ToString(CultureInfo.CurrentCulture);
+                OperationProgressSeparator.Text = string.Empty;
+                OperationTotal.Text = string.Empty;
+                break;
+            case OperationProgressDetail progress:
+                OperationDetailCount.Text = progress.Completed.ToString(CultureInfo.CurrentCulture);
+                OperationProgressSeparator.Text = _resources.GetString("OperationProgressSeparator");
+                OperationTotal.Text = progress.Total.ToString(CultureInfo.CurrentCulture);
+                break;
+            default:
+                OperationDetailCount.Text = string.Empty;
+                OperationProgressSeparator.Text = string.Empty;
+                OperationTotal.Text = string.Empty;
+                break;
+        }
     }
 
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
@@ -152,7 +178,7 @@ public sealed partial class CommanderWindow : Window
 
     private void ForwardIntent(UserIntent intent)
     {
-        _paneWork = RenderAfterAsync(_panes.HandleAsync(intent, CancellationToken.None));
+        _paneWork = RenderAfterAsync(_panes.HandleAsync(intent, this, CancellationToken.None));
     }
 
     private KeyboardContext GetKeyboardContext()

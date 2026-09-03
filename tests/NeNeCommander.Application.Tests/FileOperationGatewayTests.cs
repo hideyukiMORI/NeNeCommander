@@ -20,7 +20,7 @@ public sealed class FileOperationGatewayTests
         using FileOperationGateway gateway = new(port);
 
         _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            async () => await gateway.ExecuteAsync(request, CancellationToken.None));
+            async () => await gateway.ExecuteAsync(request, RecordingFileOperationProgress.Create(), CancellationToken.None));
         Assert.IsEmpty(port.Calls);
     }
 
@@ -43,7 +43,7 @@ public sealed class FileOperationGatewayTests
         }
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(6, outcome.Effects);
@@ -77,7 +77,7 @@ public sealed class FileOperationGatewayTests
         }
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(4, outcome.Effects);
@@ -92,6 +92,41 @@ public sealed class FileOperationGatewayTests
         Assert.AreEqual("Verify:C:\\first", port.Calls[4]);
         Assert.AreEqual("Copy:C:\\second", port.Calls[5]);
         Assert.AreEqual("Verify:C:\\second", port.Calls[6]);
+    }
+
+    /// <summary>Proves progress is reported once per completed source for transfers and deletions, and never for a source that failed.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenSourcesCompleteReportsProgressOncePerSource()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Failed(FileOperationFailureKind.Copy));
+        port.EnqueueInspection(Inspection(first, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.Recycle));
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+        RecordingFileOperationProgress copyProgress = RecordingFileOperationProgress.Create();
+        RecordingFileOperationProgress deleteProgress = RecordingFileOperationProgress.Create();
+
+        FileOperationOutcome copy = await gateway.ExecuteAsync(CreateCopy([first, second]), copyProgress, CancellationToken.None);
+        FileOperationOutcome delete = await gateway.ExecuteAsync(CreateDelete([first, second], null), deleteProgress, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, copy.Completion);
+        Assert.HasCount(1, copyProgress.Reports);
+        Assert.AreEqual(FileOperationProgress.Create(1, 2), copyProgress.Reports[0]);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, delete.Completion);
+        Assert.HasCount(2, deleteProgress.Reports);
+        Assert.AreEqual(FileOperationProgress.Create(1, 2), deleteProgress.Reports[0]);
+        Assert.AreEqual(FileOperationProgress.Create(2, 2), deleteProgress.Reports[1]);
     }
 
     /// <summary>Proves a copy whose verification fails stops the batch with the copied effect and starts no further source.</summary>
@@ -111,7 +146,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueVerification(ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([first, second]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([first, second]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
@@ -134,7 +169,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueuePreflight(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([path]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
@@ -155,7 +190,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([first, second]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([first, second]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
@@ -175,7 +210,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueuePreflight(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
@@ -198,7 +233,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueVerification(ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([source]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
@@ -224,7 +259,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueCopy(ProviderStepOutcome.Succeeded());
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), source.Token);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), source.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
         Assert.HasCount(1, outcome.Effects);
@@ -244,7 +279,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueInspection(Inspection(path, DeletionCapability.PermanentOnly));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, outcome.Failure);
@@ -264,7 +299,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(confirmed, CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(confirmed, RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.AreSame(FileOperationEffectKind.PermanentlyDeleted, outcome.Effects[0].Kind);
@@ -281,7 +316,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateDelete([path], null), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateDelete([path], null), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.AreSame(FileOperationEffectKind.Recycled, outcome.Effects[0].Kind);
@@ -299,8 +334,8 @@ public sealed class FileOperationGatewayTests
             Inspection(path, DeletionCapability.Recycle));
         using FileOperationGateway gateway = new(port);
 
-        Task<FileOperationOutcome> firstExecution = gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
-        FileOperationOutcome second = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+        Task<FileOperationOutcome> firstExecution = gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);
+        FileOperationOutcome second = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);
         port.Release();
         FileOperationOutcome first = await firstExecution;
 
@@ -320,6 +355,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateMove([ParsePath("C:\\source")]),
+            RecordingFileOperationProgress.Create(),
             source.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
@@ -341,6 +377,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateMove([first, second]),
+            RecordingFileOperationProgress.Create(),
             cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
@@ -362,6 +399,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateDelete([first, second], null),
+            RecordingFileOperationProgress.Create(),
             cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
@@ -381,7 +419,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), cancellation.Token);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
         Assert.HasCount(2, port.Calls);
@@ -398,6 +436,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateDelete([path], null),
+            RecordingFileOperationProgress.Create(),
             CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.NotFound, outcome.Failure);
@@ -416,7 +455,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueCopy(ProviderStepOutcome.Failed(FileOperationFailureKind.Copy));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
         Assert.IsEmpty(outcome.Effects);
@@ -438,7 +477,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueVerification(ProviderStepOutcome.Succeeded());
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), cancellation.Token);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
         Assert.HasCount(2, outcome.Effects);
@@ -459,7 +498,7 @@ public sealed class FileOperationGatewayTests
         port.EnqueueDeletion(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateMove([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Delete, outcome.Failure);
         Assert.HasCount(2, outcome.Effects);
@@ -486,6 +525,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateMove([first, second]),
+            RecordingFileOperationProgress.Create(),
             cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
@@ -510,6 +550,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateDelete([first, second], null),
+            RecordingFileOperationProgress.Create(),
             cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
@@ -529,6 +570,7 @@ public sealed class FileOperationGatewayTests
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             CreateDelete([path], null),
+            RecordingFileOperationProgress.Create(),
             CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
@@ -565,7 +607,7 @@ public sealed class FileOperationGatewayTests
             port.EnqueueInspection(Inspection(source, DeletionCapability.PermanentOnly));
         }
         using FileOperationGateway gateway = new(port);
-        return await gateway.ExecuteAsync(CreateDelete(sources, confirmation), CancellationToken.None);
+        return await gateway.ExecuteAsync(CreateDelete(sources, confirmation), RecordingFileOperationProgress.Create(), CancellationToken.None);
     }
 
     private static FileInspectionOutcome Inspection(

@@ -77,10 +77,15 @@ public sealed class DualPaneSession
     /// runs, escape requests its cancellation and every other intent is frozen.
     /// </summary>
     /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
+    /// <param name="observer">Receives the snapshot each time a started operation reports progress.</param>
     /// <param name="cancellationToken">Token observed by any read or operation the intent starts.</param>
     /// <returns>The resulting snapshot.</returns>
-    public Task<DualPaneSnapshot> HandleAsync(UserIntent intent, CancellationToken cancellationToken)
+    public Task<DualPaneSnapshot> HandleAsync(
+        UserIntent intent,
+        IDualPaneProgressObserver observer,
+        CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(observer);
         if (_operation is OperationRunning)
         {
             if (intent == UserIntent.Escape)
@@ -91,7 +96,7 @@ public sealed class DualPaneSession
         }
         if (_operation is OperationAwaitingConfirmation awaiting)
         {
-            return ResolveConfirmationAsync(awaiting, intent, cancellationToken);
+            return ResolveConfirmationAsync(awaiting, intent, observer, cancellationToken);
         }
         if (intent == UserIntent.ActivateOtherPane)
         {
@@ -99,17 +104,18 @@ public sealed class DualPaneSession
             return Task.FromResult(Current);
         }
         return intent == UserIntent.Move
-            ? TransferAsync(OperationKind.Move, MoveRequest.Create, cancellationToken)
+            ? TransferAsync(OperationKind.Move, MoveRequest.Create, observer, cancellationToken)
             : intent == UserIntent.Copy
-                ? TransferAsync(OperationKind.Copy, CopyRequest.Create, cancellationToken)
+                ? TransferAsync(OperationKind.Copy, CopyRequest.Create, observer, cancellationToken)
                 : intent == UserIntent.Delete
-                    ? DeleteAsync(cancellationToken)
+                    ? DeleteAsync(observer, cancellationToken)
                     : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
     }
 
     private Task<DualPaneSnapshot> ResolveConfirmationAsync(
         OperationAwaitingConfirmation awaiting,
         UserIntent intent,
+        IDualPaneProgressObserver observer,
         CancellationToken cancellationToken)
     {
         if (intent == UserIntent.Escape)
@@ -124,12 +130,13 @@ public sealed class DualPaneSession
         FileOperationRequestCreation confirmed = DeleteRequest.Create(
             awaiting.Request.Sources,
             PermanentDeletionConfirmation.CreateFor(awaiting.Request));
-        return StartAsync(OperationKind.Delete, confirmed, cancellationToken);
+        return StartAsync(OperationKind.Delete, confirmed, observer, cancellationToken);
     }
 
     private Task<DualPaneSnapshot> TransferAsync(
         OperationKind kind,
         Func<IReadOnlyList<FileSystemPath>, FileSystemPath, FileOperationRequestCreation> createRequest,
+        IDualPaneProgressObserver observer,
         CancellationToken cancellationToken)
     {
         if (SessionOf(_activeSide).Current.Content is not PaneContentListed active ||
@@ -140,10 +147,10 @@ public sealed class DualPaneSession
         IReadOnlyList<FileSystemPath> sources = SelectSources(active.State);
         return sources.Count == 0
             ? Task.FromResult(Current)
-            : StartAsync(kind, createRequest(sources, passive.Listing.Location), cancellationToken);
+            : StartAsync(kind, createRequest(sources, passive.Listing.Location), observer, cancellationToken);
     }
 
-    private Task<DualPaneSnapshot> DeleteAsync(CancellationToken cancellationToken)
+    private Task<DualPaneSnapshot> DeleteAsync(IDualPaneProgressObserver observer, CancellationToken cancellationToken)
     {
         if (SessionOf(_activeSide).Current.Content is not PaneContentListed active)
         {
@@ -152,12 +159,13 @@ public sealed class DualPaneSession
         IReadOnlyList<FileSystemPath> sources = SelectSources(active.State);
         return sources.Count == 0
             ? Task.FromResult(Current)
-            : StartAsync(OperationKind.Delete, DeleteRequest.Create(sources, null), cancellationToken);
+            : StartAsync(OperationKind.Delete, DeleteRequest.Create(sources, null), observer, cancellationToken);
     }
 
     private async Task<DualPaneSnapshot> StartAsync(
         OperationKind kind,
         FileOperationRequestCreation creation,
+        IDualPaneProgressObserver observer,
         CancellationToken cancellationToken)
     {
         if (creation is FileOperationRequestRejected rejected)
@@ -167,12 +175,12 @@ public sealed class DualPaneSession
         }
 
         FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
-        _operation = new OperationRunning(kind);
+        _operation = new OperationRunning(kind, FileOperationProgress.Create(0, request.Sources.Count));
         FileOperationOutcome outcome;
         using (CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
             _cancelRunningOperation = owned.Cancel;
-            outcome = await _gateway.ExecuteAsync(request, owned.Token);
+            outcome = await _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), owned.Token);
         }
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {
@@ -206,5 +214,25 @@ public sealed class DualPaneSession
     private PaneSession SessionOf(PaneSide side)
     {
         return side == PaneSide.Left ? _left : _right;
+    }
+
+    private sealed class ProgressRelay : IFileOperationProgressObserver
+    {
+        private readonly OperationKind _kind;
+        private readonly IDualPaneProgressObserver _observer;
+        private readonly DualPaneSession _session;
+
+        internal ProgressRelay(DualPaneSession session, OperationKind kind, IDualPaneProgressObserver observer)
+        {
+            _session = session;
+            _kind = kind;
+            _observer = observer;
+        }
+
+        public void Report(FileOperationProgress progress)
+        {
+            _session._operation = new OperationRunning(_kind, progress);
+            _observer.OperationProgressed(_session.Current);
+        }
     }
 }

@@ -130,13 +130,28 @@
             FontSize="{StaticResource TypographyBodySize}"
             Foreground="{StaticResource TextPrimaryBrush}"
             Margin="{StaticResource SpacingAddressBottom}" />
-        <TextBlock
-            x:Name="OperationDetail"
+        <StackPanel
             Grid.Row="1"
             Grid.Column="1"
-            AutomationProperties.AutomationId="OperationDetail"
-            FontSize="{StaticResource TypographyBodySize}"
-            Foreground="{StaticResource StatusWarningBrush}"
-            Margin="{StaticResource SpacingAddressBottom}" />
+            Orientation="Horizontal">
+            <TextBlock
+                x:Name="OperationDetailCount"
+                AutomationProperties.AutomationId="OperationDetail"
+                FontSize="{StaticResource TypographyBodySize}"
+                Foreground="{StaticResource StatusWarningBrush}"
+                Margin="{StaticResource SpacingAddressBottom}" />
+            <TextBlock
+                x:Name="OperationProgressSeparator"
+                AutomationProperties.AutomationId="OperationProgressSeparator"
+                FontSize="{StaticResource TypographyBodySize}"
+                Foreground="{StaticResource StatusWarningBrush}"
+                Margin="{StaticResource SpacingAddressBottom}" />
+            <TextBlock
+                x:Name="OperationTotal"
+                AutomationProperties.AutomationId="OperationTotal"
+                FontSize="{StaticResource TypographyBodySize}"
+                Foreground="{StaticResource StatusWarningBrush}"
+                Margin="{StaticResource SpacingAddressBottom}" />
+        </StackPanel>
     </Grid>
 </Window>

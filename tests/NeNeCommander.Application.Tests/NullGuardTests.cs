@@ -112,7 +112,7 @@ public sealed class NullGuardTests
         PaneSession left = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
         PaneSession right = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(cancelledRequest, cancellation.Token);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(cancelledRequest, RecordingFileOperationProgress.Create(), cancellation.Token);
         ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor(
             [typeof(PaneSession), typeof(PaneSession), typeof(FileOperationGateway)]) ??
             throw new AssertFailedException("The public dual-pane constructor was not found.");
@@ -123,13 +123,15 @@ public sealed class NullGuardTests
         AssertConstructorNullGuard(constructor, [left, null, gateway]);
         AssertConstructorNullGuard(constructor, [left, right, null]);
         AssertInstanceNullGuard(panes, nameof(DualPaneSession.NavigateAsync), [null, path, CancellationToken.None]);
-        AssertInstanceNullGuard(panes, nameof(DualPaneSession.HandleAsync), [null, CancellationToken.None]);
+        AssertInstanceNullGuard(panes, nameof(DualPaneSession.HandleAsync), [null, RecordingDualPaneObserver.Create(), CancellationToken.None]);
+        AssertInstanceNullGuard(panes, nameof(DualPaneSession.HandleAsync), [UserIntent.Refresh, null, CancellationToken.None]);
         AssertInstanceNullGuard(panes.Current, nameof(DualPaneSnapshot.Of), [null]);
         AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [null, PaneSnapshot.Initial, PaneSide.Left, OperationActivity.Idle]);
         AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, null, PaneSide.Left, OperationActivity.Idle]);
         AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, null, OperationActivity.Idle]);
         AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, PaneSide.Left, null]);
-        AssertInternalConstructorNullGuard(typeof(OperationRunning), [null]);
+        AssertInternalConstructorNullGuard(typeof(OperationRunning), [null, FileOperationProgress.Create(0, 1)]);
+        AssertInternalConstructorNullGuard(typeof(OperationRunning), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationAwaitingConfirmation), [null]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [null, outcome]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [OperationKind.Move, null]);
@@ -203,10 +205,15 @@ public sealed class NullGuardTests
             typeof(FileOperationGateway),
             nameof(FileOperationGateway.ExecuteAsync));
 
-        object? invocation = method.Invoke(gateway, [null, CancellationToken.None]);
+        object? invocation = method.Invoke(gateway, [null, RecordingFileOperationProgress.Create(), CancellationToken.None]);
         Task task = Assert.IsInstanceOfType<Task>(invocation);
+        FileOperationRequestCreation creation = DeleteRequest.Create([ParsePath("C:\\source")], null);
+        FileOperationRequest request = Assert.IsInstanceOfType<FileOperationRequestAccepted>(creation).Request;
+        object? withoutObserver = method.Invoke(gateway, [request, null, CancellationToken.None]);
+        Task withoutObserverTask = Assert.IsInstanceOfType<Task>(withoutObserver);
 
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await task);
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await withoutObserverTask);
         Assert.IsEmpty(port.Calls);
     }
 
