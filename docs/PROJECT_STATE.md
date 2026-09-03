@@ -15,6 +15,7 @@ Status: normative
 - Completed vertical slice: [Issue #15](https://github.com/hideyukiMORI/NeNeCommander/issues/15) (closed by PR #16)
 - Completed fix: [Issue #18](https://github.com/hideyukiMORI/NeNeCommander/issues/18) (closed by PR #19)
 - Completed vertical slice: [Issue #21](https://github.com/hideyukiMORI/NeNeCommander/issues/21) (closed by PR #22)
+- Active work item: [Issue #24](https://github.com/hideyukiMORI/NeNeCommander/issues/24)
 - Policy foundation authorized by hide on: `2026-09-02`
 
 ## Current checkpoint
@@ -24,7 +25,7 @@ Status: normative
 - Handoff: [`docs/handoffs/2026-09-04-confirmed-delete-handoff.md`](handoffs/2026-09-04-confirmed-delete-handoff.md)
 - Previous checkpoints: [`docs/reports/2026-09-04-space-selection-daily-report.md`](reports/2026-09-04-space-selection-daily-report.md), [`docs/handoffs/2026-09-04-move-handoff.md`](handoffs/2026-09-04-move-handoff.md), [`docs/reports/2026-09-04-move-daily-report.md`](reports/2026-09-04-move-daily-report.md), [`docs/reports/2026-09-04-file-operation-adapter-daily-report.md`](reports/2026-09-04-file-operation-adapter-daily-report.md), [`docs/handoffs/2026-09-04-file-operation-adapter-handoff.md`](handoffs/2026-09-04-file-operation-adapter-handoff.md), [`docs/reports/2026-09-03-dual-pane-daily-report.md`](reports/2026-09-03-dual-pane-daily-report.md), [`docs/handoffs/2026-09-03-dual-pane-handoff.md`](handoffs/2026-09-03-dual-pane-handoff.md), [`docs/reports/2026-09-03-pane-navigation-daily-report.md`](reports/2026-09-03-pane-navigation-daily-report.md), [`docs/handoffs/2026-09-03-pane-navigation-handoff.md`](handoffs/2026-09-03-pane-navigation-handoff.md), [`docs/reports/2026-09-03-directory-listing-daily-report.md`](reports/2026-09-03-directory-listing-daily-report.md), [`docs/handoffs/2026-09-03-directory-listing-handoff.md`](handoffs/2026-09-03-directory-listing-handoff.md), [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md), [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
 - Completed product vertical slices: one Windows local directory read projected onto the left pane (ADR-0010, ADR-0011); keyboard focus movement and directory entry/parent navigation in the left pane (ADR-0012); the right pane as a second pane session with `Tab` switching the active pane (ADR-0013); the Windows local production adapter for `IFileOperationPort` (ADR-0014); `F6` moving the active pane's item to the passive pane through `FileOperationGateway` (ADR-0015); `F8` permanently deleting the active pane's items after a modal confirmation state (ADR-0016).
-- Next product vertical slice: `F5` copying the active pane's items to the passive pane through the gateway (see the handoff).
+- Current product vertical slice: `F5` copying the active pane's items to the passive pane through the shared transfer path ([Issue #24](https://github.com/hideyukiMORI/NeNeCommander/issues/24), ADR-0017).
 - Open security follow-up: [Issue #2](https://github.com/hideyukiMORI/NeNeCommander/issues/2)
 
 ## Implementation transition

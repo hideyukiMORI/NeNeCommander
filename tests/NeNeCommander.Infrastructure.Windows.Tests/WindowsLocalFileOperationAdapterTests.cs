@@ -77,14 +77,14 @@ public sealed class WindowsLocalFileOperationAdapterTests
 
     /// <summary>Proves preflight validates the destination before any source.</summary>
     [TestMethod]
-    public async Task PreflightMoveAsyncWhenDestinationIsMissingOrForeignFailsClosed()
+    public async Task PreflightTransferAsyncWhenDestinationIsMissingOrForeignFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalFileOperationAdapter adapter = new();
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
 
-        ProviderStepOutcome missing = await adapter.PreflightMoveAsync([source], ParsePath(root.Resolve("missing")), CancellationToken.None);
-        ProviderStepOutcome unc = await adapter.PreflightMoveAsync([source], ParsePath("\\\\server\\share"), CancellationToken.None);
+        ProviderStepOutcome missing = await adapter.PreflightTransferAsync([source], ParsePath(root.Resolve("missing")), CancellationToken.None);
+        ProviderStepOutcome unc = await adapter.PreflightTransferAsync([source], ParsePath("\\\\server\\share"), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.NotFound, missing.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unc.Failure);
@@ -94,7 +94,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-006")]
-    public async Task PreflightMoveAsyncWhenTargetCollidesOrDestinationIsInsideSourceReturnsConflict()
+    public async Task PreflightTransferAsyncWhenTargetCollidesOrDestinationIsInsideSourceReturnsConflict()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalFileOperationAdapter adapter = new();
@@ -105,13 +105,13 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.WriteFile("dest\\A.TXT", "x");
         FileEntrySnapshot folder = await InspectAsync(adapter, ParsePath(root.Resolve("tree")));
 
-        ProviderStepOutcome collision = await adapter.PreflightMoveAsync([file], destination, CancellationToken.None);
-        ProviderStepOutcome intoItself = await adapter.PreflightMoveAsync(
+        ProviderStepOutcome collision = await adapter.PreflightTransferAsync([file], destination, CancellationToken.None);
+        ProviderStepOutcome intoItself = await adapter.PreflightTransferAsync(
             [folder],
             ParsePath(root.Resolve("tree\\inner")),
             CancellationToken.None);
         File.Delete(root.Resolve("dest\\A.TXT"));
-        ProviderStepOutcome clean = await adapter.PreflightMoveAsync([file, folder], destination, CancellationToken.None);
+        ProviderStepOutcome clean = await adapter.PreflightTransferAsync([file, folder], destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Conflict, collision.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, intoItself.Failure);
@@ -122,7 +122,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-004")]
-    public async Task PreflightMoveAsyncWhenSourceChangedAfterInspectionReturnsIdentityChanged()
+    public async Task PreflightTransferAsyncWhenSourceChangedAfterInspectionReturnsIdentityChanged()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalFileOperationAdapter adapter = new();
@@ -130,7 +130,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("a.txt", "abcdef");
 
-        ProviderStepOutcome outcome = await adapter.PreflightMoveAsync([source], destination, CancellationToken.None);
+        ProviderStepOutcome outcome = await adapter.PreflightTransferAsync([source], destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
     }
@@ -426,8 +426,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.PermanentOnly);
 
         AssertNullGuard(adapter, nameof(IFileOperationPort.InspectAsync), [null, CancellationToken.None]);
-        AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightMoveAsync), [null, path, CancellationToken.None]);
-        AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightMoveAsync), [new[] { snapshot }, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightTransferAsync), [null, path, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightTransferAsync), [new[] { snapshot }, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CopyAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CopyAsync), [snapshot, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.VerifyCopyAsync), [null, path, CancellationToken.None]);

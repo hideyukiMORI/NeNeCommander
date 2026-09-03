@@ -12,7 +12,7 @@ namespace NeNeCommander.Application.Panes;
 /// Coordinates the two pane sessions, the sole active side, and file operations between them.
 /// Only <see cref="UserIntent.ActivateOtherPane"/> changes the active side; every other pane intent
 /// reaches the active pane's session alone, so a read in flight always lands in the pane that
-/// started it. <see cref="UserIntent.Move"/> and <see cref="UserIntent.Delete"/> run through the sole
+/// started it. <see cref="UserIntent.Move"/>, <see cref="UserIntent.Copy"/>, and <see cref="UserIntent.Delete"/> run through the sole
 /// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs, and only
 /// <see cref="UserIntent.Confirm"/> or <see cref="UserIntent.Escape"/> leave a pending confirmation.
 /// </summary>
@@ -68,7 +68,7 @@ public sealed class DualPaneSession
 
     /// <summary>
     /// Applies one intent: activation switches the active side without touching either pane's
-    /// focus; move and delete start gateway operations; confirm and escape resolve a pending
+    /// focus; move, copy, and delete start gateway operations; confirm and escape resolve a pending
     /// confirmation; every other intent is handled by the active pane's session. Every intent
     /// is frozen while an operation runs.
     /// </summary>
@@ -91,10 +91,12 @@ public sealed class DualPaneSession
             return Task.FromResult(Current);
         }
         return intent == UserIntent.Move
-            ? MoveAsync(cancellationToken)
-            : intent == UserIntent.Delete
-                ? DeleteAsync(cancellationToken)
-                : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+            ? TransferAsync(OperationKind.Move, MoveRequest.Create, cancellationToken)
+            : intent == UserIntent.Copy
+                ? TransferAsync(OperationKind.Copy, CopyRequest.Create, cancellationToken)
+                : intent == UserIntent.Delete
+                    ? DeleteAsync(cancellationToken)
+                    : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
     }
 
     private Task<DualPaneSnapshot> ResolveConfirmationAsync(
@@ -117,7 +119,10 @@ public sealed class DualPaneSession
         return StartAsync(OperationKind.Delete, confirmed, cancellationToken);
     }
 
-    private Task<DualPaneSnapshot> MoveAsync(CancellationToken cancellationToken)
+    private Task<DualPaneSnapshot> TransferAsync(
+        OperationKind kind,
+        Func<IReadOnlyList<FileSystemPath>, FileSystemPath, FileOperationRequestCreation> createRequest,
+        CancellationToken cancellationToken)
     {
         if (SessionOf(_activeSide).Current.Content is not PaneContentListed active ||
             SessionOf(_activeSide.Other).Current.Content is not PaneContentListed passive)
@@ -127,7 +132,7 @@ public sealed class DualPaneSession
         IReadOnlyList<FileSystemPath> sources = SelectSources(active.State);
         return sources.Count == 0
             ? Task.FromResult(Current)
-            : StartAsync(OperationKind.Move, MoveRequest.Create(sources, passive.Listing.Location), cancellationToken);
+            : StartAsync(kind, createRequest(sources, passive.Listing.Location), cancellationToken);
     }
 
     private Task<DualPaneSnapshot> DeleteAsync(CancellationToken cancellationToken)

@@ -25,6 +25,12 @@
   <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>移動は途中で停止しました</value></data>
   <data name="OperationStatusMoveRejected" xml:space="preserve"><value>移動は変更前に拒否されました</value></data>
   <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>移動の要求が無効です</value></data>
+  <data name="OperationStatusCopying" xml:space="preserve"><value>コピー中…</value></data>
+  <data name="OperationStatusCopySucceeded" xml:space="preserve"><value>コピーが完了しました</value></data>
+  <data name="OperationStatusCopyCancelled" xml:space="preserve"><value>コピーを中止しました</value></data>
+  <data name="OperationStatusCopyPartiallyCompleted" xml:space="preserve"><value>コピーは途中で停止しました</value></data>
+  <data name="OperationStatusCopyRejected" xml:space="preserve"><value>コピーは変更前に拒否されました</value></data>
+  <data name="OperationStatusCopyRequestRejected" xml:space="preserve"><value>コピーの要求が無効です</value></data>
   <data name="OperationStatusDeleting" xml:space="preserve"><value>削除しています…</value></data>
   <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>選択した項目をこの Windows の場所から完全に削除します（ごみ箱には入りません）。Enter で実行、Escape で中止。件数:</value></data>
   <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>削除が完了しました</value></data>

@@ -8,7 +8,7 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 
 internal sealed class QueuedFileOperationPort : IFileOperationPort
 {
-    private readonly Queue<FileInspectionOutcome> _inspections;
+    private readonly Queue<TaskCompletionSource<FileInspectionOutcome>> _inspections;
     private readonly Queue<ProviderStepOutcome> _steps;
 
     private QueuedFileOperationPort()
@@ -24,7 +24,16 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
 
     internal void EnqueueInspection(FileInspectionOutcome outcome)
     {
-        _inspections.Enqueue(outcome);
+        TaskCompletionSource<FileInspectionOutcome> completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        completed.SetResult(outcome);
+        _inspections.Enqueue(completed);
+    }
+
+    internal TaskCompletionSource<FileInspectionOutcome> EnqueuePendingInspection()
+    {
+        TaskCompletionSource<FileInspectionOutcome> pending = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _inspections.Enqueue(pending);
+        return pending;
     }
 
     internal void EnqueueStep(ProviderStepOutcome outcome)
@@ -34,10 +43,10 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
 
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
     {
-        return Task.FromResult(_inspections.Dequeue());
+        return _inspections.Dequeue().Task;
     }
 
-    public Task<ProviderStepOutcome> PreflightMoveAsync(
+    public Task<ProviderStepOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)

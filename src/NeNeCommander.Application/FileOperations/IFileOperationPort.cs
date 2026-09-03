@@ -13,8 +13,8 @@ public interface IFileOperationPort
     /// <summary>Captures identity and capabilities before any mutation begins.</summary>
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken);
 
-    /// <summary>Validates destination containment, recursion, capability, and every source collision.</summary>
-    public Task<ProviderStepOutcome> PreflightMoveAsync(
+    /// <summary>Validates destination containment, recursion, capability, and every source collision before a copy or move.</summary>
+    public Task<ProviderStepOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken);

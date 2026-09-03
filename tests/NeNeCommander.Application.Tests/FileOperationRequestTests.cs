@@ -110,6 +110,33 @@ public sealed class FileOperationRequestTests
             Assert.IsInstanceOfType<FileOperationRequestRejected>(outcome).Kind);
     }
 
+    /// <summary>Proves a copy shares the transfer validation and freezes its destination.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-014")]
+    public void CreateWhenCopyIsRequestedValidatesLikeMoveAndFreezesDestination()
+    {
+        FileSystemPath source = ParsePath("C:\\Source");
+        FileSystemPath destination = ParsePath("D:\\destination");
+
+        FileOperationRequestCreation sameAsSource = CopyRequest.Create([source], ParsePath("c:\\source"));
+        FileOperationRequestCreation duplicated = CopyRequest.Create([source, ParsePath("c:\\source")], destination);
+        FileOperationRequestCreation empty = CopyRequest.Create([], destination);
+        CopyRequest accepted = RequireCopy(CopyRequest.Create([source], destination));
+
+        Assert.AreSame(
+            FileOperationRequestFailureKind.DestinationIsSource,
+            Assert.IsInstanceOfType<FileOperationRequestRejected>(sameAsSource).Kind);
+        Assert.AreSame(
+            FileOperationRequestFailureKind.DuplicateSource,
+            Assert.IsInstanceOfType<FileOperationRequestRejected>(duplicated).Kind);
+        Assert.AreSame(
+            FileOperationRequestFailureKind.EmptySources,
+            Assert.IsInstanceOfType<FileOperationRequestRejected>(empty).Kind);
+        Assert.AreSame(destination, accepted.Destination);
+        Assert.AreSame(source, accepted.Sources[0]);
+    }
+
     /// <summary>Proves missing provider identities are rejected.</summary>
     [TestMethod]
     [DataRow(null)]
@@ -141,6 +168,12 @@ public sealed class FileOperationRequestTests
     public void ParseWhenFileIdentityEqualsBoundaryAccepted()
     {
         _ = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse(new string('x', 512)));
+    }
+
+    private static CopyRequest RequireCopy(FileOperationRequestCreation outcome)
+    {
+        FileOperationRequest request = Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request;
+        return Assert.IsInstanceOfType<CopyRequest>(request);
     }
 
     private static MoveRequest RequireMove(FileOperationRequestCreation outcome)

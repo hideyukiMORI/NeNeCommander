@@ -126,6 +126,109 @@ public sealed class DualPanePresenterTests
 
         return DualPanePresenter.Present(snapshot).OperationStatus;
     }
+    /// <summary>Proves each copy completion maps to one copy status and a rejected copy request is named.</summary>
+    [TestMethod]
+    public async Task PresentWhenCopyCompletesTranslatesEachCompletionKind()
+    {
+        using CancellationTokenSource cancellation = new();
+        await cancellation.CancelAsync();
+        Assert.AreSame(OperationStatus.CopySucceeded, await OperationStatusAsync(UserIntent.Copy, port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        }, CancellationToken.None));
+        Assert.AreSame(OperationStatus.CopyRejected, await OperationStatusAsync(UserIntent.Copy, port =>
+            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None));
+        Assert.AreSame(OperationStatus.CopyPartiallyCompleted, await OperationStatusAsync(UserIntent.Copy, port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        }, CancellationToken.None));
+        Assert.AreSame(OperationStatus.CopyCancelled, await OperationStatusAsync(UserIntent.Copy, port => { }, cancellation.Token));
+    }
+
+    /// <summary>Proves a copy request the gateway never receives is shown as a rejected copy request.</summary>
+    [TestMethod]
+    public async Task PresentWhenCopyRequestIsRejectedShowsCopyRequestRejectedStatus()
+    {
+        DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\", ["Users"])));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\Users", [])));
+        _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
+
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
+    }
+
+    /// <summary>Proves each running operation kind is projected as its own running status while the gateway works.</summary>
+    [TestMethod]
+    public async Task PresentWhenOperationIsRunningNamesTheRunningKind()
+    {
+        Assert.AreSame(OperationStatus.Moving, await RunningStatusAsync(UserIntent.Move));
+        Assert.AreSame(OperationStatus.Copying, await RunningStatusAsync(UserIntent.Copy));
+        Assert.AreSame(OperationStatus.Deleting, await RunningStatusAsync(UserIntent.Delete));
+    }
+
+    private static async Task<OperationStatus> RunningStatusAsync(UserIntent intent)
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
+
+        Task<DualPaneSnapshot> running = panes.HandleAsync(intent, CancellationToken.None);
+        OperationStatus status = DualPanePresenter.Present(panes.Current).OperationStatus;
+
+        pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
+        _ = await running;
+        return status;
+    }
+
+    private static async Task<OperationStatus> OperationStatusAsync(
+        UserIntent intent,
+        Action<QueuedFileOperationPort> script,
+        CancellationToken cancellationToken)
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
+        port.EnqueueInspection(FileInspectionOutcome.Succeeded(
+            FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
+        script(port);
+
+        DualPaneSnapshot snapshot = await panes.HandleAsync(intent, cancellationToken);
+
+        return DualPanePresenter.Present(snapshot).OperationStatus;
+    }
+
     /// <summary>Proves a pending confirmation is projected as modal input with its item count.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -263,6 +366,12 @@ public sealed class DualPanePresenterTests
         Assert.AreEqual("OperationStatusMovePartiallyCompleted", OperationStatus.MovePartiallyCompleted.ResourceKey);
         Assert.AreEqual("OperationStatusMoveRejected", OperationStatus.MoveRejected.ResourceKey);
         Assert.AreEqual("OperationStatusMoveRequestRejected", OperationStatus.MoveRequestRejected.ResourceKey);
+        Assert.AreEqual("OperationStatusCopying", OperationStatus.Copying.ResourceKey);
+        Assert.AreEqual("OperationStatusCopySucceeded", OperationStatus.CopySucceeded.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyCancelled", OperationStatus.CopyCancelled.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyPartiallyCompleted", OperationStatus.CopyPartiallyCompleted.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyRejected", OperationStatus.CopyRejected.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyRequestRejected", OperationStatus.CopyRequestRejected.ResourceKey);
         Assert.AreEqual("OperationStatusDeleting", OperationStatus.Deleting.ResourceKey);
         Assert.AreEqual("OperationStatusDeleteAwaitingConfirmation", OperationStatus.DeleteAwaitingConfirmation.ResourceKey);
         Assert.AreEqual("OperationStatusDeleteSucceeded", OperationStatus.DeleteSucceeded.ResourceKey);

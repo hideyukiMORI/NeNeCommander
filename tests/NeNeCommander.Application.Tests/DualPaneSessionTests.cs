@@ -147,6 +147,51 @@ public sealed class DualPaneSessionTests
         Assert.HasCount(2, fixture.Right.Requests);
     }
 
+    /// <summary>Proves a copy takes the focus item to the passive location, deletes nothing, and refreshes both panes.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenCopyHasNoSelectionCopiesFocusItemWithoutDeletingSource()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        DirectoryListing rightAfter = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter));
+
+        DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        Assert.HasCount(4, fixture.Port.Calls);
+        Assert.AreEqual("Preflight:C:\\right", fixture.Port.Calls[1]);
+        Assert.AreEqual("Copy:C:\\left\\a.txt", fixture.Port.Calls[2]);
+        Assert.AreEqual("Verify:C:\\left\\a.txt", fixture.Port.Calls[3]);
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(snapshot.Operation);
+        Assert.AreSame(OperationKind.Copy, completed.Kind);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, completed.Outcome.Completion);
+        Assert.AreSame(rightAfter, Assert.IsInstanceOfType<PaneContentListed>(snapshot.Right.Content).Listing);
+        Assert.AreSame(leftListing.Entries[0].Path, Focus(snapshot.Left));
+        Assert.HasCount(2, fixture.Left.Requests);
+        Assert.HasCount(2, fixture.Right.Requests);
+    }
+
+    /// <summary>Proves a copy whose destination is one of its sources is rejected before the gateway.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenCopyTargetsItsOwnSourceRecordsRequestRejection()
+    {
+        using Fixture fixture = Fixture.Create();
+        await fixture.ListBothAsync(Listing("C:\\", ("Users", DirectoryEntryKind.Directory)), Listing("C:\\Users"));
+
+        DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+
+        OperationRequestRejected rejected = Assert.IsInstanceOfType<OperationRequestRejected>(snapshot.Operation);
+        Assert.AreSame(FileOperationRequestFailureKind.DestinationIsSource, rejected.Failure);
+        Assert.AreSame(OperationKind.Copy, rejected.Kind);
+        Assert.IsEmpty(fixture.Port.Calls);
+    }
+
     /// <summary>Proves an explicit selection is moved instead of the focus item and focus is kept on refresh.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenMoveHasSelectionMovesSelectionAndKeepsFocus()
