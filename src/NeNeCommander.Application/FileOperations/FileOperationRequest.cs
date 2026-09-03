@@ -46,4 +46,24 @@ public abstract record FileOperationRequest
         }
         return null;
     }
+
+    private protected static FileOperationRequestFailureKind? ValidateTransfer(
+        IReadOnlyList<FileSystemPath> sources,
+        FileSystemPath destination)
+    {
+        FileOperationRequestFailureKind? failure = ValidateSourceSet(sources);
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        foreach (FileSystemPath source in sources)
+        {
+            if (FileSystemPathIdentityComparer.Instance.Equals(source, destination))
+            {
+                return FileOperationRequestFailureKind.DestinationIsSource;
+            }
+        }
+        return null;
+    }
 }

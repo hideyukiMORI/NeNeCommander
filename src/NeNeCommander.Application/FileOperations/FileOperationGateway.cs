@@ -49,7 +49,16 @@ public sealed class FileOperationGateway : IDisposable
         {
             return request switch
             {
-                MoveRequest moveRequest => await ExecuteMoveAsync(moveRequest, cancellationToken),
+                MoveRequest moveRequest => await ExecuteTransferAsync(
+                    moveRequest.Sources,
+                    moveRequest.Destination,
+                    MoveOneAsync,
+                    cancellationToken),
+                CopyRequest copyRequest => await ExecuteTransferAsync(
+                    copyRequest.Sources,
+                    copyRequest.Destination,
+                    CopyOneAsync,
+                    cancellationToken),
                 DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, cancellationToken),
                 _ => throw new InvalidOperationException("The validated request variant is not executable."),
             };
@@ -66,12 +75,14 @@ public sealed class FileOperationGateway : IDisposable
         _executionLease.Dispose();
     }
 
-    private async Task<FileOperationOutcome> ExecuteMoveAsync(
-        MoveRequest request,
+    private async Task<FileOperationOutcome> ExecuteTransferAsync(
+        IReadOnlyList<FileSystemPath> sources,
+        FileSystemPath destination,
+        Func<FileEntrySnapshot, FileSystemPath, List<FileOperationEffect>, CancellationToken, Task<FileOperationOutcome?>> transferOne,
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
-        InspectionBatch inspection = await InspectAllAsync(request.Sources, cancellationToken);
+        InspectionBatch inspection = await InspectAllAsync(sources, cancellationToken);
         if (inspection.Completion == InspectionBatchCompletion.Cancelled)
         {
             return FileOperationOutcome.Cancelled(effects);
@@ -81,9 +92,9 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, inspection.Failure);
         }
 
-        ProviderStepOutcome preflight = await _port.PreflightMoveAsync(
+        ProviderStepOutcome preflight = await _port.PreflightTransferAsync(
             inspection.Snapshots,
-            request.Destination,
+            destination,
             cancellationToken);
         if (cancellationToken.IsCancellationRequested)
         {
@@ -96,7 +107,7 @@ public sealed class FileOperationGateway : IDisposable
 
         foreach (FileEntrySnapshot snapshot in inspection.Snapshots)
         {
-            FileOperationOutcome? stopped = await MoveOneAsync(snapshot, request.Destination, effects, cancellationToken);
+            FileOperationOutcome? stopped = await transferOne(snapshot, destination, effects, cancellationToken);
             if (stopped is not null)
             {
                 return stopped;
@@ -173,7 +184,7 @@ public sealed class FileOperationGateway : IDisposable
         return InspectionBatch.Succeeded(snapshots);
     }
 
-    private async Task<FileOperationOutcome?> MoveOneAsync(
+    private async Task<FileOperationOutcome?> CopyOneAsync(
         FileEntrySnapshot snapshot,
         FileSystemPath destination,
         List<FileOperationEffect> effects,
@@ -201,7 +212,20 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, verification.Failure);
         }
         effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Verified));
+        return null;
+    }
 
+    private async Task<FileOperationOutcome?> MoveOneAsync(
+        FileEntrySnapshot snapshot,
+        FileSystemPath destination,
+        List<FileOperationEffect> effects,
+        CancellationToken cancellationToken)
+    {
+        FileOperationOutcome? stopped = await CopyOneAsync(snapshot, destination, effects, cancellationToken);
+        if (stopped is not null)
+        {
+            return stopped;
+        }
         if (cancellationToken.IsCancellationRequested)
         {
             return FileOperationOutcome.Cancelled(effects);

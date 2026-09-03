@@ -37,7 +37,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         return _pendingInspection.Task;
     }
 
-    public Task<ProviderStepOutcome> PreflightMoveAsync(
+    public Task<ProviderStepOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)

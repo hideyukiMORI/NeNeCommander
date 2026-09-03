@@ -59,6 +59,89 @@ public sealed class FileOperationGatewayTests
         Assert.AreEqual("Delete:C:\\second", port.Calls[8]);
     }
 
+    /// <summary>Proves a copy runs copy and verify per source after complete preflight and never deletes a source.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenCopySucceedsReportsCopyAndVerifyWithoutDeletingSources()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        CopyRequest request = CreateCopy([first, second]);
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.PermanentOnly));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.PermanentOnly));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        for (int index = 0; index < 2; index++)
+        {
+            port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+            port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        }
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(4, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.AreSame(FileOperationEffectKind.Verified, outcome.Effects[1].Kind);
+        Assert.AreSame(second, outcome.Effects[3].Source);
+        Assert.HasCount(7, port.Calls);
+        Assert.AreEqual("Inspect:C:\\first", port.Calls[0]);
+        Assert.AreEqual("Inspect:C:\\second", port.Calls[1]);
+        Assert.AreEqual("Preflight:D:\\destination", port.Calls[2]);
+        Assert.AreEqual("Copy:C:\\first", port.Calls[3]);
+        Assert.AreEqual("Verify:C:\\first", port.Calls[4]);
+        Assert.AreEqual("Copy:C:\\second", port.Calls[5]);
+        Assert.AreEqual("Verify:C:\\second", port.Calls[6]);
+    }
+
+    /// <summary>Proves a copy whose verification fails stops the batch with the copied effect and starts no further source.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenCopyVerificationFailsStopsBeforeNextSource()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.PermanentOnly));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.PermanentOnly));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueVerification(ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([first, second]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.HasCount(5, port.Calls);
+        Assert.AreEqual("Verify:C:\\first", port.Calls[4]);
+    }
+
+    /// <summary>Proves a copy rejected by preflight starts no mutation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-006")]
+    [TestProperty("ThreatId", "ADV-018")]
+    public async Task ExecuteAsyncWhenCopyPreflightFindsConflictNoMutationStarts()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.PermanentOnly));
+        port.EnqueuePreflight(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateCopy([path]), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(2, port.Calls);
+    }
+
     /// <summary>Proves a later inspection failure prevents every mutation.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -498,6 +581,13 @@ public sealed class FileOperationGatewayTests
     {
         FileOperationRequestCreation outcome = MoveRequest.Create(sources, ParsePath("D:\\destination"));
         return Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
+    }
+
+    private static CopyRequest CreateCopy(FileSystemPath[] sources)
+    {
+        FileOperationRequestCreation outcome = CopyRequest.Create(sources, ParsePath("D:\\destination"));
+        return Assert.IsInstanceOfType<CopyRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
     }
 

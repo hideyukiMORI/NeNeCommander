@@ -35,21 +35,46 @@ public static class DualPanePresenter
     {
         return activity switch
         {
-            OperationRunning running => running.Kind == OperationKind.Move ? OperationStatus.Moving : OperationStatus.Deleting,
+            OperationRunning running => TranslateRunning(running.Kind),
             OperationAwaitingConfirmation => OperationStatus.DeleteAwaitingConfirmation,
-            OperationRequestRejected rejected => rejected.Kind == OperationKind.Move
-                ? OperationStatus.MoveRequestRejected
-                : OperationStatus.DeleteRequestRejected,
+            OperationRequestRejected rejected => TranslateRequestRejection(rejected.Kind),
             OperationCompleted completed => TranslateCompletion(completed.Kind, completed.Outcome.Completion),
             _ => OperationStatus.Idle,
         };
+    }
+
+    private static OperationStatus TranslateRunning(OperationKind kind)
+    {
+        return kind == OperationKind.Move
+            ? OperationStatus.Moving
+            : kind == OperationKind.Copy ? OperationStatus.Copying : OperationStatus.Deleting;
+    }
+
+    private static OperationStatus TranslateRequestRejection(OperationKind kind)
+    {
+        return kind == OperationKind.Move
+            ? OperationStatus.MoveRequestRejected
+            : kind == OperationKind.Copy ? OperationStatus.CopyRequestRejected : OperationStatus.DeleteRequestRejected;
     }
 
     private static OperationStatus TranslateCompletion(OperationKind kind, FileOperationCompletionKind completion)
     {
         return kind == OperationKind.Move
             ? TranslateMoveCompletion(completion)
-            : TranslateDeleteCompletion(completion);
+            : kind == OperationKind.Copy
+                ? TranslateCopyCompletion(completion)
+                : TranslateDeleteCompletion(completion);
+    }
+
+    private static OperationStatus TranslateCopyCompletion(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.Succeeded
+            ? OperationStatus.CopySucceeded
+            : completion == FileOperationCompletionKind.Cancelled
+                ? OperationStatus.CopyCancelled
+                : completion == FileOperationCompletionKind.PartiallyCompleted
+                    ? OperationStatus.CopyPartiallyCompleted
+                    : OperationStatus.CopyRejected;
     }
 
     private static OperationStatus TranslateMoveCompletion(FileOperationCompletionKind completion)

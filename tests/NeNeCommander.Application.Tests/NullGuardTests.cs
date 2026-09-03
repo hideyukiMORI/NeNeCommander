@@ -42,6 +42,8 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(FileInspectionOutcome), nameof(FileInspectionOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(MoveRequest), nameof(MoveRequest.Create), [null, path]);
         AssertStaticNullGuard(typeof(MoveRequest), nameof(MoveRequest.Create), [new[] { path }, null]);
+        AssertStaticNullGuard(typeof(CopyRequest), nameof(CopyRequest.Create), [null, path]);
+        AssertStaticNullGuard(typeof(CopyRequest), nameof(CopyRequest.Create), [new[] { path }, null]);
         AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         AssertStaticNullGuard(
             typeof(PermanentDeletionConfirmation),

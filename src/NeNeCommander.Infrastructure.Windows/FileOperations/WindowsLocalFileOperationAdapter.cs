@@ -25,7 +25,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<ProviderStepOutcome> PreflightMoveAsync(
+    public Task<ProviderStepOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)

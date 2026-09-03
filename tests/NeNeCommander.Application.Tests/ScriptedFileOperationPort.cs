@@ -75,7 +75,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         return Task.FromResult(outcome);
     }
 
-    public Task<ProviderStepOutcome> PreflightMoveAsync(
+    public Task<ProviderStepOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
