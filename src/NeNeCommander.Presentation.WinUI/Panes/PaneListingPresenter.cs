@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
@@ -23,7 +23,7 @@ public static class PaneListingPresenter
         return snapshot.Content is PaneContentListed listed
             ? PresentListed(listed, snapshot.Activity)
             : new PanePresentation(
-                Array.Empty<DirectoryEntry>(),
+                Array.Empty<PaneRow>(),
                 null,
                 TranslateActivity(snapshot.Activity, PaneStatus.NoListing),
                 TargetText(snapshot.Activity));
@@ -31,14 +31,21 @@ public static class PaneListingPresenter
 
     private static PanePresentation PresentListed(PaneContentListed listed, PaneActivity activity)
     {
-        FileSystemPath? focus = listed.State.FocusItem;
-        DirectoryEntry? focusEntry = focus is null
-            ? null
-            : listed.Listing.Entries.FirstOrDefault(entry =>
-                FileSystemPathIdentityComparer.Instance.Equals(entry.Path, focus));
+        HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
+        List<PaneRow> rows = [];
+        PaneRow? focusRow = null;
+        foreach (DirectoryEntry entry in listed.Listing.Entries)
+        {
+            PaneRow row = new(entry, selection.Contains(entry.Path) ? PaneRowMark.Selected : PaneRowMark.Unselected);
+            rows.Add(row);
+            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem))
+            {
+                focusRow = row;
+            }
+        }
         return new PanePresentation(
-            listed.Listing.Entries,
-            focusEntry,
+            rows.AsReadOnly(),
+            focusRow,
             TranslateActivity(activity, TranslateListing(listed.Listing)),
             listed.Listing.Location.CanonicalText);
     }

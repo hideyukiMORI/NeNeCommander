@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using NeNeCommander.Application.Directories;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
@@ -11,25 +10,25 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 public sealed record PanePresentation
 {
     internal PanePresentation(
-        IReadOnlyList<DirectoryEntry> entries,
-        DirectoryEntry? focusEntry,
+        IReadOnlyList<PaneRow> rows,
+        PaneRow? focusRow,
         PaneStatus status,
         string addressText)
     {
-        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(status);
         ArgumentNullException.ThrowIfNull(addressText);
-        Entries = entries;
-        FocusEntry = focusEntry;
+        Rows = rows;
+        FocusRow = focusRow;
         Status = status;
         AddressText = addressText;
     }
 
-    /// <summary>Gets the ordered rows to display, or an empty list when nothing is listed.</summary>
-    public IReadOnlyList<DirectoryEntry> Entries { get; }
+    /// <summary>Gets the ordered rows to display with their selection marks, or an empty list when nothing is listed.</summary>
+    public IReadOnlyList<PaneRow> Rows { get; }
 
     /// <summary>Gets the row that holds focus, or absence when there is no focus item.</summary>
-    public DirectoryEntry? FocusEntry { get; }
+    public PaneRow? FocusRow { get; }
 
     /// <summary>Gets the status the pane shows.</summary>
     public PaneStatus Status { get; }

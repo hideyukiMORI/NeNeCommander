@@ -20,6 +20,7 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.PageDown => KeyboardKey.PageDown,
             (int)VirtualKey.PageUp => KeyboardKey.PageUp,
             (int)VirtualKey.Tab => KeyboardKey.Tab,
+            (int)VirtualKey.Space => KeyboardKey.Space,
             (int)VirtualKey.Escape => KeyboardKey.Escape,
             (int)VirtualKey.F2 => KeyboardKey.F2,
             (int)VirtualKey.F5 => KeyboardKey.F5,
@@ -39,7 +40,6 @@ internal static class KeyboardInputTranslator
     {
         KeyboardKey key = character switch
         {
-            ' ' => KeyboardKey.Space,
             'd' or '\u0004' => KeyboardKey.D,
             'G' => KeyboardKey.UpperG,
             'g' => KeyboardKey.LowerG,

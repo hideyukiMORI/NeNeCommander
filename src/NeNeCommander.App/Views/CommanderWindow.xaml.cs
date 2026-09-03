@@ -106,11 +106,11 @@ public sealed partial class CommanderWindow : Window
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
     {
         address.Text = presentation.AddressText;
-        fileList.ItemsSource = presentation.Entries;
-        fileList.SelectedItem = presentation.FocusEntry;
-        if (presentation.FocusEntry is not null)
+        fileList.ItemsSource = presentation.Rows;
+        fileList.SelectedItem = presentation.FocusRow;
+        if (presentation.FocusRow is not null)
         {
-            fileList.ScrollIntoView(presentation.FocusEntry);
+            fileList.ScrollIntoView(presentation.FocusRow);
         }
         status.Text = _resources.GetString(presentation.Status.ResourceKey);
     }
