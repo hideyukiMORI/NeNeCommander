@@ -70,6 +70,14 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         return Task.FromResult(_steps.Dequeue());
     }
 
+    public Task<ProviderStepOutcome> CreateDirectoryAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(_steps.Dequeue());
+    }
+
     public Task<ProviderStepOutcome> DeleteAsync(
         FileEntrySnapshot source,
         DeletionExecutionMode mode,

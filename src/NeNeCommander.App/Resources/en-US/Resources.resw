@@ -32,6 +32,12 @@
   <data name="OperationStatusCopyPartiallyCompleted" xml:space="preserve"><value>Copy stopped after partial completion</value></data>
   <data name="OperationStatusCopyRejected" xml:space="preserve"><value>Copy was rejected before any change</value></data>
   <data name="OperationStatusCopyRequestRejected" xml:space="preserve"><value>Copy request is not valid</value></data>
+  <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>Creating directory…</value></data>
+  <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>Enter a name for the new directory</value></data>
+  <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>Directory created</value></data>
+  <data name="OperationStatusCreateDirectoryCancelled" xml:space="preserve"><value>Directory creation cancelled</value></data>
+  <data name="OperationStatusCreateDirectoryRejected" xml:space="preserve"><value>Directory creation was rejected before any change</value></data>
+  <data name="OperationStatusCreateDirectoryRequestRejected" xml:space="preserve"><value>Directory name is not valid</value></data>
   <data name="OperationStatusDeleting" xml:space="preserve"><value>Deleting…</value></data>
   <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>Permanently delete the selected items from this Windows location (no recycle bin)? Enter to confirm, Escape to cancel. Item count:</value></data>
   <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>Deletion completed</value></data>

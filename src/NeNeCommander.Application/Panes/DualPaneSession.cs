@@ -52,7 +52,7 @@ public sealed class DualPaneSession
     /// <summary>Gets the current immutable snapshot of both panes and the operation activity.</summary>
     public DualPaneSnapshot Current => new(_left.Current, _right.Current, _activeSide, _operation);
 
-    private bool IsFrozen => _operation is OperationRunning or OperationAwaitingConfirmation;
+    private bool IsFrozen => _operation is OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName;
 
     /// <summary>Reads a location into one side regardless of which side is active, unless an operation runs or awaits confirmation.</summary>
     /// <param name="side">Pane to read into.</param>
@@ -72,7 +72,8 @@ public sealed class DualPaneSession
 
     /// <summary>
     /// Applies one intent: activation switches the active side without touching either pane's
-    /// focus; move, copy, and delete start gateway operations; confirm and escape resolve a pending
+    /// focus; move, copy, and delete start gateway operations; create directory opens a name entry
+    /// that a name submission turns into a creation; confirm and escape resolve a pending
     /// confirmation; every other intent is handled by the active pane's session. While an operation
     /// runs, escape requests its cancellation and every other intent is frozen.
     /// </summary>
@@ -98,6 +99,10 @@ public sealed class DualPaneSession
         {
             return ResolveConfirmationAsync(awaiting, intent, observer, cancellationToken);
         }
+        if (_operation is OperationAwaitingName awaitingName)
+        {
+            return ResolveNameAsync(awaitingName, intent, observer, cancellationToken);
+        }
         if (intent == UserIntent.ActivateOtherPane)
         {
             _activeSide = _activeSide.Other;
@@ -109,7 +114,38 @@ public sealed class DualPaneSession
                 ? TransferAsync(OperationKind.Copy, CopyRequest.Create, observer, cancellationToken)
                 : intent == UserIntent.Delete
                     ? DeleteAsync(observer, cancellationToken)
-                    : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+                    : intent == UserIntent.CreateDirectory
+                        ? Task.FromResult(BeginNameEntry())
+                        : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+    }
+
+    private Task<DualPaneSnapshot> ResolveNameAsync(
+        OperationAwaitingName awaiting,
+        UserIntent intent,
+        IDualPaneProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (intent == UserIntent.Escape)
+        {
+            _operation = OperationActivity.Idle;
+            return Task.FromResult(Current);
+        }
+        return intent is NameSubmission submission
+            ? StartAsync(
+                OperationKind.CreateDirectory,
+                CreateDirectoryRequest.Create(awaiting.Location, submission.Name),
+                observer,
+                cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    private DualPaneSnapshot BeginNameEntry()
+    {
+        if (SessionOf(_activeSide).Current.Content is PaneContentListed active)
+        {
+            _operation = new OperationAwaitingName(active.Listing.Location);
+        }
+        return Current;
     }
 
     private Task<DualPaneSnapshot> ResolveConfirmationAsync(
@@ -189,9 +225,23 @@ public sealed class DualPaneSession
         }
 
         _operation = new OperationCompleted(kind, outcome);
+        await RefreshBothAsync(request, outcome, cancellationToken);
+        return Current;
+    }
+
+    private async Task RefreshBothAsync(
+        FileOperationRequest request,
+        FileOperationOutcome outcome,
+        CancellationToken cancellationToken)
+    {
+        if (request is CreateDirectoryRequest created && outcome.Completion == FileOperationCompletionKind.Succeeded)
+        {
+            _ = await SessionOf(_activeSide).RefreshFocusingAsync(created.Target, cancellationToken);
+            _ = await SessionOf(_activeSide.Other).RefreshAsync(cancellationToken);
+            return;
+        }
         _ = await _left.RefreshAsync(cancellationToken);
         _ = await _right.RefreshAsync(cancellationToken);
-        return Current;
     }
 
     private static void CancelNothing()

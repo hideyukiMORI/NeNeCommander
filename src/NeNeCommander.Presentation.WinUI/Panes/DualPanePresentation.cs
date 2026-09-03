@@ -18,6 +18,7 @@ public sealed record DualPanePresentation
         PaneSide activeSide,
         OperationStatus operationStatus,
         OperationDetail detail,
+        NameEntryPresentation nameEntry,
         KeyboardContext inputContext)
     {
         ArgumentNullException.ThrowIfNull(left);
@@ -27,6 +28,7 @@ public sealed record DualPanePresentation
         ArgumentNullException.ThrowIfNull(activeSide);
         ArgumentNullException.ThrowIfNull(operationStatus);
         ArgumentNullException.ThrowIfNull(detail);
+        ArgumentNullException.ThrowIfNull(nameEntry);
         ArgumentNullException.ThrowIfNull(inputContext);
         Left = left;
         LeftFrame = leftFrame;
@@ -35,6 +37,7 @@ public sealed record DualPanePresentation
         ActiveSide = activeSide;
         OperationStatus = operationStatus;
         Detail = detail;
+        NameEntry = nameEntry;
         InputContext = inputContext;
     }
 
@@ -58,6 +61,9 @@ public sealed record DualPanePresentation
 
     /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
     public OperationDetail Detail { get; }
+
+    /// <summary>Gets whether the host shows and focuses the name editor.</summary>
+    public NameEntryPresentation NameEntry { get; }
 
     /// <summary>
     /// Gets the keyboard context the operation state imposes on the file list: modal while a

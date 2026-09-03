@@ -109,6 +109,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         RenderFrame(presentation.RightFrame, RightPaneBorder);
         OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
         RenderDetail(presentation.Detail);
+        RenderNameEntry(presentation.NameEntry);
         _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
     }
@@ -133,6 +134,21 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
                 OperationTotal.Text = string.Empty;
                 break;
         }
+    }
+
+    private void RenderNameEntry(NameEntryPresentation nameEntry)
+    {
+        if (nameEntry != NameEntryPresentation.Active)
+        {
+            NameEntry.Visibility = Visibility.Collapsed;
+            return;
+        }
+        if (NameEntry.Visibility == Visibility.Collapsed)
+        {
+            NameEntry.Text = string.Empty;
+            NameEntry.Visibility = Visibility.Visible;
+        }
+        _ = NameEntry.Focus(FocusState.Programmatic);
     }
 
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
@@ -178,14 +194,21 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void ForwardIntent(UserIntent intent)
     {
-        _paneWork = RenderAfterAsync(_panes.HandleAsync(intent, this, CancellationToken.None));
+        UserIntent forwarded = intent == UserIntent.Confirm && NameEntry.Visibility == Visibility.Visible
+            ? UserIntent.SubmitName(NameEntry.Text)
+            : intent;
+        _paneWork = RenderAfterAsync(_panes.HandleAsync(forwarded, this, CancellationToken.None));
     }
 
     private KeyboardContext GetKeyboardContext()
     {
+        if (_operationContext == KeyboardContext.Modal)
+        {
+            return KeyboardContext.Modal;
+        }
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
         return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
             ? KeyboardContext.TextEntry
-            : _operationContext;
+            : KeyboardContext.FileList;
     }
 }

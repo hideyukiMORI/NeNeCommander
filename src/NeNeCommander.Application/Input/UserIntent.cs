@@ -62,8 +62,16 @@ public abstract record UserIntent
     /// <summary>Gets the intent to confirm the pending modal question.</summary>
     public static UserIntent Confirm { get; } = new ConfirmIntent();
 
-    private UserIntent()
+    private protected UserIntent()
     {
+    }
+
+    /// <summary>Creates the intent that confirms a name-entry modal with the text the user typed.</summary>
+    /// <param name="name">Untrusted name text; validation belongs to the request built from it.</param>
+    /// <returns>A <see cref="NameSubmission"/> carrying the text verbatim.</returns>
+    public static UserIntent SubmitName(string name)
+    {
+        return new NameSubmission(name);
     }
 
     private sealed record MoveNextIntent : UserIntent;

@@ -135,6 +135,50 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
     }
 
+    /// <summary>Proves a directory is created beneath a revalidated directory location and a second attempt is a conflict.</summary>
+    [TestMethod]
+    public async Task CreateDirectoryAsyncWhenLocationIsDirectoryCreatesOnceThenConflicts()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot location = await InspectAsync(adapter, ParsePath(root.CreateDirectory("parent")));
+        FileSystemPath target = ParsePath(root.Resolve("parent\\child"));
+
+        ProviderStepOutcome first = await adapter.CreateDirectoryAsync(location, target, CancellationToken.None);
+        FileEntrySnapshot relocated = await InspectAsync(adapter, location.Path);
+        ProviderStepOutcome second = await adapter.CreateDirectoryAsync(relocated, target, CancellationToken.None);
+
+        Assert.IsNull(first.Failure);
+        Assert.IsTrue(Directory.Exists(root.Resolve("parent\\child")));
+        Assert.AreSame(FileOperationFailureKind.Conflict, second.Failure);
+    }
+
+    /// <summary>Proves a file location, a junction location, a foreign target, and a target outside the location each create nothing.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task CreateDirectoryAsyncWhenLocationOrTargetIsUnsafeFailsClosedWithoutWriting()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("file.txt", "x")));
+        _ = root.CreateDirectory("real");
+        FileEntrySnapshot junction = await InspectAsync(adapter, ParsePath(root.CreateJunction("link", "real")));
+        FileEntrySnapshot parent = await InspectAsync(adapter, ParsePath(root.CreateDirectory("parent")));
+
+        ProviderStepOutcome underFile = await adapter.CreateDirectoryAsync(file, ParsePath(root.Resolve("file.txt\\child")), CancellationToken.None);
+        ProviderStepOutcome underJunction = await adapter.CreateDirectoryAsync(junction, ParsePath(root.Resolve("link\\child")), CancellationToken.None);
+        ProviderStepOutcome foreign = await adapter.CreateDirectoryAsync(parent, ParsePath("\\\\server\\share\\child"), CancellationToken.None);
+        ProviderStepOutcome outside = await adapter.CreateDirectoryAsync(parent, ParsePath(root.Resolve("outside")), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.NotFound, underFile.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, underJunction.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
+        Assert.AreSame(FileOperationFailureKind.Inspection, outside.Failure);
+        Assert.IsFalse(Directory.Exists(root.Resolve("real\\child")));
+        Assert.IsFalse(Directory.Exists(root.Resolve("outside")));
+    }
+
     /// <summary>Proves file and directory trees are copied and verified beneath the destination.</summary>
     [TestMethod]
     public async Task CopyAsyncWhenSourceIsFileOrTreeCopiesAndVerifies()
@@ -434,6 +478,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         AssertNullGuard(adapter, nameof(IFileOperationPort.VerifyCopyAsync), [snapshot, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [null, DeletionExecutionMode.Permanent, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.CreateDirectoryAsync), [snapshot, null, CancellationToken.None]);
     }
 
     private static void AssertNullGuard(object instance, string methodName, object?[] arguments)

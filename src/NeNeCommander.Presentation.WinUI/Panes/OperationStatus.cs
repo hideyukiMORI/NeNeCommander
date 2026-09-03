@@ -45,6 +45,24 @@ public sealed record OperationStatus
     /// <summary>Gets the status when the copy request itself was invalid and never reached the gateway.</summary>
     public static OperationStatus CopyRequestRejected { get; } = new("OperationStatusCopyRequestRejected");
 
+    /// <summary>Gets the status while a directory is being created.</summary>
+    public static OperationStatus CreatingDirectory { get; } = new("OperationStatusCreatingDirectory");
+
+    /// <summary>Gets the status while the session waits for the new directory's name.</summary>
+    public static OperationStatus CreateDirectoryAwaitingName { get; } = new("OperationStatusCreateDirectoryAwaitingName");
+
+    /// <summary>Gets the status when the directory was created.</summary>
+    public static OperationStatus DirectoryCreated { get; } = new("OperationStatusDirectoryCreated");
+
+    /// <summary>Gets the status when cancellation stopped the directory creation.</summary>
+    public static OperationStatus CreateDirectoryCancelled { get; } = new("OperationStatusCreateDirectoryCancelled");
+
+    /// <summary>Gets the status when the gateway rejected the directory creation before any side effect.</summary>
+    public static OperationStatus CreateDirectoryRejected { get; } = new("OperationStatusCreateDirectoryRejected");
+
+    /// <summary>Gets the status when the directory name was invalid and never reached the gateway.</summary>
+    public static OperationStatus CreateDirectoryRequestRejected { get; } = new("OperationStatusCreateDirectoryRequestRejected");
+
     /// <summary>Gets the status while a deletion runs.</summary>
     public static OperationStatus Deleting { get; } = new("OperationStatusDeleting");
 

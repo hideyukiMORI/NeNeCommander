@@ -20,6 +20,9 @@ public abstract record FileOperationRequestFailureKind
     /// <summary>Gets the failure for a destination equal to a source.</summary>
     public static FileOperationRequestFailureKind DestinationIsSource { get; } = new DestinationIsSourceFailure();
 
+    /// <summary>Gets the failure for a directory name the domain path rules reject.</summary>
+    public static FileOperationRequestFailureKind InvalidName { get; } = new InvalidNameFailure();
+
     private FileOperationRequestFailureKind()
     {
     }
@@ -29,4 +32,5 @@ public abstract record FileOperationRequestFailureKind
     private sealed record NullSourceFailure : FileOperationRequestFailureKind;
     private sealed record DuplicateSourceFailure : FileOperationRequestFailureKind;
     private sealed record DestinationIsSourceFailure : FileOperationRequestFailureKind;
+    private sealed record InvalidNameFailure : FileOperationRequestFailureKind;
 }

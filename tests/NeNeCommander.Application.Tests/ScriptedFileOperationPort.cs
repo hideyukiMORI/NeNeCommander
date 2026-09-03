@@ -15,6 +15,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly List<string> _calls;
     private readonly Queue<ProviderStepOutcome> _copies;
     private readonly Queue<ProviderStepOutcome> _deletions;
+    private readonly Queue<ProviderStepOutcome> _directoryCreations;
     private readonly Queue<FileInspectionOutcome> _inspections;
     private readonly Queue<ProviderStepOutcome> _preflights;
     private readonly Queue<ProviderStepOutcome> _verifications;
@@ -26,6 +27,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         _calls = [];
         _copies = [];
         _deletions = [];
+        _directoryCreations = [];
         _inspections = [];
         _preflights = [];
         _verifications = [];
@@ -63,6 +65,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueueDeletion(ProviderStepOutcome outcome)
     {
         _deletions.Enqueue(outcome);
+    }
+
+    internal void EnqueueDirectoryCreation(ProviderStepOutcome outcome)
+    {
+        _directoryCreations.Enqueue(outcome);
     }
 
     public Task<FileInspectionOutcome> InspectAsync(
@@ -118,6 +125,15 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         ProviderStepOutcome outcome = _deletions.Dequeue();
         InvokeCallback(ScriptedCallbackPoint.AfterDeletion);
         return Task.FromResult(outcome);
+    }
+
+    public Task<ProviderStepOutcome> CreateDirectoryAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        _calls.Add("CreateDirectory:" + target.CanonicalText);
+        return Task.FromResult(_directoryCreations.Dequeue());
     }
 
     private void InvokeCallback(ScriptedCallbackPoint point)

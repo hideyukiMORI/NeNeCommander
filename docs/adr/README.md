@@ -29,3 +29,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0017: Copy through the shared transfer path](0017-copy-through-shared-transfer-path.md)
 - [ADR-0018: Cancel a running file operation from the dual-pane session](0018-cancel-running-operation.md)
 - [ADR-0019: Report operation progress through the session to the host](0019-operation-progress-through-session.md)
+- [ADR-0020: Create a directory through a session-owned name entry](0020-create-directory-through-name-entry.md)

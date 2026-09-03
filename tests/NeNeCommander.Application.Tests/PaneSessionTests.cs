@@ -255,6 +255,30 @@ public sealed class PaneSessionTests
         Assert.HasCount(2, port.Requests);
     }
 
+    /// <summary>Proves both refresh forms do nothing while a read is in flight, so a refresh never races the navigation it would duplicate.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-016")]
+    public async Task RefreshAsyncWhenReadIsInFlightDoesNothing()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\other"), CancellationToken.None);
+        PaneSnapshot plain = await session.RefreshAsync(CancellationToken.None);
+        PaneSnapshot focusing = await session.RefreshFocusingAsync(root.Entries[0].Path, CancellationToken.None);
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\other", ("c.txt", DirectoryEntryKind.File))));
+        _ = await navigation;
+
+        _ = Assert.IsInstanceOfType<PaneLoading>(plain.Activity);
+        _ = Assert.IsInstanceOfType<PaneLoading>(focusing.Activity);
+        Assert.HasCount(2, port.Requests);
+    }
+
     /// <summary>Proves a read superseded by a newer navigation is discarded when it completes late.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

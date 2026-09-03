@@ -129,6 +129,64 @@ public sealed class FileOperationGatewayTests
         Assert.AreEqual(FileOperationProgress.Create(2, 2), deleteProgress.Reports[1]);
     }
 
+    /// <summary>Proves a directory creation inspects the location, creates once, and reports one effect and full progress.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenDirectoryIsCreatedReportsEffectAndProgress()
+    {
+        FileSystemPath location = ParsePath("C:\\location");
+        CreateDirectoryRequest request = CreateCreateDirectory(location, "child");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(location, DeletionCapability.PermanentOnly));
+        port.EnqueueDirectoryCreation(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+        RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, progress, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.DirectoryCreated, outcome.Effects[0].Kind);
+        Assert.AreSame(request.Target, outcome.Effects[0].Source);
+        Assert.HasCount(2, port.Calls);
+        Assert.AreEqual("Inspect:C:\\location", port.Calls[0]);
+        Assert.AreEqual("CreateDirectory:C:\\location\\child", port.Calls[1]);
+        Assert.HasCount(1, progress.Reports);
+        Assert.AreEqual(FileOperationProgress.Create(1, 1), progress.Reports[0]);
+    }
+
+    /// <summary>Proves inspection failure, cancellation after inspection, and provider rejection each create nothing.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    [TestProperty("ThreatId", "ADV-018")]
+    public async Task ExecuteAsyncWhenDirectoryCreationCannotProceedCreatesNothing()
+    {
+        FileSystemPath location = ParsePath("C:\\location");
+        using CancellationTokenSource cancellation = new();
+        ScriptedFileOperationPort missing = ScriptedFileOperationPort.Create(null, null);
+        missing.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
+        ScriptedFileOperationPort cancelled = ScriptedFileOperationPort.Create(ScriptedCallbackPoint.AfterInspection, cancellation.Cancel);
+        cancelled.EnqueueInspection(Inspection(location, DeletionCapability.PermanentOnly));
+        ScriptedFileOperationPort refused = ScriptedFileOperationPort.Create(null, null);
+        refused.EnqueueInspection(Inspection(location, DeletionCapability.PermanentOnly));
+        refused.EnqueueDirectoryCreation(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        using FileOperationGateway missingGateway = new(missing);
+        using FileOperationGateway cancelledGateway = new(cancelled);
+        using FileOperationGateway refusedGateway = new(refused);
+
+        FileOperationOutcome missingOutcome = await missingGateway.ExecuteAsync(CreateCreateDirectory(location, "child"), RecordingFileOperationProgress.Create(), CancellationToken.None);
+        FileOperationOutcome cancelledOutcome = await cancelledGateway.ExecuteAsync(CreateCreateDirectory(location, "child"), RecordingFileOperationProgress.Create(), cancellation.Token);
+        FileOperationOutcome refusedOutcome = await refusedGateway.ExecuteAsync(CreateCreateDirectory(location, "child"), RecordingFileOperationProgress.Create(), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.NotFound, missingOutcome.Failure);
+        Assert.HasCount(1, missing.Calls);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, cancelledOutcome.Completion);
+        Assert.HasCount(1, cancelled.Calls);
+        Assert.AreSame(FileOperationFailureKind.Conflict, refusedOutcome.Failure);
+        Assert.IsEmpty(refusedOutcome.Effects);
+        Assert.HasCount(2, refused.Calls);
+    }
+
     /// <summary>Proves a copy whose verification fails stops the batch with the copied effect and starts no further source.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -630,6 +688,13 @@ public sealed class FileOperationGatewayTests
     {
         FileOperationRequestCreation outcome = CopyRequest.Create(sources, ParsePath("D:\\destination"));
         return Assert.IsInstanceOfType<CopyRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
+    }
+
+    private static CreateDirectoryRequest CreateCreateDirectory(FileSystemPath location, string name)
+    {
+        FileOperationRequestCreation outcome = CreateDirectoryRequest.Create(location, name);
+        return Assert.IsInstanceOfType<CreateDirectoryRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
     }
 

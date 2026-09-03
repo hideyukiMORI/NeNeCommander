@@ -27,7 +27,10 @@ public static class DualPanePresenter
             snapshot.ActiveSide,
             TranslateOperation(snapshot.Operation),
             TranslateDetail(snapshot.Operation),
-            snapshot.Operation is OperationAwaitingConfirmation ? KeyboardContext.Modal : KeyboardContext.FileList);
+            snapshot.Operation is OperationAwaitingName ? NameEntryPresentation.Active : NameEntryPresentation.Hidden,
+            snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName
+                ? KeyboardContext.Modal
+                : KeyboardContext.FileList);
     }
 
     private static OperationDetail TranslateDetail(OperationActivity activity)
@@ -46,6 +49,7 @@ public static class DualPanePresenter
         {
             OperationRunning running => TranslateRunning(running.Kind),
             OperationAwaitingConfirmation => OperationStatus.DeleteAwaitingConfirmation,
+            OperationAwaitingName => OperationStatus.CreateDirectoryAwaitingName,
             OperationRequestRejected rejected => TranslateRequestRejection(rejected.Kind),
             OperationCompleted completed => TranslateCompletion(completed.Kind, completed.Outcome.Completion),
             _ => OperationStatus.Idle,
@@ -56,14 +60,20 @@ public static class DualPanePresenter
     {
         return kind == OperationKind.Move
             ? OperationStatus.Moving
-            : kind == OperationKind.Copy ? OperationStatus.Copying : OperationStatus.Deleting;
+            : kind == OperationKind.Copy
+                ? OperationStatus.Copying
+                : kind == OperationKind.Delete ? OperationStatus.Deleting : OperationStatus.CreatingDirectory;
     }
 
     private static OperationStatus TranslateRequestRejection(OperationKind kind)
     {
         return kind == OperationKind.Move
             ? OperationStatus.MoveRequestRejected
-            : kind == OperationKind.Copy ? OperationStatus.CopyRequestRejected : OperationStatus.DeleteRequestRejected;
+            : kind == OperationKind.Copy
+                ? OperationStatus.CopyRequestRejected
+                : kind == OperationKind.Delete
+                    ? OperationStatus.DeleteRequestRejected
+                    : OperationStatus.CreateDirectoryRequestRejected;
     }
 
     private static OperationStatus TranslateCompletion(OperationKind kind, FileOperationCompletionKind completion)
@@ -72,7 +82,18 @@ public static class DualPanePresenter
             ? TranslateMoveCompletion(completion)
             : kind == OperationKind.Copy
                 ? TranslateCopyCompletion(completion)
-                : TranslateDeleteCompletion(completion);
+                : kind == OperationKind.Delete
+                    ? TranslateDeleteCompletion(completion)
+                    : TranslateCreateDirectoryCompletion(completion);
+    }
+
+    private static OperationStatus TranslateCreateDirectoryCompletion(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.Succeeded
+            ? OperationStatus.DirectoryCreated
+            : completion == FileOperationCompletionKind.Cancelled
+                ? OperationStatus.CreateDirectoryCancelled
+                : OperationStatus.CreateDirectoryRejected;
     }
 
     private static OperationStatus TranslateCopyCompletion(FileOperationCompletionKind completion)

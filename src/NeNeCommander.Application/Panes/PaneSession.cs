@@ -62,9 +62,34 @@ public sealed class PaneSession
     /// <returns>The snapshot current after the read completed or was superseded.</returns>
     public Task<PaneSnapshot> RefreshAsync(CancellationToken cancellationToken)
     {
-        return Current.Activity is PaneLoading || Current.Content is not PaneContentListed listed
+        return Current.Content is PaneContentListed listed
+            ? RefreshListedAsync(listed, listed.State.FocusItem, cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    /// <summary>
+    /// Re-reads the listed location, focusing the given item when the new listing contains it and
+    /// clearing selection. Nothing happens before the first listing or while a read is in flight.
+    /// </summary>
+    /// <param name="preferredFocus">Item to focus after the read, typically one the session just created.</param>
+    /// <param name="cancellationToken">Token observed by the read.</param>
+    /// <returns>The snapshot current after the read completed or was superseded.</returns>
+    public Task<PaneSnapshot> RefreshFocusingAsync(FileSystemPath preferredFocus, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(preferredFocus);
+        return Current.Content is PaneContentListed listed
+            ? RefreshListedAsync(listed, preferredFocus, cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    private Task<PaneSnapshot> RefreshListedAsync(
+        PaneContentListed listed,
+        FileSystemPath? preferredFocus,
+        CancellationToken cancellationToken)
+    {
+        return Current.Activity is PaneLoading
             ? Task.FromResult(Current)
-            : NavigateAsync(listed.State.Location, listed.State.FocusItem, cancellationToken);
+            : NavigateAsync(listed.State.Location, preferredFocus, cancellationToken);
     }
 
     /// <summary>
