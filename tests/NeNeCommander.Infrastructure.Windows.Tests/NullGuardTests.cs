@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Diagnostics;
+using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Paths;
 using NeNeCommander.Infrastructure.Windows.Settings;
 
@@ -29,6 +31,17 @@ public sealed class NullGuardTests
             [null, path]);
         AssertStaticNullGuard(typeof(ProviderPathContainment), nameof(ProviderPathContainment.Evaluate),
             [path, null]);
+        WindowsLocalPath local = Assert.IsInstanceOfType<WindowsLocalPath>(path);
+        FileSystemInfo entry = new DirectoryInfo(local.CanonicalText);
+        AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Find), [null]);
+        AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Describe), [null]);
+        AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Revalidate), [null]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.IsReparsePoint), [null]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.ContainsReparsePoint), [null]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Copy), [null, "target"]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Copy), [entry, null]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Matches), [null, "target"]);
+        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Matches), [entry, null]);
     }
 
     /// <summary>Proves closed result constructors preserve their internal null invariants.</summary>
@@ -38,6 +51,8 @@ public sealed class NullGuardTests
         AssertConstructorNullGuard(typeof(ContainedPath));
         AssertConstructorNullGuard(typeof(RejectedPathContainment));
         AssertConstructorNullGuard(typeof(SettingsValidationRejected));
+        AssertConstructorNullGuard(typeof(EntryMatched));
+        AssertConstructorNullGuard(typeof(EntryRejected));
     }
 
     private static void AssertStaticNullGuard(Type type, string methodName, object?[] arguments)

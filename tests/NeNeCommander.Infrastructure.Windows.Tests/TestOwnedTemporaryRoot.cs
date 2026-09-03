@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -16,6 +17,7 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
 {
     private const string Prefix = "NeNeCommander-Test-";
 
+    private readonly List<string> _junctions;
     private readonly List<string> _listingDeniedDirectories;
     private readonly string _fullPath;
     private readonly string _temporaryParent;
@@ -24,6 +26,7 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
     {
         _fullPath = fullPath;
         _temporaryParent = temporaryParent;
+        _junctions = [];
         _listingDeniedDirectories = [];
         Path = path;
     }
@@ -62,6 +65,38 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         string childPath = Resolve(childName);
         File.WriteAllBytes(childPath, []);
         return childPath;
+    }
+
+    /// <summary>Writes text into a file inside the root, creating or replacing it.</summary>
+    internal string WriteFile(string childName, string content)
+    {
+        string childPath = Resolve(childName);
+        File.WriteAllText(childPath, content);
+        return childPath;
+    }
+
+    /// <summary>
+    /// Creates an NTFS junction inside the root that points at another directory inside the root.
+    /// Junctions need no privilege, unlike symbolic links, so the fixture is deterministic on NTFS.
+    /// </summary>
+    internal string CreateJunction(string childName, string targetChildName)
+    {
+        string linkPath = Resolve(childName);
+        string targetPath = Resolve(targetChildName);
+        using Process mklink = Process.Start(new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            ArgumentList = { "/c", "mklink", "/J", linkPath, targetPath },
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        }) ?? throw new InvalidOperationException("The junction process could not be started.");
+        mklink.WaitForExit();
+        _junctions.Add(linkPath);
+        return mklink.ExitCode == 0 && (new DirectoryInfo(linkPath).Attributes & FileAttributes.ReparsePoint) != 0
+            ? linkPath
+            : throw new InvalidOperationException("The junction fixture could not be created.");
     }
 
     /// <summary>Creates a directory directly inside the root.</summary>
@@ -109,6 +144,12 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
             ApplyListingRule(deniedDirectory, AccessControlModification.Remove);
         }
         _listingDeniedDirectories.Clear();
+        foreach (string junction in _junctions)
+        {
+            // A junction is removed as a link so its target contents are never deleted through it.
+            Directory.Delete(junction);
+        }
+        _junctions.Clear();
         Directory.Delete(resolved, recursive: true);
     }
 
