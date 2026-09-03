@@ -55,8 +55,22 @@ public sealed class PaneSession
     }
 
     /// <summary>
+    /// Re-reads the listed location, keeping the current focus item when it still exists and
+    /// clearing selection. Nothing happens before the first listing or while a read is in flight.
+    /// </summary>
+    /// <param name="cancellationToken">Token observed by the read.</param>
+    /// <returns>The snapshot current after the read completed or was superseded.</returns>
+    public Task<PaneSnapshot> RefreshAsync(CancellationToken cancellationToken)
+    {
+        return Current.Activity is PaneLoading || Current.Content is not PaneContentListed listed
+            ? Task.FromResult(Current)
+            : NavigateAsync(listed.State.Location, listed.State.FocusItem, cancellationToken);
+    }
+
+    /// <summary>
     /// Applies one intent. Movement and selection use the reducer; opening a directory entry and
-    /// navigating to the parent start a read. Intents are frozen while a read is in flight.
+    /// navigating to the parent start a read; refresh re-reads the current location. Intents are
+    /// frozen while a read is in flight.
     /// </summary>
     /// <param name="intent">Typed user intent.</param>
     /// <param name="cancellationToken">Token observed by any read the intent starts.</param>
@@ -71,6 +85,10 @@ public sealed class PaneSession
         if (intent == UserIntent.OpenFocused)
         {
             return OpenFocusedAsync(listed, cancellationToken);
+        }
+        if (intent == UserIntent.Refresh)
+        {
+            return NavigateAsync(listed.State.Location, listed.State.FocusItem, cancellationToken);
         }
         if (intent == UserIntent.NavigateParent)
         {

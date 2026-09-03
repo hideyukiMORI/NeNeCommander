@@ -4,7 +4,8 @@ using NeNeCommander.Application.Panes;
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Represents the render-ready projection of both panes and their activation frames.
+/// Represents the render-ready projection of both panes, their activation frames, and the
+/// file-operation status.
 /// </summary>
 public sealed record DualPanePresentation
 {
@@ -13,18 +14,21 @@ public sealed record DualPanePresentation
         PaneFrame leftFrame,
         PanePresentation right,
         PaneFrame rightFrame,
-        PaneSide activeSide)
+        PaneSide activeSide,
+        OperationStatus operationStatus)
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(leftFrame);
         ArgumentNullException.ThrowIfNull(right);
         ArgumentNullException.ThrowIfNull(rightFrame);
         ArgumentNullException.ThrowIfNull(activeSide);
+        ArgumentNullException.ThrowIfNull(operationStatus);
         Left = left;
         LeftFrame = leftFrame;
         Right = right;
         RightFrame = rightFrame;
         ActiveSide = activeSide;
+        OperationStatus = operationStatus;
     }
 
     /// <summary>Gets the left pane presentation.</summary>
@@ -41,4 +45,7 @@ public sealed record DualPanePresentation
 
     /// <summary>Gets the side whose file list should hold keyboard focus.</summary>
     public PaneSide ActiveSide { get; }
+
+    /// <summary>Gets the status of the file-operation activity.</summary>
+    public OperationStatus OperationStatus { get; }
 }

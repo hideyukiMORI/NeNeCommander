@@ -99,6 +99,7 @@ public sealed partial class CommanderWindow : Window
         RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
         RenderFrame(presentation.LeftFrame, LeftPaneBorder);
         RenderFrame(presentation.RightFrame, RightPaneBorder);
+        OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
     }
 

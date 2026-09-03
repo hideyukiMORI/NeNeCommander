@@ -89,7 +89,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | Windows local file-operation provider | `WindowsLocalFileOperationAdapter` |
 | directory reads | `IDirectoryReadPort` boundary with `DirectoryListing` ordering |
 | pane navigation and intent routing | `PaneSession` |
-| active side and intent routing between panes | `DualPaneSession` |
+| active side, intent routing between panes, and starting file operations | `DualPaneSession` |
 | pane projection | `PaneListingPresenter` over `PaneSnapshot` |
 | pane state | `PaneReducer` |
 | keyboard mapping | `KeyboardIntentMapper` |

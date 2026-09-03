@@ -105,20 +105,25 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         PaneSession left = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
         PaneSession right = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
-        ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor([typeof(PaneSession), typeof(PaneSession)]) ??
+        using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
+        ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor(
+            [typeof(PaneSession), typeof(PaneSession), typeof(FileOperationGateway)]) ??
             throw new AssertFailedException("The public dual-pane constructor was not found.");
-        DualPaneSession panes = new(left, right);
+        DualPaneSession panes = new(left, right, gateway);
         FileSystemPath path = ParsePath("C:\\source");
 
-        AssertConstructorNullGuard(constructor, [null, right]);
-        AssertConstructorNullGuard(constructor, [left, null]);
+        AssertConstructorNullGuard(constructor, [null, right, gateway]);
+        AssertConstructorNullGuard(constructor, [left, null, gateway]);
+        AssertConstructorNullGuard(constructor, [left, right, null]);
         AssertInstanceNullGuard(panes, nameof(DualPaneSession.NavigateAsync), [null, path, CancellationToken.None]);
-        AssertInstanceNullGuard(panes, nameof(DualPaneSession.NavigateAsync), [PaneSide.Left, null, CancellationToken.None]);
         AssertInstanceNullGuard(panes, nameof(DualPaneSession.HandleAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(panes.Current, nameof(DualPaneSnapshot.Of), [null]);
-        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [null, PaneSnapshot.Initial, PaneSide.Left]);
-        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, null, PaneSide.Left]);
-        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, null]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [null, PaneSnapshot.Initial, PaneSide.Left, OperationActivity.Idle]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, null, PaneSide.Left, OperationActivity.Idle]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, null, OperationActivity.Idle]);
+        AssertInternalConstructorNullGuard(typeof(DualPaneSnapshot), [PaneSnapshot.Initial, PaneSnapshot.Initial, PaneSide.Left, null]);
+        AssertInternalConstructorNullGuard(typeof(OperationCompleted), [null]);
+        AssertInternalConstructorNullGuard(typeof(OperationRequestRejected), [null]);
     }
     /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
     [TestMethod]
