@@ -374,6 +374,48 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.IsFalse(File.Exists(root.Resolve("a.txt")));
     }
 
+    /// <summary>Proves a destination that is a file is a normalized not-found failure that copies nothing.</summary>
+    [TestMethod]
+    public async Task CopyAsyncWhenDestinationIsFileReturnsNotFound()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
+        FileSystemPath destinationFile = ParsePath(root.WriteFile("destfile", "x"));
+
+        ProviderStepOutcome outcome = await adapter.CopyAsync(file, destinationFile, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.NotFound, outcome.Failure);
+        Assert.AreEqual("x", File.ReadAllText(root.Resolve("destfile")));
+    }
+
+    /// <summary>Proves an unknown platform failure falls back to the step's own failure kind.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-017")]
+    public void NormalizeWhenHResultIsUnknownFallsBackToStepKind()
+    {
+        Assert.AreSame(
+            FileOperationFailureKind.Copy,
+            WindowsLocalFileOperationAdapter.Normalize(unchecked((int)0x81234567), FileOperationFailureKind.Copy));
+        Assert.AreSame(
+            FileOperationFailureKind.AccessDenied,
+            WindowsLocalFileOperationAdapter.Normalize(unchecked((int)0x80070005), FileOperationFailureKind.Copy));
+    }
+
+    /// <summary>Proves the tree copier never overwrites an existing target file.</summary>
+    [TestMethod]
+    public void CopyWhenTargetFileExistsThrowsIOException()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileInfo source = new(root.WriteFile("a.txt", "abc"));
+        string target = root.WriteFile("b.txt", "keep");
+
+        _ = Assert.ThrowsExactly<IOException>(() => WindowsLocalTreeCopy.Copy(source, target));
+
+        Assert.AreEqual("keep", File.ReadAllText(target));
+    }
+
     /// <summary>Proves every port method rejects an absent argument before touching the filesystem.</summary>
     [TestMethod]
     public void PortMethodsWhenRequiredArgumentIsNullThrowArgumentNullException()

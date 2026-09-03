@@ -13,6 +13,7 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// Implements the sole file-operation port for Windows local paths. Every mutation revalidates
 /// the preflighted identity first, never follows reparse points, reports only permanent deletion
 /// because no recycle mechanism exists yet, and normalizes platform failures to the canonical vocabulary.
+/// An absent snapshot is rejected by <see cref="WindowsLocalEntryIdentity.Revalidate"/> before any step runs.
 /// </summary>
 public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 {
@@ -40,7 +41,6 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
         return Task.FromResult(Guarded(() => Copy(source, destination), FileOperationFailureKind.Copy));
     }
@@ -51,7 +51,6 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
         return Task.FromResult(Guarded(() => Verify(source, destination), FileOperationFailureKind.Verification));
     }
@@ -62,7 +61,6 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         DeletionExecutionMode mode,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
         return Task.FromResult(Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
@@ -197,7 +195,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
     }
 
-    private static FileOperationFailureKind Normalize(int hResult, FileOperationFailureKind fallback)
+    internal static FileOperationFailureKind Normalize(int hResult, FileOperationFailureKind fallback)
     {
         FileOperationFailureKind normalized = WindowsFileFailureNormalizer.Normalize(hResult);
         return normalized == FileOperationFailureKind.ProviderUnavailable ? fallback : normalized;
