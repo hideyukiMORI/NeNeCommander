@@ -97,6 +97,49 @@ public sealed class NullGuardTests
         Assert.IsEmpty(port.Requests);
     }
 
+    /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
+    [TestMethod]
+    public void ConstructPaneStateRecordsWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(
+            DirectoryListing.Create(path, [], DirectoryListingCompleteness.Complete, 0)).Listing;
+        PaneState state = PaneReducer.Navigate(listing, capacity, null);
+
+        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [null, listing]);
+        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [state, null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLoading), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneReadCancelled), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [null, FileOperationFailureKind.NotFound]);
+        AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [path, null]);
+        AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
+        AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
+    }
+
+    private static void AssertInternalConstructorNullGuard(Type type, object?[] arguments)
+    {
+        ConstructorInfo[] constructors = [.. type
+            .GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+            .Where(constructor => constructor.GetParameters().Length == arguments.Length &&
+                constructor.GetParameters().All(parameter => parameter.ParameterType != type))];
+        Assert.HasCount(1, constructors);
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => constructors[0].Invoke(arguments));
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
+
+    private static void AssertInternalMethodNullGuard(Type type, string methodName, object? instance, object?[] arguments)
+    {
+        MethodInfo method = type.GetMethod(
+            methodName,
+            BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public) ??
+            throw new AssertFailedException("The internal method was not found.");
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(instance, arguments));
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
     private static void AssertConstructorNullGuard(ConstructorInfo constructor, object?[] arguments)
     {
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(

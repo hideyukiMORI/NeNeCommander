@@ -78,8 +78,27 @@ public sealed class PaneSessionTests
         port.Enqueue(new UnsupportedDirectoryReadOutcome());
         PaneSession session = CreateSession(port);
 
-        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+        InvalidOperationException failure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
             async () => await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None));
+
+        Assert.AreEqual("The directory read outcome variant is not navigable.", failure.Message);
+    }
+
+    /// <summary>Proves opening a focused file next to a directory starts no read.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenOpenFocusedOnFileBesideDirectoryDoesNotRead()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            Listing("C:\\root", ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File))));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        PaneSnapshot onFile = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+
+        PaneSnapshot afterOpen = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+
+        Assert.AreSame(onFile, afterOpen);
+        Assert.HasCount(1, port.Requests);
     }
 
     /// <summary>Proves intents are ignored before any listing exists.</summary>

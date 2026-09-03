@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
@@ -18,7 +17,7 @@ public sealed class PaneSession
     private readonly int _entryBoundary;
     private readonly IDirectoryReadPort _port;
     private readonly VisiblePageCapacity _visiblePageCapacity;
-    private int _generation;
+    private object? _latestNavigation;
 
     /// <summary>Initializes an empty session over one read port.</summary>
     /// <param name="port">Provider-neutral directory read port.</param>
@@ -91,14 +90,22 @@ public sealed class PaneSession
 
     private Task<PaneSnapshot> OpenFocusedAsync(PaneContentListed listed, CancellationToken cancellationToken)
     {
-        FileSystemPath? focus = listed.State.FocusItem;
-        DirectoryEntry? entry = focus is null
-            ? null
-            : listed.Listing.Entries.FirstOrDefault(candidate =>
-                FileSystemPathIdentityComparer.Instance.Equals(candidate.Path, focus));
-        return entry is null || entry.Kind != DirectoryEntryKind.Directory
-            ? Task.FromResult(Current)
-            : NavigateAsync(entry.Path, null, cancellationToken);
+        DirectoryEntry? focused = FindFocusedEntry(listed);
+        return focused is not null && focused.Kind == DirectoryEntryKind.Directory
+            ? NavigateAsync(focused.Path, null, cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    private static DirectoryEntry? FindFocusedEntry(PaneContentListed listed)
+    {
+        foreach (DirectoryEntry entry in listed.Listing.Entries)
+        {
+            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem))
+            {
+                return entry;
+            }
+        }
+        return null;
     }
 
     private async Task<PaneSnapshot> NavigateAsync(
@@ -106,12 +113,13 @@ public sealed class PaneSession
         FileSystemPath? preferredFocus,
         CancellationToken cancellationToken)
     {
-        int generation = ++_generation;
+        object navigation = new();
+        _latestNavigation = navigation;
         Current = Current.WithActivity(new PaneLoading(location));
         DirectoryReadOutcome outcome = await _port.ReadAsync(
             new DirectoryReadRequest(location, _entryBoundary),
             cancellationToken);
-        if (generation != _generation)
+        if (!ReferenceEquals(navigation, _latestNavigation))
         {
             return Current;
         }
