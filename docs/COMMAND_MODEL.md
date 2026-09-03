@@ -29,7 +29,7 @@ Every filesystem mutation is represented by one typed operation request and exec
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, refresh state, and active-pane changes are transitions applied only by `PaneReducer` to an immutable `PaneState`.
+Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`.
 
 ### CMD-003 — UI emits intents, not decisions
 
@@ -88,6 +88,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | filesystem mutations | `FileOperationGateway` |
 | directory reads | `IDirectoryReadPort` boundary with `DirectoryListing` ordering |
 | pane navigation and intent routing | `PaneSession` |
+| active side and intent routing between panes | `DualPaneSession` |
 | pane projection | `PaneListingPresenter` over `PaneSnapshot` |
 | pane state | `PaneReducer` |
 | keyboard mapping | `KeyboardIntentMapper` |

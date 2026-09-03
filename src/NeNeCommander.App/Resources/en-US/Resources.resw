@@ -5,11 +5,10 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="CommanderWindowTitle" xml:space="preserve"><value>NeNe Commander</value></data>
-  <data name="LeftPaneLabel.Text" xml:space="preserve"><value>Active pane</value></data>
-  <data name="RightPaneLabel.Text" xml:space="preserve"><value>Passive pane</value></data>
+  <data name="LeftPaneLabel.Text" xml:space="preserve"><value>Left pane</value></data>
+  <data name="RightPaneLabel.Text" xml:space="preserve"><value>Right pane</value></data>
   <data name="LeftAddress.Header" xml:space="preserve"><value>Location</value></data>
   <data name="RightAddress.Header" xml:space="preserve"><value>Location</value></data>
-  <data name="RightAddress.Text" xml:space="preserve"><value>\\wsl.localhost\Ubuntu-22.04\home</value></data>
   <data name="PaneStatusNoListing" xml:space="preserve"><value>No location listed</value></data>
   <data name="PaneStatusLoading" xml:space="preserve"><value>Reading…</value></data>
   <data name="PaneStatusComplete" xml:space="preserve"><value>Listing complete</value></data>

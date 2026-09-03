@@ -5,6 +5,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Input;
 using NeNeCommander.Application.Input;
@@ -19,26 +20,31 @@ namespace NeNeCommander.App.Views;
 public sealed partial class CommanderWindow : Window
 {
     private readonly FileSystemPath _initialLeftLocation;
+    private readonly FileSystemPath _initialRightLocation;
     private readonly KeyboardIntentMapper _keyboardIntentMapper;
-    private readonly PaneSession _leftPane;
+    private readonly DualPaneSession _panes;
     private readonly ResourceLoader _resources;
-    private Task? _leftPaneWork;
+    private Task? _paneWork;
 
-    /// <summary>Initializes the shell with the sole keyboard mapping and pane navigation mechanisms.</summary>
+    /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
-    /// <param name="leftPane">Session that owns the left pane snapshot.</param>
-    /// <param name="initialLeftLocation">Validated location read when the shell loads.</param>
+    /// <param name="panes">Coordinator that owns both pane sessions and the active side.</param>
+    /// <param name="initialLeftLocation">Validated location read into the left pane when the shell loads.</param>
+    /// <param name="initialRightLocation">Validated location read into the right pane when the shell loads.</param>
     public CommanderWindow(
         KeyboardIntentMapper keyboardIntentMapper,
-        PaneSession leftPane,
-        FileSystemPath initialLeftLocation)
+        DualPaneSession panes,
+        FileSystemPath initialLeftLocation,
+        FileSystemPath initialRightLocation)
     {
         ArgumentNullException.ThrowIfNull(keyboardIntentMapper);
-        ArgumentNullException.ThrowIfNull(leftPane);
+        ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(initialLeftLocation);
+        ArgumentNullException.ThrowIfNull(initialRightLocation);
         _keyboardIntentMapper = keyboardIntentMapper;
-        _leftPane = leftPane;
+        _panes = panes;
         _initialLeftLocation = initialLeftLocation;
+        _initialRightLocation = initialRightLocation;
         _resources = new ResourceLoader();
         InitializeComponent();
         Title = _resources.GetString("CommanderWindowTitle");
@@ -46,14 +52,14 @@ public sealed partial class CommanderWindow : Window
 
     private void OnLoaded(object _, RoutedEventArgs args)
     {
-        _leftPaneWork ??= RenderAfterAsync(_leftPane.NavigateAsync(_initialLeftLocation, CancellationToken.None));
+        _paneWork ??= RenderAfterAsync(LoadInitialLocationsAsync());
     }
 
     private void OnActivated(object _, WindowActivatedEventArgs args)
     {
         if (args.WindowActivationState != WindowActivationState.Deactivated)
         {
-            _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusFileListWhenIdle);
+            _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
         }
     }
 
@@ -69,40 +75,61 @@ public sealed partial class CommanderWindow : Window
         args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
     }
 
-    /// <summary>
-    /// Renders the snapshot the session reports when its work completes. Expected failures arrive
-    /// as closed activities, so the owned task faults only on a defect.
-    /// </summary>
-    private async Task RenderAfterAsync(Task<PaneSnapshot> work)
+    private async Task<DualPaneSnapshot> LoadInitialLocationsAsync()
     {
-        RenderLeftPane(_leftPane.Current);
-        PaneSnapshot snapshot = await work;
-        RenderLeftPane(snapshot);
+        _ = await _panes.NavigateAsync(PaneSide.Left, _initialLeftLocation, CancellationToken.None);
+        return await _panes.NavigateAsync(PaneSide.Right, _initialRightLocation, CancellationToken.None);
     }
 
-    private void RenderLeftPane(PaneSnapshot snapshot)
+    /// <summary>
+    /// Renders the snapshot the coordinator reports when its work completes. Expected failures
+    /// arrive as closed activities, so the owned task faults only on a defect.
+    /// </summary>
+    private async Task RenderAfterAsync(Task<DualPaneSnapshot> work)
     {
-        PanePresentation presentation = PaneListingPresenter.Present(snapshot);
-        LeftAddress.Text = presentation.AddressText;
-        LeftFileList.ItemsSource = presentation.Entries;
-        LeftFileList.SelectedItem = presentation.FocusEntry;
+        RenderPanes(_panes.Current);
+        DualPaneSnapshot snapshot = await work;
+        RenderPanes(snapshot);
+    }
+
+    private void RenderPanes(DualPaneSnapshot snapshot)
+    {
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
+        RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
+        RenderFrame(presentation.LeftFrame, LeftPaneBorder);
+        RenderFrame(presentation.RightFrame, RightPaneBorder);
+        _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+    }
+
+    private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
+    {
+        address.Text = presentation.AddressText;
+        fileList.ItemsSource = presentation.Entries;
+        fileList.SelectedItem = presentation.FocusEntry;
         if (presentation.FocusEntry is not null)
         {
-            LeftFileList.ScrollIntoView(presentation.FocusEntry);
+            fileList.ScrollIntoView(presentation.FocusEntry);
         }
-        LeftStatus.Text = _resources.GetString(presentation.Status.ResourceKey);
-        _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusFileListWhenIdle);
+        status.Text = _resources.GetString(presentation.Status.ResourceKey);
+    }
+
+    private static void RenderFrame(PaneFrame frame, Border border)
+    {
+        border.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources[frame.BrushResourceKey];
+        border.BorderThickness = (Thickness)Microsoft.UI.Xaml.Application.Current.Resources[frame.ThicknessResourceKey];
     }
 
     /// <summary>
-    /// Returns keyboard focus to the file list after the framework realized its rows, unless a text
-    /// editor owns focus. Runs on the UI thread through the window's dispatcher queue.
+    /// Returns keyboard focus to the active file list after the framework realized its rows, unless
+    /// a text editor owns focus. Runs on the UI thread through the window's dispatcher queue.
     /// </summary>
-    private void FocusFileListWhenIdle()
+    private void FocusActiveFileListWhenIdle()
     {
         if (GetKeyboardContext() == KeyboardContext.FileList)
         {
-            _ = LeftFileList.Focus(FocusState.Programmatic);
+            ListView activeList = _panes.Current.ActiveSide == PaneSide.Left ? LeftFileList : RightFileList;
+            _ = activeList.Focus(FocusState.Programmatic);
         }
     }
 
@@ -118,7 +145,7 @@ public sealed partial class CommanderWindow : Window
 
     private void ForwardIntent(UserIntent intent)
     {
-        _leftPaneWork = RenderAfterAsync(_leftPane.HandleAsync(intent, CancellationToken.None));
+        _paneWork = RenderAfterAsync(_panes.HandleAsync(intent, CancellationToken.None));
     }
 
     private KeyboardContext GetKeyboardContext()
