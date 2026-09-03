@@ -12,8 +12,9 @@ namespace NeNeCommander.Application.Panes;
 /// Coordinates the two pane sessions, the sole active side, and file operations between them.
 /// Only <see cref="UserIntent.ActivateOtherPane"/> changes the active side; every other pane intent
 /// reaches the active pane's session alone, so a read in flight always lands in the pane that
-/// started it. <see cref="UserIntent.Move"/> runs through the sole <see cref="FileOperationGateway"/>,
-/// and every intent is frozen while an operation runs.
+/// started it. <see cref="UserIntent.Move"/> and <see cref="UserIntent.Delete"/> run through the sole
+/// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs, and only
+/// <see cref="UserIntent.Confirm"/> or <see cref="UserIntent.Escape"/> leave a pending confirmation.
 /// </summary>
 public sealed class DualPaneSession
 {
@@ -47,7 +48,9 @@ public sealed class DualPaneSession
     /// <summary>Gets the current immutable snapshot of both panes and the operation activity.</summary>
     public DualPaneSnapshot Current => new(_left.Current, _right.Current, _activeSide, _operation);
 
-    /// <summary>Reads a location into one side regardless of which side is active, unless an operation runs.</summary>
+    private bool IsFrozen => _operation is OperationRunning or OperationAwaitingConfirmation;
+
+    /// <summary>Reads a location into one side regardless of which side is active, unless an operation runs or awaits confirmation.</summary>
     /// <param name="side">Pane to read into.</param>
     /// <param name="location">Validated location to read; absence is rejected by the pane session.</param>
     /// <param name="cancellationToken">Token observed by the read.</param>
@@ -58,15 +61,16 @@ public sealed class DualPaneSession
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(side);
-        return _operation is OperationRunning
+        return IsFrozen
             ? Task.FromResult(Current)
             : ReportAfterAsync(SessionOf(side).NavigateAsync(location, cancellationToken));
     }
 
     /// <summary>
     /// Applies one intent: activation switches the active side without touching either pane's
-    /// focus; move starts the gateway operation; every other intent is handled by the active
-    /// pane's session. Every intent is frozen while an operation runs.
+    /// focus; move and delete start gateway operations; confirm and escape resolve a pending
+    /// confirmation; every other intent is handled by the active pane's session. Every intent
+    /// is frozen while an operation runs.
     /// </summary>
     /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
     /// <param name="cancellationToken">Token observed by any read or operation the intent starts.</param>
@@ -77,6 +81,10 @@ public sealed class DualPaneSession
         {
             return Task.FromResult(Current);
         }
+        if (_operation is OperationAwaitingConfirmation awaiting)
+        {
+            return ResolveConfirmationAsync(awaiting, intent, cancellationToken);
+        }
         if (intent == UserIntent.ActivateOtherPane)
         {
             _activeSide = _activeSide.Other;
@@ -84,34 +92,77 @@ public sealed class DualPaneSession
         }
         return intent == UserIntent.Move
             ? MoveAsync(cancellationToken)
-            : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+            : intent == UserIntent.Delete
+                ? DeleteAsync(cancellationToken)
+                : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
     }
 
-    private async Task<DualPaneSnapshot> MoveAsync(CancellationToken cancellationToken)
+    private Task<DualPaneSnapshot> ResolveConfirmationAsync(
+        OperationAwaitingConfirmation awaiting,
+        UserIntent intent,
+        CancellationToken cancellationToken)
+    {
+        if (intent == UserIntent.Escape)
+        {
+            _operation = OperationActivity.Idle;
+            return Task.FromResult(Current);
+        }
+        if (intent != UserIntent.Confirm)
+        {
+            return Task.FromResult(Current);
+        }
+        FileOperationRequestCreation confirmed = DeleteRequest.Create(
+            awaiting.Request.Sources,
+            PermanentDeletionConfirmation.CreateFor(awaiting.Request));
+        return StartAsync(OperationKind.Delete, confirmed, cancellationToken);
+    }
+
+    private Task<DualPaneSnapshot> MoveAsync(CancellationToken cancellationToken)
     {
         if (SessionOf(_activeSide).Current.Content is not PaneContentListed active ||
             SessionOf(_activeSide.Other).Current.Content is not PaneContentListed passive)
         {
-            return Current;
+            return Task.FromResult(Current);
         }
         IReadOnlyList<FileSystemPath> sources = SelectSources(active.State);
-        if (sources.Count == 0)
-        {
-            return Current;
-        }
+        return sources.Count == 0
+            ? Task.FromResult(Current)
+            : StartAsync(OperationKind.Move, MoveRequest.Create(sources, passive.Listing.Location), cancellationToken);
+    }
 
-        FileOperationRequestCreation creation = MoveRequest.Create(sources, passive.Listing.Location);
+    private Task<DualPaneSnapshot> DeleteAsync(CancellationToken cancellationToken)
+    {
+        if (SessionOf(_activeSide).Current.Content is not PaneContentListed active)
+        {
+            return Task.FromResult(Current);
+        }
+        IReadOnlyList<FileSystemPath> sources = SelectSources(active.State);
+        return sources.Count == 0
+            ? Task.FromResult(Current)
+            : StartAsync(OperationKind.Delete, DeleteRequest.Create(sources, null), cancellationToken);
+    }
+
+    private async Task<DualPaneSnapshot> StartAsync(
+        OperationKind kind,
+        FileOperationRequestCreation creation,
+        CancellationToken cancellationToken)
+    {
         if (creation is FileOperationRequestRejected rejected)
         {
-            _operation = new OperationRequestRejected(rejected.Kind);
+            _operation = new OperationRequestRejected(kind, rejected.Kind);
             return Current;
         }
 
-        _operation = new OperationRunning();
-        FileOperationOutcome outcome = await _gateway.ExecuteAsync(
-            ((FileOperationRequestAccepted)creation).Request,
-            cancellationToken);
-        _operation = new OperationCompleted(outcome);
+        FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
+        _operation = new OperationRunning(kind);
+        FileOperationOutcome outcome = await _gateway.ExecuteAsync(request, cancellationToken);
+        if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
+        {
+            _operation = new OperationAwaitingConfirmation(unconfirmed);
+            return Current;
+        }
+
+        _operation = new OperationCompleted(kind, outcome);
         _ = await _left.RefreshAsync(cancellationToken);
         _ = await _right.RefreshAsync(cancellationToken);
         return Current;

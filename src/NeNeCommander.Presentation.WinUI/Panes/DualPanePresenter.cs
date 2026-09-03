@@ -1,12 +1,13 @@
 using System;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Projects the dual-pane snapshot onto two pane presentations, their activation frames, and the
-/// file-operation status.
+/// Projects the dual-pane snapshot onto two pane presentations, their activation frames, the
+/// file-operation status, and the keyboard context.
 /// </summary>
 public static class DualPanePresenter
 {
@@ -18,27 +19,40 @@ public static class DualPanePresenter
         ArgumentNullException.ThrowIfNull(snapshot);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
+        OperationAwaitingConfirmation? pending = snapshot.Operation as OperationAwaitingConfirmation;
         return new DualPanePresentation(
             PaneListingPresenter.Present(snapshot.Left),
             leftFrame,
             PaneListingPresenter.Present(snapshot.Right),
             rightFrame,
             snapshot.ActiveSide,
-            TranslateOperation(snapshot.Operation));
+            TranslateOperation(snapshot.Operation),
+            pending is null ? 0 : pending.Request.Sources.Count,
+            pending is null ? KeyboardContext.FileList : KeyboardContext.Modal);
     }
 
     private static OperationStatus TranslateOperation(OperationActivity activity)
     {
         return activity switch
         {
-            OperationRunning => OperationStatus.Moving,
-            OperationRequestRejected => OperationStatus.MoveRequestRejected,
-            OperationCompleted completed => TranslateCompletion(completed.Outcome.Completion),
+            OperationRunning running => running.Kind == OperationKind.Move ? OperationStatus.Moving : OperationStatus.Deleting,
+            OperationAwaitingConfirmation => OperationStatus.DeleteAwaitingConfirmation,
+            OperationRequestRejected rejected => rejected.Kind == OperationKind.Move
+                ? OperationStatus.MoveRequestRejected
+                : OperationStatus.DeleteRequestRejected,
+            OperationCompleted completed => TranslateCompletion(completed.Kind, completed.Outcome.Completion),
             _ => OperationStatus.Idle,
         };
     }
 
-    private static OperationStatus TranslateCompletion(FileOperationCompletionKind completion)
+    private static OperationStatus TranslateCompletion(OperationKind kind, FileOperationCompletionKind completion)
+    {
+        return kind == OperationKind.Move
+            ? TranslateMoveCompletion(completion)
+            : TranslateDeleteCompletion(completion);
+    }
+
+    private static OperationStatus TranslateMoveCompletion(FileOperationCompletionKind completion)
     {
         return completion == FileOperationCompletionKind.Succeeded
             ? OperationStatus.MoveSucceeded
@@ -47,5 +61,16 @@ public static class DualPanePresenter
                 : completion == FileOperationCompletionKind.PartiallyCompleted
                     ? OperationStatus.MovePartiallyCompleted
                     : OperationStatus.MoveRejected;
+    }
+
+    private static OperationStatus TranslateDeleteCompletion(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.Succeeded
+            ? OperationStatus.DeleteSucceeded
+            : completion == FileOperationCompletionKind.Cancelled
+                ? OperationStatus.DeleteCancelled
+                : completion == FileOperationCompletionKind.PartiallyCompleted
+                    ? OperationStatus.DeletePartiallyCompleted
+                    : OperationStatus.DeleteRejected;
     }
 }

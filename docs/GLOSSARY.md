@@ -23,7 +23,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed read activity (idle, loading, failed, cancelled). |
 | pane session | The sole `PaneSession` coordinator that owns one pane snapshot and advances it through intents and reads. |
 | pane side | `PaneSide.Left` or `PaneSide.Right`; the closed identity of one pane surface. |
-| operation activity | The closed `OperationActivity` of the dual-pane session: idle, running, completed with a gateway outcome, or request rejected. |
+| operation activity | The closed `OperationActivity` of the dual-pane session: idle, running, awaiting confirmation, completed with a gateway outcome, or request rejected. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
 | gate | An executable check called by `eng/check.ps1` locally and in CI. |
 | waiver | A narrow, owned, expiring exception that does not weaken a protected invariant. |

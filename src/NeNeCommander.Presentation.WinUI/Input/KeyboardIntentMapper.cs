@@ -27,12 +27,17 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
+        if (input.Context == KeyboardContext.TextEntry)
         {
             _pendingChordStartedAt = null;
             return input.Key == KeyboardKey.Escape
                 ? MapIntent(UserIntent.Escape)
                 : new KeyboardPassThrough();
+        }
+        if (input.Context == KeyboardContext.Modal)
+        {
+            _pendingChordStartedAt = null;
+            return MapModal(input);
         }
 
         if (input.Key == KeyboardKey.Other)
@@ -70,6 +75,13 @@ public sealed class KeyboardIntentMapper
         return elapsed <= ChordLifetime && IsChordPrefix(input)
             ? MapIntent(UserIntent.FocusFirst)
             : null;
+    }
+
+    private static KeyboardMappingOutcome MapModal(KeyboardInput input)
+    {
+        return input.Key == KeyboardKey.Escape
+            ? MapIntent(UserIntent.Escape)
+            : input.Key == KeyboardKey.Enter ? MapIntent(UserIntent.Confirm) : new KeyboardPassThrough();
     }
 
     private static KeyboardMappingOutcome MapSingleKey(KeyboardInput input)

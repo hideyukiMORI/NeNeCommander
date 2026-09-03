@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
@@ -25,6 +26,7 @@ public sealed partial class CommanderWindow : Window
     private readonly DualPaneSession _panes;
     private readonly ResourceLoader _resources;
     private Task? _paneWork;
+    private KeyboardContext _operationContext = KeyboardContext.FileList;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -100,6 +102,10 @@ public sealed partial class CommanderWindow : Window
         RenderFrame(presentation.LeftFrame, LeftPaneBorder);
         RenderFrame(presentation.RightFrame, RightPaneBorder);
         OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
+        OperationDetail.Text = presentation.ConfirmationItemCount == 0
+            ? string.Empty
+            : presentation.ConfirmationItemCount.ToString(CultureInfo.CurrentCulture);
+        _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
     }
 
@@ -154,6 +160,6 @@ public sealed partial class CommanderWindow : Window
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
         return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
             ? KeyboardContext.TextEntry
-            : KeyboardContext.FileList;
+            : _operationContext;
     }
 }

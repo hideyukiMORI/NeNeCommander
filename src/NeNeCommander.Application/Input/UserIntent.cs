@@ -59,6 +59,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to refresh the active pane.</summary>
     public static UserIntent Refresh { get; } = new RefreshIntent();
 
+    /// <summary>Gets the intent to confirm the pending modal question.</summary>
+    public static UserIntent Confirm { get; } = new ConfirmIntent();
+
     private UserIntent()
     {
     }
@@ -81,4 +84,5 @@ public abstract record UserIntent
     private sealed record DeleteIntent : UserIntent;
     private sealed record FocusAddressIntent : UserIntent;
     private sealed record RefreshIntent : UserIntent;
+    private sealed record ConfirmIntent : UserIntent;
 }
