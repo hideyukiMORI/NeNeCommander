@@ -25,13 +25,16 @@ public sealed class FileOperationGateway : IDisposable
 
     /// <summary>Executes one immutable request without permitting reentrant mutation.</summary>
     /// <param name="request">Validated operation request.</param>
+    /// <param name="progress">Observer told once per source whose every step completed.</param>
     /// <param name="cancellationToken">Token that stops new work after observation.</param>
     /// <returns>The complete typed outcome and ordered completed effects.</returns>
     public async Task<FileOperationOutcome> ExecuteAsync(
         FileOperationRequest request,
+        IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(progress);
         if (cancellationToken.IsCancellationRequested)
         {
             return FileOperationOutcome.Cancelled(Array.Empty<FileOperationEffect>());
@@ -53,13 +56,15 @@ public sealed class FileOperationGateway : IDisposable
                     moveRequest.Sources,
                     moveRequest.Destination,
                     MoveOneAsync,
+                    progress,
                     cancellationToken),
                 CopyRequest copyRequest => await ExecuteTransferAsync(
                     copyRequest.Sources,
                     copyRequest.Destination,
                     CopyOneAsync,
+                    progress,
                     cancellationToken),
-                DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, cancellationToken),
+                DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, progress, cancellationToken),
                 _ => throw new InvalidOperationException("The validated request variant is not executable."),
             };
         }
@@ -79,6 +84,7 @@ public sealed class FileOperationGateway : IDisposable
         IReadOnlyList<FileSystemPath> sources,
         FileSystemPath destination,
         Func<FileEntrySnapshot, FileSystemPath, List<FileOperationEffect>, CancellationToken, Task<FileOperationOutcome?>> transferOne,
+        IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
@@ -105,6 +111,7 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, preflight.Failure);
         }
 
+        int completed = 0;
         foreach (FileEntrySnapshot snapshot in inspection.Snapshots)
         {
             FileOperationOutcome? stopped = await transferOne(snapshot, destination, effects, cancellationToken);
@@ -112,12 +119,15 @@ public sealed class FileOperationGateway : IDisposable
             {
                 return stopped;
             }
+            completed++;
+            progress.Report(FileOperationProgress.Create(completed, sources.Count));
         }
         return FileOperationOutcome.Succeeded(effects);
     }
 
     private async Task<FileOperationOutcome> ExecuteDeleteAsync(
         DeleteRequest request,
+        IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
@@ -154,6 +164,7 @@ public sealed class FileOperationGateway : IDisposable
                 ? FileOperationEffectKind.Recycled
                 : FileOperationEffectKind.PermanentlyDeleted;
             effects.Add(FileOperationEffect.Create(snapshot.Path, effect));
+            progress.Report(FileOperationProgress.Create(effects.Count, request.Sources.Count));
         }
         return FileOperationOutcome.Succeeded(effects);
     }

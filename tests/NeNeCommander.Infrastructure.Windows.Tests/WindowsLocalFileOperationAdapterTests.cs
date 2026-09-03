@@ -342,7 +342,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(MoveRequest.Create([source], destination)).Request);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, CancellationToken.None);
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, IgnoredFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(3, outcome.Effects);
@@ -365,8 +365,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(
                 DeleteRequest.Create([source], PermanentDeletionConfirmation.CreateFor(unconfirmed))).Request);
 
-        FileOperationOutcome refused = await gateway.ExecuteAsync(unconfirmed, CancellationToken.None);
-        FileOperationOutcome deleted = await gateway.ExecuteAsync(confirmed, CancellationToken.None);
+        FileOperationOutcome refused = await gateway.ExecuteAsync(unconfirmed, IgnoredFileOperationProgress.Create(), CancellationToken.None);
+        FileOperationOutcome deleted = await gateway.ExecuteAsync(confirmed, IgnoredFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, refused.Failure);
         Assert.AreSame(FileOperationCompletionKind.Succeeded, deleted.Completion);

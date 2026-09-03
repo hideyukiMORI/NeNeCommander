@@ -38,7 +38,7 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(PaneStatus.Cancelled, presentation.Right.Status);
         Assert.AreEqual("C:\\right", presentation.Right.AddressText);
         Assert.AreSame(OperationStatus.Idle, presentation.OperationStatus);
-        Assert.AreEqual(0, presentation.ConfirmationItemCount);
+        Assert.AreSame(OperationDetail.None, presentation.Detail);
         Assert.AreSame(KeyboardContext.FileList, presentation.InputContext);
     }
 
@@ -48,7 +48,7 @@ public sealed class DualPanePresenterTests
     {
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort _, out ScriptedDirectoryReadPort _, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.ActivateOtherPane, CancellationToken.None);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
 
@@ -70,7 +70,7 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
 
-        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, CancellationToken.None);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
         Assert.AreSame(OperationStatus.MoveRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
     }
@@ -122,7 +122,7 @@ public sealed class DualPanePresenterTests
             FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
         script(port);
 
-        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, cancellationToken);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), cancellationToken);
 
         return DualPanePresenter.Present(snapshot).OperationStatus;
     }
@@ -160,21 +160,63 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
 
-        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Copy, CancellationToken.None);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
         Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
     }
 
-    /// <summary>Proves each running operation kind is projected as its own running status while the gateway works.</summary>
+    /// <summary>Proves each running operation kind is projected as its own running status with zero progress while the gateway works.</summary>
     [TestMethod]
-    public async Task PresentWhenOperationIsRunningNamesTheRunningKind()
+    public async Task PresentWhenOperationIsRunningNamesTheRunningKindAndProgress()
     {
-        Assert.AreSame(OperationStatus.Moving, await RunningStatusAsync(UserIntent.Move));
-        Assert.AreSame(OperationStatus.Copying, await RunningStatusAsync(UserIntent.Copy));
-        Assert.AreSame(OperationStatus.Deleting, await RunningStatusAsync(UserIntent.Delete));
+        Assert.AreSame(OperationStatus.Moving, (await RunningAsync(UserIntent.Move)).OperationStatus);
+        Assert.AreSame(OperationStatus.Copying, (await RunningAsync(UserIntent.Copy)).OperationStatus);
+        DualPanePresentation deleting = await RunningAsync(UserIntent.Delete);
+
+        Assert.AreSame(OperationStatus.Deleting, deleting.OperationStatus);
+        OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(deleting.Detail);
+        Assert.AreEqual(0, detail.Completed);
+        Assert.AreEqual(1, detail.Total);
+        Assert.AreSame(KeyboardContext.FileList, deleting.InputContext);
     }
 
-    private static async Task<OperationStatus> RunningStatusAsync(UserIntent intent)
+    /// <summary>Proves the observer receives a presentation-ready snapshot whose detail counts the completed source.</summary>
+    [TestMethod]
+    public async Task PresentWhenProgressIsReportedProjectsCompletedAndTotal()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
+        port.EnqueueInspection(FileInspectionOutcome.Succeeded(
+            FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
+        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
+
+        _ = await panes.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
+
+        Assert.HasCount(1, observer.Snapshots);
+        DualPanePresentation presentation = DualPanePresenter.Present(observer.Snapshots[0]);
+        Assert.AreSame(OperationStatus.Copying, presentation.OperationStatus);
+        OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(presentation.Detail);
+        Assert.AreEqual(1, detail.Completed);
+        Assert.AreEqual(1, detail.Total);
+    }
+
+    private static async Task<DualPanePresentation> RunningAsync(UserIntent intent)
     {
         DualPaneSession panes = CreatePanes(
             out ScriptedDirectoryReadPort left,
@@ -192,12 +234,12 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
-        Task<DualPaneSnapshot> running = panes.HandleAsync(intent, CancellationToken.None);
-        OperationStatus status = DualPanePresenter.Present(panes.Current).OperationStatus;
+        Task<DualPaneSnapshot> running = panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current);
 
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
-        return status;
+        return presentation;
     }
 
     private static async Task<OperationStatus> OperationStatusAsync(
@@ -224,7 +266,7 @@ public sealed class DualPanePresenterTests
             FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
         script(port);
 
-        DualPaneSnapshot snapshot = await panes.HandleAsync(intent, cancellationToken);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), cancellationToken);
 
         return DualPanePresenter.Present(snapshot).OperationStatus;
     }
@@ -246,9 +288,9 @@ public sealed class DualPanePresenterTests
         right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
         foreach (DirectoryEntry entry in leftListing.Entries)
         {
@@ -257,15 +299,15 @@ public sealed class DualPanePresenterTests
         }
 
         DualPanePresentation pending = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None));
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None));
 
         Assert.AreSame(OperationStatus.DeleteAwaitingConfirmation, pending.OperationStatus);
-        Assert.AreEqual(2, pending.ConfirmationItemCount);
+        Assert.AreEqual(2, Assert.IsInstanceOfType<OperationItemCountDetail>(pending.Detail).Count);
         Assert.AreSame(KeyboardContext.Modal, pending.InputContext);
         Assert.AreSame(OperationStatus.Idle, escaped.OperationStatus);
-        Assert.AreEqual(0, escaped.ConfirmationItemCount);
+        Assert.AreSame(OperationDetail.None, escaped.Detail);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);
     }
 
@@ -300,9 +342,9 @@ public sealed class DualPanePresenterTests
         right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
-        _ = await panes.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
         foreach (DirectoryEntry entry in leftListing.Entries)
         {
@@ -313,7 +355,7 @@ public sealed class DualPanePresenterTests
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
 
         DualPanePresentation presentation = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None));
 
         Assert.AreSame(OperationStatus.DeletePartiallyCompleted, presentation.OperationStatus);
     }
@@ -341,7 +383,7 @@ public sealed class DualPanePresenterTests
             FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
         script(port);
 
-        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Delete, cancellationToken);
+        DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), cancellationToken);
 
         return DualPanePresenter.Present(snapshot).OperationStatus;
     }
