@@ -152,6 +152,12 @@
                 FontSize="{StaticResource TypographyBodySize}"
                 Foreground="{StaticResource StatusWarningBrush}"
                 Margin="{StaticResource SpacingAddressBottom}" />
+            <TextBox
+                x:Name="NameEntry"
+                AutomationProperties.AutomationId="NameEntry"
+                FontSize="{StaticResource TypographyBodySize}"
+                Margin="{StaticResource SpacingAddressBottom}"
+                Visibility="Collapsed" />
         </StackPanel>
     </Grid>
 </Window>

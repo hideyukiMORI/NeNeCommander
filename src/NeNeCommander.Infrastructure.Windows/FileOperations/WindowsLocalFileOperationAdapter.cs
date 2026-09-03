@@ -65,6 +65,45 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return Task.FromResult(Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
 
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateDirectoryAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return Task.FromResult(Guarded(() => CreateDirectory(location, target), FileOperationFailureKind.ProviderUnavailable));
+    }
+
+    private static ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
+    {
+        return target is not WindowsLocalPath localTarget
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : WithRevalidatedEntry(location, entry => CreateDirectoryBeneath(entry, location.Path, localTarget));
+    }
+
+    private static ProviderStepOutcome CreateDirectoryBeneath(FileSystemInfo entry, FileSystemPath location, WindowsLocalPath target)
+    {
+        if (entry is not DirectoryInfo)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+        }
+        if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        if (ProviderPathContainment.Evaluate(location, target) is not ContainedPath)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+        }
+        if (TargetExists(target.CanonicalText))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        _ = Directory.CreateDirectory(target.CanonicalText);
+        return ProviderStepOutcome.Succeeded();
+    }
+
     private static FileInspectionOutcome Inspect(FileSystemPath path)
     {
         if (path is not WindowsLocalPath local)

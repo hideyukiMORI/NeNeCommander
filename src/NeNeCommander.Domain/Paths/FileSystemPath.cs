@@ -32,6 +32,30 @@ public abstract record FileSystemPath
     /// </summary>
     public abstract FileSystemPath? Parent { get; }
 
+    /// <summary>
+    /// Derives the direct child named by untrusted text under the same segment rules as parsing,
+    /// without touching the filesystem. Separators and dot segments are rejected so the result can
+    /// never be the location itself or anything outside it.
+    /// </summary>
+    /// <param name="name">Untrusted single-segment name.</param>
+    /// <returns>The child path or a closed rejection reason.</returns>
+    public PathParseOutcome Child(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return new PathParseFailure(PathParseFailureKind.Empty);
+        }
+        if (name.Contains('\\') ||
+            name.Contains('/') ||
+            name.Equals(".", StringComparison.Ordinal) ||
+            name.Equals("..", StringComparison.Ordinal))
+        {
+            return new PathParseFailure(PathParseFailureKind.InvalidSegment);
+        }
+        string separator = CanonicalText.EndsWith('\\') ? string.Empty : "\\";
+        return Parse(CanonicalText + separator + name);
+    }
+
     internal abstract bool HasSameIdentity(FileSystemPath other);
 
     internal abstract int GetIdentityHashCode();

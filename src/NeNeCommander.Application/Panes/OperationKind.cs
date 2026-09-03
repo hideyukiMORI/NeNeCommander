@@ -14,6 +14,9 @@ public abstract record OperationKind
     /// <summary>Gets the kind for deleting the active pane's items.</summary>
     public static OperationKind Delete { get; } = new DeleteKind();
 
+    /// <summary>Gets the kind for creating a directory in the active pane's location.</summary>
+    public static OperationKind CreateDirectory { get; } = new CreateDirectoryKind();
+
     private OperationKind()
     {
     }
@@ -21,4 +24,5 @@ public abstract record OperationKind
     private sealed record MoveKind : OperationKind;
     private sealed record CopyKind : OperationKind;
     private sealed record DeleteKind : OperationKind;
+    private sealed record CreateDirectoryKind : OperationKind;
 }

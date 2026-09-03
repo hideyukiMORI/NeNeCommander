@@ -44,6 +44,9 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(MoveRequest), nameof(MoveRequest.Create), [new[] { path }, null]);
         AssertStaticNullGuard(typeof(CopyRequest), nameof(CopyRequest.Create), [null, path]);
         AssertStaticNullGuard(typeof(CopyRequest), nameof(CopyRequest.Create), [new[] { path }, null]);
+        AssertStaticNullGuard(typeof(CreateDirectoryRequest), nameof(CreateDirectoryRequest.Create), [null, "name"]);
+        AssertStaticNullGuard(typeof(CreateDirectoryRequest), nameof(CreateDirectoryRequest.Create), [path, null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SubmitName), [null]);
         AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         AssertStaticNullGuard(
             typeof(PermanentDeletionConfirmation),
@@ -96,6 +99,7 @@ public sealed class NullGuardTests
         AssertConstructorNullGuard(constructor, [port, null, 1]);
         AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
+        AssertInstanceNullGuard(session, nameof(PaneSession.RefreshFocusingAsync), [null, CancellationToken.None]);
         Assert.IsEmpty(port.Requests);
     }
 
@@ -133,6 +137,7 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(OperationRunning), [null, FileOperationProgress.Create(0, 1)]);
         AssertInternalConstructorNullGuard(typeof(OperationRunning), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationAwaitingConfirmation), [null]);
+        AssertInternalConstructorNullGuard(typeof(OperationAwaitingName), [null]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [null, outcome]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationRequestRejected), [null, FileOperationRequestFailureKind.EmptySources]);

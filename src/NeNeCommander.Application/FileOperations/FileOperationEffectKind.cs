@@ -20,6 +20,9 @@ public abstract record FileOperationEffectKind
     /// <summary>Gets the effect indicating an item was permanently deleted.</summary>
     public static FileOperationEffectKind PermanentlyDeleted { get; } = new PermanentlyDeletedEffect();
 
+    /// <summary>Gets the effect indicating a directory was created at the effect's path.</summary>
+    public static FileOperationEffectKind DirectoryCreated { get; } = new DirectoryCreatedEffect();
+
     private FileOperationEffectKind()
     {
     }
@@ -29,4 +32,5 @@ public abstract record FileOperationEffectKind
     private sealed record SourceDeletedEffect : FileOperationEffectKind;
     private sealed record RecycledEffect : FileOperationEffectKind;
     private sealed record PermanentlyDeletedEffect : FileOperationEffectKind;
+    private sealed record DirectoryCreatedEffect : FileOperationEffectKind;
 }

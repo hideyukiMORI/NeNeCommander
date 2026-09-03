@@ -36,4 +36,10 @@ public interface IFileOperationPort
         FileEntrySnapshot source,
         DeletionExecutionMode mode,
         CancellationToken cancellationToken);
+
+    /// <summary>Creates one directory at the target directly beneath the frozen, revalidated location.</summary>
+    public Task<ProviderStepOutcome> CreateDirectoryAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken);
 }
