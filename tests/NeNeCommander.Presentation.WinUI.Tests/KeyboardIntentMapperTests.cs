@@ -192,6 +192,7 @@ public sealed class KeyboardIntentMapperTests
         AssertTranslatedVirtualKey(VirtualKey.F6, KeyboardKey.F6);
         AssertTranslatedVirtualKey(VirtualKey.F7, KeyboardKey.F7);
         AssertTranslatedVirtualKey(VirtualKey.F8, KeyboardKey.F8);
+        AssertTranslatedVirtualKey(VirtualKey.Space, KeyboardKey.Space);
         AssertTranslatedVirtualKey(VirtualKey.A, KeyboardKey.Other);
 
         KeyboardInput repeated = KeyboardInputTranslator.TranslateKeyData(
@@ -208,7 +209,7 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void TranslateCharacterDataWhenCharacterVariesReturnsCanonicalKeyAndRepeatState()
     {
-        AssertTranslatedCharacter(' ', KeyboardKey.Space);
+        AssertTranslatedCharacter(' ', KeyboardKey.Other);
         AssertTranslatedCharacter('d', KeyboardKey.D);
         AssertTranslatedCharacter('\u0004', KeyboardKey.D);
         AssertTranslatedCharacter('G', KeyboardKey.UpperG);

@@ -22,8 +22,8 @@ public sealed class PaneListingPresenterTests
     {
         PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial);
 
-        Assert.IsEmpty(presentation.Entries);
-        Assert.IsNull(presentation.FocusEntry);
+        Assert.IsEmpty(presentation.Rows);
+        Assert.IsNull(presentation.FocusRow);
         Assert.AreSame(PaneStatus.NoListing, presentation.Status);
         Assert.AreEqual(string.Empty, presentation.AddressText);
     }
@@ -42,13 +42,43 @@ public sealed class PaneListingPresenterTests
         PanePresentation initial = PaneListingPresenter.Present(snapshot);
         PanePresentation afterMove = PaneListingPresenter.Present(moved);
 
-        Assert.AreSame(listing.Entries, initial.Entries);
-        Assert.AreSame(listing.Entries[0], initial.FocusEntry);
-        Assert.AreSame(listing.Entries[1], afterMove.FocusEntry);
+        Assert.HasCount(2, initial.Rows);
+        Assert.AreSame(listing.Entries[0], initial.Rows[0].Entry);
+        Assert.AreSame(listing.Entries[1], initial.Rows[1].Entry);
+        Assert.AreSame(initial.Rows[0], initial.FocusRow);
+        Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
+        Assert.AreSame(PaneRowMark.Unselected, initial.Rows[0].Mark);
+        Assert.IsFalse(initial.Rows[0].IsSelected);
         Assert.AreSame(PaneStatus.Complete, initial.Status);
         Assert.AreEqual("C:\\projects", initial.AddressText);
     }
 
+    /// <summary>Proves selected rows carry the selected mark by provider identity and escape clears it.</summary>
+    [TestMethod]
+    public async Task PresentWhenItemsAreSelectedMarksOnlyThoseRows()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt", "c.txt"], DirectoryListingCompleteness.Complete, 0);
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        PaneSnapshot selected = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+        PaneSnapshot cleared = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
+
+        PanePresentation marked = PaneListingPresenter.Present(selected);
+        PanePresentation unmarked = PaneListingPresenter.Present(cleared);
+
+        Assert.IsTrue(marked.Rows[0].IsSelected);
+        Assert.IsFalse(marked.Rows[1].IsSelected);
+        Assert.IsTrue(marked.Rows[2].IsSelected);
+        Assert.AreSame(marked.Rows[2], marked.FocusRow);
+        Assert.IsFalse(unmarked.Rows[0].IsSelected);
+        Assert.IsFalse(unmarked.Rows[2].IsSelected);
+        Assert.AreSame(unmarked.Rows[2], unmarked.FocusRow);
+    }
     /// <summary>Proves an empty listing has no focus entry.</summary>
     [TestMethod]
     public async Task PresentWhenListingIsEmptyHasNoFocusEntry()
@@ -57,8 +87,8 @@ public sealed class PaneListingPresenterTests
 
         PanePresentation presentation = PaneListingPresenter.Present(snapshot);
 
-        Assert.IsNull(presentation.FocusEntry);
-        Assert.IsEmpty(presentation.Entries);
+        Assert.IsNull(presentation.FocusRow);
+        Assert.IsEmpty(presentation.Rows);
     }
 
     /// <summary>Proves listing completeness maps to bounded before omitted before complete.</summary>
@@ -93,10 +123,10 @@ public sealed class PaneListingPresenterTests
             CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> release).Current);
         release.SetResult(DirectoryReadOutcome.Cancelled());
 
-        Assert.AreSame(listing.Entries, listedLoading.Entries);
+        Assert.AreSame(listing.Entries[0], listedLoading.Rows[0].Entry);
         Assert.AreSame(PaneStatus.Loading, listedLoading.Status);
         Assert.AreEqual("C:\\projects", listedLoading.AddressText);
-        Assert.IsEmpty(absentLoading.Entries);
+        Assert.IsEmpty(absentLoading.Rows);
         Assert.AreSame(PaneStatus.Loading, absentLoading.Status);
         Assert.AreEqual("C:\\pending", absentLoading.AddressText);
     }
@@ -119,7 +149,7 @@ public sealed class PaneListingPresenterTests
         Assert.AreEqual("C:\\target", denied.AddressText);
         Assert.AreSame(PaneStatus.NotFound, missing.Status);
         Assert.AreSame(PaneStatus.ProviderUnavailable, unavailable.Status);
-        Assert.IsEmpty(unavailable.Entries);
+        Assert.IsEmpty(unavailable.Rows);
     }
 
     /// <summary>Proves a failed read over listed content keeps the rows and the listed address.</summary>
@@ -136,8 +166,8 @@ public sealed class PaneListingPresenterTests
 
         PanePresentation presentation = PaneListingPresenter.Present(snapshot);
 
-        Assert.AreSame(listing.Entries, presentation.Entries);
-        Assert.AreSame(listing.Entries[0], presentation.FocusEntry);
+        Assert.AreSame(listing.Entries[0], presentation.Rows[0].Entry);
+        Assert.AreSame(presentation.Rows[0], presentation.FocusRow);
         Assert.AreSame(PaneStatus.NotFound, presentation.Status);
         Assert.AreEqual("C:\\projects", presentation.AddressText);
     }

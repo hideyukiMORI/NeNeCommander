@@ -3,7 +3,7 @@
     x:Class="NeNeCommander.App.Views.CommanderWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:directories="using:NeNeCommander.Application.Directories"
+    xmlns:panes="using:NeNeCommander.Presentation.WinUI.Panes"
     Activated="OnActivated">
     <Grid
         x:Name="InputSurface"
@@ -15,11 +15,17 @@
         Loaded="OnLoaded"
         Padding="{StaticResource SpacingWindowOuter}">
         <Grid.Resources>
-            <DataTemplate x:Key="DirectoryEntryTemplate" x:DataType="directories:DirectoryEntry">
-                <TextBlock
-                    FontSize="{StaticResource TypographyBodySize}"
-                    Foreground="{StaticResource TextPrimaryBrush}"
-                    Text="{x:Bind Name}" />
+            <DataTemplate x:Key="PaneRowTemplate" x:DataType="panes:PaneRow">
+                <Grid>
+                    <Border
+                        Background="{StaticResource SelectionSurfaceBrush}"
+                        CornerRadius="{StaticResource RadiusPane}"
+                        Visibility="{x:Bind IsSelected}" />
+                    <TextBlock
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{x:Bind Entry.Name}" />
+                </Grid>
             </DataTemplate>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
@@ -68,7 +74,7 @@
                     x:Name="LeftFileList"
                     Grid.Row="3"
                     AutomationProperties.AutomationId="LeftFileList"
-                    ItemTemplate="{StaticResource DirectoryEntryTemplate}"
+                    ItemTemplate="{StaticResource PaneRowTemplate}"
                     MinHeight="{StaticResource DensityRowMinimumHeight}"
                     SelectionMode="Single" />
             </Grid>
@@ -111,7 +117,7 @@
                     x:Name="RightFileList"
                     Grid.Row="3"
                     AutomationProperties.AutomationId="RightFileList"
-                    ItemTemplate="{StaticResource DirectoryEntryTemplate}"
+                    ItemTemplate="{StaticResource PaneRowTemplate}"
                     MinHeight="{StaticResource DensityRowMinimumHeight}"
                     SelectionMode="Single" />
             </Grid>

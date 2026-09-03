@@ -33,7 +33,7 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(PaneFrame.Active, presentation.LeftFrame);
         Assert.AreSame(PaneFrame.Passive, presentation.RightFrame);
         Assert.AreSame(PaneSide.Left, presentation.ActiveSide);
-        Assert.AreSame(leftListing.Entries, presentation.Left.Entries);
+        Assert.AreSame(leftListing.Entries[0], presentation.Left.Rows[0].Entry);
         Assert.AreSame(PaneStatus.Cancelled, presentation.Right.Status);
         Assert.AreEqual("C:\\right", presentation.Right.AddressText);
         Assert.AreSame(OperationStatus.Idle, presentation.OperationStatus);
