@@ -23,3 +23,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0011: Windows integration tests own an isolated temporary root](0011-windows-integration-test-root.md)
 - [ADR-0012: Coordinate pane navigation through one session](0012-pane-session-navigation.md)
 - [ADR-0013: Coordinate both panes and the active side through one dual-pane session](0013-dual-pane-activation.md)
+- [ADR-0014: Implement the Windows local file-operation adapter with metadata identity](0014-windows-local-file-operation-adapter.md)
