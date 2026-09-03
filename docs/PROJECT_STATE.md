@@ -8,15 +8,17 @@ Status: normative
 - Product specification source reviewed: external `NeNe_Commander_Product_Spec.md`
 - Public repository: `https://github.com/hideyukiMORI/NeNeCommander`
 - Active initial work item: `#1` (closed)
-- Active work item: [Issue #3](https://github.com/hideyukiMORI/NeNeCommander/issues/3)
+- Completed vertical slice: [Issue #3](https://github.com/hideyukiMORI/NeNeCommander/issues/3) (closed by PR #4)
 - Policy foundation authorized by hide on: `2026-09-02`
 
 ## Current checkpoint
 
-- Verified implementation baseline: `a386406b6269b7de14cad9653c0270ac391e6ecc`
-- Daily report: [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md)
-- Handoff: [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
-- Current product vertical slice: one Windows local directory read and projected onto the left pane ([Issue #3](https://github.com/hideyukiMORI/NeNeCommander/issues/3), ADR-0010, ADR-0011).
+- Verified implementation baseline: `de8f197ef0d25372cb2433003f2ec35a3d88bf54`
+- Daily report: [`docs/reports/2026-09-03-directory-listing-daily-report.md`](reports/2026-09-03-directory-listing-daily-report.md)
+- Handoff: [`docs/handoffs/2026-09-03-directory-listing-handoff.md`](handoffs/2026-09-03-directory-listing-handoff.md)
+- Previous checkpoint: [`docs/reports/2026-09-03-daily-report.md`](reports/2026-09-03-daily-report.md) and [`docs/handoffs/2026-09-03-initial-foundation-handoff.md`](handoffs/2026-09-03-initial-foundation-handoff.md)
+- Completed product vertical slice: one Windows local directory read and projected onto the left pane (ADR-0010, ADR-0011).
+- Next product vertical slice: keyboard focus movement and directory entry/parent navigation in the left pane; not started, open a focused Issue and branch before implementation.
 - Open security follow-up: [Issue #2](https://github.com/hideyukiMORI/NeNeCommander/issues/2)
 
 ## Implementation transition
