@@ -25,4 +25,11 @@
   <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>Move stopped after partial completion</value></data>
   <data name="OperationStatusMoveRejected" xml:space="preserve"><value>Move was rejected before any change</value></data>
   <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>Move request is not valid</value></data>
+  <data name="OperationStatusDeleting" xml:space="preserve"><value>Deleting…</value></data>
+  <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>Permanently delete the selected items from this Windows location (no recycle bin)? Enter to confirm, Escape to cancel. Item count:</value></data>
+  <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>Deletion completed</value></data>
+  <data name="OperationStatusDeleteCancelled" xml:space="preserve"><value>Deletion cancelled</value></data>
+  <data name="OperationStatusDeletePartiallyCompleted" xml:space="preserve"><value>Deletion stopped after partial completion</value></data>
+  <data name="OperationStatusDeleteRejected" xml:space="preserve"><value>Deletion was rejected before any change</value></data>
+  <data name="OperationStatusDeleteRequestRejected" xml:space="preserve"><value>Delete request is not valid</value></data>
 </root>

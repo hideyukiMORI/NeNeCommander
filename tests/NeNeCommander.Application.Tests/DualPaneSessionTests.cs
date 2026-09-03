@@ -215,7 +215,8 @@ public sealed class DualPaneSessionTests
 
         Assert.AreSame(
             FileOperationRequestFailureKind.DestinationIsSource,
-            Assert.IsInstanceOfType<OperationRequestRejected>(snapshot.Operation).Kind);
+            Assert.IsInstanceOfType<OperationRequestRejected>(snapshot.Operation).Failure);
+        Assert.AreSame(OperationKind.Move, Assert.IsInstanceOfType<OperationRequestRejected>(snapshot.Operation).Kind);
         Assert.IsEmpty(fixture.Port.Calls);
         Assert.HasCount(1, fixture.Left.Requests);
     }
@@ -234,6 +235,7 @@ public sealed class DualPaneSessionTests
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Move, CancellationToken.None);
 
         OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(snapshot.Operation);
+        Assert.AreSame(OperationKind.Move, completed.Kind);
         Assert.AreSame(FileOperationCompletionKind.Rejected, completed.Outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, completed.Outcome.Failure);
         Assert.HasCount(2, fixture.Left.Requests);
@@ -263,7 +265,7 @@ public sealed class DualPaneSessionTests
         blocking.Release();
         DualPaneSnapshot completed = await move;
 
-        _ = Assert.IsInstanceOfType<OperationRunning>(frozenIntent.Operation);
+        Assert.AreSame(OperationKind.Move, Assert.IsInstanceOfType<OperationRunning>(frozenIntent.Operation).Kind);
         Assert.AreSame(leftListing.Entries[0].Path, Focus(frozenIntent.Left));
         Assert.AreSame(PaneSide.Left, frozenActivation.ActiveSide);
         Assert.AreEqual("C:\\right", Assert.IsInstanceOfType<PaneContentListed>(frozenNavigation.Right.Content).Listing.Location.CanonicalText);
@@ -271,6 +273,97 @@ public sealed class DualPaneSessionTests
         Assert.HasCount(2, fixture.Right.Requests);
     }
 
+    /// <summary>Proves an unconfirmed permanent deletion never deletes and waits for confirmation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-008")]
+    public async Task HandleAsyncWhenDeleteNeedsConfirmationWaitsWithoutDeleting()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
+
+        DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+
+        OperationAwaitingConfirmation awaiting = Assert.IsInstanceOfType<OperationAwaitingConfirmation>(snapshot.Operation);
+        Assert.HasCount(1, awaiting.Request.Sources);
+        Assert.AreSame(leftListing.Entries[0].Path, awaiting.Request.Sources[0]);
+        Assert.HasCount(1, fixture.Port.Calls);
+        Assert.HasCount(1, fixture.Left.Requests);
+    }
+
+    /// <summary>Proves confirm executes the exact frozen set and escape abandons it, while other intents are frozen.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-008")]
+    [TestProperty("ThreatId", "ADV-016")]
+    public async Task HandleAsyncWhenConfirmationIsPendingOnlyConfirmOrEscapeResolveIt()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
+        _ = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+
+        DualPaneSnapshot frozenMove = await fixture.Panes.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        DualPaneSnapshot frozenActivation = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, CancellationToken.None);
+        DualPaneSnapshot frozenNavigation = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\other"), CancellationToken.None);
+        DualPaneSnapshot escaped = await fixture.Panes.HandleAsync(UserIntent.Escape, CancellationToken.None);
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
+        _ = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        DirectoryListing leftAfter = Listing("C:\\left", ("b.txt", DirectoryEntryKind.File));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        DualPaneSnapshot confirmed = await fixture.Panes.HandleAsync(UserIntent.Confirm, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<OperationAwaitingConfirmation>(frozenMove.Operation);
+        Assert.AreSame(leftListing.Entries[0].Path, Focus(frozenMove.Left));
+        Assert.AreSame(PaneSide.Left, frozenActivation.ActiveSide);
+        Assert.AreEqual("C:\\right", Assert.IsInstanceOfType<PaneContentListed>(frozenNavigation.Right.Content).Listing.Location.CanonicalText);
+        Assert.AreSame(OperationActivity.Idle, escaped.Operation);
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(confirmed.Operation);
+        Assert.AreSame(OperationKind.Delete, completed.Kind);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, completed.Outcome.Completion);
+        Assert.AreEqual("Delete:C:\\left\\a.txt", fixture.Port.Calls[3]);
+        Assert.AreSame(leftAfter, Assert.IsInstanceOfType<PaneContentListed>(confirmed.Left.Content).Listing);
+        Assert.HasCount(2, fixture.Right.Requests);
+    }
+
+    /// <summary>Proves a provider that recycles deletes without confirmation and a delete without a focus item does nothing.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenProviderRecyclesDeletesWithoutConfirmation()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.Recycle));
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+
+        DualPaneSnapshot recycled = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+        DualPaneSnapshot nothingFocused = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(recycled.Operation);
+        Assert.AreSame(FileOperationEffectKind.Recycled, completed.Outcome.Effects[0].Kind);
+        Assert.AreEqual(recycled, nothingFocused);
+        Assert.HasCount(2, fixture.Port.Calls);
+    }
+
+    /// <summary>Proves delete without a listed active pane does nothing.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenDeleteHasNoListingDoesNothing()
+    {
+        using Fixture fixture = Fixture.Create();
+
+        DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Delete, CancellationToken.None);
+
+        Assert.AreSame(OperationActivity.Idle, snapshot.Operation);
+        Assert.IsEmpty(fixture.Port.Calls);
+    }
     /// <summary>Proves one session cannot serve both sides.</summary>
     [TestMethod]
     public void ConstructWhenBothSidesShareOneSessionThrowsArgumentException()
@@ -287,9 +380,14 @@ public sealed class DualPaneSessionTests
 
     private static FileInspectionOutcome Inspection(FileSystemPath path)
     {
+        return Inspection(path, DeletionCapability.Recycle);
+    }
+
+    private static FileInspectionOutcome Inspection(FileSystemPath path, DeletionCapability capability)
+    {
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(
             FileIdentity.Parse("identity:" + path.CanonicalText));
-        return FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(path, identity.Identity, DeletionCapability.Recycle));
+        return FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(path, identity.Identity, capability));
     }
 
     private static FileSystemPath? Focus(PaneSnapshot snapshot)

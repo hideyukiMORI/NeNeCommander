@@ -112,11 +112,17 @@ public sealed class KeyboardIntentMapperTests
         KeyboardMappingOutcome modal = mapper.Map(Input(KeyboardKey.F8, KeyboardContext.Modal));
         KeyboardMappingOutcome textEscape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.TextEntry));
         KeyboardMappingOutcome modalEscape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.Modal));
+        KeyboardMappingOutcome modalEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
+        KeyboardMappingOutcome textEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.TextEntry));
+        KeyboardMappingOutcome modalMovement = mapper.Map(Input(KeyboardKey.J, KeyboardContext.Modal));
 
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(text);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modal);
         Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(textEscape).Intent);
         Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEscape).Intent);
+        Assert.AreSame(UserIntent.Confirm, Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEnter).Intent);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textEnter);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalMovement);
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 

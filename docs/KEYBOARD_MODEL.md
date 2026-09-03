@@ -50,7 +50,7 @@ When focus is inside an address, rename, search, settings, or dialog text editor
 - Status: **active**
 - Enforcement: mapper tests.
 
-A modal confirmation or conflict resolver receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map.
+A modal confirmation or conflict resolver receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns `Enter` (confirm) and `Escape` (cancel); every other key passes through and the file list stays frozen.
 
 ### KBD-003 — Key mapping is layout-safe
 

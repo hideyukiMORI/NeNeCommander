@@ -25,3 +25,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0013: Coordinate both panes and the active side through one dual-pane session](0013-dual-pane-activation.md)
 - [ADR-0014: Implement the Windows local file-operation adapter with metadata identity](0014-windows-local-file-operation-adapter.md)
 - [ADR-0015: Start file operations from the dual-pane session](0015-move-through-dual-pane-session.md)
+- [ADR-0016: Resolve permanent-deletion confirmation as a modal operation state](0016-confirmed-permanent-deletion.md)

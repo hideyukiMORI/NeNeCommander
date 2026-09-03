@@ -1,11 +1,12 @@
 using System;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Represents the render-ready projection of both panes, their activation frames, and the
-/// file-operation status.
+/// Represents the render-ready projection of both panes, their activation frames, the
+/// file-operation status, and the keyboard context the operation state imposes.
 /// </summary>
 public sealed record DualPanePresentation
 {
@@ -15,7 +16,9 @@ public sealed record DualPanePresentation
         PanePresentation right,
         PaneFrame rightFrame,
         PaneSide activeSide,
-        OperationStatus operationStatus)
+        OperationStatus operationStatus,
+        int confirmationItemCount,
+        KeyboardContext inputContext)
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(leftFrame);
@@ -23,12 +26,16 @@ public sealed record DualPanePresentation
         ArgumentNullException.ThrowIfNull(rightFrame);
         ArgumentNullException.ThrowIfNull(activeSide);
         ArgumentNullException.ThrowIfNull(operationStatus);
+        ArgumentOutOfRangeException.ThrowIfNegative(confirmationItemCount);
+        ArgumentNullException.ThrowIfNull(inputContext);
         Left = left;
         LeftFrame = leftFrame;
         Right = right;
         RightFrame = rightFrame;
         ActiveSide = activeSide;
         OperationStatus = operationStatus;
+        ConfirmationItemCount = confirmationItemCount;
+        InputContext = inputContext;
     }
 
     /// <summary>Gets the left pane presentation.</summary>
@@ -48,4 +55,13 @@ public sealed record DualPanePresentation
 
     /// <summary>Gets the status of the file-operation activity.</summary>
     public OperationStatus OperationStatus { get; }
+
+    /// <summary>Gets the number of items a pending confirmation names, or zero when none is pending.</summary>
+    public int ConfirmationItemCount { get; }
+
+    /// <summary>
+    /// Gets the keyboard context the operation state imposes on the file list: modal while a
+    /// confirmation is pending, otherwise the file-list context.
+    /// </summary>
+    public KeyboardContext InputContext { get; }
 }

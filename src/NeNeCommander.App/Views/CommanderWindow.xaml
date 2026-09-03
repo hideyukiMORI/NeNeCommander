@@ -16,7 +16,7 @@
         Padding="{StaticResource SpacingWindowOuter}">
         <Grid.Resources>
             <DataTemplate x:Key="PaneRowTemplate" x:DataType="panes:PaneRow">
-                <Grid>
+                <Grid AutomationProperties.Name="{x:Bind Entry.Name}">
                     <Border
                         Background="{StaticResource SelectionSurfaceBrush}"
                         CornerRadius="{StaticResource RadiusPane}"
@@ -126,10 +126,17 @@
             x:Name="OperationStatus"
             Grid.Row="1"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
             AutomationProperties.AutomationId="OperationStatus"
             FontSize="{StaticResource TypographyBodySize}"
             Foreground="{StaticResource TextPrimaryBrush}"
+            Margin="{StaticResource SpacingAddressBottom}" />
+        <TextBlock
+            x:Name="OperationDetail"
+            Grid.Row="1"
+            Grid.Column="1"
+            AutomationProperties.AutomationId="OperationDetail"
+            FontSize="{StaticResource TypographyBodySize}"
+            Foreground="{StaticResource StatusWarningBrush}"
             Margin="{StaticResource SpacingAddressBottom}" />
     </Grid>
 </Window>
