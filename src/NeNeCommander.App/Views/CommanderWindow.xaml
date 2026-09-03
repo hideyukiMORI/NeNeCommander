@@ -26,6 +26,10 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
         <Border
             x:Name="LeftPaneBorder"
@@ -112,5 +116,14 @@
                     SelectionMode="Single" />
             </Grid>
         </Border>
+        <TextBlock
+            x:Name="OperationStatus"
+            Grid.Row="1"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            AutomationProperties.AutomationId="OperationStatus"
+            FontSize="{StaticResource TypographyBodySize}"
+            Foreground="{StaticResource TextPrimaryBrush}"
+            Margin="{StaticResource SpacingAddressBottom}" />
     </Grid>
 </Window>

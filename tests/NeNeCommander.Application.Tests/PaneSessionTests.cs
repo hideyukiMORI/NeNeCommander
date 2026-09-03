@@ -191,6 +191,30 @@ public sealed class PaneSessionTests
         Assert.AreSame(root.Entries[1].Path, listed.State.FocusItem);
     }
 
+    /// <summary>Proves refresh re-reads the same location, keeps focus, and clears selection.</summary>
+    [TestMethod]
+    public async Task RefreshAsyncWhenListedReReadsLocationKeepingFocusAndClearingSelection()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing first = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        DirectoryListing second = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File), ("c.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(first));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(second));
+        PaneSession session = CreateSession(port);
+        PaneSnapshot initial = await session.RefreshAsync(CancellationToken.None);
+        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+
+        PaneSnapshot refreshed = await session.HandleAsync(UserIntent.Refresh, CancellationToken.None);
+
+        Assert.AreSame(PaneSnapshot.Initial, initial);
+        Assert.AreEqual("C:\\root", port.Requests[1].Location.CanonicalText);
+        PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(refreshed.Content);
+        Assert.AreSame(second, listed.Listing);
+        Assert.AreSame(second.Entries[1].Path, listed.State.FocusItem);
+        Assert.IsEmpty(listed.State.Selection);
+    }
     /// <summary>Proves the parent intent at a provider root starts no read.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenNavigateParentAtRootDoesNotRead()

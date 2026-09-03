@@ -18,4 +18,11 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>この場所はディレクトリではありません</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>この場所は利用できません</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>一覧の読み込みを中止しました</value></data>
+  <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
+  <data name="OperationStatusMoving" xml:space="preserve"><value>移動しています…</value></data>
+  <data name="OperationStatusMoveSucceeded" xml:space="preserve"><value>移動が完了しました</value></data>
+  <data name="OperationStatusMoveCancelled" xml:space="preserve"><value>移動を中止しました</value></data>
+  <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>移動は途中で停止しました</value></data>
+  <data name="OperationStatusMoveRejected" xml:space="preserve"><value>移動は変更前に拒否されました</value></data>
+  <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>移動の要求が無効です</value></data>
 </root>

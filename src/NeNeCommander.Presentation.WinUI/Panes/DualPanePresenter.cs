@@ -1,14 +1,16 @@
 using System;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Projects the dual-pane snapshot onto two pane presentations and their activation frames.
+/// Projects the dual-pane snapshot onto two pane presentations, their activation frames, and the
+/// file-operation status.
 /// </summary>
 public static class DualPanePresenter
 {
-    /// <summary>Translates both panes and the active side without changing any state.</summary>
+    /// <summary>Translates both panes, the active side, and the operation activity without changing any state.</summary>
     /// <param name="snapshot">Current dual-pane snapshot.</param>
     /// <returns>A render-ready presentation.</returns>
     public static DualPanePresentation Present(DualPaneSnapshot snapshot)
@@ -21,6 +23,29 @@ public static class DualPanePresenter
             leftFrame,
             PaneListingPresenter.Present(snapshot.Right),
             rightFrame,
-            snapshot.ActiveSide);
+            snapshot.ActiveSide,
+            TranslateOperation(snapshot.Operation));
+    }
+
+    private static OperationStatus TranslateOperation(OperationActivity activity)
+    {
+        return activity switch
+        {
+            OperationRunning => OperationStatus.Moving,
+            OperationRequestRejected => OperationStatus.MoveRequestRejected,
+            OperationCompleted completed => TranslateCompletion(completed.Outcome.Completion),
+            _ => OperationStatus.Idle,
+        };
+    }
+
+    private static OperationStatus TranslateCompletion(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.Succeeded
+            ? OperationStatus.MoveSucceeded
+            : completion == FileOperationCompletionKind.Cancelled
+                ? OperationStatus.MoveCancelled
+                : completion == FileOperationCompletionKind.PartiallyCompleted
+                    ? OperationStatus.MovePartiallyCompleted
+                    : OperationStatus.MoveRejected;
     }
 }

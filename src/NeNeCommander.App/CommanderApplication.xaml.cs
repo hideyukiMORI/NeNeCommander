@@ -2,16 +2,18 @@ using System;
 using Microsoft.UI.Xaml;
 using NeNeCommander.App.Views;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
+using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Time;
 using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander;
 
-/// <summary>Owns the sole application composition root and WinUI window lifetime.</summary>
-public partial class CommanderApplication : Microsoft.UI.Xaml.Application
+/// <summary>Owns the sole application composition root, the WinUI window lifetime, and the gateway it composes.</summary>
+public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application, IDisposable
 {
     /// <summary>
     /// Initial pane locations until drive discovery and persisted locations exist.
@@ -26,6 +28,7 @@ public partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// </summary>
     private const int AssumedVisibleRows = 20;
 
+    private FileOperationGateway? _gateway;
     private Window? _window;
 
     /// <summary>Initializes the WinUI application resources.</summary>
@@ -42,15 +45,31 @@ public partial class CommanderApplication : Microsoft.UI.Xaml.Application
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
         WindowsLocalDirectoryReader directoryReader = new();
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
+        _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter());
         DualPaneSession panes = new(
             new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
-            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit));
+            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
+            _gateway);
         _window = new CommanderWindow(
             keyboardIntentMapper,
             panes,
             ParseInitialLocation(InitialLeftLocationText),
             ParseInitialLocation(InitialRightLocationText));
+        _window.Closed += OnWindowClosed;
         _window.Activate();
+    }
+
+    /// <summary>Releases the composed gateway once the window has closed.</summary>
+    public void Dispose()
+    {
+        _gateway?.Dispose();
+        _gateway = null;
+        GC.SuppressFinalize(this);
+    }
+
+    private void OnWindowClosed(object _, WindowEventArgs args)
+    {
+        Dispose();
     }
 
     private static FileSystemPath ParseInitialLocation(string text)
