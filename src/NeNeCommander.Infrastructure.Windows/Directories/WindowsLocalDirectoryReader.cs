@@ -22,18 +22,6 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
     /// </summary>
     private const int NotADirectoryHResult = unchecked((int)0x80070057);
 
-    /// <summary>
-    /// Enumeration options that report every attribute class and surface access failures
-    /// instead of returning an empty listing for a denied directory.
-    /// </summary>
-    private static readonly EnumerationOptions DirectEntries = new()
-    {
-        AttributesToSkip = FileAttributes.None,
-        IgnoreInaccessible = false,
-        RecurseSubdirectories = false,
-        ReturnSpecialDirectories = false,
-    };
-
     /// <inheritdoc />
     public Task<DirectoryReadOutcome> ReadAsync(DirectoryReadRequest request, CancellationToken cancellationToken)
     {
@@ -86,7 +74,7 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
         int unrepresentableEntryCount = 0;
         DirectoryListingCompleteness completeness = DirectoryListingCompleteness.Complete;
         DirectoryInfo directory = new(location.CanonicalText);
-        foreach (FileSystemInfo info in directory.EnumerateFileSystemInfos("*", DirectEntries))
+        foreach (FileSystemInfo info in directory.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()))
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -120,12 +108,28 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
             : location.CanonicalText + "\\" + entryName;
     }
 
+    /// <summary>
+    /// Creates enumeration options that report every attribute class and surface access
+    /// failures instead of returning an empty listing for a denied directory. Built per read
+    /// so the contract is exercised by every test rather than frozen in a static initializer.
+    /// </summary>
+    private static EnumerationOptions CreateDirectEntryOptions()
+    {
+        return new EnumerationOptions
+        {
+            AttributesToSkip = FileAttributes.None,
+            IgnoreInaccessible = false,
+            RecurseSubdirectories = false,
+            ReturnSpecialDirectories = false,
+        };
+    }
+
     private static DirectoryEntryKind ClassifyEntry(FileSystemInfo info)
     {
         return info is DirectoryInfo ? DirectoryEntryKind.Directory : DirectoryEntryKind.File;
     }
 
-    private static FileOperationFailureKind NormalizeEnumerationFailure(int hResult)
+    internal static FileOperationFailureKind NormalizeEnumerationFailure(int hResult)
     {
         return hResult == NotADirectoryHResult
             ? FileOperationFailureKind.NotFound

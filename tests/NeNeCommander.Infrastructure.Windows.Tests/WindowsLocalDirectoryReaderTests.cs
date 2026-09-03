@@ -41,6 +41,7 @@ public sealed class WindowsLocalDirectoryReaderTests
         _ = root.CreateFile("Alpha.txt");
         _ = root.CreateDirectory("zulu");
         _ = root.CreateDirectory("Charlie");
+        _ = root.CreateFile("zulu\\nested.txt");
         WindowsLocalDirectoryReader reader = new();
 
         DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
@@ -273,6 +274,21 @@ public sealed class WindowsLocalDirectoryReaderTests
         Assert.AreSame(
             FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<DirectoryReadFailed>(outcome).Failure);
+    }
+
+    /// <summary>Proves only the non-directory HRESULT is special-cased before canonical normalization.</summary>
+    [TestMethod]
+    public void NormalizeEnumerationFailureWhenHResultVariesSpecialCasesOnlyNonDirectoryHandles()
+    {
+        Assert.AreSame(
+            FileOperationFailureKind.NotFound,
+            WindowsLocalDirectoryReader.NormalizeEnumerationFailure(unchecked((int)0x80070057)));
+        Assert.AreSame(
+            FileOperationFailureKind.AccessDenied,
+            WindowsLocalDirectoryReader.NormalizeEnumerationFailure(unchecked((int)0x80070005)));
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            WindowsLocalDirectoryReader.NormalizeEnumerationFailure(unchecked((int)0x80070035)));
     }
 
     /// <summary>Proves child text never doubles the separator after a drive root.</summary>
