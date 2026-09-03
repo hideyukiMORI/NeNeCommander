@@ -7,7 +7,7 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryReadOutcome
 {
-    private protected DirectoryReadOutcome()
+    internal DirectoryReadOutcome()
     {
     }
 

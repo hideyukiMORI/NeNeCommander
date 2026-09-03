@@ -16,6 +16,12 @@ public sealed record WindowsLocalPath : FileSystemPath
     /// <summary>Gets the uppercase drive designator without a separator.</summary>
     public string Drive { get; }
 
+    /// <inheritdoc />
+    public override FileSystemPath? Parent =>
+        CanonicalText.Length <= RootLength ? null : new WindowsLocalPath(RemoveLastSegment(CanonicalText, RootLength), Drive);
+
+    private int RootLength => Drive.Length + 1;
+
     internal override bool HasSameIdentity(FileSystemPath other)
     {
         return other is WindowsLocalPath local &&

@@ -87,6 +87,18 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
     }
 
+    /// <summary>Proves the raw virtual-key event of a printable key neither completes nor cancels a chord.</summary>
+    [TestMethod]
+    public void MapWhenUnmappedKeyFollowsGKeepsChordPending()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Other)));
+
+        AssertMaps(mapper, Input(KeyboardKey.LowerG), UserIntent.FocusFirst);
+    }
+
     /// <summary>Proves text and modal contexts block underlying commands.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Panes;
@@ -82,6 +83,27 @@ public sealed record PaneState
             Array.AsReadOnly(Array.Empty<FileSystemPath>()),
             visiblePageCapacity);
         return new PaneStateAccepted(state);
+    }
+
+    /// <summary>
+    /// Creates a state from a validated listing, whose identity and boundary invariants already
+    /// cover every pane invariant, so no second validation and no rejection path exist.
+    /// </summary>
+    internal static PaneState FromListing(DirectoryListing listing, VisiblePageCapacity visiblePageCapacity)
+    {
+        List<FileSystemPath> items = [];
+        foreach (DirectoryEntry entry in listing.Entries)
+        {
+            items.Add(entry.Path);
+        }
+        ReadOnlyCollection<FileSystemPath> visibleSnapshot = items.AsReadOnly();
+        FileSystemPath? focusItem = visibleSnapshot.Count == 0 ? null : visibleSnapshot[0];
+        return new PaneState(
+            listing.Location,
+            visibleSnapshot,
+            focusItem,
+            Array.AsReadOnly(Array.Empty<FileSystemPath>()),
+            visiblePageCapacity);
     }
 
     internal PaneState Transition(FileSystemPath? focusItem, IReadOnlyList<FileSystemPath> selection)

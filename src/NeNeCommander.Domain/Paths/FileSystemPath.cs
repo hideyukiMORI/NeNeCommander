@@ -27,6 +27,11 @@ public abstract record FileSystemPath
     /// <summary>Gets the canonical text used for display and persistence.</summary>
     public string CanonicalText { get; }
 
+    /// <summary>
+    /// Gets the containing location derived without re-parsing, or absence at the provider root.
+    /// </summary>
+    public abstract FileSystemPath? Parent { get; }
+
     internal abstract bool HasSameIdentity(FileSystemPath other);
 
     internal abstract int GetIdentityHashCode();
@@ -235,6 +240,16 @@ public abstract record FileSystemPath
     {
         return input.StartsWith("\\\\?\\", StringComparison.Ordinal) ||
             input.StartsWith("\\\\.\\", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Removes the last segment of canonical text whose root occupies <paramref name="rootLength"/>
+    /// characters including its trailing separator. Callers decide root membership first.
+    /// </summary>
+    private protected static string RemoveLastSegment(string canonicalText, int rootLength)
+    {
+        int lastSeparator = canonicalText.LastIndexOf('\\');
+        return lastSeparator < rootLength ? canonicalText[..rootLength] : canonicalText[..lastSeparator];
     }
 
     private static string JoinComponents(IReadOnlyList<string> components, int startIndex)

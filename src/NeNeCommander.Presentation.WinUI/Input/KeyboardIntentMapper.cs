@@ -35,6 +35,13 @@ public sealed class KeyboardIntentMapper
                 : new KeyboardPassThrough();
         }
 
+        if (input.Key == KeyboardKey.Other)
+        {
+            // A printable key arrives twice: as a raw virtual key and as its produced character.
+            // Only the produced character is mapped, so the raw event must not disturb a chord.
+            return new KeyboardPassThrough();
+        }
+
         if (TryCompleteChord(input) is MappedKeyboardIntent chordOutcome)
         {
             return chordOutcome;

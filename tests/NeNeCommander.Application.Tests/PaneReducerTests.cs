@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
@@ -147,6 +148,75 @@ public sealed class PaneReducerTests
 
         Assert.AreSame(items[2], moved.FocusItem);
         Assert.AreEqual(4, moved.VisiblePageCapacity.Value);
+    }
+
+    /// <summary>Proves a location change focuses the first entry and clears selection.</summary>
+    [TestMethod]
+    public void NavigateWhenPreferredFocusIsAbsentFocusesFirstEntryWithEmptySelection()
+    {
+        DirectoryListing listing = CreateListing("C:\\root", "b.txt", "a.txt");
+
+        PaneState state = PaneReducer.Navigate(listing, CreateCapacity(3), null);
+
+        Assert.AreSame(listing.Location, state.Location);
+        Assert.AreSame(listing.Entries[0].Path, state.FocusItem);
+        Assert.AreEqual("a.txt", listing.Entries[0].Name);
+        Assert.HasCount(2, state.VisibleItems);
+        Assert.IsEmpty(state.Selection);
+        Assert.AreEqual(3, state.VisiblePageCapacity.Value);
+    }
+
+    /// <summary>Proves a preferred item is focused by provider identity when present.</summary>
+    [TestMethod]
+    public void NavigateWhenPreferredFocusIsPresentFocusesItByIdentity()
+    {
+        DirectoryListing listing = CreateListing("C:\\root", "a.txt", "Docs");
+
+        PaneState state = PaneReducer.Navigate(listing, CreateCapacity(3), ParsePath("c:\\root\\docs"));
+
+        Assert.AreSame(listing.Entries[1].Path, state.FocusItem);
+    }
+
+    /// <summary>Proves a preferred item outside the listing falls back to the first entry.</summary>
+    [TestMethod]
+    public void NavigateWhenPreferredFocusIsMissingFocusesFirstEntry()
+    {
+        DirectoryListing listing = CreateListing("C:\\root", "a.txt");
+
+        PaneState state = PaneReducer.Navigate(listing, CreateCapacity(3), ParsePath("C:\\root\\missing"));
+
+        Assert.AreSame(listing.Entries[0].Path, state.FocusItem);
+    }
+
+    /// <summary>Proves an empty listing has no focus after navigation.</summary>
+    [TestMethod]
+    public void NavigateWhenListingIsEmptyHasNoFocus()
+    {
+        DirectoryListing listing = CreateListing("C:\\root");
+
+        PaneState state = PaneReducer.Navigate(listing, CreateCapacity(3), ParsePath("C:\\root\\missing"));
+
+        Assert.IsNull(state.FocusItem);
+        Assert.IsEmpty(state.VisibleItems);
+    }
+
+    private static DirectoryListing CreateListing(string location, params string[] names)
+    {
+        FileSystemPath parsedLocation = ParsePath(location);
+        DirectoryEntry[] entries = new DirectoryEntry[names.Length];
+        for (int index = 0; index < names.Length; index++)
+        {
+            entries[index] = DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + "\\" + names[index]),
+                names[index],
+                DirectoryEntryKind.File);
+        }
+        DirectoryListingCreation creation = DirectoryListing.Create(
+            parsedLocation,
+            entries,
+            DirectoryListingCompleteness.Complete,
+            0);
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
     }
 
     private static PaneState CreateState(IReadOnlyList<FileSystemPath> items, int capacity)

@@ -1,11 +1,17 @@
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Identifies the closed status a pane shows for its most recent listing attempt.
+/// Identifies the closed status a pane shows for its content and read activity.
 /// Each status names a localization resource; no user-facing text is assembled in code.
 /// </summary>
 public sealed record PaneStatus
 {
+    /// <summary>Gets the status for a pane that has not listed any location.</summary>
+    public static PaneStatus NoListing { get; } = new("PaneStatusNoListing");
+
+    /// <summary>Gets the status for a read in flight.</summary>
+    public static PaneStatus Loading { get; } = new("PaneStatusLoading");
+
     /// <summary>Gets the status for a listing that contains every representable entry.</summary>
     public static PaneStatus Complete { get; } = new("PaneStatusComplete");
 

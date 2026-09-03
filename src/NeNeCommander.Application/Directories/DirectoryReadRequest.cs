@@ -8,7 +8,7 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public sealed record DirectoryReadRequest
 {
-    private DirectoryReadRequest(FileSystemPath location, int entryBoundary)
+    internal DirectoryReadRequest(FileSystemPath location, int entryBoundary)
     {
         Location = location;
         EntryBoundary = entryBoundary;
@@ -32,8 +32,13 @@ public sealed record DirectoryReadRequest
     public static DirectoryReadRequestCreation Create(FileSystemPath location, int entryBoundary)
     {
         ArgumentNullException.ThrowIfNull(location);
-        return entryBoundary is < 1 or > DirectoryListing.EntryBoundaryLimit
-            ? new DirectoryReadRequestRejected()
-            : new DirectoryReadRequestAccepted(new DirectoryReadRequest(location, entryBoundary));
+        return IsValidEntryBoundary(entryBoundary)
+            ? new DirectoryReadRequestAccepted(new DirectoryReadRequest(location, entryBoundary))
+            : new DirectoryReadRequestRejected();
+    }
+
+    internal static bool IsValidEntryBoundary(int entryBoundary)
+    {
+        return entryBoundary is >= 1 and <= DirectoryListing.EntryBoundaryLimit;
     }
 }

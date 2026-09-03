@@ -20,7 +20,7 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Space` | toggle selection of the focus item without moving focus |
 | `Escape` | cancel pending chord, then close transient UI, then clear selection |
 
-The `gg` chord expires after 750 ms, measured through the injected monotonic clock. An unrelated second key cancels the pending chord and is then processed normally. Auto-repeat is accepted for single-key movement and ignored for chord prefixes and destructive commands.
+The `gg` chord expires after 750 ms, measured through the injected monotonic clock. An unrelated mapped second key cancels the pending chord and is then processed normally. An unmapped event, including the raw virtual-key event that precedes a produced character, passes through without touching the chord. Auto-repeat is accepted for single-key movement and ignored for chord prefixes and destructive commands.
 
 ## File commands
 

@@ -20,6 +20,14 @@ public sealed record WindowsUncPath : FileSystemPath
     /// <summary>Gets the share component with its original casing.</summary>
     public string Share { get; }
 
+    /// <inheritdoc />
+    public override FileSystemPath? Parent =>
+        CanonicalText.Length <= RootLength
+            ? null
+            : new WindowsUncPath(RemoveLastSegment(CanonicalText, RootLength), Server, Share);
+
+    private int RootLength => 2 + Server.Length + 1 + Share.Length + 1;
+
     internal override bool HasSameIdentity(FileSystemPath other)
     {
         return other is WindowsUncPath unc &&
