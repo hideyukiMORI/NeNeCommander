@@ -23,6 +23,9 @@ public abstract record FileOperationRequestFailureKind
     /// <summary>Gets the failure for a directory name the domain path rules reject.</summary>
     public static FileOperationRequestFailureKind InvalidName { get; } = new InvalidNameFailure();
 
+    /// <summary>Gets the failure for a source that is a provider root and therefore has no parent to rename it in.</summary>
+    public static FileOperationRequestFailureKind SourceIsRoot { get; } = new SourceIsRootFailure();
+
     private FileOperationRequestFailureKind()
     {
     }
@@ -33,4 +36,5 @@ public abstract record FileOperationRequestFailureKind
     private sealed record DuplicateSourceFailure : FileOperationRequestFailureKind;
     private sealed record DestinationIsSourceFailure : FileOperationRequestFailureKind;
     private sealed record InvalidNameFailure : FileOperationRequestFailureKind;
+    private sealed record SourceIsRootFailure : FileOperationRequestFailureKind;
 }

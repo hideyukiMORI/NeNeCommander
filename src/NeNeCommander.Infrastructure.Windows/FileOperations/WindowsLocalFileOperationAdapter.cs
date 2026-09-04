@@ -75,6 +75,63 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return Task.FromResult(Guarded(() => CreateDirectory(location, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> RenameAsync(
+        FileEntrySnapshot source,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return Task.FromResult(Guarded(() => Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
+    }
+
+    private static ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
+    {
+        return target is not WindowsLocalPath localTarget
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : WithRevalidatedEntry(source, entry => RenameEntry(entry, source.Path, localTarget));
+    }
+
+    private static ProviderStepOutcome RenameEntry(FileSystemInfo entry, FileSystemPath source, WindowsLocalPath target)
+    {
+        if (!SharesParent(source, target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+        }
+        if (TargetExists(target.CanonicalText) && !IsSameEntryText(source, target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        if (entry is DirectoryInfo)
+        {
+            Directory.Move(entry.FullName, target.CanonicalText);
+            return ProviderStepOutcome.Succeeded();
+        }
+        File.Move(entry.FullName, target.CanonicalText);
+        return ProviderStepOutcome.Succeeded();
+    }
+
+    /// <summary>
+    /// Confirms the target is a direct child of the source's own parent, so a rename can never
+    /// leave that parent. Both parents are derived by the domain path model and compared with the
+    /// provider-aware filesystem identity comparer; no string prefix comparison is used.
+    /// </summary>
+    private static bool SharesParent(FileSystemPath source, WindowsLocalPath target)
+    {
+        return source.Parent is FileSystemPath sourceParent &&
+            target.Parent is FileSystemPath targetParent &&
+            FileSystemPathIdentityComparer.Instance.Equals(sourceParent, targetParent);
+    }
+
+    /// <summary>
+    /// Reports whether the existing target is the source itself, which is how a rename that only
+    /// changes letter case reaches the provider. Windows local text is case-insensitive.
+    /// </summary>
+    private static bool IsSameEntryText(FileSystemPath source, WindowsLocalPath target)
+    {
+        return target.CanonicalText.Equals(source.CanonicalText, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
     {
         return target is not WindowsLocalPath localTarget

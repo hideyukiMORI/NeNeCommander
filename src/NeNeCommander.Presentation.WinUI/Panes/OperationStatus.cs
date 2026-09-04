@@ -63,6 +63,24 @@ public sealed record OperationStatus
     /// <summary>Gets the status when the directory name was invalid and never reached the gateway.</summary>
     public static OperationStatus CreateDirectoryRequestRejected { get; } = new("OperationStatusCreateDirectoryRequestRejected");
 
+    /// <summary>Gets the status while a rename runs.</summary>
+    public static OperationStatus Renaming { get; } = new("OperationStatusRenaming");
+
+    /// <summary>Gets the status while the session waits for the focus item's new name.</summary>
+    public static OperationStatus RenameAwaitingName { get; } = new("OperationStatusRenameAwaitingName");
+
+    /// <summary>Gets the status when the entry was renamed.</summary>
+    public static OperationStatus Renamed { get; } = new("OperationStatusRenamed");
+
+    /// <summary>Gets the status when cancellation stopped the rename.</summary>
+    public static OperationStatus RenameCancelled { get; } = new("OperationStatusRenameCancelled");
+
+    /// <summary>Gets the status when the gateway rejected the rename before any change.</summary>
+    public static OperationStatus RenameRejected { get; } = new("OperationStatusRenameRejected");
+
+    /// <summary>Gets the status when the new name was invalid and never reached the gateway.</summary>
+    public static OperationStatus RenameRequestRejected { get; } = new("OperationStatusRenameRequestRejected");
+
     /// <summary>Gets the status while a deletion runs.</summary>
     public static OperationStatus Deleting { get; } = new("OperationStatusDeleting");
 

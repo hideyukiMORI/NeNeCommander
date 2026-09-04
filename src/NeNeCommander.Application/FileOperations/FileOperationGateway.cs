@@ -66,6 +66,7 @@ public sealed class FileOperationGateway : IDisposable
                     cancellationToken),
                 DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, progress, cancellationToken),
                 CreateDirectoryRequest createRequest => await ExecuteCreateDirectoryAsync(createRequest, progress, cancellationToken),
+                RenameRequest renameRequest => await ExecuteRenameAsync(renameRequest, progress, cancellationToken),
                 _ => throw new InvalidOperationException("The validated request variant is not executable."),
             };
         }
@@ -193,6 +194,33 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, creation.Failure);
         }
         effects.Add(FileOperationEffect.Create(request.Target, FileOperationEffectKind.DirectoryCreated));
+        progress.Report(FileOperationProgress.Create(1, 1));
+        return FileOperationOutcome.Succeeded(effects);
+    }
+
+    private async Task<FileOperationOutcome> ExecuteRenameAsync(
+        RenameRequest request,
+        IFileOperationProgressObserver progress,
+        CancellationToken cancellationToken)
+    {
+        List<FileOperationEffect> effects = [];
+        FileInspectionOutcome inspection = await _port.InspectAsync(request.Source, cancellationToken);
+        if (inspection is FileInspectionFailed failed)
+        {
+            return FileOperationOutcome.Failed(effects, failed.Failure);
+        }
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return FileOperationOutcome.Cancelled(effects);
+        }
+
+        FileEntrySnapshot source = ((FileInspectionSucceeded)inspection).Snapshot;
+        ProviderStepOutcome rename = await _port.RenameAsync(source, request.Target, cancellationToken);
+        if (rename.Failure is not null)
+        {
+            return FileOperationOutcome.Failed(effects, rename.Failure);
+        }
+        effects.Add(FileOperationEffect.Create(request.Source, FileOperationEffectKind.Renamed));
         progress.Report(FileOperationProgress.Create(1, 1));
         return FileOperationOutcome.Succeeded(effects);
     }

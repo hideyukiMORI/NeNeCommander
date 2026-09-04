@@ -30,3 +30,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0018: Cancel a running file operation from the dual-pane session](0018-cancel-running-operation.md)
 - [ADR-0019: Report operation progress through the session to the host](0019-operation-progress-through-session.md)
 - [ADR-0020: Create a directory through a session-owned name entry](0020-create-directory-through-name-entry.md)
+- [ADR-0021: Rename the focus item through the shared name entry](0021-rename-through-name-entry.md)

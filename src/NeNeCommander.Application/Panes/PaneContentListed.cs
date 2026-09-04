@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Panes;
 
@@ -19,4 +20,22 @@ public sealed record PaneContentListed : PaneContent
 
     /// <summary>Gets the listing whose entries the state addresses.</summary>
     public DirectoryListing Listing { get; }
+
+    /// <summary>
+    /// Finds the listing entry the focus item names, using filesystem identity so provider case
+    /// rules decide. This is the sole way to reach the provider-reported name and kind of the
+    /// focus item. An empty listing has no focus item and therefore no focused entry.
+    /// </summary>
+    /// <returns>The focused entry, or absence when the pane has no focus item.</returns>
+    internal DirectoryEntry? FindFocusedEntry()
+    {
+        foreach (DirectoryEntry entry in Listing.Entries)
+        {
+            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, State.FocusItem))
+            {
+                return entry;
+            }
+        }
+        return null;
+    }
 }

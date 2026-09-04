@@ -38,6 +38,12 @@
   <data name="OperationStatusCreateDirectoryCancelled" xml:space="preserve"><value>ディレクトリの作成を中止しました</value></data>
   <data name="OperationStatusCreateDirectoryRejected" xml:space="preserve"><value>ディレクトリの作成は変更前に拒否されました</value></data>
   <data name="OperationStatusCreateDirectoryRequestRejected" xml:space="preserve"><value>ディレクトリ名が無効です</value></data>
+  <data name="OperationStatusRenaming" xml:space="preserve"><value>名前を変更しています…</value></data>
+  <data name="OperationStatusRenameAwaitingName" xml:space="preserve"><value>選択中の項目の新しい名前を入力してください</value></data>
+  <data name="OperationStatusRenamed" xml:space="preserve"><value>名前を変更しました</value></data>
+  <data name="OperationStatusRenameCancelled" xml:space="preserve"><value>名前の変更を中止しました</value></data>
+  <data name="OperationStatusRenameRejected" xml:space="preserve"><value>名前の変更は変更前に拒否されました</value></data>
+  <data name="OperationStatusRenameRequestRejected" xml:space="preserve"><value>新しい名前が無効です</value></data>
   <data name="OperationStatusDeleting" xml:space="preserve"><value>削除しています…</value></data>
   <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>選択した項目をこの Windows の場所から完全に削除します（ごみ箱には入りません）。Enter で実行、Escape で中止。件数:</value></data>
   <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>削除が完了しました</value></data>

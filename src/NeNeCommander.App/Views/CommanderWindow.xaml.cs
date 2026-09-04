@@ -138,17 +138,18 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void RenderNameEntry(NameEntryPresentation nameEntry)
     {
-        if (nameEntry != NameEntryPresentation.Active)
+        if (nameEntry is not ActiveNameEntry active)
         {
             NameEntry.Visibility = Visibility.Collapsed;
             return;
         }
         if (NameEntry.Visibility == Visibility.Collapsed)
         {
-            NameEntry.Text = string.Empty;
+            NameEntry.Text = active.InitialText;
             NameEntry.Visibility = Visibility.Visible;
         }
         _ = NameEntry.Focus(FocusState.Programmatic);
+        NameEntry.SelectAll();
     }
 
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)

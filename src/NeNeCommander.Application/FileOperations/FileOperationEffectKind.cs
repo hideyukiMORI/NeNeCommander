@@ -23,6 +23,9 @@ public abstract record FileOperationEffectKind
     /// <summary>Gets the effect indicating a directory was created at the effect's path.</summary>
     public static FileOperationEffectKind DirectoryCreated { get; } = new DirectoryCreatedEffect();
 
+    /// <summary>Gets the effect indicating the entry at the effect's path was renamed inside its parent.</summary>
+    public static FileOperationEffectKind Renamed { get; } = new RenamedEffect();
+
     private FileOperationEffectKind()
     {
     }
@@ -33,4 +36,5 @@ public abstract record FileOperationEffectKind
     private sealed record RecycledEffect : FileOperationEffectKind;
     private sealed record PermanentlyDeletedEffect : FileOperationEffectKind;
     private sealed record DirectoryCreatedEffect : FileOperationEffectKind;
+    private sealed record RenamedEffect : FileOperationEffectKind;
 }

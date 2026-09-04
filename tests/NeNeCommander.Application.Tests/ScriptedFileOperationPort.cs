@@ -18,6 +18,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<ProviderStepOutcome> _directoryCreations;
     private readonly Queue<FileInspectionOutcome> _inspections;
     private readonly Queue<ProviderStepOutcome> _preflights;
+    private readonly Queue<ProviderStepOutcome> _renames;
     private readonly Queue<ProviderStepOutcome> _verifications;
 
     private ScriptedFileOperationPort(ScriptedCallbackPoint? callbackPoint, Action? callback)
@@ -30,6 +31,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         _directoryCreations = [];
         _inspections = [];
         _preflights = [];
+        _renames = [];
         _verifications = [];
     }
 
@@ -70,6 +72,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueueDirectoryCreation(ProviderStepOutcome outcome)
     {
         _directoryCreations.Enqueue(outcome);
+    }
+
+    internal void EnqueueRename(ProviderStepOutcome outcome)
+    {
+        _renames.Enqueue(outcome);
     }
 
     public Task<FileInspectionOutcome> InspectAsync(
@@ -134,6 +141,15 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     {
         _calls.Add("CreateDirectory:" + target.CanonicalText);
         return Task.FromResult(_directoryCreations.Dequeue());
+    }
+
+    public Task<ProviderStepOutcome> RenameAsync(
+        FileEntrySnapshot source,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        _calls.Add("Rename:" + source.Path.CanonicalText + ">" + target.CanonicalText);
+        return Task.FromResult(_renames.Dequeue());
     }
 
     private void InvokeCallback(ScriptedCallbackPoint point)

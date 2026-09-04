@@ -17,6 +17,9 @@ public abstract record OperationKind
     /// <summary>Gets the kind for creating a directory in the active pane's location.</summary>
     public static OperationKind CreateDirectory { get; } = new CreateDirectoryKind();
 
+    /// <summary>Gets the kind for renaming the active pane's focus item inside its own parent.</summary>
+    public static OperationKind Rename { get; } = new RenameKind();
+
     private OperationKind()
     {
     }
@@ -25,4 +28,5 @@ public abstract record OperationKind
     private sealed record CopyKind : OperationKind;
     private sealed record DeleteKind : OperationKind;
     private sealed record CreateDirectoryKind : OperationKind;
+    private sealed record RenameKind : OperationKind;
 }

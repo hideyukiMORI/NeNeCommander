@@ -38,6 +38,12 @@
   <data name="OperationStatusCreateDirectoryCancelled" xml:space="preserve"><value>Directory creation cancelled</value></data>
   <data name="OperationStatusCreateDirectoryRejected" xml:space="preserve"><value>Directory creation was rejected before any change</value></data>
   <data name="OperationStatusCreateDirectoryRequestRejected" xml:space="preserve"><value>Directory name is not valid</value></data>
+  <data name="OperationStatusRenaming" xml:space="preserve"><value>Renaming…</value></data>
+  <data name="OperationStatusRenameAwaitingName" xml:space="preserve"><value>Enter a new name for the focused item</value></data>
+  <data name="OperationStatusRenamed" xml:space="preserve"><value>Rename completed</value></data>
+  <data name="OperationStatusRenameCancelled" xml:space="preserve"><value>Rename cancelled</value></data>
+  <data name="OperationStatusRenameRejected" xml:space="preserve"><value>Rename was rejected before any change</value></data>
+  <data name="OperationStatusRenameRequestRejected" xml:space="preserve"><value>New name is not valid</value></data>
   <data name="OperationStatusDeleting" xml:space="preserve"><value>Deleting…</value></data>
   <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>Permanently delete the selected items from this Windows location (no recycle bin)? Enter to confirm, Escape to cancel. Item count:</value></data>
   <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>Deletion completed</value></data>

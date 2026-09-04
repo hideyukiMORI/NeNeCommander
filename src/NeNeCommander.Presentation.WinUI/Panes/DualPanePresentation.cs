@@ -62,12 +62,12 @@ public sealed record DualPanePresentation
     /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
     public OperationDetail Detail { get; }
 
-    /// <summary>Gets whether the host shows and focuses the name editor.</summary>
+    /// <summary>Gets whether the host shows and focuses the name editor and, when it does, the text it starts from.</summary>
     public NameEntryPresentation NameEntry { get; }
 
     /// <summary>
     /// Gets the keyboard context the operation state imposes on the file list: modal while a
-    /// confirmation is pending, otherwise the file-list context.
+    /// confirmation or a name entry is pending, otherwise the file-list context.
     /// </summary>
     public KeyboardContext InputContext { get; }
 }
