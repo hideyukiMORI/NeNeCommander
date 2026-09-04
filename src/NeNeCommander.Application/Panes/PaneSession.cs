@@ -133,22 +133,10 @@ public sealed class PaneSession
 
     private Task<PaneSnapshot> OpenFocusedAsync(PaneContentListed listed, CancellationToken cancellationToken)
     {
-        DirectoryEntry? focused = FindFocusedEntry(listed);
+        DirectoryEntry? focused = listed.FindFocusedEntry();
         return focused is not null && focused.Kind == DirectoryEntryKind.Directory
             ? NavigateAsync(focused.Path, null, cancellationToken)
             : Task.FromResult(Current);
-    }
-
-    private static DirectoryEntry? FindFocusedEntry(PaneContentListed listed)
-    {
-        foreach (DirectoryEntry entry in listed.Listing.Entries)
-        {
-            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem))
-            {
-                return entry;
-            }
-        }
-        return null;
     }
 
     private async Task<PaneSnapshot> NavigateAsync(

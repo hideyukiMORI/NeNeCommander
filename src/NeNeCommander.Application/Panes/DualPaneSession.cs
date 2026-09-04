@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Domain.Paths;
@@ -16,7 +17,9 @@ namespace NeNeCommander.Application.Panes;
 /// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs except
 /// <see cref="UserIntent.Escape"/>, which cancels the session-owned token the running operation
 /// observes, and only <see cref="UserIntent.Confirm"/> or <see cref="UserIntent.Escape"/> leave a
-/// pending confirmation.
+/// pending confirmation. <see cref="UserIntent.CreateDirectory"/> and <see cref="UserIntent.Rename"/>
+/// share one <see cref="OperationAwaitingName"/> state that freezes their subject until a
+/// <see cref="NameSubmission"/> starts the operation or <see cref="UserIntent.Escape"/> abandons it.
 /// </summary>
 public sealed class DualPaneSession
 {
@@ -72,10 +75,10 @@ public sealed class DualPaneSession
 
     /// <summary>
     /// Applies one intent: activation switches the active side without touching either pane's
-    /// focus; move, copy, and delete start gateway operations; create directory opens a name entry
-    /// that a name submission turns into a creation; confirm and escape resolve a pending
-    /// confirmation; every other intent is handled by the active pane's session. While an operation
-    /// runs, escape requests its cancellation and every other intent is frozen.
+    /// focus; move, copy, and delete start gateway operations; create directory and rename open a
+    /// name entry that a name submission turns into a creation or a rename; confirm and escape
+    /// resolve a pending confirmation; every other intent is handled by the active pane's session.
+    /// While an operation runs, escape requests its cancellation and every other intent is frozen.
     /// </summary>
     /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
     /// <param name="observer">Receives the snapshot each time a started operation reports progress.</param>
@@ -108,15 +111,34 @@ public sealed class DualPaneSession
             _activeSide = _activeSide.Other;
             return Task.FromResult(Current);
         }
+        return RouteAsync(intent, observer, cancellationToken);
+    }
+
+    private Task<DualPaneSnapshot> RouteAsync(
+        UserIntent intent,
+        IDualPaneProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
         return intent == UserIntent.Move
             ? TransferAsync(OperationKind.Move, MoveRequest.Create, observer, cancellationToken)
             : intent == UserIntent.Copy
                 ? TransferAsync(OperationKind.Copy, CopyRequest.Create, observer, cancellationToken)
                 : intent == UserIntent.Delete
                     ? DeleteAsync(observer, cancellationToken)
-                    : intent == UserIntent.CreateDirectory
-                        ? Task.FromResult(BeginNameEntry())
-                        : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+                    : RouteNamedOperationAsync(intent, cancellationToken);
+    }
+
+    /// <summary>
+    /// Routes the two intents that need a typed name into the shared name entry, and every
+    /// remaining intent to the active pane's own session.
+    /// </summary>
+    private Task<DualPaneSnapshot> RouteNamedOperationAsync(UserIntent intent, CancellationToken cancellationToken)
+    {
+        return intent == UserIntent.CreateDirectory
+            ? Task.FromResult(BeginDirectoryName())
+            : intent == UserIntent.Rename
+                ? Task.FromResult(BeginRenameName())
+                : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
     }
 
     private Task<DualPaneSnapshot> ResolveNameAsync(
@@ -131,19 +153,35 @@ public sealed class DualPaneSession
             return Task.FromResult(Current);
         }
         return intent is NameSubmission submission
-            ? StartAsync(
-                OperationKind.CreateDirectory,
-                CreateDirectoryRequest.Create(awaiting.Location, submission.Name),
-                observer,
-                cancellationToken)
+            ? StartAsync(awaiting.Kind, CreateNamedRequest(awaiting, submission.Name), observer, cancellationToken)
             : Task.FromResult(Current);
     }
 
-    private DualPaneSnapshot BeginNameEntry()
+    private static FileOperationRequestCreation CreateNamedRequest(OperationAwaitingName awaiting, string name)
+    {
+        return awaiting.Kind == OperationKind.CreateDirectory
+            ? CreateDirectoryRequest.Create(awaiting.Subject, name)
+            : RenameRequest.Create(awaiting.Subject, name);
+    }
+
+    private DualPaneSnapshot BeginDirectoryName()
     {
         if (SessionOf(_activeSide).Current.Content is PaneContentListed active)
         {
-            _operation = new OperationAwaitingName(active.Listing.Location);
+            _operation = new OperationAwaitingName(
+                OperationKind.CreateDirectory,
+                active.Listing.Location,
+                string.Empty);
+        }
+        return Current;
+    }
+
+    private DualPaneSnapshot BeginRenameName()
+    {
+        if (SessionOf(_activeSide).Current.Content is PaneContentListed active &&
+            active.FindFocusedEntry() is DirectoryEntry focused)
+        {
+            _operation = new OperationAwaitingName(OperationKind.Rename, focused.Path, focused.Name);
         }
         return Current;
     }
@@ -234,14 +272,29 @@ public sealed class DualPaneSession
         FileOperationOutcome outcome,
         CancellationToken cancellationToken)
     {
-        if (request is CreateDirectoryRequest created && outcome.Completion == FileOperationCompletionKind.Succeeded)
+        if (outcome.Completion == FileOperationCompletionKind.Succeeded &&
+            SucceededFocus(request) is FileSystemPath focus)
         {
-            _ = await SessionOf(_activeSide).RefreshFocusingAsync(created.Target, cancellationToken);
+            _ = await SessionOf(_activeSide).RefreshFocusingAsync(focus, cancellationToken);
             _ = await SessionOf(_activeSide.Other).RefreshAsync(cancellationToken);
             return;
         }
         _ = await _left.RefreshAsync(cancellationToken);
         _ = await _right.RefreshAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Names the path the active pane should focus after the request succeeded, or absence when
+    /// the operation produced no single new path the user should be moved to.
+    /// </summary>
+    private static FileSystemPath? SucceededFocus(FileOperationRequest request)
+    {
+        return request switch
+        {
+            CreateDirectoryRequest created => created.Target,
+            RenameRequest renamed => renamed.Target,
+            _ => null,
+        };
     }
 
     private static void CancelNothing()

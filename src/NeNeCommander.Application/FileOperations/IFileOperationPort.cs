@@ -42,4 +42,10 @@ public interface IFileOperationPort
         FileEntrySnapshot location,
         FileSystemPath target,
         CancellationToken cancellationToken);
+
+    /// <summary>Renames one frozen, revalidated entry to a target that must share the source's parent.</summary>
+    public Task<ProviderStepOutcome> RenameAsync(
+        FileEntrySnapshot source,
+        FileSystemPath target,
+        CancellationToken cancellationToken);
 }

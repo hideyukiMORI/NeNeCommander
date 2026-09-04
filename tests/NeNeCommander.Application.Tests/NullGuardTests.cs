@@ -46,6 +46,8 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(CopyRequest), nameof(CopyRequest.Create), [new[] { path }, null]);
         AssertStaticNullGuard(typeof(CreateDirectoryRequest), nameof(CreateDirectoryRequest.Create), [null, "name"]);
         AssertStaticNullGuard(typeof(CreateDirectoryRequest), nameof(CreateDirectoryRequest.Create), [path, null]);
+        AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [null, "name"]);
+        AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [path, null]);
         AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SubmitName), [null]);
         AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         AssertStaticNullGuard(
@@ -137,7 +139,9 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(OperationRunning), [null, FileOperationProgress.Create(0, 1)]);
         AssertInternalConstructorNullGuard(typeof(OperationRunning), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationAwaitingConfirmation), [null]);
-        AssertInternalConstructorNullGuard(typeof(OperationAwaitingName), [null]);
+        AssertInternalConstructorNullGuard(typeof(OperationAwaitingName), [null, path, "name"]);
+        AssertInternalConstructorNullGuard(typeof(OperationAwaitingName), [OperationKind.Rename, null, "name"]);
+        AssertInternalConstructorNullGuard(typeof(OperationAwaitingName), [OperationKind.Rename, path, null]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [null, outcome]);
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationRequestRejected), [null, FileOperationRequestFailureKind.EmptySources]);

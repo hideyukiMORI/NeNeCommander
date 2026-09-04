@@ -187,6 +187,64 @@ public sealed class FileOperationGatewayTests
         Assert.HasCount(2, refused.Calls);
     }
 
+    /// <summary>Proves a rename inspects the source, renames once, and reports one effect and full progress.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenEntryIsRenamedReportsEffectAndProgress()
+    {
+        FileSystemPath source = ParsePath("C:\\location\\before.txt");
+        RenameRequest request = CreateRename(source, "after.txt");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(source, DeletionCapability.PermanentOnly));
+        port.EnqueueRename(ProviderStepOutcome.Succeeded());
+        using FileOperationGateway gateway = new(port);
+        RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, progress, CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Renamed, outcome.Effects[0].Kind);
+        Assert.AreSame(request.Source, outcome.Effects[0].Source);
+        Assert.HasCount(2, port.Calls);
+        Assert.AreEqual("Inspect:C:\\location\\before.txt", port.Calls[0]);
+        Assert.AreEqual("Rename:C:\\location\\before.txt>C:\\location\\after.txt", port.Calls[1]);
+        Assert.HasCount(1, progress.Reports);
+        Assert.AreEqual(FileOperationProgress.Create(1, 1), progress.Reports[0]);
+    }
+
+    /// <summary>Proves inspection failure, cancellation after inspection, and provider rejection each rename nothing.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    [TestProperty("ThreatId", "ADV-018")]
+    public async Task ExecuteAsyncWhenRenameCannotProceedRenamesNothing()
+    {
+        FileSystemPath source = ParsePath("C:\\location\\before.txt");
+        using CancellationTokenSource cancellation = new();
+        ScriptedFileOperationPort missing = ScriptedFileOperationPort.Create(null, null);
+        missing.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
+        ScriptedFileOperationPort cancelled = ScriptedFileOperationPort.Create(ScriptedCallbackPoint.AfterInspection, cancellation.Cancel);
+        cancelled.EnqueueInspection(Inspection(source, DeletionCapability.PermanentOnly));
+        ScriptedFileOperationPort refused = ScriptedFileOperationPort.Create(null, null);
+        refused.EnqueueInspection(Inspection(source, DeletionCapability.PermanentOnly));
+        refused.EnqueueRename(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        using FileOperationGateway missingGateway = new(missing);
+        using FileOperationGateway cancelledGateway = new(cancelled);
+        using FileOperationGateway refusedGateway = new(refused);
+
+        FileOperationOutcome missingOutcome = await missingGateway.ExecuteAsync(CreateRename(source, "after.txt"), RecordingFileOperationProgress.Create(), CancellationToken.None);
+        FileOperationOutcome cancelledOutcome = await cancelledGateway.ExecuteAsync(CreateRename(source, "after.txt"), RecordingFileOperationProgress.Create(), cancellation.Token);
+        FileOperationOutcome refusedOutcome = await refusedGateway.ExecuteAsync(CreateRename(source, "after.txt"), RecordingFileOperationProgress.Create(), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.NotFound, missingOutcome.Failure);
+        Assert.HasCount(1, missing.Calls);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, cancelledOutcome.Completion);
+        Assert.HasCount(1, cancelled.Calls);
+        Assert.AreSame(FileOperationFailureKind.Conflict, refusedOutcome.Failure);
+        Assert.IsEmpty(refusedOutcome.Effects);
+        Assert.HasCount(2, refused.Calls);
+    }
+
     /// <summary>Proves a copy whose verification fails stops the batch with the copied effect and starts no further source.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -695,6 +753,13 @@ public sealed class FileOperationGatewayTests
     {
         FileOperationRequestCreation outcome = CreateDirectoryRequest.Create(location, name);
         return Assert.IsInstanceOfType<CreateDirectoryRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
+    }
+
+    private static RenameRequest CreateRename(FileSystemPath source, string name)
+    {
+        FileOperationRequestCreation outcome = RenameRequest.Create(source, name);
+        return Assert.IsInstanceOfType<RenameRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(outcome).Request);
     }
 

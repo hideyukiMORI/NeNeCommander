@@ -69,6 +69,14 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         return Task.FromResult(ProviderStepOutcome.Succeeded());
     }
 
+    public Task<ProviderStepOutcome> RenameAsync(
+        FileEntrySnapshot source,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ProviderStepOutcome.Succeeded());
+    }
+
     public Task<ProviderStepOutcome> DeleteAsync(
         FileEntrySnapshot source,
         DeletionExecutionMode mode,
