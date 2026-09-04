@@ -8,7 +8,9 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Projects one pane snapshot onto a deterministic presentation of rows, focus, status, and address.
+/// Projects one pane snapshot onto a deterministic presentation of rows, focus, status, and
+/// address. Rows come from the pane state's visible set, which the reducer alone decides, so the
+/// projection never re-reads the listing to work out what a pane shows.
 /// </summary>
 public static class PaneListingPresenter
 {
@@ -39,9 +41,13 @@ public static class PaneListingPresenter
         HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
         List<PaneRow> rows = [];
         PaneRow? focusRow = null;
-        foreach (DirectoryEntry entry in listed.Listing.Entries)
+        foreach (DirectoryEntry entry in listed.State.VisibleEntries)
         {
-            PaneRow row = new(entry, ResolveMark(entry, listed, selection, frame), PaneRowKind.For(entry.Kind));
+            PaneRow row = new(
+                entry,
+                ResolveMark(entry, listed, selection, frame),
+                PaneRowKind.For(entry.Kind),
+                PaneRowVisibility.For(entry.Visibility));
             rows.Add(row);
             if (HasFocus(entry, listed))
             {

@@ -89,7 +89,11 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
             reportedEntryCount++;
             if (FileSystemPath.Parse(BuildChildText(location, info.Name)) is PathParseSuccess child)
             {
-                entries.Add(DirectoryEntry.Create(child.Path, info.Name, ClassifyEntry(info)));
+                entries.Add(DirectoryEntry.Create(
+                    child.Path,
+                    info.Name,
+                    ClassifyEntry(info),
+                    ClassifyVisibility(info)));
             }
             else
             {
@@ -127,6 +131,18 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
     private static DirectoryEntryKind ClassifyEntry(FileSystemInfo info)
     {
         return info is DirectoryInfo ? DirectoryEntryKind.Directory : DirectoryEntryKind.File;
+    }
+
+    /// <summary>
+    /// Reports the visibility Windows itself records for the entry. The attributes come from the
+    /// enumeration, so no second query touches the volume, and the entry name never takes part in
+    /// the decision: a name beginning with a dot is an ordinary Windows entry.
+    /// </summary>
+    private static EntryVisibility ClassifyVisibility(FileSystemInfo info)
+    {
+        return (info.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0
+            ? EntryVisibility.Normal
+            : EntryVisibility.Hidden;
     }
 
     internal static FileOperationFailureKind NormalizeEnumerationFailure(int hResult)

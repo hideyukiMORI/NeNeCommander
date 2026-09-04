@@ -6,6 +6,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Tests;
@@ -790,7 +791,11 @@ public sealed class DualPaneSessionTests
     public void ConstructWhenBothSidesShareOneSessionThrowsArgumentException()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        PaneSession shared = new(port, Capacity(4), DirectoryListing.EntryBoundaryLimit);
+        PaneSession shared = new(
+            port,
+            Capacity(4),
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
 
         ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(() => new DualPaneSession(shared, shared, gateway));
@@ -831,7 +836,8 @@ public sealed class DualPaneSessionTests
             built[index] = DirectoryEntry.Create(
                 ParsePath(parsedLocation.CanonicalText + separator + entries[index].Name),
                 entries[index].Name,
-                entries[index].Kind);
+                entries[index].Kind,
+                EntryVisibility.Normal);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
@@ -858,8 +864,16 @@ public sealed class DualPaneSessionTests
             Right = right;
             Port = port;
             Gateway = gateway;
-            LeftSession = new PaneSession(left, Capacity(4), DirectoryListing.EntryBoundaryLimit);
-            RightSession = new PaneSession(right, Capacity(4), DirectoryListing.EntryBoundaryLimit);
+            LeftSession = new PaneSession(
+                left,
+                Capacity(4),
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden);
+            RightSession = new PaneSession(
+                right,
+                Capacity(4),
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden);
             Panes = new DualPaneSession(LeftSession, RightSession, gateway);
         }
 

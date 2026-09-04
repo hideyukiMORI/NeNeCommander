@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Panes;
@@ -15,6 +16,7 @@ namespace NeNeCommander.Application.Panes;
 public sealed class PaneSession
 {
     private readonly int _entryBoundary;
+    private readonly HiddenItemVisibility _initialHiddenItemVisibility;
     private readonly IDirectoryReadPort _port;
     private readonly VisiblePageCapacity _visiblePageCapacity;
     private object? _latestNavigation;
@@ -23,11 +25,20 @@ public sealed class PaneSession
     /// <param name="port">Provider-neutral directory read port.</param>
     /// <param name="visiblePageCapacity">Validated visible-row capacity used for paging.</param>
     /// <param name="entryBoundary">Entry boundary applied to every read, within the fixed range.</param>
+    /// <param name="hiddenItemVisibility">
+    /// Visibility the first listing uses. It is a starting value, not an owner: once a location is
+    /// listed the pane state owns the visibility and every later read carries the state's value.
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">The boundary is outside the fixed range, which is a composition defect.</exception>
-    public PaneSession(IDirectoryReadPort port, VisiblePageCapacity visiblePageCapacity, int entryBoundary)
+    public PaneSession(
+        IDirectoryReadPort port,
+        VisiblePageCapacity visiblePageCapacity,
+        int entryBoundary,
+        HiddenItemVisibility hiddenItemVisibility)
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(visiblePageCapacity);
+        ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
         if (!DirectoryReadRequest.IsValidEntryBoundary(entryBoundary))
         {
             throw new ArgumentOutOfRangeException(nameof(entryBoundary));
@@ -35,6 +46,7 @@ public sealed class PaneSession
         _port = port;
         _visiblePageCapacity = visiblePageCapacity;
         _entryBoundary = entryBoundary;
+        _initialHiddenItemVisibility = hiddenItemVisibility;
         Current = PaneSnapshot.Initial;
     }
 
@@ -158,12 +170,28 @@ public sealed class PaneSession
         Current = outcome switch
         {
             DirectoryReadSucceeded succeeded => PaneSnapshot.IdleWith(new PaneContentListed(
-                PaneReducer.Navigate(succeeded.Listing, _visiblePageCapacity, preferredFocus),
+                PaneReducer.Navigate(
+                    succeeded.Listing,
+                    _visiblePageCapacity,
+                    preferredFocus,
+                    ResolveHiddenItemVisibility()),
                 succeeded.Listing)),
             DirectoryReadCancelled => Current.WithActivity(new PaneReadCancelled(location)),
             DirectoryReadFailed failed => Current.WithActivity(new PaneReadFailed(location, failed.Failure)),
             _ => throw new InvalidOperationException("The directory read outcome variant is not navigable."),
         };
         return Current;
+    }
+
+    /// <summary>
+    /// Names the visibility the next read applies: the listed state's own value once the pane has
+    /// listed a location, and the composed starting value before that. Reading it from the state
+    /// keeps one owner for the visibility (ARC-004) instead of a session field that could drift.
+    /// </summary>
+    private HiddenItemVisibility ResolveHiddenItemVisibility()
+    {
+        return Current.Content is PaneContentListed listed
+            ? listed.State.HiddenItemVisibility
+            : _initialHiddenItemVisibility;
     }
 }

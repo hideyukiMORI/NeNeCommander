@@ -67,7 +67,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     {
         UserSettings settings = await ReadSettingsAsync().ConfigureAwait(true);
         ApplyColorScheme(settings.ColorScheme);
-        _window = CreateWindow();
+        _window = CreateWindow(settings.HiddenItemVisibility);
         ApplyElementTheme(_window, settings.ColorScheme.Appearance);
         _window.Closed += OnWindowClosed;
         _window.Activate();
@@ -97,7 +97,13 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         ((FrameworkElement)window.Content).RequestedTheme = ColorSchemeResources.ResolveElementTheme(appearance);
     }
 
-    private CommanderWindow CreateWindow()
+    /// <summary>
+    /// Composes the window over the concrete boundary implementations. The persisted hidden-item
+    /// visibility is passed to each pane session because it is part of pane state, not an observer:
+    /// the pane needs it before its first read, and after that the state itself owns it.
+    /// </summary>
+    /// <param name="hiddenItemVisibility">Visibility both panes start from.</param>
+    private CommanderWindow CreateWindow(HiddenItemVisibility hiddenItemVisibility)
     {
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
@@ -105,14 +111,26 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
         _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter());
         DualPaneSession panes = new(
-            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
-            new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
+            CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
+            CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
             _gateway);
         return new CommanderWindow(
             keyboardIntentMapper,
             panes,
             ParseInitialLocation(InitialLeftLocationText),
             ParseInitialLocation(InitialRightLocationText));
+    }
+
+    private static PaneSession CreatePaneSession(
+        WindowsLocalDirectoryReader directoryReader,
+        VisiblePageCapacity capacity,
+        HiddenItemVisibility hiddenItemVisibility)
+    {
+        return new PaneSession(
+            directoryReader,
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            hiddenItemVisibility);
     }
 
     private void OnWindowClosed(object _, WindowEventArgs args)

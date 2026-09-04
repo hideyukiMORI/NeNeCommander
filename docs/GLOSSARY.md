@@ -17,7 +17,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
-| entry | One direct child of a read location with its validated path, provider-reported name, and closed kind. |
+| entry | One direct child of a read location with its validated path, provider-reported name, closed kind, and closed entry visibility. |
+| entry visibility | The closed `EntryVisibility` a provider reports for one entry: `Normal`, or `Hidden` when the provider marks it hidden or system. It is a reported attribute, never derived from the entry name. |
+| visible set | The ordered entries of a pane that its `HiddenItemVisibility` admits, held by `PaneState` as `VisibleEntries`. `PaneReducer` alone decides it; movement, paging, focus, and selection address it and nothing else. |
 | listing | An immutable `DirectoryListing`: the deterministically ordered entries of one location plus its completeness and unrepresentable-entry count. |
 | entry boundary | The positive number of provider entries after which a read stops and reports a bounded listing. |
 | pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed read activity (idle, loading, failed, cancelled). |
