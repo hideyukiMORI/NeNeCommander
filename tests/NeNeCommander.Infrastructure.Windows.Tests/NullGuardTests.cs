@@ -50,9 +50,21 @@ public sealed class NullGuardTests
     {
         AssertConstructorNullGuard(typeof(ContainedPath));
         AssertConstructorNullGuard(typeof(RejectedPathContainment));
-        AssertConstructorNullGuard(typeof(SettingsValidationRejected));
         AssertConstructorNullGuard(typeof(EntryMatched));
         AssertConstructorNullGuard(typeof(EntryRejected));
+    }
+
+    /// <summary>Proves the settings store rejects an absent composed document location.</summary>
+    [TestMethod]
+    public void ConstructWhenSettingsLocationIsNullThrowsArgumentNullException()
+    {
+        ConstructorInfo constructor = typeof(WindowsLocalSettingsStore).GetConstructor([typeof(WindowsLocalPath)]) ??
+            throw new AssertFailedException("The public settings store constructor was not found.");
+
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => constructor.Invoke([null]));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }
 
     private static void AssertStaticNullGuard(Type type, string methodName, object?[] arguments)

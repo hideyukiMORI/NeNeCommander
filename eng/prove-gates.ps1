@@ -110,6 +110,31 @@ try {
         Set-Content -LiteralPath (Join-Path $testRoot 'IoViolation.cs') -Value "using System.IO;`r`ninternal sealed class IoViolation { }`r`n"
     }
 
+    Assert-ConformanceFailure -Name 'environment-outside-settings-location' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'EnvironmentViolation.cs') -Value "internal sealed class EnvironmentViolation { private static string Read() { return Environment.CurrentDirectory; } }`r`n"
+    }
+
+    Assert-ConformanceFailure -Name 'color-scheme-dictionary-drift' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/Schemes/dracula.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('<Color x:Key="SelectionMarkColor">', '<Color x:Key="SelectionMarkerColor">')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'color-outside-scheme-dictionary' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace(
+            '<Thickness x:Key="SpacingWindowOuter">16</Thickness>',
+            "<Color x:Key=`"SurfaceWindowColor`">#FF000000</Color>`r`n    <Thickness x:Key=`"SpacingWindowOuter`">16</Thickness>")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
     $invalidMessage = Join-Path $proofRoot 'invalid-commit-message.txt'
     Set-Content -LiteralPath $invalidMessage -Value 'Implement filesystem safety'
     & pwsh -NoProfile -File (Join-Path $root 'eng/validate-commit-message.ps1') -MessageFile $invalidMessage *> $null
@@ -124,7 +149,7 @@ try {
         throw 'Valid commit message unexpectedly failed.'
     }
 
-    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, and commit messages.'
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, environment boundary, color scheme dictionary parity, and commit messages.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {
