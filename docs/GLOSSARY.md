@@ -26,5 +26,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
+| color scheme | One of the eight approved `ColorScheme` members. Each has a kebab-case identifier, a closed `Dark` or `Light` appearance, and exactly one resource dictionary `Themes/Schemes/<identifier>.xaml` that defines every color key. |
+| settings document | The sole persisted preferences file `%LOCALAPPDATA%\NeNeCommander\settings.json`, shaped `{ "schemaVersion": 1, "showHiddenItems": <boolean>, "colorScheme": "<identifier>" }`. It is read through `ISettingsStore`, never written by the application, and an absent or rejected document keeps `UserSettings.Default`. |
 | gate | An executable check called by `eng/check.ps1` locally and in CI. |
 | waiver | A narrow, owned, expiring exception that does not weaken a protected invariant. |

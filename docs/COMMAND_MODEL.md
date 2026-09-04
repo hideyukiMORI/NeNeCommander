@@ -96,6 +96,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |
 | expected operation results | canonical closed `OperationOutcome` model |
 | settings persistence | `ISettingsStore` boundary |
+| color scheme | scheme resource dictionary merged by the composition root |
 | file launching | `IFileLauncher` boundary |
 | time | `IClock` boundary |
 | identifiers | `IIdentifierSource` boundary |

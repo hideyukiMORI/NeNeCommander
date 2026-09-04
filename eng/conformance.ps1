@@ -581,7 +581,6 @@ $sourcePatterns = [ordered]@{
     'CS-004:project-owned enum' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*enum\s+[A-Za-z_]'
     'CS-010:direct wall clock' = '\b(?:DateTime|DateTimeOffset)\.(?:Now|UtcNow)\b'
     'CS-010:direct identifier generation' = '\bGuid\.NewGuid\s*\('
-    'CS-010:direct environment access' = '\bEnvironment\.'
     'CS-014:global using' = '(?m)^\s*global\s+using\s+'
     'CS-014:primary constructor' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:sealed\s+|abstract\s+|partial\s+)*(?:class|record(?:\s+class)?)\s+[A-Za-z_]\w*\s*\('
     'CS-016:blocking task result' = '\.(?:Result|Wait)\b'
@@ -607,6 +606,11 @@ foreach ($file in $sourceFiles) {
     $platformApiOwners = '^(?:src/NeNeCommander\.Infrastructure\.Windows|tests/NeNeCommander\.Infrastructure\.Windows\.Tests)/'
     if ($relativePath -notmatch $platformApiOwners -and $content -match '\bSystem\.IO\b') {
         Add-Violation -Rule 'CS-018' -Message "$relativePath accesses System.IO outside Windows infrastructure and its integration tests."
+    }
+
+    $environmentOwner = '^src/NeNeCommander\.Infrastructure\.Windows/Settings/WindowsLocalSettingsLocation\.cs$'
+    if ($relativePath -notmatch $environmentOwner -and $content -match '\bEnvironment\.') {
+        Add-Violation -Rule 'CS-010' -Message "$relativePath contains prohibited direct environment access."
     }
 
     $pathSegments = $relativePath.Split('/')
@@ -650,6 +654,112 @@ foreach ($file in $xamlFiles) {
 
     if ($content -match '\b(?:Margin|Padding|CornerRadius|FontSize|MinWidth|MinHeight|RowSpacing|ColumnSpacing)="[0-9]') {
         Add-Violation -Rule 'CS-023' -Message "$relativePath contains a hard-coded semantic layout value."
+    }
+}
+
+function Get-ResourceKeys {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Path,
+
+        [Parameter(Mandatory)]
+        [string] $ElementName
+    )
+
+    [xml] $document = Get-Content -LiteralPath $Path -Raw
+    $keys = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($node in @($document.DocumentElement.ChildNodes)) {
+        if ($node.NodeType -eq [System.Xml.XmlNodeType]::Element -and $node.LocalName -ceq $ElementName) {
+            [void] $keys.Add($node.GetAttribute('Key', 'http://schemas.microsoft.com/winfx/2006/xaml'))
+        }
+    }
+
+    return , $keys
+}
+
+$designTokensPath = Join-Path $root 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
+$schemeRoot = Join-Path $root 'src/NeNeCommander.App/Themes/Schemes'
+$colorSchemeSourcePath = Join-Path $root 'src/NeNeCommander.Application/Settings/ColorScheme.cs'
+if ((Test-Path -LiteralPath $colorSchemeSourcePath -PathType Leaf) -and
+    -not ((Test-Path -LiteralPath $designTokensPath -PathType Leaf) -and
+        (Test-Path -LiteralPath $schemeRoot -PathType Container))) {
+    Add-Violation -Rule 'ARC-012' -Message 'ColorScheme requires Themes/DesignTokens.xaml and a Themes/Schemes dictionary directory.'
+}
+
+if ((Test-Path -LiteralPath $designTokensPath -PathType Leaf) -and
+    (Test-Path -LiteralPath $schemeRoot -PathType Container) -and
+    (Test-Path -LiteralPath $colorSchemeSourcePath -PathType Leaf)) {
+    foreach ($colorElement in @('Color', 'SolidColorBrush')) {
+        if ((Get-ResourceKeys -Path $designTokensPath -ElementName $colorElement).Count -ne 0) {
+            Add-Violation -Rule 'ARC-012' -Message "Themes/DesignTokens.xaml must define no $colorElement; colors belong to one scheme dictionary."
+        }
+    }
+
+    $declaredSchemes = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($identifierMatch in [regex]::Matches(
+            (Get-Content -LiteralPath $colorSchemeSourcePath -Raw),
+            '(?m)^\s*public override string Identifier => "(?<id>[a-z0-9-]+)";\s*$')) {
+        if (-not $declaredSchemes.Add($identifierMatch.Groups['id'].Value)) {
+            Add-Violation -Rule 'ARC-012' -Message "ColorScheme declares the duplicate identifier $($identifierMatch.Groups['id'].Value)."
+        }
+    }
+
+    $schemeFiles = @(Get-ChildItem -LiteralPath $schemeRoot -Filter '*.xaml' -File | Sort-Object -Property Name)
+    $schemeNames = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($schemeFile in $schemeFiles) {
+        [void] $schemeNames.Add($schemeFile.BaseName)
+    }
+
+    if (-not $declaredSchemes.SetEquals($schemeNames)) {
+        Add-Violation -Rule 'ARC-012' -Message "Themes/Schemes must contain exactly one dictionary per ColorScheme member. Declared: $($declaredSchemes -join ','). Present: $($schemeNames -join ',')."
+    }
+
+    $expectedColorKeys = $null
+    foreach ($schemeFile in $schemeFiles) {
+        $relativeScheme = Get-RelativePath -Path $schemeFile.FullName
+        $colorKeys = Get-ResourceKeys -Path $schemeFile.FullName -ElementName 'Color'
+        $brushKeys = Get-ResourceKeys -Path $schemeFile.FullName -ElementName 'SolidColorBrush'
+        $expectedBrushKeys = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($colorKey in $colorKeys) {
+            if (-not $colorKey.EndsWith('Color', [System.StringComparison]::Ordinal)) {
+                Add-Violation -Rule 'ARC-012' -Message "$relativeScheme declares the color key $colorKey without the Color suffix."
+                continue
+            }
+
+            [void] $expectedBrushKeys.Add($colorKey.Substring(0, $colorKey.Length - 'Color'.Length) + 'Brush')
+        }
+
+        if (-not $brushKeys.SetEquals($expectedBrushKeys)) {
+            Add-Violation -Rule 'ARC-012' -Message "$relativeScheme does not pair every color with exactly one brush of the same name."
+        }
+
+        if ($null -eq $expectedColorKeys) {
+            $expectedColorKeys = $colorKeys
+            if ($colorKeys.Count -eq 0) {
+                Add-Violation -Rule 'ARC-012' -Message "$relativeScheme defines no color."
+            }
+        }
+        elseif (-not $colorKeys.SetEquals($expectedColorKeys)) {
+            Add-Violation -Rule 'ARC-012' -Message "$relativeScheme does not define the same color keys as the other scheme dictionaries."
+        }
+    }
+
+    if ($null -ne $expectedColorKeys) {
+        $schemeKeys = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($colorKey in $expectedColorKeys) {
+            [void] $schemeKeys.Add($colorKey)
+            [void] $schemeKeys.Add($colorKey.Substring(0, $colorKey.Length - 'Color'.Length) + 'Brush')
+        }
+
+        foreach ($viewFile in (Get-RepositoryFiles -Extensions @('.xaml') -Roots @('src/NeNeCommander.App/Views'))) {
+            $viewContent = Get-Content -LiteralPath $viewFile.FullName -Raw
+            foreach ($reference in [regex]::Matches($viewContent, '\{StaticResource (?<key>\w+(?:Color|Brush))\}')) {
+                $referencedKey = $reference.Groups['key'].Value
+                if (-not $schemeKeys.Contains($referencedKey)) {
+                    Add-Violation -Rule 'ARC-012' -Message "$(Get-RelativePath -Path $viewFile.FullName) references the undefined scheme resource $referencedKey."
+                }
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Diagnostics;
@@ -140,39 +141,74 @@ public sealed class InfrastructureBoundaryTests
     [TestProperty("ThreatId", "ADV-012")]
     public void ValidateWhenSettingsAreHostileReturnsExactTypedRejections()
     {
-        AssertSettingsFailure(null, SettingsValidationFailureKind.Empty);
-        AssertSettingsFailure(new string('x', 65537), SettingsValidationFailureKind.TooLarge);
-        AssertSettingsFailure(new string('x', 65536), SettingsValidationFailureKind.Malformed);
-        AssertSettingsFailure("{", SettingsValidationFailureKind.Malformed);
-        AssertSettingsFailure("[]", SettingsValidationFailureKind.Malformed);
+        AssertSettingsFailure(null, SettingsReadFailureKind.Empty);
+        AssertSettingsFailure("   ", SettingsReadFailureKind.Empty);
+        AssertSettingsFailure(new string('x', 65537), SettingsReadFailureKind.TooLarge);
+        AssertSettingsFailure(new string('x', 65536), SettingsReadFailureKind.Malformed);
+        AssertSettingsFailure("{", SettingsReadFailureKind.Malformed);
+        AssertSettingsFailure("[]", SettingsReadFailureKind.Malformed);
+        AssertSettingsFailure(
+            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"nene-",
+            SettingsReadFailureKind.Malformed);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":2,\"showHiddenItems\":false}",
-            SettingsValidationFailureKind.UnknownVersion);
+                                 "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.UnknownVersion);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":1,\"unexpected\":true}",
-            SettingsValidationFailureKind.UnexpectedProperty);
-        AssertSettingsFailure(/*lang=json,strict*/ "{\"schemaVersion\":1}", SettingsValidationFailureKind.Incomplete);
+                                 "{\"schemaVersion\":99999999999,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.UnknownVersion);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":1,\"showHiddenItems\":null}",
-            SettingsValidationFailureKind.Malformed);
+                                 "{\"schemaVersion\":\"1\",\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.Malformed);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"unexpected\":true,\"showHiddenItems\":true,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.UnexpectedProperty);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"showHiddenItems\":true}",
+            SettingsReadFailureKind.Incomplete);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"showHiddenItems\":null,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.Malformed);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"nene-dark\"}",
+            SettingsReadFailureKind.UnexpectedProperty);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
                                  "{\"schemaVersion\":1,\"schemaVersion\":1,\"showHiddenItems\":true}",
-            SettingsValidationFailureKind.UnexpectedProperty);
+            SettingsReadFailureKind.Incomplete);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"../nene-dark\"}",
+            SettingsReadFailureKind.UnknownColorScheme);
+        AssertSettingsFailure(
+                                 /*lang=json,strict*/
+                                 "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":7}",
+            SettingsReadFailureKind.Malformed);
     }
 
-    /// <summary>Proves only a complete current settings schema is accepted.</summary>
+    /// <summary>Proves only a complete current settings schema becomes typed settings.</summary>
     [TestMethod]
-    public void ValidateWhenSettingsAreCompleteAcceptsDocument()
+    public void ValidateWhenSettingsAreCompleteReturnsTypedSettings()
     {
-        SettingsValidationOutcome outcome = SettingsDocumentValidator.Validate(
+        SettingsReadOutcome shown = SettingsDocumentValidator.Validate(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":1,\"showHiddenItems\":true}");
+                                 "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"}");
+        SettingsReadOutcome hidden = SettingsDocumentValidator.Validate(
+                                 /*lang=json,strict*/
+                                 "{\"colorScheme\":\"solarized-light\",\"showHiddenItems\":false,\"schemaVersion\":1}");
 
-        _ = Assert.IsInstanceOfType<SettingsValidationAccepted>(outcome);
+        UserSettings shownSettings = Assert.IsInstanceOfType<SettingsRead>(shown).Settings;
+        Assert.AreSame(ColorScheme.Dracula, shownSettings.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, shownSettings.HiddenItemVisibility);
+        UserSettings hiddenSettings = Assert.IsInstanceOfType<SettingsRead>(hidden).Settings;
+        Assert.AreSame(ColorScheme.SolarizedLight, hiddenSettings.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, hiddenSettings.HiddenItemVisibility);
     }
 
     /// <summary>Proves Windows failures normalize without retry or permissive fallback.</summary>
@@ -207,9 +243,9 @@ public sealed class InfrastructureBoundaryTests
         Assert.IsGreaterThanOrEqualTo(first, second);
     }
 
-    private static void AssertSettingsFailure(string? input, SettingsValidationFailureKind expected)
+    private static void AssertSettingsFailure(string? input, SettingsReadFailureKind expected)
     {
-        SettingsValidationRejected rejected = Assert.IsInstanceOfType<SettingsValidationRejected>(
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
             SettingsDocumentValidator.Validate(input));
         Assert.AreSame(expected, rejected.Kind);
     }

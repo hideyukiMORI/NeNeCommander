@@ -8,6 +8,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Tests;
@@ -74,6 +75,12 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [null, capacity, null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [listing, null, null]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [null, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, null]);
+        AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
+        AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
 
         ConstructorInfo constructor = typeof(FileOperationGateway).GetConstructor([typeof(IFileOperationPort)]) ??
             throw new AssertFailedException("The public gateway constructor was not found.");
