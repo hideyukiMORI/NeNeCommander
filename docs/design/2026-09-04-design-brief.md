@@ -95,7 +95,9 @@ All user-facing text is in `src/NeNeCommander.App/Resources/{en-US,ja-JP}/Resour
 
 Page 1 (`Shell states`): the shipped shell reproduced from the tokens and WinUI defaults (`Current`), a proposed light idle (`Main`), the same in dark, and the `F8`, `F2` / `F7`, running-progress, and partial-failure states. The proposal keeps the structure and the key map: the pane label becomes a small muted caption merged with the address row, rows gain a kind icon and a distinct focus ring versus selection fill, hidden entries are muted, long names are truncated with an ellipsis, and the bottom becomes one full-width status bar whose modal states differ only by tint. The 4 px progress bar is a placeholder for later byte-level progress and is not part of this integration.
 
-Page 2 (`Directions`): two low-fidelity alternates — dense monochrome and layered Fluent — for comparison only.
+Page 2 (`Directions`): two low-fidelity alternates — dense monochrome and layered Fluent — for comparison only. hide's first reaction: acceptable but not sharp enough.
+
+Page 3 (`Direction C · sharp`): the direction hide asked for after page 2 — a sharp, modern flat look leaning toward a hacker tool, dark first with a light variant: 2 px radii, 1 px lines, no shadows, monospace pane numbers and paths, 28 px rows with a 2 px left marker (cyan focus, green selection), a bottom bar carrying the key hints that switches to `Enter` / `Esc` while a modal is pending, segmented progress, amber warnings and red failures. Shown as dark idle, light variant, `F8`, `F2`, and copying `3/12`. Every value still maps onto the existing token keys; whether Selection needs a separate mark color is decided at integration.
 
 ## What the design handoff must return
 
