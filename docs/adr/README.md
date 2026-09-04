@@ -32,3 +32,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0020: Create a directory through a session-owned name entry](0020-create-directory-through-name-entry.md)
 - [ADR-0021: Rename the focus item through the shared name entry](0021-rename-through-name-entry.md)
 - [ADR-0022: Select the color scheme through the settings document](0022-color-scheme-through-settings.md)
+- [ADR-0023: Render the shell as the approved Direction C layout](0023-direction-c-shell-layout.md)

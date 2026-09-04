@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
 
@@ -18,6 +19,8 @@ public sealed record DualPanePresentation
         PaneSide activeSide,
         OperationStatus operationStatus,
         OperationDetail detail,
+        OperationBarTone tone,
+        IReadOnlyList<KeyHint> keyHints,
         NameEntryPresentation nameEntry,
         KeyboardContext inputContext)
     {
@@ -28,6 +31,8 @@ public sealed record DualPanePresentation
         ArgumentNullException.ThrowIfNull(activeSide);
         ArgumentNullException.ThrowIfNull(operationStatus);
         ArgumentNullException.ThrowIfNull(detail);
+        ArgumentNullException.ThrowIfNull(tone);
+        ArgumentNullException.ThrowIfNull(keyHints);
         ArgumentNullException.ThrowIfNull(nameEntry);
         ArgumentNullException.ThrowIfNull(inputContext);
         Left = left;
@@ -37,6 +42,8 @@ public sealed record DualPanePresentation
         ActiveSide = activeSide;
         OperationStatus = operationStatus;
         Detail = detail;
+        Tone = tone;
+        KeyHints = keyHints;
         NameEntry = nameEntry;
         InputContext = inputContext;
     }
@@ -61,6 +68,12 @@ public sealed record DualPanePresentation
 
     /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
     public OperationDetail Detail { get; }
+
+    /// <summary>Gets the closed tone the operation bar shows for the current activity.</summary>
+    public OperationBarTone Tone { get; }
+
+    /// <summary>Gets the ordered shortcut hints the operation bar shows, generated from the canonical key map.</summary>
+    public IReadOnlyList<KeyHint> KeyHints { get; }
 
     /// <summary>Gets whether the host shows and focuses the name editor and, when it does, the text it starts from.</summary>
     public NameEntryPresentation NameEntry { get; }

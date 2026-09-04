@@ -18,11 +18,15 @@ This brief is the engineering side of [`docs/DESIGN_HANDOFF.md`](../DESIGN_HANDO
 |---|---|---|
 | root input surface | `CommanderDualPane` | `Grid` |
 | left / right pane frame | `LeftPaneBorder`, `RightPaneBorder` | `Border` (active: `FocusRingBrush` + `BorderActivePaneThickness`; passive: `BorderSubtleBrush` + `BorderPassivePaneThickness`) |
-| pane label | (x:Uid `LeftPaneLabel`, `RightPaneLabel`) | `TextBlock` |
-| address | `LeftAddress`, `RightAddress` | `TextBox` with header |
+| pane region narrator name | (x:Uid `LeftPaneRegion`, `RightPaneRegion`) | `AutomationProperties.Name` on the pane `Border` |
+| pane number badge | (x:Uid `LeftPaneNumber`, `RightPaneNumber`) | `TextBlock` inside a filled `Border` in the pane header |
+| address | `LeftAddress`, `RightAddress` | `TextBox` in the pane header, minimal template |
 | pane status | `LeftStatus`, `RightStatus` | `TextBlock` |
 | file list | `LeftFileList`, `RightFileList` | `ListView`, `SelectionMode=Single`; the framework selection is the focus item; explicit selection is the `IsSelected` background `Border` in the row template |
+| operation bar | `OperationBar` | `Border` whose surface, foreground, border, and icon come from the closed `OperationBarTone` |
 | operation status | `OperationStatus` | `TextBlock` |
+| running progress segments | `OperationProgressSegments` | `ItemsControl` over the closed twelve-segment `ProgressSegment` list |
+| key hints | `OperationKeyHints` | `ItemsControl` over the `KeyHint` list generated from the canonical key map (KBD-005) |
 | operation detail | `OperationDetail`, `OperationProgressSeparator`, `OperationTotal` | three `TextBlock`s: count, separator resource, total |
 | name entry | `NameEntry` | `TextBox`, collapsed unless a name is awaited; opens with the current name selected for `F2` |
 
@@ -32,21 +36,23 @@ This brief is the engineering side of [`docs/DESIGN_HANDOFF.md`](../DESIGN_HANDO
 
 | Family | Key | Value |
 |---|---|---|
-| Surface | `SurfaceWindowColor` / `SurfacePaneColor` | `#F3F3F3` / `#FFFFFF` |
-| Text | `TextPrimaryColor` | `#1F1F1F` |
-| Border | `BorderSubtleColor`, `BorderActivePaneThickness`, `BorderPassivePaneThickness` | `#D0D0D0`, `2`, `1` |
-| Focus | `FocusRingColor` | `#5B5FC7` |
-| Selection | `SelectionSurfaceColor` | `#DDE4FF` |
-| Status | `StatusWarningColor` | `#8A4B08` |
-| Operation | `OperationProgressColor` | `#5B5FC7` |
-| Spacing | `SpacingWindowOuter`, `SpacingPaneInner`, `SpacingAddressBottom`, `SpacingPaneGap` | `16`, `12`, `0,0,0,8`, `12` |
-| Typography | `TypographyPaneTitleSize`, `TypographyBodySize` | `18`, `14` |
-| Radius | `RadiusPane` | `8` |
+| Surface | `SurfaceWindowColor`, `SurfacePaneColor`, `SurfaceFieldColor` | per scheme |
+| Text | `TextPrimaryColor`, `TextSecondaryColor`, `TextHiddenColor`, `TextKeyHintColor` | per scheme |
+| Border | `BorderSubtleColor` | per scheme |
+| Border | `BorderNoneThickness`, `BorderActivePaneThickness`, `BorderPassivePaneThickness`, `BorderPaneHeaderThickness`, `BorderOperationBarThickness`, `BorderKeyCapThickness`, `BorderNameEntryThickness` | `0`, `1`, `1`, `0,0,0,1`, `1`, `1`, `1` |
+| Focus | `FocusRingColor`, `FocusSurfaceColor` | per scheme |
+| Selection | `SelectionSurfaceColor`, `SelectionMarkColor` | per scheme |
+| Status | `StatusWarningColor`, `StatusWarningSurfaceColor`, `StatusDangerColor`, `StatusDangerSurfaceColor` | per scheme |
+| Operation | `OperationProgressColor`, `OperationTrackColor` | per scheme |
+| Spacing | `SpacingNone`, `SpacingWindowOuter`, `SpacingPaneHeader`, `SpacingPaneList`, `SpacingPaneNumber`, `SpacingRowContent`, `SpacingOperationBar`, `SpacingKeyCap`, `SpacingNameEntry` | `0`, `6`, `10,0`, `0,6`, `6,1`, `0,0,10,0`, `10,0`, `5,1`, `8,0` |
+| Spacing | `SpacingPaneGap`, `SpacingRowGap`, `SpacingPaneHeaderGap`, `SpacingOperationBarGap`, `SpacingOperationDetailGap`, `SpacingKeyHintGap`, `SpacingProgressSegmentGap` | `3`, `10`, `10`, `10`, `14`, `5`, `2` |
+| Typography | `TypographyBodySize`, `TypographyMonospaceSize`, `TypographyKindLabelSize`, `TypographyMonospaceFamily` | `13`, `12`, `11`, `Cascadia Code, Cascadia Mono, Consolas` |
+| Radius | `RadiusPane`, `RadiusOperationBar`, `RadiusNameEntry`, `RadiusKeyCap` | `3`, `3`, `3`, `2` |
 | Elevation | `ElevationPaneTranslation` | `2` |
-| Density | `DensityRowMinimumHeight` | `36` |
+| Density | `DensityNone`, `DensityPaneHeaderHeight`, `DensityRowHeight`, `DensityRowMarkerWidth`, `DensityKindIconSize`, `DensityOperationBarHeight`, `DensityOperationIconSize`, `DensityNameEntryWidth`, `DensityNameEntryHeight`, `DensityProgressSegmentSize`, `DensityIconStrokeThickness` | `0`, `34`, `28`, `2`, `16`, `34`, `18`, `320`, `26`, `8`, `1.5` |
 | Motion | `MotionStandardDuration` | `0:0:0.160` |
 
-Every color is exposed as a `SolidColorBrush` with the `Brush` suffix. Views reference only these keys (ARC-012, CS-023). Adding a family is out of scope for this pass.
+Colours live in `Themes/Schemes/<identifier>.xaml`, one dictionary per scheme with an identical key set (ADR-0022); every colour is exposed as a `SolidColorBrush` with the `Brush` suffix. The non-colour values above are the approved Direction C values integrated by ADR-0023; the placeholder values this brief originally recorded (window padding 16, pane radius 8, body 14, row 36, and the `TypographyPaneTitleSize`, `SpacingPaneInner`, `SpacingAddressBottom`, `DensityRowMinimumHeight` keys) no longer exist. Views reference only these keys (ARC-012, CS-023). Adding a family remains out of scope.
 
 ### Text
 

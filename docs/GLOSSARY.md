@@ -26,6 +26,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
+| key binding | One declared entry of the canonical key map: a keyboard context, a layout-translated key, its explicit modifier state, and the single intent it emits. |
+| key hint | One displayed shortcut: the localization resource naming a key cap and the one naming what the key does. Hints are generated from key bindings, never written into a view (KBD-005). |
+| operation bar | The single full-width surface at the bottom of the shell. It shows the operation status with its closed `OperationBarTone`, the closed `OperationDetail`, the name entry, and the key hints of the current keyboard context. |
 | color scheme | One of the eight approved `ColorScheme` members. Each has a kebab-case identifier, a closed `Dark` or `Light` appearance, and exactly one resource dictionary `Themes/Schemes/<identifier>.xaml` that defines every color key. |
 | settings document | The sole persisted preferences file `%LOCALAPPDATA%\NeNeCommander\settings.json`, shaped `{ "schemaVersion": 1, "showHiddenItems": <boolean>, "colorScheme": "<identifier>" }`. It is read through `ISettingsStore`, never written by the application, and an absent or rejected document keeps `UserSettings.Default`. |
 | gate | An executable check called by `eng/check.ps1` locally and in CI. |

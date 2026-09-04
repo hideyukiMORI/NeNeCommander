@@ -105,13 +105,41 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
         RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
         RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
-        RenderFrame(presentation.LeftFrame, LeftPaneBorder);
-        RenderFrame(presentation.RightFrame, RightPaneBorder);
+        RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
+        RenderNumber(presentation.LeftFrame, LeftPaneNumberSurface, LeftPaneNumber);
+        RenderFrame(presentation.RightFrame, RightPaneBorder, RightPaneHeader);
+        RenderNumber(presentation.RightFrame, RightPaneNumberSurface, RightPaneNumber);
         OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
+        RenderTone(presentation.Tone);
         RenderDetail(presentation.Detail);
+        OperationKeyHints.ItemsSource = presentation.KeyHints;
         RenderNameEntry(presentation.NameEntry);
         _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+    }
+
+    private void RenderTone(OperationBarTone tone)
+    {
+        OperationBar.Background = ResolveBrush(tone.SurfaceBrushResourceKey);
+        OperationBar.BorderBrush = ResolveBrush(tone.BorderBrushResourceKey);
+        Brush foreground = ResolveBrush(tone.ForegroundBrushResourceKey);
+        OperationStatus.Foreground = foreground;
+        OperationDetailCount.Foreground = foreground;
+        OperationProgressSeparator.Foreground = foreground;
+        OperationTotal.Foreground = foreground;
+        OperationWarningIcon.Stroke = foreground;
+        OperationNameEntryIcon.Stroke = foreground;
+        RenderToneIcon(tone.Icon);
+    }
+
+    private void RenderToneIcon(OperationBarIcon icon)
+    {
+        OperationWarningIcon.Visibility = icon == OperationBarIcon.Warning
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        OperationNameEntryIcon.Visibility = icon == OperationBarIcon.NameEntry
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void RenderDetail(OperationDetail detail)
@@ -119,16 +147,19 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         switch (detail)
         {
             case OperationItemCountDetail count:
+                OperationProgressSegments.ItemsSource = null;
                 OperationDetailCount.Text = count.Count.ToString(CultureInfo.CurrentCulture);
                 OperationProgressSeparator.Text = string.Empty;
                 OperationTotal.Text = string.Empty;
                 break;
             case OperationProgressDetail progress:
+                OperationProgressSegments.ItemsSource = progress.Segments;
                 OperationDetailCount.Text = progress.Completed.ToString(CultureInfo.CurrentCulture);
                 OperationProgressSeparator.Text = _resources.GetString("OperationProgressSeparator");
                 OperationTotal.Text = progress.Total.ToString(CultureInfo.CurrentCulture);
                 break;
             default:
+                OperationProgressSegments.ItemsSource = null;
                 OperationDetailCount.Text = string.Empty;
                 OperationProgressSeparator.Text = string.Empty;
                 OperationTotal.Text = string.Empty;
@@ -140,13 +171,13 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     {
         if (nameEntry is not ActiveNameEntry active)
         {
-            NameEntry.Visibility = Visibility.Collapsed;
+            NameEntryFrame.Visibility = Visibility.Collapsed;
             return;
         }
-        if (NameEntry.Visibility == Visibility.Collapsed)
+        if (NameEntryFrame.Visibility == Visibility.Collapsed)
         {
             NameEntry.Text = active.InitialText;
-            NameEntry.Visibility = Visibility.Visible;
+            NameEntryFrame.Visibility = Visibility.Visible;
         }
         _ = NameEntry.Focus(FocusState.Programmatic);
         NameEntry.SelectAll();
@@ -164,10 +195,23 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         status.Text = _resources.GetString(presentation.Status.ResourceKey);
     }
 
-    private static void RenderFrame(PaneFrame frame, Border border)
+    private static void RenderFrame(PaneFrame frame, Border border, Border header)
     {
-        border.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources[frame.BrushResourceKey];
+        Brush brush = ResolveBrush(frame.BrushResourceKey);
+        border.BorderBrush = brush;
         border.BorderThickness = (Thickness)Microsoft.UI.Xaml.Application.Current.Resources[frame.ThicknessResourceKey];
+        header.BorderBrush = brush;
+    }
+
+    private static void RenderNumber(PaneFrame frame, Border surface, TextBlock number)
+    {
+        surface.Background = ResolveBrush(frame.NumberSurfaceBrushResourceKey);
+        number.Foreground = ResolveBrush(frame.NumberForegroundBrushResourceKey);
+    }
+
+    private static Brush ResolveBrush(string resourceKey)
+    {
+        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[resourceKey];
     }
 
     /// <summary>
@@ -195,7 +239,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void ForwardIntent(UserIntent intent)
     {
-        UserIntent forwarded = intent == UserIntent.Confirm && NameEntry.Visibility == Visibility.Visible
+        UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
             ? UserIntent.SubmitName(NameEntry.Text)
             : intent;
         _paneWork = RenderAfterAsync(_panes.HandleAsync(forwarded, this, CancellationToken.None));

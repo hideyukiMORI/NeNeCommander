@@ -16,12 +16,17 @@ public static class PaneListingPresenter
     /// Translates a snapshot into render-ready values without changing any state.
     /// </summary>
     /// <param name="snapshot">Current pane snapshot.</param>
+    /// <param name="frame">
+    /// The pane's activation frame. The focus item is marked differently in the pane that receives
+    /// intents than in the pane that only keeps its display, so the projection needs it.
+    /// </param>
     /// <returns>A render-ready presentation.</returns>
-    public static PanePresentation Present(PaneSnapshot snapshot)
+    public static PanePresentation Present(PaneSnapshot snapshot, PaneFrame frame)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(frame);
         return snapshot.Content is PaneContentListed listed
-            ? PresentListed(listed, snapshot.Activity)
+            ? PresentListed(listed, snapshot.Activity, frame)
             : new PanePresentation(
                 Array.Empty<PaneRow>(),
                 null,
@@ -29,16 +34,16 @@ public static class PaneListingPresenter
                 TargetText(snapshot.Activity));
     }
 
-    private static PanePresentation PresentListed(PaneContentListed listed, PaneActivity activity)
+    private static PanePresentation PresentListed(PaneContentListed listed, PaneActivity activity, PaneFrame frame)
     {
         HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
         List<PaneRow> rows = [];
         PaneRow? focusRow = null;
         foreach (DirectoryEntry entry in listed.Listing.Entries)
         {
-            PaneRow row = new(entry, selection.Contains(entry.Path) ? PaneRowMark.Selected : PaneRowMark.Unselected);
+            PaneRow row = new(entry, ResolveMark(entry, listed, selection, frame), PaneRowKind.For(entry.Kind));
             rows.Add(row);
-            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem))
+            if (HasFocus(entry, listed))
             {
                 focusRow = row;
             }
@@ -48,6 +53,28 @@ public static class PaneListingPresenter
             focusRow,
             TranslateActivity(activity, TranslateListing(listed.Listing)),
             listed.Listing.Location.CanonicalText);
+    }
+
+    /// <summary>
+    /// Resolves the single mark of one row. The focus item of the active pane outranks selection,
+    /// selection outranks the focus item of the passive pane, and every other row is unmarked.
+    /// </summary>
+    private static PaneRowMark ResolveMark(
+        DirectoryEntry entry,
+        PaneContentListed listed,
+        HashSet<FileSystemPath> selection,
+        PaneFrame frame)
+    {
+        return HasFocus(entry, listed) && frame == PaneFrame.Active
+            ? PaneRowMark.FocusInActivePane
+            : selection.Contains(entry.Path)
+                ? PaneRowMark.Selected
+                : HasFocus(entry, listed) ? PaneRowMark.FocusInPassivePane : PaneRowMark.Unmarked;
+    }
+
+    private static bool HasFocus(DirectoryEntry entry, PaneContentListed listed)
+    {
+        return FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem);
     }
 
     private static PaneStatus TranslateListing(DirectoryListing listing)
