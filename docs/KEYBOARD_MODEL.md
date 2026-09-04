@@ -71,7 +71,7 @@ Movement changes the focus item and preserves explicit selection. File commands 
 - Status: **active**
 - Enforcement: key-map uniqueness test.
 
-No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data.
+No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. Hint wording, both the key cap and the intent, comes from localization resources.
 
 ## Accessibility
 

@@ -72,7 +72,10 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        Assert.AreSame(OperationStatus.MoveRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
+        DualPanePresentation rejected = DualPanePresenter.Present(snapshot);
+
+        Assert.AreSame(OperationStatus.MoveRequestRejected, rejected.OperationStatus);
+        Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
     }
 
     /// <summary>Proves each gateway completion and the running state map to one operation status.</summary>
@@ -103,6 +106,13 @@ public sealed class DualPanePresenterTests
         Action<QueuedFileOperationPort> script,
         CancellationToken cancellationToken)
     {
+        return (await MovePresentationAsync(script, cancellationToken)).OperationStatus;
+    }
+
+    private static async Task<DualPanePresentation> MovePresentationAsync(
+        Action<QueuedFileOperationPort> script,
+        CancellationToken cancellationToken)
+    {
         DualPaneSession panes = CreatePanes(
             out ScriptedDirectoryReadPort left,
             out ScriptedDirectoryReadPort right,
@@ -124,7 +134,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot).OperationStatus;
+        return DualPanePresenter.Present(snapshot);
     }
     /// <summary>Proves each copy completion maps to one copy status and a rejected copy request is named.</summary>
     [TestMethod]
@@ -178,6 +188,10 @@ public sealed class DualPanePresenterTests
         Assert.AreEqual(0, detail.Completed);
         Assert.AreEqual(1, detail.Total);
         Assert.AreSame(KeyboardContext.FileList, deleting.InputContext);
+        Assert.AreSame(OperationBarTone.Idle, deleting.Tone);
+        Assert.HasCount(OperationProgressDetail.SegmentCount, detail.Segments);
+        Assert.AreSame(ProgressSegment.Empty, detail.Segments[0]);
+        Assert.AreSame(ProgressSegment.Empty, detail.Segments[OperationProgressDetail.SegmentCount - 1]);
     }
 
     /// <summary>Proves the observer receives a presentation-ready snapshot whose detail counts the completed source.</summary>
@@ -214,6 +228,8 @@ public sealed class DualPanePresenterTests
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(presentation.Detail);
         Assert.AreEqual(1, detail.Completed);
         Assert.AreEqual(1, detail.Total);
+        Assert.AreSame(ProgressSegment.Filled, detail.Segments[0]);
+        Assert.AreSame(ProgressSegment.Filled, detail.Segments[OperationProgressDetail.SegmentCount - 1]);
     }
 
     private static async Task<DualPanePresentation> RunningAsync(UserIntent intent)
@@ -291,6 +307,9 @@ public sealed class DualPanePresenterTests
 
         Assert.AreSame(OperationStatus.CreateDirectoryAwaitingName, awaiting.OperationStatus);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
+        Assert.AreSame(OperationBarTone.AwaitingName, awaiting.Tone);
+        Assert.HasCount(2, awaiting.KeyHints);
+        Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
         Assert.AreEqual(string.Empty, Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText);
         Assert.AreSame(OperationDetail.None, awaiting.Detail);
         Assert.AreSame(NameEntryPresentation.Hidden, escaped.NameEntry);
@@ -523,6 +542,12 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(OperationStatus.DeleteAwaitingConfirmation, pending.OperationStatus);
         Assert.AreEqual(2, Assert.IsInstanceOfType<OperationItemCountDetail>(pending.Detail).Count);
         Assert.AreSame(KeyboardContext.Modal, pending.InputContext);
+        Assert.AreSame(OperationBarTone.AwaitingConfirmation, pending.Tone);
+        Assert.HasCount(2, pending.KeyHints);
+        Assert.AreEqual("KeyLabelEnter", pending.KeyHints[0].KeyLabelResourceKey);
+        Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
+        Assert.HasCount(7, escaped.KeyHints);
+        Assert.AreEqual("KeyLabelF2", escaped.KeyHints[0].KeyLabelResourceKey);
         Assert.AreSame(OperationStatus.Idle, escaped.OperationStatus);
         Assert.AreSame(OperationDetail.None, escaped.Detail);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);
@@ -575,6 +600,7 @@ public sealed class DualPanePresenterTests
             await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None));
 
         Assert.AreSame(OperationStatus.DeletePartiallyCompleted, presentation.OperationStatus);
+        Assert.AreSame(OperationBarTone.Failure, presentation.Tone);
     }
 
     private static async Task<OperationStatus> DeleteStatusAsync(
@@ -604,6 +630,95 @@ public sealed class DualPanePresenterTests
 
         return DualPanePresenter.Present(snapshot).OperationStatus;
     }
+    /// <summary>Proves a completed, cancelled, or idle operation keeps the idle bar tone.</summary>
+    [TestMethod]
+    public async Task PresentWhenOperationEndsWithoutFailureKeepsTheIdleTone()
+    {
+        using CancellationTokenSource cancellation = new();
+        await cancellation.CancelAsync();
+
+        DualPanePresentation succeeded = await MovePresentationAsync(port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        }, CancellationToken.None);
+        DualPanePresentation cancelled = await MovePresentationAsync(port => { }, cancellation.Token);
+        DualPanePresentation rejected = await MovePresentationAsync(port =>
+            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None);
+
+        Assert.AreSame(OperationBarTone.Idle, succeeded.Tone);
+        Assert.AreSame(OperationDetail.None, succeeded.Detail);
+        Assert.AreSame(OperationBarTone.Idle, cancelled.Tone);
+        Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
+    }
+
+    /// <summary>Proves a partly completed transfer fills exactly the completed proportion of the bar.</summary>
+    [TestMethod]
+    public async Task PresentWhenHalfTheSourcesCompletedFillsHalfTheSegments()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt", "b.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
+        foreach (DirectoryEntry entry in leftListing.Entries)
+        {
+            port.EnqueueInspection(FileInspectionOutcome.Succeeded(
+                FileEntrySnapshot.Create(entry.Path, identity.Identity, DeletionCapability.Recycle)));
+        }
+        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+        RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
+
+        _ = await panes.HandleAsync(UserIntent.Delete, observer, CancellationToken.None);
+
+        OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(
+            DualPanePresenter.Present(observer.Snapshots[0]).Detail);
+        Assert.AreEqual(1, detail.Completed);
+        Assert.AreEqual(2, detail.Total);
+        Assert.AreSame(ProgressSegment.Filled, detail.Segments[5]);
+        Assert.AreSame(ProgressSegment.Empty, detail.Segments[6]);
+    }
+
+    /// <summary>Proves every operation-bar tone names distinct semantic design resources.</summary>
+    [TestMethod]
+    public void ResourceKeysWhenOperationBarToneIsReadNameExactSemanticResources()
+    {
+        Assert.AreEqual("SurfacePaneBrush", OperationBarTone.Idle.SurfaceBrushResourceKey);
+        Assert.AreEqual("TextPrimaryBrush", OperationBarTone.Idle.ForegroundBrushResourceKey);
+        Assert.AreEqual("BorderSubtleBrush", OperationBarTone.Idle.BorderBrushResourceKey);
+        Assert.AreSame(OperationBarIcon.None, OperationBarTone.Idle.Icon);
+        Assert.AreEqual("FocusSurfaceBrush", OperationBarTone.AwaitingName.SurfaceBrushResourceKey);
+        Assert.AreEqual("TextPrimaryBrush", OperationBarTone.AwaitingName.ForegroundBrushResourceKey);
+        Assert.AreEqual("FocusRingBrush", OperationBarTone.AwaitingName.BorderBrushResourceKey);
+        Assert.AreSame(OperationBarIcon.NameEntry, OperationBarTone.AwaitingName.Icon);
+        Assert.AreEqual("StatusWarningSurfaceBrush", OperationBarTone.AwaitingConfirmation.SurfaceBrushResourceKey);
+        Assert.AreEqual("StatusWarningBrush", OperationBarTone.AwaitingConfirmation.ForegroundBrushResourceKey);
+        Assert.AreEqual("StatusWarningBrush", OperationBarTone.AwaitingConfirmation.BorderBrushResourceKey);
+        Assert.AreSame(OperationBarIcon.Warning, OperationBarTone.AwaitingConfirmation.Icon);
+        Assert.AreEqual("StatusDangerSurfaceBrush", OperationBarTone.Failure.SurfaceBrushResourceKey);
+        Assert.AreEqual("StatusDangerBrush", OperationBarTone.Failure.ForegroundBrushResourceKey);
+        Assert.AreEqual("StatusDangerBrush", OperationBarTone.Failure.BorderBrushResourceKey);
+        Assert.AreSame(OperationBarIcon.Warning, OperationBarTone.Failure.Icon);
+        Assert.AreEqual("OperationProgressBrush", ProgressSegment.Filled.BrushResourceKey);
+        Assert.AreEqual("OperationTrackBrush", ProgressSegment.Empty.BrushResourceKey);
+    }
+
     /// <summary>Proves each frame names distinct semantic border resources.</summary>
     [TestMethod]
     public void ResourceKeysWhenFrameIsReadNameExactSemanticResources()

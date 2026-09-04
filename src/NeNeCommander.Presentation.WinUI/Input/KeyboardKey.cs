@@ -1,7 +1,9 @@
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
-/// Represents one closed, layout-translated key identity consumed by the canonical mapper.
+/// Represents one closed, layout-translated key identity consumed by the canonical mapper. Each
+/// identity also names the localization resource for its key-cap label so a displayed shortcut
+/// hint never assembles that text in code (KBD-005, CS-025).
 /// </summary>
 public abstract record KeyboardKey
 {
@@ -81,28 +83,129 @@ public abstract record KeyboardKey
     {
     }
 
-    private sealed record LowerGKey : KeyboardKey;
-    private sealed record UpperGKey : KeyboardKey;
-    private sealed record HKey : KeyboardKey;
-    private sealed record JKey : KeyboardKey;
-    private sealed record KKey : KeyboardKey;
-    private sealed record LKey : KeyboardKey;
-    private sealed record DKey : KeyboardKey;
-    private sealed record RKey : KeyboardKey;
-    private sealed record UKey : KeyboardKey;
-    private sealed record DownKey : KeyboardKey;
-    private sealed record UpKey : KeyboardKey;
-    private sealed record BackspaceKey : KeyboardKey;
-    private sealed record EnterKey : KeyboardKey;
-    private sealed record PageDownKey : KeyboardKey;
-    private sealed record PageUpKey : KeyboardKey;
-    private sealed record TabKey : KeyboardKey;
-    private sealed record SpaceKey : KeyboardKey;
-    private sealed record EscapeKey : KeyboardKey;
-    private sealed record F2Key : KeyboardKey;
-    private sealed record F5Key : KeyboardKey;
-    private sealed record F6Key : KeyboardKey;
-    private sealed record F7Key : KeyboardKey;
-    private sealed record F8Key : KeyboardKey;
-    private sealed record OtherKey : KeyboardKey;
+    /// <summary>
+    /// Gets the localization resource key that names this key on a displayed shortcut hint.
+    /// <see cref="Other"/> names an empty label because no canonical binding declares it.
+    /// </summary>
+    public abstract string LabelResourceKey { get; }
+
+    private sealed record LowerGKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelLowerG";
+    }
+
+    private sealed record UpperGKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelUpperG";
+    }
+
+    private sealed record HKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelH";
+    }
+
+    private sealed record JKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelJ";
+    }
+
+    private sealed record KKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelK";
+    }
+
+    private sealed record LKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelL";
+    }
+
+    private sealed record DKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelD";
+    }
+
+    private sealed record RKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelR";
+    }
+
+    private sealed record UKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelU";
+    }
+
+    private sealed record DownKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelDown";
+    }
+
+    private sealed record UpKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelUp";
+    }
+
+    private sealed record BackspaceKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelBackspace";
+    }
+
+    private sealed record EnterKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelEnter";
+    }
+
+    private sealed record PageDownKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelPageDown";
+    }
+
+    private sealed record PageUpKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelPageUp";
+    }
+
+    private sealed record TabKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelTab";
+    }
+
+    private sealed record SpaceKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelSpace";
+    }
+
+    private sealed record EscapeKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelEscape";
+    }
+
+    private sealed record F2Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF2";
+    }
+
+    private sealed record F5Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF5";
+    }
+
+    private sealed record F6Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF6";
+    }
+
+    private sealed record F7Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF7";
+    }
+
+    private sealed record F8Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF8";
+    }
+
+    private sealed record OtherKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelUnmapped";
+    }
 }

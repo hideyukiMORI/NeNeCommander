@@ -5,10 +5,6 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="CommanderWindowTitle" xml:space="preserve"><value>NeNe Commander</value></data>
-  <data name="LeftPaneLabel.Text" xml:space="preserve"><value>Left pane</value></data>
-  <data name="RightPaneLabel.Text" xml:space="preserve"><value>Right pane</value></data>
-  <data name="LeftAddress.Header" xml:space="preserve"><value>Location</value></data>
-  <data name="RightAddress.Header" xml:space="preserve"><value>Location</value></data>
   <data name="PaneStatusNoListing" xml:space="preserve"><value>No location listed</value></data>
   <data name="PaneStatusLoading" xml:space="preserve"><value>Reading…</value></data>
   <data name="PaneStatusComplete" xml:space="preserve"><value>Listing complete</value></data>
@@ -51,4 +47,42 @@
   <data name="OperationStatusDeletePartiallyCompleted" xml:space="preserve"><value>Deletion stopped after partial completion</value></data>
   <data name="OperationStatusDeleteRejected" xml:space="preserve"><value>Deletion was rejected before any change</value></data>
   <data name="OperationStatusDeleteRequestRejected" xml:space="preserve"><value>Delete request is not valid</value></data>
+  <data name="LeftPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>Left pane</value></data>
+  <data name="RightPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>Right pane</value></data>
+  <data name="LeftPaneNumber.Text" xml:space="preserve"><value>1</value></data>
+  <data name="RightPaneNumber.Text" xml:space="preserve"><value>2</value></data>
+  <data name="EntryKindDirectoryLabel" xml:space="preserve"><value>DIR</value></data>
+  <data name="EntryKindFileLabel" xml:space="preserve"><value></value></data>
+  <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
+  <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
+  <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
+  <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
+  <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
+  <data name="KeyLabelL" xml:space="preserve"><value>l</value></data>
+  <data name="KeyLabelD" xml:space="preserve"><value>d</value></data>
+  <data name="KeyLabelR" xml:space="preserve"><value>r</value></data>
+  <data name="KeyLabelU" xml:space="preserve"><value>u</value></data>
+  <data name="KeyLabelDown" xml:space="preserve"><value>↓</value></data>
+  <data name="KeyLabelUp" xml:space="preserve"><value>↑</value></data>
+  <data name="KeyLabelBackspace" xml:space="preserve"><value>BS</value></data>
+  <data name="KeyLabelEnter" xml:space="preserve"><value>Enter</value></data>
+  <data name="KeyLabelPageDown" xml:space="preserve"><value>PgDn</value></data>
+  <data name="KeyLabelPageUp" xml:space="preserve"><value>PgUp</value></data>
+  <data name="KeyLabelTab" xml:space="preserve"><value>Tab</value></data>
+  <data name="KeyLabelSpace" xml:space="preserve"><value>Space</value></data>
+  <data name="KeyLabelEscape" xml:space="preserve"><value>Esc</value></data>
+  <data name="KeyLabelF2" xml:space="preserve"><value>F2</value></data>
+  <data name="KeyLabelF5" xml:space="preserve"><value>F5</value></data>
+  <data name="KeyLabelF6" xml:space="preserve"><value>F6</value></data>
+  <data name="KeyLabelF7" xml:space="preserve"><value>F7</value></data>
+  <data name="KeyLabelF8" xml:space="preserve"><value>F8</value></data>
+  <data name="KeyLabelUnmapped" xml:space="preserve"><value></value></data>
+  <data name="IntentLabelRename" xml:space="preserve"><value>Rename</value></data>
+  <data name="IntentLabelCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="IntentLabelMove" xml:space="preserve"><value>Move</value></data>
+  <data name="IntentLabelCreateDirectory" xml:space="preserve"><value>Create</value></data>
+  <data name="IntentLabelDelete" xml:space="preserve"><value>Delete</value></data>
+  <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>Pane</value></data>
+  <data name="IntentLabelEscape" xml:space="preserve"><value>Cancel</value></data>
+  <data name="IntentLabelConfirm" xml:space="preserve"><value>Confirm</value></data>
 </root>

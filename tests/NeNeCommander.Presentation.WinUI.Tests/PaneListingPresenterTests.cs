@@ -20,7 +20,7 @@ public sealed class PaneListingPresenterTests
     [TestMethod]
     public void PresentWhenNothingIsListedShowsNoListingStatus()
     {
-        PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial);
+        PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active);
 
         Assert.IsEmpty(presentation.Rows);
         Assert.IsNull(presentation.FocusRow);
@@ -39,16 +39,17 @@ public sealed class PaneListingPresenterTests
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
 
-        PanePresentation initial = PaneListingPresenter.Present(snapshot);
-        PanePresentation afterMove = PaneListingPresenter.Present(moved);
+        PanePresentation initial = PaneListingPresenter.Present(snapshot, PaneFrame.Active);
+        PanePresentation afterMove = PaneListingPresenter.Present(moved, PaneFrame.Active);
 
         Assert.HasCount(2, initial.Rows);
         Assert.AreSame(listing.Entries[0], initial.Rows[0].Entry);
         Assert.AreSame(listing.Entries[1], initial.Rows[1].Entry);
         Assert.AreSame(initial.Rows[0], initial.FocusRow);
         Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
-        Assert.AreSame(PaneRowMark.Unselected, initial.Rows[0].Mark);
-        Assert.IsFalse(initial.Rows[0].IsSelected);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, initial.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.Unmarked, initial.Rows[1].Mark);
+        Assert.AreSame(PaneRowKind.File, initial.Rows[0].Kind);
         Assert.AreSame(PaneStatus.Complete, initial.Status);
         Assert.AreEqual("C:\\projects", initial.AddressText);
     }
@@ -68,15 +69,15 @@ public sealed class PaneListingPresenterTests
         PaneSnapshot selected = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
         PaneSnapshot cleared = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
 
-        PanePresentation marked = PaneListingPresenter.Present(selected);
-        PanePresentation unmarked = PaneListingPresenter.Present(cleared);
+        PanePresentation marked = PaneListingPresenter.Present(selected, PaneFrame.Active);
+        PanePresentation unmarked = PaneListingPresenter.Present(cleared, PaneFrame.Active);
 
-        Assert.IsTrue(marked.Rows[0].IsSelected);
-        Assert.IsFalse(marked.Rows[1].IsSelected);
-        Assert.IsTrue(marked.Rows[2].IsSelected);
+        Assert.AreSame(PaneRowMark.Selected, marked.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.Unmarked, marked.Rows[1].Mark);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, marked.Rows[2].Mark);
         Assert.AreSame(marked.Rows[2], marked.FocusRow);
-        Assert.IsFalse(unmarked.Rows[0].IsSelected);
-        Assert.IsFalse(unmarked.Rows[2].IsSelected);
+        Assert.AreSame(PaneRowMark.Unmarked, unmarked.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, unmarked.Rows[2].Mark);
         Assert.AreSame(unmarked.Rows[2], unmarked.FocusRow);
     }
     /// <summary>Proves an empty listing has no focus entry.</summary>
@@ -85,7 +86,7 @@ public sealed class PaneListingPresenterTests
     {
         PaneSnapshot snapshot = await ListAsync(CreateListing("C:\\projects", [], DirectoryListingCompleteness.Complete, 0));
 
-        PanePresentation presentation = PaneListingPresenter.Present(snapshot);
+        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active);
 
         Assert.IsNull(presentation.FocusRow);
         Assert.IsEmpty(presentation.Rows);
@@ -100,8 +101,8 @@ public sealed class PaneListingPresenterTests
         PaneSnapshot bounded = await ListAsync(CreateListing("C:\\a", ["a.txt"], DirectoryListingCompleteness.Bounded, 2));
         PaneSnapshot omitted = await ListAsync(CreateListing("C:\\b", ["a.txt"], DirectoryListingCompleteness.Complete, 1));
 
-        Assert.AreSame(PaneStatus.Bounded, PaneListingPresenter.Present(bounded).Status);
-        Assert.AreSame(PaneStatus.EntriesOmitted, PaneListingPresenter.Present(omitted).Status);
+        Assert.AreSame(PaneStatus.Bounded, PaneListingPresenter.Present(bounded, PaneFrame.Active).Status);
+        Assert.AreSame(PaneStatus.EntriesOmitted, PaneListingPresenter.Present(omitted, PaneFrame.Active).Status);
     }
 
     /// <summary>Proves a read in flight keeps the rows and shows the target as loading.</summary>
@@ -116,11 +117,12 @@ public sealed class PaneListingPresenterTests
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None);
 
-        PanePresentation listedLoading = PaneListingPresenter.Present(session.Current);
+        PanePresentation listedLoading = PaneListingPresenter.Present(session.Current, PaneFrame.Active);
         pending.SetResult(DirectoryReadOutcome.Cancelled());
         _ = await navigation;
         PanePresentation absentLoading = PaneListingPresenter.Present(
-            CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> release).Current);
+            CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> release).Current,
+            PaneFrame.Active);
         release.SetResult(DirectoryReadOutcome.Cancelled());
 
         Assert.AreSame(listing.Entries[0], listedLoading.Rows[0].Entry);
@@ -135,13 +137,18 @@ public sealed class PaneListingPresenterTests
     [TestMethod]
     public async Task PresentWhenReadIsCancelledOrFailsTranslatesActivity()
     {
-        PanePresentation cancelled = PaneListingPresenter.Present(await ReadAbsentAsync(DirectoryReadOutcome.Cancelled()));
+        PanePresentation cancelled = PaneListingPresenter.Present(
+            await ReadAbsentAsync(DirectoryReadOutcome.Cancelled()),
+            PaneFrame.Active);
         PanePresentation denied = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied)));
+            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied)),
+            PaneFrame.Active);
         PanePresentation missing = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound)));
+            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound)),
+            PaneFrame.Active);
         PanePresentation unavailable = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.Copy)));
+            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.Copy)),
+            PaneFrame.Active);
 
         Assert.AreSame(PaneStatus.Cancelled, cancelled.Status);
         Assert.AreEqual("C:\\target", cancelled.AddressText);
@@ -164,12 +171,70 @@ public sealed class PaneListingPresenterTests
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot snapshot = await session.NavigateAsync(ParsePath("C:\\missing"), CancellationToken.None);
 
-        PanePresentation presentation = PaneListingPresenter.Present(snapshot);
+        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active);
 
         Assert.AreSame(listing.Entries[0], presentation.Rows[0].Entry);
         Assert.AreSame(presentation.Rows[0], presentation.FocusRow);
         Assert.AreSame(PaneStatus.NotFound, presentation.Status);
         Assert.AreEqual("C:\\projects", presentation.AddressText);
+    }
+
+    /// <summary>Proves the passive pane marks its focus row differently and selection outranks it.</summary>
+    [TestMethod]
+    public async Task PresentWhenPaneIsPassiveMarksFocusRowWithoutTheActiveTreatment()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0);
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        PaneSnapshot focused = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+
+        PanePresentation passive = PaneListingPresenter.Present(focused, PaneFrame.Passive);
+        PanePresentation active = PaneListingPresenter.Present(focused, PaneFrame.Active);
+
+        Assert.AreSame(PaneRowMark.Selected, passive.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, active.Rows[0].Mark);
+        Assert.AreSame(passive.Rows[0], passive.FocusRow);
+    }
+
+    /// <summary>Proves an unselected focus row of a passive pane keeps the passive focus mark.</summary>
+    [TestMethod]
+    public async Task PresentWhenPassivePaneFocusIsUnselectedMarksPassiveFocus()
+    {
+        PaneSnapshot snapshot = await ListAsync(
+            CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0));
+
+        PanePresentation passive = PaneListingPresenter.Present(snapshot, PaneFrame.Passive);
+
+        Assert.AreSame(PaneRowMark.FocusInPassivePane, passive.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.Unmarked, passive.Rows[1].Mark);
+    }
+
+    /// <summary>Proves every row mark and entry kind names the exact semantic design resources.</summary>
+    [TestMethod]
+    public void ResourceKeyWhenRowMarkOrKindIsReadNamesExactResources()
+    {
+        Assert.AreEqual("FocusRingBrush", PaneRowMark.FocusInActivePane.MarkerBrushResourceKey);
+        Assert.AreEqual("FocusSurfaceBrush", PaneRowMark.FocusInActivePane.SurfaceBrushResourceKey);
+        Assert.AreEqual("SelectionMarkBrush", PaneRowMark.Selected.MarkerBrushResourceKey);
+        Assert.AreEqual("SelectionSurfaceBrush", PaneRowMark.Selected.SurfaceBrushResourceKey);
+        Assert.AreEqual("BorderSubtleBrush", PaneRowMark.FocusInPassivePane.MarkerBrushResourceKey);
+        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.FocusInPassivePane.SurfaceBrushResourceKey);
+        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.MarkerBrushResourceKey);
+        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.SurfaceBrushResourceKey);
+        Assert.AreEqual("EntryKindDirectoryLabel", PaneRowKind.Directory.LabelResourceKey);
+        Assert.IsTrue(PaneRowKind.Directory.IsDirectory);
+        Assert.IsFalse(PaneRowKind.Directory.IsFile);
+        Assert.AreEqual("EntryKindFileLabel", PaneRowKind.File.LabelResourceKey);
+        Assert.IsFalse(PaneRowKind.File.IsDirectory);
+        Assert.IsTrue(PaneRowKind.File.IsFile);
+        Assert.AreSame(PaneRowKind.Directory, PaneRowKind.For(DirectoryEntryKind.Directory));
+        Assert.AreSame(PaneRowKind.File, PaneRowKind.For(DirectoryEntryKind.File));
+        Assert.AreEqual("FocusRingBrush", PaneFrame.Active.NumberSurfaceBrushResourceKey);
+        Assert.AreEqual("SurfacePaneBrush", PaneFrame.Active.NumberForegroundBrushResourceKey);
+        Assert.AreEqual("BorderSubtleBrush", PaneFrame.Passive.NumberSurfaceBrushResourceKey);
+        Assert.AreEqual("TextSecondaryBrush", PaneFrame.Passive.NumberForegroundBrushResourceKey);
     }
 
     /// <summary>Proves the presenter rejects an absent snapshot.</summary>
@@ -180,6 +245,24 @@ public sealed class PaneListingPresenterTests
             nameof(PaneListingPresenter.Present),
             BindingFlags.Public | BindingFlags.Static) ??
             throw new AssertFailedException("The present method was not found.");
+
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(null, [null, PaneFrame.Active]));
+        TargetInvocationException absentFrame = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(null, [PaneSnapshot.Initial, null]));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(absentFrame.InnerException);
+    }
+
+    /// <summary>Proves the kind projection rejects an absent entry kind.</summary>
+    [TestMethod]
+    public void ForWhenEntryKindIsNullThrowsArgumentNullException()
+    {
+        MethodInfo method = typeof(PaneRowKind).GetMethod(
+            nameof(PaneRowKind.For),
+            BindingFlags.Public | BindingFlags.Static) ??
+            throw new AssertFailedException("The kind projection was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
             () => method.Invoke(null, [null]));

@@ -130,8 +130,16 @@ try {
         $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
         $content = Get-Content -LiteralPath $path -Raw
         $content = $content.Replace(
-            '<Thickness x:Key="SpacingWindowOuter">16</Thickness>',
-            "<Color x:Key=`"SurfaceWindowColor`">#FF000000</Color>`r`n    <Thickness x:Key=`"SpacingWindowOuter`">16</Thickness>")
+            '<Thickness x:Key="SpacingWindowOuter">6</Thickness>',
+            "<Color x:Key=`"SurfaceWindowColor`">#FF000000</Color>`r`n    <Thickness x:Key=`"SpacingWindowOuter`">6</Thickness>")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'presentation-names-unknown-scheme-resource' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Presentation.WinUI/Panes/PaneFrame.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('"BorderSubtleBrush"', '"BorderInvisibleBrush"')
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
@@ -149,7 +157,7 @@ try {
         throw 'Valid commit message unexpectedly failed.'
     }
 
-    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, environment boundary, color scheme dictionary parity, and commit messages.'
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, environment boundary, color scheme dictionary parity, presentation resource keys, and commit messages.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {

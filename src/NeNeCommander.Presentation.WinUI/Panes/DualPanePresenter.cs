@@ -19,18 +19,46 @@ public static class DualPanePresenter
         ArgumentNullException.ThrowIfNull(snapshot);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
+        KeyboardContext inputContext = snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName
+            ? KeyboardContext.Modal
+            : KeyboardContext.FileList;
         return new DualPanePresentation(
-            PaneListingPresenter.Present(snapshot.Left),
+            PaneListingPresenter.Present(snapshot.Left, leftFrame),
             leftFrame,
-            PaneListingPresenter.Present(snapshot.Right),
+            PaneListingPresenter.Present(snapshot.Right, rightFrame),
             rightFrame,
             snapshot.ActiveSide,
             TranslateOperation(snapshot.Operation),
             TranslateDetail(snapshot.Operation),
+            TranslateTone(snapshot.Operation),
+            KeyHintPresenter.Present(inputContext),
             TranslateNameEntry(snapshot.Operation),
-            snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName
-                ? KeyboardContext.Modal
-                : KeyboardContext.FileList);
+            inputContext);
+    }
+
+    /// <summary>
+    /// Translates the operation activity into the closed tone of the operation bar. A running,
+    /// succeeded, or cancelled operation reports nothing that needs attention and keeps the idle
+    /// tone; only a pending question or an incomplete result changes it.
+    /// </summary>
+    private static OperationBarTone TranslateTone(OperationActivity activity)
+    {
+        return activity switch
+        {
+            OperationAwaitingName => OperationBarTone.AwaitingName,
+            OperationAwaitingConfirmation => OperationBarTone.AwaitingConfirmation,
+            OperationRequestRejected => OperationBarTone.Failure,
+            OperationCompleted completed => TranslateCompletionTone(completed.Outcome.Completion),
+            _ => OperationBarTone.Idle,
+        };
+    }
+
+    private static OperationBarTone TranslateCompletionTone(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.PartiallyCompleted ||
+            completion == FileOperationCompletionKind.Rejected
+            ? OperationBarTone.Failure
+            : OperationBarTone.Idle;
     }
 
     private static NameEntryPresentation TranslateNameEntry(OperationActivity activity)

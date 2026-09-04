@@ -1,15 +1,62 @@
 using System;
+using System.Collections.Generic;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Time;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
-/// Owns the sole context-aware mapping from translated keyboard input to application intent.
+/// Owns the sole context-aware mapping from translated keyboard input to application intent, and
+/// the single table of declared bindings that mapping and every displayed shortcut hint read
+/// (KBD-005). The <c>gg</c> chord is not a single binding; it is the only stateful entry and is
+/// resolved before the table is consulted.
 /// </summary>
 public sealed class KeyboardIntentMapper
 {
     private static readonly TimeSpan ChordLifetime = TimeSpan.FromMilliseconds(750);
+
+    /// <summary>
+    /// The canonical key map. Every keystroke appears at most once per context (KBD-005). The
+    /// modal and text-entry contexts own their declared keys regardless of modifier state so a
+    /// stuck modifier cannot bypass a destructive confirmation (KBD-002).
+    /// </summary>
+    private static readonly IReadOnlyList<KeyBinding> DeclaredBindings =
+    [
+        new(KeyboardContext.FileList, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.FileList, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.FileList, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.FileList, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.FileList, KeyboardKey.H, KeyboardModifier.None, UserIntent.NavigateParent),
+        new(KeyboardContext.FileList, KeyboardKey.Backspace, KeyboardModifier.None, UserIntent.NavigateParent),
+        new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.None, UserIntent.OpenFocused),
+        new(KeyboardContext.FileList, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.OpenFocused),
+        new(KeyboardContext.FileList, KeyboardKey.UpperG, KeyboardModifier.None, UserIntent.FocusLast),
+        new(KeyboardContext.FileList, KeyboardKey.PageDown, KeyboardModifier.None, UserIntent.MoveHalfPageDown),
+        new(KeyboardContext.FileList, KeyboardKey.PageUp, KeyboardModifier.None, UserIntent.MoveHalfPageUp),
+        new(KeyboardContext.FileList, KeyboardKey.Tab, KeyboardModifier.None, UserIntent.ActivateOtherPane),
+        new(KeyboardContext.FileList, KeyboardKey.Space, KeyboardModifier.None, UserIntent.ToggleSelection),
+        new(KeyboardContext.FileList, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.FileList, KeyboardKey.F2, KeyboardModifier.None, UserIntent.Rename),
+        new(KeyboardContext.FileList, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Copy),
+        new(KeyboardContext.FileList, KeyboardKey.F6, KeyboardModifier.None, UserIntent.Move),
+        new(KeyboardContext.FileList, KeyboardKey.F7, KeyboardModifier.None, UserIntent.CreateDirectory),
+        new(KeyboardContext.FileList, KeyboardKey.F8, KeyboardModifier.None, UserIntent.Delete),
+        new(KeyboardContext.FileList, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
+        new(KeyboardContext.FileList, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
+        new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
+        new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Refresh),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.TextEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+    ];
+
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
 
@@ -21,23 +68,37 @@ public sealed class KeyboardIntentMapper
         _clock = clock;
     }
 
+    /// <summary>
+    /// Returns the bindings the canonical key map declares for one focus context, in declaration
+    /// order. The list is the same data <see cref="Map"/> consults, so a hint can never drift from
+    /// the behavior it advertises.
+    /// </summary>
+    /// <param name="context">Focus context whose declarations are requested.</param>
+    /// <returns>The declared bindings of that context; empty when the context declares none.</returns>
+    public static IReadOnlyList<KeyBinding> BindingsFor(KeyboardContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        List<KeyBinding> declared = [];
+        foreach (KeyBinding binding in DeclaredBindings)
+        {
+            if (binding.Context == context)
+            {
+                declared.Add(binding);
+            }
+        }
+        return declared.AsReadOnly();
+    }
+
     /// <summary>Maps exactly one translated event under its explicit focus context.</summary>
     /// <param name="input">Complete translated keyboard event.</param>
     /// <returns>A mapped intent, pass-through decision, or pending-chord state.</returns>
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Context == KeyboardContext.TextEntry)
+        if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
             _pendingChordStartedAt = null;
-            return input.Key == KeyboardKey.Escape
-                ? MapIntent(UserIntent.Escape)
-                : new KeyboardPassThrough();
-        }
-        if (input.Context == KeyboardContext.Modal)
-        {
-            _pendingChordStartedAt = null;
-            return MapModal(input);
+            return MapOwnedKey(input);
         }
 
         if (input.Key == KeyboardKey.Other)
@@ -60,7 +121,7 @@ public sealed class KeyboardIntentMapper
 
         return IsRepeatedDestructiveCommand(input)
             ? new KeyboardPassThrough()
-            : MapSingleKey(input);
+            : MapDeclaredKey(input);
     }
 
     private MappedKeyboardIntent? TryCompleteChord(KeyboardInput input)
@@ -77,59 +138,32 @@ public sealed class KeyboardIntentMapper
             : null;
     }
 
-    private static KeyboardMappingOutcome MapModal(KeyboardInput input)
+    /// <summary>
+    /// Maps a key a modal or text editor owns. Those contexts own their declared keys whatever the
+    /// modifier state, so the modifier of the declaration is not compared here (KBD-002).
+    /// </summary>
+    private static KeyboardMappingOutcome MapOwnedKey(KeyboardInput input)
     {
-        return input.Key == KeyboardKey.Escape
-            ? MapIntent(UserIntent.Escape)
-            : input.Key == KeyboardKey.Enter ? MapIntent(UserIntent.Confirm) : new KeyboardPassThrough();
-    }
-
-    private static KeyboardMappingOutcome MapSingleKey(KeyboardInput input)
-    {
-        UserIntent? intent = input.Modifier == KeyboardModifier.None
-            ? MapUnmodified(input)
-            : MapModified(input);
-        return intent is null ? new KeyboardPassThrough() : MapIntent(intent);
-    }
-
-    private static UserIntent? MapUnmodified(KeyboardInput input)
-    {
-        return input.Context == KeyboardContext.NavigationSurface
-            ? input.Key == KeyboardKey.F5 ? UserIntent.Refresh : null
-            : input.Key switch
+        foreach (KeyBinding binding in DeclaredBindings)
+        {
+            if (binding.Context == input.Context && binding.Key == input.Key)
             {
-                KeyboardKey key when key == KeyboardKey.J || key == KeyboardKey.Down => UserIntent.MoveNext,
-                KeyboardKey key when key == KeyboardKey.K || key == KeyboardKey.Up => UserIntent.MovePrevious,
-                KeyboardKey key when key == KeyboardKey.H || key == KeyboardKey.Backspace => UserIntent.NavigateParent,
-                KeyboardKey key when key == KeyboardKey.L || key == KeyboardKey.Enter => UserIntent.OpenFocused,
-                KeyboardKey key when key == KeyboardKey.UpperG => UserIntent.FocusLast,
-                KeyboardKey key when key == KeyboardKey.PageDown => UserIntent.MoveHalfPageDown,
-                KeyboardKey key when key == KeyboardKey.PageUp => UserIntent.MoveHalfPageUp,
-                KeyboardKey key when key == KeyboardKey.Tab => UserIntent.ActivateOtherPane,
-                KeyboardKey key when key == KeyboardKey.Space => UserIntent.ToggleSelection,
-                KeyboardKey key when key == KeyboardKey.Escape => UserIntent.Escape,
-                KeyboardKey key when key == KeyboardKey.F2 => UserIntent.Rename,
-                KeyboardKey key when key == KeyboardKey.F5 => UserIntent.Copy,
-                KeyboardKey key when key == KeyboardKey.F6 => UserIntent.Move,
-                KeyboardKey key when key == KeyboardKey.F7 => UserIntent.CreateDirectory,
-                KeyboardKey key when key == KeyboardKey.F8 => UserIntent.Delete,
-                _ => null,
-            };
+                return MapIntent(binding.Intent);
+            }
+        }
+        return new KeyboardPassThrough();
     }
 
-    private static UserIntent? MapModified(KeyboardInput input)
+    private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)
     {
-        return input.Modifier == KeyboardModifier.Alt && input.Key == KeyboardKey.Up
-            ? UserIntent.NavigateParent
-            : input.Modifier == KeyboardModifier.Control && input.Key == KeyboardKey.D
-                ? UserIntent.MoveHalfPageDown
-                : input.Modifier == KeyboardModifier.Control && input.Key == KeyboardKey.U
-                    ? UserIntent.MoveHalfPageUp
-                    : input.Modifier == KeyboardModifier.Control && input.Key == KeyboardKey.L
-                        ? UserIntent.FocusAddress
-                        : input.Modifier == KeyboardModifier.Control && input.Key == KeyboardKey.R
-                            ? UserIntent.Refresh
-                            : null;
+        foreach (KeyBinding binding in DeclaredBindings)
+        {
+            if (binding.Context == input.Context && binding.Key == input.Key && binding.Modifier == input.Modifier)
+            {
+                return MapIntent(binding.Intent);
+            }
+        }
+        return new KeyboardPassThrough();
     }
 
     private static bool IsChordPrefix(KeyboardInput input)

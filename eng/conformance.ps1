@@ -760,6 +760,16 @@ if ((Test-Path -LiteralPath $designTokensPath -PathType Leaf) -and
                 }
             }
         }
+
+        foreach ($presentationFile in (Get-RepositoryFiles -Extensions @('.cs') -Roots @('src/NeNeCommander.Presentation.WinUI'))) {
+            $presentationContent = Get-Content -LiteralPath $presentationFile.FullName -Raw
+            foreach ($reference in [regex]::Matches($presentationContent, '"(?<key>\w+(?:Color|Brush))"')) {
+                $referencedKey = $reference.Groups['key'].Value
+                if (-not $schemeKeys.Contains($referencedKey)) {
+                    Add-Violation -Rule 'ARC-012' -Message "$(Get-RelativePath -Path $presentationFile.FullName) names the undefined scheme resource $referencedKey."
+                }
+            }
+        }
     }
 }
 
