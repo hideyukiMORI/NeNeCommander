@@ -33,7 +33,7 @@ Date: 2026-09-04
 
 - Only move exists; copy needs a copy request in the application layer and delete needs confirmation UI.
 - The status line shows the last outcome until the next operation; per-effect detail is not presented yet.
-- Windows local moves always run copy, verify, and delete; a same-volume atomic move remains a capability decision for a later ADR (FS-005).
+- At the time of this decision, Windows local moves always ran copy, verify, and delete. ADR-0032 later replaced that provider strategy for supported same-volume moves while preserving this ADR's session ownership.
 
 ## Migration and removal
 

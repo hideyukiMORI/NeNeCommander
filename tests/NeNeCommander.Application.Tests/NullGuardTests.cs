@@ -61,6 +61,10 @@ public sealed class NullGuardTests
             [null]);
         AssertStaticNullGuard(typeof(ProviderStepOutcome), nameof(ProviderStepOutcome.Failed), [null]);
         AssertStaticNullGuard(
+            typeof(AtomicMoveCapabilityOutcome),
+            nameof(AtomicMoveCapabilityOutcome.Failed),
+            [null]);
+        AssertStaticNullGuard(
             typeof(ProviderStepOutcome),
             nameof(ProviderStepOutcome.FailedAfterEffect),
             [null, ProviderStepEffectKind.CopyTargetCreated]);

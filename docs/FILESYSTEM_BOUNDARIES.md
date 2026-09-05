@@ -51,7 +51,7 @@ Recursive enumerate, copy, move fallback, and delete do not follow symbolic link
 - Status: **active**
 - Enforcement: gateway tests.
 
-A same-provider move may use an atomic provider operation only when the capability says it is supported. A cross-provider move is the single composite algorithm: preflight, copy, verify the declared metadata and byte count, then delete the source. Partial completion is reported item by item and never described as rollback-safe.
+A same-provider move may use an atomic provider operation only when the capability says it is supported. Windows local capability uses the operating system's mounted-volume identity, never a drive-letter or path-prefix guess, and is revalidated at the side-effect boundary. An unsupported same-provider move and a cross-provider move use the single composite algorithm: preflight, copy, verify the declared metadata and byte count, then delete the source. Partial completion is reported item by item and never described as rollback-safe.
 
 ### FS-006 — Delete policy is capability-bound
 

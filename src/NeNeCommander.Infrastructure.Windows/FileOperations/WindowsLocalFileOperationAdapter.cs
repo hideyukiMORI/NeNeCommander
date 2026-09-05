@@ -67,6 +67,29 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
+    public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        return _executionBoundary.ExecuteAsync(() => AtomicMoveCapability(source, destination));
+    }
+
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> MoveAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Move(source, destination), FileOperationFailureKind.Move));
+    }
+
+    /// <inheritdoc />
     public Task<ProviderStepOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
@@ -121,6 +144,91 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return target is not WindowsLocalPath localTarget
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, entry => RenameEntry(entry, source.Path, localTarget));
+    }
+
+    private static AtomicMoveCapabilityOutcome AtomicMoveCapability(
+        FileEntrySnapshot source,
+        FileSystemPath destination)
+    {
+        if (destination is not WindowsLocalPath localDestination)
+        {
+            return AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        try
+        {
+            return WindowsLocalEntryIdentity.Revalidate(source) switch
+            {
+                EntryRejected rejected => AtomicMoveCapabilityOutcome.Failed(rejected.Failure),
+                EntryMatched matched => SupportsAtomicMove(matched.Entry, localDestination),
+                _ => throw new InvalidOperationException("The revalidation outcome variant is not executable."),
+            };
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return AtomicMoveCapabilityOutcome.Failed(Normalize(exception.HResult, FileOperationFailureKind.Inspection));
+        }
+        catch (IOException exception)
+        {
+            return AtomicMoveCapabilityOutcome.Failed(Normalize(exception.HResult, FileOperationFailureKind.Inspection));
+        }
+    }
+
+    private static AtomicMoveCapabilityOutcome SupportsAtomicMove(
+        FileSystemInfo entry,
+        WindowsLocalPath destination)
+    {
+        DirectoryInfo destinationDirectory = new(destination.CanonicalText);
+        return !destinationDirectory.Exists
+            ? AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.NotFound)
+            : (entry.Attributes & FileAttributes.ReparsePoint) != 0 ||
+            (destinationDirectory.Attributes & FileAttributes.ReparsePoint) != 0
+            ? AtomicMoveCapabilityOutcome.Unsupported
+            : WindowsLocalVolumeIdentity.SharesVolume(entry.FullName, destinationDirectory.FullName)
+            ? AtomicMoveCapabilityOutcome.Supported
+            : AtomicMoveCapabilityOutcome.Unsupported;
+    }
+
+    private static ProviderStepOutcome Move(FileEntrySnapshot source, FileSystemPath destination)
+    {
+        return destination is not WindowsLocalPath localDestination
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : WithRevalidatedEntry(source, entry => MoveEntry(entry, source.Path, localDestination));
+    }
+
+    private static ProviderStepOutcome MoveEntry(
+        FileSystemInfo entry,
+        FileSystemPath source,
+        WindowsLocalPath destination)
+    {
+        DirectoryInfo destinationDirectory = new(destination.CanonicalText);
+        if (!destinationDirectory.Exists)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+        }
+        if ((entry.Attributes & FileAttributes.ReparsePoint) != 0 ||
+            (destinationDirectory.Attributes & FileAttributes.ReparsePoint) != 0 ||
+            !WindowsLocalVolumeIdentity.SharesVolume(entry.FullName, destinationDirectory.FullName))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        if (ProviderPathContainment.Evaluate(source, destination) is ContainedPath)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        string targetText = BuildTargetText(destination, entry);
+        if (TargetExists(targetText))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        if (entry is DirectoryInfo)
+        {
+            Directory.Move(entry.FullName, targetText);
+        }
+        else
+        {
+            File.Move(entry.FullName, targetText);
+        }
+        return ProviderStepOutcome.Succeeded();
     }
 
     private static ProviderStepOutcome RenameEntry(FileSystemInfo entry, FileSystemPath source, WindowsLocalPath target)

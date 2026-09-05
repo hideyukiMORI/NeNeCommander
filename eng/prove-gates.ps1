@@ -139,6 +139,20 @@ try {
         Set-Content -LiteralPath (Join-Path $testRoot 'IoViolation.cs') -Value "using System.IO;`r`ninternal sealed class IoViolation { }`r`n"
     }
 
+    Assert-ConformanceFailure -Name 'unsafe-enabled-outside-interop-project' -ExpectedRule 'SEC-014' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Application/NeNeCommander.Application.csproj'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('</PropertyGroup>', "    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>`r`n  </PropertyGroup>")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'handwritten-unsafe-interop' -ExpectedRule 'SEC-014' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/UnsafeViolation.cs'
+        Set-Content -LiteralPath $path -Value "internal unsafe sealed class UnsafeViolation { }`r`n"
+    }
+
     Assert-ConformanceFailure -Name 'environment-outside-settings-location' -ExpectedRule 'CS-010' -Mutate {
         param($caseRoot)
         $testRoot = Join-Path $caseRoot 'tests/PolicyProof'

@@ -397,6 +397,29 @@ foreach ($file in $configurationFiles) {
     }
 }
 
+$unsafeInteropProject = 'src/NeNeCommander.Infrastructure.Windows/NeNeCommander.Infrastructure.Windows.csproj'
+foreach ($projectFile in ($configurationFiles | Where-Object { $_.Extension -ceq '.csproj' })) {
+    $relativePath = Get-RelativePath -Path $projectFile.FullName
+    $content = Get-Content -LiteralPath $projectFile.FullName -Raw
+    $settings = [regex]::Matches($content, '<AllowUnsafeBlocks>\s*(?<value>[^<]+)\s*</AllowUnsafeBlocks>')
+    if ($relativePath -ceq $unsafeInteropProject) {
+        if ($settings.Count -ne 1 -or $settings[0].Groups['value'].Value.Trim() -cne 'true') {
+            Add-Violation -Rule 'SEC-014' -Message "$relativePath must enable generated interop support exactly once."
+        }
+    }
+    elseif ($settings.Count -ne 0) {
+        Add-Violation -Rule 'SEC-014' -Message "$relativePath may not enable unsafe blocks."
+    }
+}
+
+foreach ($sourceFile in (Get-RepositoryFiles -Extensions @('.cs') -Roots @('src', 'tests'))) {
+    $relativePath = Get-RelativePath -Path $sourceFile.FullName
+    $content = Get-Content -LiteralPath $sourceFile.FullName -Raw
+    if ($content -match '(?m)^\s*(?:(?:public|private|protected|internal|static|sealed|partial|readonly|ref|abstract|virtual|override|extern|new)\s+)*unsafe\s+') {
+        Add-Violation -Rule 'SEC-014' -Message "$relativePath contains handwritten unsafe code."
+    }
+}
+
 $statePath = Join-Path $root 'docs/PROJECT_STATE.md'
 $stage = $null
 $productionPermission = $null

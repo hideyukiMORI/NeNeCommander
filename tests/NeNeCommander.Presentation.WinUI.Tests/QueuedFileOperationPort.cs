@@ -62,6 +62,22 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         return Task.FromResult(_steps.Dequeue());
     }
 
+    public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
+    }
+
+    public Task<ProviderStepOutcome> MoveAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(_steps.Dequeue());
+    }
+
     public Task<ProviderStepOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,

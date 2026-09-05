@@ -4,6 +4,7 @@
     <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
     <RootNamespace>NeNeCommander.Infrastructure.Windows</RootNamespace>
     <AssemblyName>NeNeCommander.Infrastructure.Windows</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../NeNeCommander.Application/NeNeCommander.Application.csproj" />

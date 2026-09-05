@@ -20,6 +20,21 @@ public interface IFileOperationPort
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Reports whether one preflighted source and destination currently support an atomic move.
+    /// Every source in a batch is queried before the gateway starts any mutation.
+    /// </summary>
+    public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken);
+
+    /// <summary>Moves one frozen source atomically without overwrite when capability permits it.</summary>
+    public Task<ProviderStepOutcome> MoveAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Copies one frozen source entry beneath a validated destination, reporting when a failed
     /// step left the top-level copy target in place with potentially incomplete contents.
     /// </summary>

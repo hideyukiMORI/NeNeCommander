@@ -508,7 +508,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.IsFalse(File.Exists(root.Resolve("dest\\locked.txt")));
     }
 
-    /// <summary>Proves the gateway moves a file end to end through the real adapter.</summary>
+    /// <summary>Proves a same-volume gateway move is one atomic provider effect rather than a composite copy.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenGatewayMovesFileThroughAdapterSourceIsGoneAndTargetIsVerified()
     {
@@ -522,9 +522,152 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileOperationOutcome outcome = await gateway.ExecuteAsync(request, IgnoredFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
-        Assert.HasCount(3, outcome.Effects);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.AtomicallyMoved, outcome.Effects[0].Kind);
         Assert.IsFalse(File.Exists(root.Resolve("a.txt")));
         Assert.AreEqual("abc", File.ReadAllText(root.Resolve("dest\\a.txt")));
+    }
+
+    /// <summary>Proves same-volume files and directories report atomic capability and move without overwrite.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    [TestProperty("ThreatId", "ADV-006")]
+    public async Task MoveAsyncWhenSourceAndDestinationShareVolumeMovesEntryAtomically()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
+        FileSystemPath filePath = ParsePath(root.WriteFile("a.txt", "abc"));
+        FileSystemPath directoryPath = ParsePath(root.CreateDirectory("tree"));
+        _ = root.WriteFile("tree\\child.txt", "child");
+        FileEntrySnapshot file = await InspectAsync(adapter, filePath);
+        FileEntrySnapshot directory = await InspectAsync(adapter, directoryPath);
+
+        AtomicMoveCapabilityOutcome fileCapability = await adapter.GetAtomicMoveCapabilityAsync(
+            file,
+            destination,
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome directoryCapability = await adapter.GetAtomicMoveCapabilityAsync(
+            directory,
+            destination,
+            CancellationToken.None);
+        ProviderStepOutcome fileMove = await adapter.MoveAsync(file, destination, CancellationToken.None);
+        ProviderStepOutcome directoryMove = await adapter.MoveAsync(directory, destination, CancellationToken.None);
+
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Supported, fileCapability);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Supported, directoryCapability);
+        Assert.IsNull(fileMove.Failure);
+        Assert.IsNull(directoryMove.Failure);
+        Assert.AreEqual("abc", File.ReadAllText(root.Resolve("dest\\a.txt")));
+        Assert.AreEqual("child", File.ReadAllText(root.Resolve("dest\\tree\\child.txt")));
+    }
+
+    /// <summary>Proves the atomic step revalidates source identity and a late target collision before moving.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    [TestProperty("ThreatId", "ADV-006")]
+    public async Task MoveAsyncWhenIdentityOrTargetChangesMovesNothing()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
+        FileSystemPath changedPath = ParsePath(root.WriteFile("changed.txt", "before"));
+        FileEntrySnapshot changed = await InspectAsync(adapter, changedPath);
+        _ = root.WriteFile("changed.txt", "after");
+        FileSystemPath collisionPath = ParsePath(root.WriteFile("collision.txt", "source"));
+        FileEntrySnapshot collision = await InspectAsync(adapter, collisionPath);
+        _ = root.WriteFile("dest\\collision.txt", "target");
+
+        ProviderStepOutcome changedMove = await adapter.MoveAsync(changed, destination, CancellationToken.None);
+        ProviderStepOutcome collisionMove = await adapter.MoveAsync(collision, destination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, changedMove.Failure);
+        Assert.AreSame(FileOperationFailureKind.Conflict, collisionMove.Failure);
+        Assert.AreEqual("after", File.ReadAllText(root.Resolve("changed.txt")));
+        Assert.AreEqual("source", File.ReadAllText(root.Resolve("collision.txt")));
+        Assert.AreEqual("target", File.ReadAllText(root.Resolve("dest\\collision.txt")));
+    }
+
+    /// <summary>Proves a reparse source and destination never advertise atomic-move capability.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task GetAtomicMoveCapabilityAsyncWhenPathIsReparsePointReportsUnsupported()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileSystemPath sourceTarget = ParsePath(root.CreateDirectory("source-target"));
+        FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
+        FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
+        FileSystemPath destinationLink = ParsePath(root.CreateJunction("destination-link", "destination-target"));
+        FileEntrySnapshot linkedSource = await InspectAsync(adapter, sourceLink);
+        FileEntrySnapshot plainSource = await InspectAsync(adapter, sourceTarget);
+
+        AtomicMoveCapabilityOutcome sourceCapability = await adapter.GetAtomicMoveCapabilityAsync(
+            linkedSource,
+            destinationTarget,
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome destinationCapability = await adapter.GetAtomicMoveCapabilityAsync(
+            plainSource,
+            destinationLink,
+            CancellationToken.None);
+
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, sourceCapability);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, destinationCapability);
+    }
+
+    /// <summary>Proves missing destinations fail capability discovery before a move can start.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task GetAtomicMoveCapabilityAsyncWhenDestinationIsMissingReportsNotFound()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("source.txt", "source")));
+        FileSystemPath missingDestination = ParsePath(root.Resolve("missing"));
+
+        AtomicMoveCapabilityOutcome capability = await adapter.GetAtomicMoveCapabilityAsync(
+            source,
+            missingDestination,
+            CancellationToken.None);
+
+        AtomicMoveCapabilityFailed failed = Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(capability);
+        Assert.AreSame(FileOperationFailureKind.NotFound, failed.Failure);
+        Assert.AreEqual("source", File.ReadAllText(root.Resolve("source.txt")));
+    }
+
+    /// <summary>Proves the atomic effect itself rejects reparse sources and destinations without mutation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task MoveAsyncWhenPathIsReparsePointReportsProviderUnavailable()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        _ = root.CreateDirectory("source-target");
+        FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
+        FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
+        FileSystemPath destinationLink = ParsePath(root.CreateJunction("destination-link", "destination-target"));
+        FileEntrySnapshot linkedSource = await InspectAsync(adapter, sourceLink);
+        FileSystemPath plainPath = ParsePath(root.WriteFile("plain.txt", "plain"));
+        FileEntrySnapshot plainSource = await InspectAsync(adapter, plainPath);
+
+        ProviderStepOutcome sourceOutcome = await adapter.MoveAsync(
+            linkedSource,
+            destinationTarget,
+            CancellationToken.None);
+        ProviderStepOutcome destinationOutcome = await adapter.MoveAsync(
+            plainSource,
+            destinationLink,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, sourceOutcome.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, destinationOutcome.Failure);
+        Assert.IsTrue(Directory.Exists(root.Resolve("source-link")));
+        Assert.AreEqual("plain", File.ReadAllText(root.Resolve("plain.txt")));
     }
 
     /// <summary>Proves the gateway refuses unconfirmed permanent deletion through the real adapter.</summary>
@@ -656,6 +799,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
     [TestMethod]
     public void PortMethodsWhenRequiredArgumentIsNullThrowArgumentNullException()
     {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsLocalFileOperationAdapter(null!));
         WindowsLocalFileOperationAdapter adapter = new();
         FileSystemPath path = ParsePath("C:\\source");
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("file|0|0|0")).Identity;
@@ -666,11 +811,17 @@ public sealed class WindowsLocalFileOperationAdapterTests
         AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightTransferAsync), [new[] { snapshot }, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CopyAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CopyAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.GetAtomicMoveCapabilityAsync), [null, path, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.GetAtomicMoveCapabilityAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.MoveAsync), [null, path, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.MoveAsync), [snapshot, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.VerifyCopyAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.VerifyCopyAsync), [snapshot, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [null, DeletionExecutionMode.Permanent, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.CreateDirectoryAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CreateDirectoryAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.RenameAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.RenameAsync), [snapshot, null, CancellationToken.None]);
     }
 

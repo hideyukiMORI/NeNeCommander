@@ -53,6 +53,22 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         return Task.FromResult(ProviderStepOutcome.Succeeded());
     }
 
+    public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
+    }
+
+    public Task<ProviderStepOutcome> MoveAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ProviderStepOutcome.Succeeded());
+    }
+
     public Task<ProviderStepOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
