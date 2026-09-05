@@ -94,6 +94,58 @@ public sealed class WslFileOperationAdapterTests
         Assert.AreEqual(1, fileSystem.Deleted.Count);
     }
 
+    /// <summary>Proves same-distribution copy uses the gateway's existing copy and verify effects.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenSameDistributionCopySucceedsReportsCopyAndVerification()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                CopyRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(2, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.AreSame(FileOperationEffectKind.Verified, outcome.Effects[1].Kind);
+    }
+
+    /// <summary>Proves same-distribution move uses copy, verify, then source deletion.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenSameDistributionMoveSucceedsDeletesOnlyAfterVerification()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                MoveRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(3, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.AreSame(FileOperationEffectKind.Verified, outcome.Effects[1].Kind);
+        Assert.AreSame(FileOperationEffectKind.SourceDeleted, outcome.Effects[2].Kind);
+        Assert.HasCount(1, fileSystem.Deleted);
+    }
+
     /// <summary>Proves changed identity stops the mutation before any provider effect.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -224,9 +276,9 @@ public sealed class WslFileOperationAdapterTests
         Assert.HasCount(0, failedMutation.Deleted);
     }
 
-    /// <summary>Proves transfer members remain unavailable until their separate provider slice.</summary>
+    /// <summary>Proves same-distribution transfer members support composite move but no atomic shortcut.</summary>
     [TestMethod]
-    public async Task TransferMembersBeforeTransferSliceFailClosed()
+    public async Task TransferMembersWhenSameDistributionUseCopyVerificationAndCompositeMove()
     {
         ScriptedWslFileSystem fileSystem = new();
         WslFileSystemEntry entry = Entry(
@@ -235,6 +287,8 @@ public sealed class WslFileOperationAdapterTests
             DirectoryEntryKind.File);
         FileEntrySnapshot source = Snapshot(entry);
         WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\dest");
+        fileSystem.Set(entry);
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         WslFileOperationAdapter adapter = Adapter(fileSystem);
 
         ProviderStepOutcome preflight = await adapter.PreflightTransferAsync(
@@ -244,14 +298,261 @@ public sealed class WslFileOperationAdapterTests
         ProviderStepOutcome move = await adapter.MoveAsync(source, destination, CancellationToken.None);
         ProviderStepOutcome copy = await adapter.CopyAsync(source, destination, CancellationToken.None);
         ProviderStepOutcome verify = await adapter.VerifyCopyAsync(source, destination, CancellationToken.None);
+        AtomicMoveCapabilityOutcome foreignCapability = await adapter.GetAtomicMoveCapabilityAsync(
+            source,
+            Wsl("\\\\wsl.localhost\\Debian\\dest"),
+            CancellationToken.None);
 
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, preflight.Failure);
+        Assert.IsNull(preflight.Failure);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, capability);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, move.Failure);
+        Assert.IsNull(copy.Failure);
+        Assert.IsNull(verify.Failure);
         Assert.AreSame(
             FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(capability).Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, move.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, copy.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, verify.Failure);
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(foreignCapability).Failure);
+    }
+
+    /// <summary>Proves a failed copy that leaves its target reports the exact partial move effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenCopyFailsAfterTargetCreationReportsPartialEffectAndKeepsSource()
+    {
+        ScriptedWslFileSystem fileSystem = new() { FailCopyAfterTarget = true };
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                MoveRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.CopyTargetCreated, outcome.Effects[0].Kind);
+        Assert.HasCount(0, fileSystem.Deleted);
+    }
+
+    /// <summary>Proves WSL transfer preflight rejects every unsafe destination before copying.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    [TestProperty("ThreatId", "ADV-006")]
+    [TestProperty("ThreatId", "ADV-018")]
+    public async Task PreflightTransferAsyncWhenBoundaryIsUnsafeFailsWithoutCopy()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslFileSystemEntry source = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
+            "source",
+            DirectoryEntryKind.Directory);
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(source);
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        WslFileOperationAdapter adapter = Adapter(fileSystem);
+
+        ProviderStepOutcome foreign = await adapter.PreflightTransferAsync(
+            [Snapshot(source)],
+            Wsl("\\\\wsl.localhost\\Debian\\target"),
+            CancellationToken.None);
+        WslPath recursiveDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source\\child");
+        fileSystem.Set(Entry(recursiveDestination, "child", DirectoryEntryKind.Directory));
+        ProviderStepOutcome recursive = await adapter.PreflightTransferAsync(
+            [Snapshot(source)],
+            recursiveDestination,
+            CancellationToken.None);
+        WslPath collision = Wsl("\\\\wsl.localhost\\Ubuntu\\target\\source");
+        fileSystem.Set(Entry(collision, "collision", DirectoryEntryKind.Directory));
+        ProviderStepOutcome existing = await adapter.PreflightTransferAsync(
+            [Snapshot(source)], destination, CancellationToken.None);
+        fileSystem.Set(Entry(
+            source.Path,
+            "source",
+            DirectoryEntryKind.Directory,
+            FileAttributes.ReparsePoint));
+        ProviderStepOutcome linkedSource = await adapter.PreflightTransferAsync(
+            [Snapshot(Entry(
+                source.Path,
+                "source",
+                DirectoryEntryKind.Directory,
+                FileAttributes.ReparsePoint))],
+            destination,
+            CancellationToken.None);
+        ProviderStepOutcome missingDestination = await adapter.PreflightTransferAsync(
+            [Snapshot(source)],
+            Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
+            CancellationToken.None);
+        WslPath fileDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\file-destination");
+        fileSystem.Set(Entry(fileDestination, "file-destination", DirectoryEntryKind.File));
+        ProviderStepOutcome fileTarget = await adapter.PreflightTransferAsync(
+            [Snapshot(source)], fileDestination, CancellationToken.None);
+        WslPath linkedDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\linked-destination");
+        fileSystem.Set(Entry(
+            linkedDestination,
+            "linked-destination",
+            DirectoryEntryKind.Directory,
+            FileAttributes.ReparsePoint));
+        ProviderStepOutcome linkedTarget = await adapter.PreflightTransferAsync(
+            [Snapshot(source)], linkedDestination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
+        Assert.AreSame(FileOperationFailureKind.Conflict, recursive.Failure);
+        Assert.AreSame(FileOperationFailureKind.Conflict, existing.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linkedSource.Failure);
+        Assert.AreSame(FileOperationFailureKind.NotFound, missingDestination.Failure);
+        Assert.AreSame(FileOperationFailureKind.NotFound, fileTarget.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linkedTarget.Failure);
+        Assert.HasCount(0, fileSystem.Copied);
+    }
+
+    /// <summary>Proves each transfer step independently revalidates provider, destination, and links.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task TransferStepsWhenBoundaryChangesFailClosed()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslFileSystemEntry sourceEntry = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
+            "source",
+            DirectoryEntryKind.Directory);
+        FileEntrySnapshot source = Snapshot(sourceEntry);
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath foreign = Wsl("\\\\wsl.localhost\\Debian\\target");
+        WslPath linkedDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\linked");
+        fileSystem.Set(sourceEntry);
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        fileSystem.Set(Entry(foreign, "foreign", DirectoryEntryKind.Directory));
+        fileSystem.Set(Entry(
+            Wsl("\\\\wsl.localhost\\Debian\\target\\source"),
+            "foreign-copy",
+            DirectoryEntryKind.Directory));
+        fileSystem.Set(Entry(
+            linkedDestination,
+            "linked",
+            DirectoryEntryKind.Directory,
+            FileAttributes.ReparsePoint));
+        WslFileOperationAdapter adapter = Adapter(fileSystem);
+
+        ProviderStepOutcome foreignCopy = await adapter.CopyAsync(source, foreign, CancellationToken.None);
+        ProviderStepOutcome missingCopy = await adapter.CopyAsync(
+            source,
+            Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
+            CancellationToken.None);
+        ProviderStepOutcome linkedCopy = await adapter.CopyAsync(
+            source, linkedDestination, CancellationToken.None);
+        ProviderStepOutcome foreignVerify = await adapter.VerifyCopyAsync(
+            source, foreign, CancellationToken.None);
+        ProviderStepOutcome missingVerify = await adapter.VerifyCopyAsync(
+            source,
+            Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
+            CancellationToken.None);
+        fileSystem.TargetContainsReparsePoint = true;
+        ProviderStepOutcome linkedTargetVerify = await adapter.VerifyCopyAsync(
+            source, destination, CancellationToken.None);
+        fileSystem.TargetContainsReparsePoint = false;
+        fileSystem.ContainsNestedReparsePoint = true;
+        ProviderStepOutcome nestedLinkPreflight = await adapter.PreflightTransferAsync(
+            [source], destination, CancellationToken.None);
+        ProviderStepOutcome nestedLinkCopy = await adapter.CopyAsync(
+            source, destination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreignCopy.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, missingCopy.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linkedCopy.Failure);
+        Assert.AreSame(FileOperationFailureKind.Verification, foreignVerify.Failure);
+        Assert.AreSame(FileOperationFailureKind.Verification, missingVerify.Failure);
+        Assert.AreSame(FileOperationFailureKind.Verification, linkedTargetVerify.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, nestedLinkPreflight.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, nestedLinkCopy.Failure);
+        Assert.HasCount(0, fileSystem.Copied);
+    }
+
+    /// <summary>Proves a copy failure before target creation remains effect-free.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenCopyFailsBeforeTargetCreationReportsNoEffect()
+    {
+        ScriptedWslFileSystem fileSystem = new() { FailCopyBeforeTarget = true };
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                CopyRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.HasCount(0, outcome.Effects);
+    }
+
+    /// <summary>Proves failed verification stops a composite move before source deletion.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenVerificationFailsKeepsSource()
+    {
+        ScriptedWslFileSystem fileSystem = new() { MatchResult = false };
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                MoveRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Verification, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.HasCount(0, fileSystem.Deleted);
+    }
+
+    /// <summary>Proves source replacement after copy prevents verification and source deletion.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task ExecuteAsyncWhenSourceChangesAfterCopyStopsBeforeDelete()
+    {
+        ScriptedWslFileSystem fileSystem = new() { ReplaceSourceAfterCopy = true };
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                MoveRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Copied, outcome.Effects[0].Kind);
+        Assert.HasCount(0, fileSystem.Deleted);
     }
 
     /// <summary>Proves create and revalidation variants cannot widen their provider root.</summary>
@@ -313,11 +614,13 @@ public sealed class WslFileOperationAdapterTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WslFileOperationAdapter(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WslFileOperationAdapter(boundary, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WslFileSystemEntry(null!, entry.Identity, entry.Kind, entry.Attributes));
+            () => new WslFileSystemEntry(null!, entry.Name, entry.Identity, entry.Kind, entry.Attributes));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WslFileSystemEntry(path, null!, entry.Kind, entry.Attributes));
+            () => new WslFileSystemEntry(path, null!, entry.Identity, entry.Kind, entry.Attributes));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WslFileSystemEntry(path, entry.Identity, null!, entry.Attributes));
+            () => new WslFileSystemEntry(path, entry.Name, null!, entry.Kind, entry.Attributes));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WslFileSystemEntry(path, entry.Name, entry.Identity, null!, entry.Attributes));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => adapter.InspectAsync(null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => adapter.DeleteAsync(null!, DeletionExecutionMode.Permanent, CancellationToken.None));
@@ -342,7 +645,15 @@ public sealed class WslFileOperationAdapterTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => adapter.MoveAsync(null!, path, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => adapter.MoveAsync(snapshot, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => adapter.CopyAsync(null!, path, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => adapter.CopyAsync(snapshot, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => adapter.VerifyCopyAsync(null!, path, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => adapter.VerifyCopyAsync(snapshot, null!, CancellationToken.None));
     }
 
     private static void AssertEffect(
@@ -368,7 +679,8 @@ public sealed class WslFileOperationAdapterTests
         FileAttributes attributes = FileAttributes.None)
     {
         FileIdentity parsed = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse(identity)).Identity;
-        return new WslFileSystemEntry(path, parsed, kind, attributes);
+        int separator = path.LinuxPath.LastIndexOf('/');
+        return new WslFileSystemEntry(path, path.LinuxPath[(separator + 1)..], parsed, kind, attributes);
     }
 
     private static FileEntrySnapshot Snapshot(WslFileSystemEntry entry)
@@ -403,6 +715,20 @@ public sealed class WslFileOperationAdapterTests
 
         internal List<WslFileSystemEntry> Deleted { get; } = [];
 
+        internal List<(WslFileSystemEntry Source, WslPath Target)> Copied { get; } = [];
+
+        internal bool MatchResult { get; set; } = true;
+
+        internal bool FailCopyAfterTarget { get; set; }
+
+        internal bool FailCopyBeforeTarget { get; set; }
+
+        internal bool ReplaceSourceAfterCopy { get; set; }
+
+        internal bool ContainsNestedReparsePoint { get; set; }
+
+        internal bool TargetContainsReparsePoint { get; set; }
+
         public WslFileSystemEntry? Find(WslPath path)
         {
             ThrowWhenConfigured();
@@ -413,6 +739,43 @@ public sealed class WslFileOperationAdapterTests
         {
             ThrowWhenConfigured();
             return _entries.ContainsKey(path.CanonicalText);
+        }
+
+        public bool ContainsReparsePoint(WslFileSystemEntry source)
+        {
+            ThrowWhenConfigured();
+            return ContainsNestedReparsePoint ||
+                (source.Attributes & FileAttributes.ReparsePoint) != 0;
+        }
+
+        public bool ContainsReparsePoint(WslPath target)
+        {
+            ThrowWhenConfigured();
+            return TargetContainsReparsePoint;
+        }
+
+        public void Copy(WslFileSystemEntry source, WslPath target)
+        {
+            if (FailCopyBeforeTarget)
+            {
+                throw new IOException("Synthetic copy failure before target creation.");
+            }
+            Copied.Add((source, target));
+            Set(new WslFileSystemEntry(target, source.Name, source.Identity, source.Kind, source.Attributes));
+            if (ReplaceSourceAfterCopy)
+            {
+                Set(Entry(source.Path, "replacement", source.Kind, source.Attributes));
+            }
+            if (FailCopyAfterTarget)
+            {
+                throw new IOException("Synthetic copy failure after target creation.");
+            }
+        }
+
+        public bool Matches(WslFileSystemEntry source, WslPath target)
+        {
+            ThrowWhenConfigured();
+            return MatchResult && _entries.ContainsKey(target.CanonicalText);
         }
 
         public void CreateDirectory(WslPath target)
@@ -427,7 +790,7 @@ public sealed class WslFileOperationAdapterTests
             ThrowWhenConfigured();
             Renamed.Add((source, target));
             _ = _entries.Remove(source.Path.CanonicalText);
-            Set(new WslFileSystemEntry(target, source.Identity, source.Kind, source.Attributes));
+            Set(new WslFileSystemEntry(target, source.Name, source.Identity, source.Kind, source.Attributes));
         }
 
         public void Delete(WslFileSystemEntry source)

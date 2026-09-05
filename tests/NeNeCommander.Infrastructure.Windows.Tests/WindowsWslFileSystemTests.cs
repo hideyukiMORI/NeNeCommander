@@ -20,6 +20,7 @@ public sealed class WindowsWslFileSystemTests
         WindowsWslFileSystem fileSystem = FileSystem(root);
         WslPath file = Wsl("/owned/file.txt");
         WslPath renamedFile = Wsl("/owned/renamed.txt");
+        WslPath copiedFile = Wsl("/owned/copied.txt");
         WslPath created = Wsl("/owned/created");
         WslPath renamedDirectory = Wsl("/owned/renamed-directory");
 
@@ -28,6 +29,13 @@ public sealed class WindowsWslFileSystemTests
         StringAssert.StartsWith(fileEntry.Identity.Value, "wsl-v1|");
         StringAssert.Contains(fileEntry.Identity.Value, "|file|7|");
         Assert.IsTrue(fileSystem.TargetExists(file));
+        Assert.IsFalse(fileSystem.ContainsReparsePoint(fileEntry));
+        fileSystem.Copy(fileEntry, copiedFile);
+        Assert.IsFalse(fileSystem.ContainsReparsePoint(copiedFile));
+        Assert.IsTrue(fileSystem.Matches(fileEntry, copiedFile));
+        File.AppendAllText(root.Resolve("copied.txt"), "changed");
+        Assert.IsFalse(fileSystem.Matches(fileEntry, copiedFile));
+        fileSystem.Delete(RequireEntry(fileSystem.Find(copiedFile)));
         fileSystem.Rename(fileEntry, renamedFile);
         Assert.IsFalse(File.Exists(root.Resolve("file.txt")));
         Assert.IsTrue(File.Exists(root.Resolve("renamed.txt")));
@@ -37,12 +45,20 @@ public sealed class WindowsWslFileSystemTests
 
         fileSystem.CreateDirectory(created);
         WslFileSystemEntry directoryEntry = RequireEntry(fileSystem.Find(created));
+        Assert.IsFalse(fileSystem.ContainsReparsePoint(created));
+        _ = root.CreateDirectory("link-target");
+        _ = root.CreateJunction("link", "link-target");
+        Assert.IsTrue(fileSystem.ContainsReparsePoint(Wsl("/owned/link")));
         Assert.AreSame(DirectoryEntryKind.Directory, directoryEntry.Kind);
         StringAssert.Contains(directoryEntry.Identity.Value, "|directory|0|");
+        _ = root.WriteFile("created\\child.txt", "child");
+        WslPath copiedDirectory = Wsl("/owned/copied-directory");
+        fileSystem.Copy(directoryEntry, copiedDirectory);
+        Assert.IsTrue(fileSystem.Matches(directoryEntry, copiedDirectory));
+        fileSystem.Delete(RequireEntry(fileSystem.Find(copiedDirectory)));
         fileSystem.Rename(directoryEntry, renamedDirectory);
         Assert.IsFalse(Directory.Exists(root.Resolve("created")));
         Assert.IsTrue(Directory.Exists(root.Resolve("renamed-directory")));
-        _ = root.WriteFile("renamed-directory\\child.txt", "child");
         fileSystem.Delete(RequireEntry(fileSystem.Find(renamedDirectory)));
         Assert.IsFalse(Directory.Exists(root.Resolve("renamed-directory")));
     }
@@ -82,6 +98,13 @@ public sealed class WindowsWslFileSystemTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsWslFileSystem(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Find(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.TargetExists(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => fileSystem.ContainsReparsePoint((WslFileSystemEntry)null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.ContainsReparsePoint((WslPath)null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Copy(null!, Wsl("/owned/new")));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Copy(entry, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(null!, Wsl("/owned/new")));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(entry, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.CreateDirectory(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(entry, null!));

@@ -24,7 +24,7 @@ Date: 2026-09-04
 
 ## Consequences
 
-- A collision at the destination rejects the whole batch before mutation; there is no replace, skip, or keep-both yet.
+- A collision at the destination rejects the whole batch before mutation; there is no replace, skip, or keep-both yet. ADR-0037 applies this same path to transfers within one WSL distribution.
 - Copy verification compares the declared metadata and byte count only, as for move; hash verification remains a later capability.
 - Progress and cancellation UI remain absent; a running copy freezes both panes until it completes.
 

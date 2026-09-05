@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0037: Copy and composite-move within one WSL distribution](0037-wsl-same-distribution-transfer.md)
 - [ADR-0036: Route WSL same-distribution mutations through the canonical gateway](0036-wsl-same-distribution-mutations.md)
 - [ADR-0035: Route WSL directory reads through the canonical query port](0035-wsl-directory-read-provider.md)
 - [ADR-0034: Discover WSL distributions through one bounded process boundary](0034-wsl-distribution-catalog.md)

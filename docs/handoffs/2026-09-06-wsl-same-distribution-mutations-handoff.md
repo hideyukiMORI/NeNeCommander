@@ -22,11 +22,7 @@ Status: informational
 
 ## Integration steps
 
-1. Run final targeted conformance/security checks after documentation review and commit through the existing Commit-mode hook.
-2. Push and create a Draft PR closing #83, then confirm the remote head equals the local head and the base is current.
-3. Obtain exact-head dependency and deep-review evidence because provider mutation and path handling changed.
-4. Resolve findings while Draft; only the final head may be marked Ready for a fresh canonical CI gate.
-5. Squash merge, synchronize clean main, and create the separate WSL transfer Issue without assuming Issue #73's collision policy.
+Completed: PR #84 passed dependency run `33988561920`, exact-head deep run `33988574140`, and Ready canonical run `33989351752`, then squash-merged as `4b01d286cea2a823dddddd87aca0c611bbb2d0ff`. Issue #83 is closed. Continue with Issue #85 for same-distribution WSL transfer without repeating #83's successful gates or assuming Issue #73's collision policy.
 
 ## Remaining environmental proof
 

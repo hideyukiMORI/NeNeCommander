@@ -7,7 +7,7 @@
     { "id": "ADV-004", "owner": "Application", "defense": "Revalidate Windows local or WSL source file identity and rewrite metadata, provider boundary, destination containment, and collision at the mutation boundary." },
     { "id": "ADV-005", "owner": "Application", "defense": "Report exact completed effects when cancellation arrives during composite work." },
     { "id": "ADV-006", "owner": "Application", "defense": "Resolve case and normalization collisions through one explicit conflict decision." },
-    { "id": "ADV-007", "owner": "Application", "defense": "Never delete a source after cross-provider copy verification fails." },
+    { "id": "ADV-007", "owner": "Application", "defense": "Never delete a source after any composite-move copy or verification failure." },
     { "id": "ADV-008", "owner": "Application", "defense": "Reject permanent deletion without capability-bound explicit confirmation." },
     { "id": "ADV-009", "owner": "Infrastructure.Windows", "defense": "Use fixed non-shell WSL discovery arguments, validate distribution output, and prevent command injection through names and path text." },
     { "id": "ADV-010", "owner": "Infrastructure.Windows", "defense": "Prevent credentials and sensitive full paths from reaching diagnostics." },

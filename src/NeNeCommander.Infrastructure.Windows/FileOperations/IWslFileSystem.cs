@@ -9,6 +9,14 @@ internal interface IWslFileSystem
 
     internal bool TargetExists(WslPath path);
 
+    internal bool ContainsReparsePoint(WslFileSystemEntry source);
+
+    internal bool ContainsReparsePoint(WslPath target);
+
+    internal void Copy(WslFileSystemEntry source, WslPath target);
+
+    internal bool Matches(WslFileSystemEntry source, WslPath target);
+
     internal void CreateDirectory(WslPath target);
 
     internal void Rename(WslFileSystemEntry source, WslPath target);

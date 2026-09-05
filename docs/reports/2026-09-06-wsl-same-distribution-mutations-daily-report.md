@@ -35,6 +35,10 @@ The initial provider-router skeleton assigned both adapters but performed no rou
 
 Conformance, security conformance, exact-head deep review, dependency review, and Ready canonical CI remain integration evidence and are not yet claimed here.
 
+## Integration completion
+
+PR #84 passed dependency run `33988561920`, exact-head deep run `33988574140`, and Ready canonical run `33989351752`, then squash-merged as `4b01d286cea2a823dddddd87aca0c611bbb2d0ff`. Deep mutation passed at Domain 97.49%, Application 96.86%, Infrastructure.Windows 93.44%, and Presentation.WinUI 91.35%; branch CodeQL open alerts and unresolved review threads were both zero. Issue #83 is closed.
+
 ## Remaining environmental proof
 
 No live WSL path was mutated. Live create, rename, and delete proof remains opt-in and requires `NENE_COMMANDER_WSL_TEST_ROOT` to identify a dedicated empty test-owned directory. Transfer remains intentionally unavailable and is the next independent Issue.
