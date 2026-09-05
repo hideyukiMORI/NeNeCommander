@@ -32,7 +32,9 @@ The first router test required Windows local and WSL requests to reach only thei
 - Focused Directories mutation first failed at 85.45%; after guard proof and closed-variant simplification it passed at 100.00% (55/55 killed) without threshold reduction.
 - Conformance: 111 unique normative rules PASS. Security conformance: 18 adversarial mappings, secrets, and workflow supply chain PASS.
 
-Exact-head deep review and Ready canonical CI remain pending integration evidence.
+## Integration completion
+
+PR #82 passed dependency run `33985129013`, exact-head deep retry `33985643645`, and Ready canonical run `33986546237`, then squash-merged as `1b5142825b877e47e675f099b38c33a914583b0f`. Issue #81 is closed. The first deep run `33985153722` failed only because the unchanged Domain mutation score was 94.97%; no Domain source changed and no threshold was lowered. The exact-head retry passed at Domain 95.98%, Application 96.46%, Infrastructure.Windows 93.43%, and Presentation.WinUI 89.06%, with zero CodeQL alerts and zero unresolved review threads.
 
 ## Remaining environmental proof
 

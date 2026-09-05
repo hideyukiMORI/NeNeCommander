@@ -86,7 +86,9 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 |---|---|
 | filesystem path parsing | `FileSystemPath.Parse` |
 | filesystem mutations | `FileOperationGateway` |
-| Windows local file-operation provider | `WindowsLocalFileOperationAdapter` |
+| Windows-side file-operation provider routing | `ProviderFileOperationPort` |
+| Windows local file-operation provider | `WindowsLocalFileOperationAdapter` behind the provider router |
+| WSL same-distribution mutation provider | `WslFileOperationAdapter` behind the provider router |
 | Windows local atomic-move capability | provider query using mounted-volume identity, consumed by `FileOperationGateway` |
 | directory reads | `IDirectoryReadPort` boundary with `DirectoryListing` ordering |
 | pane navigation and intent routing | `PaneSession` |
