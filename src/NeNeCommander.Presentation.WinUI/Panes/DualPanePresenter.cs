@@ -16,6 +16,13 @@ public static class DualPanePresenter
     /// <returns>A render-ready presentation.</returns>
     public static DualPanePresentation Present(DualPaneSnapshot snapshot)
     {
+        return Present(snapshot, null);
+    }
+
+    internal static DualPanePresentation Present(
+        DualPaneSnapshot snapshot,
+        DualPanePresentation? previous)
+    {
         ArgumentNullException.ThrowIfNull(snapshot);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
@@ -23,9 +30,9 @@ public static class DualPanePresenter
             ? KeyboardContext.Modal
             : KeyboardContext.FileList;
         return new DualPanePresentation(
-            PaneListingPresenter.Present(snapshot.Left, leftFrame),
+            PresentPane(snapshot.Left, leftFrame, previous?.Left),
             leftFrame,
-            PaneListingPresenter.Present(snapshot.Right, rightFrame),
+            PresentPane(snapshot.Right, rightFrame, previous?.Right),
             rightFrame,
             snapshot.ActiveSide,
             TranslateOperation(snapshot.Operation),
@@ -34,6 +41,16 @@ public static class DualPanePresenter
             KeyHintPresenter.Present(inputContext),
             TranslateNameEntry(snapshot.Operation),
             inputContext);
+    }
+
+    private static PanePresentation PresentPane(
+        PaneSnapshot snapshot,
+        PaneFrame frame,
+        PanePresentation? previous)
+    {
+        return previous is null
+            ? PaneListingPresenter.Present(snapshot, frame)
+            : PaneListingPresenter.Present(snapshot, frame, previous);
     }
 
     /// <summary>

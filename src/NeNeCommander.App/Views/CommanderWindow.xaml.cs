@@ -27,6 +27,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private readonly ResourceLoader _resources;
     private Task? _paneWork;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
+    private DualPanePresentation? _presentation;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -102,7 +103,8 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void RenderPanes(DualPaneSnapshot snapshot)
     {
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _presentation);
+        _presentation = presentation;
         RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
         RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
         RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
@@ -186,7 +188,10 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
     {
         address.Text = presentation.AddressText;
-        fileList.ItemsSource = presentation.Rows;
+        if (!ReferenceEquals(fileList.ItemsSource, presentation.Rows))
+        {
+            fileList.ItemsSource = presentation.Rows;
+        }
         fileList.SelectedItem = presentation.FocusRow;
         if (presentation.FocusRow is not null)
         {
