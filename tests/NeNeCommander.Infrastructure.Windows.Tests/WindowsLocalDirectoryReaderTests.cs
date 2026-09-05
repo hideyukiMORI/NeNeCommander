@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -61,13 +60,12 @@ public sealed class WindowsLocalDirectoryReaderTests
         }
     }
 
-    /// <summary>Proves hidden entries are reported rather than silently skipped.</summary>
+    /// <summary>Proves hidden entries are reported rather than silently skipped, and marked hidden.</summary>
     [TestMethod]
-    public async Task ReadAsyncWhenEntryIsHiddenListsIt()
+    public async Task ReadAsyncWhenEntryIsHiddenListsItWithHiddenVisibility()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        string hidden = root.CreateFile("hidden.txt");
-        File.SetAttributes(hidden, FileAttributes.Hidden);
+        _ = root.CreateHiddenFile("hidden.txt");
         WindowsLocalDirectoryReader reader = new();
 
         DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
@@ -75,6 +73,31 @@ public sealed class WindowsLocalDirectoryReaderTests
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(outcome).Listing;
         Assert.HasCount(1, listing.Entries);
         Assert.AreEqual("hidden.txt", listing.Entries[0].Name);
+        Assert.AreSame(EntryVisibility.Hidden, listing.Entries[0].Visibility);
+    }
+
+    /// <summary>Proves the reported visibility comes from the attributes of every entry class.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenEntriesCarryAttributesReportsVisibilityFromThemAlone()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateHiddenDirectory("hidden-directory");
+        _ = root.CreateDirectory("plain-directory");
+        _ = root.CreateHiddenFile("hidden.txt");
+        _ = root.CreateSystemFile("system.txt");
+        _ = root.CreateFile("plain.txt");
+        _ = root.CreateFile(".dotted.txt");
+        WindowsLocalDirectoryReader reader = new();
+
+        DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
+
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(outcome).Listing;
+        Assert.AreSame(EntryVisibility.Hidden, VisibilityOf(listing, "hidden-directory"));
+        Assert.AreSame(EntryVisibility.Normal, VisibilityOf(listing, "plain-directory"));
+        Assert.AreSame(EntryVisibility.Hidden, VisibilityOf(listing, "hidden.txt"));
+        Assert.AreSame(EntryVisibility.Hidden, VisibilityOf(listing, "system.txt"));
+        Assert.AreSame(EntryVisibility.Normal, VisibilityOf(listing, "plain.txt"));
+        Assert.AreSame(EntryVisibility.Normal, VisibilityOf(listing, ".dotted.txt"));
     }
 
     /// <summary>Proves enumeration stops at the requested boundary and reports it.</summary>
@@ -261,8 +284,16 @@ public sealed class WindowsLocalDirectoryReaderTests
     public void TranslateListingCreationWhenListingIsRejectedReturnsProviderUnavailable()
     {
         FileSystemPath location = ParsePath("C:\\same");
-        DirectoryEntry first = DirectoryEntry.Create(ParsePath("C:\\same\\Same"), "Same", DirectoryEntryKind.File);
-        DirectoryEntry second = DirectoryEntry.Create(ParsePath("c:\\same\\same"), "same", DirectoryEntryKind.File);
+        DirectoryEntry first = DirectoryEntry.Create(
+            ParsePath("C:\\same\\Same"),
+            "Same",
+            DirectoryEntryKind.File,
+            EntryVisibility.Normal);
+        DirectoryEntry second = DirectoryEntry.Create(
+            ParsePath("c:\\same\\same"),
+            "same",
+            DirectoryEntryKind.File,
+            EntryVisibility.Normal);
         DirectoryListingCreation rejected = DirectoryListing.Create(
             location,
             [first, second],
@@ -316,6 +347,12 @@ public sealed class WindowsLocalDirectoryReaderTests
             () => method.Invoke(reader, [null, CancellationToken.None]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
+
+    private static EntryVisibility VisibilityOf(DirectoryListing listing, string name)
+    {
+        DirectoryEntry entry = listing.Entries.Single(candidate => candidate.Name == name);
+        return entry.Visibility;
     }
 
     private static DirectoryReadRequest Request(FileSystemPath location, int entryBoundary)

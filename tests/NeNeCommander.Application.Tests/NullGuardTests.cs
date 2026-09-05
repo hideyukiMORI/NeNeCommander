@@ -27,9 +27,13 @@ public sealed class NullGuardTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.Recycle);
+        DirectoryEntry entry = DirectoryEntry.Create(
+            path,
+            "source",
+            DirectoryEntryKind.File,
+            EntryVisibility.Normal);
         PaneState state = Assert.IsInstanceOfType<PaneStateAccepted>(
-            PaneState.Create(path, [path], capacity)).State;
-        DirectoryEntry entry = DirectoryEntry.Create(path, "source", DirectoryEntryKind.File);
+            PaneState.Create(path, [entry], capacity, HiddenItemVisibility.Hidden)).State;
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(
             DirectoryListing.Create(path, [entry], DirectoryListingCompleteness.Complete, 0)).Listing;
 
@@ -64,14 +68,24 @@ public sealed class NullGuardTests
             typeof(ProviderStepOutcome),
             nameof(ProviderStepOutcome.FailedAfterEffect),
             [FileOperationFailureKind.Copy, null]);
-        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create), [null, new[] { path }, capacity]);
-        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create), [path, null, capacity]);
-        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create), [path, new[] { path }, null]);
+        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),
+            [null, new[] { entry }, capacity, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),
+            [path, null, capacity, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),
+            [path, new[] { entry }, null, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),
+            [path, new[] { entry }, capacity, null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [null, UserIntent.MoveNext]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [state, null]);
-        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [null, "name", DirectoryEntryKind.File]);
-        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [path, null, DirectoryEntryKind.File]);
-        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create), [path, "name", null]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
+            [null, "name", DirectoryEntryKind.File, EntryVisibility.Normal]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
+            [path, null, DirectoryEntryKind.File, EntryVisibility.Normal]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
+            [path, "name", null, EntryVisibility.Normal]);
+        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
+            [path, "name", DirectoryEntryKind.File, null]);
         AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
             [null, new[] { entry }, DirectoryListingCompleteness.Complete, 0]);
         AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
@@ -81,8 +95,16 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
-        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [null, capacity, null]);
-        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate), [listing, null, null]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
+            [null, capacity, null, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
+            [listing, null, null, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
+            [listing, capacity, null, null]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
+            [null, HiddenItemVisibility.Hidden]);
+        AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
+            [state, null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
             [null, HiddenItemVisibility.Hidden]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
@@ -108,12 +130,22 @@ public sealed class NullGuardTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
         ConstructorInfo constructor = typeof(PaneSession).GetConstructor(
-            [typeof(IDirectoryReadPort), typeof(VisiblePageCapacity), typeof(int)]) ??
+            [
+                typeof(IDirectoryReadPort),
+                typeof(VisiblePageCapacity),
+                typeof(int),
+                typeof(HiddenItemVisibility),
+            ]) ??
             throw new AssertFailedException("The public session constructor was not found.");
-        PaneSession session = new(port, capacity, DirectoryListing.EntryBoundaryLimit);
+        PaneSession session = new(
+            port,
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
 
-        AssertConstructorNullGuard(constructor, [null, capacity, 1]);
-        AssertConstructorNullGuard(constructor, [port, null, 1]);
+        AssertConstructorNullGuard(constructor, [null, capacity, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(constructor, [port, null, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(constructor, [port, capacity, 1, null]);
         AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.RefreshFocusingAsync), [null, CancellationToken.None]);
@@ -130,8 +162,16 @@ public sealed class NullGuardTests
             DeleteRequest.Create([ParsePath("C:\\source")], null)).Request;
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
-        PaneSession left = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
-        PaneSession right = new(ScriptedDirectoryReadPort.Create(), capacity, DirectoryListing.EntryBoundaryLimit);
+        PaneSession left = new(
+            ScriptedDirectoryReadPort.Create(),
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
+        PaneSession right = new(
+            ScriptedDirectoryReadPort.Create(),
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         FileOperationOutcome outcome = await gateway.ExecuteAsync(cancelledRequest, RecordingFileOperationProgress.Create(), cancellation.Token);
         ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor(
@@ -171,7 +211,7 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(
             DirectoryListing.Create(path, [], DirectoryListingCompleteness.Complete, 0)).Listing;
-        PaneState state = PaneReducer.Navigate(listing, capacity, null);
+        PaneState state = PaneReducer.Navigate(listing, capacity, null, HiddenItemVisibility.Hidden);
 
         AssertInternalConstructorNullGuard(typeof(PaneContentListed), [null, listing]);
         AssertInternalConstructorNullGuard(typeof(PaneContentListed), [state, null]);

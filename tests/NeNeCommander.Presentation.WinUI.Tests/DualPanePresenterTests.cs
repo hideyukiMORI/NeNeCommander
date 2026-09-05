@@ -7,6 +7,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
@@ -807,8 +808,8 @@ public sealed class DualPanePresenterTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
         return new DualPaneSession(
-            new PaneSession(left, capacity, DirectoryListing.EntryBoundaryLimit),
-            new PaneSession(right, capacity, DirectoryListing.EntryBoundaryLimit),
+            new PaneSession(left, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
+            new PaneSession(right, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
             gateway);
     }
 
@@ -822,7 +823,8 @@ public sealed class DualPanePresenterTests
             entries[index] = DirectoryEntry.Create(
                 ParsePath(parsedLocation.CanonicalText + separator + names[index]),
                 names[index],
-                DirectoryEntryKind.Directory);
+                DirectoryEntryKind.Directory,
+                EntryVisibility.Normal);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Tests;
@@ -52,8 +53,9 @@ public sealed class DirectoryListingTests
 
         PaneState state = Assert.IsInstanceOfType<PaneStateAccepted>(PaneState.Create(
             listing.Location,
-            [.. listing.Entries.Select(entry => entry.Path)],
-            capacity)).State;
+            listing.Entries,
+            capacity,
+            HiddenItemVisibility.Hidden)).State;
 
         Assert.AreSame(listing.Entries[0].Path, state.FocusItem);
         Assert.AreEqual("src", listing.Entries[0].Name);
@@ -66,7 +68,11 @@ public sealed class DirectoryListingTests
         FileSystemPath location = ParsePath("C:\\same");
         DirectoryEntry[] entries = [
             Entry(location, "Same", DirectoryEntryKind.File),
-            DirectoryEntry.Create(ParsePath("c:\\same\\same"), "same", DirectoryEntryKind.File),
+            DirectoryEntry.Create(
+                ParsePath("c:\\same\\same"),
+                "same",
+                DirectoryEntryKind.File,
+                EntryVisibility.Normal),
         ];
 
         DirectoryListingCreation outcome = DirectoryListing.Create(
@@ -181,7 +187,11 @@ public sealed class DirectoryListingTests
     {
         FileSystemPath path = ParsePath("C:\\x\\entry");
 
-        _ = Assert.ThrowsExactly<ArgumentException>(() => DirectoryEntry.Create(path, name, DirectoryEntryKind.File));
+        _ = Assert.ThrowsExactly<ArgumentException>(() => DirectoryEntry.Create(
+            path,
+            name,
+            DirectoryEntryKind.File,
+            EntryVisibility.Normal));
     }
 
     /// <summary>Proves closed read outcomes carry their exact payload.</summary>
@@ -228,7 +238,11 @@ public sealed class DirectoryListingTests
 
     private static DirectoryEntry Entry(FileSystemPath location, string name, DirectoryEntryKind kind)
     {
-        return DirectoryEntry.Create(ParsePath(location.CanonicalText + "\\" + name), name, kind);
+        return DirectoryEntry.Create(
+            ParsePath(location.CanonicalText + "\\" + name),
+            name,
+            kind,
+            EntryVisibility.Normal);
     }
 
     private static FileSystemPath ParsePath(string input)

@@ -8,7 +8,9 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Projects one pane snapshot onto a deterministic presentation of rows, focus, status, and address.
+/// Projects one pane snapshot onto a deterministic presentation of rows, focus, status, and
+/// address. Rows come from the pane state's visible set, which the reducer alone decides, so the
+/// projection never re-reads the listing to work out what a pane shows.
 /// </summary>
 public static class PaneListingPresenter
 {
@@ -79,7 +81,7 @@ public static class PaneListingPresenter
     {
         return previous.SourceSnapshot.Content is PaneContentListed prior &&
             ReferenceEquals(prior.Listing, listed.Listing) &&
-            previous.Rows.Count == listed.Listing.Entries.Count;
+            previous.Rows.Count == listed.State.VisibleEntries.Count;
     }
 
     private static PanePresentation CreateListed(
@@ -89,9 +91,13 @@ public static class PaneListingPresenter
     {
         HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
         List<PaneRow> rows = [];
-        foreach (DirectoryEntry entry in listed.Listing.Entries)
+        foreach (DirectoryEntry entry in listed.State.VisibleEntries)
         {
-            PaneRow row = new(entry, ResolveMark(entry, listed, selection, frame), PaneRowKind.For(entry.Kind));
+            PaneRow row = new(
+                entry,
+                ResolveMark(entry, listed, selection, frame),
+                PaneRowKind.For(entry.Kind),
+                PaneRowVisibility.For(entry.Visibility));
             rows.Add(row);
         }
         PaneRows ownedRows = new(rows);
@@ -144,7 +150,7 @@ public static class PaneListingPresenter
                 PaneRowMark mark = ResolveMark(current.Entry, listed, selection, frame);
                 if (current.Mark != mark)
                 {
-                    rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind));
+                    rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind, current.Visibility));
                 }
             }
         }

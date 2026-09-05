@@ -7,6 +7,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -268,6 +269,60 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowMark.Unmarked, passive.Rows[1].Mark);
     }
 
+    /// <summary>Proves an omitted entry produces no row at all while its listing still holds it.</summary>
+    [TestMethod]
+    public async Task PresentWhenHiddenEntriesAreOmittedProjectsOnlyTheVisibleRows()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateMixedListing("C:\\projects");
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port, HiddenItemVisibility.Hidden);
+        PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
+
+        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active);
+
+        Assert.HasCount(2, listing.Entries);
+        Assert.HasCount(1, presentation.Rows);
+        Assert.AreSame(listing.Entries[0], presentation.Rows[0].Entry);
+        Assert.AreSame(PaneRowVisibility.Normal, presentation.Rows[0].Visibility);
+        Assert.AreSame(presentation.Rows[0], presentation.FocusRow);
+        Assert.AreSame(PaneStatus.Complete, presentation.Status);
+    }
+
+    /// <summary>Proves a shown hidden entry keeps its row and is rendered with the hidden text brush.</summary>
+    [TestMethod]
+    public async Task PresentWhenHiddenEntriesAreShownRendersThemWithTheHiddenBrush()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateMixedListing("C:\\projects");
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port, HiddenItemVisibility.Shown);
+        PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
+
+        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active);
+
+        Assert.HasCount(2, presentation.Rows);
+        Assert.AreSame(PaneRowVisibility.Normal, presentation.Rows[0].Visibility);
+        Assert.AreSame(PaneRowVisibility.Hidden, presentation.Rows[1].Visibility);
+        Assert.AreEqual("TextPrimaryBrush", presentation.Rows[0].Visibility.NameBrushResourceKey);
+        Assert.AreEqual("TextHiddenBrush", presentation.Rows[1].Visibility.NameBrushResourceKey);
+    }
+
+    /// <summary>Proves the visibility projection rejects an absent entry visibility.</summary>
+    [TestMethod]
+    public void ForWhenEntryVisibilityIsNullThrowsArgumentNullException()
+    {
+        MethodInfo method = typeof(PaneRowVisibility).GetMethod(
+            nameof(PaneRowVisibility.For),
+            BindingFlags.Public | BindingFlags.Static) ??
+            throw new AssertFailedException("The visibility projection was not found.");
+
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(null, [null]));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
+
     /// <summary>Proves every row mark and entry kind names the exact semantic design resources.</summary>
     [TestMethod]
     public void ResourceKeyWhenRowMarkOrKindIsReadNamesExactResources()
@@ -288,6 +343,10 @@ public sealed class PaneListingPresenterTests
         Assert.IsTrue(PaneRowKind.File.IsFile);
         Assert.AreSame(PaneRowKind.Directory, PaneRowKind.For(DirectoryEntryKind.Directory));
         Assert.AreSame(PaneRowKind.File, PaneRowKind.For(DirectoryEntryKind.File));
+        Assert.AreEqual("TextPrimaryBrush", PaneRowVisibility.Normal.NameBrushResourceKey);
+        Assert.AreEqual("TextHiddenBrush", PaneRowVisibility.Hidden.NameBrushResourceKey);
+        Assert.AreSame(PaneRowVisibility.Normal, PaneRowVisibility.For(EntryVisibility.Normal));
+        Assert.AreSame(PaneRowVisibility.Hidden, PaneRowVisibility.For(EntryVisibility.Hidden));
         Assert.AreEqual("FocusRingBrush", PaneFrame.Active.NumberSurfaceBrushResourceKey);
         Assert.AreEqual("SurfacePaneBrush", PaneFrame.Active.NumberForegroundBrushResourceKey);
         Assert.AreEqual("BorderSubtleBrush", PaneFrame.Passive.NumberSurfaceBrushResourceKey);
@@ -367,9 +426,14 @@ public sealed class PaneListingPresenterTests
 
     private static PaneSession CreateSession(IDirectoryReadPort port)
     {
+        return CreateSession(port, HiddenItemVisibility.Hidden);
+    }
+
+    private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
+    {
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
-        return new PaneSession(port, capacity, DirectoryListing.EntryBoundaryLimit);
+        return new PaneSession(port, capacity, DirectoryListing.EntryBoundaryLimit, visibility);
     }
 
     private static DirectoryListing CreateListing(
@@ -385,13 +449,37 @@ public sealed class PaneListingPresenterTests
             entries[index] = DirectoryEntry.Create(
                 ParsePath(parsedLocation.CanonicalText + "\\" + names[index]),
                 names[index],
-                DirectoryEntryKind.File);
+                DirectoryEntryKind.File,
+                EntryVisibility.Normal);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
             entries,
             completeness,
             unrepresentableEntryCount);
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
+    }
+
+    private static DirectoryListing CreateMixedListing(string location)
+    {
+        FileSystemPath parsedLocation = ParsePath(location);
+        DirectoryEntry[] entries = [
+            DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + "\\a.txt"),
+                "a.txt",
+                DirectoryEntryKind.File,
+                EntryVisibility.Normal),
+            DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + "\\b.txt"),
+                "b.txt",
+                DirectoryEntryKind.File,
+                EntryVisibility.Hidden),
+        ];
+        DirectoryListingCreation creation = DirectoryListing.Create(
+            parsedLocation,
+            entries,
+            DirectoryListingCompleteness.Complete,
+            0);
         return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
     }
 

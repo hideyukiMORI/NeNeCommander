@@ -67,6 +67,34 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         return childPath;
     }
 
+    /// <summary>
+    /// Creates an empty file inside the root and marks it hidden through the filesystem, so the
+    /// adapter reads a real attribute rather than an assumption about the name.
+    /// </summary>
+    internal string CreateHiddenFile(string childName)
+    {
+        string childPath = CreateFile(childName);
+        File.SetAttributes(childPath, FileAttributes.Hidden);
+        return childPath;
+    }
+
+    /// <summary>Creates an empty file inside the root and marks it a system file.</summary>
+    internal string CreateSystemFile(string childName)
+    {
+        string childPath = CreateFile(childName);
+        File.SetAttributes(childPath, FileAttributes.System);
+        return childPath;
+    }
+
+    /// <summary>Creates a directory inside the root and marks it hidden through the filesystem.</summary>
+    internal string CreateHiddenDirectory(string childName)
+    {
+        string childPath = CreateDirectory(childName);
+        DirectoryInfo directory = new(childPath);
+        directory.Attributes |= FileAttributes.Hidden;
+        return childPath;
+    }
+
     /// <summary>Writes text into a file inside the root, creating or replacing it.</summary>
     internal string WriteFile(string childName, string content)
     {

@@ -103,7 +103,7 @@
                     <TextBlock
                         Grid.Column="2"
                         FontSize="{StaticResource TypographyBodySize}"
-                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Foreground="{Binding Visibility.NameBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
                         Text="{x:Bind Entry.Name}"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap"

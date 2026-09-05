@@ -6,6 +6,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Tests;
@@ -305,6 +306,48 @@ public sealed class PaneSessionTests
         Assert.AreSame(PaneActivity.Idle, session.Current.Activity);
     }
 
+    /// <summary>Proves the composed visibility decides the first listing's visible set.</summary>
+    [TestMethod]
+    public async Task NavigateAsyncWhenComposedVisibilityOmitsHiddenEntriesListsOnlyTheVisibleOnes()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = HiddenListing(
+            "C:\\root",
+            ("a.txt", EntryVisibility.Normal),
+            ("b.txt", EntryVisibility.Hidden));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port, HiddenItemVisibility.Hidden);
+
+        PaneSnapshot snapshot = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(snapshot.Content);
+        Assert.HasCount(2, listed.Listing.Entries);
+        Assert.HasCount(1, listed.State.VisibleEntries);
+        Assert.AreSame(listing.Entries[0], listed.State.VisibleEntries[0]);
+        Assert.AreSame(HiddenItemVisibility.Hidden, listed.State.HiddenItemVisibility);
+    }
+
+    /// <summary>Proves every later read carries the listed state's own visibility, not a session copy.</summary>
+    [TestMethod]
+    public async Task NavigateAsyncWhenVisibilityShowsHiddenEntriesEveryLocationListsThem()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing first = HiddenListing("C:\\root", ("a.txt", EntryVisibility.Hidden));
+        DirectoryListing second = HiddenListing("C:\\other", ("b.txt", EntryVisibility.Hidden));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(first));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(second));
+        PaneSession session = CreateSession(port, HiddenItemVisibility.Shown);
+
+        PaneSnapshot initial = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        PaneSnapshot later = await session.NavigateAsync(ParsePath("C:\\other"), CancellationToken.None);
+
+        Assert.HasCount(1, Assert.IsInstanceOfType<PaneContentListed>(initial.Content).State.VisibleEntries);
+        PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(later.Content);
+        Assert.HasCount(1, listed.State.VisibleEntries);
+        Assert.AreSame(second.Entries[0], listed.State.VisibleEntries[0]);
+        Assert.AreSame(HiddenItemVisibility.Shown, listed.State.HiddenItemVisibility);
+    }
+
     /// <summary>Proves the composition boundary rejects an entry boundary outside the fixed range.</summary>
     [TestMethod]
     [DataRow(0)]
@@ -314,12 +357,41 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         VisiblePageCapacity capacity = Capacity(4);
 
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new PaneSession(port, capacity, entryBoundary));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new PaneSession(
+            port,
+            capacity,
+            entryBoundary,
+            HiddenItemVisibility.Hidden));
+    }
+
+    private static DirectoryListing HiddenListing(string location, params (string Name, EntryVisibility Visibility)[] entries)
+    {
+        FileSystemPath parsedLocation = ParsePath(location);
+        DirectoryEntry[] built = new DirectoryEntry[entries.Length];
+        for (int index = 0; index < entries.Length; index++)
+        {
+            built[index] = DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + "\\" + entries[index].Name),
+                entries[index].Name,
+                DirectoryEntryKind.File,
+                entries[index].Visibility);
+        }
+        DirectoryListingCreation creation = DirectoryListing.Create(
+            parsedLocation,
+            built,
+            DirectoryListingCompleteness.Complete,
+            0);
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
     }
 
     private static PaneSession CreateSession(IDirectoryReadPort port)
     {
-        return new PaneSession(port, Capacity(4), DirectoryListing.EntryBoundaryLimit);
+        return CreateSession(port, HiddenItemVisibility.Hidden);
+    }
+
+    private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
+    {
+        return new PaneSession(port, Capacity(4), DirectoryListing.EntryBoundaryLimit, visibility);
     }
 
     private static VisiblePageCapacity Capacity(int rows)
@@ -337,7 +409,8 @@ public sealed class PaneSessionTests
             built[index] = DirectoryEntry.Create(
                 ParsePath(parsedLocation.CanonicalText + separator + entries[index].Name),
                 entries[index].Name,
-                entries[index].Kind);
+                entries[index].Kind,
+                EntryVisibility.Normal);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
