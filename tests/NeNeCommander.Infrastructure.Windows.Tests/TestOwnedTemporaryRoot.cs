@@ -103,6 +103,25 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         return childPath;
     }
 
+    /// <summary>Replaces one file while restoring the metadata fields used by the legacy identity tuple.</summary>
+    internal void ReplaceFilePreservingMetadata(string childName, string replacementContent)
+    {
+        string childPath = Resolve(childName);
+        FileInfo original = new(childPath);
+        long length = original.Length;
+        DateTime creationTimeUtc = original.CreationTimeUtc;
+        DateTime lastWriteTimeUtc = original.LastWriteTimeUtc;
+        string parkedPath = Resolve(childName + ".original");
+        File.Move(childPath, parkedPath);
+        File.WriteAllText(childPath, replacementContent);
+        if (new FileInfo(childPath).Length != length)
+        {
+            throw new InvalidOperationException("The replacement must preserve the original byte length.");
+        }
+        File.SetCreationTimeUtc(childPath, creationTimeUtc);
+        File.SetLastWriteTimeUtc(childPath, lastWriteTimeUtc);
+    }
+
     /// <summary>
     /// Creates an NTFS junction inside the root that points at another directory inside the root.
     /// Junctions need no privilege, unlike symbolic links, so the fixture is deterministic on NTFS.

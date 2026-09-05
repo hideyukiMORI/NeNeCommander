@@ -12,7 +12,7 @@ Date: 2026-09-04
 
 Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only. Any other provider is `ProviderUnavailable`.
 
-- Identity is the metadata tuple kind, byte length, creation time, and last write time, owned by `WindowsLocalEntryIdentity`. Every step revalidates the snapshot through the closed `RevalidationOutcome` (`EntryMatched` or `EntryRejected`) before touching the filesystem; a missing entry is `NotFound`, a changed tuple is `IdentityChanged`.
+- Identity was initially the metadata tuple kind, byte length, creation time, and last write time, owned by `WindowsLocalEntryIdentity`. ADR-0033 supersedes only that tuple definition with a Win32 volume/file identifier plus the same rewrite-sensitive metadata. Every step still revalidates the snapshot through the closed `RevalidationOutcome` (`EntryMatched` or `EntryRejected`) before touching the filesystem; a missing entry is `NotFound`, a changed identity is `IdentityChanged`.
 - Inspection reports `DeletionCapability.PermanentOnly` because no recycle implementation exists; `DeletionExecutionMode.Recycle` is refused with `ProviderUnavailable`. The gateway therefore always requires explicit confirmation for Windows local deletion until a shell recycle adapter is added by a later ADR.
 - Preflight requires an existing Windows local destination directory, rejects a destination contained by a source (`ProviderPathContainment`), and rejects an existing target name, all as `Conflict`, for every source before any step runs.
 - Copy and verify are owned by `WindowsLocalTreeCopy`. A file is copied without overwrite; a directory is copied recursively. A source that is or contains a reparse point is refused with `ProviderUnavailable` before anything is written. Verification compares kind, entry set, and byte count.
@@ -21,7 +21,7 @@ Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only
 
 ## Rejected alternatives
 
-- Win32 file identifiers through `GetFileInformationByHandle`: stronger identity, but requires unsafe interop and directory handles with backup semantics; deferred to a hardening ADR.
+- Win32 file identifiers through `GetFileInformationByHandleEx`: deferred here and subsequently adopted by ADR-0033 after ADR-0032 established the constrained generated-interop boundary.
 - Reporting recycle capability and emulating it by moving to a hidden folder: a second deletion path that lies about provider semantics (FS-006).
 - Following or recreating links during copy: recreating symbolic links needs privilege and following them widens the operation root (FS-004, FS-008).
 - Asynchronous stream copy with mid-file cancellation: cancellation remains between atomic provider steps. ADR-0029 reports targets left by expected copy failures, but no cancelled provider-step outcome or byte-level abort contract exists.

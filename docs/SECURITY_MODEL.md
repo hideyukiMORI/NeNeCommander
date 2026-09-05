@@ -33,7 +33,7 @@ Inputs are length-bounded, parsed once, normalized without identity loss, and re
 - Status: **active**
 - Enforcement: failure-injection and race tests.
 
-Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target.
+Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target. Windows local identity combines the Win32 volume/file identifier obtained without following a reparse point with rewrite-sensitive metadata; query ambiguity or failure is closed.
 
 ### SEC-004 — CI and runtime use least privilege
 

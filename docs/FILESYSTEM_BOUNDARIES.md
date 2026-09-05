@@ -25,6 +25,8 @@ Parsing removes redundant separators and `.` segments and resolves `..` without 
 
 All sets, duplicate checks, selection checks, and confirmation comparisons use `FileSystemPathIdentityComparer`. Windows local and UNC identity is case-insensitive. A WSL distribution name is case-insensitive, while its Linux path is case-sensitive. Direct record equality is not a filesystem identity decision.
 
+For operation snapshots, Windows local entries use the operating system's volume/file identifier plus kind, byte length, creation time, and last-write time. The identifier query opens the entry itself without following a reparse point. This snapshot detects both replacement and rewrite; it does not replace the mandatory effect-boundary revalidation.
+
 ### FS-002 — Capabilities are queried
 
 - Status: **active**

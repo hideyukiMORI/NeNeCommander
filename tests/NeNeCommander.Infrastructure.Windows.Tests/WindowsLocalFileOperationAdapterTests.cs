@@ -28,7 +28,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.AreEqual(first.Identity, again.Identity);
         Assert.AreSame(DeletionCapability.PermanentOnly, first.DeletionCapability);
         Assert.AreSame(file, first.Path);
-        Assert.StartsWith("file|3|", first.Identity.Value);
+        Assert.StartsWith("windows-v2|", first.Identity.Value);
+        Assert.Contains("|file|3|", first.Identity.Value);
     }
 
     /// <summary>Proves inspection describes a directory with its own kind.</summary>
@@ -41,7 +42,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
 
         FileEntrySnapshot snapshot = await InspectAsync(adapter, directory);
 
-        Assert.StartsWith("directory|0|", snapshot.Identity.Value);
+        Assert.Contains("|directory|0|", snapshot.Identity.Value);
     }
 
     /// <summary>Proves a rewritten file changes its identity.</summary>
@@ -59,6 +60,29 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileEntrySnapshot after = await InspectAsync(adapter, ParsePath(path));
 
         Assert.AreNotEqual(before.Identity, after.Identity);
+    }
+
+    /// <summary>Proves a different entry cannot impersonate a snapshot by preserving its metadata tuple.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task InspectAndPreflightWhenFileIsReplacedWithMatchingMetadataRejectReplacement()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string path = root.WriteFile("a.txt", "first");
+        FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot before = await InspectAsync(adapter, ParsePath(path));
+
+        root.ReplaceFilePreservingMetadata("a.txt", "other");
+        FileEntrySnapshot after = await InspectAsync(adapter, ParsePath(path));
+        ProviderStepOutcome outcome = await adapter.PreflightTransferAsync(
+            [before],
+            destination,
+            CancellationToken.None);
+
+        Assert.AreNotEqual(before.Identity, after.Identity);
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
     }
 
     /// <summary>Proves missing entries and foreign providers are closed failures.</summary>

@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0033: Strengthen Windows local identity with Win32 file identifiers](0033-win32-file-identifier-identity.md)
 - [ADR-0032: Use mounted-volume identity for Windows local atomic move](0032-windows-local-atomic-move.md)
 - [ADR-0031: Exclude only generated obj trees from CodeQL](0031-exclude-generated-obj-from-codeql.md)
 - [ADR-0030: Own framework asynchronous work through one lifecycle mechanism](0030-own-framework-async-work.md)
