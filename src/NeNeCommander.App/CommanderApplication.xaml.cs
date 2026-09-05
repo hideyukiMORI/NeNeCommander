@@ -10,6 +10,7 @@ using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Settings;
 using NeNeCommander.Infrastructure.Windows.Time;
@@ -101,9 +102,10 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     {
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
-        WindowsLocalDirectoryReader directoryReader = new();
+        WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
+        WindowsLocalDirectoryReader directoryReader = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
-        _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter());
+        _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter(ioExecutionBoundary));
         DualPaneSession panes = new(
             new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),
             new PaneSession(directoryReader, capacity, DirectoryListing.EntryBoundaryLimit),

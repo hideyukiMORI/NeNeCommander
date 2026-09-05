@@ -20,12 +20,7 @@ Status: informational
 
 ## Integration steps
 
-1. Review the branch diff for exact filter parity and test-owned-root containment.
-2. Commit through the existing Commit-mode hook and push without force.
-3. Create a Draft PR that closes #54 and includes the measurement above.
-4. Confirm `gh pr view` reports a head OID equal to local `git rev-parse HEAD`.
-5. Mark Ready once the focused candidate is final, watch required `canonical-gate`, and squash merge only when the final head/base candidate is green.
-6. Synchronize a clean `main` and record the CI run in the PR body or final report without creating a result-only commit.
+Completed: PR #55 passed canonical CI run `33960075774` on final head `25c3148`, squash merged as `9f0eac9`, and local `main` was synchronized cleanly.
 
 ## Remaining environmental proof
 

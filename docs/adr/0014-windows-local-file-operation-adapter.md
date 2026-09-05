@@ -28,7 +28,7 @@ Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only
 
 ## Consequences
 
-- Steps run synchronously inside their `Task` signatures, like the directory reader (ADR-0010).
+- Provider steps remain synchronous and atomic, but ADR-0027 schedules them through the single Windows local I/O execution boundary instead of running them on the caller.
 - A directory copy is one provider step; cancellation is observed by the gateway between steps only.
 - Content is verified by byte count, not by hash; a same-length corruption is not detected.
 - Windows local deletion always requires confirmation until recycle support exists.
