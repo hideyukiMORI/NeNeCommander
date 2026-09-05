@@ -18,6 +18,13 @@ Status: informational
 - Release restore / build は warning 0、error 0。Application 176、Infrastructure.Windows 69、Presentation.WinUI 76、Architecture 5、conformance 110規則、security 18 adversarial cases が成功した。
 - pre-integration deep review は履歴証跡であり、final head の canonical CI は未取得。interactive-desktop screenshot / UIA proof が可能になるまで Draft を維持し、proof 後に Ready にして fresh canonical CI を得る。
 
+## 通常 desktop proof 完了 checkpoint
+
+- hide の明示許可により通常 desktop で `showHiddenItems=false` / `true` を起動し、左 `C:\` の UI Automation tree と window screenshot を取得した。キー送信はなく、各caseで所有 process だけを終了した。
+- false では hidden/system 項目がなく、true では `$RECYCLE.BIN`、`System Volume Information`、`hiberfil.sys`、`pagefile.sys`、`swapfile.sys` を含む対象が現れた。screenshot で hidden/system 行の muted 表示も確認した。
+- settings は `showHiddenItems=false` / `nene-dark` に復元済みで、NeNe Commander process は残っていない。ローカル証跡は `artifacts/implementation-sana/runtime-proof/normal-*`。
+- `origin/main=dd6439e` と merge-base は一致する。日報・handoff更新をcommit/push後に PR head一致を再確認し、Readyへ移して final-head canonical CI を監視する。
+
 ## 開始地点
 
 - Codename: `NeNe Commander`

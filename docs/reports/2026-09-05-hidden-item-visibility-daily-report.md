@@ -40,7 +40,7 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 
 ## 残した注意点
 
-- `feat/49-hidden-item-visibility` は gate は通るが未検証。merge 前に deep review と実機確認が要る。
+- `feat/49-hidden-item-visibility` の実機確認は完了した。final head の canonical CI 成功までは merge しない。
 - 完了後の operation bar に `12/12` が残らない。進捗数値の色は tone の文字色で canvas の accent とは異なる。
 - `F8` 確認、`F2` / `F7` 名前入力、実行中進捗の実機の見た目は未確認（キー送信をしないため hide の確認待ち）。
 - high contrast、他の DPI、狭い window、nene-dark と solarized-light 以外の scheme は実機未確認。
@@ -48,7 +48,7 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 
 ## 次の推奨縦切り
 
-`feat/49-hidden-item-visibility` の続き（deep review、実機確認、PR、merge）。詳細は [`docs/handoffs/2026-09-05-hidden-item-visibility-handoff.md`](../handoffs/2026-09-05-hidden-item-visibility-handoff.md)。
+`feat/49-hidden-item-visibility` の Ready、fresh canonical CI、merge。詳細は [`docs/handoffs/2026-09-05-hidden-item-visibility-handoff.md`](../handoffs/2026-09-05-hidden-item-visibility-handoff.md)。
 
 ## 実装サナ継続（18:41 JST 以降）
 
@@ -67,3 +67,11 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 - Release restore / build は成功（warning 0、error 0）。Application 176、Infrastructure.Windows 69、Presentation.WinUI 76、Architecture 5 はすべて成功し、失敗・skip は0。conformance 110規則と security 18 adversarial cases も成功した。
 - ADR-0025 に従い、統合済み各PRの成功CIと重複するローカル full gate / deep review は追加していない。#49 final head の canonical CI は interactive-desktop proof 後に Ready にして取得する。
 - interactive desktop の screenshot / UIA proof は未完了のままであり、別 desktop object の黒画像を表示差 proof に昇格していない。
+
+## 実装サナ継続（通常 desktop proof）
+
+- hide の明示許可「起動はいつでも好きにしていいよ」に従い、通常 desktop で Release executable を `showHiddenItems=false` / `true` の順に起動した。キー送信は行わず、各caseで実装サナが起動した process だけを終了した。
+- false の UI Automation は左 `C:\` に通常項目だけを観測し、`$RECYCLE.BIN`、`System Volume Information`、`hiberfil.sys`、`pagefile.sys`、`swapfile.sys` を含む hidden/system 項目が存在しないことを確認した。
+- true の UI Automation は同じ左 `C:\` に上記 hidden/system 項目をすべて観測した。通常 desktop の window screenshot は正常に描画され、hidden/system 行の名前が通常行より muted な `TextHiddenBrush` 表示であることを確認した。
+- settings document は元の `showHiddenItems=false` / `colorScheme=nene-dark` に復元され、所有 process が残っていないことを確認した。画像・UIA tree・summary は test evidence として `artifacts/implementation-sana/runtime-proof/normal-*` に保存した。
+- `origin/main=dd6439e` を再取得し、branch の merge-base が同じであることを確認した。残る統合条件は final head に対する fresh canonical CI だけである。
