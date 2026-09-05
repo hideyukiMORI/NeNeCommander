@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0026: Prune generated directories before proof-tree traversal](0026-prune-generated-proof-inputs.md)
 - [ADR-0025: Run the full gate at merge readiness](0025-merge-time-full-gate.md) (0024 is reserved by the in-progress hidden-visibility branch.)
 
 - [ADR-0001: Strictness is mechanically enforced](0001-strictness-is-mechanically-enforced.md)

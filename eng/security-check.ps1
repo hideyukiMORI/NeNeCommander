@@ -12,6 +12,7 @@ $ErrorActionPreference = 'Stop'
 
 $root = [System.IO.Path]::GetFullPath($RepositoryRoot)
 $violations = [System.Collections.Generic.List[string]]::new()
+. (Join-Path $PSScriptRoot 'repository-tree.ps1')
 
 function Add-SecurityViolation {
     param(
@@ -39,6 +40,7 @@ $requiredSecurityFiles = @(
     'docs/SECURITY_MODEL.md',
     'eng/security-policy.json',
     'eng/adversarial-cases.json',
+    'eng/repository-tree.ps1',
     'eng/security-check.ps1',
     'eng/prove-security.ps1',
     'eng/deep-review.ps1',
@@ -182,8 +184,7 @@ if (Test-Path -LiteralPath $buildPropsPath -PathType Leaf) {
 }
 
 $configurationExtensions = @('.config', '.cs', '.csproj', '.json', '.md', '.props', '.ps1', '.targets', '.txt', '.xaml', '.yaml', '.yml')
-$textFiles = Get-ChildItem -LiteralPath $root -File -Recurse -Force | Where-Object {
-    $_.FullName -notmatch '[\\/](\.git|\.vs|bin|obj|artifacts|TestResults)[\\/]' -and
+$textFiles = Get-RepositoryTreeFile -RepositoryRoot $root | Where-Object {
     ($configurationExtensions -contains $_.Extension.ToLowerInvariant() -or $_.Name -in @('AGENT.md', 'AGENTS.md', 'CLAUDE.md', 'NuGet.Config', 'pre-commit', 'commit-msg'))
 }
 
@@ -205,14 +206,16 @@ foreach ($file in $textFiles) {
 }
 
 $secretFileExtensions = @('.key', '.pem', '.pfx', '.p12', '.snk')
-$secretFiles = Get-ChildItem -LiteralPath $root -File -Recurse -Force | Where-Object {
-    $_.FullName -notmatch '[\\/](\.git|bin|obj|artifacts)[\\/]' -and $secretFileExtensions -contains $_.Extension.ToLowerInvariant()
+$secretFiles = Get-RepositoryTreeFile -RepositoryRoot $root | Where-Object {
+    $secretFileExtensions -contains $_.Extension.ToLowerInvariant()
 }
 foreach ($secretFile in $secretFiles) {
     Add-SecurityViolation -Rule 'SEC-005' -Message "Prohibited secret-bearing file exists: $(Get-SecurityRelativePath -Path $secretFile.FullName)"
 }
 
-$scriptFiles = Get-ChildItem -LiteralPath (Join-Path $root 'eng') -Filter '*.ps1' -File -Recurse
+$scriptFiles = Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('eng') | Where-Object {
+    $_.Extension -ceq '.ps1'
+}
 foreach ($scriptFile in $scriptFiles) {
     $tokens = $null
     $parseErrors = $null
@@ -297,7 +300,9 @@ if ($null -ne $cases) {
     if (Test-Path -LiteralPath $statePath -PathType Leaf) {
         $state = Get-Content -LiteralPath $statePath -Raw
         if ($state -match '(?m)^- Stage: `implementation`\s*$') {
-            $testContent = (Get-ChildItem -LiteralPath (Join-Path $root 'tests') -Filter '*.cs' -File -Recurse | ForEach-Object {
+            $testContent = (Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('tests') | Where-Object {
+                $_.Extension -ceq '.cs'
+            } | ForEach-Object {
                 Get-Content -LiteralPath $_.FullName -Raw
             }) -join "`n"
 
