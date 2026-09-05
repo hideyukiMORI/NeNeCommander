@@ -16,19 +16,39 @@ if (-not $proofRoot.StartsWith($tempParent, [System.StringComparison]::OrdinalIg
     throw 'Resolved proof root escaped the operating-system temporary directory.'
 }
 
-function Copy-Foundation {
-    param(
-        [Parameter(Mandatory)]
-        [string] $Destination
-    )
+. (Join-Path $PSScriptRoot 'repository-tree.ps1')
 
-    New-Item -ItemType Directory -Path $Destination | Out-Null
-    foreach ($item in Get-ChildItem -LiteralPath $root -Force) {
-        if ($item.Name -in @('.git', '.vs', 'bin', 'obj', 'artifacts')) {
-            continue
-        }
+function Assert-FoundationMaterialization {
+    $source = Join-Path $proofRoot 'materialization-source'
+    $destination = Join-Path $proofRoot 'materialization-destination'
+    $sourceFile = Join-Path $source 'src/UntrackedInspectionInput.cs'
+    $generatedFile = Join-Path $source 'src/Feature/bin/Generated.dll'
+    $testOutput = Join-Path $source 'tests/Feature/obj/project.assets.json'
+    $reparseTarget = Join-Path $proofRoot 'materialization-reparse-target'
+    $reparseLink = Join-Path $source 'linked-output'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $sourceFile) -Force | Out-Null
+    New-Item -ItemType Directory -Path (Split-Path -Parent $generatedFile) -Force | Out-Null
+    New-Item -ItemType Directory -Path (Split-Path -Parent $testOutput) -Force | Out-Null
+    Set-Content -LiteralPath $sourceFile -Value 'internal sealed class UntrackedInspectionInput { }'
+    Set-Content -LiteralPath $generatedFile -Value 'generated'
+    Set-Content -LiteralPath $testOutput -Value '{}'
+    New-Item -ItemType Directory -Path $reparseTarget | Out-Null
+    Set-Content -LiteralPath (Join-Path $reparseTarget 'External.cs') -Value 'internal sealed class External { }'
+    New-Item -ItemType Junction -Path $reparseLink -Target $reparseTarget | Out-Null
 
-        Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse
+    Copy-ProofFoundation -RepositoryRoot $source -Destination $destination
+
+    if (-not (Test-Path -LiteralPath (Join-Path $destination 'src/UntrackedInspectionInput.cs') -PathType Leaf)) {
+        throw 'Foundation materialization dropped an untracked inspection input.'
+    }
+    if (Test-Path -LiteralPath (Join-Path $destination 'src/Feature/bin/Generated.dll') -PathType Leaf) {
+        throw 'Foundation materialization copied nested build output.'
+    }
+    if (Test-Path -LiteralPath (Join-Path $destination 'tests/Feature/obj/project.assets.json') -PathType Leaf) {
+        throw 'Foundation materialization copied nested restore output.'
+    }
+    if (Test-Path -LiteralPath (Join-Path $destination 'linked-output/External.cs') -PathType Leaf) {
+        throw 'Foundation materialization traversed a reparse-point directory.'
     }
 }
 
@@ -45,7 +65,7 @@ function Assert-ConformanceFailure {
     )
 
     $caseRoot = Join-Path $proofRoot $Name
-    Copy-Foundation -Destination $caseRoot
+    Copy-ProofFoundation -RepositoryRoot $root -Destination $caseRoot
     & $Mutate $caseRoot
 
     $output = (& pwsh -NoProfile -File (Join-Path $caseRoot 'eng/conformance.ps1') -RepositoryRoot $caseRoot -Quiet 2>&1) -join "`n"
@@ -60,6 +80,7 @@ function Assert-ConformanceFailure {
 
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    Assert-FoundationMaterialization
 
     Assert-ConformanceFailure -Name 'missing-document' -ExpectedRule 'DOC-001' -Mutate {
         param($caseRoot)

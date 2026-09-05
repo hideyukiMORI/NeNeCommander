@@ -12,6 +12,7 @@ $ErrorActionPreference = 'Stop'
 
 $root = [System.IO.Path]::GetFullPath($RepositoryRoot)
 $violations = [System.Collections.Generic.List[string]]::new()
+. (Join-Path $PSScriptRoot 'repository-tree.ps1')
 
 function Add-Violation {
     param(
@@ -50,9 +51,8 @@ function Get-RepositoryFiles {
             continue
         }
 
-        $files = Get-ChildItem -LiteralPath $searchRoot -File -Recurse | Where-Object {
-            $Extensions -contains $_.Extension.ToLowerInvariant() -and
-            $_.FullName -notmatch '[\\/](bin|obj|artifacts|Generated Files)[\\/]'
+        $files = Get-RepositoryTreeFile -RepositoryRoot $root -Roots @($relativeRoot) | Where-Object {
+            $Extensions -contains $_.Extension.ToLowerInvariant()
         }
         foreach ($file in $files) {
             $found.Add($file)
@@ -116,6 +116,7 @@ $requiredFiles = @(
     'eng/architecture.json',
     'eng/adversarial-cases.json',
     'eng/bootstrap.ps1',
+    'eng/repository-tree.ps1',
     'eng/validate-commit-message.ps1',
     'eng/check.ps1',
     'eng/verify-coverage.ps1',
@@ -509,8 +510,8 @@ if ($null -ne $manifest) {
             Add-Violation -Rule 'ARC-002' -Message "Declared solution is missing: $($manifest.solution)"
         }
 
-        $actualProjects = Get-ChildItem -LiteralPath $root -Filter '*.csproj' -File -Recurse | Where-Object {
-            $_.FullName -notmatch '[\\/](bin|obj|artifacts)[\\/]'
+        $actualProjects = Get-RepositoryTreeFile -RepositoryRoot $root | Where-Object {
+            $_.Extension -ceq '.csproj'
         }
         $actualPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
         foreach ($actualProject in $actualProjects) {

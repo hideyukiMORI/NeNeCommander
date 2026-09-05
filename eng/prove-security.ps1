@@ -15,20 +15,7 @@ if (-not $proofRoot.StartsWith($tempParent, [System.StringComparison]::OrdinalIg
     throw 'Resolved security proof root escaped the operating-system temporary directory.'
 }
 
-function Copy-Foundation {
-    param(
-        [Parameter(Mandatory)]
-        [string] $Destination
-    )
-
-    New-Item -ItemType Directory -Path $Destination | Out-Null
-    foreach ($item in Get-ChildItem -LiteralPath $root -Force) {
-        if ($item.Name -in @('.git', '.vs', 'artifacts', 'bin', 'obj', 'TestResults')) {
-            continue
-        }
-        Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse
-    }
-}
+. (Join-Path $PSScriptRoot 'repository-tree.ps1')
 
 function Assert-SecurityFailure {
     param(
@@ -43,7 +30,7 @@ function Assert-SecurityFailure {
     )
 
     $caseRoot = Join-Path $proofRoot $Name
-    Copy-Foundation -Destination $caseRoot
+    Copy-ProofFoundation -RepositoryRoot $root -Destination $caseRoot
     & $Mutate $caseRoot
 
     $output = (& pwsh -NoProfile -File (Join-Path $caseRoot 'eng/security-check.ps1') -RepositoryRoot $caseRoot -SkipProof 2>&1) -join "`n"
