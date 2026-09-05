@@ -16,7 +16,7 @@ The generated files are SDK output, are already outside the repository source an
 
 `eng/security-check.ps1` enforces the build mode, query suite, configuration reference, absence of a positive `paths` restriction, and the exact one-entry generated exclusion. `eng/prove-security.ps1` mutates the generated exclusion and query suite independently and proves both changes fail as SEC-008 violations.
 
-Owned path-construction findings are fixed through `WindowsLocalTreeCopy.ResolveDirectChild`, the sole Windows-local target-child resolver used by recursive copy, recursive comparison, and transfer destination construction. It rejects empty, rooted, special, and multi-segment names before joining and verifies the resolved parent. Remaining owned quality findings are expressed with direct sequence predicates or projections without changing enumeration order or materialization ownership.
+Owned path-construction findings are fixed through `WindowsLocalTreeCopy.ResolveDirectChild`, the sole Windows-local target-child resolver used by recursive copy, recursive comparison, and transfer destination construction. It rejects empty, rooted, special, and multi-segment names before joining, so the joined value cannot replace or traverse away from the parent. Remaining owned quality findings are expressed with direct sequence predicates or projections without changing enumeration order or materialization ownership.
 
 ## Rejected alternatives
 

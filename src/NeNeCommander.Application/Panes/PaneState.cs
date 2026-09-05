@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
@@ -135,15 +136,9 @@ public sealed record PaneState
         IReadOnlyList<DirectoryEntry> entries,
         HiddenItemVisibility hiddenItemVisibility)
     {
-        List<DirectoryEntry> visible = [];
-        foreach (DirectoryEntry entry in entries)
-        {
-            if (hiddenItemVisibility == HiddenItemVisibility.Shown ||
-                entry.Visibility == EntryVisibility.Normal)
-            {
-                visible.Add(entry);
-            }
-        }
+        List<DirectoryEntry> visible = [.. entries.Where(entry =>
+            hiddenItemVisibility == HiddenItemVisibility.Shown ||
+            entry.Visibility == EntryVisibility.Normal)];
         return visible.AsReadOnly();
     }
 }

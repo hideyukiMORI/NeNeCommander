@@ -253,21 +253,22 @@ public sealed class DualPaneSession
         FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
         _operation = new OperationRunning(kind, FileOperationProgress.Create(0, request.Sources.Count));
         FileOperationOutcome outcome;
-        CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        try
+        using (CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
-            _cancelRunningOperation = owned.Cancel;
-            outcome = await _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), owned.Token);
-        }
-        catch
-        {
-            _operation = OperationActivity.Idle;
-            throw;
-        }
-        finally
-        {
-            _cancelRunningOperation = CancelNothingAction;
-            owned.Dispose();
+            try
+            {
+                _cancelRunningOperation = owned.Cancel;
+                outcome = await _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), owned.Token);
+            }
+            catch
+            {
+                _operation = OperationActivity.Idle;
+                throw;
+            }
+            finally
+            {
+                _cancelRunningOperation = CancelNothingAction;
+            }
         }
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {

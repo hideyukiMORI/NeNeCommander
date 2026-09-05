@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Domain.Paths;
 
@@ -29,13 +30,7 @@ public sealed record PaneContentListed : PaneContent
     /// <returns>The focused entry, or absence when the pane has no focus item.</returns>
     internal DirectoryEntry? FindFocusedEntry()
     {
-        foreach (DirectoryEntry entry in Listing.Entries)
-        {
-            if (FileSystemPathIdentityComparer.Instance.Equals(entry.Path, State.FocusItem))
-            {
-                return entry;
-            }
-        }
-        return null;
+        return Listing.Entries.FirstOrDefault(entry =>
+            FileSystemPathIdentityComparer.Instance.Equals(entry.Path, State.FocusItem));
     }
 }

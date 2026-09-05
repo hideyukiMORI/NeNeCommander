@@ -86,24 +86,27 @@ public sealed class AsyncWorkOwner
             }
             CancellationTokenSource cancellation = _cancellationFactory();
             ArgumentNullException.ThrowIfNull(cancellation);
-            Task? startedWork = null;
-            try
-            {
-                startedWork = work(cancellation.Token);
-                ArgumentNullException.ThrowIfNull(startedWork);
-            }
-            finally
-            {
-                if (startedWork is null)
-                {
-                    cancellation.Dispose();
-                    _cancellationDisposed();
-                }
-            }
+            Task startedWork = StartWork(work, cancellation);
             OwnedRun run = new(cancellation, startedWork);
             _run = run;
             startedWork.GetAwaiter().OnCompleted(() => CompleteRun(run));
             return true;
+        }
+    }
+
+    private Task StartWork(Func<CancellationToken, Task> work, CancellationTokenSource cancellation)
+    {
+        try
+        {
+            Task startedWork = work(cancellation.Token);
+            ArgumentNullException.ThrowIfNull(startedWork);
+            return startedWork;
+        }
+        catch
+        {
+            cancellation.Dispose();
+            _cancellationDisposed();
+            throw;
         }
     }
 

@@ -618,8 +618,38 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
 
-        _ = Assert.ThrowsExactly<ArgumentException>(
+        ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(
             () => WindowsLocalTreeCopy.ResolveDirectChild(root.Path.CanonicalText, childName));
+        Assert.AreEqual("childName", failure.ParamName);
+        Assert.StartsWith("A direct child name must contain exactly one path segment.", failure.Message);
+    }
+
+    /// <summary>Proves each required direct-child resolver argument is rejected at its own boundary.</summary>
+    [TestMethod]
+    public void ResolveDirectChildWhenArgumentIsNullThrowsNamedArgumentNullException()
+    {
+        MethodInfo method = typeof(WindowsLocalTreeCopy).GetMethod(
+            "ResolveDirectChild",
+            BindingFlags.Static | BindingFlags.NonPublic) ??
+            throw new AssertFailedException("The direct-child resolver was not found.");
+
+        AssertResolverNullGuard(method, [null, "child.txt"], "parentText");
+        AssertResolverNullGuard(method, ["C:\\parent", null], "childName");
+    }
+
+    /// <summary>Proves every child must match, rather than only one child, when trees are compared.</summary>
+    [TestMethod]
+    public void MatchesWhenOneOfTwoChildrenDiffersReturnsFalse()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string sourceText = root.CreateDirectory("source");
+        _ = root.WriteFile("source\\a.txt", "same");
+        _ = root.WriteFile("source\\b.txt", "source");
+        string targetText = root.CreateDirectory("target");
+        _ = root.WriteFile("target\\a.txt", "same");
+        _ = root.WriteFile("target\\b.txt", "different");
+
+        Assert.IsFalse(WindowsLocalTreeCopy.Matches(new DirectoryInfo(sourceText), targetText));
     }
 
     /// <summary>Proves every port method rejects an absent argument before touching the filesystem.</summary>
@@ -651,6 +681,14 @@ public sealed class WindowsLocalFileOperationAdapterTests
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
             () => method.Invoke(instance, arguments));
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+    }
+
+    private static void AssertResolverNullGuard(MethodInfo method, object?[] arguments, string parameterName)
+    {
+        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => method.Invoke(null, arguments));
+        ArgumentNullException inner = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+        Assert.AreEqual(parameterName, inner.ParamName);
     }
 
     private static async Task<FileEntrySnapshot> InspectAsync(WindowsLocalFileOperationAdapter adapter, FileSystemPath path)

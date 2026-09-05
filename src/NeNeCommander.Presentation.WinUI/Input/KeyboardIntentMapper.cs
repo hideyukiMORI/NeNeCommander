@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Time;
 
@@ -78,14 +79,7 @@ public sealed class KeyboardIntentMapper
     public static IReadOnlyList<KeyBinding> BindingsFor(KeyboardContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        List<KeyBinding> declared = [];
-        foreach (KeyBinding binding in DeclaredBindings)
-        {
-            if (binding.Context == context)
-            {
-                declared.Add(binding);
-            }
-        }
+        List<KeyBinding> declared = [.. DeclaredBindings.Where(binding => binding.Context == context)];
         return declared.AsReadOnly();
     }
 
@@ -144,26 +138,18 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static KeyboardMappingOutcome MapOwnedKey(KeyboardInput input)
     {
-        foreach (KeyBinding binding in DeclaredBindings)
-        {
-            if (binding.Context == input.Context && binding.Key == input.Key)
-            {
-                return MapIntent(binding.Intent);
-            }
-        }
-        return new KeyboardPassThrough();
+        KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
+            binding.Context == input.Context && binding.Key == input.Key);
+        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)
     {
-        foreach (KeyBinding binding in DeclaredBindings)
-        {
-            if (binding.Context == input.Context && binding.Key == input.Key && binding.Modifier == input.Modifier)
-            {
-                return MapIntent(binding.Intent);
-            }
-        }
-        return new KeyboardPassThrough();
+        KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
+            binding.Context == input.Context &&
+            binding.Key == input.Key &&
+            binding.Modifier == input.Modifier);
+        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
     }
 
     private static bool IsChordPrefix(KeyboardInput input)

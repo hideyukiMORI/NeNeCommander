@@ -134,15 +134,7 @@ public static class PaneReducer
         IReadOnlyList<FileSystemPath> selection)
     {
         HashSet<FileSystemPath> visible = VisibleIdentities(state);
-        List<FileSystemPath> retained = [];
-        foreach (FileSystemPath item in selection)
-        {
-            if (visible.Contains(item))
-            {
-                retained.Add(item);
-            }
-        }
-        return retained;
+        return [.. selection.Where(visible.Contains)];
     }
 
     private static HashSet<FileSystemPath> VisibleIdentities(PaneState state)

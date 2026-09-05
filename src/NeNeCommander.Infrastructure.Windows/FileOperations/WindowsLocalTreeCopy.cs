@@ -105,11 +105,7 @@ public static class WindowsLocalTreeCopy
         }
 
         string parent = Path.TrimEndingDirectorySeparator(Path.GetFullPath(parentText));
-        string candidate = Path.GetFullPath(Path.Join(parent, childName));
-        string expectedParent = Path.GetDirectoryName(candidate) ?? string.Empty;
-        return expectedParent.Equals(parent, StringComparison.OrdinalIgnoreCase)
-            ? candidate
-            : throw new ArgumentException("The child path escaped its parent.", nameof(childName));
+        return Path.GetFullPath(Path.Join(parent, childName));
     }
 
     private static EnumerationOptions CreateDirectEntryOptions()

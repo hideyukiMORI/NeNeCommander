@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Input;
 
@@ -28,13 +29,10 @@ public static class KeyHintPresenter
 
     private static void AddHint(List<KeyHint> hints, IReadOnlyList<KeyBinding> bindings, IntentLabel label)
     {
-        foreach (KeyBinding binding in bindings)
+        KeyBinding? binding = bindings.FirstOrDefault(binding => binding.Intent == label.Intent);
+        if (binding is not null)
         {
-            if (binding.Intent == label.Intent)
-            {
-                hints.Add(new KeyHint(binding.Key.LabelResourceKey, label.ResourceKey));
-                return;
-            }
+            hints.Add(new KeyHint(binding.Key.LabelResourceKey, label.ResourceKey));
         }
     }
 

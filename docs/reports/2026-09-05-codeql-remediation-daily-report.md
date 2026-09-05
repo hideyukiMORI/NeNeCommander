@@ -29,8 +29,9 @@ Every owned production and test path remains analyzed by `security-and-quality`;
 
 - `pwsh -NoProfile -File ./eng/security-check.ps1`: PASS; 18 adversarial cases and 8 security negative fixtures.
 - Locked Release restore and solution build: PASS after analyzer-guided simplification; zero warnings and errors.
-- Domain 65, Application 176, Infrastructure.Windows 76, Presentation.WinUI 76: PASS, 393 total and zero skipped.
+- Initial focused set: Domain 65, Application 176, Infrastructure.Windows 76, Presentation.WinUI 76; PASS, 393 total and zero skipped.
+- After the first branch analysis exposed 16 findings from intervening merged work, Application 176, Infrastructure.Windows 78, Presentation.WinUI 76, and Architecture 5 passed. Focused Infrastructure mutation recovered from the branch run's 85.11% failure to 90.61%, above its protected 90% break threshold.
 
 ## Pending integration evidence
 
-The Draft branch still requires one manually dispatched security deep review, successful CodeQL analysis, and branch alert read-back of zero. The final head/latest base then requires the canonical Ready CI gate. After squash merge, a default-branch deep review and API read-back must show zero open default-branch alerts. These results may be recorded in the PR instead of creating a result-only documentation commit and another gate run.
+Draft run `33968797800` proved canonical gate, 398 tests, coverage, and CodeQL analysis, but failed Infrastructure mutation at 85.11%. Its branch alert read-back proved generated findings were gone and exposed 16 owned findings introduced across the current integration base; all are addressed in the next Draft head. That final Draft branch still requires a successful manually dispatched security deep review and branch alert read-back of zero. The final head/latest base then requires the canonical Ready CI gate. After squash merge, a default-branch deep review and API read-back must show zero open default-branch alerts. These results may be recorded in the PR instead of creating a result-only documentation commit and another gate run.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -68,15 +69,11 @@ public abstract record ColorScheme
             return new ColorSchemeRejected(ColorSchemeFailureKind.Absent);
         }
 
-        foreach (ColorScheme scheme in All)
-        {
-            if (string.Equals(scheme.Identifier, identifier, StringComparison.Ordinal))
-            {
-                return new ColorSchemeAccepted(scheme);
-            }
-        }
-
-        return new ColorSchemeRejected(ColorSchemeFailureKind.Unknown);
+        ColorScheme? scheme = All.FirstOrDefault(candidate =>
+            string.Equals(candidate.Identifier, identifier, StringComparison.Ordinal));
+        return scheme is null
+            ? new ColorSchemeRejected(ColorSchemeFailureKind.Unknown)
+            : new ColorSchemeAccepted(scheme);
     }
 
     private sealed record NeNeDarkScheme : ColorScheme
