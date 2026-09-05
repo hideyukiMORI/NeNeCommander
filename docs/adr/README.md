@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0029: Report a copy target created before provider failure](0029-report-partial-copy-target.md)
 - [ADR-0028: Reuse pane rows through incremental projection](0028-incremental-pane-projection.md)
 - [ADR-0027: Schedule synchronous Windows local I/O through one execution boundary](0027-schedule-windows-local-io.md)
 - [ADR-0026: Prune generated directories before proof-tree traversal](0026-prune-generated-proof-inputs.md)

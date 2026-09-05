@@ -272,6 +272,67 @@ public sealed class FileOperationGatewayTests
         Assert.AreEqual("Verify:C:\\first", port.Calls[4]);
     }
 
+    /// <summary>Proves a failed copy carries its created target into the operation effects.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenCopyFailsAfterTargetCreationReportsPartialEffect()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath second = ParsePath("C:\\second");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(first, DeletionCapability.PermanentOnly));
+        port.EnqueueInspection(Inspection(second, DeletionCapability.PermanentOnly));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.FailedAfterEffect(
+            FileOperationFailureKind.Copy,
+            ProviderStepEffectKind.CopyTargetCreated));
+        using FileOperationGateway gateway = new(port);
+        RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateCopy([first, second]),
+            progress,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(first, outcome.Effects[0].Source);
+        Assert.AreSame(FileOperationEffectKind.CopyTargetCreated, outcome.Effects[0].Kind);
+        Assert.IsEmpty(progress.Reports);
+        Assert.HasCount(4, port.Calls);
+        Assert.AreEqual("Copy:C:\\first", port.Calls[3]);
+    }
+
+    /// <summary>Proves a move never verifies or deletes a source whose copy left a partial target.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenMoveCopyFailsAfterTargetCreationReportsEffectWithoutDeletingSource()
+    {
+        FileSystemPath source = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(source, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.FailedAfterEffect(
+            FileOperationFailureKind.Copy,
+            ProviderStepEffectKind.CopyTargetCreated));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateMove([source]),
+            RecordingFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.CopyTargetCreated, outcome.Effects[0].Kind);
+        Assert.HasCount(3, port.Calls);
+        Assert.AreEqual("Copy:C:\\source", port.Calls[2]);
+    }
+
     /// <summary>Proves a copy rejected by preflight starts no mutation.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
