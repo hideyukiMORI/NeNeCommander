@@ -49,3 +49,13 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 ## 次の推奨縦切り
 
 `feat/49-hidden-item-visibility` の続き（deep review、実機確認、PR、merge）。詳細は [`docs/handoffs/2026-09-05-hidden-item-visibility-handoff.md`](../handoffs/2026-09-05-hidden-item-visibility-handoff.md)。
+
+## 実装サナ継続（18:41 JST 以降）
+
+- `main` の ADR-0025 / QLT-015 を no-commit merge で取り込み、過去の毎試行 full gate 手順を適用しなかった。
+- 全 entry が hidden の pane を `Shown -> Hidden -> Shown -> MoveNext` と遷移させる短い reducer test を追加した。修正前は可視 entry が戻っても focus が null のままで、`GetFocusIndex` が `Sequence contains no matching element` を投げることを確認した。
+- visibility transition が旧 focus を回復できず可視集合が非空なら、先頭の可視 entry を focus にするよう単一 reducer 経路を修正した。実装 checkpoint は `dfe0593`。
+- Release restore / build は成功（warning 0）。修正後の対象 test 1 件、Application 173 件、Infrastructure 66 件、Presentation 65 件はすべて成功した。
+- `pwsh -NoProfile -File ./eng/deep-review.ps1`: PASS。canonical 部分 373 / 373、branch coverage 100.00 / 100.00 / 95.48 / 98.06%、mutation 97.12 / 98.32 / 93.20 / 100.00%。
+- hide の desktop を妨げないよう、別 desktop object 上で `showHiddenItems=false` / `true` の Release process と window 作成まで確認した。別 desktop は DWM / UI Automation content を取得できず screenshot が黒画像だったため、これを表示差の proof とは扱わない。settings file は byte snapshot から復元した。interactive desktop の screenshot / UIA は未完了のまま明示し、PR は Draft を維持する。
+- deep review の fixture copy で、負例ごとに約 410 MiB、cleanup 累計 8.1 GiB の生成物コピーを実測した。これは次の gate fixture performance Issue の改善前 evidence とする。

@@ -2,6 +2,15 @@
 
 Status: informational
 
+## 実装サナ継続 checkpoint
+
+- branch は `main=27495b38`（ADR-0025 / QLT-015）を取り込み、実装 checkpoint `dfe0593` に進んだ。
+- 全 hidden を非表示にした後で再表示すると focus が null のままになる回帰を、`Shown -> Hidden -> Shown -> MoveNext` の失敗 test で先に証明して修正した。visibility transition は可視集合が非空なら必ず可視 entry に focus を戻す。
+- Release build、Application 173、Infrastructure 66、Presentation 65、Commit mode が成功した。
+- deep review は成功した。canonical 373 / 373、coverage 100.00 / 100.00 / 95.48 / 98.06%、mutation 97.12 / 98.32 / 93.20 / 100.00%。
+- interactive desktop の screenshot / UIA だけが未完了。hide の作業を妨げない別 desktop object では process / window 作成を false / true の両方で確認できたが、DWM と UIA content が得られず黒画像だったため proof に数えていない。settings は元 byte 列へ復元済み。Draft PR のままこの環境 proof を終えてから Ready にする。
+- 次の独立作業では gate fixture copy の改善前 baseline として、負例 1 件あたり約 410 MiB、cleanup 累計 8.1 GiB を観測済み。
+
 ## 開始地点
 
 - Codename: `NeNe Commander`
