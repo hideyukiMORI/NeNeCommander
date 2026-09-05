@@ -647,7 +647,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalFileOperationAdapter adapter = new();
-        FileSystemPath sourceTarget = ParsePath(root.CreateDirectory("source-target"));
+        _ = root.CreateDirectory("source-target");
         FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
         FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
         FileSystemPath destinationLink = ParsePath(root.CreateJunction("destination-link", "destination-target"));
