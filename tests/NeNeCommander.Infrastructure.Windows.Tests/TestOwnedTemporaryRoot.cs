@@ -53,7 +53,7 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
     /// <summary>Resolves a direct child name to a full path that is verified to stay inside the root.</summary>
     internal string Resolve(string childName)
     {
-        string childPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(_fullPath, childName));
+        string childPath = System.IO.Path.GetFullPath(System.IO.Path.Join(_fullPath, childName));
         return childPath.StartsWith(_fullPath + "\\", StringComparison.OrdinalIgnoreCase)
             ? childPath
             : throw new InvalidOperationException("The requested child escapes the test root.");

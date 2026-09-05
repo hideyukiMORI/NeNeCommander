@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
@@ -135,14 +136,14 @@ public sealed class KeyboardIntentMapperTests
         KeyboardIntentMapper mapper = CreateMapper();
         KeyboardKey[] keys = [KeyboardKey.F2, KeyboardKey.F5, KeyboardKey.F6, KeyboardKey.F7, KeyboardKey.F8];
 
-        foreach (KeyboardKey key in keys)
+        IEnumerable<KeyboardMappingOutcome> outcomes = keys.Select(key => mapper.Map(
+            KeyboardInput.Create(
+                key,
+                KeyboardModifier.None,
+                KeyRepeatState.Repeated,
+                KeyboardContext.FileList)));
+        foreach (KeyboardMappingOutcome outcome in outcomes)
         {
-            KeyboardMappingOutcome outcome = mapper.Map(
-                KeyboardInput.Create(
-                    key,
-                    KeyboardModifier.None,
-                    KeyRepeatState.Repeated,
-                    KeyboardContext.FileList));
             _ = Assert.IsInstanceOfType<KeyboardPassThrough>(outcome);
         }
     }

@@ -223,19 +223,14 @@ public abstract record FileSystemPath
 
     private static bool IsValidDistributionName(string distributionName)
     {
-        if (distributionName.Length == 0 || !char.IsAsciiLetterOrDigit(distributionName[0]))
-        {
-            return false;
-        }
+        return distributionName.Length > 0 &&
+            char.IsAsciiLetterOrDigit(distributionName[0]) &&
+            distributionName.All(IsDistributionNameCharacter);
+    }
 
-        foreach (char character in distributionName)
-        {
-            if (!char.IsAsciiLetterOrDigit(character) && character != '.' && character != '_' && character != '-')
-            {
-                return false;
-            }
-        }
-        return true;
+    private static bool IsDistributionNameCharacter(char character)
+    {
+        return char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-';
     }
 
     private static bool IsReservedWindowsName(string stem)
@@ -250,14 +245,7 @@ public abstract record FileSystemPath
 
     private static bool ContainsControlCharacter(string input)
     {
-        foreach (char character in input)
-        {
-            if (char.IsControl(character))
-            {
-                return true;
-            }
-        }
-        return false;
+        return input.Any(char.IsControl);
     }
 
     private static bool IsDeviceNamespace(string input)

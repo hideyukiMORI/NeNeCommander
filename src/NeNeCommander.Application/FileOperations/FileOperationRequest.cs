@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -52,18 +53,9 @@ public abstract record FileOperationRequest
         FileSystemPath destination)
     {
         FileOperationRequestFailureKind? failure = ValidateSourceSet(sources);
-        if (failure is not null)
-        {
-            return failure;
-        }
-
-        foreach (FileSystemPath source in sources)
-        {
-            if (FileSystemPathIdentityComparer.Instance.Equals(source, destination))
-            {
-                return FileOperationRequestFailureKind.DestinationIsSource;
-            }
-        }
-        return null;
+        return failure ??
+            (sources.Any(source => FileSystemPathIdentityComparer.Instance.Equals(source, destination))
+                ? FileOperationRequestFailureKind.DestinationIsSource
+                : null);
     }
 }

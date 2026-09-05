@@ -347,7 +347,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 
     private static string BuildTargetText(WindowsLocalPath destination, FileSystemInfo entry)
     {
-        return Path.Combine(destination.CanonicalText, entry.Name);
+        return WindowsLocalTreeCopy.ResolveDirectChild(destination.CanonicalText, entry.Name);
     }
 
     private static bool TargetExists(string targetText)

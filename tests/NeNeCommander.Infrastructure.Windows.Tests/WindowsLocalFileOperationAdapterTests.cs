@@ -593,6 +593,35 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.AreEqual("keep", File.ReadAllText(target));
     }
 
+    /// <summary>Proves the shared target resolver keeps a direct name beneath its exact parent.</summary>
+    [TestMethod]
+    public void ResolveDirectChildWhenNameIsOneSegmentReturnsContainedPath()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+
+        string resolved = WindowsLocalTreeCopy.ResolveDirectChild(root.Path.CanonicalText, "child.txt");
+
+        Assert.AreEqual(root.Resolve("child.txt"), resolved, ignoreCase: true);
+    }
+
+    /// <summary>Proves rooted and multi-segment names cannot replace or escape the target parent.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-009")]
+    [DataRow("")]
+    [DataRow(".")]
+    [DataRow("..")]
+    [DataRow("..\\escape.txt")]
+    [DataRow("nested\\escape.txt")]
+    [DataRow("C:\\escape.txt")]
+    public void ResolveDirectChildWhenNameIsNotOneSegmentThrowsArgumentException(string childName)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+
+        _ = Assert.ThrowsExactly<ArgumentException>(
+            () => WindowsLocalTreeCopy.ResolveDirectChild(root.Path.CanonicalText, childName));
+    }
+
     /// <summary>Proves every port method rejects an absent argument before touching the filesystem.</summary>
     [TestMethod]
     public void PortMethodsWhenRequiredArgumentIsNullThrowArgumentNullException()
