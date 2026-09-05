@@ -60,6 +60,14 @@ public sealed class NullGuardTests
             nameof(PermanentDeletionConfirmation.CreateFor),
             [null]);
         AssertStaticNullGuard(typeof(ProviderStepOutcome), nameof(ProviderStepOutcome.Failed), [null]);
+        AssertStaticNullGuard(
+            typeof(ProviderStepOutcome),
+            nameof(ProviderStepOutcome.FailedAfterEffect),
+            [null, ProviderStepEffectKind.CopyTargetCreated]);
+        AssertStaticNullGuard(
+            typeof(ProviderStepOutcome),
+            nameof(ProviderStepOutcome.FailedAfterEffect),
+            [FileOperationFailureKind.Copy, null]);
         AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),
             [null, new[] { entry }, capacity, HiddenItemVisibility.Hidden]);
         AssertStaticNullGuard(typeof(PaneState), nameof(PaneState.Create),

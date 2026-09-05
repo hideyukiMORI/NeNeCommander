@@ -59,3 +59,11 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 - `pwsh -NoProfile -File ./eng/deep-review.ps1`: PASS。canonical 部分 373 / 373、branch coverage 100.00 / 100.00 / 95.48 / 98.06%、mutation 97.12 / 98.32 / 93.20 / 100.00%。
 - hide の desktop を妨げないよう、別 desktop object 上で `showHiddenItems=false` / `true` の Release process と window 作成まで確認した。別 desktop は DWM / UI Automation content を取得できず screenshot が黒画像だったため、これを表示差の proof とは扱わない。settings file は byte snapshot から復元した。interactive desktop の screenshot / UIA は未完了のまま明示し、PR は Draft を維持する。
 - deep review の fixture copy で、負例ごとに約 410 MiB、cleanup 累計 8.1 GiB の生成物コピーを実測した。これは次の gate fixture performance Issue の改善前 evidence とする。
+
+## 実装サナ継続（最新 `main` 統合）
+
+- Issue #54 / #56 / #57 / #58 / #59 の完了後、Draft PR #53 に最新 `main`（`dd6439e`）を統合した。
+- 競合は project state、hidden 行投影と増分 row 投影、部分 copy の null guard の4ファイルに限定された。可視集合を決めるのは引き続き `PaneReducer` だけで、presenter は `VisibleEntries` を ADR-0028 の安定した `PaneRows` へ投影する。
+- Release restore / build は成功（warning 0、error 0）。Application 176、Infrastructure.Windows 69、Presentation.WinUI 76、Architecture 5 はすべて成功し、失敗・skip は0。conformance 110規則と security 18 adversarial cases も成功した。
+- ADR-0025 に従い、統合済み各PRの成功CIと重複するローカル full gate / deep review は追加していない。#49 final head の canonical CI は interactive-desktop proof 後に Ready にして取得する。
+- interactive desktop の screenshot / UIA proof は未完了のままであり、別 desktop object の黒画像を表示差 proof に昇格していない。

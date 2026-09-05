@@ -19,7 +19,10 @@ public interface IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken);
 
-    /// <summary>Copies one frozen source entry beneath a validated destination.</summary>
+    /// <summary>
+    /// Copies one frozen source entry beneath a validated destination, reporting when a failed
+    /// step left the top-level copy target in place with potentially incomplete contents.
+    /// </summary>
     public Task<ProviderStepOutcome> CopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,

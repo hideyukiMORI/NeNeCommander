@@ -685,11 +685,15 @@ public sealed class DualPanePresenterTests
         port.EnqueueStep(ProviderStepOutcome.Succeeded());
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
+        DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current);
 
         _ = await panes.HandleAsync(UserIntent.Delete, observer, CancellationToken.None);
 
+        DualPanePresentation duringProgress = DualPanePresenter.Present(observer.Snapshots[0], beforeProgress);
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(
-            DualPanePresenter.Present(observer.Snapshots[0]).Detail);
+            duringProgress.Detail);
+        Assert.AreSame(beforeProgress.Left.Rows, duringProgress.Left.Rows);
+        Assert.AreSame(beforeProgress.Right.Rows, duringProgress.Right.Rows);
         Assert.AreEqual(1, detail.Completed);
         Assert.AreEqual(2, detail.Total);
         Assert.AreSame(ProgressSegment.Filled, detail.Segments[5]);

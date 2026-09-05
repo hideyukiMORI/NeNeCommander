@@ -24,11 +24,11 @@ Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only
 - Win32 file identifiers through `GetFileInformationByHandle`: stronger identity, but requires unsafe interop and directory handles with backup semantics; deferred to a hardening ADR.
 - Reporting recycle capability and emulating it by moving to a hidden folder: a second deletion path that lies about provider semantics (FS-006).
 - Following or recreating links during copy: recreating symbolic links needs privilege and following them widens the operation root (FS-004, FS-008).
-- Asynchronous stream copy with mid-file cancellation: leaves partial targets the port cannot report because a provider step has no cancelled outcome; the gateway observes cancellation between steps.
+- Asynchronous stream copy with mid-file cancellation: cancellation remains between atomic provider steps. ADR-0029 reports targets left by expected copy failures, but no cancelled provider-step outcome or byte-level abort contract exists.
 
 ## Consequences
 
-- Steps run synchronously inside their `Task` signatures, like the directory reader (ADR-0010).
+- Provider steps remain synchronous and atomic, but ADR-0027 schedules them through the single Windows local I/O execution boundary instead of running them on the caller.
 - A directory copy is one provider step; cancellation is observed by the gateway between steps only.
 - Content is verified by byte count, not by hash; a same-length corruption is not detected.
 - Windows local deletion always requires confirmation until recycle support exists.

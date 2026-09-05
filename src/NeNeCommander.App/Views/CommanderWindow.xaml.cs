@@ -13,6 +13,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
+using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.App.Views;
@@ -25,28 +26,33 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private readonly KeyboardIntentMapper _keyboardIntentMapper;
     private readonly DualPaneSession _panes;
     private readonly ResourceLoader _resources;
-    private Task? _paneWork;
+    private readonly AsyncWorkOwner _paneWork;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
+    private DualPanePresentation? _presentation;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
     /// <param name="panes">Coordinator that owns both pane sessions and the active side.</param>
     /// <param name="initialLeftLocation">Validated location read into the left pane when the shell loads.</param>
     /// <param name="initialRightLocation">Validated location read into the right pane when the shell loads.</param>
+    /// <param name="defectObserver">Application callback that publishes unexpected task defects.</param>
     public CommanderWindow(
         KeyboardIntentMapper keyboardIntentMapper,
         DualPaneSession panes,
         FileSystemPath initialLeftLocation,
-        FileSystemPath initialRightLocation)
+        FileSystemPath initialRightLocation,
+        Action<Exception> defectObserver)
     {
         ArgumentNullException.ThrowIfNull(keyboardIntentMapper);
         ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(initialLeftLocation);
         ArgumentNullException.ThrowIfNull(initialRightLocation);
+        ArgumentNullException.ThrowIfNull(defectObserver);
         _keyboardIntentMapper = keyboardIntentMapper;
         _panes = panes;
         _initialLeftLocation = initialLeftLocation;
         _initialRightLocation = initialRightLocation;
+        _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
         InitializeComponent();
         Title = _resources.GetString("CommanderWindowTitle");
@@ -60,7 +66,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void OnLoaded(object _, RoutedEventArgs args)
     {
-        _paneWork ??= RenderAfterAsync(LoadInitialLocationsAsync());
+        _ = _paneWork.TryStart(cancellationToken => RenderAfterAsync(LoadInitialLocationsAsync(cancellationToken)));
     }
 
     private void OnActivated(object _, WindowActivatedEventArgs args)
@@ -83,10 +89,10 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
     }
 
-    private async Task<DualPaneSnapshot> LoadInitialLocationsAsync()
+    private async Task<DualPaneSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
-        _ = await _panes.NavigateAsync(PaneSide.Left, _initialLeftLocation, CancellationToken.None);
-        return await _panes.NavigateAsync(PaneSide.Right, _initialRightLocation, CancellationToken.None);
+        _ = await _panes.NavigateAsync(PaneSide.Left, _initialLeftLocation, cancellationToken);
+        return await _panes.NavigateAsync(PaneSide.Right, _initialRightLocation, cancellationToken);
     }
 
     /// <summary>
@@ -102,7 +108,8 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void RenderPanes(DualPaneSnapshot snapshot)
     {
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _presentation);
+        _presentation = presentation;
         RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
         RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
         RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
@@ -186,7 +193,10 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
     {
         address.Text = presentation.AddressText;
-        fileList.ItemsSource = presentation.Rows;
+        if (!ReferenceEquals(fileList.ItemsSource, presentation.Rows))
+        {
+            fileList.ItemsSource = presentation.Rows;
+        }
         fileList.SelectedItem = presentation.FocusRow;
         if (presentation.FocusRow is not null)
         {
@@ -242,7 +252,14 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
             ? UserIntent.SubmitName(NameEntry.Text)
             : intent;
-        _paneWork = RenderAfterAsync(_panes.HandleAsync(forwarded, this, CancellationToken.None));
+        _ = _paneWork.TryStart(cancellationToken =>
+            RenderAfterAsync(_panes.HandleAsync(forwarded, this, cancellationToken)));
+    }
+
+    /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
+    public Task StopAsync()
+    {
+        return _paneWork.StopAsync();
     }
 
     private KeyboardContext GetKeyboardContext()

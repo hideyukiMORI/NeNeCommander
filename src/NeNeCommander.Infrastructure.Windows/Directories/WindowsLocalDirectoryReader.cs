@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Directories;
@@ -16,17 +17,33 @@ namespace NeNeCommander.Infrastructure.Windows.Directories;
 /// </summary>
 public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
 {
+    private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
+
     /// <summary>
     /// HRESULT for <c>ERROR_INVALID_PARAMETER</c>, which Windows raises when a directory
     /// enumeration is attempted on a handle that does not refer to a directory.
     /// </summary>
     private const int NotADirectoryHResult = unchecked((int)0x80070057);
 
+    /// <summary>Initializes a reader with the default Windows local I/O execution boundary.</summary>
+    public WindowsLocalDirectoryReader()
+        : this(new WindowsLocalIoExecutionBoundary())
+    {
+    }
+
+    /// <summary>Initializes a reader with the composed Windows local I/O execution boundary.</summary>
+    /// <param name="executionBoundary">Shared boundary for synchronous Windows filesystem work.</param>
+    public WindowsLocalDirectoryReader(WindowsLocalIoExecutionBoundary executionBoundary)
+    {
+        ArgumentNullException.ThrowIfNull(executionBoundary);
+        _executionBoundary = executionBoundary;
+    }
+
     /// <inheritdoc />
     public Task<DirectoryReadOutcome> ReadAsync(DirectoryReadRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return Task.FromResult(Read(request, cancellationToken));
+        return _executionBoundary.ExecuteAsync(() => Read(request, cancellationToken));
     }
 
     internal static DirectoryReadOutcome TranslateListingCreation(DirectoryListingCreation creation)

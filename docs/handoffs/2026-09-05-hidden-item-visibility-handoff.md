@@ -11,6 +11,13 @@ Status: informational
 - interactive desktop の screenshot / UIA だけが未完了。hide の作業を妨げない別 desktop object では process / window 作成を false / true の両方で確認できたが、DWM と UIA content が得られず黒画像だったため proof に数えていない。settings は元 byte 列へ復元済み。Draft PR のままこの環境 proof を終えてから Ready にする。
 - 次の独立作業では gate fixture copy の改善前 baseline として、負例 1 件あたり約 410 MiB、cleanup 累計 8.1 GiB を観測済み。
 
+## 最新 `main` 統合後 checkpoint
+
+- Draft PR #53 は Issue #54 / #56 / #57 / #58 / #59 を含む `main=dd6439e` を取り込み済み。
+- hidden 可視集合と ADR-0028 の増分投影を統合し、`PaneReducer` が決めた `VisibleEntries` だけを安定した `PaneRows` に投影する。focus / selection mark の変更時は影響 row だけを置換し、visibility によって row 集合が変わる時は新しい可視集合を作る。
+- Release restore / build は warning 0、error 0。Application 176、Infrastructure.Windows 69、Presentation.WinUI 76、Architecture 5、conformance 110規則、security 18 adversarial cases が成功した。
+- pre-integration deep review は履歴証跡であり、final head の canonical CI は未取得。interactive-desktop screenshot / UIA proof が可能になるまで Draft を維持し、proof 後に Ready にして fresh canonical CI を得る。
+
 ## 開始地点
 
 - Codename: `NeNe Commander`

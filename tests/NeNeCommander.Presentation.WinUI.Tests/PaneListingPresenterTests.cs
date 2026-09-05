@@ -134,6 +134,63 @@ public sealed class PaneListingPresenterTests
         Assert.AreEqual("C:\\pending", absentLoading.AddressText);
     }
 
+    /// <summary>Proves an activity-only update keeps the existing row source and row instances.</summary>
+    [TestMethod]
+    public async Task PresentWhenOnlyActivityChangesReusesRows()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateListing(
+            "C:\\projects",
+            ["a.txt", "b.txt"],
+            DirectoryListingCompleteness.Complete,
+            0);
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
+        PaneSession session = CreateSession(port);
+        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None);
+        PaneSnapshot loading = session.Current;
+        pending.SetResult(DirectoryReadOutcome.Cancelled());
+        _ = await navigation;
+        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active);
+
+        PanePresentation updated = PaneListingPresenter.Present(loading, PaneFrame.Active, initial);
+
+        Assert.AreSame(initial.Rows, updated.Rows);
+        Assert.AreSame(initial.Rows[0], updated.Rows[0]);
+        Assert.AreSame(initial.Rows[1], updated.Rows[1]);
+        Assert.AreSame(PaneStatus.Loading, updated.Status);
+    }
+
+    /// <summary>Proves focus movement replaces only the previous and current focus rows.</summary>
+    [TestMethod]
+    public async Task PresentWhenFocusMovesReplacesOnlyAffectedRows()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateListing(
+            "C:\\projects",
+            ["a.txt", "b.txt", "c.txt"],
+            DirectoryListingCompleteness.Complete,
+            0);
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port);
+        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active);
+        PaneRow priorFocus = initial.Rows[0];
+        PaneRow priorNext = initial.Rows[1];
+        PaneRow unaffected = initial.Rows[2];
+        PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+
+        PanePresentation updated = PaneListingPresenter.Present(moved, PaneFrame.Active, initial);
+
+        Assert.AreSame(initial.Rows, updated.Rows);
+        Assert.AreNotSame(priorFocus, updated.Rows[0]);
+        Assert.AreNotSame(priorNext, updated.Rows[1]);
+        Assert.AreSame(unaffected, updated.Rows[2]);
+        Assert.AreSame(PaneRowMark.Unmarked, updated.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, updated.Rows[1].Mark);
+    }
+
     /// <summary>Proves cancellation and each failure map to one closed status with the target address.</summary>
     [TestMethod]
     public async Task PresentWhenReadIsCancelledOrFailsTranslatesActivity()
