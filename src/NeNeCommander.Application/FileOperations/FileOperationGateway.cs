@@ -262,6 +262,7 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Cancelled(effects);
         }
         ProviderStepOutcome copy = await _port.CopyAsync(snapshot, destination, cancellationToken);
+        AddCopyProviderEffect(snapshot, copy, effects);
         if (copy.Failure is not null)
         {
             return FileOperationOutcome.Failed(effects, copy.Failure);
@@ -280,6 +281,17 @@ public sealed class FileOperationGateway : IDisposable
         }
         effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Verified));
         return null;
+    }
+
+    private static void AddCopyProviderEffect(
+        FileEntrySnapshot snapshot,
+        ProviderStepOutcome copy,
+        List<FileOperationEffect> effects)
+    {
+        if (copy.Effect is not null)
+        {
+            effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.CopyTargetCreated));
+        }
     }
 
     private async Task<FileOperationOutcome?> MoveOneAsync(

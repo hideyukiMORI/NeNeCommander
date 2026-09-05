@@ -259,8 +259,26 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
-        WindowsLocalTreeCopy.Copy(entry, targetText);
-        return ProviderStepOutcome.Succeeded();
+        try
+        {
+            WindowsLocalTreeCopy.Copy(entry, targetText);
+            return ProviderStepOutcome.Succeeded();
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return FailedCopy(targetText, Normalize(exception.HResult, FileOperationFailureKind.Copy));
+        }
+        catch (IOException exception)
+        {
+            return FailedCopy(targetText, Normalize(exception.HResult, FileOperationFailureKind.Copy));
+        }
+    }
+
+    private static ProviderStepOutcome FailedCopy(string targetText, FileOperationFailureKind failure)
+    {
+        return TargetExists(targetText)
+            ? ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated)
+            : ProviderStepOutcome.Failed(failure);
     }
 
     private static ProviderStepOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)

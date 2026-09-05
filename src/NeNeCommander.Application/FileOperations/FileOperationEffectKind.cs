@@ -8,6 +8,12 @@ public abstract record FileOperationEffectKind
     /// <summary>Gets the effect indicating destination bytes were copied.</summary>
     public static FileOperationEffectKind Copied { get; } = new CopiedEffect();
 
+    /// <summary>
+    /// Gets the effect indicating a copy target exists after a failed provider step and may have
+    /// incomplete contents.
+    /// </summary>
+    public static FileOperationEffectKind CopyTargetCreated { get; } = new CopyTargetCreatedEffect();
+
     /// <summary>Gets the effect indicating the destination copy was verified.</summary>
     public static FileOperationEffectKind Verified { get; } = new VerifiedEffect();
 
@@ -31,6 +37,7 @@ public abstract record FileOperationEffectKind
     }
 
     private sealed record CopiedEffect : FileOperationEffectKind;
+    private sealed record CopyTargetCreatedEffect : FileOperationEffectKind;
     private sealed record VerifiedEffect : FileOperationEffectKind;
     private sealed record SourceDeletedEffect : FileOperationEffectKind;
     private sealed record RecycledEffect : FileOperationEffectKind;

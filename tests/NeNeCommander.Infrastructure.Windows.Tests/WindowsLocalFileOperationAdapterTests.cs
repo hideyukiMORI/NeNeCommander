@@ -459,6 +459,55 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.IsFalse(Directory.Exists(root.Resolve("dest\\denied")));
     }
 
+    /// <summary>Proves a tree copy failure after target creation reports the filesystem change.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenTreeCopyFailsAfterTargetCreationReportsPartialEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
+        FileSystemPath source = ParsePath(root.CreateDirectory("tree"));
+        string lockedPath = root.WriteFile("tree\\locked.txt", "content");
+        using FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None);
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(CopyRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.CopyTargetCreated, outcome.Effects[0].Kind);
+        Assert.AreSame(source, outcome.Effects[0].Source);
+        Assert.IsTrue(Directory.Exists(root.Resolve("dest\\tree")));
+        Assert.IsFalse(File.Exists(root.Resolve("dest\\tree\\locked.txt")));
+    }
+
+    /// <summary>Proves a copy failure before target creation reports no completed effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task CopyAsyncWhenLockedFileFailsBeforeTargetCreationReportsNoEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
+        string sourcePath = root.WriteFile("locked.txt", "content");
+        FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(sourcePath));
+        using FileStream locked = new(sourcePath, FileMode.Open, FileAccess.Read, FileShare.None);
+
+        ProviderStepOutcome outcome = await adapter.CopyAsync(source, destination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        Assert.IsNull(outcome.Effect);
+        Assert.IsFalse(File.Exists(root.Resolve("dest\\locked.txt")));
+    }
+
     /// <summary>Proves the gateway moves a file end to end through the real adapter.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenGatewayMovesFileThroughAdapterSourceIsGoneAndTargetIsVerified()
