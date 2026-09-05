@@ -143,6 +143,34 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
+    Assert-ConformanceFailure -Name 'full-gate-on-push' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  pull_request:', "  push:`n  pull_request:") -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'full-gate-on-commit' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.githooks/pre-commit'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace(' -Mode Commit', '') -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'skipped-full-gate-job' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  canonical-gate:', "  canonical-gate:`n    if: false") -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'lightweight-default-gate' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'eng/check.ps1'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('[string] $Mode = ''Merge''', '[string] $Mode = ''Commit''') -NoNewline
+    }
+
     $invalidMessage = Join-Path $proofRoot 'invalid-commit-message.txt'
     Set-Content -LiteralPath $invalidMessage -Value 'Implement filesystem safety'
     & pwsh -NoProfile -File (Join-Path $root 'eng/validate-commit-message.ps1') -MessageFile $invalidMessage *> $null

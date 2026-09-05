@@ -1,5 +1,9 @@
 [CmdletBinding()]
-param()
+param(
+    [Parameter()]
+    [ValidateSet('Commit', 'Merge')]
+    [string] $Mode = 'Merge'
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -28,6 +32,20 @@ try {
     & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'conformance.ps1') -RepositoryRoot $root
     if ($LASTEXITCODE -ne 0) {
         throw 'Conformance failed.'
+    }
+
+    if ($Mode -eq 'Commit') {
+        Write-Host '==> Commit security checks (without negative proof fixtures)'
+        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'security-check.ps1') -RepositoryRoot $root -SkipProof
+        if ($LASTEXITCODE -ne 0) { throw 'Commit security checks failed.' }
+        if ($isGitWorkTree) {
+            & git diff --check
+            if ($LASTEXITCODE -ne 0) { throw 'Working-tree whitespace check failed.' }
+            & git diff --cached --check
+            if ($LASTEXITCODE -ne 0) { throw 'Staged whitespace check failed.' }
+        }
+        Write-Host 'PASS: commit checks only; targeted behavior tests and merge-time canonical gate are still required.'
+        return
     }
 
     Write-Host '==> Negative gate proofs'

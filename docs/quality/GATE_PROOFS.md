@@ -5,6 +5,7 @@ Status: normative
 | Gate | Positive proof | Negative proof | Current stage |
 |---|---|---|---|
 | required policy files | repository foundation passes | missing required document is rejected | active |
+| merge-time full validation | readiness-only full workflow and lightweight hook/bootstrap are accepted | push-triggered full workflow, full pre-commit, skipped full job, and lightweight default are rejected | active |
 | unique normative rule IDs | all declarations are unique and active | duplicate rule declaration is rejected | active |
 | protected build settings | root settings match pinned values | warnings-as-errors removal is rejected | active |
 | restore/build configuration coherence | locked restore evaluates `Configuration=Release` | default-configuration restore is rejected | active |

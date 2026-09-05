@@ -12,7 +12,8 @@ The repository is in its implementation stage. The first vertical slice establis
 - Current truth: [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md)
 - Test and security law: [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) and [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md)
 - One-time clone setup: `pwsh -NoProfile -File ./eng/bootstrap.ps1`
-- Full local verification: `pwsh -NoProfile -File ./eng/check.ps1`
+- Development/commit policy checks: `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`; run focused behavior and affected-consumer tests during implementation.
+- Full integration verification: `pwsh -NoProfile -File ./eng/check.ps1`; requested in CI by changing the final draft PR to Ready immediately before merge. See [verification workflow](docs/DEVELOPMENT_WORKFLOW.md).
 - Deep security and adversarial verification: `pwsh -NoProfile -File ./eng/deep-review.ps1`
 - Git and pull-request conventions: [docs/COMMIT_CONVENTIONS.md](docs/COMMIT_CONVENTIONS.md)
 

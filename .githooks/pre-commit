@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-exec pwsh -NoProfile -File ./eng/check.ps1
+exec pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit
