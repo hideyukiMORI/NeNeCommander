@@ -20,6 +20,9 @@ public abstract record FileOperationEffectKind
     /// <summary>Gets the effect indicating the source was deleted after a move.</summary>
     public static FileOperationEffectKind SourceDeleted { get; } = new SourceDeletedEffect();
 
+    /// <summary>Gets the effect indicating a source was moved by one atomic provider operation.</summary>
+    public static FileOperationEffectKind AtomicallyMoved { get; } = new AtomicallyMovedEffect();
+
     /// <summary>Gets the effect indicating an item was sent to provider recycle.</summary>
     public static FileOperationEffectKind Recycled { get; } = new RecycledEffect();
 
@@ -40,6 +43,7 @@ public abstract record FileOperationEffectKind
     private sealed record CopyTargetCreatedEffect : FileOperationEffectKind;
     private sealed record VerifiedEffect : FileOperationEffectKind;
     private sealed record SourceDeletedEffect : FileOperationEffectKind;
+    private sealed record AtomicallyMovedEffect : FileOperationEffectKind;
     private sealed record RecycledEffect : FileOperationEffectKind;
     private sealed record PermanentlyDeletedEffect : FileOperationEffectKind;
     private sealed record DirectoryCreatedEffect : FileOperationEffectKind;

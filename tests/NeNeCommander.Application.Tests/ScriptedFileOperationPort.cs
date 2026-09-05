@@ -16,6 +16,8 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<ProviderStepOutcome> _copies;
     private readonly Queue<ProviderStepOutcome> _deletions;
     private readonly Queue<ProviderStepOutcome> _directoryCreations;
+    private readonly Queue<AtomicMoveCapabilityOutcome> _atomicMoveCapabilities;
+    private readonly Queue<ProviderStepOutcome> _atomicMoves;
     private readonly Queue<FileInspectionOutcome> _inspections;
     private readonly Queue<ProviderStepOutcome> _preflights;
     private readonly Queue<ProviderStepOutcome> _renames;
@@ -29,6 +31,8 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         _copies = [];
         _deletions = [];
         _directoryCreations = [];
+        _atomicMoveCapabilities = [];
+        _atomicMoves = [];
         _inspections = [];
         _preflights = [];
         _renames = [];
@@ -57,6 +61,16 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueueCopy(ProviderStepOutcome outcome)
     {
         _copies.Enqueue(outcome);
+    }
+
+    internal void EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome outcome)
+    {
+        _atomicMoveCapabilities.Enqueue(outcome);
+    }
+
+    internal void EnqueueAtomicMove(ProviderStepOutcome outcome)
+    {
+        _atomicMoves.Enqueue(outcome);
     }
 
     internal void EnqueueVerification(ProviderStepOutcome outcome)
@@ -108,6 +122,32 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         _calls.Add("Copy:" + source.Path.CanonicalText);
         ProviderStepOutcome outcome = _copies.Dequeue();
         InvokeCallback(ScriptedCallbackPoint.AfterCopy);
+        return Task.FromResult(outcome);
+    }
+
+    public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        if (_atomicMoveCapabilities.Count == 0)
+        {
+            return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
+        }
+        _calls.Add("AtomicCapability:" + source.Path.CanonicalText);
+        AtomicMoveCapabilityOutcome outcome = _atomicMoveCapabilities.Dequeue();
+        InvokeCallback(ScriptedCallbackPoint.AfterAtomicCapability);
+        return Task.FromResult(outcome);
+    }
+
+    public Task<ProviderStepOutcome> MoveAsync(
+        FileEntrySnapshot source,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        _calls.Add("AtomicMove:" + source.Path.CanonicalText);
+        ProviderStepOutcome outcome = _atomicMoves.Dequeue();
+        InvokeCallback(ScriptedCallbackPoint.AfterAtomicMove);
         return Task.FromResult(outcome);
     }
 

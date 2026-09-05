@@ -53,18 +53,8 @@ public sealed class FileOperationGateway : IDisposable
         {
             return request switch
             {
-                MoveRequest moveRequest => await ExecuteTransferAsync(
-                    moveRequest.Sources,
-                    moveRequest.Destination,
-                    MoveOneAsync,
-                    progress,
-                    cancellationToken),
-                CopyRequest copyRequest => await ExecuteTransferAsync(
-                    copyRequest.Sources,
-                    copyRequest.Destination,
-                    CopyOneAsync,
-                    progress,
-                    cancellationToken),
+                MoveRequest moveRequest => await ExecuteTransferAsync(moveRequest, progress, cancellationToken),
+                CopyRequest copyRequest => await ExecuteTransferAsync(copyRequest, progress, cancellationToken),
                 DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, progress, cancellationToken),
                 CreateDirectoryRequest createRequest => await ExecuteCreateDirectoryAsync(createRequest, progress, cancellationToken),
                 RenameRequest renameRequest => await ExecuteRenameAsync(renameRequest, progress, cancellationToken),
@@ -84,12 +74,23 @@ public sealed class FileOperationGateway : IDisposable
     }
 
     private async Task<FileOperationOutcome> ExecuteTransferAsync(
-        IReadOnlyList<FileSystemPath> sources,
-        FileSystemPath destination,
-        Func<FileEntrySnapshot, FileSystemPath, List<FileOperationEffect>, CancellationToken, Task<FileOperationOutcome?>> transferOne,
+        FileOperationRequest request,
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
+        IReadOnlyList<FileSystemPath> sources;
+        FileSystemPath destination;
+        if (request is MoveRequest move)
+        {
+            sources = move.Sources;
+            destination = move.Destination;
+        }
+        else
+        {
+            CopyRequest copy = (CopyRequest)request;
+            sources = copy.Sources;
+            destination = copy.Destination;
+        }
         List<FileOperationEffect> effects = [];
         InspectionBatch inspection = await InspectAllAsync(sources, cancellationToken);
         if (inspection.Completion == InspectionBatchCompletion.Cancelled)
@@ -114,10 +115,30 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, preflight.Failure);
         }
 
-        int completed = 0;
-        foreach (FileEntrySnapshot snapshot in inspection.Snapshots)
+        IReadOnlyList<AtomicMoveCapabilityOutcome> capabilities = await GetAtomicMoveCapabilitiesAsync(
+            request,
+            inspection.Snapshots,
+            destination,
+            cancellationToken);
+        AtomicMoveCapabilityFailed? capabilityFailure = capabilities
+            .OfType<AtomicMoveCapabilityFailed>()
+            .FirstOrDefault();
+        if (cancellationToken.IsCancellationRequested)
         {
-            FileOperationOutcome? stopped = await transferOne(snapshot, destination, effects, cancellationToken);
+            return FileOperationOutcome.Cancelled(effects);
+        }
+        if (capabilityFailure is not null)
+        {
+            return FileOperationOutcome.Failed(effects, capabilityFailure.Failure);
+        }
+
+        int completed = 0;
+        for (int index = 0; index < inspection.Snapshots.Count; index++)
+        {
+            FileEntrySnapshot snapshot = inspection.Snapshots[index];
+            FileOperationOutcome? stopped = request is MoveRequest
+                ? await MoveOneAsync(snapshot, destination, capabilities[index], effects, cancellationToken)
+                : await CopyOneAsync(snapshot, destination, effects, cancellationToken);
             if (stopped is not null)
             {
                 return stopped;
@@ -126,6 +147,27 @@ public sealed class FileOperationGateway : IDisposable
             progress.Report(FileOperationProgress.Create(completed, sources.Count));
         }
         return FileOperationOutcome.Succeeded(effects);
+    }
+
+    private async Task<IReadOnlyList<AtomicMoveCapabilityOutcome>> GetAtomicMoveCapabilitiesAsync(
+        FileOperationRequest request,
+        IReadOnlyList<FileEntrySnapshot> snapshots,
+        FileSystemPath destination,
+        CancellationToken cancellationToken)
+    {
+        List<AtomicMoveCapabilityOutcome> capabilities = [];
+        foreach (FileEntrySnapshot snapshot in snapshots)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+            AtomicMoveCapabilityOutcome capability = request is MoveRequest
+                ? await _port.GetAtomicMoveCapabilityAsync(snapshot, destination, cancellationToken)
+                : AtomicMoveCapabilityOutcome.Unsupported;
+            capabilities.Add(capability);
+        }
+        return capabilities.AsReadOnly();
     }
 
     private async Task<FileOperationOutcome> ExecuteDeleteAsync(
@@ -298,9 +340,14 @@ public sealed class FileOperationGateway : IDisposable
     private async Task<FileOperationOutcome?> MoveOneAsync(
         FileEntrySnapshot snapshot,
         FileSystemPath destination,
+        AtomicMoveCapabilityOutcome capability,
         List<FileOperationEffect> effects,
         CancellationToken cancellationToken)
     {
+        if (capability == AtomicMoveCapabilityOutcome.Supported)
+        {
+            return await MoveAtomicallyAsync(snapshot, destination, effects, cancellationToken);
+        }
         FileOperationOutcome? stopped = await CopyOneAsync(snapshot, destination, effects, cancellationToken);
         if (stopped is not null)
         {
@@ -317,6 +364,25 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, deletion.Failure);
         }
         effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.SourceDeleted));
+        return null;
+    }
+
+    private async Task<FileOperationOutcome?> MoveAtomicallyAsync(
+        FileEntrySnapshot snapshot,
+        FileSystemPath destination,
+        List<FileOperationEffect> effects,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return FileOperationOutcome.Cancelled(effects);
+        }
+        ProviderStepOutcome move = await _port.MoveAsync(snapshot, destination, cancellationToken);
+        if (move.Failure is not null)
+        {
+            return FileOperationOutcome.Failed(effects, move.Failure);
+        }
+        effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.AtomicallyMoved));
         return null;
     }
 

@@ -105,6 +105,13 @@ Repository content is not sent automatically to Claude, ChatGPT, or another exte
 
 Critical and high findings stop development of unrelated release work until contained. Any leaked credential is revoked before code cleanup. Lower-severity findings still fail the gate and require a fix or constitutional decision; waivers cannot suppress advisories or destructive-operation risks.
 
+### SEC-014 — Native interop keeps a closed safe surface
+
+- Status: **active**
+- Enforcement: repository conformance and negative proof.
+
+Native Windows imports live only in Infrastructure.Windows and use source-generated marshalling. `AllowUnsafeBlocks` is enabled only for that project because the interop generator requires it; handwritten `unsafe` code and enabling unsafe blocks in any other project are prohibited. Interop failures are normalized at the provider boundary and never weaken identity, containment, or collision revalidation.
+
 ## Hosting controls required before first push
 
 Enable branch rulesets requiring `quality`, `dependency-review`, and scheduled-security health; require review; block force pushes and deletion; enable dependency graph, Dependabot alerts and updates, CodeQL code scanning, secret scanning, and push protection. These server settings cannot be established until a remote repository and visibility/license tier exist.

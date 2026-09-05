@@ -17,6 +17,9 @@ public abstract record FileOperationFailureKind
     /// <summary>Gets the failure for copy rejection.</summary>
     public static FileOperationFailureKind Copy { get; } = new CopyFailure();
 
+    /// <summary>Gets the failure for an atomic provider move rejection.</summary>
+    public static FileOperationFailureKind Move { get; } = new MoveFailure();
+
     /// <summary>Gets the failure for copy verification rejection.</summary>
     public static FileOperationFailureKind Verification { get; } = new VerificationFailure();
 
@@ -46,6 +49,7 @@ public abstract record FileOperationFailureKind
     private sealed record InspectionFailure : FileOperationFailureKind;
     private sealed record ConflictFailure : FileOperationFailureKind;
     private sealed record CopyFailure : FileOperationFailureKind;
+    private sealed record MoveFailure : FileOperationFailureKind;
     private sealed record VerificationFailure : FileOperationFailureKind;
     private sealed record DeleteFailure : FileOperationFailureKind;
     private sealed record ConfirmationRequiredFailure : FileOperationFailureKind;
