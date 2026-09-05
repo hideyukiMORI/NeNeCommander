@@ -9,7 +9,7 @@
     { "id": "ADV-006", "owner": "Application", "defense": "Resolve case and normalization collisions through one explicit conflict decision." },
     { "id": "ADV-007", "owner": "Application", "defense": "Never delete a source after cross-provider copy verification fails." },
     { "id": "ADV-008", "owner": "Application", "defense": "Reject permanent deletion without capability-bound explicit confirmation." },
-    { "id": "ADV-009", "owner": "Infrastructure.Windows", "defense": "Prevent command injection through distribution names, filenames, and path text." },
+    { "id": "ADV-009", "owner": "Infrastructure.Windows", "defense": "Use fixed non-shell WSL discovery arguments, validate distribution output, and prevent command injection through names and path text." },
     { "id": "ADV-010", "owner": "Infrastructure.Windows", "defense": "Prevent credentials and sensitive full paths from reaching diagnostics." },
     { "id": "ADV-011", "owner": "Application", "defense": "Bound and cancel hostile large or recursively changing enumerations." },
     { "id": "ADV-012", "owner": "Infrastructure.Windows", "defense": "Reject malformed, oversized, unknown-version, and partially written settings." },

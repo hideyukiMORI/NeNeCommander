@@ -39,7 +39,7 @@ Recycle support, atomic move, replace behavior, case sensitivity, link support, 
 - Status: **active**
 - Enforcement: dependency boundary and adapter tests.
 
-`IWslDistributionCatalog` is implemented in Windows infrastructure and discovers registered distributions through one controlled `wsl.exe --list --quiet` invocation. Feature code never starts `wsl.exe`. Directory access and file mutations use the canonical `\\wsl.localhost` namespace through the WSL provider adapter; shell commands are not a second mutation path.
+`IWslDistributionCatalog` is implemented in Windows infrastructure and discovers registered distributions through one controlled `wsl.exe --list --quiet` invocation. Its argument tokens are fixed, shell execution is disabled, stdout and stderr are drained within a 64 KiB boundary each, cancellation terminates and awaits the owned process, and every non-empty line is parsed as a WSL root before the complete immutable snapshot is published. At most 256 reported lines are accepted and distribution duplicates use case-insensitive identity. Feature code never starts `wsl.exe`. Directory access and file mutations use the canonical `\\wsl.localhost` namespace through the WSL provider adapter; shell commands are not a second mutation path.
 
 ### FS-004 — Links are entries by default
 
