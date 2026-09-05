@@ -10,7 +10,7 @@ Date: 2026-09-04
 
 ## Decision
 
-Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only. Any other provider is `ProviderUnavailable`.
+Add one adapter, `WindowsLocalFileOperationAdapter`, for `WindowsLocalPath` only. It initially rejected every other provider. ADR-0036 later puts it behind `ProviderFileOperationPort`, which delegates validated WSL paths to a separate provider-owned adapter without changing this adapter's Windows-local contract.
 
 - Identity was initially the metadata tuple kind, byte length, creation time, and last write time, owned by `WindowsLocalEntryIdentity`. ADR-0033 supersedes only that tuple definition with a Win32 volume/file identifier plus the same rewrite-sensitive metadata. Every step still revalidates the snapshot through the closed `RevalidationOutcome` (`EntryMatched` or `EntryRejected`) before touching the filesystem; a missing entry is `NotFound`, a changed identity is `IdentityChanged`.
 - Inspection reports `DeletionCapability.PermanentOnly` because no recycle implementation exists; `DeletionExecutionMode.Recycle` is refused with `ProviderUnavailable`. The gateway therefore always requires explicit confirmation for Windows local deletion until a shell recycle adapter is added by a later ADR.

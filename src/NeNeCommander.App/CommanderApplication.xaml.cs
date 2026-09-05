@@ -116,7 +116,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
         ProviderDirectoryReadPort directoryReader = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
-        _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter(ioExecutionBoundary));
+        _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
         DualPaneSession panes = new(
             CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
             CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),

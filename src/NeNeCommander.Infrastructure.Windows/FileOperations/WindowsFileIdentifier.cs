@@ -6,8 +6,8 @@ using Microsoft.Win32.SafeHandles;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
-/// <summary>Reads the stable volume and entry identifiers for one Windows local directory entry.</summary>
-internal static partial class WindowsLocalFileIdentifier
+/// <summary>Reads stable volume and entry identifiers through one Windows namespace handle.</summary>
+internal static partial class WindowsFileIdentifier
 {
     private const uint FileFlagBackupSemantics = 0x02000000;
     private const uint FileFlagOpenReparsePoint = 0x00200000;

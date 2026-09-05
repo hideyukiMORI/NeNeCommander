@@ -25,7 +25,7 @@ Parsing removes redundant separators and `.` segments and resolves `..` without 
 
 All sets, duplicate checks, selection checks, and confirmation comparisons use `FileSystemPathIdentityComparer`. Windows local and UNC identity is case-insensitive. A WSL distribution name is case-insensitive, while its Linux path is case-sensitive. Direct record equality is not a filesystem identity decision.
 
-For operation snapshots, Windows local entries use the operating system's volume/file identifier plus kind, byte length, creation time, and last-write time. The identifier query opens the entry itself without following a reparse point. This snapshot detects both replacement and rewrite; it does not replace the mandatory effect-boundary revalidation.
+For operation snapshots, Windows local and Windows-side WSL entries use the operating system's volume/file identifier plus kind, byte length, creation time, and last-write time. The identifier query opens the entry itself without following a reparse point. This snapshot detects both replacement and rewrite; it does not replace the mandatory effect-boundary revalidation.
 
 ### FS-002 — Capabilities are queried
 
@@ -96,6 +96,13 @@ Disconnected shares, stopped WSL distributions, removed drives, permission chang
 - Enforcement: `IDirectoryReadPort` adapter contract tests and listing tests.
 
 A read returns the direct entries of one validated location through `IDirectoryReadPort` and never recurses or follows links. One Infrastructure.Windows provider router delegates validated `WindowsLocalPath` and `WslPath` requests to their adapters; both use one shared direct-enumeration operation and the existing I/O execution boundary. Unsupported `WindowsUncPath` remains `ProviderUnavailable`. The adapter stops at the request's entry boundary and reports a bounded listing, observes cancellation before enumeration and before each entry, and reports denied, missing, or non-directory locations as typed failures instead of an empty listing. Windows hidden/system attributes and WSL dot-prefixed names are reported as provider facts; all entries remain in the listing and visibility is a later pane transition. Every name is derived with `FileSystemPath.Child`; a rejected name is counted as unrepresentable, not shown and not silently dropped. Ordering is decided by `DirectoryListing`, never by provider enumeration order.
+
+### FS-012 — WSL mutations are provider-local and fail closed
+
+- Status: **active**
+- Enforcement: provider-router, adapter, gateway, identity-race, link, and collision tests.
+
+One `ProviderFileOperationPort` routes validated paths to provider-owned adapters behind `FileOperationGateway`. The WSL adapter permits directory creation only as a direct child of the revalidated location, rename only within the same parent and distribution, and deletion only in confirmed permanent mode. It revalidates the Windows file identifier and rewrite-sensitive metadata immediately before every side effect, refuses reparse points, and treats an existing target as `Conflict`. WSL copy, move, verification, atomic-move capability, cross-provider transfer, overwrite, and recycle remain unavailable until their respective capability and product policies are accepted; the adapter does not invent a fallback.
 
 ## Test safety
 

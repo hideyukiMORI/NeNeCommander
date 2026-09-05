@@ -26,14 +26,14 @@ Every material threat has a stable ID, owner, expected defense, and test mapping
 - Status: **active**
 - Enforcement: parser, size-limit, containment, and malformed-input tests.
 
-Inputs are length-bounded, parsed once, normalized without identity loss, and rejected when ambiguous. Paths, distribution names, resource keys, settings values, and operation batches never enter shell or filesystem APIs as unchecked text. WSL discovery uses fixed process argument tokens, bounds both redirected streams before publishing output, and validates every reported distribution through the canonical path parser; one malformed line rejects the whole snapshot. WSL directory reads route only from a validated `WslPath`, and each untrusted entry name passes through `FileSystemPath.Child` before publication.
+Inputs are length-bounded, parsed once, normalized without identity loss, and rejected when ambiguous. Paths, distribution names, resource keys, settings values, and operation batches never enter shell or filesystem APIs as unchecked text. WSL discovery uses fixed process argument tokens, bounds both redirected streams before publishing output, and validates every reported distribution through the canonical path parser; one malformed line rejects the whole snapshot. WSL directory reads and mutations route only from validated `WslPath` values. Each untrusted enumerated name passes through `FileSystemPath.Child` before publication, and mutation targets are canonical children produced by the existing request model.
 
 ### SEC-003 — Filesystem operations resist races
 
 - Status: **active**
 - Enforcement: failure-injection and race tests.
 
-Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target. Windows local identity combines the Win32 volume/file identifier obtained without following a reparse point with rewrite-sensitive metadata; query ambiguity or failure is closed.
+Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target. Windows local and Windows-side WSL identity combine the Win32 volume/file identifier obtained without following a reparse point with rewrite-sensitive metadata; query ambiguity or failure is closed. WSL mutations additionally revalidate the distribution and parent boundary, refuse reparse points, and never fall back to a shell command.
 
 ### SEC-004 — CI and runtime use least privilege
 

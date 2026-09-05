@@ -12,9 +12,9 @@ The filesystem operations themselves have no naturally asynchronous BCL API. Mut
 
 ## Decision
 
-Add `WindowsLocalIoExecutionBoundary` in Infrastructure.Windows as the single scheduling mechanism for synchronous Windows-side filesystem work. It schedules a supplied synchronous operation with `Task.Factory.StartNew`, `TaskScheduler.Default`, `DenyChildAttach`, and no scheduler-level cancellation. `WindowsLocalDirectoryReader`, the WSL directory reader added by ADR-0035, and every method of `WindowsLocalFileOperationAdapter` delegate their provider work to this boundary.
+Add `WindowsLocalIoExecutionBoundary` in Infrastructure.Windows as the single scheduling mechanism for synchronous Windows-side filesystem work. It schedules a supplied synchronous operation with `Task.Factory.StartNew`, `TaskScheduler.Default`, `DenyChildAttach`, and no scheduler-level cancellation. `WindowsLocalDirectoryReader`, the WSL directory reader added by ADR-0035, every method of `WindowsLocalFileOperationAdapter`, and the WSL mutation adapter added by ADR-0036 delegate their provider work to this boundary.
 
-The App composition root creates one boundary and gives the same instance to the reader and mutation adapter. Application ports remain unchanged. `PaneSession`, `DualPaneSession`, and `FileOperationGateway` continue to await the returned tasks; therefore the caller owns completion and fault observation, the captured UI context owns presentation callbacks, and the gateway semaphore remains the only mutation serialization mechanism.
+The App composition root creates one boundary and gives the same instance to the read and mutation provider routers. Application ports remain unchanged. `PaneSession`, `DualPaneSession`, and `FileOperationGateway` continue to await the returned tasks; therefore the caller owns completion and fault observation, the captured UI context owns presentation callbacks, and the gateway semaphore remains the only mutation serialization mechanism.
 
 The scheduler does not cancel a queued provider step. Cancellation remains a typed provider/application concern: a directory read observes its token before and during enumeration, and the gateway observes cancellation before starting each atomic mutation step and immediately after relevant steps. This preserves ADR-0014 and ADR-0018 rather than introducing a new partially executed provider outcome.
 
@@ -34,7 +34,7 @@ The scheduler does not cancel a queued provider step. Cancellation remains a typ
 
 ## Migration and removal
 
-This decision supersedes only the synchronous-caller portions of ADR-0010 and ADR-0014. Their port, provider, identity, failure, and cancellation decisions remain active. Future synchronous Windows local adapters use this boundary; naturally asynchronous providers await their native APIs and do not wrap them in it.
+This decision supersedes only the synchronous-caller portions of ADR-0010 and ADR-0014. Their port, provider, identity, failure, and cancellation decisions remain active. Future synchronous Windows-side adapters use this boundary; naturally asynchronous providers await their native APIs and do not wrap them in it.
 
 ## Executable proof
 

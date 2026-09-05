@@ -4,7 +4,7 @@
     { "id": "ADV-001", "owner": "Domain", "defense": "Reject parent traversal that crosses a provider root." },
     { "id": "ADV-002", "owner": "Domain", "defense": "Canonicalize WSL aliases without conflating Linux case-sensitive identity." },
     { "id": "ADV-003", "owner": "Infrastructure.Windows", "defense": "Do not follow symlinks, junctions, or reparse points outside an operation root." },
-    { "id": "ADV-004", "owner": "Application", "defense": "Revalidate source volume/file identity and rewrite metadata, destination volume, containment, and collision at the mutation boundary." },
+    { "id": "ADV-004", "owner": "Application", "defense": "Revalidate Windows local or WSL source file identity and rewrite metadata, provider boundary, destination containment, and collision at the mutation boundary." },
     { "id": "ADV-005", "owner": "Application", "defense": "Report exact completed effects when cancellation arrives during composite work." },
     { "id": "ADV-006", "owner": "Application", "defense": "Resolve case and normalization collisions through one explicit conflict decision." },
     { "id": "ADV-007", "owner": "Application", "defense": "Never delete a source after cross-provider copy verification fails." },

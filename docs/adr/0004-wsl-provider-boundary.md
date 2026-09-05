@@ -10,7 +10,7 @@ NeNe Commander must navigate and mutate WSL directories, including cross-boundar
 
 ## Decision
 
-Parse `\\wsl.localhost` and `\\wsl$` inputs into a dedicated `WslPath` provider variant. Render `\\wsl.localhost` canonically. Discover distributions through the infrastructure `IWslDistributionCatalog`; ADR-0034 defines its bounded fixed process invocation and closed outcome. Access content through one Windows-side WSL provider adapter. Do not use shell commands as an alternate mutation engine.
+Parse `\\wsl.localhost` and `\\wsl$` inputs into a dedicated `WslPath` provider variant. Render `\\wsl.localhost` canonically. Discover distributions through the infrastructure `IWslDistributionCatalog`; ADR-0034 defines its bounded fixed process invocation and closed outcome. Access content through provider-owned Windows-side adapters: ADR-0035 defines directory reads and ADR-0036 defines the initial same-distribution mutation subset. Do not use shell commands as an alternate mutation engine.
 
 ## Rejected alternatives
 

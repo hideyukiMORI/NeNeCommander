@@ -21,11 +21,7 @@ Status: informational
 
 ## Integration steps
 
-1. Review the complete candidate diff and commit through the existing Commit-mode hook.
-2. Push and create a Draft PR closing #81.
-3. Confirm remote head/latest base and obtain exact-head deep review because provider/path input handling changed.
-4. Resolve CodeQL/review findings while Draft; after final head proof, mark Ready and require fresh canonical CI.
-5. Squash merge, synchronize clean main, then create the separate WSL file-operation Issue.
+Completed: PR #82 passed dependency run `33985129013`, exact-head deep retry `33985643645`, and Ready canonical run `33986546237`, then squash-merged as `1b5142825b877e47e675f099b38c33a914583b0f`. Issue #81 is closed. Continue with Issue #83 for the separate WSL mutation provider; do not repeat #81's successful gates.
 
 ## Remaining environmental proof
 

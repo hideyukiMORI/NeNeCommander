@@ -38,7 +38,7 @@ public static class WindowsLocalEntryIdentity
         string value = string.Join(
             '|',
             "windows-v2",
-            WindowsLocalFileIdentifier.Describe(entry.FullName),
+            WindowsFileIdentifier.Describe(entry.FullName),
             kind,
             length.ToString(CultureInfo.InvariantCulture),
             entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),

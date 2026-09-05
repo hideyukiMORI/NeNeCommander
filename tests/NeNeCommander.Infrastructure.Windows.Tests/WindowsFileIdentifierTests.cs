@@ -8,14 +8,14 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 
 /// <summary>Proves the closed Win32 file-identifier query boundary.</summary>
 [TestClass]
-public sealed class WindowsLocalFileIdentifierTests
+public sealed class WindowsFileIdentifierTests
 {
     /// <summary>Proves the native query boundary rejects a missing path argument.</summary>
     [TestMethod]
     public void DescribeWhenPathIsNullThrowsArgumentNullException()
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsLocalFileIdentifier.Describe(null!));
+            () => WindowsFileIdentifier.Describe(null!));
     }
 
     /// <summary>Proves one entry has a stable fixed-width volume and 128-bit identifier token.</summary>
@@ -25,8 +25,8 @@ public sealed class WindowsLocalFileIdentifierTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         string path = root.WriteFile("entry.txt", "entry");
 
-        string first = WindowsLocalFileIdentifier.Describe(path);
-        string again = WindowsLocalFileIdentifier.Describe(path);
+        string first = WindowsFileIdentifier.Describe(path);
+        string again = WindowsFileIdentifier.Describe(path);
 
         Assert.AreEqual(first, again);
         Assert.HasCount(48, first);
@@ -40,7 +40,7 @@ public sealed class WindowsLocalFileIdentifierTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
 
         IOException exception = Assert.ThrowsExactly<IOException>(
-            () => WindowsLocalFileIdentifier.Describe(root.Resolve("missing.txt")));
+            () => WindowsFileIdentifier.Describe(root.Resolve("missing.txt")));
 
         Assert.AreEqual(unchecked((int)0x80070002), exception.HResult);
     }
@@ -55,8 +55,8 @@ public sealed class WindowsLocalFileIdentifierTests
         string target = root.CreateDirectory("target");
         string junction = root.CreateJunction("junction", "target");
 
-        string targetIdentity = WindowsLocalFileIdentifier.Describe(target);
-        string junctionIdentity = WindowsLocalFileIdentifier.Describe(junction);
+        string targetIdentity = WindowsFileIdentifier.Describe(target);
+        string junctionIdentity = WindowsFileIdentifier.Describe(junction);
 
         Assert.AreNotEqual(targetIdentity, junctionIdentity);
     }
