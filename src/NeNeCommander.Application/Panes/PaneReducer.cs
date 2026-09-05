@@ -87,8 +87,14 @@ public static class PaneReducer
 
         PaneState rebuilt = state.WithHiddenItemVisibility(hiddenItemVisibility);
         return rebuilt.Transition(
-            RecoverFocus(rebuilt, state.FocusItem),
+            RecoverFocusOrFirst(rebuilt, state.FocusItem),
             RetainVisibleSelection(rebuilt, state.Selection));
+    }
+
+    private static FileSystemPath? RecoverFocusOrFirst(PaneState state, FileSystemPath? target)
+    {
+        FileSystemPath? recovered = RecoverFocus(state, target);
+        return recovered ?? (state.VisibleEntries.Count == 0 ? null : state.VisibleEntries[0].Path);
     }
 
     /// <summary>

@@ -397,6 +397,22 @@ public sealed class PaneReducerTests
         Assert.IsEmpty(omitted.Selection);
     }
 
+    /// <summary>Proves revealing an all-hidden pane restores focus before movement.</summary>
+    [TestMethod]
+    public void ApplyHiddenItemVisibilityWhenAllHiddenEntriesAreRevealedRestoresFocusAndMoves()
+    {
+        DirectoryEntry first = Entry("one", EntryVisibility.Hidden);
+        DirectoryEntry second = Entry("two", EntryVisibility.Hidden);
+        PaneState shown = CreateState([first, second], 4, HiddenItemVisibility.Shown);
+        PaneState omitted = PaneReducer.ApplyHiddenItemVisibility(shown, HiddenItemVisibility.Hidden);
+
+        PaneState revealed = PaneReducer.ApplyHiddenItemVisibility(omitted, HiddenItemVisibility.Shown);
+        PaneState moved = PaneReducer.Apply(revealed, UserIntent.MoveNext);
+
+        Assert.AreSame(first.Path, revealed.FocusItem);
+        Assert.AreSame(second.Path, moved.FocusItem);
+    }
+
     /// <summary>Proves only the selected items that became hidden leave the selection.</summary>
     [TestMethod]
     public void ApplyHiddenItemVisibilityWhenSelectedItemsAreHiddenDropsOnlyThose()

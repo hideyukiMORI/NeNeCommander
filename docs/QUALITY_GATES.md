@@ -2,7 +2,7 @@
 
 Status: normative
 
-`eng/check.ps1` is the single local and CI definition of done. Individual tools may be used for diagnosis, but their success never substitutes for the complete gate.
+`eng/check.ps1` (default `Merge` mode) is the single full definition of merge readiness. Individual tools and targeted tests are used during implementation; their success never substitutes for the complete integration gate. `-Mode Commit` performs lightweight conformance, security scans without negative fixtures, and whitespace checks; it does not build, run behavior tests, collect coverage, or claim merge readiness.
 
 ## Gate sequence
 
@@ -18,7 +18,7 @@ The canonical gate stops at the first failing stage:
 8. coverage threshold verification;
 9. clean generated-output and dependency-lock proof.
 
-The canonical gate also runs secret, script-safety, workflow-supply-chain, NuGet-audit-policy, and adversarial-registry checks on every invocation. The heavier mutation and CodeQL work runs through `eng/deep-review.ps1` every three days.
+Both modes run secret, script-safety, workflow-supply-chain, NuGet-audit-policy, and adversarial-registry checks. Full negative proofs, build, behavior tests and coverage run at merge readiness, not on every edit/commit/push/PR update. The heavier mutation and CodeQL work runs through `eng/deep-review.ps1` every three days; security-sensitive changes also require deep review at integration readiness.
 
 In `policy-foundation`, stages 3–9 are not silently skipped: production code is prohibited and the conformance gate proves that no solution or implementation is being represented as complete. The atomic transition described in `docs/PROJECT_STATE.md` activates all implementation stages.
 
@@ -27,7 +27,7 @@ In `policy-foundation`, stages 3–9 are not silently skipped: production code i
 - Status: **active**
 - Enforcement: `eng/check.ps1` and CI workflow.
 
-Local verification and CI invoke the same script with no reduced CI-only or local-only path. Contributors may not document a second definition of done.
+Local verification and CI share one script and the same mode definitions. The full default mode is the sole merge gate. Commit mode and targeted development diagnostics are explicitly incomplete evidence, not a second definition of done. A successful required CI gate need not be duplicated locally.
 
 ### QLT-002 — Compiler and analyzer findings fail the build
 
@@ -119,6 +119,13 @@ The default branch runs deep security, adversarial, dependency, and mutation ana
 - Enforcement: `eng/check.ps1`, `eng/conformance.ps1`, and negative gate proof.
 
 The canonical gate performs its single locked restore with `Configuration=Release` before the Release build. Configuration-conditional runtime and build packs must be resolved on a clean runner; a default-configuration restore followed by a Release `--no-restore` build is prohibited.
+
+### QLT-015 — Full validation is requested at integration readiness
+
+- Status: **active**
+- Enforcement: `eng/conformance.ps1`, negative gate fixtures, `quality.yml`, and the main ruleset.
+
+Keep PRs draft during development. The sole normal full-CI trigger is `pull_request: ready_for_review`; Draft to Ready means the focused Issue is ready for its final integration check. Push, PR opened/synchronize, commit, and post-merge events must not start the full gate. A non-draft PR created directly must be converted to Draft then Ready to request validation. Further head changes require a fresh readiness transition; when main changes, update the branch and request fresh validation. The ruleset must retain required `canonical-gate` from GitHub Actions, strict up-to-date status checks, no bypass actors, and squash-only PR integration. Never use a skipped job or a lightweight success under the `canonical-gate` name. The job runs the complete default command against the PR merge candidate. Obsolete runs for the same PR may be cancelled. Separate scheduled/security/release deep-review obligations remain in force.
 
 ## Test tiers
 

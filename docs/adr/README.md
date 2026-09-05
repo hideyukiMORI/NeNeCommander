@@ -10,6 +10,8 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0025: Run the full gate at merge readiness](0025-merge-time-full-gate.md) (0024 is reserved by the in-progress hidden-visibility branch.)
+
 - [ADR-0001: Strictness is mechanically enforced](0001-strictness-is-mechanically-enforced.md)
 - [ADR-0002: Use .NET 10, C# 14, and WinUI 3](0002-dotnet-10-csharp-14-winui-3.md)
 - [ADR-0003: Use CommunityToolkit.Mvvm generators](0003-communitytoolkit-mvvm-generators.md)

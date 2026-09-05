@@ -4,6 +4,8 @@ Status: normative
 
 Tests are executable specifications. Production code is not accepted because it appears correct; it is accepted only when positive, negative, boundary, failure, concurrency, and adversarial behavior are proved at the owning layer.
 
+Execution cadence follows QLT-015 and ADR-0025: run focused behavior and affected-consumer tests during implementation, lightweight checks on commit, and the full canonical suite once the final Issue/PR is ready to merge. Rerun full validation when that candidate changes. Full-layer mutation is a scheduled/security-integration/release obligation, not an automatic requirement for each small implementation attempt. This cadence changes neither test obligations nor protected thresholds.
+
 ### TST-001 — Every behavior has an owning test tier
 
 - Status: **active**

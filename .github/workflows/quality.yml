@@ -1,8 +1,12 @@
 name: quality
 
 on:
-  push:
   pull_request:
+    types: [ready_for_review]
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
