@@ -233,14 +233,8 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             TargetExists(BuildTargetText(localDestination, entry))
                 ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
                 : ProviderStepOutcome.Succeeded()));
-        foreach (ProviderStepOutcome sourceOutcome in sourceOutcomes)
-        {
-            if (sourceOutcome.Failure is not null)
-            {
-                return sourceOutcome;
-            }
-        }
-        return ProviderStepOutcome.Succeeded();
+        ProviderStepOutcome? failure = sourceOutcomes.FirstOrDefault(sourceOutcome => sourceOutcome.Failure is not null);
+        return failure ?? ProviderStepOutcome.Succeeded();
     }
 
     private static ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)

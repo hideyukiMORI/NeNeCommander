@@ -30,7 +30,7 @@ Every owned production and test path remains analyzed by `security-and-quality`;
 - `pwsh -NoProfile -File ./eng/security-check.ps1`: PASS; 18 adversarial cases and 8 security negative fixtures.
 - Locked Release restore and solution build: PASS after analyzer-guided simplification; zero warnings and errors.
 - Initial focused set: Domain 65, Application 176, Infrastructure.Windows 76, Presentation.WinUI 76; PASS, 393 total and zero skipped.
-- After the first branch analysis exposed 16 findings from intervening merged work, Application 176, Infrastructure.Windows 78, Presentation.WinUI 76, and Architecture 5 passed. Focused Infrastructure mutation recovered from the branch run's 85.11% failure to 90.61%, above its protected 90% break threshold.
+- After the first branch analysis exposed 16 findings from intervening merged work, Application 176, Infrastructure.Windows 78, Presentation.WinUI 76, and Architecture 5 passed. Focused Infrastructure mutation recovered from the branch run's 85.11% failure to 90.61%, then remained at 90.68% after the final one-alert fix, above its protected 90% break threshold.
 
 ## Pending integration evidence
 

@@ -18,7 +18,7 @@ Status: informational
 - Initial affected Domain, Application, Infrastructure.Windows, and Presentation.WinUI tests: PASS, 393 total and zero skipped.
 - ADV-009 now explicitly rejects empty, special, traversal, multi-segment, and rooted target-child names.
 - Draft run `33968797800`: canonical gate, 398 tests, coverage, and CodeQL analyze passed; Infrastructure mutation failed at 85.11%. The successful analysis removed all generated alerts and identified 16 current owned findings.
-- After those 16 fixes and direct-child test strengthening: Release build, Application 176, Infrastructure.Windows 78, Presentation.WinUI 76, Architecture 5 passed; focused Infrastructure mutation passed at 90.61% against the unchanged 90% threshold.
+- After those 16 fixes and direct-child test strengthening: Release build, Application 176, Infrastructure.Windows 78, Presentation.WinUI 76, Architecture 5 passed; focused Infrastructure mutation passed at 90.61%, then at 90.68% after the final one-alert fix, against the unchanged 90% threshold.
 
 ## Integration steps
 
