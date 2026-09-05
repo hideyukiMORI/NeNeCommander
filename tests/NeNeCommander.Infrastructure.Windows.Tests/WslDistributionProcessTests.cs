@@ -41,14 +41,16 @@ public sealed class WslDistributionProcessTests
     {
         string boundary = new('a', WslDistributionCatalog.OutputCharacterBoundary);
         bool terminated = false;
+        using StringReader boundaryReader = new(boundary);
+        using StringReader oversizedReader = new(boundary + "a");
 
         string accepted = await WslDistributionProcess.ReadBoundedAsync(
-            new StringReader(boundary),
+            boundaryReader,
             () => terminated = true,
             CancellationToken.None);
         _ = await Assert.ThrowsExactlyAsync<InvalidDataException>(
             () => WslDistributionProcess.ReadBoundedAsync(
-                new StringReader(boundary + "a"),
+                oversizedReader,
                 () => terminated = true,
                 CancellationToken.None));
 
