@@ -7,8 +7,8 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
 /// <summary>
-/// Captures and revalidates the metadata identity of one Windows local entry: its kind, byte
-/// length, creation time, and last write time. A replaced or rewritten entry changes this identity.
+/// Captures and revalidates one Windows local entry from its Win32 volume/file identifier plus
+/// kind, byte length, creation time, and last write time. A replaced or rewritten entry changes it.
 /// </summary>
 public static class WindowsLocalEntryIdentity
 {
@@ -29,7 +29,7 @@ public static class WindowsLocalEntryIdentity
 
     /// <summary>Describes an existing entry as an opaque provider identity.</summary>
     /// <param name="entry">Existing file or directory.</param>
-    /// <returns>The identity token derived from kind, length, and timestamps.</returns>
+    /// <returns>The identity token derived from file identifier, kind, length, and timestamps.</returns>
     public static FileIdentity Describe(FileSystemInfo entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -37,6 +37,8 @@ public static class WindowsLocalEntryIdentity
         long length = entry is FileInfo file ? file.Length : 0;
         string value = string.Join(
             '|',
+            "windows-v2",
+            WindowsLocalFileIdentifier.Describe(entry.FullName),
             kind,
             length.ToString(CultureInfo.InvariantCulture),
             entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),
