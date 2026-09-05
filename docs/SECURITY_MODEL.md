@@ -68,7 +68,7 @@ NuGet audit is enabled for direct and transitive dependencies at `low` severity.
 - Status: **active**
 - Enforcement: CodeQL scheduled workflow at implementation stage.
 
-CodeQL uses the extended security-and-quality query suite on every three-day deep review and can also be manually dispatched. Results are uploaded as code-scanning findings. CodeQL findings are not converted into a baseline.
+CodeQL uses the extended security-and-quality query suite on every three-day deep review and can also be manually dispatched. C# is analyzed without a build, and the canonical CodeQL configuration excludes only generated `obj` trees; it does not define a positive `paths` allowlist that could omit modified, untracked, or newly added owned source. Repository conformance protects the query suite, build mode, configuration reference, and exact generated-path exclusion with negative proofs. Results are uploaded as code-scanning findings. CodeQL findings are not converted into a baseline, and workflow success is not evidence that the open-alert count is zero; alert state is read back from the code-scanning API after analysis.
 
 ### SEC-009 — Hostile behavior is reviewed every three days
 

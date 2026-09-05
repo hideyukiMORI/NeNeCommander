@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0031: Exclude only generated obj trees from CodeQL](0031-exclude-generated-obj-from-codeql.md)
 - [ADR-0030: Own framework asynchronous work through one lifecycle mechanism](0030-own-framework-async-work.md)
 - [ADR-0029: Report a copy target created before provider failure](0029-report-partial-copy-target.md)
 - [ADR-0028: Reuse pane rows through incremental projection](0028-incremental-pane-projection.md)
