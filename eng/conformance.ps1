@@ -323,8 +323,8 @@ if (Test-Path -LiteralPath $globalJsonPath -PathType Leaf) {
         Add-Violation -Rule 'CFG-001' -Message 'global.json must pin stable SDK 10.0.400 with rollForward disabled.'
     }
 
-    if ($globalSettings.'msbuild-sdks'.'MSTest.Sdk' -ne '4.3.3') {
-        Add-Violation -Rule 'CFG-002' -Message 'global.json must pin MSTest.Sdk 4.3.3.'
+    if ($globalSettings.'msbuild-sdks'.'MSTest.Sdk' -ne '4.4.0') {
+        Add-Violation -Rule 'CFG-002' -Message 'global.json must pin MSTest.Sdk 4.4.0.'
     }
 }
 
