@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0035: Route WSL directory reads through the canonical query port](0035-wsl-directory-read-provider.md)
 - [ADR-0034: Discover WSL distributions through one bounded process boundary](0034-wsl-distribution-catalog.md)
 - [ADR-0033: Strengthen Windows local identity with Win32 file identifiers](0033-win32-file-identifier-identity.md)
 - [ADR-0032: Use mounted-volume identity for Windows local atomic move](0032-windows-local-atomic-move.md)

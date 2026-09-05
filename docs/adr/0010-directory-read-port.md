@@ -14,7 +14,7 @@ Add one Application query boundary, `IDirectoryReadPort`, with exactly one opera
 
 - `DirectoryReadRequest` freezes the validated location and a positive entry boundary no larger than `DirectoryListing.EntryBoundaryLimit` (10,000).
 - `DirectoryListing.Create` owns ordering and validation: directories first, then name ignoring case, then ordinal name; duplicate provider identity, null entries, and counts above the limit are typed rejections. It records completeness (`Complete` or `Bounded`) and the count of provider entries the path model could not represent.
-- `WindowsLocalDirectoryReader` is the sole Windows local adapter. It is non-recursive, reports links as entries, never skips hidden or inaccessible content silently, observes cancellation before enumeration and before each entry, and fails closed to `ProviderUnavailable` for any location that is not a `WindowsLocalPath`.
+- `WindowsLocalDirectoryReader` is the sole Windows local adapter. ADR-0035 adds the WSL adapter and the one provider router composed as `IDirectoryReadPort`; both adapters share one bounded direct-enumeration operation. They are non-recursive, report links as entries, never skip hidden or inaccessible content silently, observe cancellation before enumeration and before each entry, and fail closed for unsupported provider variants.
 - `PaneListingPresenter` is the sole deterministic projection from a read outcome to pane rows, initial focus, and a status resource key. The App host assigns those values to controls and makes no further decision.
 
 ## Rejected alternatives
@@ -33,7 +33,7 @@ Add one Application query boundary, `IDirectoryReadPort`, with exactly one opera
 
 ## Migration and removal
 
-No prior mechanism exists. Future WSL and UNC adapters implement the same port; they may not introduce a second read path or a second listing type.
+No prior mechanism exists. The WSL adapter added by ADR-0035 implements the same port and listing type. A future UNC adapter must join the same provider router; it may not introduce a second read path or a second listing type.
 
 ## Executable proof
 

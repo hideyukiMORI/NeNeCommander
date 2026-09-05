@@ -12,7 +12,7 @@ The filesystem operations themselves have no naturally asynchronous BCL API. Mut
 
 ## Decision
 
-Add `WindowsLocalIoExecutionBoundary` in Infrastructure.Windows as the single scheduling mechanism for synchronous Windows local filesystem work. It schedules a supplied synchronous operation with `Task.Factory.StartNew`, `TaskScheduler.Default`, `DenyChildAttach`, and no scheduler-level cancellation. `WindowsLocalDirectoryReader` and every method of `WindowsLocalFileOperationAdapter` delegate their provider work to this boundary.
+Add `WindowsLocalIoExecutionBoundary` in Infrastructure.Windows as the single scheduling mechanism for synchronous Windows-side filesystem work. It schedules a supplied synchronous operation with `Task.Factory.StartNew`, `TaskScheduler.Default`, `DenyChildAttach`, and no scheduler-level cancellation. `WindowsLocalDirectoryReader`, the WSL directory reader added by ADR-0035, and every method of `WindowsLocalFileOperationAdapter` delegate their provider work to this boundary.
 
 The App composition root creates one boundary and gives the same instance to the reader and mutation adapter. Application ports remain unchanged. `PaneSession`, `DualPaneSession`, and `FileOperationGateway` continue to await the returned tasks; therefore the caller owns completion and fault observation, the captured UI context owns presentation callbacks, and the gateway semaphore remains the only mutation serialization mechanism.
 
