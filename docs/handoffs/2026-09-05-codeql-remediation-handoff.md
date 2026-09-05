@@ -30,3 +30,7 @@ Status: informational
 ## Remaining environmental proof
 
 Code-scanning analysis and alert state exist only on GitHub. Local build, tests, security conformance, and negative fixtures are complete; no desktop, keyboard, or destructive filesystem interaction is required.
+
+## Completion update — 2026-09-05
+
+The integration steps above are complete. PR #66 passed branch deep run `33970476727`, zero-alert analysis `1729435145`, and canonical Ready run `33971129268`, then squash merged as `1e9d9ce`. Default-branch deep run `33971358676` passed; analysis `1729469186` matched that merge and returned zero results, errors, and open alerts. No CodeQL remediation remains to hand off.

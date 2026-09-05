@@ -100,6 +100,14 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
+    Assert-ConformanceFailure -Name 'mstest-sdk-pin-drift' -ExpectedRule 'CFG-002' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'global.json'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('"MSTest.Sdk": "4.4.0"', '"MSTest.Sdk": "4.3.3"')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
     Assert-ConformanceFailure -Name 'configuration-mismatched-restore' -ExpectedRule 'QLT-014' -Mutate {
         param($caseRoot)
         $path = Join-Path $caseRoot 'eng/check.ps1'

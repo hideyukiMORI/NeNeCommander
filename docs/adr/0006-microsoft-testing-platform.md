@@ -10,7 +10,7 @@ The repository requires one test runner, native .NET 10 orchestration, WinUI com
 
 ## Decision
 
-Use `MSTest.Sdk` 4.3.3 with the .NET 10 `Microsoft.Testing.Platform` runner selected in `global.json`. Use its Default extension profile for Microsoft code coverage and TRX support. VSTest mode and other test frameworks are prohibited.
+Use `MSTest.Sdk` 4.4.0 with the .NET 10 `Microsoft.Testing.Platform` runner selected in `global.json`. Use its Default extension profile for Microsoft code coverage and TRX support. VSTest mode and other test frameworks are prohibited. The pin was upgraded from 4.3.3 on 2026-09-05 after the official stable release review; the runner mechanism and extension profile did not change.
 
 ## Rejected alternatives
 
@@ -28,4 +28,4 @@ None. This is the initial test platform.
 
 ## Executable proof
 
-`global.json`, test project SDK declarations, canonical test execution, minimum-test enforcement, and coverage verification.
+`global.json`, the CFG-002 pin-drift negative proof, test project SDK declarations, canonical test execution, minimum-test enforcement, and coverage verification.
