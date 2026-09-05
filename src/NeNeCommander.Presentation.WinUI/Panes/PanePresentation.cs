@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
@@ -10,19 +11,32 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 public sealed record PanePresentation
 {
     internal PanePresentation(
-        IReadOnlyList<PaneRow> rows,
+        PaneRows rows,
         PaneRow? focusRow,
         PaneStatus status,
-        string addressText)
+        string addressText,
+        PaneSnapshot sourceSnapshot,
+        PaneFrame sourceFrame)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(status);
         ArgumentNullException.ThrowIfNull(addressText);
-        Rows = rows;
+        ArgumentNullException.ThrowIfNull(sourceSnapshot);
+        ArgumentNullException.ThrowIfNull(sourceFrame);
+        OwnedRows = rows;
+        Rows = rows.View;
         FocusRow = focusRow;
         Status = status;
         AddressText = addressText;
+        SourceSnapshot = sourceSnapshot;
+        SourceFrame = sourceFrame;
     }
+
+    internal PaneRows OwnedRows { get; }
+
+    internal PaneSnapshot SourceSnapshot { get; }
+
+    internal PaneFrame SourceFrame { get; }
 
     /// <summary>Gets the ordered rows to display with their selection marks, or an empty list when nothing is listed.</summary>
     public IReadOnlyList<PaneRow> Rows { get; }

@@ -6,8 +6,8 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// <summary>
 /// Represents one render-ready row: the entry it shows, the closed mark that resolves focus and
 /// selection into one marker and background, and the closed rendering of the entry kind. Rows are
-/// immutable and replaced on every render, so the host binds without notifications and computes
-/// nothing in the template.
+/// immutable and replaced only when this row's projected values change. The owned observable row
+/// source notifies the host without replacing the pane's complete item source.
 /// </summary>
 public sealed record PaneRow
 {

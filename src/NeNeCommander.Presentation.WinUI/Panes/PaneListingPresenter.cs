@@ -23,36 +23,152 @@ public static class PaneListingPresenter
     /// <returns>A render-ready presentation.</returns>
     public static PanePresentation Present(PaneSnapshot snapshot, PaneFrame frame)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        ArgumentNullException.ThrowIfNull(frame);
-        return snapshot.Content is PaneContentListed listed
-            ? PresentListed(listed, snapshot.Activity, frame)
-            : new PanePresentation(
-                Array.Empty<PaneRow>(),
-                null,
-                TranslateActivity(snapshot.Activity, PaneStatus.NoListing),
-                TargetText(snapshot.Activity));
+        return PresentCore(snapshot, frame, null);
     }
 
-    private static PanePresentation PresentListed(PaneContentListed listed, PaneActivity activity, PaneFrame frame)
+    internal static PanePresentation Present(
+        PaneSnapshot snapshot,
+        PaneFrame frame,
+        PanePresentation previous)
+    {
+        ArgumentNullException.ThrowIfNull(previous);
+        return PresentCore(snapshot, frame, previous);
+    }
+
+    private static PanePresentation PresentCore(
+        PaneSnapshot snapshot,
+        PaneFrame frame,
+        PanePresentation? previous)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(frame);
+        return previous is not null &&
+            ReferenceEquals(previous.SourceSnapshot, snapshot) &&
+            previous.SourceFrame == frame
+                ? previous
+                : snapshot.Content is PaneContentListed listed
+                    ? PresentListed(snapshot, listed, frame, previous)
+                    : new PanePresentation(
+                        ReuseEmptyRows(previous),
+                        null,
+                        TranslateActivity(snapshot.Activity, PaneStatus.NoListing),
+                        TargetText(snapshot.Activity),
+                        snapshot,
+                        frame);
+    }
+
+    private static PaneRows ReuseEmptyRows(PanePresentation? previous)
+    {
+        return previous is not null && previous.Rows.Count == 0
+            ? previous.OwnedRows
+            : new PaneRows(Array.Empty<PaneRow>());
+    }
+
+    private static PanePresentation PresentListed(
+        PaneSnapshot snapshot,
+        PaneContentListed listed,
+        PaneFrame frame,
+        PanePresentation? previous)
+    {
+        return previous is not null && CanReuseRows(listed, previous)
+            ? UpdateListed(snapshot, listed, frame, previous)
+            : CreateListed(snapshot, listed, frame);
+    }
+
+    private static bool CanReuseRows(PaneContentListed listed, PanePresentation previous)
+    {
+        return previous.SourceSnapshot.Content is PaneContentListed prior &&
+            ReferenceEquals(prior.Listing, listed.Listing) &&
+            previous.Rows.Count == listed.Listing.Entries.Count;
+    }
+
+    private static PanePresentation CreateListed(
+        PaneSnapshot snapshot,
+        PaneContentListed listed,
+        PaneFrame frame)
     {
         HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
         List<PaneRow> rows = [];
-        PaneRow? focusRow = null;
         foreach (DirectoryEntry entry in listed.Listing.Entries)
         {
             PaneRow row = new(entry, ResolveMark(entry, listed, selection, frame), PaneRowKind.For(entry.Kind));
             rows.Add(row);
-            if (HasFocus(entry, listed))
+        }
+        PaneRows ownedRows = new(rows);
+        return new PanePresentation(
+            ownedRows,
+            FindFocusRow(ownedRows, listed.State.FocusItem),
+            TranslateActivity(snapshot.Activity, TranslateListing(listed.Listing)),
+            listed.Listing.Location.CanonicalText,
+            snapshot,
+            frame);
+    }
+
+    private static PanePresentation UpdateListed(
+        PaneSnapshot snapshot,
+        PaneContentListed listed,
+        PaneFrame frame,
+        PanePresentation previous)
+    {
+        PaneContentListed prior = (PaneContentListed)previous.SourceSnapshot.Content;
+        HashSet<FileSystemPath> priorSelection = new(
+            prior.State.Selection,
+            FileSystemPathIdentityComparer.Instance);
+        HashSet<FileSystemPath> selection = new(
+            listed.State.Selection,
+            FileSystemPathIdentityComparer.Instance);
+        HashSet<FileSystemPath> affected = new(FileSystemPathIdentityComparer.Instance);
+        AddWhenPresent(affected, prior.State.FocusItem);
+        AddWhenPresent(affected, listed.State.FocusItem);
+        foreach (FileSystemPath path in priorSelection)
+        {
+            if (!selection.Contains(path))
             {
-                focusRow = row;
+                _ = affected.Add(path);
             }
         }
+        foreach (FileSystemPath path in selection)
+        {
+            if (!priorSelection.Contains(path))
+            {
+                _ = affected.Add(path);
+            }
+        }
+
+        PaneRows rows = previous.OwnedRows;
+        foreach (FileSystemPath path in affected)
+        {
+            if (rows.TryGetIndex(path, out int index))
+            {
+                PaneRow current = rows[index];
+                PaneRowMark mark = ResolveMark(current.Entry, listed, selection, frame);
+                if (current.Mark != mark)
+                {
+                    rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind));
+                }
+            }
+        }
+
         return new PanePresentation(
-            rows.AsReadOnly(),
-            focusRow,
-            TranslateActivity(activity, TranslateListing(listed.Listing)),
-            listed.Listing.Location.CanonicalText);
+            rows,
+            FindFocusRow(rows, listed.State.FocusItem),
+            TranslateActivity(snapshot.Activity, TranslateListing(listed.Listing)),
+            listed.Listing.Location.CanonicalText,
+            snapshot,
+            frame);
+    }
+
+    private static void AddWhenPresent(HashSet<FileSystemPath> paths, FileSystemPath? path)
+    {
+        if (path is not null)
+        {
+            _ = paths.Add(path);
+        }
+    }
+
+    private static PaneRow? FindFocusRow(PaneRows rows, FileSystemPath? focus)
+    {
+        return focus is not null && rows.TryGetIndex(focus, out int index) ? rows[index] : null;
     }
 
     /// <summary>
