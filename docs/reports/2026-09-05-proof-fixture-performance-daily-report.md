@@ -37,4 +37,4 @@ The selected bytes fell by 593,449,603 (99.78%) and elapsed materialization time
 - `pwsh -NoProfile -File ./eng/prove-gates.ps1`: PASS; all 15 conformance cases, commit-message positive/negative checks, and the new materialization assertions passed.
 - `pwsh -NoProfile -File ./eng/prove-security.ps1`: PASS; all 6 security negative cases passed.
 
-The final Draft-to-Ready canonical CI gate is pending. No local full-gate duplicate is planned after successful CI evidence.
+PR #55 canonical CI run `33960075774` passed on final head `25c3148`; the PR was squash merged as `9f0eac9`. The successful CI full gate was not duplicated locally.

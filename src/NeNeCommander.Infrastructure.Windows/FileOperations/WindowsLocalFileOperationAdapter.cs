@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -17,11 +18,27 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// </summary>
 public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 {
+    private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
+
+    /// <summary>Initializes an adapter with the default Windows local I/O execution boundary.</summary>
+    public WindowsLocalFileOperationAdapter()
+        : this(new WindowsLocalIoExecutionBoundary())
+    {
+    }
+
+    /// <summary>Initializes an adapter with the composed Windows local I/O execution boundary.</summary>
+    /// <param name="executionBoundary">Shared boundary for synchronous Windows filesystem work.</param>
+    public WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary)
+    {
+        ArgumentNullException.ThrowIfNull(executionBoundary);
+        _executionBoundary = executionBoundary;
+    }
+
     /// <inheritdoc />
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        return Task.FromResult(Inspect(path));
+        return _executionBoundary.ExecuteAsync(() => Inspect(path));
     }
 
     /// <inheritdoc />
@@ -32,7 +49,8 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(Guarded(() => Preflight(sources, destination), FileOperationFailureKind.Inspection));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Preflight(sources, destination), FileOperationFailureKind.Inspection));
     }
 
     /// <inheritdoc />
@@ -41,8 +59,10 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(Guarded(() => Copy(source, destination), FileOperationFailureKind.Copy));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Copy(source, destination), FileOperationFailureKind.Copy));
     }
 
     /// <inheritdoc />
@@ -51,8 +71,10 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(Guarded(() => Verify(source, destination), FileOperationFailureKind.Verification));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Verify(source, destination), FileOperationFailureKind.Verification));
     }
 
     /// <inheritdoc />
@@ -61,8 +83,10 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         DeletionExecutionMode mode,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
-        return Task.FromResult(Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
 
     /// <inheritdoc />
@@ -71,8 +95,12 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(location);
         ArgumentNullException.ThrowIfNull(target);
-        return Task.FromResult(Guarded(() => CreateDirectory(location, target), FileOperationFailureKind.ProviderUnavailable));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(
+                () => CreateDirectory(location, target),
+                FileOperationFailureKind.ProviderUnavailable));
     }
 
     /// <inheritdoc />
@@ -81,8 +109,10 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        return Task.FromResult(Guarded(() => Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
     private static ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)

@@ -26,7 +26,7 @@ Add one Application query boundary, `IDirectoryReadPort`, with exactly one opera
 
 ## Consequences
 
-- The adapter enumerates synchronously inside its `Task` signature because .NET offers no asynchronous directory enumeration and CS-016 prohibits `Task.Run`. A slow volume can delay the caller; moving reads off the UI thread requires a new scheduling ADR before WSL and UNC adapters are added.
+- The provider enumeration itself is synchronous because .NET offers no asynchronous directory enumeration. ADR-0027 now moves that work through the single Windows local I/O execution boundary; the port and listing contract in this decision remain unchanged.
 - Hidden and system entries are listed until the hidden-item visibility transition exists in `PaneReducer`.
 - Cancellation between two entries cannot be provoked deterministically from a test; the pre-enumeration check is proved and the per-entry check is documented as unproved.
 - Entries whose names the path model rejects are counted, not shown, and never dropped silently.
