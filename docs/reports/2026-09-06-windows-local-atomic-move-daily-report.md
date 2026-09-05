@@ -29,11 +29,12 @@ The existing real-adapter gateway test was changed first to require one atomic e
 - `eng/prove-gates.ps1`: PASS, including both new SEC-014 negative fixtures and all existing negative proofs.
 - Release solution build: PASS, zero warnings and errors.
 - Application tests: 182/182 PASS, skip 0.
-- Infrastructure.Windows tests: 81/81 PASS, skip 0.
+- Infrastructure.Windows tests: 84/84 PASS, skip 0.
 - Presentation.WinUI impact tests: 76/76 PASS, skip 0.
 - Architecture impact tests: 5/5 PASS, skip 0.
 - Application branch coverage: 100.00%.
-- Infrastructure.Windows branch coverage: 91.76% (minimum 90%).
+- Infrastructure.Windows branch coverage: 93.55% (minimum 90%).
+- The first exact-head deep run `33974827825` passed its canonical gate, 409 tests, coverage, adversarial repeats, and CodeQL, but correctly failed Infrastructure.Windows mutation at 87.38%. Missing-destination, effect-boundary reparse, native-buffer termination, and null-guard proofs raised the focused score to 90.77% without lowering the threshold. A fresh exact-head deep run remains required after commit.
 
 ## Pending integration evidence
 

@@ -34,7 +34,7 @@ internal static partial class WindowsLocalVolumeIdentity
             : throw CreateQueryFailure();
     }
 
-    private static string ReadBuffer(char[] buffer)
+    internal static string ReadBuffer(char[] buffer)
     {
         int terminator = Array.IndexOf(buffer, '\0');
         return new string(buffer, 0, terminator < 0 ? buffer.Length : terminator);

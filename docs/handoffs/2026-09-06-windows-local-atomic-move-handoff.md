@@ -15,8 +15,9 @@ Status: informational
 - Failure-first real-adapter gateway proof observed the old three-effect composite result where one atomic effect was required.
 - Conformance and all gate negative proofs pass, including the generated-interop scope constraint.
 - Release build passes with zero warnings/errors.
-- Application 182, Infrastructure.Windows 81, Presentation.WinUI 76, and Architecture 5 tests pass with zero skips.
-- Protected branch coverage is Application 100.00% and Infrastructure.Windows 91.76%.
+- Application 182, Infrastructure.Windows 84, Presentation.WinUI 76, and Architecture 5 tests pass with zero skips.
+- Protected branch coverage is Application 100.00% and Infrastructure.Windows 93.55%.
+- Initial deep run `33974827825` failed only the unchanged 90% Infrastructure.Windows mutation threshold (87.38%). Added boundary proofs produce a focused 90.77%; this correction still requires a fresh exact-head deep run.
 
 ## Integration steps
 

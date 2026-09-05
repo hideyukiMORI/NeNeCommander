@@ -618,6 +618,58 @@ public sealed class WindowsLocalFileOperationAdapterTests
         Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, destinationCapability);
     }
 
+    /// <summary>Proves missing destinations fail capability discovery before a move can start.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task GetAtomicMoveCapabilityAsyncWhenDestinationIsMissingReportsNotFound()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("source.txt", "source")));
+        FileSystemPath missingDestination = ParsePath(root.Resolve("missing"));
+
+        AtomicMoveCapabilityOutcome capability = await adapter.GetAtomicMoveCapabilityAsync(
+            source,
+            missingDestination,
+            CancellationToken.None);
+
+        AtomicMoveCapabilityFailed failed = Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(capability);
+        Assert.AreSame(FileOperationFailureKind.NotFound, failed.Failure);
+        Assert.AreEqual("source", File.ReadAllText(root.Resolve("source.txt")));
+    }
+
+    /// <summary>Proves the atomic effect itself rejects reparse sources and destinations without mutation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task MoveAsyncWhenPathIsReparsePointReportsProviderUnavailable()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalFileOperationAdapter adapter = new();
+        FileSystemPath sourceTarget = ParsePath(root.CreateDirectory("source-target"));
+        FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
+        FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
+        FileSystemPath destinationLink = ParsePath(root.CreateJunction("destination-link", "destination-target"));
+        FileEntrySnapshot linkedSource = await InspectAsync(adapter, sourceLink);
+        FileSystemPath plainPath = ParsePath(root.WriteFile("plain.txt", "plain"));
+        FileEntrySnapshot plainSource = await InspectAsync(adapter, plainPath);
+
+        ProviderStepOutcome sourceOutcome = await adapter.MoveAsync(
+            linkedSource,
+            destinationTarget,
+            CancellationToken.None);
+        ProviderStepOutcome destinationOutcome = await adapter.MoveAsync(
+            plainSource,
+            destinationLink,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, sourceOutcome.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, destinationOutcome.Failure);
+        Assert.IsTrue(Directory.Exists(root.Resolve("source-link")));
+        Assert.AreEqual("plain", File.ReadAllText(root.Resolve("plain.txt")));
+    }
+
     /// <summary>Proves the gateway refuses unconfirmed permanent deletion through the real adapter.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -747,6 +799,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
     [TestMethod]
     public void PortMethodsWhenRequiredArgumentIsNullThrowArgumentNullException()
     {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsLocalFileOperationAdapter(null!));
         WindowsLocalFileOperationAdapter adapter = new();
         FileSystemPath path = ParsePath("C:\\source");
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("file|0|0|0")).Identity;
@@ -765,7 +819,9 @@ public sealed class WindowsLocalFileOperationAdapterTests
         AssertNullGuard(adapter, nameof(IFileOperationPort.VerifyCopyAsync), [snapshot, null, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [null, DeletionExecutionMode.Permanent, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.DeleteAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.CreateDirectoryAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.CreateDirectoryAsync), [snapshot, null, CancellationToken.None]);
+        AssertNullGuard(adapter, nameof(IFileOperationPort.RenameAsync), [null, path, CancellationToken.None]);
         AssertNullGuard(adapter, nameof(IFileOperationPort.RenameAsync), [snapshot, null, CancellationToken.None]);
     }
 
