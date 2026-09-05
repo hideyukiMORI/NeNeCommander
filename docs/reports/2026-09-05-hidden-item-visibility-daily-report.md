@@ -38,7 +38,7 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 - `x:Bind` の converter は解決の起点に `FrameworkElement` を要求するので、`Window` が root の `DataTemplate` では古典的な `{Binding}` を使う。
 - settings store は書き込みをしない（ARC-005 / CMD-007）。既定 file は hide が手で置く。このマシンには有効な file がある。
 
-## 残した注意点
+## 途中時点で残した注意点（履歴）
 
 - `feat/49-hidden-item-visibility` の実機確認は完了した。final head の canonical CI 成功までは merge しない。
 - 完了後の operation bar に `12/12` が残らない。進捗数値の色は tone の文字色で canvas の accent とは異なる。
@@ -46,7 +46,7 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 - high contrast、他の DPI、狭い window、nene-dark と solarized-light 以外の scheme は実機未確認。
 - 前回からの注意点は継続（`docs/reports/2026-09-05-direction-c-layout-daily-report.md`）。
 
-## 次の推奨縦切り
+## 途中時点の次作業（履歴、完了済み）
 
 `feat/49-hidden-item-visibility` の Ready、fresh canonical CI、merge。詳細は [`docs/handoffs/2026-09-05-hidden-item-visibility-handoff.md`](../handoffs/2026-09-05-hidden-item-visibility-handoff.md)。
 
@@ -75,3 +75,8 @@ hide の指示でセッションを区切ったため、[Issue #49](https://gith
 - true の UI Automation は同じ左 `C:\` に上記 hidden/system 項目をすべて観測した。通常 desktop の window screenshot は正常に描画され、hidden/system 行の名前が通常行より muted な `TextHiddenBrush` 表示であることを確認した。
 - settings document は元の `showHiddenItems=false` / `colorScheme=nene-dark` に復元され、所有 process が残っていないことを確認した。画像・UIA tree・summary は test evidence として `artifacts/implementation-sana/runtime-proof/normal-*` に保存した。
 - `origin/main=dd6439e` を再取得し、branch の merge-base が同じであることを確認した。残る統合条件は final head に対する fresh canonical CI だけである。
+
+## 実装サナ完了注記（2026-09-05 21:41 JST）
+
+- 上記は作業途中の時系列記録として保持する。現在は [PR #53](https://github.com/hideyukiMORI/NeNeCommander/pull/53) が final head `93430b0` で dependency-review run `33966444961` と quality run `33966493970` / canonical-gate job `101307431212` に成功し、`ca4fd7b` として squash merge 済みである。
+- [Issue #49](https://github.com/hideyukiMORI/NeNeCommander/issues/49) は closed。通常 desktop proof、settings復元、最終CI、merge、`main`同期はすべて完了しており、再実行すべき引き継ぎ作業はない。

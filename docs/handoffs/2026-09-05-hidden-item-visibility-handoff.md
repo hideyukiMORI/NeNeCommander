@@ -2,7 +2,13 @@
 
 Status: informational
 
-## 実装サナ継続 checkpoint
+## Current status — complete（2026-09-05 21:41 JST）
+
+- [Issue #49](https://github.com/hideyukiMORI/NeNeCommander/issues/49) は closed、[PR #53](https://github.com/hideyukiMORI/NeNeCommander/pull/53) は final head `93430b0` で dependency-review run `33966444961` と quality run `33966493970` / canonical-gate job `101307431212` に成功後、`ca4fd7b` として squash merge 済み。
+- 通常 desktop の `showHiddenItems=false` / `true` UI Automation・screenshot、settings復元、最終CI、merge、local/remote `main`同期は完了した。このhandoffから #49 branch、実機proof、PR作成、Ready、CIを再実行しない。
+- 以下のcheckpointと手順は作業中に残した時系列上の履歴であり、現役の実装指示ではない。現在の次作業は `docs/PROJECT_STATE.md` を正本とする。
+
+## 履歴: 実装サナ継続 checkpoint
 
 - branch は `main=27495b38`（ADR-0025 / QLT-015）を取り込み、実装 checkpoint `dfe0593` に進んだ。
 - 全 hidden を非表示にした後で再表示すると focus が null のままになる回帰を、`Shown -> Hidden -> Shown -> MoveNext` の失敗 test で先に証明して修正した。visibility transition は可視集合が非空なら必ず可視 entry に focus を戻す。
@@ -11,21 +17,21 @@ Status: informational
 - interactive desktop の screenshot / UIA だけが未完了。hide の作業を妨げない別 desktop object では process / window 作成を false / true の両方で確認できたが、DWM と UIA content が得られず黒画像だったため proof に数えていない。settings は元 byte 列へ復元済み。Draft PR のままこの環境 proof を終えてから Ready にする。
 - 次の独立作業では gate fixture copy の改善前 baseline として、負例 1 件あたり約 410 MiB、cleanup 累計 8.1 GiB を観測済み。
 
-## 最新 `main` 統合後 checkpoint
+## 履歴: 最新 `main` 統合後 checkpoint
 
 - Draft PR #53 は Issue #54 / #56 / #57 / #58 / #59 を含む `main=dd6439e` を取り込み済み。
 - hidden 可視集合と ADR-0028 の増分投影を統合し、`PaneReducer` が決めた `VisibleEntries` だけを安定した `PaneRows` に投影する。focus / selection mark の変更時は影響 row だけを置換し、visibility によって row 集合が変わる時は新しい可視集合を作る。
 - Release restore / build は warning 0、error 0。Application 176、Infrastructure.Windows 69、Presentation.WinUI 76、Architecture 5、conformance 110規則、security 18 adversarial cases が成功した。
 - pre-integration deep review は履歴証跡であり、final head の canonical CI は未取得。interactive-desktop screenshot / UIA proof が可能になるまで Draft を維持し、proof 後に Ready にして fresh canonical CI を得る。
 
-## 通常 desktop proof 完了 checkpoint
+## 履歴: 通常 desktop proof 完了 checkpoint
 
 - hide の明示許可により通常 desktop で `showHiddenItems=false` / `true` を起動し、左 `C:\` の UI Automation tree と window screenshot を取得した。キー送信はなく、各caseで所有 process だけを終了した。
 - false では hidden/system 項目がなく、true では `$RECYCLE.BIN`、`System Volume Information`、`hiberfil.sys`、`pagefile.sys`、`swapfile.sys` を含む対象が現れた。screenshot で hidden/system 行の muted 表示も確認した。
 - settings は `showHiddenItems=false` / `nene-dark` に復元済みで、NeNe Commander process は残っていない。ローカル証跡は `artifacts/implementation-sana/runtime-proof/normal-*`。
 - `origin/main=dd6439e` と merge-base は一致する。日報・handoff更新をcommit/push後に PR head一致を再確認し、Readyへ移して final-head canonical CI を監視する。
 
-## 開始地点
+## 履歴: 開始地点
 
 - Codename: `NeNe Commander`
 - Local root: `C:\Users\info\WORKS\NeNeCommander`
@@ -43,11 +49,11 @@ Status: informational
 pwsh -NoProfile -File ./eng/check.ps1
 ```
 
-## 体制
+## 履歴: 当時の体制
 
 実装（Issue → branch → 実装 → gate → deep review → PR → squash merge）は Opus 5 のバックグラウンド agent に委任する。本セッション（リナ）は受け入れ境界の切り出し、agent への仕様、証跡の突き合わせ、diff / ADR review、実機 screenshot と canvas の照合、日報 / 引き継ぎ書 / `PROJECT_STATE.md` の docs PR を担当する。agent が長い工程の途中で止まったら「完了まで続けよ」と再開させる。agent には毎回、規範文書の読み順、触る file、repo の mechanics（CRLF、`dotnet test --solution`、`gh pr checks` 前の待ち、100% coverage 層の到達不能分岐禁止、キー送信禁止）を書いて渡す。
 
-## 現在の実装境界（`main` = merge 済み）
+## 履歴: 当時の実装境界
 
 - Domain: path parse、provider-native identity、`FileSystemPath.Parent` / `Child`。
 - Application: `DualPaneSession` が唯一の coordinator（move / copy / delete / create directory / rename、`OperationAwaitingConfirmation`、`OperationAwaitingName(kind, subject, initialName)`）。`FileOperationGateway` は 4 経路。`Settings/`: `ColorScheme`（8 member）、`HiddenItemVisibility`、`UserSettings`、`ISettingsStore` → `SettingsReadOutcome`。
@@ -56,18 +62,18 @@ pwsh -NoProfile -File ./eng/check.ps1
 - App: `Themes/DesignTokens.xaml`（方向 C の非色 token）、`Themes/Schemes/<identifier>.xaml` 8 file、`ColorSchemeResources`、lookup 専用 converter 2 件。`CommanderApplication` が settings を読み scheme dictionary を merge してから window を作る。
 - Gate: ARC-012 の scheme dictionary parity scan と Presentation の resource key scan、CS-010 の environment scan は `WindowsLocalSettingsLocation.cs` のみ除外。
 
-## 動作している画面
+## 履歴: 当時の動作画面
 
 左 `C:\`、右 `C:\Users`。ペイン番号 badge + monospace の path + 右寄せ pane status、28 dip の行に marker・種類 icon・`DIR`、下部は全幅 34 dip の operation bar（状態で tone、右端に `F2 名前 / F5 コピー / F6 移動 / F7 作成 / F8 削除 / Tab ペイン / Esc 中止`）。`Tab` / `j` / `k` / `l` / `h` / `Space` / `F2` / `F5` / `F6` / `F7` / `F8` / `Escape` / 進捗。scheme は `%LOCALAPPDATA%\NeNeCommander\settings.json` の `colorScheme` で選ぶ（再起動が必要、現在 `nene-dark` / `showHiddenItems: false`）。
 
-## 確認済み証跡（`main`）
+## 履歴: 当時の確認済み証跡
 
 - quality（main、`c3791ae`）: [`33900434956`](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/33900434956) 成功。
 - ローカル deep review: passed。
 - tests: 351 / 351 pass。branch coverage: 100.00 / 100.00 / 95.43 / 98.05%。mutation: 96.15 / 98.19 / 93.06 / 100.00%。
 - 実機: `nene-dark` と `solarized-light` を起動して canvas と照合済み。
 
-## 次の一つの仕事: `feat/49-hidden-item-visibility` を完成させて merge する
+## 履歴: 当時の次作業 `feat/49-hidden-item-visibility`（完了済み）
 
 branch は canonical gate を通っている（372 tests、branch coverage 100.00 / 100.00 / 95.48 / 98.06%）。**新しく書き直さず、この branch の続きから**行う。
 
@@ -83,7 +89,7 @@ branch は canonical gate を通っている（372 tests、branch coverage 100.0
 
 この縦切りに **含めない**もの: 表示切り替えの keystroke（`docs/KEYBOARD_MODEL.md` の改訂と KBD-005 の hint 生成を含む別 ADR が要る）、collision resolver、byte 進捗、settings の書き込み、WSL、新しい token family。
 
-## その次に待つ仕事
+## 履歴: 当時の後続backlog
 
 - hidden 表示切り替えの keystroke（KEYBOARD_MODEL 改訂 + ADR。binding を表に足せば key hint は自動で出る）。
 - collision の resolver（FS-007: Replace / Skip / KeepBoth / Cancel）と copy / move の衝突時の再実行。
