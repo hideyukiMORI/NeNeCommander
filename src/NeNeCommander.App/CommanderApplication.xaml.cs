@@ -114,7 +114,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
         WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
-        WindowsLocalDirectoryReader directoryReader = new(ioExecutionBoundary);
+        ProviderDirectoryReadPort directoryReader = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
         _gateway = new FileOperationGateway(new WindowsLocalFileOperationAdapter(ioExecutionBoundary));
         DualPaneSession panes = new(
@@ -130,7 +130,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     }
 
     private static PaneSession CreatePaneSession(
-        WindowsLocalDirectoryReader directoryReader,
+        IDirectoryReadPort directoryReader,
         VisiblePageCapacity capacity,
         HiddenItemVisibility hiddenItemVisibility)
     {

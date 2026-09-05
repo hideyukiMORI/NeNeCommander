@@ -26,7 +26,7 @@ Every material threat has a stable ID, owner, expected defense, and test mapping
 - Status: **active**
 - Enforcement: parser, size-limit, containment, and malformed-input tests.
 
-Inputs are length-bounded, parsed once, normalized without identity loss, and rejected when ambiguous. Paths, distribution names, resource keys, settings values, and operation batches never enter shell or filesystem APIs as unchecked text. WSL discovery uses fixed process argument tokens, bounds both redirected streams before publishing output, and validates every reported distribution through the canonical path parser; one malformed line rejects the whole snapshot.
+Inputs are length-bounded, parsed once, normalized without identity loss, and rejected when ambiguous. Paths, distribution names, resource keys, settings values, and operation batches never enter shell or filesystem APIs as unchecked text. WSL discovery uses fixed process argument tokens, bounds both redirected streams before publishing output, and validates every reported distribution through the canonical path parser; one malformed line rejects the whole snapshot. WSL directory reads route only from a validated `WslPath`, and each untrusted entry name passes through `FileSystemPath.Child` before publication.
 
 ### SEC-003 — Filesystem operations resist races
 

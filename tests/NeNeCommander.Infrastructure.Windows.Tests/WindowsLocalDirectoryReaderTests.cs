@@ -322,17 +322,6 @@ public sealed class WindowsLocalDirectoryReaderTests
             WindowsLocalDirectoryReader.NormalizeEnumerationFailure(unchecked((int)0x80070035)));
     }
 
-    /// <summary>Proves child text never doubles the separator after a drive root.</summary>
-    [TestMethod]
-    public void BuildChildTextWhenLocationIsDriveRootOrDirectoryUsesOneSeparator()
-    {
-        WindowsLocalPath driveRoot = Assert.IsInstanceOfType<WindowsLocalPath>(ParsePath("C:\\"));
-        WindowsLocalPath directory = Assert.IsInstanceOfType<WindowsLocalPath>(ParsePath("C:\\dir"));
-
-        Assert.AreEqual("C:\\child", WindowsLocalDirectoryReader.BuildChildText(driveRoot, "child"));
-        Assert.AreEqual("C:\\dir\\child", WindowsLocalDirectoryReader.BuildChildText(directory, "child"));
-    }
-
     /// <summary>Proves the adapter rejects an absent request before any provider access.</summary>
     [TestMethod]
     public void ReadAsyncWhenRequestIsNullThrowsArgumentNullException()
