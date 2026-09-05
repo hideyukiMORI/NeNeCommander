@@ -26,22 +26,9 @@ public static class WindowsLocalTreeCopy
     public static bool ContainsReparsePoint(FileSystemInfo entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
-        if (IsReparsePoint(entry))
-        {
-            return true;
-        }
-        if (entry is not DirectoryInfo directory)
-        {
-            return false;
-        }
-        foreach (FileSystemInfo child in directory.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()))
-        {
-            if (ContainsReparsePoint(child))
-            {
-                return true;
-            }
-        }
-        return false;
+        return IsReparsePoint(entry) ||
+            (entry is DirectoryInfo directory &&
+                directory.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()).Any(ContainsReparsePoint));
     }
 
     /// <summary>Copies a file or a directory tree to a target path that must not exist yet.</summary>
@@ -56,7 +43,7 @@ public static class WindowsLocalTreeCopy
             DirectoryInfo target = Directory.CreateDirectory(targetText);
             foreach (FileSystemInfo child in directory.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()))
             {
-                Copy(child, Path.Combine(target.FullName, child.Name));
+                Copy(child, ResolveDirectChild(target.FullName, child.Name));
             }
             return;
         }
@@ -91,18 +78,34 @@ public static class WindowsLocalTreeCopy
         }
         List<FileSystemInfo> children = [.. source.EnumerateFileSystemInfos("*", CreateDirectEntryOptions())];
         int targetCount = target.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()).Count();
-        if (targetCount != children.Count)
+        return targetCount == children.Count &&
+            children.All(child => Matches(child, ResolveDirectChild(target.FullName, child.Name)));
+    }
+
+    /// <summary>Resolves one name beneath its exact Windows local parent and rejects path syntax.</summary>
+    internal static string ResolveDirectChild(string parentText, string childName)
+    {
+        ArgumentNullException.ThrowIfNull(parentText);
+        ArgumentNullException.ThrowIfNull(childName);
+        if (childName.Length == 0)
         {
-            return false;
+            throw new ArgumentException("A direct child name must contain exactly one path segment.", nameof(childName));
         }
-        foreach (FileSystemInfo child in children)
+        if (Path.IsPathRooted(childName))
         {
-            if (!Matches(child, Path.Combine(target.FullName, child.Name)))
-            {
-                return false;
-            }
+            throw new ArgumentException("A direct child name must contain exactly one path segment.", nameof(childName));
         }
-        return true;
+        if (childName.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) >= 0)
+        {
+            throw new ArgumentException("A direct child name must contain exactly one path segment.", nameof(childName));
+        }
+        if (childName is "." or "..")
+        {
+            throw new ArgumentException("A direct child name must contain exactly one path segment.", nameof(childName));
+        }
+
+        string parent = Path.TrimEndingDirectorySeparator(Path.GetFullPath(parentText));
+        return Path.GetFullPath(Path.Join(parent, childName));
     }
 
     private static EnumerationOptions CreateDirectEntryOptions()

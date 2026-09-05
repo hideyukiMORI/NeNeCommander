@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
@@ -227,19 +228,13 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
         }
-        foreach (FileEntrySnapshot source in sources)
-        {
-            ProviderStepOutcome sourceOutcome = WithRevalidatedEntry(source, entry =>
-                ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath ||
-                TargetExists(BuildTargetText(localDestination, entry))
-                    ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-                    : ProviderStepOutcome.Succeeded());
-            if (sourceOutcome.Failure is not null)
-            {
-                return sourceOutcome;
-            }
-        }
-        return ProviderStepOutcome.Succeeded();
+        IEnumerable<ProviderStepOutcome> sourceOutcomes = sources.Select(source => WithRevalidatedEntry(source, entry =>
+            ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath ||
+            TargetExists(BuildTargetText(localDestination, entry))
+                ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
+                : ProviderStepOutcome.Succeeded()));
+        ProviderStepOutcome? failure = sourceOutcomes.FirstOrDefault(sourceOutcome => sourceOutcome.Failure is not null);
+        return failure ?? ProviderStepOutcome.Succeeded();
     }
 
     private static ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
@@ -347,7 +342,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 
     private static string BuildTargetText(WindowsLocalPath destination, FileSystemInfo entry)
     {
-        return Path.Combine(destination.CanonicalText, entry.Name);
+        return WindowsLocalTreeCopy.ResolveDirectChild(destination.CanonicalText, entry.Name);
     }
 
     private static bool TargetExists(string targetText)

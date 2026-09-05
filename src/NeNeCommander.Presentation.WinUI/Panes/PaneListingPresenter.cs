@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
@@ -126,33 +127,23 @@ public static class PaneListingPresenter
         HashSet<FileSystemPath> affected = new(FileSystemPathIdentityComparer.Instance);
         AddWhenPresent(affected, prior.State.FocusItem);
         AddWhenPresent(affected, listed.State.FocusItem);
-        foreach (FileSystemPath path in priorSelection)
-        {
-            if (!selection.Contains(path))
-            {
-                _ = affected.Add(path);
-            }
-        }
-        foreach (FileSystemPath path in selection)
-        {
-            if (!priorSelection.Contains(path))
-            {
-                _ = affected.Add(path);
-            }
-        }
+        affected.UnionWith(priorSelection.Where(path => !selection.Contains(path)));
+        affected.UnionWith(selection.Where(path => !priorSelection.Contains(path)));
 
         PaneRows rows = previous.OwnedRows;
-        foreach (FileSystemPath path in affected)
+        IEnumerable<int> affectedIndexes = affected
+            .Select(path => rows.TryGetIndex(path, out int index) ? index : -1)
+            .Where(index => index >= 0);
+        IEnumerable<(int Index, PaneRow Current, PaneRowMark Mark)> changedRows = affectedIndexes
+            .Select(index => (Index: index, Current: rows[index]))
+            .Select(row => (
+                row.Index,
+                row.Current,
+                Mark: ResolveMark(row.Current.Entry, listed, selection, frame)))
+            .Where(row => row.Current.Mark != row.Mark);
+        foreach ((int index, PaneRow current, PaneRowMark mark) in changedRows)
         {
-            if (rows.TryGetIndex(path, out int index))
-            {
-                PaneRow current = rows[index];
-                PaneRowMark mark = ResolveMark(current.Entry, listed, selection, frame);
-                if (current.Mark != mark)
-                {
-                    rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind, current.Visibility));
-                }
-            }
+            rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind, current.Visibility));
         }
 
         return new PanePresentation(

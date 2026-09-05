@@ -86,7 +86,23 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
-    Write-Host 'Security proofs passed: mutable actions, secrets, unsafe scripts, audit weakening, privileged PR execution, and mutation weakening are rejected.'
+    Assert-SecurityFailure -Name 'codeql-generated-filter-weakened' -ExpectedRule 'SEC-008' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/codeql/codeql-config.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace("'**/obj/**'", "'**/artifacts/**'")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-SecurityFailure -Name 'codeql-query-suite-weakened' -ExpectedRule 'SEC-008' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/security-deep-review.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('queries: security-and-quality', 'queries: security-extended')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Write-Host 'Security proofs passed: mutable actions, secrets, unsafe scripts, audit weakening, privileged PR execution, mutation weakening, and CodeQL weakening are rejected.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {

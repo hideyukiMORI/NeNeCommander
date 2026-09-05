@@ -1,0 +1,4 @@
+name: "NeNe Commander CodeQL configuration"
+
+paths-ignore:
+  - '**/obj/**'

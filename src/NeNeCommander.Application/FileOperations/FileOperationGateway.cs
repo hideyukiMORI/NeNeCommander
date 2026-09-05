@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Domain.Paths;
@@ -321,14 +322,7 @@ public sealed class FileOperationGateway : IDisposable
 
     private static bool NeedsConfirmation(IReadOnlyList<FileEntrySnapshot> snapshots)
     {
-        foreach (FileEntrySnapshot snapshot in snapshots)
-        {
-            if (snapshot.DeletionCapability == DeletionCapability.PermanentOnly)
-            {
-                return true;
-            }
-        }
-        return false;
+        return snapshots.Any(snapshot => snapshot.DeletionCapability == DeletionCapability.PermanentOnly);
     }
 
     private sealed class InspectionBatch

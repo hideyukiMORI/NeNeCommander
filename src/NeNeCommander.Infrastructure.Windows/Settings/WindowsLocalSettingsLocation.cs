@@ -27,7 +27,7 @@ public static class WindowsLocalSettingsLocation
         string localApplicationData = Environment.GetFolderPath(
             Environment.SpecialFolder.LocalApplicationData,
             Environment.SpecialFolderOption.DoNotVerify);
-        string documentPath = Path.Combine(localApplicationData, ProductFolderName, DocumentFileName);
+        string documentPath = Path.Join(localApplicationData, ProductFolderName, DocumentFileName);
         return FileSystemPath.Parse(documentPath) is PathParseSuccess { Path: WindowsLocalPath path }
             ? path
             : throw new InvalidOperationException("The resolved settings location is not a Windows local path.");

@@ -48,6 +48,7 @@ $requiredSecurityFiles = @(
     'stryker-config.json',
     '.github/workflows/dependency-review.yml',
     '.github/workflows/security-deep-review.yml',
+    '.github/codeql/codeql-config.yml',
     '.github/dependabot.yml'
 )
 
@@ -156,6 +157,23 @@ if ($null -ne $policy) {
         $scheduledWorkflow = Get-Content -LiteralPath $scheduledWorkflowPath -Raw
         if ($scheduledWorkflow -notmatch "(?m)^\s*- cron: '$([regex]::Escape([string] $policy.deepReviewCron))'\s*$") {
             Add-SecurityViolation -Rule 'SEC-009' -Message 'Scheduled workflow does not use the protected three-day cron expression.'
+        }
+        if ($scheduledWorkflow -notmatch '(?m)^\s*queries:\s*security-and-quality\s*$' -or
+            $scheduledWorkflow -notmatch '(?m)^\s*build-mode:\s*none\s*$' -or
+            $scheduledWorkflow -notmatch '(?m)^\s*config-file:\s*\./\.github/codeql/codeql-config\.yml\s*$') {
+            Add-SecurityViolation -Rule 'SEC-008' -Message 'CodeQL must use build mode none, the security-and-quality suite, and the canonical configuration file.'
+        }
+    }
+
+    $codeQlConfigPath = Join-Path $root '.github/codeql/codeql-config.yml'
+    if (Test-Path -LiteralPath $codeQlConfigPath -PathType Leaf) {
+        $codeQlConfig = Get-Content -LiteralPath $codeQlConfigPath -Raw
+        $ignoredPaths = [regex]::Matches($codeQlConfig, "(?m)^\s*-\s*'(?<path>[^']+)'\s*$")
+        if ($codeQlConfig -notmatch '(?m)^paths-ignore:\s*$' -or
+            $ignoredPaths.Count -ne 1 -or
+            $ignoredPaths[0].Groups['path'].Value -cne '**/obj/**' -or
+            $codeQlConfig -match '(?m)^paths:\s*$') {
+            Add-SecurityViolation -Rule 'SEC-008' -Message 'CodeQL path filtering must exclude exactly generated obj trees without restricting owned source paths.'
         }
     }
 }
