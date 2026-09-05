@@ -5,6 +5,7 @@ Status: normative
 - Stage: `implementation`
 - Production code: `permitted`
 - Canonical gate: `pwsh -NoProfile -File ./eng/check.ps1`
+- Verification cadence: ADR-0025, authorized by hide on `2026-09-05`: targeted tests during implementation; lightweight commit checks; full required CI gate at Draft-to-Ready immediately before Issue/PR integration. Scheduled/security/release deep review remains mandatory.
 - Product specification source reviewed: external `NeNe_Commander_Product_Spec.md`
 - Public repository: `https://github.com/hideyukiMORI/NeNeCommander`
 - Active initial work item: `#1` (closed)

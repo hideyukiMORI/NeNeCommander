@@ -178,6 +178,57 @@ if (Test-Path -LiteralPath $canonicalGatePath -PathType Leaf) {
 }
 
 $coverageSettingsPath = Join-Path $root 'eng/coverage.settings'
+$qualityWorkflowPath = Join-Path $root '.github/workflows/quality.yml'
+if (Test-Path -LiteralPath $qualityWorkflowPath -PathType Leaf) {
+    $expectedQualityWorkflow = @'
+name: quality
+
+on:
+  pull_request:
+    types: [ready_for_review]
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-gate:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Run canonical gate
+        shell: pwsh
+        run: pwsh -NoProfile -File ./eng/check.ps1
+'@
+    $actualQualityWorkflow = Get-Content -LiteralPath $qualityWorkflowPath -Raw
+    if ($actualQualityWorkflow.Replace("`r`n", "`n").Trim() -cne $expectedQualityWorkflow.Replace("`r`n", "`n").Trim()) {
+        Add-Violation -Rule 'QLT-015' -Message 'quality.yml must run the full required gate only on readiness, without conditional success or skip paths.'
+    }
+}
+$commitHookPath = Join-Path $root '.githooks/pre-commit'
+if (Test-Path -LiteralPath $commitHookPath -PathType Leaf) {
+    $commitHook = Get-Content -LiteralPath $commitHookPath -Raw
+    if ($commitHook.Replace("`r`n", "`n").Trim() -cne "#!/usr/bin/env sh`nexec pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit") {
+        Add-Violation -Rule 'QLT-015' -Message 'The commit hook must invoke only canonical Commit mode.'
+    }
+}
+Assert-TextContains -Rule 'QLT-015' -Path $canonicalGatePath -Pattern "\[ValidateSet\('Commit', 'Merge'\)\]" -Description 'missing closed validation modes'
+Assert-TextContains -Rule 'QLT-015' -Path $canonicalGatePath -Pattern '\[string\] \$Mode = ''Merge''' -Description 'the default must remain the full Merge gate'
+Assert-TextContains -Rule 'QLT-015' -Path (Join-Path $root 'eng/bootstrap.ps1') -Pattern "'check.ps1'\) -Mode Commit" -Description 'bootstrap must use lightweight Commit checks'
+
 if (Test-Path -LiteralPath $coverageSettingsPath -PathType Leaf) {
     [xml] $coverageSettings = Get-Content -LiteralPath $coverageSettingsPath -Raw
     $excludedAttributes = @($coverageSettings.SelectNodes('/Configuration/CodeCoverage/Attributes/Exclude/Attribute'))

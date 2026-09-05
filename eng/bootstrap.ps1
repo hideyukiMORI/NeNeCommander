@@ -23,12 +23,12 @@ try {
         throw 'Could not configure the repository-owned Git hooks.'
     }
 
-    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check.ps1')
+    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check.ps1') -Mode Commit
     if ($LASTEXITCODE -ne 0) {
         throw 'Bootstrap verification failed.'
     }
 
-    Write-Host 'Bootstrap complete: pinned SDK verified, repository hooks enabled, canonical gate passed.'
+    Write-Host 'Bootstrap complete: pinned SDK verified, repository hooks enabled, commit checks passed; merge gate not run.'
 }
 finally {
     Pop-Location

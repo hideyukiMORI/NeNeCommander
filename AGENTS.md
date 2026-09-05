@@ -6,13 +6,15 @@ This file is the mandatory entry point for every human or AI development session
 
 ## Non-negotiable operating rule
 
-The repository is governed as code, not as advice. Every change MUST follow the normative documents below and MUST pass the one canonical gate:
+The repository is governed as code, not as advice. Every change MUST follow the normative documents below. Run focused tests during implementation; the final integration candidate MUST pass the one full canonical gate immediately before its Issue/PR is merged:
 
 ```powershell
 pwsh -NoProfile -File ./eng/check.ps1
 ```
 
-There is no alternative build, test, formatting, lint, or conformance path. A change is not complete while this command fails. A rule may not be bypassed locally, suppressed inline, or weakened to make a change pass.
+There is one definition of merge readiness, not a requirement to run the full suite after each edit, commit, push, or PR update. Targeted tests and individual tools are permitted for development diagnosis. Commit hooks invoke `eng/check.ps1 -Mode Commit` for lightweight checks; that result never establishes merge readiness. The default mode remains the full gate. A change cannot merge while it fails or lacks current evidence. Rules and thresholds may not be suppressed or weakened to make a change pass.
+
+Keep work in a draft PR. When the focused Issue is ready to merge, change the PR from Draft to Ready to request the full CI gate. Any later head change or integration-base update requires fresh evidence: return to Draft, finish targeted checks, and mark Ready again. Do not rerun the same full gate locally merely to duplicate successful CI evidence. Scheduled deep review, security-sensitive integration review, and release environmental proof remain mandatory separate tiers. See ADR-0025 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 After a fresh clone, run `pwsh -NoProfile -File ./eng/bootstrap.ps1` once to verify the pinned SDK and enable the repository-owned Git hooks.
 
@@ -45,8 +47,8 @@ Architectural decisions live under [docs/adr](docs/adr/README.md). Temporary exc
 3. Inspect the current tree and existing changes before editing; preserve unrelated work.
 4. State the invariant and the single canonical mechanism affected by the change.
 5. Add or update tests and conformance proof in the same change.
-6. Run `./eng/check.ps1` from the repository root.
-7. For security-sensitive behavior, run `./eng/deep-review.ps1` and update the applicable threat cases.
+6. During implementation, run affected behavior tests and dependency-impact tests. Immediately before merge, obtain a successful `./eng/check.ps1` result for the final integration candidate through the required CI check.
+7. For security-sensitive behavior, run `./eng/deep-review.ps1` at integration readiness and update the applicable threat cases. Do not run all-layer mutation for every intermediate edit.
 8. Report the exact commands run, their result, and any remaining environmental proof that cannot run locally.
 
 ## Absolute prohibitions
