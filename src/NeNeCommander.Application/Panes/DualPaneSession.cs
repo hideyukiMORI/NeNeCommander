@@ -23,6 +23,8 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed class DualPaneSession
 {
+    private static readonly Action CancelNothingAction = CancelNothing;
+
     private readonly FileOperationGateway _gateway;
     private readonly PaneSession _left;
     private readonly PaneSession _right;
@@ -49,7 +51,7 @@ public sealed class DualPaneSession
         _gateway = gateway;
         _activeSide = PaneSide.Left;
         _operation = OperationActivity.Idle;
-        _cancelRunningOperation = CancelNothing;
+        _cancelRunningOperation = CancelNothingAction;
     }
 
     /// <summary>Gets the current immutable snapshot of both panes and the operation activity.</summary>
@@ -251,10 +253,21 @@ public sealed class DualPaneSession
         FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
         _operation = new OperationRunning(kind, FileOperationProgress.Create(0, request.Sources.Count));
         FileOperationOutcome outcome;
-        using (CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        try
         {
             _cancelRunningOperation = owned.Cancel;
             outcome = await _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), owned.Token);
+        }
+        catch
+        {
+            _operation = OperationActivity.Idle;
+            throw;
+        }
+        finally
+        {
+            _cancelRunningOperation = CancelNothingAction;
+            owned.Dispose();
         }
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {

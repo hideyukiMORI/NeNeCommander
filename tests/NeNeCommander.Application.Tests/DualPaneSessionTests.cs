@@ -663,6 +663,32 @@ public sealed class DualPaneSessionTests
         Assert.HasCount(2, fixture.Right.Requests);
     }
 
+    /// <summary>Proves a defect cannot leave a running state or a disposed cancellation delegate behind.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenGatewayFaultsReleasesRunningStateAndCancellationOwnership()
+    {
+        InvalidOperationException defect = new("Injected gateway defect.");
+        using Fixture fixture = Fixture.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            () => throw defect);
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+
+        InvalidOperationException observed = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () => await fixture.Panes.HandleAsync(
+                UserIntent.Move,
+                RecordingDualPaneObserver.Create(),
+                CancellationToken.None));
+        DualPaneSnapshot afterEscape = await fixture.Panes.HandleAsync(
+            UserIntent.Escape,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(defect, observed);
+        Assert.AreSame(OperationActivity.Idle, afterEscape.Operation);
+    }
+
     /// <summary>Proves every intent and navigation is frozen while a move runs.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
