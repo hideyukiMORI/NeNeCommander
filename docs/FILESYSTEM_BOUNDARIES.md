@@ -76,6 +76,8 @@ Collision decisions are `Replace`, `Skip`, `KeepBoth`, or `Cancel`, restricted b
 
 Temporary, test, and staged-operation roots are resolved before mutation. Every target is checked against the same provider-aware root. String-prefix containment is prohibited. A failed or ambiguous containment check stops the operation.
 
+The settings document is accepted only as a `WindowsLocalPath`. Its store walks from the document parent to the drive root with the existing Win32 volume/file identifier, rejects every reparse-point or non-directory ancestor it observes, and revalidates the captured chain before directory or sibling-temporary creation, before publishing, and before cleanup. A verified chain after directory creation becomes the retry baseline; a rejected result reports directory creation as not attempted, observed, or unconfirmed separately from temporary residue. A detected identity change stops the write. `Directory.CreateDirectory`, temporary `CreateNew`, `Move`, `File.Replace`, and cleanup `File.Delete` remain path-based BCL operations with a final reopen race after the preceding check; ADR-0040 does not claim handle-relative traversal.
+
 ### FS-009 — Metadata preservation is truthful
 
 - Status: **active**

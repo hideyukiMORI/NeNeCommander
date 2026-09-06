@@ -34,6 +34,9 @@ public abstract record KeyboardKey
     /// <summary>Gets the produced u key.</summary>
     public static KeyboardKey U { get; } = new UKey();
 
+    /// <summary>Gets the produced comma key.</summary>
+    public static KeyboardKey Comma { get; } = new CommaKey();
+
     /// <summary>Gets the down-arrow virtual key.</summary>
     public static KeyboardKey Down { get; } = new DownKey();
 
@@ -132,6 +135,11 @@ public abstract record KeyboardKey
     private sealed record UKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelU";
+    }
+
+    private sealed record CommaKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelComma";
     }
 
     private sealed record DownKey : KeyboardKey

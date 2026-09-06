@@ -103,4 +103,25 @@
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>隠し項目</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>中止</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>実行</value></data>
+  <data name="KeyLabelComma" xml:space="preserve"><value>,</value></data>
+  <data name="SettingsTitle.Text" xml:space="preserve"><value>設定</value></data>
+  <data name="SettingsAutoSaveExplanation.Text" xml:space="preserve"><value>変更は自動的に保存されます。閉じる、または Escape で変更は元に戻りません。</value></data>
+  <data name="SettingsShowHiddenAtLaunch.Content" xml:space="preserve"><value>起動時に隠し項目を表示する</value></data>
+  <data name="SettingsHiddenCurrentPaneExplanation.Text" xml:space="preserve"><value>次回起動時の既定値を変更します。現在の各ペインの表示状態は変わりません。</value></data>
+  <data name="SettingsColorSchemeLabel.Text" xml:space="preserve"><value>配色</value></data>
+  <data name="SettingsClose.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="SettingsSaveStatusSucceeded" xml:space="preserve"><value>保存済み</value></data>
+  <data name="SettingsSaveStatusPending" xml:space="preserve"><value>保存中…</value></data>
+  <data name="SettingsSaveStatusFailed" xml:space="preserve"><value>未保存</value></data>
+  <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
+  <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>設定ファイルを使用できませんでした。既定値で動作し、ファイルは変更していません。</value></data>
+  <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>選択内容はこのセッションに反映されていますが、保存できませんでした。</value></data>
+  <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
+  <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
+  <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>
+  <data name="ColorSchemeNameSolarizedDark" xml:space="preserve"><value>Solarized Dark</value></data>
+  <data name="ColorSchemeNameSolarizedLight" xml:space="preserve"><value>Solarized Light</value></data>
+  <data name="ColorSchemeNameDracula" xml:space="preserve"><value>Dracula</value></data>
+  <data name="ColorSchemeNameNeNeBlack" xml:space="preserve"><value>NeNe Black</value></data>
+  <data name="ColorSchemeNameNeNeLight" xml:space="preserve"><value>NeNe Light</value></data>
 </root>

@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Diagnostics;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Paths;
 using NeNeCommander.Infrastructure.Windows.Settings;
@@ -58,13 +59,32 @@ public sealed class NullGuardTests
     [TestMethod]
     public void ConstructWhenSettingsLocationIsNullThrowsArgumentNullException()
     {
-        ConstructorInfo constructor = typeof(WindowsLocalSettingsStore).GetConstructor([typeof(WindowsLocalPath)]) ??
+        ConstructorInfo constructor = typeof(WindowsLocalSettingsStore).GetConstructor(
+            [typeof(WindowsLocalPath), typeof(WindowsLocalIoExecutionBoundary)]) ??
             throw new AssertFailedException("The public settings store constructor was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => constructor.Invoke([null]));
+            () => constructor.Invoke([null, new WindowsLocalIoExecutionBoundary()]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+
+        TargetInvocationException boundaryFailure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => constructor.Invoke([ParsePath("C:\\settings.json"), null]));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(boundaryFailure.InnerException);
+    }
+
+    /// <summary>Proves the internal settings write seam rejects an absent required observer.</summary>
+    [TestMethod]
+    public void ConstructWhenSettingsWriteTestHookIsNullThrowsArgumentNullException()
+    {
+        WindowsLocalPath path = Assert.IsInstanceOfType<WindowsLocalPath>(ParsePath("C:\\settings.json"));
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsLocalSettingsStore(
+                path,
+                new WindowsLocalIoExecutionBoundary(),
+                null!));
     }
 
     private static void AssertStaticNullGuard(Type type, string methodName, object?[] arguments)

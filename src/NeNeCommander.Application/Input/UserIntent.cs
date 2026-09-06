@@ -1,4 +1,5 @@
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Input;
 
@@ -67,6 +68,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to confirm the pending modal question.</summary>
     public static UserIntent Confirm { get; } = new ConfirmIntent();
 
+    /// <summary>Gets the intent to open the session-owned settings editor.</summary>
+    public static UserIntent OpenSettings { get; } = new OpenSettingsIntent();
+
     private protected UserIntent()
     {
     }
@@ -85,6 +89,22 @@ public abstract record UserIntent
         TransferConflictScope scope)
     {
         return new ConflictDecisionSubmission(decision, scope);
+    }
+
+    /// <summary>Creates an intent selecting one approved color scheme.</summary>
+    /// <param name="scheme">Approved scheme selected by the editor.</param>
+    /// <returns>The typed selection intent.</returns>
+    public static UserIntent SelectColorScheme(ColorScheme scheme)
+    {
+        return new ColorSchemeSelection(scheme);
+    }
+
+    /// <summary>Creates an intent selecting the next-launch hidden-item default.</summary>
+    /// <param name="visibility">Closed visibility selected by the editor.</param>
+    /// <returns>The typed selection intent.</returns>
+    public static UserIntent SelectLaunchHiddenItemVisibility(HiddenItemVisibility visibility)
+    {
+        return new LaunchHiddenItemVisibilitySelection(visibility);
     }
 
     private sealed record MoveNextIntent : UserIntent;
@@ -107,4 +127,5 @@ public abstract record UserIntent
     private sealed record FocusAddressIntent : UserIntent;
     private sealed record RefreshIntent : UserIntent;
     private sealed record ConfirmIntent : UserIntent;
+    private sealed record OpenSettingsIntent : UserIntent;
 }

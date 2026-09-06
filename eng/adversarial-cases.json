@@ -12,7 +12,7 @@
     { "id": "ADV-009", "owner": "Infrastructure.Windows", "defense": "Use fixed non-shell WSL discovery arguments, validate distribution output, and prevent command injection through names and path text." },
     { "id": "ADV-010", "owner": "Infrastructure.Windows", "defense": "Prevent credentials and sensitive full paths from reaching diagnostics." },
     { "id": "ADV-011", "owner": "Application", "defense": "Bound and cancel hostile large or recursively changing Windows local and WSL enumerations." },
-    { "id": "ADV-012", "owner": "Infrastructure.Windows", "defense": "Reject malformed, oversized, unknown-version, and partially written settings." },
+    { "id": "ADV-012", "owner": "Infrastructure.Windows", "defense": "Reject malformed, oversized, unknown-version, partially written, concurrently changed, or reparse-redirected settings; revalidate ancestor and document identity, and publish complete writes through an owned sibling temporary file and provider-atomic install." },
     { "id": "ADV-013", "owner": "Presentation.WinUI", "defense": "Never interpret IME or text-editor input as Vim or destructive commands." },
     { "id": "ADV-014", "owner": "Application", "defense": "Reject duplicate and reentrant operation dispatch deterministically." },
     { "id": "ADV-015", "owner": "Domain", "defense": "Reject Windows device names, ambiguous roots, invalid UNC shares, and unrepresentable provider entry segments." },

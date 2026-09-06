@@ -9,6 +9,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Application.Sessions;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
 using NeNeCommander.Infrastructure.Windows.Execution;
@@ -37,6 +38,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     private const int AssumedVisibleRows = 20;
 
     private FileOperationGateway? _gateway;
+    private ResourceDictionary? _schemeDictionary;
     private readonly AsyncWorkOwner _shutdownWork;
     private readonly AsyncWorkOwner _startupWork;
     private CommanderWindow? _window;
@@ -71,9 +73,16 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// </summary>
     private async Task StartAsync(CancellationToken cancellationToken)
     {
-        UserSettings settings = await ReadSettingsAsync(cancellationToken).ConfigureAwait(true);
+        WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
+        WindowsLocalSettingsStore settingsStore = new(
+            WindowsLocalSettingsLocation.Resolve(),
+            ioExecutionBoundary);
+        SettingsReadOutcome settingsOutcome = await settingsStore.ReadAsync(cancellationToken).ConfigureAwait(true);
+        UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
         ApplyColorScheme(settings.ColorScheme);
-        _window = CreateWindow(settings.HiddenItemVisibility);
+        SettingsSession settingsSession = new(settingsStore, settingsOutcome, ReportDefect);
+        _window = CreateWindow(settings.HiddenItemVisibility, ioExecutionBoundary, settingsSession);
+        _window.ColorSchemeChanged += OnColorSchemeChanged;
         ApplyElementTheme(_window, settings.ColorScheme.Appearance);
         _window.Closed += OnWindowClosed;
         _window.Activate();
@@ -83,19 +92,17 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// Reads settings through the sole settings boundary. An absent or rejected document keeps
     /// the default settings and leaves the stored document untouched (SEC-011).
     /// </summary>
-    private static async Task<UserSettings> ReadSettingsAsync(CancellationToken cancellationToken)
-    {
-        WindowsLocalSettingsStore store = new(WindowsLocalSettingsLocation.Resolve());
-        SettingsReadOutcome outcome = await store.ReadAsync(cancellationToken).ConfigureAwait(true);
-        return outcome is SettingsRead read ? read.Settings : UserSettings.Default;
-    }
-
     private void ApplyColorScheme(ColorScheme scheme)
     {
-        Resources.MergedDictionaries.Add(new ResourceDictionary
+        if (_schemeDictionary is not null)
+        {
+            _ = Resources.MergedDictionaries.Remove(_schemeDictionary);
+        }
+        _schemeDictionary = new ResourceDictionary
         {
             Source = ColorSchemeResources.ResolveDictionaryAddress(scheme),
-        });
+        };
+        Resources.MergedDictionaries.Add(_schemeDictionary);
     }
 
     private static void ApplyElementTheme(Window window, ColorSchemeAppearance appearance)
@@ -109,11 +116,15 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// the pane needs it before its first read, and after that the state itself owns it.
     /// </summary>
     /// <param name="hiddenItemVisibility">Visibility both panes start from.</param>
-    private CommanderWindow CreateWindow(HiddenItemVisibility hiddenItemVisibility)
+    /// <param name="ioExecutionBoundary">Shared scheduler for synchronous Windows filesystem work.</param>
+    /// <param name="settingsSession">Sole settings state and write owner.</param>
+    private CommanderWindow CreateWindow(
+        HiddenItemVisibility hiddenItemVisibility,
+        WindowsLocalIoExecutionBoundary ioExecutionBoundary,
+        SettingsSession settingsSession)
     {
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
-        WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
         ProviderDirectoryReadPort directoryReader = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
         _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
@@ -121,12 +132,22 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
             CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
             _gateway);
+        CommanderSession session = new(panes, settingsSession);
         return new CommanderWindow(
             keyboardIntentMapper,
-            panes,
+            session,
             ParseInitialLocation(InitialLeftLocationText),
             ParseInitialLocation(InitialRightLocationText),
             ReportDefect);
+    }
+
+    private void OnColorSchemeChanged(object? _, ColorSchemeChangedEventArgs args)
+    {
+        ApplyColorScheme(args.Scheme);
+        if (_window is not null)
+        {
+            ApplyElementTheme(_window, args.Scheme.Appearance);
+        }
     }
 
     private static PaneSession CreatePaneSession(
@@ -152,6 +173,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         {
             if (_window is not null)
             {
+                _window.ColorSchemeChanged -= OnColorSchemeChanged;
                 await _window.StopAsync().ConfigureAwait(true);
             }
         }

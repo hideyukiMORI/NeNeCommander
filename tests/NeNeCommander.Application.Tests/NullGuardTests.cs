@@ -8,6 +8,7 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 
@@ -115,6 +116,17 @@ public sealed class NullGuardTests
             [ColorScheme.NeNeDark, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
+        AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
+            [null, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None]);
+        AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
+            [SettingsWriteFailureKind.IoFailure, null, SettingsWriteEffect.None]);
+        AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
+            [SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, null]);
+        AssertStaticNullGuard(typeof(SettingsPersistenceState), nameof(SettingsPersistenceState.StartupRejected),
+            [null]);
+        AssertStaticNullGuard(typeof(SettingsPersistenceState), nameof(SettingsPersistenceState.Failed), [null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SelectColorScheme), [null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SelectLaunchHiddenItemVisibility), [null]);
 
         ConstructorInfo constructor = typeof(FileOperationGateway).GetConstructor([typeof(IFileOperationPort)]) ??
             throw new AssertFailedException("The public gateway constructor was not found.");
@@ -205,6 +217,97 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(OperationCompleted), [OperationKind.Move, null]);
         AssertInternalConstructorNullGuard(typeof(OperationRequestRejected), [null, FileOperationRequestFailureKind.EmptySources]);
         AssertInternalConstructorNullGuard(typeof(OperationRequestRejected), [OperationKind.Move, null]);
+
+        SettingsSession settings = new(
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+            SettingsReadOutcome.Absent(),
+            static _ => { });
+        ConstructorInfo commanderConstructor = typeof(CommanderSession).GetConstructor(
+            [typeof(DualPaneSession), typeof(SettingsSession)]) ??
+            throw new AssertFailedException("The public application-session constructor was not found.");
+        AssertConstructorNullGuard(commanderConstructor, [null, settings]);
+        AssertConstructorNullGuard(commanderConstructor, [panes, null]);
+        CommanderSession commander = new(panes, settings);
+        AssertInstanceNullGuard(commander, nameof(CommanderSession.QueueSettingsIntent),
+            [null, new RecordingCommanderObserver()]);
+        AssertInstanceNullGuard(commander, nameof(CommanderSession.QueueSettingsIntent),
+            [UserIntent.Escape, null]);
+        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [null, settings.Current]);
+        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [panes.Current, null]);
+    }
+
+    /// <summary>Proves asynchronous application-session entries reject absent required values.</summary>
+    [TestMethod]
+    public async Task CommanderSessionAsyncWhenRequiredArgumentIsNullThrowsArgumentNullExceptionAsync()
+    {
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        PaneSession left = new(
+            ScriptedDirectoryReadPort.Create(),
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
+        PaneSession right = new(
+            ScriptedDirectoryReadPort.Create(),
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            HiddenItemVisibility.Hidden);
+        using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
+        CommanderSession commander = new(
+            new DualPaneSession(left, right, gateway),
+            new SettingsSession(
+                new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+                SettingsReadOutcome.Absent(),
+                static _ => { }));
+
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(PaneSide.Left, null!, CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(null!, new RecordingCommanderObserver(), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
+    }
+
+    /// <summary>Proves settings and application-session boundaries reject absent required values.</summary>
+    [TestMethod]
+    public void SettingsSessionWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsReadOutcome outcome = SettingsReadOutcome.Absent();
+        ConstructorInfo settingsConstructor = typeof(SettingsSession).GetConstructor(
+            [typeof(ISettingsStore), typeof(SettingsReadOutcome), typeof(Action<Exception>)]) ??
+            throw new AssertFailedException("The public settings-session constructor was not found.");
+        SettingsSession settings = new(store, outcome, static _ => { });
+
+        AssertConstructorNullGuard(settingsConstructor, [null, outcome, new Action<Exception>(_ => { })]);
+        AssertConstructorNullGuard(settingsConstructor, [store, null, new Action<Exception>(_ => { })]);
+        AssertConstructorNullGuard(settingsConstructor, [store, outcome, null]);
+        AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectColorSchemeAsync),
+            [null, new RecordingCommanderObserver(), CancellationToken.None]);
+        AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectColorSchemeAsync),
+            [ColorScheme.NeNeDark, null, CancellationToken.None]);
+        AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
+            [null, new RecordingCommanderObserver(), CancellationToken.None]);
+        AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
+            [HiddenItemVisibility.Hidden, null, CancellationToken.None]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [null, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, null, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, SettingsEditorState.Closed, null]);
+        AssertInternalConstructorNullGuard(typeof(SettingsPersistenceStartupRejected), [null]);
+        AssertInternalConstructorNullGuard(typeof(SettingsPersistenceFailed), [null]);
+        AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),
+            [null, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None]);
+        AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),
+            [SettingsWriteFailureKind.IoFailure, null, SettingsWriteEffect.None]);
+        AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),
+            [SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, null]);
+        AssertInternalConstructorNullGuard(typeof(ColorSchemeSelection), [null]);
+        AssertInternalConstructorNullGuard(typeof(LaunchHiddenItemVisibilitySelection), [null]);
     }
     /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
     [TestMethod]
