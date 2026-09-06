@@ -76,7 +76,7 @@ Default to `private`, then `internal`. A type or member is public only when anot
 - Status: **active**
 - Enforcement: forbidden-API scan.
 
-Mutable statics, service locators, global containers, ambient contexts, reflection-based discovery, runtime assembly scanning, and direct reads of time, randomness, environment, registry, or current directory are prohibited outside named adapters.
+Mutable statics, service locators, global containers, ambient contexts, reflection-based discovery, runtime assembly scanning, and direct reads of time, randomness, environment, registry, or current directory are prohibited outside named adapters. The CS-010 forbidden-API table also rejects aliases and `using static` directives for `System.DateTime`, `System.DateTimeOffset`, `System.TimeProvider`, `System.Diagnostics`, and `System.Diagnostics.Stopwatch`, plus `TimeProvider.System` and ambient `Stopwatch` entry points. This deliberately rejects safe-looking date arithmetic through an alias; the repository uses named `IClock` adapters instead. The check is a constrained text scan, not C# semantic analysis: it retains the existing interpolation coverage and documents its comment/string and identifier-shadowing limits rather than adding a hand-written lexer.
 
 ### CS-011 — Names identify one responsibility
 

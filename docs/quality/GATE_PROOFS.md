@@ -14,6 +14,7 @@ Status: normative
 | production stage interlock | foundation contains no `src` implementation | production source during foundation is rejected | active |
 | platform API boundary | `System.IO` inside Windows infrastructure and its integration tests is accepted | `System.IO` in any other test or production project is rejected | active |
 | environment boundary | `Environment` inside `WindowsLocalSettingsLocation` is accepted | `Environment` in any other production or test file is rejected | active |
+| CS-010 ambient clock boundary | named `IClock` adapters and the existing source tree pass | ambient type aliases, static imports, `TimeProvider.System`, and `Stopwatch` entry points are rejected | active |
 | color scheme dictionary parity | eight scheme dictionaries with one identical color and brush key set are accepted | a renamed key in one scheme dictionary, and a color declared in `DesignTokens.xaml`, are rejected | active |
 | presentation semantic resource keys | every colour resource key a presentation record names exists in the scheme dictionaries | a presentation record that names an undeclared brush is rejected | active |
 | project graph | manifest parses and has unique projects | undeclared/missing reference is rejected | activates with implementation |

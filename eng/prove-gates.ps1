@@ -160,6 +160,38 @@ try {
         Set-Content -LiteralPath (Join-Path $testRoot 'EnvironmentViolation.cs') -Value "internal sealed class EnvironmentViolation { private static string Read() { return Environment.CurrentDirectory; } }`r`n"
     }
 
+    Assert-ConformanceFailure -Name 'ambient-clock-type-aliases' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'AmbientAliasViolation.cs') -Value @"
+namespace PolicyProof { global using @DT = global :: System . DateTime; using @SD = System . Diagnostics; using TP = System . TimeProvider; using SW = System . Diagnostics . Stopwatch; internal sealed class AmbientAliasViolation { } }
+"@
+    }
+
+    Assert-ConformanceFailure -Name 'ambient-clock-static-import' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'AmbientStaticViolation.cs') -Value @"
+namespace PolicyProof { using static global :: System . DateTimeOffset; using static System.Diagnostics.Stopwatch; internal sealed class AmbientStaticViolation { } }
+"@
+    }
+
+    Assert-ConformanceFailure -Name 'time-provider-system-access' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'TimeProviderViolation.cs') -Value "internal sealed class TimeProviderViolation { private static object Read() { return TimeProvider.System; } }`r`n"
+    }
+
+    Assert-ConformanceFailure -Name 'ambient-stopwatch-access' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+        New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testRoot 'StopwatchViolation.cs') -Value "using System.Diagnostics;`r`ninternal sealed class StopwatchViolation { private static object Read() { return Stopwatch.StartNew(); } }`r`n"
+    }
+
     Assert-ConformanceFailure -Name 'color-scheme-dictionary-drift' -ExpectedRule 'ARC-012' -Mutate {
         param($caseRoot)
         $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/Schemes/dracula.xaml'

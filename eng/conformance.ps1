@@ -654,7 +654,14 @@ $sourceFiles = Get-RepositoryFiles -Extensions @('.cs') -Roots @('src', 'tests')
 $sourcePatterns = [ordered]@{
     'CS-003:project-owned value type' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:readonly\s+)?(?:record\s+struct|struct)\s+[A-Za-z_]'
     'CS-004:project-owned enum' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*enum\s+[A-Za-z_]'
-    'CS-010:direct wall clock' = '\b(?:DateTime|DateTimeOffset)\.(?:Now|UtcNow)\b'
+    # This remains a text scan by design. Keep direct-expression coverage (including
+    # interpolated expressions) and close the known type-import escape routes without
+    # introducing a second parser or pretending to resolve symbols.
+    'CS-010:direct wall clock' = '(?i)\b(?:DateTime|DateTimeOffset)\s*\.\s*(?:Now|UtcNow)\b'
+    'CS-010:ambient clock alias' = '(?i)(?:^|[;{}])\s*(?:global\s+)?using\s+@?[A-Za-z_]\w*\s*=\s*(?:global\s*::\s*)?System(?:\s*\.\s*(?:DateTime|DateTimeOffset|TimeProvider|Diagnostics(?:\s*\.\s*Stopwatch)?))?\s*;'
+    'CS-010:ambient clock static import' = '(?i)(?:^|[;{}])\s*(?:global\s+)?using\s+static\s+(?:global\s*::\s*)?System\s*\.\s*(?:DateTime|DateTimeOffset|TimeProvider|Diagnostics\s*\.\s*Stopwatch)\s*;'
+    'CS-010:TimeProvider.System' = '(?i)\bTimeProvider\s*\.\s*System\b'
+    'CS-010:ambient Stopwatch' = '(?i)(?:\bStopwatch\s*\.\s*(?:StartNew|GetTimestamp|GetElapsedTime|IsHighResolution|Frequency)\b|\bnew\s+Stopwatch\s*\()'
     'CS-010:direct identifier generation' = '\bGuid\.NewGuid\s*\('
     'CS-014:global using' = '(?m)^\s*global\s+using\s+'
     'CS-014:primary constructor' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:sealed\s+|abstract\s+|partial\s+)*(?:class|record(?:\s+class)?)\s+[A-Za-z_]\w*\s*\('
@@ -673,6 +680,11 @@ foreach ($file in $sourceFiles) {
     $content = Get-Content -LiteralPath $file.FullName -Raw
     foreach ($entry in $sourcePatterns.GetEnumerator()) {
         $parts = $entry.Key.Split(':', 2)
+        # StopwatchClock is the sole named adapter for the stopwatch concern. The
+        # exception is exact by concern and repository-relative path.
+        if ($parts[1] -eq 'ambient Stopwatch' -and $relativePath -ceq 'src/NeNeCommander.Infrastructure.Windows/Time/StopwatchClock.cs') {
+            continue
+        }
         if ($content -match $entry.Value) {
             Add-Violation -Rule $parts[0] -Message "$relativePath contains prohibited $($parts[1])."
         }
