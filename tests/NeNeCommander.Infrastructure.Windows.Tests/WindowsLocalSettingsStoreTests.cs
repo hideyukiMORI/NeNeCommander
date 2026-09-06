@@ -316,6 +316,7 @@ public sealed class WindowsLocalSettingsStoreTests
         WindowsLocalSettingsStore store = CreateStore(root);
         using (FileStream exclusive = new(documentPath, FileMode.Open, FileAccess.Read, FileShare.None))
         {
+            Assert.IsTrue(exclusive.CanRead);
             SettingsRejected read = Assert.IsInstanceOfType<SettingsRejected>(
                 await store.ReadAsync(CancellationToken.None));
             Assert.AreSame(SettingsReadFailureKind.Unreadable, read.Kind);
@@ -1007,7 +1008,7 @@ public sealed class WindowsLocalSettingsStoreTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         const string NestedDocument = "residue-parent\\settings.json";
-        FileStream? blocker = null;
+        using ExclusiveFileBlocker blocker = new();
         WindowsLocalSettingsStore store = CreateStoreAt(
             root,
             NestedDocument,
@@ -1015,25 +1016,13 @@ public sealed class WindowsLocalSettingsStoreTests
             {
                 OnTemporaryFlushed = temporaryPath =>
                 {
-                    blocker = new FileStream(
-                        temporaryPath,
-                        FileMode.Open,
-                        FileAccess.Read,
-                        FileShare.None);
+                    blocker.Block(temporaryPath);
                     throw new IOException("Injected failure after the owned temporary flush.");
                 },
             });
 
-        SettingsWriteRejected outcome;
-        try
-        {
-            outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
-                await store.WriteAsync(UserSettings.Default, CancellationToken.None));
-        }
-        finally
-        {
-            blocker?.Dispose();
-        }
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, outcome.Failure);
         Assert.AreSame(SettingsDirectoryEffect.CreationObserved, outcome.DirectoryEffect);
@@ -1785,6 +1774,27 @@ public sealed class WindowsLocalSettingsStoreTests
         return Assert.IsInstanceOfType<WindowsLocalPath>(
             Assert.IsInstanceOfType<PathParseSuccess>(
                 FileSystemPath.Parse(root.Resolve(childName))).Path);
+    }
+
+    private sealed class ExclusiveFileBlocker : IDisposable
+    {
+        private FileStream? _stream;
+
+        internal void Block(string path)
+        {
+            if (_stream is not null)
+            {
+                throw new InvalidOperationException("The test blocker already owns a file stream.");
+            }
+
+            _stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+        }
+
+        public void Dispose()
+        {
+            _stream?.Dispose();
+            _stream = null;
+        }
     }
 
     private sealed class ManualIoScheduler : IWindowsLocalIoScheduler

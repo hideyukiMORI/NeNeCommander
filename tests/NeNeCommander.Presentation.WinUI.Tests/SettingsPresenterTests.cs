@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
@@ -22,14 +23,28 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(presentation.IsOpen);
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
         Assert.HasCount(8, presentation.Schemes);
+        string[] expectedResourceKeys =
+        [
+            "ColorSchemeNameNeNeDark",
+            "ColorSchemeNameUbuntu",
+            "ColorSchemeNameMonokai",
+            "ColorSchemeNameSolarizedDark",
+            "ColorSchemeNameSolarizedLight",
+            "ColorSchemeNameDracula",
+            "ColorSchemeNameNeNeBlack",
+            "ColorSchemeNameNeNeLight",
+        ];
         for (int index = 0; index < ColorScheme.All.Count; index++)
         {
             Assert.AreSame(ColorScheme.All[index], presentation.Schemes[index].Scheme);
+            Assert.AreEqual(expectedResourceKeys[index], presentation.Schemes[index].NameResourceKey);
+            Assert.AreEqual(index == 5, presentation.Schemes[index].IsSelected);
         }
-        Assert.IsTrue(presentation.Schemes[5].IsSelected);
-        Assert.AreEqual("ColorSchemeNameDracula", presentation.Schemes[5].NameResourceKey);
         Assert.AreSame(SettingsSaveStatus.Succeeded, presentation.SaveStatus);
+        Assert.AreEqual("SettingsSaveStatusSucceeded", presentation.SaveStatus.ResourceKey);
         Assert.AreSame(SettingsWarningPresentation.Hidden, presentation.Warning);
+        Assert.AreEqual("SettingsWarningHidden", presentation.Warning.ResourceKey);
+        Assert.IsFalse(presentation.Warning.IsVisible);
     }
 
     /// <summary>Proves pending and failed persistence never reuse the operation-bar presentation.</summary>
@@ -58,10 +73,16 @@ public sealed class SettingsPresenterTests
             SettingsPersistenceState.Cancelled));
 
         Assert.AreSame(SettingsSaveStatus.Pending, pending.SaveStatus);
+        Assert.AreEqual("SettingsSaveStatusPending", pending.SaveStatus.ResourceKey);
         Assert.AreSame(SettingsWarningPresentation.Hidden, pending.Warning);
         Assert.AreSame(SettingsSaveStatus.Failed, startupRejected.SaveStatus);
+        Assert.AreEqual("SettingsSaveStatusFailed", startupRejected.SaveStatus.ResourceKey);
         Assert.AreSame(SettingsWarningPresentation.StartupRejected, startupRejected.Warning);
+        Assert.AreEqual("SettingsWarningStartupRejected", startupRejected.Warning.ResourceKey);
+        Assert.IsTrue(startupRejected.Warning.IsVisible);
         Assert.AreSame(SettingsWarningPresentation.SaveFailed, failed.Warning);
+        Assert.AreEqual("SettingsWarningSaveFailed", failed.Warning.ResourceKey);
+        Assert.IsTrue(failed.Warning.IsVisible);
         Assert.AreSame(SettingsWarningPresentation.SaveFailed, cancelled.Warning);
     }
 
@@ -89,6 +110,71 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(pending.IsOpen);
         Assert.IsTrue(succeeded.IsOpen);
         Assert.IsTrue(failed.IsOpen);
+    }
+
+    /// <summary>Proves the public projection rejects an absent application snapshot.</summary>
+    [TestMethod]
+    public void PresentWhenSnapshotIsNullRejectsTheCall()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => SettingsPresenter.Present(null!));
+    }
+
+    /// <summary>Proves each scheme option requires complete typed and localized input.</summary>
+    [TestMethod]
+    public void ColorSchemeOptionWhenRequiredInputIsInvalidRejectsTheCall()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new SettingsColorSchemeOption(null!, "ColorSchemeNameNeNeDark", ColorScheme.NeNeDark));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new SettingsColorSchemeOption(ColorScheme.NeNeDark, null!, ColorScheme.NeNeDark));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new SettingsColorSchemeOption(ColorScheme.NeNeDark, " ", ColorScheme.NeNeDark));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new SettingsColorSchemeOption(ColorScheme.NeNeDark, "ColorSchemeNameNeNeDark", null!));
+    }
+
+    /// <summary>Proves the modal presentation cannot contain an absent typed field.</summary>
+    [TestMethod]
+    public void SettingsPresentationWhenRequiredInputIsNullRejectsTheCall()
+    {
+        SettingsColorSchemeOption[] schemes =
+        [
+            new SettingsColorSchemeOption(
+                ColorScheme.NeNeDark,
+                "ColorSchemeNameNeNeDark",
+                ColorScheme.NeNeDark),
+        ];
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
+            null!,
+            HiddenItemVisibility.Hidden,
+            schemes,
+            SettingsSaveStatus.Succeeded,
+            SettingsWarningPresentation.Hidden));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
+            SettingsEditorState.Closed,
+            null!,
+            schemes,
+            SettingsSaveStatus.Succeeded,
+            SettingsWarningPresentation.Hidden));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
+            SettingsEditorState.Closed,
+            HiddenItemVisibility.Hidden,
+            null!,
+            SettingsSaveStatus.Succeeded,
+            SettingsWarningPresentation.Hidden));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
+            SettingsEditorState.Closed,
+            HiddenItemVisibility.Hidden,
+            schemes,
+            null!,
+            SettingsWarningPresentation.Hidden));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
+            SettingsEditorState.Closed,
+            HiddenItemVisibility.Hidden,
+            schemes,
+            SettingsSaveStatus.Succeeded,
+            null!));
     }
 
     private static SettingsSnapshot Snapshot(
