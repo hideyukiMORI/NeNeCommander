@@ -14,7 +14,7 @@ public interface IFileOperationPort
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken);
 
     /// <summary>Validates destination containment, recursion, capability, and every source collision before a copy or move.</summary>
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken);

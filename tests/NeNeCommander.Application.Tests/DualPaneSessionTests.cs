@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -204,6 +205,109 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(leftListing.Entries[0].Path, Focus(snapshot.Left));
         Assert.HasCount(2, fixture.Left.Requests);
         Assert.HasCount(2, fixture.Right.Requests);
+    }
+
+    /// <summary>Proves the session owns the frozen conflict continuation, starts on Cancel, and freezes both panes.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    public async Task HandleAsyncWhenCopyConflictsAwaitsDecisionWithCancelFocusedAndFrozenPanes()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing rightListing = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            Inspection(leftListing.Entries[0].Path));
+        TransferConflict conflict = TransferConflict.Create(
+            inspection.Snapshot,
+            rightListing.Entries[0].Path,
+            ParsePath("C:\\right\\a (2).txt"));
+        fixture.Port.EnqueueInspection(inspection);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+
+        DualPaneSnapshot awaitingSnapshot = await fixture.Panes.HandleAsync(
+            UserIntent.Copy,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        OperationAwaitingConflict awaiting = Assert.IsInstanceOfType<OperationAwaitingConflict>(
+            awaitingSnapshot.Operation);
+        DualPaneSnapshot frozen = await fixture.Panes.HandleAsync(
+            UserIntent.ActivateOtherPane,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        DualPaneSnapshot navigation = await fixture.Panes.NavigateAsync(
+            PaneSide.Right,
+            ParsePath("C:\\elsewhere"),
+            CancellationToken.None);
+
+        Assert.AreSame(TransferConflictDecision.Cancel, awaiting.InitialFocus);
+        Assert.AreSame(PaneSide.Left, frozen.ActiveSide);
+        Assert.AreEqual(awaitingSnapshot, navigation);
+
+        FileEntrySnapshot resolvedCurrent = conflict.Source.WithConflictChoice(
+            TransferConflictChoice.Create(conflict, TransferConflictDecision.Skip));
+        TransferConflict repeatedConflict = TransferConflict.Create(
+            resolvedCurrent,
+            conflict.ExistingTarget,
+            conflict.KeepBothCandidate);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([repeatedConflict]));
+        DualPaneSnapshot repeatedSnapshot = await fixture.Panes.HandleAsync(
+            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        _ = Assert.IsInstanceOfType<OperationAwaitingConflict>(repeatedSnapshot.Operation);
+
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
+            TransferPlanEntry.Skip(
+                repeatedConflict.Source.WithConflictChoice(TransferConflictChoice.Create(
+                    repeatedConflict,
+                    TransferConflictDecision.Skip)),
+                conflict.ExistingTarget)]));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
+            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.All),
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(completedSnapshot.Operation);
+        Assert.HasCount(1, completed.Outcome.NotTransferred);
+        Assert.IsEmpty(completed.Outcome.Effects);
+        Assert.AreEqual(1, fixture.Port.Calls.Count(call => call.StartsWith("Inspect:", StringComparison.Ordinal)));
+    }
+
+    /// <summary>Proves Escape consumes and cancels a conflict continuation without a filesystem effect.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenConflictIsAwaitingEscapeCancelsAndRefreshesBothPanes()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing rightListing = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            Inspection(leftListing.Entries[0].Path));
+        TransferConflict conflict = TransferConflict.Create(
+            inspection.Snapshot,
+            rightListing.Entries[0].Path,
+            ParsePath("C:\\right\\a (2).txt"));
+        fixture.Port.EnqueueInspection(inspection);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+        _ = await fixture.Panes.HandleAsync(
+            UserIntent.Copy,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+
+        DualPaneSnapshot cancelledSnapshot = await fixture.Panes.HandleAsync(
+            UserIntent.Escape,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(cancelledSnapshot.Operation);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, completed.Outcome.Completion);
+        Assert.IsEmpty(completed.Outcome.Effects);
+        Assert.HasCount(2, fixture.Port.Calls);
     }
 
     /// <summary>Proves a copy whose destination is one of its sources is rejected before the gateway.</summary>

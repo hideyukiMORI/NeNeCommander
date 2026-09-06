@@ -20,6 +20,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<ProviderStepOutcome> _atomicMoves;
     private readonly Queue<FileInspectionOutcome> _inspections;
     private readonly Queue<ProviderStepOutcome> _preflights;
+    private readonly Queue<TransferPreflightOutcome> _transferPreflights;
     private readonly Queue<ProviderStepOutcome> _renames;
     private readonly Queue<ProviderStepOutcome> _verifications;
 
@@ -35,6 +36,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         _atomicMoves = [];
         _inspections = [];
         _preflights = [];
+        _transferPreflights = [];
         _renames = [];
         _verifications = [];
     }
@@ -56,6 +58,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueuePreflight(ProviderStepOutcome outcome)
     {
         _preflights.Enqueue(outcome);
+    }
+
+    internal void EnqueuePreflight(TransferPreflightOutcome outcome)
+    {
+        _transferPreflights.Enqueue(outcome);
     }
 
     internal void EnqueueCopy(ProviderStepOutcome outcome)
@@ -103,15 +110,40 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         return Task.FromResult(outcome);
     }
 
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
         _calls.Add("Preflight:" + destination.CanonicalText);
-        ProviderStepOutcome outcome = _preflights.Dequeue();
+        TransferPreflightOutcome outcome;
+        if (_transferPreflights.Count > 0)
+        {
+            outcome = _transferPreflights.Dequeue();
+        }
+        else
+        {
+            ProviderStepOutcome legacy = _preflights.Dequeue();
+            outcome = legacy.Failure is FileOperationFailureKind failure
+                ? TransferPreflightOutcome.Rejected(failure)
+                : TransferPreflightOutcome.Succeeded(CreatePlan(sources, destination));
+        }
         InvokeCallback(ScriptedCallbackPoint.AfterPreflight);
         return Task.FromResult(outcome);
+    }
+
+    private static List<TransferPlanEntry> CreatePlan(
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination)
+    {
+        List<TransferPlanEntry> plan = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            string name = source.Path.CanonicalText[(source.Path.CanonicalText.LastIndexOf('\\') + 1)..];
+            FileSystemPath target = ((PathParseSuccess)destination.Child(name)).Path;
+            plan.Add(TransferPlanEntry.Transfer(source, target));
+        }
+        return plan;
     }
 
     public Task<ProviderStepOutcome> CopyAsync(

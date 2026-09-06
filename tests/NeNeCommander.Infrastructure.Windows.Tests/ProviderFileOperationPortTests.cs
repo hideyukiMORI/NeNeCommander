@@ -82,10 +82,10 @@ public sealed class ProviderFileOperationPortTests
         FileEntrySnapshot uncSource = Snapshot("\\\\server\\share\\item", "unc");
 
         FileInspectionOutcome inspection = await router.InspectAsync(unc, CancellationToken.None);
-        ProviderStepOutcome empty = await router.PreflightTransferAsync([], unc, CancellationToken.None);
-        ProviderStepOutcome mixedProvider = await router.PreflightTransferAsync(
+        TransferPreflightOutcome empty = await router.PreflightTransferAsync([], unc, CancellationToken.None);
+        TransferPreflightOutcome mixedProvider = await router.PreflightTransferAsync(
             [local, ubuntu], unc, CancellationToken.None);
-        ProviderStepOutcome mixedDistribution = await router.PreflightTransferAsync(
+        TransferPreflightOutcome mixedDistribution = await router.PreflightTransferAsync(
             [ubuntu, debian], unc, CancellationToken.None);
         AtomicMoveCapabilityOutcome unsupportedCapability = await router.GetAtomicMoveCapabilityAsync(
             uncSource,
@@ -175,12 +175,13 @@ public sealed class ProviderFileOperationPortTests
             return Task.FromResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         }
 
-        public Task<ProviderStepOutcome> PreflightTransferAsync(
+        public Task<TransferPreflightOutcome> PreflightTransferAsync(
             IReadOnlyList<FileEntrySnapshot> sources,
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
-            return Step("preflight");
+            Calls.Add("preflight");
+            return Task.FromResult(TransferPreflightOutcome.Succeeded([]));
         }
 
         public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(

@@ -642,6 +642,29 @@ public sealed class FileOperationGatewayTests
         Assert.HasCount(1, port.Calls);
     }
 
+    /// <summary>Proves one permanent-only source makes a mixed delete batch require confirmation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-008")]
+    public async Task ExecuteAsyncWhenMixedDeleteBatchIsUnconfirmedRejectsWithoutMutation()
+    {
+        FileSystemPath recyclable = ParsePath("C:\\recyclable");
+        FileSystemPath permanent = ParsePath("\\\\server\\share\\permanent");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(recyclable, DeletionCapability.Recycle));
+        port.EnqueueInspection(Inspection(permanent, DeletionCapability.PermanentOnly));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            CreateDelete([recyclable, permanent], null),
+            RecordingFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ConfirmationRequired, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(2, port.Calls);
+    }
+
     /// <summary>Proves confirmed permanent deletion uses the permanent provider mode.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenPermanentDeleteIsConfirmedUsesPermanentMode()
@@ -706,16 +729,33 @@ public sealed class FileOperationGatewayTests
     {
         using CancellationTokenSource source = new();
         source.Cancel();
-        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
-        using FileOperationGateway gateway = new(port);
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort transferPort = ScriptedFileOperationPort.Create(null, null);
+        ScriptedFileOperationPort createPort = ScriptedFileOperationPort.Create(null, null);
+        ScriptedFileOperationPort renamePort = ScriptedFileOperationPort.Create(null, null);
+        using FileOperationGateway transferGateway = new(transferPort);
+        using FileOperationGateway createGateway = new(createPort);
+        using FileOperationGateway renameGateway = new(renamePort);
 
-        FileOperationOutcome outcome = await gateway.ExecuteAsync(
-            CreateMove([ParsePath("C:\\source")]),
+        FileOperationOutcome transfer = await transferGateway.ExecuteAsync(
+            CreateMove([path]),
+            RecordingFileOperationProgress.Create(),
+            source.Token);
+        FileOperationOutcome create = await createGateway.ExecuteAsync(
+            CreateCreateDirectory(path, "child"),
+            RecordingFileOperationProgress.Create(),
+            source.Token);
+        FileOperationOutcome rename = await renameGateway.ExecuteAsync(
+            CreateRename(path, "renamed"),
             RecordingFileOperationProgress.Create(),
             source.Token);
 
-        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
-        Assert.IsEmpty(port.Calls);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, transfer.Completion);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, create.Completion);
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, rename.Completion);
+        Assert.IsEmpty(transferPort.Calls);
+        Assert.IsEmpty(createPort.Calls);
+        Assert.IsEmpty(renamePort.Calls);
     }
 
     /// <summary>Proves move inspection cancellation stops before the next source.</summary>

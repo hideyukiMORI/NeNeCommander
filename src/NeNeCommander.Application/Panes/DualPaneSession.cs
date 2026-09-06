@@ -57,7 +57,7 @@ public sealed class DualPaneSession
     /// <summary>Gets the current immutable snapshot of both panes and the operation activity.</summary>
     public DualPaneSnapshot Current => new(_left.Current, _right.Current, _activeSide, _operation);
 
-    private bool IsFrozen => _operation is OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName;
+    private bool IsFrozen => _operation is OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict;
 
     /// <summary>Reads a location into one side regardless of which side is active, unless an operation runs or awaits confirmation.</summary>
     /// <param name="side">Pane to read into.</param>
@@ -107,6 +107,10 @@ public sealed class DualPaneSession
         if (_operation is OperationAwaitingName awaitingName)
         {
             return ResolveNameAsync(awaitingName, intent, observer, cancellationToken);
+        }
+        if (_operation is OperationAwaitingConflict awaitingConflict)
+        {
+            return ResolveConflictAsync(awaitingConflict, intent, observer, cancellationToken);
         }
         if (intent == UserIntent.ActivateOtherPane)
         {
@@ -209,6 +213,56 @@ public sealed class DualPaneSession
         return StartAsync(OperationKind.Delete, confirmed, observer, cancellationToken);
     }
 
+    private Task<DualPaneSnapshot> ResolveConflictAsync(
+        OperationAwaitingConflict awaiting,
+        UserIntent intent,
+        IDualPaneProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        return intent == UserIntent.Escape
+            ? ResumeConflictAsync(
+                awaiting,
+                TransferConflictDecision.Cancel,
+                TransferConflictScope.Current,
+                observer,
+                cancellationToken)
+            : intent is ConflictDecisionSubmission submission
+            ? ResumeConflictAsync(
+                awaiting,
+                submission.Decision,
+                submission.Scope,
+                observer,
+                cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    private async Task<DualPaneSnapshot> ResumeConflictAsync(
+        OperationAwaitingConflict awaiting,
+        TransferConflictDecision decision,
+        TransferConflictScope scope,
+        IDualPaneProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        _operation = new OperationRunning(
+            awaiting.Kind,
+            FileOperationProgress.Create(0, awaiting.Continuation.Sources.Count));
+        FileOperationOutcome outcome = await _gateway.ResumeAsync(
+            awaiting.Continuation,
+            decision,
+            scope,
+            new ProgressRelay(this, awaiting.Kind, observer),
+            cancellationToken);
+        if (outcome.Conflicts is ConflictSet conflicts)
+        {
+            TransferContinuation continuation = outcome.Continuation!;
+            _operation = new OperationAwaitingConflict(awaiting.Kind, conflicts, continuation);
+            return Current;
+        }
+        _operation = new OperationCompleted(awaiting.Kind, outcome);
+        await RefreshBothAsync(awaiting.Continuation.Request, outcome, cancellationToken);
+        return Current;
+    }
+
     private Task<DualPaneSnapshot> TransferAsync(
         OperationKind kind,
         Func<IReadOnlyList<FileSystemPath>, FileSystemPath, FileOperationRequestCreation> createRequest,
@@ -273,6 +327,12 @@ public sealed class DualPaneSession
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {
             _operation = new OperationAwaitingConfirmation(unconfirmed);
+            return Current;
+        }
+        if (outcome.Conflicts is ConflictSet conflicts &&
+            outcome.Continuation is TransferContinuation continuation)
+        {
+            _operation = new OperationAwaitingConflict(kind, conflicts, continuation);
             return Current;
         }
 

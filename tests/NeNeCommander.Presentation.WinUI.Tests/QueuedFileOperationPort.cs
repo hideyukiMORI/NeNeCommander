@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +11,13 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
 {
     private readonly Queue<TaskCompletionSource<FileInspectionOutcome>> _inspections;
     private readonly Queue<ProviderStepOutcome> _steps;
+    private readonly Queue<Func<IReadOnlyList<FileEntrySnapshot>, FileSystemPath, TransferPreflightOutcome>> _preflights;
 
     private QueuedFileOperationPort()
     {
         _inspections = [];
         _steps = [];
+        _preflights = [];
     }
 
     internal static QueuedFileOperationPort Create()
@@ -41,17 +44,45 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         _steps.Enqueue(outcome);
     }
 
+    internal void EnqueuePreflight(TransferPreflightOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        _preflights.Enqueue((_, _) => outcome);
+    }
+
+    internal void EnqueuePreflight(
+        Func<IReadOnlyList<FileEntrySnapshot>, FileSystemPath, TransferPreflightOutcome> preflight)
+    {
+        ArgumentNullException.ThrowIfNull(preflight);
+        _preflights.Enqueue(preflight);
+    }
+
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
     {
         return _inspections.Dequeue().Task;
     }
 
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(_steps.Dequeue());
+        if (_preflights.Count > 0)
+        {
+            return Task.FromResult(_preflights.Dequeue()(sources, destination));
+        }
+        ProviderStepOutcome step = _steps.Dequeue();
+        if (step.Failure is FileOperationFailureKind failure)
+        {
+            return Task.FromResult(TransferPreflightOutcome.Rejected(failure));
+        }
+        List<TransferPlanEntry> plan = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            string name = source.Path.CanonicalText[(source.Path.CanonicalText.LastIndexOf('\\') + 1)..];
+            plan.Add(TransferPlanEntry.Transfer(source, ((PathParseSuccess)destination.Child(name)).Path));
+        }
+        return Task.FromResult(TransferPreflightOutcome.Succeeded(plan));
     }
 
     public Task<ProviderStepOutcome> CopyAsync(

@@ -14,6 +14,7 @@ public sealed class FileOperationGateway : IDisposable
 {
     private readonly SemaphoreSlim _executionLease;
     private readonly IFileOperationPort _port;
+    private readonly object _continuationOwner;
 
     /// <summary>Initializes the gateway with its sole provider-neutral side-effect port.</summary>
     /// <param name="port">Provider-neutral file operation port.</param>
@@ -22,6 +23,7 @@ public sealed class FileOperationGateway : IDisposable
         ArgumentNullException.ThrowIfNull(port);
         _port = port;
         _executionLease = new SemaphoreSlim(1, 1);
+        _continuationOwner = new object();
     }
 
     /// <summary>Executes one immutable request without permitting reentrant mutation.</summary>
@@ -67,6 +69,57 @@ public sealed class FileOperationGateway : IDisposable
         }
     }
 
+    /// <summary>Resumes one conflict-paused transfer against its original frozen identities.</summary>
+    public async Task<FileOperationOutcome> ResumeAsync(
+        TransferContinuation continuation,
+        TransferConflictDecision decision,
+        TransferConflictScope scope,
+        IFileOperationProgressObserver progress,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(continuation);
+        ArgumentNullException.ThrowIfNull(decision);
+        ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(progress);
+        if (!continuation.IsOwnedBy(_continuationOwner))
+        {
+            return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+        }
+        if (decision == TransferConflictDecision.Cancel || cancellationToken.IsCancellationRequested)
+        {
+            return continuation.TryConsume()
+                ? FileOperationOutcome.Cancelled([])
+                : FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+        }
+        bool entered = await _executionLease.WaitAsync(0, CancellationToken.None);
+        if (!entered)
+        {
+            return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+        }
+        try
+        {
+            if (!continuation.TryConsume())
+            {
+                return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+            }
+            TransferResolution resolution = continuation.Resolution.Add(
+                continuation.PendingConflicts,
+                decision,
+                scope);
+            return await ExecuteFrozenTransferAsync(
+                continuation.Request,
+                continuation.Sources,
+                continuation.Destination,
+                resolution,
+                progress,
+                cancellationToken);
+        }
+        finally
+        {
+            _ = _executionLease.Release();
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -91,33 +144,70 @@ public sealed class FileOperationGateway : IDisposable
             sources = copy.Sources;
             destination = copy.Destination;
         }
-        List<FileOperationEffect> effects = [];
         InspectionBatch inspection = await InspectAllAsync(sources, cancellationToken);
-        if (inspection.Completion == InspectionBatchCompletion.Cancelled)
-        {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-        if (inspection.Failure is not null)
-        {
-            return FileOperationOutcome.Failed(effects, inspection.Failure);
-        }
+        return inspection.Completion == InspectionBatchCompletion.Cancelled
+            ? FileOperationOutcome.Cancelled([])
+            : inspection.Failure is FileOperationFailureKind failedInspection
+            ? FileOperationOutcome.Failed([], failedInspection)
+            : await ExecuteFrozenTransferAsync(
+                request,
+                inspection.Snapshots,
+                destination,
+                TransferResolution.None,
+                progress,
+                cancellationToken);
+    }
 
-        ProviderStepOutcome preflight = await _port.PreflightTransferAsync(
-            inspection.Snapshots,
+    private async Task<FileOperationOutcome> ExecuteFrozenTransferAsync(
+        FileOperationRequest request,
+        IReadOnlyList<FileEntrySnapshot> snapshots,
+        FileSystemPath destination,
+        TransferResolution resolution,
+        IFileOperationProgressObserver progress,
+        CancellationToken cancellationToken)
+    {
+        List<FileOperationEffect> effects = [];
+        List<FileSystemPath> notTransferred = [];
+
+        IReadOnlyList<FileEntrySnapshot> preflightSources = snapshots
+            .Select(snapshot => snapshot.WithConflictChoice(resolution.Find(snapshot.Path)))
+            .ToList()
+            .AsReadOnly();
+        TransferPreflightOutcome preflight = await _port.PreflightTransferAsync(
+            preflightSources,
             destination,
             cancellationToken);
         if (cancellationToken.IsCancellationRequested)
         {
             return FileOperationOutcome.Cancelled(effects);
         }
-        if (preflight.Failure is not null)
+        if (preflight is TransferPreflightRejected rejected)
         {
-            return FileOperationOutcome.Failed(effects, preflight.Failure);
+            return FileOperationOutcome.Failed(effects, rejected.Failure);
+        }
+        if (preflight is ConflictSet conflictSet)
+        {
+            return IsValidConflictSet(conflictSet, preflightSources, destination)
+                ? FileOperationOutcome.AwaitingConflict(
+                    conflictSet,
+                    TransferContinuation.Create(
+                        request,
+                        snapshots,
+                        destination,
+                        resolution,
+                        conflictSet,
+                        _continuationOwner))
+                : FileOperationOutcome.Failed(effects, FileOperationFailureKind.ProviderUnavailable);
+        }
+        IReadOnlyList<TransferPlanEntry> plan = ((TransferPreflightSucceeded)preflight).Plan;
+        if (!IsValidPlan(plan, preflightSources, destination))
+        {
+            return FileOperationOutcome.Failed(effects, FileOperationFailureKind.ProviderUnavailable);
         }
 
         IReadOnlyList<AtomicMoveCapabilityOutcome> capabilities = await GetAtomicMoveCapabilitiesAsync(
             request,
-            inspection.Snapshots,
+            plan,
             destination,
             cancellationToken);
         AtomicMoveCapabilityFailed? capabilityFailure = capabilities
@@ -133,41 +223,159 @@ public sealed class FileOperationGateway : IDisposable
         }
 
         int completed = 0;
-        for (int index = 0; index < inspection.Snapshots.Count; index++)
+        for (int index = 0; index < plan.Count; index++)
         {
-            FileEntrySnapshot snapshot = inspection.Snapshots[index];
+            TransferPlanEntry entry = plan[index];
+            if (entry.Disposition == TransferDisposition.Skip)
+            {
+                notTransferred.Add(entry.Source.Path);
+                completed++;
+                progress.Report(FileOperationProgress.Create(completed, plan.Count));
+                continue;
+            }
+            FileEntrySnapshot snapshot = entry.Source.WithTransferTarget(entry.Target);
             FileOperationOutcome? stopped = request is MoveRequest
                 ? await MoveOneAsync(snapshot, destination, capabilities[index], effects, cancellationToken)
                 : await CopyOneAsync(snapshot, destination, effects, cancellationToken);
             if (stopped is not null)
             {
-                return stopped;
+                return MergeNotTransferred(stopped, notTransferred);
             }
             completed++;
-            progress.Report(FileOperationProgress.Create(completed, sources.Count));
+            progress.Report(FileOperationProgress.Create(completed, plan.Count));
         }
-        return FileOperationOutcome.Succeeded(effects);
+        return FileOperationOutcome.Succeeded(effects, notTransferred);
+    }
+
+    private static bool IsValidConflictSet(
+        ConflictSet conflicts,
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination)
+    {
+        Dictionary<FileSystemPath, int> sourceIndexes = new(FileSystemPathIdentityComparer.Instance);
+        for (int sourceIndex = 0; sourceIndex < sources.Count; sourceIndex++)
+        {
+            sourceIndexes.Add(sources[sourceIndex].Path, sourceIndex);
+        }
+        int previousSourceIndex = -1;
+        foreach (TransferConflict conflict in conflicts.Conflicts)
+        {
+            if (!sourceIndexes.TryGetValue(conflict.Source.Path, out int sourceIndex) ||
+                sourceIndex <= previousSourceIndex ||
+                !MatchesSnapshot(sources[sourceIndex], conflict.Source) ||
+                !IsDirectChild(conflict.ExistingTarget, destination) ||
+                !IsDirectChild(conflict.KeepBothCandidate, destination) ||
+                FileSystemPathIdentityComparer.Instance.Equals(
+                    conflict.ExistingTarget,
+                    conflict.KeepBothCandidate))
+            {
+                return false;
+            }
+            previousSourceIndex = sourceIndex;
+        }
+        return true;
+    }
+
+    private static bool IsValidPlan(
+        IReadOnlyList<TransferPlanEntry> plan,
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination)
+    {
+        if (plan.Count != sources.Count)
+        {
+            return false;
+        }
+        for (int index = 0; index < plan.Count; index++)
+        {
+            TransferPlanEntry entry = plan[index];
+            FileEntrySnapshot expected = sources[index];
+            if (!MatchesSnapshot(expected, entry.Source) ||
+                !IsDirectChild(entry.Target, destination) ||
+                !MatchesDisposition(expected.ConflictChoice, entry))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool MatchesSnapshot(FileEntrySnapshot expected, FileEntrySnapshot actual)
+    {
+        return FileSystemPathIdentityComparer.Instance.Equals(expected.Path, actual.Path) &&
+            expected.Identity == actual.Identity &&
+            expected.DeletionCapability == actual.DeletionCapability &&
+            actual.TransferTarget is null &&
+            MatchesChoice(expected.ConflictChoice, actual.ConflictChoice);
+    }
+
+    private static bool MatchesChoice(
+        TransferConflictChoice? expected,
+        TransferConflictChoice? actual)
+    {
+        return expected is null
+            ? actual is null
+            : actual is not null &&
+                FileSystemPathIdentityComparer.Instance.Equals(expected.Source, actual.Source) &&
+                expected.Decision == actual.Decision &&
+                FileSystemPathIdentityComparer.Instance.Equals(
+                    expected.KeepBothCandidate,
+                    actual.KeepBothCandidate);
+    }
+
+    private static bool MatchesDisposition(
+        TransferConflictChoice? choice,
+        TransferPlanEntry entry)
+    {
+        return choice is null
+            ? entry.Disposition == TransferDisposition.Transfer
+            : choice.Decision == TransferConflictDecision.Skip
+                ? entry.Disposition == TransferDisposition.Skip
+                : choice.Decision == TransferConflictDecision.KeepBoth &&
+                    entry.Disposition == TransferDisposition.Transfer &&
+                    FileSystemPathIdentityComparer.Instance.Equals(
+                        choice.KeepBothCandidate,
+                        entry.Target);
+    }
+
+    private static bool IsDirectChild(FileSystemPath target, FileSystemPath destination)
+    {
+        return target.Parent is FileSystemPath parent &&
+            FileSystemPathIdentityComparer.Instance.Equals(parent, destination);
     }
 
     private async Task<IReadOnlyList<AtomicMoveCapabilityOutcome>> GetAtomicMoveCapabilitiesAsync(
         FileOperationRequest request,
-        IReadOnlyList<FileEntrySnapshot> snapshots,
+        IReadOnlyList<TransferPlanEntry> plan,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
         List<AtomicMoveCapabilityOutcome> capabilities = [];
-        foreach (FileEntrySnapshot snapshot in snapshots)
+        foreach (TransferPlanEntry entry in plan)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 break;
             }
-            AtomicMoveCapabilityOutcome capability = request is MoveRequest
-                ? await _port.GetAtomicMoveCapabilityAsync(snapshot, destination, cancellationToken)
+            AtomicMoveCapabilityOutcome capability = request is MoveRequest &&
+                entry.Disposition == TransferDisposition.Transfer &&
+                entry.Source.ConflictChoice?.Decision != TransferConflictDecision.KeepBoth
+                ? await _port.GetAtomicMoveCapabilityAsync(
+                    entry.Source.WithTransferTarget(entry.Target),
+                    destination,
+                    cancellationToken)
                 : AtomicMoveCapabilityOutcome.Unsupported;
             capabilities.Add(capability);
         }
         return capabilities.AsReadOnly();
+    }
+
+    private static FileOperationOutcome MergeNotTransferred(
+        FileOperationOutcome outcome,
+        IReadOnlyList<FileSystemPath> notTransferred)
+    {
+        return outcome.Failure is FileOperationFailureKind failure
+            ? FileOperationOutcome.Failed(outcome.Effects, notTransferred, failure)
+            : FileOperationOutcome.Cancelled(outcome.Effects, notTransferred);
     }
 
     private async Task<FileOperationOutcome> ExecuteDeleteAsync(

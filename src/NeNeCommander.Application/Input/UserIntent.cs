@@ -1,3 +1,5 @@
+using NeNeCommander.Application.FileOperations;
+
 namespace NeNeCommander.Application.Input;
 
 /// <summary>
@@ -75,6 +77,14 @@ public abstract record UserIntent
     public static UserIntent SubmitName(string name)
     {
         return new NameSubmission(name);
+    }
+
+    /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
+    public static UserIntent ResolveConflict(
+        TransferConflictDecision decision,
+        TransferConflictScope scope)
+    {
+        return new ConflictDecisionSubmission(decision, scope);
     }
 
     private sealed record MoveNextIntent : UserIntent;

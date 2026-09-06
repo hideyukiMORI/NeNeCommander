@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
@@ -10,6 +11,23 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// </summary>
 public sealed record KeyBinding
 {
+    private static readonly Dictionary<KeyboardModifier, Dictionary<KeyboardKey, string>> ModifiedKeyLabels =
+        new()
+        {
+            [KeyboardModifier.Control] = new Dictionary<KeyboardKey, string>
+            {
+                [KeyboardKey.D] = "KeyLabelCtrlD",
+                [KeyboardKey.H] = "KeyLabelCtrlH",
+                [KeyboardKey.L] = "KeyLabelCtrlL",
+                [KeyboardKey.R] = "KeyLabelCtrlR",
+                [KeyboardKey.U] = "KeyLabelCtrlU",
+            },
+            [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
+            {
+                [KeyboardKey.Up] = "KeyLabelAltUp",
+            },
+        };
+
     internal KeyBinding(
         KeyboardContext context,
         KeyboardKey key,
@@ -32,22 +50,23 @@ public sealed record KeyBinding
     public KeyboardModifier Modifier { get; }
 
     /// <summary>Gets the localized key-cap resource for this key and its modifier chord.</summary>
-    public string KeyLabelResourceKey => Modifier == KeyboardModifier.None
-        ? Key.LabelResourceKey
-        : Modifier == KeyboardModifier.Control && Key == KeyboardKey.D
-            ? "KeyLabelCtrlD"
-            : Modifier == KeyboardModifier.Control && Key == KeyboardKey.H
-                ? "KeyLabelCtrlH"
-                : Modifier == KeyboardModifier.Control && Key == KeyboardKey.L
-                    ? "KeyLabelCtrlL"
-                    : Modifier == KeyboardModifier.Control && Key == KeyboardKey.R
-                        ? "KeyLabelCtrlR"
-                        : Modifier == KeyboardModifier.Control && Key == KeyboardKey.U
-                            ? "KeyLabelCtrlU"
-                            : Modifier == KeyboardModifier.Alt && Key == KeyboardKey.Up
-                                ? "KeyLabelAltUp"
-                                : "KeyLabelUnmapped";
+    public string KeyLabelResourceKey => SelectKeyLabelResource();
 
     /// <summary>Gets the sole intent the binding emits.</summary>
     public UserIntent Intent { get; }
+
+    private string SelectKeyLabelResource()
+    {
+        return Modifier == KeyboardModifier.None
+            ? Key.LabelResourceKey
+            : SelectModifiedKeyLabelResource();
+    }
+
+    private string SelectModifiedKeyLabelResource()
+    {
+        return ModifiedKeyLabels.TryGetValue(Modifier, out Dictionary<KeyboardKey, string>? labels) &&
+            labels.TryGetValue(Key, out string? label)
+            ? label
+            : "KeyLabelUnmapped";
+    }
 }

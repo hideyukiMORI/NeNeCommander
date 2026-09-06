@@ -1,0 +1,42 @@
+# Handoff — transfer conflict resolver — 2026-09-06
+
+Status: Draft implementation
+
+Worktree: `C:\Users\info\WORKS\NeNeCommander-73`
+Branch: `feat/73-transfer-conflict-resolver`
+Base: verified `origin/main` / `991d7ffd24ba0e33a2f9a09a8b9c88d4eb2717cf`
+Draft PR: [#91](https://github.com/hideyukiMORI/NeNeCommander/pull/91)
+
+## Invariant and canonical mechanism
+
+Complete-batch inspection and preflight precede every transfer effect. Conflict resolution retains the original frozen identity and never replaces it with a later entry. The sole path is `UserIntent` through `DualPaneSession.OperationAwaitingConflict` and `FileOperationGateway.ResumeAsync` to `IFileOperationPort`; no second copy/move engine exists.
+
+The gateway-issued continuation owns the pending immutable `ConflictSet` and is a one-shot reference capability bound to the issuing gateway. Skip records `NotTransferred` without a filesystem effect. KeepBoth uses one validated candidate consistently for copy and verification, and a move deletes its source only after verification. Provider plan/conflict output must match every frozen source in order, identity, choice, disposition, and destination parent before any effect.
+
+## Changed areas
+
+- ADR-0039 and typed Application transfer outcomes, conflicts, choices, plans, continuation, gateway validation, operation state, and results.
+- Windows-local collision discovery, provider-comparison-aware reservations, KeepBoth naming, containment/reparse/path-length rejection, and candidate-race re-conflict.
+- WSL preflight planning from one revalidated entry while preserving same-distribution non-conflict behavior and existing cross-provider rejection.
+- Existing session, presenter, command path, localized operation results, and one conflict modal with Cancel initial focus and Apply-to-all operation scope.
+- Behavioral, adversarial, infrastructure, presentation, architecture, coverage, and focused mutation proof described in the matching [daily report](../reports/2026-09-06-transfer-conflict-resolver-daily-report.md).
+
+The UI follows the approved semantic shell composition and keeps the two panes, one operation bar, and generated hints. Canvas input is directional; no final style, font, color, or new design token is claimed as approved. The conflict modal passes Enter and Space to the focused native decision button, starts focus on Cancel, and keeps Escape on the canonical mapped cancel path. Issue #72's active-pane session visibility is preserved independently from startup settings. Issue #74 settings persistence is not implemented.
+
+## Saved proof
+
+On base `991d7ffd`, the Release solution build passes with zero warnings and errors. Application passes 220/220, Infrastructure.Windows 144/144, Presentation.WinUI 80/80, and Architecture 5/5. Protected branch coverage passes at Domain 100.00%, Application 100.00%, Infrastructure.Windows 93.56%, and Presentation.WinUI 96.93%. Commit validation passes. Draft PR dependency review `34022555540` passes. Focused WSL adapter mutation scored 98.04%, and focused conflict-presentation mutation scored 94.64%. The optional `KeyboardIntentMapper.cs` diagnostic scored 93.33% overall while killing every mutant in the new native-control deferral method; four survivors remain in pre-existing constructor and context-reset code.
+
+The Application three-file focused mutation diagnostic reported 89.47%, but this is not the normative project-level threshold run. A reported surviving KeepBoth disposition mutant was manually applied and caused the targeted adversarial test to fail. The inconsistent diagnostic is retained rather than retried or suppressed; the final full Application project mutation remains mandatory in exact-head deep review.
+
+Exact-head deep workflow `34023373522` completed on `c0f9da2d1057e224a485453083f4f7edeaf4ec81`. The primary mutation output recorded Domain 96.98%, Application 96.89%, Infrastructure.Windows 92.90%, and Presentation.WinUI 90.82%. CodeQL found three owned issues: the Windows-local KeepBoth choice required an explicit non-null accepted local, the nullable Apply-to-all checkbox expression required a closed pattern, and the key-label selection inherited from Issue #72 was too complex. The current candidate fixes all three without suppression or a second key map and adds exact modified-chord label proof. A fresh exact-head deep analysis is required to close the findings and review threads.
+
+## Remaining integration work and release proof
+
+1. Commit and push the CodeQL repairs and focused proof while the PR remains Draft.
+2. Run a fresh security-sensitive exact-head deep workflow, including the full Application project mutation threshold, dependency audit, repeated adversarial proof, and CodeQL. Require the new analysis to close all alerts and review threads without exclusions, suppressions, waivers, or retry-based acceptance.
+3. Separately from Issue #73 integration readiness, live WSL copy and deletion remain an unexecuted release environmental tier tracked by Issue #93 because `NENE_COMMANDER_WSL_TEST_ROOT` is unset and no live harness exists. Do not substitute unit tests for it.
+4. Actual-window conflict keyboard interaction is also unexecuted release environmental proof tracked by Issue #94. Issue #70 deliberately sent no keyboard input, and the current tree has no executable canonical test-owned conflict fixture or sanctioned runtime interaction harness; UIA exposes no invokable command route. The initial locations are `C:\` and `C:\Users`; editing an address has no navigation-submission route, and navigation requires a focused listed directory, so a test-owned collision root cannot be injected. Issue #74's ad-hoc raw-input observation was not retained as a reproducible harness and later UIA focus lookup timed out. The focused Presentation route test is not a claim of real WinUI interaction, and this Issue does not invent or repeat a synthetic harness.
+5. Once deep review and review findings are complete, transition PR #91 from Draft to Ready to request the canonical CI command `pwsh -NoProfile -File ./eng/check.ps1`. Do not merge without fresh exact-head evidence.
+
+Issue #85 / PR #86 is integrated in the base, so its dependency is resolved. Replace, directory merge, cross-provider Windows/WSL transfer, and settings persistence remain outside Issue #73.

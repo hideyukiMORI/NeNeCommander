@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Input;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -27,6 +28,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private readonly DualPaneSession _panes;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private ActiveConflictModal? _renderedConflictModal;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
 
@@ -80,7 +82,12 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
-        args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
+        KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
+        if (ConflictModal.Visibility == Visibility.Visible)
+        {
+            outcome = KeyboardIntentMapper.DeferConflictConfirmToNativeControl(outcome);
+        }
+        args.Handled = ForwardOutcome(outcome);
     }
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)
@@ -121,6 +128,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         RenderDetail(presentation.Detail);
         OperationKeyHints.ItemsSource = presentation.KeyHints;
         RenderNameEntry(presentation.NameEntry);
+        RenderConflict(presentation.ConflictModal);
         _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
     }
@@ -151,6 +159,9 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void RenderDetail(OperationDetail detail)
     {
+        TransferResultSegments.Visibility = detail is TransferResultDetail
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         switch (detail)
         {
             case OperationItemCountDetail count:
@@ -164,6 +175,16 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
                 OperationDetailCount.Text = progress.Completed.ToString(CultureInfo.CurrentCulture);
                 OperationProgressSeparator.Text = _resources.GetString("OperationProgressSeparator");
                 OperationTotal.Text = progress.Total.ToString(CultureInfo.CurrentCulture);
+                break;
+            case TransferResultDetail result:
+                OperationProgressSegments.ItemsSource = null;
+                OperationDetailCount.Text = string.Empty;
+                OperationProgressSeparator.Text = string.Empty;
+                OperationTotal.Text = string.Empty;
+                TransferResultNotTransferredCount.Text = result.NotTransferred.ToString(CultureInfo.CurrentCulture);
+                TransferResultCopiedCount.Text = result.Copied.ToString(CultureInfo.CurrentCulture);
+                TransferResultVerifiedCount.Text = result.Verified.ToString(CultureInfo.CurrentCulture);
+                TransferResultSourceDeletedCount.Text = result.SourceDeleted.ToString(CultureInfo.CurrentCulture);
                 break;
             default:
                 OperationProgressSegments.ItemsSource = null;
@@ -188,6 +209,50 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         }
         _ = NameEntry.Focus(FocusState.Programmatic);
         NameEntry.SelectAll();
+    }
+
+    private void RenderConflict(ConflictModalPresentation conflictModal)
+    {
+        if (conflictModal is not ActiveConflictModal active)
+        {
+            ConflictModal.Visibility = Visibility.Collapsed;
+            _renderedConflictModal = null;
+            return;
+        }
+        bool isNewConflict = !ReferenceEquals(_renderedConflictModal, active);
+        ConflictSource.Text = active.SourceText;
+        ConflictExistingTarget.Text = active.ExistingTargetText;
+        ConflictKeepBothCandidate.Text = active.KeepBothCandidateText;
+        ConflictModal.Visibility = Visibility.Visible;
+        if (isNewConflict)
+        {
+            ConflictApplyToAll.IsChecked = false;
+            _ = ConflictCancel.Focus(FocusState.Programmatic);
+        }
+        _renderedConflictModal = active;
+    }
+
+    private void OnConflictSkip(object _, RoutedEventArgs args)
+    {
+        ForwardConflictDecision(TransferConflictDecision.Skip);
+    }
+
+    private void OnConflictKeepBoth(object _, RoutedEventArgs args)
+    {
+        ForwardConflictDecision(TransferConflictDecision.KeepBoth);
+    }
+
+    private void OnConflictCancel(object _, RoutedEventArgs args)
+    {
+        ForwardConflictDecision(TransferConflictDecision.Cancel);
+    }
+
+    private void ForwardConflictDecision(TransferConflictDecision decision)
+    {
+        TransferConflictScope scope = ConflictApplyToAll.IsChecked is true
+            ? TransferConflictScope.All
+            : TransferConflictScope.Current;
+        ForwardIntent(UserIntent.ResolveConflict(decision, scope));
     }
 
     private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
@@ -250,8 +315,8 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private void ForwardIntent(UserIntent intent)
     {
         UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
-            ? UserIntent.SubmitName(NameEntry.Text)
-            : intent;
+                ? UserIntent.SubmitName(NameEntry.Text)
+                : intent;
         _ = _paneWork.TryStart(cancellationToken =>
             RenderAfterAsync(_panes.HandleAsync(forwarded, this, cancellationToken)));
     }

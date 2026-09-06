@@ -11,11 +11,15 @@ public sealed record FileEntrySnapshot
     private FileEntrySnapshot(
         FileSystemPath path,
         FileIdentity identity,
-        DeletionCapability deletionCapability)
+        DeletionCapability deletionCapability,
+        FileSystemPath? transferTarget,
+        TransferConflictChoice? conflictChoice)
     {
         Path = path;
         Identity = identity;
         DeletionCapability = deletionCapability;
+        TransferTarget = transferTarget;
+        ConflictChoice = conflictChoice;
     }
 
     /// <summary>Gets the source path captured during preflight.</summary>
@@ -26,6 +30,12 @@ public sealed record FileEntrySnapshot
 
     /// <summary>Gets the provider-reported deletion capability.</summary>
     public DeletionCapability DeletionCapability { get; }
+
+    /// <summary>Gets the exact preflighted transfer target, or absence before transfer preflight.</summary>
+    public FileSystemPath? TransferTarget { get; }
+
+    /// <summary>Gets the operation-scoped conflict choice applied during resumed preflight.</summary>
+    public TransferConflictChoice? ConflictChoice { get; }
 
     /// <summary>
     /// Creates an immutable preflight snapshot from validated components.
@@ -42,6 +52,17 @@ public sealed record FileEntrySnapshot
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(deletionCapability);
-        return new FileEntrySnapshot(path, identity, deletionCapability);
+        return new FileEntrySnapshot(path, identity, deletionCapability, null, null);
+    }
+
+    internal FileEntrySnapshot WithTransferTarget(FileSystemPath target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return new FileEntrySnapshot(Path, Identity, DeletionCapability, target, ConflictChoice);
+    }
+
+    internal FileEntrySnapshot WithConflictChoice(TransferConflictChoice? choice)
+    {
+        return new FileEntrySnapshot(Path, Identity, DeletionCapability, TransferTarget, choice);
     }
 }

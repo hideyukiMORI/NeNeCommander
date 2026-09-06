@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -26,7 +27,7 @@ public static class DualPanePresenter
         ArgumentNullException.ThrowIfNull(snapshot);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
-        KeyboardContext inputContext = snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName
+        KeyboardContext inputContext = snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict
             ? KeyboardContext.Modal
             : KeyboardContext.FileList;
         return new DualPanePresentation(
@@ -40,6 +41,7 @@ public static class DualPanePresenter
             TranslateTone(snapshot.Operation),
             KeyHintPresenter.Present(inputContext),
             TranslateNameEntry(snapshot.Operation),
+            TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
             inputContext);
     }
 
@@ -64,6 +66,7 @@ public static class DualPanePresenter
         {
             OperationAwaitingName => OperationBarTone.AwaitingName,
             OperationAwaitingConfirmation => OperationBarTone.AwaitingConfirmation,
+            OperationAwaitingConflict => OperationBarTone.AwaitingConfirmation,
             OperationRequestRejected => OperationBarTone.Failure,
             OperationCompleted completed => TranslateCompletionTone(completed.Outcome.Completion),
             _ => OperationBarTone.Idle,
@@ -91,6 +94,8 @@ public static class DualPanePresenter
         {
             OperationAwaitingConfirmation pending => new OperationItemCountDetail(pending.Request.Sources.Count),
             OperationRunning running => new OperationProgressDetail(running.Progress),
+            OperationCompleted completed when completed.Kind == OperationKind.Copy || completed.Kind == OperationKind.Move =>
+                TranslateTransferResult(completed.Outcome),
             _ => OperationDetail.None,
         };
     }
@@ -101,11 +106,38 @@ public static class DualPanePresenter
         {
             OperationRunning running => TranslateRunning(running.Kind),
             OperationAwaitingConfirmation => OperationStatus.DeleteAwaitingConfirmation,
+            OperationAwaitingConflict awaitingConflict => awaitingConflict.Kind == OperationKind.Copy
+                ? OperationStatus.CopyAwaitingConflict
+                : OperationStatus.MoveAwaitingConflict,
             OperationAwaitingName awaiting => TranslateAwaitingName(awaiting.Kind),
             OperationRequestRejected rejected => TranslateRequestRejection(rejected.Kind),
             OperationCompleted completed => TranslateCompletion(completed.Kind, completed.Outcome.Completion),
             _ => OperationStatus.Idle,
         };
+    }
+
+    private static ConflictModalPresentation TranslateConflictModal(
+        OperationActivity activity,
+        ConflictModalPresentation? previous)
+    {
+        return activity is not OperationAwaitingConflict awaiting
+            ? ConflictModalPresentation.Hidden
+            : previous is ActiveConflictModal active &&
+                ReferenceEquals(active.Continuation, awaiting.Continuation)
+                ? active
+                : new ActiveConflictModal(
+                    awaiting.Conflicts,
+                    awaiting.InitialFocus,
+                    awaiting.Continuation);
+    }
+
+    private static TransferResultDetail TranslateTransferResult(FileOperationOutcome outcome)
+    {
+        return new TransferResultDetail(
+            outcome.NotTransferred.Count,
+            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Copied),
+            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Verified),
+            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourceDeleted));
     }
 
     private static OperationStatus TranslateAwaitingName(OperationKind kind)

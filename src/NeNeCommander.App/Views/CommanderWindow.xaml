@@ -296,6 +296,32 @@
         </Grid>
 
         <Border
+            x:Name="ConflictModal"
+            Grid.Row="0"
+            AutomationProperties.AutomationId="TransferConflictModal"
+            Background="{StaticResource SurfacePaneBrush}"
+            BorderBrush="{StaticResource FocusRingBrush}"
+            BorderThickness="{StaticResource BorderActivePaneThickness}"
+            CornerRadius="{StaticResource RadiusPane}"
+            HorizontalAlignment="Center"
+            Padding="{StaticResource SpacingOperationBar}"
+            VerticalAlignment="Center"
+            Visibility="Collapsed">
+            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                <TextBlock x:Uid="ConflictModalTitle" FontSize="{StaticResource TypographyBodySize}" />
+                <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <CheckBox x:Name="ConflictApplyToAll" x:Uid="ConflictApplyToAll" IsChecked="False" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
+                    <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" Click="OnConflictSkip" />
+                    <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" Click="OnConflictKeepBoth" />
+                    <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" Click="OnConflictCancel" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border
             x:Name="OperationBar"
             Grid.Row="1"
             AutomationProperties.AutomationId="OperationBar"
@@ -364,6 +390,20 @@
                             Foreground="{StaticResource TextPrimaryBrush}"
                             Style="{StaticResource PlainTextEditorStyle}" />
                     </Border>
+                    <StackPanel
+                        x:Name="TransferResultSegments"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource SpacingOperationDetailGap}"
+                        Visibility="Collapsed">
+                        <TextBlock x:Uid="TransferResultNotTransferred" />
+                        <TextBlock x:Name="TransferResultNotTransferredCount" />
+                        <TextBlock x:Uid="TransferResultCopied" />
+                        <TextBlock x:Name="TransferResultCopiedCount" />
+                        <TextBlock x:Uid="TransferResultVerified" />
+                        <TextBlock x:Name="TransferResultVerifiedCount" />
+                        <TextBlock x:Uid="TransferResultSourceDeleted" />
+                        <TextBlock x:Name="TransferResultSourceDeletedCount" />
+                    </StackPanel>
                     <ItemsControl
                         x:Name="OperationProgressSegments"
                         AutomationProperties.AutomationId="OperationProgressSegments"

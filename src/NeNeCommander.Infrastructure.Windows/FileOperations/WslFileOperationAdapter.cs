@@ -39,7 +39,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return _executionBoundary.ExecuteAsync(() => Inspect(path));
     }
 
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -47,7 +47,9 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Preflight(sources, destination), FileOperationFailureKind.ProviderUnavailable));
+            () => GuardedPreflight(
+                () => Preflight(sources, destination),
+                FileOperationFailureKind.ProviderUnavailable));
     }
 
     public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
@@ -169,7 +171,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
                             : CreateDirectory(wslTarget));
     }
 
-    private ProviderStepOutcome Preflight(
+    private TransferPreflightOutcome Preflight(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination)
     {
@@ -177,31 +179,47 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             destination is not WslPath wslDestination ||
             !SourcesMatchDistribution(sources, wslDestination))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
         }
         WslFileSystemEntry? destinationEntry = _fileSystem.Find(wslDestination);
-        return destinationEntry is null || destinationEntry.Kind != DirectoryEntryKind.Directory
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound)
-            : IsReparsePoint(destinationEntry)
-                ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-                : sources
-                    .Select(source => WithRevalidatedEntry(
-                        source,
-                        entry => PreflightSource(entry, wslDestination)))
-                    .FirstOrDefault(outcome => outcome.Failure is not null) ??
-                    ProviderStepOutcome.Succeeded();
-    }
+        if (destinationEntry is null || destinationEntry.Kind != DirectoryEntryKind.Directory)
+        {
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.NotFound);
+        }
+        if (IsReparsePoint(destinationEntry))
+        {
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+        }
 
-    private ProviderStepOutcome PreflightSource(WslFileSystemEntry source, WslPath destination)
-    {
-        return IsReparsePoint(source) ||
-            _fileSystem.ContainsReparsePoint(source) ||
-            BuildTarget(source, destination) is not WslPath target
-                ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-                : ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath ||
-                    _fileSystem.TargetExists(target)
-                    ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-                    : ProviderStepOutcome.Succeeded();
+        List<TransferPlanEntry> plan = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            WslFileSystemEntry? entry = _fileSystem.Find((WslPath)source.Path);
+            if (entry is null)
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.NotFound);
+            }
+            if (entry.Identity != source.Identity)
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.IdentityChanged);
+            }
+            if (IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry))
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+            }
+            WslPath? target = BuildTarget(entry, wslDestination);
+            if (target is null)
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+            }
+            if (ProviderPathContainment.Evaluate(entry.Path, wslDestination) is ContainedPath ||
+                _fileSystem.TargetExists(target))
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
+            }
+            plan.Add(TransferPlanEntry.Transfer(source, target));
+        }
+        return TransferPreflightOutcome.Succeeded(plan);
     }
 
     private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
@@ -401,6 +419,24 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         catch (IOException exception)
         {
             return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+        }
+    }
+
+    private static TransferPreflightOutcome GuardedPreflight(
+        Func<TransferPreflightOutcome> step,
+        FileOperationFailureKind fallback)
+    {
+        try
+        {
+            return step();
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return TransferPreflightOutcome.Rejected(Normalize(exception.HResult, fallback));
+        }
+        catch (IOException exception)
+        {
+            return TransferPreflightOutcome.Rejected(Normalize(exception.HResult, fallback));
         }
     }
 

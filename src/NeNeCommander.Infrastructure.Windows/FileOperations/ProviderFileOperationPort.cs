@@ -44,7 +44,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -55,7 +55,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         {
             WindowsLocalPath => _windowsLocal.PreflightTransferAsync(sources, destination, cancellationToken),
             WslPath => _wsl.PreflightTransferAsync(sources, destination, cancellationToken),
-            _ => FailedStep(),
+            _ => FailedPreflight(),
         };
     }
 
@@ -190,5 +190,11 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     private static Task<ProviderStepOutcome> FailedStep()
     {
         return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+    }
+
+    private static Task<TransferPreflightOutcome> FailedPreflight()
+    {
+        return Task.FromResult(
+            TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable));
     }
 }
