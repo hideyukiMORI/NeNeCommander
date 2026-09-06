@@ -24,6 +24,10 @@ internal sealed class NoOpSettingsWriteTestHook : ISettingsWriteTestHook
     {
     }
 
+    public void TemporaryClosed(string temporaryPath)
+    {
+    }
+
     public void BeforePublish(string documentPath)
     {
     }

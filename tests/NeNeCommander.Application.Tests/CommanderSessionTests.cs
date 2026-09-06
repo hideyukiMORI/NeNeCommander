@@ -70,9 +70,11 @@ public sealed class CommanderSessionTests
             session.Current.Panes.Left.Content);
         Assert.AreSame(HiddenItemVisibility.Hidden, leftContent.State.HiddenItemVisibility);
         Assert.AreSame(PaneContent.Absent, session.Current.Panes.Right.Content);
-        write.SetResult(SettingsWriteOutcome.Succeeded());
         CommanderSnapshot changed = await changing;
-        _ = Assert.IsInstanceOfType<SettingsPersistenceSucceeded>(changed.Settings.Persistence);
+        _ = Assert.IsInstanceOfType<SettingsPersistencePending>(changed.Settings.Persistence);
+        write.SetResult(SettingsWriteOutcome.Succeeded());
+        await session.StopAsync();
+        _ = Assert.IsInstanceOfType<SettingsPersistenceSucceeded>(session.Current.Settings.Persistence);
     }
 
     /// <summary>Proves an existing name modal keeps ownership when the settings shortcut arrives.</summary>
@@ -105,30 +107,85 @@ public sealed class CommanderSessionTests
         Assert.AreSame(SettingsEditorState.Closed, refused.Settings.Editor);
     }
 
-    /// <summary>Proves the selector queue accepts only settings choices while the editor is open.</summary>
+    /// <summary>Proves the transfer-conflict modal keeps ownership when the settings shortcut arrives.</summary>
     [TestMethod]
-    public async Task QueueSettingsIntentWhenEditorStateVariesRoutesOnlyOpenSelectionsAsync()
+    public async Task HandleAsyncWhenConflictModalOwnsInputRefusesToOpenSettingsAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        using FileOperationGateway gateway = new(port);
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        DirectoryListing leftListing = Listing("C:\\left", "item.txt");
+        DirectoryListing rightListing = Listing("C:\\right", "item.txt");
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await session.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            Inspection(leftListing.Entries[0].Path));
+        TransferConflict conflict = TransferConflict.Create(
+            inspection.Snapshot,
+            rightListing.Entries[0].Path,
+            ParsePath("C:\\right\\item (2).txt"));
+        port.EnqueueInspection(inspection);
+        port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+        _ = await session.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
+
+        CommanderSnapshot refused = await session.HandleAsync(
+            UserIntent.OpenSettings,
+            observer,
+            CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<OperationAwaitingConflict>(refused.Panes.Operation);
+        Assert.AreSame(SettingsEditorState.Closed, refused.Settings.Editor);
+    }
+
+    /// <summary>Proves rapid selector intents return after enqueue and persist in their canonical order.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenSettingsSelectionsOverlapEnqueuesBothWithoutAwaitingIoAsync()
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         using FileOperationGateway gateway = CreateGateway();
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
-        TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
+        TaskCompletionSource<SettingsWriteOutcome> firstWrite = store.PlanWrite();
+        TaskCompletionSource<SettingsWriteOutcome> secondWrite = store.PlanWrite();
         CommanderSession session = CreateSession(left, right, gateway, store);
         RecordingCommanderObserver observer = new();
 
-        _ = session.QueueSettingsIntent(UserIntent.SelectColorScheme(ColorScheme.Ubuntu), observer);
         _ = await session.HandleAsync(UserIntent.OpenSettings, observer, CancellationToken.None);
-        _ = session.QueueSettingsIntent(UserIntent.Escape, observer);
-        CommanderSnapshot queued = session.QueueSettingsIntent(
+        CommanderSnapshot ignored = await session.HandleAsync(
+            UserIntent.Refresh,
+            observer,
+            CancellationToken.None);
+        Task<CommanderSnapshot> first = session.HandleAsync(
+            UserIntent.SelectColorScheme(ColorScheme.Ubuntu),
+            observer,
+            CancellationToken.None);
+        Task<CommanderSnapshot> second = session.HandleAsync(
             UserIntent.SelectColorScheme(ColorScheme.Dracula),
-            observer);
+            observer,
+            CancellationToken.None);
 
+        Assert.IsTrue(first.IsCompletedSuccessfully);
+        Assert.IsTrue(second.IsCompletedSuccessfully);
+        Assert.AreSame(SettingsEditorState.Open, ignored.Settings.Editor);
         Assert.IsEmpty(observer.Settings);
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(ColorScheme.Dracula, queued.Settings.Settings.ColorScheme);
-        write.SetResult(SettingsWriteOutcome.Succeeded());
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
+        await WaitForWriteCountAsync(store, 2);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await session.StopAsync();
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].ColorScheme);
     }
 
     private static CommanderSession CreateSession(
@@ -178,8 +235,25 @@ public sealed class CommanderSessionTests
                 0)).Listing;
     }
 
+    private static FileInspectionOutcome Inspection(FileSystemPath path)
+    {
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(
+            FileIdentity.Parse("identity:" + path.CanonicalText));
+        return FileInspectionOutcome.Succeeded(
+            FileEntrySnapshot.Create(path, identity.Identity, DeletionCapability.Recycle));
+    }
+
     private static FileSystemPath ParsePath(string text)
     {
         return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path;
+    }
+
+    private static async Task WaitForWriteCountAsync(ScriptedSettingsStore store, int expected)
+    {
+        for (int attempt = 0; attempt < 20 && store.Writes.Count < expected; attempt++)
+        {
+            await Task.Yield();
+        }
+        Assert.HasCount(expected, store.Writes);
     }
 }

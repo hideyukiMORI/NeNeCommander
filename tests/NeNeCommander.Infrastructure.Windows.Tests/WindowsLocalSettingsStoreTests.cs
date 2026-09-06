@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -16,6 +17,48 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 public sealed class WindowsLocalSettingsStoreTests
 {
     private const string DocumentName = "settings.json";
+
+    /// <summary>Proves startup preflight and document I/O begin only inside the shared scheduler.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenIoIsQueuedReturnsBeforeFilesystemWorkRunsAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteFile(
+            DocumentName,
+            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}");
+        ManualIoScheduler scheduler = new();
+        WindowsLocalSettingsStore store = new(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(scheduler));
+
+        Task<SettingsReadOutcome> read = store.ReadAsync(CancellationToken.None);
+
+        bool returnedBeforeCompletion = !read.IsCompleted;
+        int pendingCount = scheduler.PendingCount;
+        scheduler.ExecuteAll();
+        _ = Assert.IsInstanceOfType<SettingsRead>(await read);
+        Assert.IsTrue(returnedBeforeCompletion);
+        Assert.AreEqual(1, pendingCount);
+    }
+
+    /// <summary>Proves cancellation is observed inside the scheduled read before filesystem work.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenCancelledBeforeScheduledWorkStartsIsCancelledAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        ManualIoScheduler scheduler = new();
+        using CancellationTokenSource cancellation = new();
+        WindowsLocalSettingsStore store = new(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(scheduler));
+
+        Task<SettingsReadOutcome> read = store.ReadAsync(cancellation.Token);
+        cancellation.Cancel();
+        scheduler.ExecuteAll();
+
+        _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => read);
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+    }
 
     /// <summary>Proves a complete stored document becomes the typed settings it describes.</summary>
     [TestMethod]
@@ -56,6 +99,25 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(ColorScheme.Dracula, settings.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
         CollectionAssert.AreEqual(stored, File.ReadAllBytes(documentPath));
+    }
+
+    /// <summary>Proves the byte bound is enforced before a shorter decoded string is validated.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenMultibyteDocumentExceedsByteLimitReturnsTooLargeAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string content = new('\u00e9', (SettingsDocumentValidator.MaximumDocumentLength / 2) + 1);
+        _ = root.WriteFile(DocumentName, content);
+        WindowsLocalSettingsStore store = CreateStore(root);
+
+        SettingsRejected outcome = Assert.IsInstanceOfType<SettingsRejected>(
+            await store.ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.TooLarge, outcome.Kind);
+        Assert.IsLessThanOrEqualTo(SettingsDocumentValidator.MaximumDocumentLength, content.Length);
+        Assert.IsGreaterThan(
+            SettingsDocumentValidator.MaximumDocumentLength,
+            Encoding.UTF8.GetByteCount(content));
     }
 
     /// <summary>Proves an absent document is reported and is never created by the read.</summary>
@@ -1063,6 +1125,327 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
+    /// <summary>Proves an in-place temporary rewrite cannot preserve metadata and become settings.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenTemporaryBytesChangeWithRestoredMetadataRejectsBeforePublishAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        byte[]? foreignBytes = null;
+        WindowsLocalSettingsStore store = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryFlushed = temporaryPath =>
+                {
+                    FileInfo original = new(temporaryPath);
+                    DateTime creationTimeUtc = original.CreationTimeUtc;
+                    DateTime lastWriteTimeUtc = original.LastWriteTimeUtc;
+                    foreignBytes = File.ReadAllBytes(temporaryPath);
+                    foreignBytes[0] ^= byte.MaxValue;
+                    File.WriteAllBytes(temporaryPath, foreignBytes);
+                    File.SetCreationTimeUtc(temporaryPath, creationTimeUtc);
+                    File.SetLastWriteTimeUtc(temporaryPath, lastWriteTimeUtc);
+                },
+            });
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
+        CollectionAssert.AreEqual(foreignBytes, File.ReadAllBytes(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+    }
+
+    /// <summary>Proves a parent captured after temporary close cannot replace the approved chain.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenParentChangesBeforeTemporaryCaptureRejectsNewChainAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("settings-parent");
+        bool laterCheckReached = false;
+        WindowsLocalSettingsStore store = CreateStoreAt(
+            root,
+            "settings-parent\\" + DocumentName,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = _ =>
+                {
+                    Directory.Move(root.Resolve("settings-parent"), root.Resolve("parked-parent"));
+                    _ = root.CreateDirectory("settings-parent");
+                    File.Move(
+                        root.Resolve("parked-parent\\" + DocumentName + ".tmp"),
+                        root.Resolve("settings-parent\\" + DocumentName + ".tmp"));
+                },
+                OnTemporaryFlushed = temporaryPath =>
+                {
+                    laterCheckReached = true;
+                    File.Move(
+                        temporaryPath,
+                        root.Resolve("parked-parent\\" + DocumentName + ".tmp"));
+                    Directory.Delete(root.Resolve("settings-parent"));
+                    Directory.Move(root.Resolve("parked-parent"), root.Resolve("settings-parent"));
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
+        Assert.IsFalse(laterCheckReached);
+        Assert.IsTrue(File.Exists(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve("parked-parent\\" + DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves post-close identity capture cannot adopt a same-byte foreign temporary file.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenTemporaryIsReplacedWithSameBytesAfterCloseRejectsForeignEntryAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalSettingsStore store = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = temporaryPath =>
+                {
+                    byte[] bytes = File.ReadAllBytes(temporaryPath);
+                    File.Move(temporaryPath, temporaryPath + ".owned");
+                    File.WriteAllBytes(temporaryPath, bytes);
+                },
+            });
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.owned")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+    }
+
+    /// <summary>Proves a settings-document file symlink is rejected without changing its target.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task StoreWhenDocumentIsFileSymbolicLinkRejectsWithoutChangingTargetAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string TargetName = "target-settings.json";
+        const string TargetDocument =
+            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
+        _ = root.WriteFile(TargetName, TargetDocument);
+        _ = root.CreateFileSymbolicLink(DocumentName, TargetName);
+        WindowsLocalSettingsStore store = CreateStore(root);
+
+        SettingsReadOutcome read = await store.ReadAsync(CancellationToken.None);
+        SettingsWriteRejected write = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(
+            SettingsReadFailureKind.Unreadable,
+            Assert.IsInstanceOfType<SettingsRejected>(read).Kind);
+        Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, write.Failure);
+        Assert.AreEqual(TargetDocument, File.ReadAllText(root.Resolve(TargetName)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves a dangling ancestor junction is unsafe rather than an absent directory.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task StoreWhenAncestorIsDanglingJunctionRejectsWithoutCreatingItsTargetAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateJunction("settings-link", "missing-target");
+        WindowsLocalSettingsStore store = CreateStoreAt(root, "settings-link\\" + DocumentName);
+
+        SettingsReadOutcome read = await store.ReadAsync(CancellationToken.None);
+        SettingsWriteRejected write = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        _ = Assert.IsInstanceOfType<SettingsRejected>(read);
+        Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, write.Failure);
+        Assert.IsFalse(Directory.Exists(root.Resolve("missing-target")));
+        Assert.IsFalse(File.Exists(root.Resolve("missing-target\\" + DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve("missing-target\\" + DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves a dangling document symlink is rejected during write preflight.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenDocumentIsDanglingSymbolicLinkRejectsBeforeTemporaryAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateFileSymbolicLink(DocumentName, "missing-target.json");
+        WindowsLocalSettingsStore store = CreateStore(root);
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("missing-target.json")));
+    }
+
+    /// <summary>Proves a dangling temporary symlink is an existing collision and remains untouched.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenTemporaryIsDanglingSymbolicLinkReportsCollisionAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateFileSymbolicLink(DocumentName + ".tmp", "missing-temporary-target.json");
+        WindowsLocalSettingsStore store = CreateStore(root);
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve("missing-temporary-target.json")));
+    }
+
+    /// <summary>Proves a document replaced by a file symlink is rejected at publish revalidation.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenDocumentBecomesFileSymbolicLinkRejectsBeforePublishAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string OriginalDocument =
+            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}";
+        const string TargetName = "target-settings.json";
+        const string TargetDocument =
+            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
+        _ = root.WriteFile(DocumentName, OriginalDocument);
+        _ = root.WriteFile(TargetName, TargetDocument);
+        WindowsLocalSettingsStore store = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryFlushed = documentTemporaryPath =>
+                {
+                    _ = documentTemporaryPath;
+                    File.Move(root.Resolve(DocumentName), root.Resolve(DocumentName + ".original"));
+                    _ = root.CreateFileSymbolicLink(DocumentName, TargetName);
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsRead>(await store.ReadAsync(CancellationToken.None));
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
+        Assert.AreEqual(TargetDocument, File.ReadAllText(root.Resolve(TargetName)));
+        Assert.AreEqual(OriginalDocument, File.ReadAllText(root.Resolve(DocumentName + ".original")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves post-publish observation cannot adopt a replacement parent as its anchor.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenParentChangesAfterPublishKeepsLocationBlockedAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("settings-parent");
+        bool replaceParent = true;
+        WindowsLocalSettingsStore store = CreateStoreAt(
+            root,
+            "settings-parent\\" + DocumentName,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnPublished = _ =>
+                {
+                    if (!replaceParent)
+                    {
+                        return;
+                    }
+                    replaceParent = false;
+                    Directory.Move(root.Resolve("settings-parent"), root.Resolve("parked-parent"));
+                    _ = root.CreateDirectory("settings-parent");
+                    File.Move(
+                        root.Resolve("parked-parent\\" + DocumentName),
+                        root.Resolve("settings-parent\\" + DocumentName));
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+        File.Move(
+            root.Resolve("settings-parent\\" + DocumentName),
+            root.Resolve("parked-parent\\" + DocumentName));
+        Directory.Delete(root.Resolve("settings-parent"));
+        Directory.Move(root.Resolve("parked-parent"), root.Resolve("settings-parent"));
+        SettingsWriteRejected second = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(
+                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+                CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, second.Failure);
+        Assert.Contains("\"colorScheme\":\"nene-dark\"", File.ReadAllText(
+            root.Resolve("settings-parent\\" + DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves a direct write cannot bypass an unsafe ancestor through a read baseline.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenAncestorIsJunctionRejectsWithoutPriorReadAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("target");
+        _ = root.CreateJunction("settings-link", "target");
+        WindowsLocalSettingsStore store = CreateStoreAt(root, "settings-link\\" + DocumentName);
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + ".tmp")));
+    }
+
+    /// <summary>Proves a vanished owned temporary is rejected and its relocated entry is untouched.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenTemporaryVanishesBeforePublishRejectsWithoutCleanupAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalSettingsStore store = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryFlushed = temporaryPath => File.Move(temporaryPath, temporaryPath + ".moved"),
+            });
+
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
+        Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.moved")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+    }
+
     /// <summary>Proves a reparse ancestor is rejected before reads or writes reach its target.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -1402,5 +1785,27 @@ public sealed class WindowsLocalSettingsStoreTests
         return Assert.IsInstanceOfType<WindowsLocalPath>(
             Assert.IsInstanceOfType<PathParseSuccess>(
                 FileSystemPath.Parse(root.Resolve(childName))).Path);
+    }
+
+    private sealed class ManualIoScheduler : IWindowsLocalIoScheduler
+    {
+        private readonly Queue<Action> _pending = [];
+
+        internal int PendingCount => _pending.Count;
+
+        internal void ExecuteAll()
+        {
+            while (_pending.Count > 0)
+            {
+                _pending.Dequeue()();
+            }
+        }
+
+        public Task<TResult> ScheduleAsync<TResult>(Func<TResult> operation)
+        {
+            TaskCompletionSource<TResult> completion = new();
+            _pending.Enqueue(() => completion.SetResult(operation()));
+            return completion.Task;
+        }
     }
 }

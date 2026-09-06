@@ -240,6 +240,55 @@ public sealed class SettingsSessionTests
         await stopping;
     }
 
+    /// <summary>Proves a throwing host observer escapes its raw callback and the queue still closes.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenDefectObserverThrowsSurfacesOnceAndCompletesQueueAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
+        InvalidOperationException primary = new("Injected write defect.");
+        InvalidOperationException observerFailure = new("Injected host observer failure.");
+        Exception? observed = null;
+        int observationCount = 0;
+        ControlledSynchronizationContext context = new();
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), exception =>
+        {
+            observed = exception;
+            observationCount++;
+            throw observerFailure;
+        });
+        SynchronizationContext? original = SynchronizationContext.Current;
+        Task selected;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            selected = session.SelectColorSchemeAsync(
+                ColorScheme.Dracula,
+                new RecordingCommanderObserver(),
+                CancellationToken.None);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(original);
+        }
+
+        write.SetException(primary);
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => selected);
+        Task stopping = session.StopAsync();
+        for (int attempt = 0; attempt < 20 && context.PendingCount == 0 && !stopping.IsCompleted; attempt++)
+        {
+            await Task.Yield();
+        }
+        int pendingBeforeExecution = context.PendingCount;
+        InvalidOperationException? escaped = context.TryExecuteOne();
+        await stopping;
+
+        Assert.AreEqual(1, pendingBeforeExecution);
+        Assert.AreSame(observerFailure, escaped);
+        Assert.AreSame(primary, observed);
+        Assert.AreEqual(1, observationCount);
+    }
+
     /// <summary>Proves a discarded cancelled write is owned, rendered, and awaited without a defect.</summary>
     [TestMethod]
     public async Task StopAsyncWhenQueuedWriteIsCancelledObservesTypedCancellationAsync()
@@ -260,6 +309,29 @@ public sealed class SettingsSessionTests
         Assert.IsEmpty(store.Writes);
     }
 
+    /// <summary>Proves a stopped settings owner cannot start unowned persistence work.</summary>
+    [TestMethod]
+    public async Task SelectAfterStopRejectsBeforeStateOrIoChangesAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        RecordingCommanderObserver observer = new();
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        await session.StopAsync();
+        SettingsSnapshot before = session.Current;
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            session.SelectColorSchemeAsync(
+                ColorScheme.Dracula,
+                observer,
+                CancellationToken.None));
+
+        Assert.AreSame(before.Settings, session.Current.Settings);
+        Assert.AreSame(before.Persistence, session.Current.Persistence);
+        Assert.IsEmpty(store.Writes);
+        Assert.IsEmpty(observer.Settings);
+        await session.StopAsync();
+    }
+
     private static async Task WaitForWriteCountAsync(ScriptedSettingsStore store, int expected)
     {
         for (int attempt = 0; attempt < 20 && store.Writes.Count < expected; attempt++)
@@ -267,5 +339,52 @@ public sealed class SettingsSessionTests
             await Task.Yield();
         }
         Assert.HasCount(expected, store.Writes);
+    }
+
+    private sealed class ControlledSynchronizationContext : SynchronizationContext
+    {
+        private readonly Lock _sync = new();
+        private readonly Queue<(SendOrPostCallback Callback, object? State)> _pending = [];
+
+        internal int PendingCount
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _pending.Count;
+                }
+            }
+        }
+
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            lock (_sync)
+            {
+                _pending.Enqueue((callback, state));
+            }
+        }
+
+        internal InvalidOperationException? TryExecuteOne()
+        {
+            (SendOrPostCallback Callback, object? State) work;
+            lock (_sync)
+            {
+                if (_pending.Count == 0)
+                {
+                    return null;
+                }
+                work = _pending.Dequeue();
+            }
+            try
+            {
+                work.Callback(work.State);
+                return null;
+            }
+            catch (InvalidOperationException exception)
+            {
+                return exception;
+            }
+        }
     }
 }

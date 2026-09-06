@@ -19,6 +19,10 @@ internal interface ISettingsWriteTestHook
     /// <param name="temporaryPath">Fixed sibling temporary path.</param>
     public void TemporaryFlushed(string temporaryPath);
 
+    /// <summary>Runs after the owned temporary document closes and before its location is captured.</summary>
+    /// <param name="temporaryPath">Fixed sibling temporary path.</param>
+    public void TemporaryClosed(string temporaryPath);
+
     /// <summary>Runs immediately before the destination is revalidated and published.</summary>
     /// <param name="documentPath">Settings destination path.</param>
     public void BeforePublish(string documentPath);

@@ -58,7 +58,7 @@ public sealed class CommanderSession
         ArgumentNullException.ThrowIfNull(observer);
         if (_settings.Current.Editor == SettingsEditorState.Open)
         {
-            await HandleSettingsIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+            HandleSettingsIntent(intent, observer);
             return Current;
         }
         if (intent == UserIntent.OpenSettings)
@@ -79,35 +79,16 @@ public sealed class CommanderSession
         return _settings.StopAsync();
     }
 
-    /// <summary>
-    /// Queues a selector intent synchronously so repeated UI changes enter the one ordered settings
-    /// queue even while an earlier write is pending. Other intents are ignored by this entry.
-    /// </summary>
-    public CommanderSnapshot QueueSettingsIntent(
+    private void HandleSettingsIntent(
         UserIntent intent,
         ICommanderProgressObserver observer)
-    {
-        ArgumentNullException.ThrowIfNull(intent);
-        ArgumentNullException.ThrowIfNull(observer);
-        if (_settings.Current.Editor != SettingsEditorState.Open)
-        {
-            return Current;
-        }
-        _ = QueueSettingsSelection(intent, observer, CancellationToken.None);
-        return Current;
-    }
-
-    private Task HandleSettingsIntentAsync(
-        UserIntent intent,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
     {
         if (intent == UserIntent.Escape)
         {
             _ = _settings.Close();
-            return Task.CompletedTask;
+            return;
         }
-        return QueueSettingsSelection(intent, observer, cancellationToken);
+        _ = QueueSettingsSelection(intent, observer, CancellationToken.None);
     }
 
     private Task QueueSettingsSelection(
@@ -128,6 +109,7 @@ public sealed class CommanderSession
     private bool PaneInteractionIsFrozen()
     {
         return _panes.Current.Operation is
-            OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName;
+            OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or
+            OperationAwaitingConflict;
     }
 }

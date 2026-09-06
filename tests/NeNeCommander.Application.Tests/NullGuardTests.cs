@@ -227,11 +227,6 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public application-session constructor was not found.");
         AssertConstructorNullGuard(commanderConstructor, [null, settings]);
         AssertConstructorNullGuard(commanderConstructor, [panes, null]);
-        CommanderSession commander = new(panes, settings);
-        AssertInstanceNullGuard(commander, nameof(CommanderSession.QueueSettingsIntent),
-            [null, new RecordingCommanderObserver()]);
-        AssertInstanceNullGuard(commander, nameof(CommanderSession.QueueSettingsIntent),
-            [UserIntent.Escape, null]);
         AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [null, settings.Current]);
         AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [panes.Current, null]);
     }

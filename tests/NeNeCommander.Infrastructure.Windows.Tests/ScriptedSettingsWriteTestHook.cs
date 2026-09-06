@@ -13,6 +13,8 @@ internal sealed class ScriptedSettingsWriteTestHook : ISettingsWriteTestHook
 
     internal Action<string> OnTemporaryFlushed { get; init; } = _ => { };
 
+    internal Action<string> OnTemporaryClosed { get; init; } = _ => { };
+
     internal Action<string> OnBeforePublish { get; init; } = _ => { };
 
     internal Action<string> OnPublished { get; init; } = _ => { };
@@ -35,6 +37,11 @@ internal sealed class ScriptedSettingsWriteTestHook : ISettingsWriteTestHook
     public void TemporaryFlushed(string temporaryPath)
     {
         OnTemporaryFlushed(temporaryPath);
+    }
+
+    public void TemporaryClosed(string temporaryPath)
+    {
+        OnTemporaryClosed(temporaryPath);
     }
 
     public void BeforePublish(string documentPath)

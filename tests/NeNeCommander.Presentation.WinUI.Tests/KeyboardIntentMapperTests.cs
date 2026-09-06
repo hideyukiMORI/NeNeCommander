@@ -143,9 +143,9 @@ public sealed class KeyboardIntentMapperTests
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
-    /// <summary>Proves a conflict modal leaves Enter and Space to its focused native button while retaining Escape.</summary>
+    /// <summary>Proves a native-control modal leaves Enter and Space to focus while retaining Escape.</summary>
     [TestMethod]
-    public void DeferConflictConfirmToNativeControlPreservesFocusedButtonKeyboardBehavior()
+    public void DeferModalConfirmToNativeControlPreservesFocusedControlKeyboardBehavior()
     {
         KeyboardIntentMapper mapper = CreateMapper();
         KeyboardMappingOutcome enter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
@@ -153,15 +153,15 @@ public sealed class KeyboardIntentMapperTests
         KeyboardMappingOutcome escape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.Modal));
 
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            KeyboardIntentMapper.DeferConflictConfirmToNativeControl(enter));
+            KeyboardIntentMapper.DeferModalConfirmToNativeControl(enter));
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            KeyboardIntentMapper.DeferConflictConfirmToNativeControl(space));
+            KeyboardIntentMapper.DeferModalConfirmToNativeControl(space));
         Assert.AreSame(
             UserIntent.Escape,
             Assert.IsInstanceOfType<MappedKeyboardIntent>(
-                KeyboardIntentMapper.DeferConflictConfirmToNativeControl(escape)).Intent);
+                KeyboardIntentMapper.DeferModalConfirmToNativeControl(escape)).Intent);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            KeyboardIntentMapper.DeferConflictConfirmToNativeControl(null!));
+            KeyboardIntentMapper.DeferModalConfirmToNativeControl(null!));
     }
 
     /// <summary>Proves repeated destructive keys do not emit commands.</summary>

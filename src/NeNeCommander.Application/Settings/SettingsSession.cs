@@ -18,6 +18,7 @@ public sealed class SettingsSession
     private UserSettings _settings;
     private Task _writeTail;
     private long _revision;
+    private bool _stopped;
 
     /// <summary>Initializes the owner from the one startup read outcome.</summary>
     /// <param name="store">Sole settings boundary.</param>
@@ -80,6 +81,7 @@ public sealed class SettingsSession
     /// <param name="observer">Receives the state current after this write completes.</param>
     /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
     /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
     public Task SelectColorSchemeAsync(
         ColorScheme scheme,
         ISettingsProgressObserver observer,
@@ -101,6 +103,7 @@ public sealed class SettingsSession
     /// <param name="observer">Receives the state current after this write completes.</param>
     /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
     /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
     public Task SelectLaunchHiddenItemVisibilityAsync(
         HiddenItemVisibility visibility,
         ISettingsProgressObserver observer,
@@ -117,7 +120,7 @@ public sealed class SettingsSession
         }
     }
 
-    /// <summary>Awaits every settings write queued before shutdown began.</summary>
+    /// <summary>Awaits the ordered queue through linearized shutdown and then closes it.</summary>
     public async Task StopAsync()
     {
         while (true)
@@ -125,6 +128,10 @@ public sealed class SettingsSession
             Task tail;
             lock (_sync)
             {
+                if (_stopped)
+                {
+                    return;
+                }
                 tail = _writeTail;
             }
             await AwaitCompletionAsync(tail).ConfigureAwait(false);
@@ -132,6 +139,7 @@ public sealed class SettingsSession
             {
                 if (ReferenceEquals(tail, _writeTail))
                 {
+                    _stopped = true;
                     return;
                 }
             }
@@ -143,24 +151,37 @@ public sealed class SettingsSession
         ISettingsProgressObserver observer,
         CancellationToken cancellationToken)
     {
+        if (_stopped)
+        {
+            throw new InvalidOperationException("Settings persistence cannot restart after shutdown.");
+        }
         _settings = settings;
         _persistence = SettingsPersistenceState.Pending;
         long revision = ++_revision;
         Task predecessor = _writeTail;
         Task write = PersistAfterAsync(predecessor, settings, revision, observer, cancellationToken);
-        _writeTail = ObserveCompletionAsync(write);
+        _writeTail = ObserveCompletion(write);
         return write;
     }
 
-    private async Task ObserveCompletionAsync(Task write)
+    private Task ObserveCompletion(Task write)
     {
-        await AwaitCompletionAsync(write).ConfigureAwait(false);
-        if (write.Exception is not AggregateException aggregate)
+        TaskCompletionSource completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        write.GetAwaiter().OnCompleted(() =>
         {
-            return;
-        }
-
-        _defectObserver(aggregate.GetBaseException());
+            try
+            {
+                if (write.Exception is AggregateException aggregate)
+                {
+                    _defectObserver(aggregate.GetBaseException());
+                }
+            }
+            finally
+            {
+                completion.SetResult();
+            }
+        });
+        return completion.Task;
     }
 
     private async Task PersistAfterAsync(
@@ -171,8 +192,7 @@ public sealed class SettingsSession
         CancellationToken cancellationToken)
     {
         // Completion, rather than success, orders revisions. The queue-owned predecessor has
-        // observed any write defect before it completes, and its own callback fault cannot strand
-        // this revision.
+        // synchronously reported any write defect before its completion source releases this revision.
         await AwaitCompletionAsync(predecessor).ConfigureAwait(false);
 
         SettingsWriteOutcome outcome;

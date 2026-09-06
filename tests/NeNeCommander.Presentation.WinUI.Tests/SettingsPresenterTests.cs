@@ -65,6 +65,32 @@ public sealed class SettingsPresenterTests
         Assert.AreSame(SettingsWarningPresentation.SaveFailed, cancelled.Warning);
     }
 
+    /// <summary>Proves save progress never releases the open editor's modal ownership.</summary>
+    [TestMethod]
+    public void PresentWhenOpenPersistenceVariesKeepsTheEditorOpen()
+    {
+        SettingsPresentation pending = SettingsPresenter.Present(Snapshot(
+            UserSettings.Default,
+            SettingsEditorState.Open,
+            SettingsPersistenceState.Pending));
+        SettingsPresentation succeeded = SettingsPresenter.Present(Snapshot(
+            UserSettings.Default,
+            SettingsEditorState.Open,
+            SettingsPersistenceState.Succeeded));
+        SettingsPresentation failed = SettingsPresenter.Present(Snapshot(
+            UserSettings.Default,
+            SettingsEditorState.Open,
+            SettingsPersistenceState.Failed(Assert.IsInstanceOfType<SettingsWriteRejected>(
+                SettingsWriteOutcome.Rejected(
+                    SettingsWriteFailureKind.IoFailure,
+                    SettingsDirectoryEffect.NotAttempted,
+                    SettingsWriteEffect.None)))));
+
+        Assert.IsTrue(pending.IsOpen);
+        Assert.IsTrue(succeeded.IsOpen);
+        Assert.IsTrue(failed.IsOpen);
+    }
+
     private static SettingsSnapshot Snapshot(
         UserSettings settings,
         SettingsEditorState editor,

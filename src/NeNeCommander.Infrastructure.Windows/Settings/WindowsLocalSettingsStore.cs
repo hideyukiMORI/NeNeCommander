@@ -57,8 +57,14 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
     }
 
     /// <inheritdoc />
-    public async Task<SettingsReadOutcome> ReadAsync(CancellationToken cancellationToken)
+    public Task<SettingsReadOutcome> ReadAsync(CancellationToken cancellationToken)
     {
+        return _ioExecutionBoundary.ExecuteAsync(() => ReadCoreAsync(cancellationToken)).Unwrap();
+    }
+
+    private async Task<SettingsReadOutcome> ReadCoreAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             SafeLocation? location = CaptureLocation(out SettingsWriteFailureKind? locationFailure);
@@ -123,6 +129,13 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
     /// </summary>
     private async Task<ReadDocumentObservation> ReadDocumentAsync(CancellationToken cancellationToken)
     {
+        FileAttributes documentAttributes = File.GetAttributes(_documentPath.CanonicalText);
+        if ((documentAttributes & FileAttributes.ReparsePoint) != 0)
+        {
+            return new ReadDocumentObservation(
+                SettingsReadOutcome.Rejected(SettingsReadFailureKind.Unreadable),
+                new BlockedDocument(SettingsWriteFailureKind.ExistingDocumentRejected));
+        }
         using FileStream stream = new(
             _documentPath.CanonicalText,
             FileMode.Open,
@@ -193,8 +206,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         string temporaryText = _temporaryPath.CanonicalText;
         SettingsDirectoryEffect directoryEffect = SettingsDirectoryEffect.NotAttempted;
         TemporaryOwnershipState temporaryOwnership = TemporaryOwnershipState.NotOwned;
-        FileIdentity? temporaryIdentity = null;
-        string temporaryIdentifier;
+        string? temporaryIdentifier = null;
         byte[] serialized = Serialize(settings);
         try
         {
@@ -220,6 +232,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                         directoryEffect);
                 }
                 location = createdLocation;
+                safeLocation = createdLocation;
                 RememberExpectedLocation(location);
                 directoryEffect = SettingsDirectoryEffect.CreationObserved;
             }
@@ -247,9 +260,13 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 temporaryOwnership = TemporaryOwnershipState.Owned;
                 temporary.Write(serialized);
                 temporary.Flush(flushToDisk: true);
+                temporaryIdentifier = WindowsFileIdentifier.DescribeHandle(temporary.SafeFileHandle);
             }
-            temporaryIdentity = WindowsLocalEntryIdentity.Describe(new FileInfo(temporaryText));
-            temporaryIdentifier = WindowsFileIdentifier.Describe(temporaryText);
+            if (temporaryIdentifier is null)
+            {
+                throw new InvalidOperationException("The owned temporary file has no stable identifier.");
+            }
+            _writeTestHook.TemporaryClosed(temporaryText);
             SafeLocation? temporaryLocation = CaptureLocation(
                 out SettingsWriteFailureKind? temporaryLocationFailure);
             if (temporaryLocation is null)
@@ -258,11 +275,22 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                     temporaryLocationFailure!,
                     temporaryText,
                     temporaryOwnership,
-                    temporaryIdentity,
-                    location,
+                    temporaryIdentifier,
+                    safeLocation,
+                    serialized,
                     directoryEffect);
             }
-            location = temporaryLocation;
+            if (!LocationSnapshotsMatch(safeLocation, temporaryLocation))
+            {
+                return Reject(
+                    SettingsWriteFailureKind.UnsafeLocation,
+                    temporaryText,
+                    temporaryOwnership,
+                    temporaryIdentifier,
+                    safeLocation,
+                    serialized,
+                    directoryEffect);
+            }
 
             _writeTestHook.TemporaryFlushed(temporaryText);
             _writeTestHook.BeforePublish(documentText);
@@ -272,28 +300,31 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                     SettingsWriteFailureKind.DestinationChanged,
                     temporaryText,
                     temporaryOwnership,
-                    temporaryIdentity,
-                    location,
+                    temporaryIdentifier,
+                    safeLocation,
+                    serialized,
                     directoryEffect);
             }
-            if (!LocationMatches(location))
+            if (!LocationMatches(safeLocation))
             {
                 return Reject(
                     SettingsWriteFailureKind.UnsafeLocation,
                     temporaryText,
                     temporaryOwnership,
-                    temporaryIdentity,
-                    location,
+                    temporaryIdentifier,
+                    safeLocation,
+                    serialized,
                     directoryEffect);
             }
-            if (!TemporaryMatches(temporaryText, temporaryIdentity))
+            if (!TemporaryMatches(temporaryText, temporaryIdentifier, serialized))
             {
                 return Reject(
                     SettingsWriteFailureKind.TemporaryArtifactCollision,
                     temporaryText,
                     temporaryOwnership,
-                    temporaryIdentity,
-                    location,
+                    temporaryIdentifier,
+                    safeLocation,
+                    serialized,
                     directoryEffect);
             }
 
@@ -307,7 +338,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
             }
             temporaryOwnership = TemporaryOwnershipState.NotOwned;
             _writeTestHook.Published(documentText);
-            RememberPublishedLocation();
+            RememberPublishedLocation(safeLocation);
             RememberPublishedDocument(
                 serialized,
                 temporaryIdentifier);
@@ -319,8 +350,9 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 SettingsWriteFailureKind.Unauthorized,
                 temporaryText,
                 temporaryOwnership,
-                temporaryIdentity,
+                temporaryIdentifier,
                 location,
+                serialized,
                 directoryEffect);
         }
         catch (IOException)
@@ -333,8 +365,9 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 failure,
                 temporaryText,
                 temporaryOwnership,
-                temporaryIdentity,
+                temporaryIdentifier,
                 location,
+                serialized,
                 directoryEffect);
         }
     }
@@ -472,7 +505,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
             {
                 return AbsentDocument.Instance;
             }
-            if (entry is not FileInfo)
+            if (!IsRegularFile(entry))
             {
                 rejection = RejectedBeforeTemporary(
                     SettingsWriteFailureKind.ExistingDocumentRejected,
@@ -528,7 +561,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         {
             return entry is null;
         }
-        if (expected is not PresentDocument present || entry is not FileInfo)
+        if (expected is not PresentDocument present || entry is null || !IsRegularFile(entry))
         {
             return false;
         }
@@ -612,12 +645,22 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         RememberExpectedDocument(expected);
     }
 
-    private void RememberPublishedLocation()
+    private void RememberPublishedLocation(SafeLocation approved)
     {
-        SafeLocation? captured = CaptureLocation(out SettingsWriteFailureKind? failure);
-        RememberExpectedLocation(captured is not null
-            ? captured
-            : new BlockedLocation(failure!));
+        try
+        {
+            RememberExpectedLocation(LocationMatches(approved)
+                ? approved
+                : new BlockedLocation(SettingsWriteFailureKind.UnsafeLocation));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            RememberExpectedLocation(new BlockedLocation(SettingsWriteFailureKind.Unauthorized));
+        }
+        catch (IOException)
+        {
+            RememberExpectedLocation(new BlockedLocation(SettingsWriteFailureKind.IoFailure));
+        }
     }
 
     private static byte[] Serialize(UserSettings settings)
@@ -640,8 +683,9 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         SettingsWriteFailureKind failure,
         string temporaryText,
         TemporaryOwnershipState temporaryOwnership,
-        FileIdentity? temporaryIdentity,
+        string? temporaryIdentifier,
         SettingsLocationSnapshot location,
+        byte[] expectedTemporaryBytes,
         SettingsDirectoryEffect directoryEffect)
     {
         SettingsWriteEffect effect = SettingsWriteEffect.None;
@@ -649,9 +693,9 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         {
             try
             {
-                if (temporaryIdentity is null ||
+                if (temporaryIdentifier is null ||
                     !LocationMatches(location) ||
-                    !TemporaryMatches(temporaryText, temporaryIdentity))
+                    !TemporaryMatches(temporaryText, temporaryIdentifier, expectedTemporaryBytes))
                 {
                     effect = SettingsWriteEffect.TemporaryArtifactLeft;
                 }
@@ -713,6 +757,27 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         return true;
     }
 
+    private static bool LocationSnapshotsMatch(SafeLocation expected, SafeLocation current)
+    {
+        if (expected.Directories.Count != current.Directories.Count)
+        {
+            return false;
+        }
+        for (int index = 0; index < expected.Directories.Count; index++)
+        {
+            DirectoryBaseline before = expected.Directories[index];
+            DirectoryBaseline after = current.Directories[index];
+            if (!FileSystemPathIdentityComparer.Instance.Equals(before.Path, after.Path) ||
+                before is not PresentDirectory presentBefore ||
+                after is not PresentDirectory presentAfter ||
+                !presentBefore.Identifier.Equals(presentAfter.Identifier, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static WindowsLocalPath ParseTemporaryPath(WindowsLocalPath documentPath)
     {
         PathParseOutcome parsed = FileSystemPath.Parse(documentPath.CanonicalText + TemporarySuffix);
@@ -723,12 +788,33 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 nameof(documentPath));
     }
 
-    private static bool TemporaryMatches(string temporaryText, FileIdentity expected)
+    private static bool TemporaryMatches(
+        string temporaryText,
+        string expectedIdentifier,
+        byte[] expectedBytes)
     {
         FileInfo temporary = new(temporaryText);
-        return temporary.Exists &&
-            (temporary.Attributes & FileAttributes.ReparsePoint) == 0 &&
-            WindowsLocalEntryIdentity.Describe(temporary) == expected;
+        if (!temporary.Exists ||
+            (temporary.Attributes & FileAttributes.ReparsePoint) != 0 ||
+            !WindowsFileIdentifier.Describe(temporaryText).Equals(
+                expectedIdentifier,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+        using FileStream stream = new(
+            temporaryText,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read);
+        return stream.Length == expectedBytes.Length &&
+            ReadExactBytes(stream).AsSpan().SequenceEqual(expectedBytes);
+    }
+
+    private static bool IsRegularFile(FileSystemInfo entry)
+    {
+        return entry is FileInfo file &&
+            (file.Attributes & FileAttributes.ReparsePoint) == 0;
     }
 
     private abstract record ExistingDocumentSnapshot;

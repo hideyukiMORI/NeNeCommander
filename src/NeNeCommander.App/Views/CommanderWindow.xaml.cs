@@ -99,9 +99,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
-        if (ConflictModal.Visibility == Visibility.Visible)
+        if (ConflictModal.Visibility == Visibility.Visible ||
+            SettingsOverlay.Visibility == Visibility.Visible)
         {
-            outcome = KeyboardIntentMapper.DeferConflictConfirmToNativeControl(outcome);
+            outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
         args.Handled = ForwardOutcome(outcome);
     }
@@ -176,10 +177,13 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             ? Visibility.Visible
             : Visibility.Collapsed;
         SettingsWarningText.Text = _resources.GetString(presentation.Warning.ResourceKey);
-        if (opening)
+        if (presentation.IsOpen)
         {
             _operationContext = KeyboardContext.Modal;
-            _ = SettingsClose.Focus(FocusState.Programmatic);
+            if (opening)
+            {
+                _ = SettingsClose.Focus(FocusState.Programmatic);
+            }
         }
         _renderingSettings = false;
     }
@@ -384,11 +388,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        HiddenItemVisibility visibility = checkbox.IsChecked == true
+        HiddenItemVisibility visibility = checkbox.IsChecked is true
             ? HiddenItemVisibility.Shown
             : HiddenItemVisibility.Hidden;
-        UserIntent intent = UserIntent.SelectLaunchHiddenItemVisibility(visibility);
-        RenderSession(_session.QueueSettingsIntent(intent, this));
+        ForwardIntent(UserIntent.SelectLaunchHiddenItemVisibility(visibility));
     }
 
     private void OnSettingsSchemeChecked(object sender, RoutedEventArgs args)
@@ -399,7 +402,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        RenderSession(_session.QueueSettingsIntent(UserIntent.SelectColorScheme(option.Scheme), this));
+        ForwardIntent(UserIntent.SelectColorScheme(option.Scheme));
     }
 
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>

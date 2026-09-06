@@ -86,7 +86,7 @@ public sealed class KeyboardIntentMapper
         return declared.AsReadOnly();
     }
 
-    internal static KeyboardMappingOutcome DeferConflictConfirmToNativeControl(
+    internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
         ArgumentNullException.ThrowIfNull(outcome);
