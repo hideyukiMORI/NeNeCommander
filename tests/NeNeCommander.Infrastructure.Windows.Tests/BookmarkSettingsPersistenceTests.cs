@@ -131,6 +131,242 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.AreEqual(Document, File.ReadAllText(documentPath));
     }
 
+    /// <summary>Proves an unpaired UTF-16 surrogate is rejected before string input is encoded.</summary>
+    [TestMethod]
+    public void ValidateWhenVersionTwoContainsUnpairedUtf16SurrogateRejectsMalformed()
+    {
+        string document = VersionTwoWithBookmark(
+            "\"name\":\"" + '\ud800' +
+            "\",\"path\":\"C:\\\\\",\"category\":null,\"shortcutSlot\":null");
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            SettingsDocumentValidator.Validate(document));
+
+        Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+    }
+
+    /// <summary>Proves a missing root schema version is classified as incomplete.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenSchemaVersionIsMissingRejectsIncompleteWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Document =
+            "{\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}";
+        string documentPath = root.WriteFile(DocumentName, Document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Incomplete, rejected.Kind);
+        Assert.AreEqual(Document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves conflicting root versions are rejected before an incomplete schema is considered.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenSchemaVersionsConflictRejectsUnexpectedPropertyWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Document =
+            "{\"schemaVersion\":1,\"schemaVersion\":2,\"showHiddenItems\":false}";
+        string documentPath = root.WriteFile(DocumentName, Document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.UnexpectedProperty, rejected.Kind);
+        Assert.AreEqual(Document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves a nonnumeric root version is malformed rather than an unknown numeric version.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenSchemaVersionHasWrongKindRejectsMalformedWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Document =
+            "{\"schemaVersion\":\"2\",\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}";
+        string documentPath = root.WriteFile(DocumentName, Document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+        Assert.AreEqual(Document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves an unsupported numeric root version remains an unknown version.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenSchemaVersionIsUnsupportedRejectsUnknownVersionWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Document =
+            "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}";
+        string documentPath = root.WriteFile(DocumentName, Document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.UnknownVersion, rejected.Kind);
+        Assert.AreEqual(Document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves an unknown root property is reported even when another property is missing.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenVersionTwoHasUnknownAndMissingRootPropertiesRejectsUnexpectedPropertyAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Document =
+            "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "\"bookmarkCategories\":[],\"unknown\":0}";
+        string documentPath = root.WriteFile(DocumentName, Document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.UnexpectedProperty, rejected.Kind);
+        Assert.AreEqual(Document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves a document containing only the exact UTF-8 preamble is empty.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenDocumentIsOnlyUtf8PreambleRejectsEmptyWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        byte[] document = [0xef, 0xbb, 0xbf];
+        string documentPath = root.Resolve(DocumentName);
+        File.WriteAllBytes(documentPath, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Empty, rejected.Kind);
+        CollectionAssert.AreEqual(document, File.ReadAllBytes(documentPath));
+    }
+
+    /// <summary>Proves a truncated UTF-8 preamble is malformed without an out-of-range read.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenDocumentIsTruncatedUtf8PreambleRejectsMalformedWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        byte[] document = [0xef, 0xbb];
+        string documentPath = root.Resolve(DocumentName);
+        File.WriteAllBytes(documentPath, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+        CollectionAssert.AreEqual(document, File.ReadAllBytes(documentPath));
+    }
+
+    /// <summary>Proves all four JSON whitespace byte classes form an empty document.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenDocumentContainsEveryJsonWhitespaceByteRejectsEmptyWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        byte[] document = [0x20, 0x09, 0x0a, 0x0d];
+        string documentPath = root.Resolve(DocumentName);
+        File.WriteAllBytes(documentPath, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Empty, rejected.Kind);
+        CollectionAssert.AreEqual(document, File.ReadAllBytes(documentPath));
+    }
+
+    /// <summary>Proves the exact maximum number of categories remains readable.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenCategoryCountIsExactlyMaximumAcceptsCompleteCatalogAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo(CreateCategoryArray(BookmarkCatalog.MaximumCategoryCount), "[]");
+        _ = root.WriteFile(DocumentName, document);
+
+        UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(
+            await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
+
+        Assert.HasCount(BookmarkCatalog.MaximumCategoryCount, settings.Bookmarks.Categories);
+        Assert.IsEmpty(settings.Bookmarks.Bookmarks);
+    }
+
+    /// <summary>Proves one category beyond the maximum rejects the complete catalog.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenCategoryCountExceedsMaximumRejectsInvalidBookmarksAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo(CreateCategoryArray(BookmarkCatalog.MaximumCategoryCount + 1), "[]");
+        string documentPath = root.WriteFile(DocumentName, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.InvalidBookmarks, rejected.Kind);
+        Assert.AreEqual(document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves the exact maximum number of bookmarks remains readable.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenBookmarkCountIsExactlyMaximumAcceptsCompleteCatalogAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo("[]", CreateBookmarkArray(BookmarkCatalog.MaximumBookmarkCount));
+        _ = root.WriteFile(DocumentName, document);
+
+        UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(
+            await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
+
+        Assert.IsEmpty(settings.Bookmarks.Categories);
+        Assert.HasCount(BookmarkCatalog.MaximumBookmarkCount, settings.Bookmarks.Bookmarks);
+    }
+
+    /// <summary>Proves one bookmark beyond the maximum rejects the complete catalog.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenBookmarkCountExceedsMaximumRejectsInvalidBookmarksAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo("[]", CreateBookmarkArray(BookmarkCatalog.MaximumBookmarkCount + 1));
+        string documentPath = root.WriteFile(DocumentName, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.InvalidBookmarks, rejected.Kind);
+        Assert.AreEqual(document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves a null category array element is malformed and never repaired.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenCategoryElementIsNullRejectsMalformedWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo("[null]", "[]");
+        string documentPath = root.WriteFile(DocumentName, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+        Assert.AreEqual(document, File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves a null bookmark array element is malformed and never repaired.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenBookmarkElementIsNullRejectsMalformedWithoutRepairAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string document = VersionTwo("[]", "[null]");
+        string documentPath = root.WriteFile(DocumentName, document);
+
+        SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+
+        Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+        Assert.AreEqual(document, File.ReadAllText(documentPath));
+    }
+
     /// <summary>Proves every version-two bookmark object has one exact closed property set.</summary>
     [TestMethod]
     public async Task ReadAsyncWhenVersionTwoBookmarkShapeIsNotExactRejectsEachDocumentAsync()
@@ -387,6 +623,31 @@ public sealed class BookmarkSettingsPersistenceTests
             : slot.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         return "{\"name\":\"" + name + "\",\"path\":\"" + path + "\",\"category\":" +
             categoryValue + ",\"shortcutSlot\":" + slotValue + "}";
+    }
+
+    private static string CreateCategoryArray(int count)
+    {
+        List<string> categories = new(count);
+        for (int index = 0; index < count; index++)
+        {
+            categories.Add("\"Category" + index.ToString(
+                System.Globalization.CultureInfo.InvariantCulture) + "\"");
+        }
+        return "[" + string.Join(',', categories) + "]";
+    }
+
+    private static string CreateBookmarkArray(int count)
+    {
+        List<string> bookmarks = new(count);
+        for (int index = 0; index < count; index++)
+        {
+            bookmarks.Add(Bookmark(
+                "Bookmark" + index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "C:\\\\shared",
+                null,
+                null));
+        }
+        return "[" + string.Join(',', bookmarks) + "]";
     }
 
     private static UserSettings CreateLargeSettings(int firstLength, int secondLength)

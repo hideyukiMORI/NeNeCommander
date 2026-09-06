@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Bookmarks;
@@ -85,28 +86,15 @@ public sealed record BookmarkCatalog
     public BookmarkEntry? Find(BookmarkShortcutSlot slot)
     {
         ArgumentNullException.ThrowIfNull(slot);
-        foreach (BookmarkEntry bookmark in _bookmarks)
-        {
-            if (bookmark.ShortcutSlot == slot)
-            {
-                return bookmark;
-            }
-        }
-        return null;
+        return _bookmarks.FirstOrDefault(bookmark => bookmark.ShortcutSlot == slot);
     }
 
     /// <summary>Finds the bookmark with one case-insensitive category/name key.</summary>
     public BookmarkEntry? Find(BookmarkKey key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        foreach (BookmarkEntry bookmark in _bookmarks)
-        {
-            if (new BookmarkKey(bookmark.Category, bookmark.Name) == key)
-            {
-                return bookmark;
-            }
-        }
-        return null;
+        return _bookmarks.FirstOrDefault(
+            bookmark => new BookmarkKey(bookmark.Category, bookmark.Name) == key);
     }
 
     /// <summary>Captures a current bookmark for a later stale-safe action.</summary>
@@ -138,14 +126,8 @@ public sealed record BookmarkCatalog
         {
             return null;
         }
-        List<BookmarkEntry> entries = [];
-        foreach (BookmarkEntry bookmark in _bookmarks)
-        {
-            if (BookmarkKey.CategoryEquals(bookmark.Category, current))
-            {
-                entries.Add(bookmark);
-            }
-        }
+        List<BookmarkEntry> entries =
+            [.. _bookmarks.Where(bookmark => BookmarkKey.CategoryEquals(bookmark.Category, current))];
         return new BookmarkCategorySelection(current, entries);
     }
 
@@ -290,14 +272,9 @@ public sealed record BookmarkCatalog
         {
             return false;
         }
-        List<BookmarkEntry> current = [];
-        foreach (BookmarkEntry bookmark in _bookmarks)
-        {
-            if (BookmarkKey.CategoryEquals(bookmark.Category, selection.Category))
-            {
-                current.Add(bookmark);
-            }
-        }
+        List<BookmarkEntry> current =
+            [.. _bookmarks.Where(bookmark =>
+                BookmarkKey.CategoryEquals(bookmark.Category, selection.Category))];
         if (current.Count != selection.Entries.Count)
         {
             return false;
@@ -354,18 +331,10 @@ public sealed record BookmarkCatalog
         IReadOnlyList<BookmarkCategoryName> categories,
         BookmarkCategoryName? category)
     {
-        if (category is null)
-        {
-            return null;
-        }
-        foreach (BookmarkCategoryName candidate in categories)
-        {
-            if (StringComparer.OrdinalIgnoreCase.Equals(candidate.Value, category.Value))
-            {
-                return candidate;
-            }
-        }
-        return null;
+        return category is null
+            ? null
+            : categories.FirstOrDefault(candidate =>
+                StringComparer.OrdinalIgnoreCase.Equals(candidate.Value, category.Value));
     }
 
     private static bool HasDuplicateBookmarks(List<BookmarkEntry> bookmarks)
@@ -389,10 +358,11 @@ public sealed record BookmarkCatalog
     private static bool HasDuplicateSlots(IReadOnlyList<BookmarkEntry> bookmarks)
     {
         HashSet<int> slots = [];
-        foreach (BookmarkEntry bookmark in bookmarks)
+        foreach (BookmarkShortcutSlot slot in bookmarks
+            .Select(bookmark => bookmark.ShortcutSlot)
+            .OfType<BookmarkShortcutSlot>())
         {
-            if (bookmark.ShortcutSlot is not null &&
-                !slots.Add(bookmark.ShortcutSlot.Number))
+            if (!slots.Add(slot.Number))
             {
                 return true;
             }
@@ -403,13 +373,6 @@ public sealed record BookmarkCatalog
     private static bool ContainsNull<T>(IReadOnlyList<T> values)
         where T : class
     {
-        foreach (T value in values)
-        {
-            if (value is null)
-            {
-                return true;
-            }
-        }
-        return false;
+        return values.Any(value => value is null);
     }
 }

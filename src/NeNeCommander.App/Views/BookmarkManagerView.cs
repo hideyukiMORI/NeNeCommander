@@ -429,14 +429,7 @@ internal sealed class BookmarkManagerView
 
     private static BookmarkCategoryOption? SelectedCategory(BookmarkBrowsePresentation browse)
     {
-        foreach (BookmarkCategoryOption category in browse.Categories)
-        {
-            if (category.IsSelected)
-            {
-                return category;
-            }
-        }
-        return null;
+        return browse.Categories.FirstOrDefault(category => category.IsSelected);
     }
 
     private T Find<T>(string name)

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace NeNeCommander.Application.Bookmarks;
 
@@ -31,24 +32,15 @@ public sealed record BookmarkCategoryName
 
     internal static BookmarkTextFailureKind? Validate(string value, int maximumLength)
     {
-        if (value.Length > maximumLength)
-        {
-            return BookmarkTextFailureKind.TooLong;
-        }
-        if (!string.Equals(value, value.Trim(), StringComparison.Ordinal))
-        {
-            return BookmarkTextFailureKind.SurroundingWhitespace;
-        }
-        foreach (char character in value)
-        {
-            if (char.IsControl(character))
-            {
-                return BookmarkTextFailureKind.ControlCharacter;
-            }
-        }
-        return HasInvalidSurrogate(value)
-            ? BookmarkTextFailureKind.InvalidUnicode
-            : null;
+        return value.Length > maximumLength
+            ? BookmarkTextFailureKind.TooLong
+            : !string.Equals(value, value.Trim(), StringComparison.Ordinal)
+                ? BookmarkTextFailureKind.SurroundingWhitespace
+                : value.Any(char.IsControl)
+                    ? BookmarkTextFailureKind.ControlCharacter
+                    : HasInvalidSurrogate(value)
+                        ? BookmarkTextFailureKind.InvalidUnicode
+                        : null;
     }
 
     internal static bool HasInvalidSurrogate(string value)

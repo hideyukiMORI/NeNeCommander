@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NeNeCommander.Application.Bookmarks;
 
@@ -49,14 +50,10 @@ public abstract record BookmarkShortcutSlot
     /// <summary>Parses an untrusted integer into one of the nine closed slots.</summary>
     public static BookmarkShortcutSlotParseOutcome Parse(int number)
     {
-        foreach (BookmarkShortcutSlot slot in All)
-        {
-            if (slot.Number == number)
-            {
-                return new BookmarkShortcutSlotAccepted(slot);
-            }
-        }
-        return new BookmarkShortcutSlotRejected();
+        BookmarkShortcutSlot? slot = All.FirstOrDefault(candidate => candidate.Number == number);
+        return slot is null
+            ? new BookmarkShortcutSlotRejected()
+            : new BookmarkShortcutSlotAccepted(slot);
     }
 
     private sealed record Slot : BookmarkShortcutSlot

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using NeNeCommander.Application.Bookmarks;
@@ -99,19 +100,17 @@ public static class SettingsDocumentValidator
         JsonElement versionElement = default;
         int count = 0;
         bool conflictingDuplicate = false;
-        foreach (JsonProperty property in root.EnumerateObject())
+        foreach (JsonProperty property in root.EnumerateObject().Where(
+            property => property.NameEquals(SchemaVersionName)))
         {
-            if (property.NameEquals(SchemaVersionName))
+            count++;
+            if (count == 1)
             {
-                count++;
-                if (count == 1)
-                {
-                    versionElement = property.Value;
-                }
-                else if (!VersionsMatch(versionElement, property.Value))
-                {
-                    conflictingDuplicate = true;
-                }
+                versionElement = property.Value;
+            }
+            else if (!VersionsMatch(versionElement, property.Value))
+            {
+                conflictingDuplicate = true;
             }
         }
         return count == 0
