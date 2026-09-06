@@ -3,6 +3,7 @@
     x:Class="NeNeCommander.App.Views.CommanderWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bookmarks="using:NeNeCommander.Presentation.WinUI.Bookmarks"
     xmlns:panes="using:NeNeCommander.Presentation.WinUI.Panes"
     xmlns:settings="using:NeNeCommander.Presentation.WinUI.Settings"
     xmlns:views="using:NeNeCommander.App.Views"
@@ -158,6 +159,29 @@
                     Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
                     GroupName="SettingsColorSchemes"
                     IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="BookmarkCategoryOptionTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
+                <TextBlock Text="{x:Bind DisplayText}" TextTrimming="CharacterEllipsis" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="BookmarkRowTemplate" x:DataType="bookmarks:BookmarkRow">
+                <Grid ColumnSpacing="{StaticResource SpacingRowGap}" Padding="{StaticResource SpacingRowContent}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind PathText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind CategoryText}" />
+                    <TextBlock Grid.Column="3" FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{Binding ShortcutLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="BookmarkShortcutOptionTemplate" x:DataType="bookmarks:BookmarkShortcutOption">
+                <TextBlock Text="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
             </DataTemplate>
         </Grid.Resources>
         <Grid.RowDefinitions>
@@ -402,6 +426,160 @@
                         Click="OnSettingsClose"
                         HorizontalAlignment="Right" />
                 </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="BookmarkOverlay"
+            Grid.RowSpan="3"
+            Background="{StaticResource SurfaceWindowBrush}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="11">
+            <Border
+                AutomationProperties.AutomationId="BookmarkManagerModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                Padding="{StaticResource SpacingWindowOuter}">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="{StaticResource SpacingPaneGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Uid="BookmarkManagerTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" VerticalAlignment="Center" />
+                        <TextBox
+                            x:Name="BookmarkSearch"
+                            x:Uid="BookmarkSearch"
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="BookmarkSearch" />
+                    </Grid>
+                    <StackPanel Grid.Row="1" Spacing="{StaticResource SpacingOperationBarGap}">
+                        <TextBlock
+                            x:Name="BookmarkStatus"
+                            AutomationProperties.AutomationId="BookmarkStatus"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Name="BookmarkSaveStatus"
+                            AutomationProperties.AutomationId="BookmarkSaveStatus"
+                            Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                    <Border
+                        x:Name="BookmarkWarning"
+                        Grid.Row="2"
+                        BorderBrush="{StaticResource StatusWarningBrush}"
+                        BorderThickness="{StaticResource BorderOperationBarThickness}"
+                        CornerRadius="{StaticResource RadiusOperationBar}"
+                        Padding="{StaticResource SpacingOperationBar}"
+                        Visibility="Collapsed">
+                        <TextBlock x:Name="BookmarkWarningText" Foreground="{StaticResource StatusWarningBrush}" TextWrapping="Wrap" />
+                    </Border>
+
+                    <Grid x:Name="BookmarkBrowseBody" Grid.Row="3" ColumnSpacing="{StaticResource SpacingPaneGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Uid="BookmarkCategoryActionsHeader" FontWeight="Bold" />
+                            <ListView
+                                x:Name="BookmarkCategories"
+                                Grid.Row="1"
+                                AutomationProperties.AutomationId="BookmarkCategories"
+                                ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
+                            <StackPanel Grid.Row="2" Spacing="{StaticResource SpacingOperationBarGap}">
+                                <Button x:Name="BookmarkAddCategory" x:Uid="BookmarkAddCategory" />
+                                <Button x:Name="BookmarkRenameCategory" x:Uid="BookmarkRenameCategory" />
+                                <Button x:Name="BookmarkDeleteCategory" x:Uid="BookmarkDeleteCategory" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <ListView
+                                x:Name="BookmarkRows"
+                                AutomationProperties.AutomationId="BookmarkRows"
+                                ItemTemplate="{StaticResource BookmarkRowTemplate}"
+                                IsDoubleTapEnabled="True" />
+                            <TextBlock
+                                x:Name="BookmarkEmptyContent"
+                                AutomationProperties.AutomationId="BookmarkEmptyContent"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+
+                    <ScrollViewer x:Name="BookmarkDraftBody" Grid.Row="3" Visibility="Collapsed">
+                        <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                            <TextBlock x:Name="BookmarkDraftTitle" FontWeight="Bold" />
+                            <TextBlock x:Uid="BookmarkNameLabel" />
+                            <TextBox x:Name="BookmarkName" AutomationProperties.AutomationId="BookmarkName" MaxLength="128" />
+                            <TextBlock x:Uid="BookmarkPathLabel" />
+                            <TextBox x:Name="BookmarkPath" AutomationProperties.AutomationId="BookmarkPath" MaxLength="32767" />
+                            <TextBlock x:Uid="BookmarkCategoryLabel" />
+                            <ComboBox x:Name="BookmarkDraftCategory" ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
+                            <TextBlock x:Uid="BookmarkShortcutLabel" />
+                            <ComboBox x:Name="BookmarkDraftShortcut" ItemTemplate="{StaticResource BookmarkShortcutOptionTemplate}" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel x:Name="BookmarkCategoryDraftBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                        <TextBlock x:Name="BookmarkCategoryDraftTitle" FontWeight="Bold" />
+                        <TextBlock x:Uid="BookmarkCategoryNameLabel" />
+                        <TextBox x:Name="BookmarkCategoryName" AutomationProperties.AutomationId="BookmarkCategoryName" MaxLength="64" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="BookmarkCategoryDeleteBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                        <TextBlock x:Uid="BookmarkCategoryDeleteTitle" FontWeight="Bold" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteExplanation" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteCategoryLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteCategory" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteCountLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteCount" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteDestinationLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteDestination" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="BookmarkBrowseFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right">
+                        <Button x:Name="BookmarkMove" x:Uid="BookmarkMove" />
+                        <Button x:Name="BookmarkAdd" x:Uid="BookmarkAdd" />
+                        <Button x:Name="BookmarkEdit" x:Uid="BookmarkEdit" />
+                        <Button x:Name="BookmarkDelete" x:Uid="BookmarkDelete" />
+                        <Button x:Name="BookmarkClose" x:Uid="BookmarkClose" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkSave" x:Uid="BookmarkSave" />
+                        <Button x:Name="BookmarkDraftCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkCategoryDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkCategorySave" x:Uid="BookmarkSave" />
+                        <Button x:Name="BookmarkCategoryCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkCategoryDeleteFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkCategoryDeleteConfirm" x:Uid="BookmarkCategoryDeleteConfirm" />
+                        <Button x:Name="BookmarkCategoryDeleteCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkNavigationFailedFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />
+                        <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkNavigationBack" />
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 

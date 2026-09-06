@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Tests;
@@ -65,7 +66,10 @@ public sealed class SettingsSessionTests
     [TestMethod]
     public async Task SelectLaunchHiddenVisibilityWhenChosenWritesCompleteSettingsAsync()
     {
-        UserSettings initial = UserSettings.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden);
+        UserSettings initial = UserSettings.Create(
+            ColorScheme.Monokai,
+            HiddenItemVisibility.Hidden,
+            BookmarkCatalog.Empty);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         SettingsSession session = new(store, SettingsReadOutcome.Read(initial), static _ => { });
@@ -309,6 +313,79 @@ public sealed class SettingsSessionTests
         Assert.IsEmpty(store.Writes);
     }
 
+    /// <summary>Proves catalog and preference revisions share one complete ordered queue.</summary>
+    [TestMethod]
+    public async Task SaveBookmarkCatalogWhenPreferenceFollowsPreservesBothInEveryRevisionAsync()
+    {
+        BookmarkCatalog initialCatalog = Catalog("Initial", "C:\\initial");
+        BookmarkCatalog replacementCatalog = Catalog("Replacement", "C:\\replacement");
+        UserSettings initial = UserSettings.Create(
+            ColorScheme.Ubuntu,
+            HiddenItemVisibility.Shown,
+            initialCatalog);
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
+        TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();
+        TaskCompletionSource<SettingsWriteOutcome> preferenceWrite = store.PlanWrite();
+        SettingsSession session = new(store, SettingsReadOutcome.Read(initial), static _ => { });
+        RecordingCommanderObserver observer = new();
+
+        Task first = session.SaveBookmarkCatalogAsync(
+            replacementCatalog,
+            observer,
+            CancellationToken.None);
+        Task second = session.SelectColorSchemeAsync(
+            ColorScheme.Dracula,
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(1, store.Writes);
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[0].HiddenItemVisibility);
+        Assert.AreSame(replacementCatalog, store.Writes[0].Bookmarks);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.ColorScheme);
+        Assert.AreSame(replacementCatalog, session.Current.Settings.Bookmarks);
+        catalogWrite.SetResult(SettingsWriteOutcome.Succeeded());
+        await first;
+        await store.WaitForWriteCountAsync(2);
+        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].ColorScheme);
+        Assert.AreSame(replacementCatalog, store.Writes[1].Bookmarks);
+        preferenceWrite.SetResult(SettingsWriteOutcome.Succeeded());
+        await second;
+    }
+
+    /// <summary>Proves a preference revision followed by a catalog save does not restore old metadata.</summary>
+    [TestMethod]
+    public async Task SaveBookmarkCatalogWhenPreferencePrecedesPreservesTheNewPreferenceAsync()
+    {
+        BookmarkCatalog replacementCatalog = Catalog("Replacement", "C:\\replacement");
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        TaskCompletionSource<SettingsWriteOutcome> preferenceWrite = store.PlanWrite();
+        TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        RecordingCommanderObserver observer = new();
+
+        Task first = session.SelectLaunchHiddenItemVisibilityAsync(
+            HiddenItemVisibility.Shown,
+            observer,
+            CancellationToken.None);
+        Task second = session.SaveBookmarkCatalogAsync(
+            replacementCatalog,
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(1, store.Writes);
+        Assert.AreSame(BookmarkCatalog.Empty, store.Writes[0].Bookmarks);
+        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.HiddenItemVisibility);
+        Assert.AreSame(replacementCatalog, session.Current.Settings.Bookmarks);
+        preferenceWrite.SetResult(SettingsWriteOutcome.Succeeded());
+        await first;
+        await store.WaitForWriteCountAsync(2);
+        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[1].HiddenItemVisibility);
+        Assert.AreSame(replacementCatalog, store.Writes[1].Bookmarks);
+        catalogWrite.SetResult(SettingsWriteOutcome.Succeeded());
+        await second;
+    }
+
     /// <summary>Proves a stopped settings owner cannot start unowned persistence work.</summary>
     [TestMethod]
     public async Task SelectAfterStopRejectsBeforeStateOrIoChangesAsync()
@@ -330,6 +407,58 @@ public sealed class SettingsSessionTests
         Assert.IsEmpty(store.Writes);
         Assert.IsEmpty(observer.Settings);
         await session.StopAsync();
+    }
+
+    /// <summary>Proves stopped settings ownership rejects bookmark actions before editor or I/O changes.</summary>
+    [TestMethod]
+    public async Task ApplyBookmarkEditorActionAfterStopRejectsBeforeStateOrIoChangesAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        _ = session.OpenBookmarks();
+        SettingsSnapshot before = session.Current;
+        await session.StopAsync();
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            session.ApplyBookmarkEditorAction(
+                BookmarkEditorAction.BeginAddBookmark,
+                new BookmarkRegistrationDefaults("Folder", "C:\\Folder"),
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+
+        Assert.AreSame(before.Settings, session.Current.Settings);
+        Assert.AreEqual(before.BookmarksEditor, session.Current.BookmarksEditor);
+        Assert.IsEmpty(store.Writes);
+    }
+
+    /// <summary>Proves browse Cancel closes the sole modal without queuing persistence.</summary>
+    [TestMethod]
+    public async Task ApplyBookmarkEditorActionWhenBrowsingCancelClosesWithoutWriteAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        _ = session.OpenBookmarks();
+
+        await session.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            new BookmarkRegistrationDefaults(string.Empty, string.Empty),
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Closed, session.Current.Editor);
+        Assert.AreSame(BookmarksEditorState.Closed, session.Current.BookmarksEditor);
+        Assert.IsEmpty(store.Writes);
+    }
+
+    private static BookmarkCatalog Catalog(string name, string path)
+    {
+        BookmarkDisplayName displayName = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
+            BookmarkDisplayName.Parse(name)).Name;
+        BookmarkPath bookmarkPath = Assert.IsInstanceOfType<BookmarkPathAccepted>(
+            BookmarkPath.Parse(path)).Path;
+        BookmarkEntry entry = BookmarkEntry.Create(displayName, bookmarkPath, null, null);
+        return Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([], [entry])).Catalog;
     }
 
     private sealed class ControlledSynchronizationContext : SynchronizationContext

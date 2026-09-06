@@ -144,7 +144,9 @@ public sealed class DualPaneSession
             ? Task.FromResult(BeginDirectoryName())
             : intent == UserIntent.Rename
                 ? Task.FromResult(BeginRenameName())
-                : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+                : intent is ResolvedBookmarkNavigation bookmark
+                    ? NavigateAsync(_activeSide, bookmark.Path, cancellationToken)
+                    : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
     }
 
     private Task<DualPaneSnapshot> ResolveNameAsync(

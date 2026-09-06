@@ -67,12 +67,32 @@
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
   <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
   <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
+  <data name="KeyLabelB" xml:space="preserve"><value>b</value></data>
+  <data name="KeyLabel1" xml:space="preserve"><value>1</value></data>
+  <data name="KeyLabel2" xml:space="preserve"><value>2</value></data>
+  <data name="KeyLabel3" xml:space="preserve"><value>3</value></data>
+  <data name="KeyLabel4" xml:space="preserve"><value>4</value></data>
+  <data name="KeyLabel5" xml:space="preserve"><value>5</value></data>
+  <data name="KeyLabel6" xml:space="preserve"><value>6</value></data>
+  <data name="KeyLabel7" xml:space="preserve"><value>7</value></data>
+  <data name="KeyLabel8" xml:space="preserve"><value>8</value></data>
+  <data name="KeyLabel9" xml:space="preserve"><value>9</value></data>
   <data name="KeyLabelCtrlD" xml:space="preserve"><value>Ctrl+D</value></data>
   <data name="KeyLabelCtrlH" xml:space="preserve"><value>Ctrl+H</value></data>
   <data name="KeyLabelCtrlComma" xml:space="preserve"><value>Ctrl+,</value></data>
   <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
   <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
+  <data name="KeyLabelCtrlB" xml:space="preserve"><value>Ctrl+B</value></data>
+  <data name="KeyLabelCtrl1" xml:space="preserve"><value>Ctrl+1</value></data>
+  <data name="KeyLabelCtrl2" xml:space="preserve"><value>Ctrl+2</value></data>
+  <data name="KeyLabelCtrl3" xml:space="preserve"><value>Ctrl+3</value></data>
+  <data name="KeyLabelCtrl4" xml:space="preserve"><value>Ctrl+4</value></data>
+  <data name="KeyLabelCtrl5" xml:space="preserve"><value>Ctrl+5</value></data>
+  <data name="KeyLabelCtrl6" xml:space="preserve"><value>Ctrl+6</value></data>
+  <data name="KeyLabelCtrl7" xml:space="preserve"><value>Ctrl+7</value></data>
+  <data name="KeyLabelCtrl8" xml:space="preserve"><value>Ctrl+8</value></data>
+  <data name="KeyLabelCtrl9" xml:space="preserve"><value>Ctrl+9</value></data>
   <data name="KeyLabelAltUp" xml:space="preserve"><value>Alt+↑</value></data>
   <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
   <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
@@ -102,6 +122,7 @@
   <data name="IntentLabelDelete" xml:space="preserve"><value>削除</value></data>
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>ペイン</value></data>
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>隠し項目</value></data>
+  <data name="IntentLabelOpenBookmarks" xml:space="preserve"><value>ブックマーク</value></data>
   <data name="IntentLabelOpenSettings" xml:space="preserve"><value>設定</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>中止</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>実行</value></data>
@@ -118,6 +139,62 @@
   <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
   <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>設定ファイルを使用できませんでした。既定値で動作し、ファイルは変更していません。</value></data>
   <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>選択内容はこのセッションに反映されていますが、保存できませんでした。</value></data>
+  <data name="BookmarkManagerTitle.Text" xml:space="preserve"><value>ブックマーク</value></data>
+  <data name="BookmarkSearch.PlaceholderText" xml:space="preserve"><value>ブックマークを検索</value></data>
+  <data name="BookmarkAllCategories" xml:space="preserve"><value>すべてのブックマーク</value></data>
+  <data name="BookmarkUncategorized" xml:space="preserve"><value>未分類</value></data>
+  <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>カテゴリ</value></data>
+  <data name="BookmarkAddCategory.Content" xml:space="preserve"><value>カテゴリを追加</value></data>
+  <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>カテゴリ名を変更</value></data>
+  <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>カテゴリを削除</value></data>
+  <data name="BookmarkMove.Content" xml:space="preserve"><value>移動</value></data>
+  <data name="BookmarkAdd.Content" xml:space="preserve"><value>現在フォルダーを登録</value></data>
+  <data name="BookmarkEdit.Content" xml:space="preserve"><value>編集</value></data>
+  <data name="BookmarkDelete.Content" xml:space="preserve"><value>削除</value></data>
+  <data name="BookmarkClose.Content" xml:space="preserve"><value>閉じる</value></data>
+  <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>ブックマークを追加</value></data>
+  <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>ブックマークを編集</value></data>
+  <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>名前</value></data>
+  <data name="BookmarkPathLabel.Text" xml:space="preserve"><value>パス</value></data>
+  <data name="BookmarkCategoryLabel.Text" xml:space="preserve"><value>カテゴリ</value></data>
+  <data name="BookmarkShortcutLabel.Text" xml:space="preserve"><value>ショートカット</value></data>
+  <data name="BookmarkShortcutUnassigned" xml:space="preserve"><value>割り当てなし</value></data>
+  <data name="BookmarkSave.Content" xml:space="preserve"><value>保存</value></data>
+  <data name="BookmarkCancel.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="BookmarkCategoryAddTitle" xml:space="preserve"><value>カテゴリを追加</value></data>
+  <data name="BookmarkCategoryRenameTitle" xml:space="preserve"><value>カテゴリ名を変更</value></data>
+  <data name="BookmarkCategoryNameLabel.Text" xml:space="preserve"><value>カテゴリ名</value></data>
+  <data name="BookmarkCategoryDeleteTitle.Text" xml:space="preserve"><value>カテゴリを削除しますか？</value></data>
+  <data name="BookmarkCategoryDeleteExplanation.Text" xml:space="preserve"><value>このカテゴリのブックマークは未分類へ移動します。</value></data>
+  <data name="BookmarkCategoryDeleteCategoryLabel.Text" xml:space="preserve"><value>カテゴリ</value></data>
+  <data name="BookmarkCategoryDeleteCountLabel.Text" xml:space="preserve"><value>対象ブックマーク数</value></data>
+  <data name="BookmarkCategoryDeleteDestinationLabel.Text" xml:space="preserve"><value>移動先</value></data>
+  <data name="BookmarkCategoryDeleteConfirm.Content" xml:space="preserve"><value>カテゴリを削除</value></data>
+  <data name="BookmarkNavigationRetry.Content" xml:space="preserve"><value>再試行</value></data>
+  <data name="BookmarkStatusReady" xml:space="preserve"><value>ブックマークを選んで移動できます。</value></data>
+  <data name="BookmarkStatusAdding" xml:space="preserve"><value>ブックマークの内容を入力してください。</value></data>
+  <data name="BookmarkStatusEditing" xml:space="preserve"><value>ブックマークの内容を編集してください。</value></data>
+  <data name="BookmarkStatusAddingCategory" xml:space="preserve"><value>カテゴリ名を入力してください。</value></data>
+  <data name="BookmarkStatusRenamingCategory" xml:space="preserve"><value>新しいカテゴリ名を入力してください。</value></data>
+  <data name="BookmarkStatusConfirmCategoryDelete" xml:space="preserve"><value>対象ブックマークを確認してからカテゴリを削除してください。</value></data>
+  <data name="BookmarkStatusNavigationPending" xml:space="preserve"><value>ブックマークへ移動しています…</value></data>
+  <data name="BookmarkStatusNavigationAccessDenied" xml:space="preserve"><value>ブックマーク先へのアクセスが拒否されました。現在のフォルダーを維持しています。</value></data>
+  <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>ブックマーク先のフォルダーが見つかりません。現在のフォルダーを維持しています。</value></data>
+  <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>ブックマーク先のプロバイダーを利用できません。現在のフォルダーを維持しています。</value></data>
+  <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>ブックマークへの移動をキャンセルしました。現在のフォルダーを維持しています。</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>ブックマークはまだありません。「現在フォルダーを登録」から追加できます。</value></data>
+  <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>現在の検索とカテゴリに一致するブックマークはありません。</value></data>
+  <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>一覧に戻る</value></data>
+  <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>有効な名前を入力してください。</value></data>
+  <data name="BookmarkProblemInvalidPath" xml:space="preserve"><value>有効なパスを入力してください。</value></data>
+  <data name="BookmarkProblemInvalidCategory" xml:space="preserve"><value>有効なカテゴリを選んでください。</value></data>
+  <data name="BookmarkProblemDuplicateCategory" xml:space="preserve"><value>同じ名前のカテゴリが既にあります。</value></data>
+  <data name="BookmarkProblemDuplicateBookmark" xml:space="preserve"><value>このカテゴリには同じ名前のブックマークが既にあります。</value></data>
+  <data name="BookmarkProblemDuplicateShortcut" xml:space="preserve"><value>このショートカットは既に割り当てられています。</value></data>
+  <data name="BookmarkProblemCategoryLimit" xml:space="preserve"><value>カテゴリ数の上限に達しています。</value></data>
+  <data name="BookmarkProblemBookmarkLimit" xml:space="preserve"><value>ブックマーク数の上限に達しています。</value></data>
+  <data name="BookmarkProblemStaleSelection" xml:space="preserve"><value>項目が変更されました。現在の一覧を確認してやり直してください。</value></data>
+  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>このカテゴリを削除すると、未分類に同じ名前のブックマークができます。先に名前を変更するか整理してください。</value></data>
   <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
   <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
   <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>

@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
 
@@ -14,7 +15,10 @@ public sealed class SettingsPresenterTests
     public void PresentWhenEditorIsOpenProjectsEveryChoice()
     {
         SettingsSnapshot snapshot = Snapshot(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(
+                ColorScheme.Dracula,
+                HiddenItemVisibility.Shown,
+                BookmarkCatalog.Empty),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
 
@@ -185,8 +189,14 @@ public sealed class SettingsPresenterTests
         System.Reflection.ConstructorInfo constructor = typeof(SettingsSnapshot).GetConstructor(
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
             null,
-            [typeof(UserSettings), typeof(SettingsEditorState), typeof(SettingsPersistenceState)],
+            [
+                typeof(UserSettings),
+                typeof(SettingsEditorState),
+                typeof(BookmarksEditorState),
+                typeof(SettingsPersistenceState),
+            ],
             null) ?? throw new AssertFailedException("The settings snapshot constructor was not found.");
-        return (SettingsSnapshot)constructor.Invoke([settings, editor, persistence]);
+        return (SettingsSnapshot)constructor.Invoke(
+            [settings, editor, BookmarksEditorState.Closed, persistence]);
     }
 }

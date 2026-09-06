@@ -11,6 +11,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 ## Accepted decisions
 
 - [ADR-0042: Bound both raw and canonical filesystem path text](0042-bound-raw-and-canonical-path-length.md)
+- [ADR-0041: Manage categorized bookmarks through settings and the canonical navigation route](0041-category-bookmarks-through-settings-and-navigation.md)
 - [ADR-0037: Copy and composite-move within one WSL distribution](0037-wsl-same-distribution-transfer.md)
 - [ADR-0039: Resolve transfer conflicts through the existing operation gateway](0039-single-transfer-conflict-resolver.md)
 - [ADR-0036: Route WSL same-distribution mutations through the canonical gateway](0036-wsl-same-distribution-mutations.md)

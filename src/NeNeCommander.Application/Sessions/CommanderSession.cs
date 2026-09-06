@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -17,6 +18,7 @@ public sealed class CommanderSession
 {
     private readonly DualPaneSession _panes;
     private readonly SettingsSession _settings;
+    private int _bookmarkNavigationInProgress;
 
     /// <summary>Initializes the application session over its two declared state owners.</summary>
     /// <param name="panes">Sole dual-pane coordinator.</param>
@@ -40,7 +42,8 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(side);
         ArgumentNullException.ThrowIfNull(location);
-        if (_settings.Current.Editor == SettingsEditorState.Open)
+        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 ||
+            _settings.Current.Editor != SettingsEditorState.Closed)
         {
             return Current;
         }
@@ -56,10 +59,38 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
-        if (_settings.Current.Editor == SettingsEditorState.Open)
+        SettingsEditorState editor = _settings.Current.Editor;
+        if (editor == SettingsEditorState.Bookmarks &&
+            intent is BookmarkNavigationSelection managerNavigation)
+        {
+            return await NavigateManagerBookmarkAsync(
+                managerNavigation.Selection,
+                observer,
+                cancellationToken).ConfigureAwait(false);
+        }
+        BookmarkEntry? directBookmark = editor == SettingsEditorState.Closed &&
+            intent is BookmarkShortcutSelection shortcut
+            ? _settings.Current.Settings.Bookmarks.Find(shortcut.Slot)
+            : null;
+        if (directBookmark is not null)
+        {
+            return await NavigateDirectBookmarkAsync(
+                directBookmark,
+                observer,
+                cancellationToken).ConfigureAwait(false);
+        }
+        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0)
+        {
+            return Current;
+        }
+        if (editor == SettingsEditorState.Open)
         {
             HandleSettingsIntent(intent, observer);
             return Current;
+        }
+        if (editor == SettingsEditorState.Bookmarks)
+        {
+            return HandleBookmarkIntent(intent, observer, cancellationToken);
         }
         if (intent == UserIntent.OpenSettings)
         {
@@ -67,6 +98,18 @@ public sealed class CommanderSession
             {
                 _ = _settings.Open();
             }
+            return Current;
+        }
+        if (intent == UserIntent.OpenBookmarks)
+        {
+            if (!BookmarkInteractionIsFrozen())
+            {
+                _ = _settings.OpenBookmarks();
+            }
+            return Current;
+        }
+        if (intent is BookmarkShortcutSelection)
+        {
             return Current;
         }
         _ = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
@@ -106,10 +149,155 @@ public sealed class CommanderSession
         };
     }
 
+    private CommanderSnapshot HandleBookmarkIntent(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (intent == UserIntent.Escape)
+        {
+            _ = _settings.ApplyBookmarkEditorAction(
+                BookmarkEditorAction.Cancel,
+                CurrentBookmarkDefaults(),
+                observer,
+                cancellationToken);
+            return Current;
+        }
+        if (intent is BookmarkEditorActionSubmission submission)
+        {
+            _ = _settings.ApplyBookmarkEditorAction(
+                submission.Action,
+                CurrentBookmarkDefaults(),
+                observer,
+                cancellationToken);
+            return Current;
+        }
+        return Current;
+    }
+
+    private async Task<CommanderSnapshot> NavigateDirectBookmarkAsync(
+        BookmarkEntry bookmark,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (!TryBeginBookmarkNavigation())
+        {
+            return Current;
+        }
+        try
+        {
+            if (BookmarkInteractionIsFrozen())
+            {
+                return Current;
+            }
+            _ = await _panes.HandleAsync(
+                new ResolvedBookmarkNavigation(bookmark.Path.Value),
+                observer,
+                cancellationToken).ConfigureAwait(false);
+            return Current;
+        }
+        finally
+        {
+            Volatile.Write(ref _bookmarkNavigationInProgress, 0);
+        }
+    }
+
+    private async Task<CommanderSnapshot> NavigateManagerBookmarkAsync(
+        BookmarkSelection selection,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (!TryBeginBookmarkNavigation())
+        {
+            return Current;
+        }
+        FileSystemPath navigationTarget = selection.Entry.Path.Value;
+        try
+        {
+            BookmarkNavigationStart start = _settings.BeginBookmarkNavigation(selection);
+            if (start is not BookmarkNavigationStart.Accepted accepted)
+            {
+                return Current;
+            }
+            navigationTarget = accepted.Entry.Path.Value;
+            PaneSide side = _panes.Current.ActiveSide;
+            DualPaneSnapshot result = await _panes.HandleAsync(
+                new ResolvedBookmarkNavigation(navigationTarget),
+                observer,
+                cancellationToken).ConfigureAwait(false);
+            PaneSnapshot pane = result.Of(side);
+            bool succeeded = pane.Activity == PaneActivity.Idle &&
+                pane.Content is PaneContentListed listed &&
+                FileSystemPathIdentityComparer.Instance.Equals(
+                    listed.Listing.Location,
+                    navigationTarget);
+            if (succeeded)
+            {
+                _settings.FinishBookmarkNavigationSucceeded();
+            }
+            else
+            {
+                _settings.FinishBookmarkNavigationFailed(
+                    BookmarkNavigationFailure(pane.Activity));
+            }
+            return Current;
+        }
+        catch (OperationCanceledException)
+        {
+            _settings.FinishBookmarkNavigationFailed(
+                new PaneReadCancelled(navigationTarget));
+            throw;
+        }
+        finally
+        {
+            Volatile.Write(ref _bookmarkNavigationInProgress, 0);
+        }
+    }
+
+    private static PaneActivity BookmarkNavigationFailure(PaneActivity activity)
+    {
+        return activity is PaneReadCancelled ? activity : (PaneReadFailed)activity;
+    }
+
+    private bool TryBeginBookmarkNavigation()
+    {
+        return Interlocked.CompareExchange(ref _bookmarkNavigationInProgress, 1, 0) == 0;
+    }
+
+    private BookmarkRegistrationDefaults CurrentBookmarkDefaults()
+    {
+        DualPaneSnapshot panes = _panes.Current;
+        PaneSnapshot pane = panes.Of(panes.ActiveSide);
+        if (pane.Content is not PaneContentListed listed)
+        {
+            return new BookmarkRegistrationDefaults(string.Empty, string.Empty);
+        }
+        string path = listed.Listing.Location.CanonicalText;
+        string candidate = LeafName(path);
+        string name = BookmarkDisplayName.Parse(candidate) is BookmarkDisplayNameAccepted accepted
+            ? accepted.Name.Value
+            : string.Empty;
+        return new BookmarkRegistrationDefaults(name, path);
+    }
+
+    private static string LeafName(string path)
+    {
+        string withoutTrailingSeparator = path.TrimEnd('\\');
+        int separator = withoutTrailingSeparator.LastIndexOf('\\');
+        return separator < 0 ? string.Empty : withoutTrailingSeparator[(separator + 1)..];
+    }
+
     private bool PaneInteractionIsFrozen()
     {
         return _panes.Current.Operation is
             OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or
             OperationAwaitingConflict;
+    }
+
+    private bool BookmarkInteractionIsFrozen()
+    {
+        DualPaneSnapshot panes = _panes.Current;
+        return PaneInteractionIsFrozen() || panes.Left.Activity is PaneLoading ||
+            panes.Right.Activity is PaneLoading;
     }
 }

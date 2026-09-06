@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
@@ -111,9 +112,11 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden]);
+            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null]);
+            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
         AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
@@ -288,11 +291,13 @@ public sealed class NullGuardTests
         AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
             [HiddenItemVisibility.Hidden, null, CancellationToken.None]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [null, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded]);
+            [null, SettingsEditorState.Closed, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, null, SettingsPersistenceState.Succeeded]);
+            [UserSettings.Default, null, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, SettingsEditorState.Closed, null]);
+            [UserSettings.Default, SettingsEditorState.Closed, null, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, SettingsEditorState.Closed, BookmarksEditorState.Closed, null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceStartupRejected), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceFailed), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),

@@ -54,6 +54,16 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.R, KeyboardModifier.Control), UserIntent.Refresh);
         AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
         AssertMaps(mapper, Input(KeyboardKey.Comma, KeyboardModifier.Control), UserIntent.OpenSettings);
+        AssertMaps(mapper, Input(KeyboardKey.B, KeyboardModifier.Control), UserIntent.OpenBookmarks);
+        AssertMaps(mapper, Input(KeyboardKey.One, KeyboardModifier.Control), UserIntent.BookmarkSlotOne);
+        AssertMaps(mapper, Input(KeyboardKey.Two, KeyboardModifier.Control), UserIntent.BookmarkSlotTwo);
+        AssertMaps(mapper, Input(KeyboardKey.Three, KeyboardModifier.Control), UserIntent.BookmarkSlotThree);
+        AssertMaps(mapper, Input(KeyboardKey.Four, KeyboardModifier.Control), UserIntent.BookmarkSlotFour);
+        AssertMaps(mapper, Input(KeyboardKey.Five, KeyboardModifier.Control), UserIntent.BookmarkSlotFive);
+        AssertMaps(mapper, Input(KeyboardKey.Six, KeyboardModifier.Control), UserIntent.BookmarkSlotSix);
+        AssertMaps(mapper, Input(KeyboardKey.Seven, KeyboardModifier.Control), UserIntent.BookmarkSlotSeven);
+        AssertMaps(mapper, Input(KeyboardKey.Eight, KeyboardModifier.Control), UserIntent.BookmarkSlotEight);
+        AssertMaps(mapper, Input(KeyboardKey.Nine, KeyboardModifier.Control), UserIntent.BookmarkSlotNine);
     }
 
     /// <summary>Proves the gg chord includes its exact lifetime boundary.</summary>
@@ -208,6 +218,14 @@ public sealed class KeyboardIntentMapperTests
             mapper,
             Input(KeyboardKey.Comma, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenSettings);
+        AssertMaps(
+            mapper,
+            Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            UserIntent.OpenBookmarks);
+        AssertMaps(
+            mapper,
+            Input(KeyboardKey.Nine, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            UserIntent.BookmarkSlotNine);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             mapper.Map(Input(KeyboardKey.J, KeyboardContext.NavigationSurface)));
     }
@@ -252,6 +270,16 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreSame(KeyboardKey.Comma, controlComma.Key);
         Assert.AreSame(UserIntent.OpenSettings, Assert.IsInstanceOfType<MappedKeyboardIntent>(
             CreateMapper().Map(controlComma)).Intent);
+        AssertRawControlKey(VirtualKey.B, KeyboardKey.B, UserIntent.OpenBookmarks);
+        AssertRawControlKey(VirtualKey.Number1, KeyboardKey.One, UserIntent.BookmarkSlotOne);
+        AssertRawControlKey(VirtualKey.Number9, KeyboardKey.Nine, UserIntent.BookmarkSlotNine);
+        KeyboardInput controlP = KeyboardInputTranslator.TranslateKeyData(
+            (int)VirtualKey.P,
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList,
+            KeyboardModifier.Control);
+        Assert.AreSame(KeyboardKey.Other, controlP.Key);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(CreateMapper().Map(controlP));
 
         KeyboardInput repeated = KeyboardInputTranslator.TranslateKeyData(
             (int)VirtualKey.Down,
@@ -269,6 +297,8 @@ public sealed class KeyboardIntentMapperTests
     {
         AssertTranslatedCharacter(' ', KeyboardKey.Other);
         AssertTranslatedCharacter('d', KeyboardKey.D);
+        AssertTranslatedCharacter('b', KeyboardKey.B);
+        AssertTranslatedCharacter('\u0002', KeyboardKey.B);
         AssertTranslatedCharacter('\u0004', KeyboardKey.D);
         AssertTranslatedCharacter('G', KeyboardKey.UpperG);
         AssertTranslatedCharacter('g', KeyboardKey.LowerG);
@@ -282,6 +312,16 @@ public sealed class KeyboardIntentMapperTests
         AssertTranslatedCharacter('u', KeyboardKey.U);
         AssertTranslatedCharacter('\u0015', KeyboardKey.U);
         AssertTranslatedCharacter(',', KeyboardKey.Comma);
+        AssertTranslatedCharacter('1', KeyboardKey.One);
+        AssertTranslatedCharacter('2', KeyboardKey.Two);
+        AssertTranslatedCharacter('3', KeyboardKey.Three);
+        AssertTranslatedCharacter('4', KeyboardKey.Four);
+        AssertTranslatedCharacter('5', KeyboardKey.Five);
+        AssertTranslatedCharacter('6', KeyboardKey.Six);
+        AssertTranslatedCharacter('7', KeyboardKey.Seven);
+        AssertTranslatedCharacter('8', KeyboardKey.Eight);
+        AssertTranslatedCharacter('9', KeyboardKey.Nine);
+        AssertTranslatedCharacter('p', KeyboardKey.Other);
         AssertTranslatedCharacter('x', KeyboardKey.Other);
 
         KeyboardInput controlH = KeyboardInputTranslator.TranslateCharacterData(
@@ -348,6 +388,22 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreSame(KeyRepeatState.Initial, input.RepeatState);
     }
 
+    private static void AssertRawControlKey(
+        VirtualKey virtualKey,
+        KeyboardKey expectedKey,
+        UserIntent expectedIntent)
+    {
+        KeyboardInput input = KeyboardInputTranslator.TranslateKeyData(
+            (int)virtualKey,
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList,
+            KeyboardModifier.Control);
+        Assert.AreSame(expectedKey, input.Key);
+        Assert.AreSame(
+            expectedIntent,
+            Assert.IsInstanceOfType<MappedKeyboardIntent>(CreateMapper().Map(input)).Intent);
+    }
+
     /// <summary>Proves no context maps one keystroke to more than one intent (KBD-005).</summary>
     [TestMethod]
     public void BindingsForWhenContextIsDeclaredMapsEachKeystrokeToOneIntent()
@@ -388,8 +444,8 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(26, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(7, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(36, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(17, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
     }
@@ -407,6 +463,16 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelD", KeyboardKey.D.LabelResourceKey);
         Assert.AreEqual("KeyLabelR", KeyboardKey.R.LabelResourceKey);
         Assert.AreEqual("KeyLabelU", KeyboardKey.U.LabelResourceKey);
+        Assert.AreEqual("KeyLabelB", KeyboardKey.B.LabelResourceKey);
+        Assert.AreEqual("KeyLabel1", KeyboardKey.One.LabelResourceKey);
+        Assert.AreEqual("KeyLabel2", KeyboardKey.Two.LabelResourceKey);
+        Assert.AreEqual("KeyLabel3", KeyboardKey.Three.LabelResourceKey);
+        Assert.AreEqual("KeyLabel4", KeyboardKey.Four.LabelResourceKey);
+        Assert.AreEqual("KeyLabel5", KeyboardKey.Five.LabelResourceKey);
+        Assert.AreEqual("KeyLabel6", KeyboardKey.Six.LabelResourceKey);
+        Assert.AreEqual("KeyLabel7", KeyboardKey.Seven.LabelResourceKey);
+        Assert.AreEqual("KeyLabel8", KeyboardKey.Eight.LabelResourceKey);
+        Assert.AreEqual("KeyLabel9", KeyboardKey.Nine.LabelResourceKey);
         Assert.AreEqual("KeyLabelComma", KeyboardKey.Comma.LabelResourceKey);
         Assert.AreEqual("KeyLabelDown", KeyboardKey.Down.LabelResourceKey);
         Assert.AreEqual("KeyLabelUp", KeyboardKey.Up.LabelResourceKey);

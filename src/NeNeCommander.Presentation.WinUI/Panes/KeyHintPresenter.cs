@@ -54,6 +54,7 @@ public static class KeyHintPresenter
             new(UserIntent.Delete, "IntentLabelDelete"),
             new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
             new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
+            new(UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks"),
             new(UserIntent.OpenSettings, "IntentLabelOpenSettings"),
             new(UserIntent.Escape, "IntentLabelEscape"),
         ];
