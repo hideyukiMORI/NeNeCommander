@@ -44,8 +44,8 @@ Status: normative
 
 ## Current checkpoint
 
-- Issue #89 is integrated. Its 32767/32768 path-length boundary proof removed the reproducible Domain mutation threshold failure without changing production parsing or thresholds.
-- Issue #85 resumed by hide on 2026-09-06. Final-diff review found and repaired missing copy-boundary recursive containment and late source/target tree-link revalidation. Focused Infrastructure proof and mutation pass; exact-head security deep review, canonical Ready CI, and live WSL evidence remain pending.
+- Issue #89 is integrated. Its 32767/32768 path-length boundary proof passed exact-head deep run `34015752322` and canonical Ready run `34016537381`, removing the reproducible Domain mutation threshold failure without changing production parsing or thresholds.
+- Issue #85 resumed by hide on 2026-09-06. Final-diff review found and repaired missing copy-boundary recursive containment and late source/target tree-link revalidation. The first resumed exact-head deep run `34014279382` passed its canonical, audit, repeated adversarial, coverage, and CodeQL execution stages before the unchanged Domain mutation layer stopped at 94.97% and led to Issue #89. The same analysis opened two WSL adapter query alerts, now repaired with focused 135-test and 100% mutation proof. The branch is rebased onto `b207c856`; Domain 66, Infrastructure.Windows 135, and Architecture 5 tests pass on that base. A fresh final-head deep review, canonical Ready CI, and live WSL evidence remain pending.
 
 - Verified implementation baseline: `b207c856dbff0bb4803d00fe1cfbd397b8214e89`
 - Daily report: [`docs/reports/2026-09-05-hidden-item-visibility-daily-report.md`](reports/2026-09-05-hidden-item-visibility-daily-report.md)

@@ -81,3 +81,17 @@ Focused resume verification:
 - Complete focused mutation of `WslFileOperationAdapter.cs`, `WindowsWslFileSystem.cs`, and `WslFileSystemEntry.cs`: exit 0, 144/144 tested mutants killed, 100.00%.
 
 Exact-head deep review and canonical Ready CI remain integration evidence. Live WSL tree copy and deletion remain unexecuted environmental proof.
+
+## Integration review findings
+
+Draft head `d10f7619a146491f8747cfcfcdf9c05b8deb45b2` passed dependency review `34014276416`. Exact-head deep run `34014279382` then passed its canonical gate, locked restore, dependency audit, three adversarial repetitions across all four test projects, 467 tests, coverage thresholds, and CodeQL execution. The run stopped at the first all-layer mutation project because unchanged Domain code scored 94.97% (189 killed / 10 survived), so later Application, Infrastructure.Windows, and Presentation.WinUI mutation did not run.
+
+The Domain report exactly matches the ten survivors from Issue #81's first deep run `33985153722`. Its same-head retry `33985643645` classified two otherwise identical mutants as killed and passed at 95.98%. Review found a real unprotected contract in one of those two: tests covered only input beyond `FileSystemPath`'s maximum length, not a valid path at the exact maximum. Independent Issue #89 added that boundary proof without a threshold, exclusion, baseline, or production parser change. Its exact-head deep run `34015752322` and canonical Ready run `34016537381` passed before squash merge `b207c856`.
+
+The completed CodeQL analysis opened two query-shape alerts in `WslFileOperationAdapter`. Preflight now projects provider outcomes explicitly and selects the first failure, while distribution validation uses an all-source predicate. Focused proof independently preserves linked-destination rejection and rejects a batch containing one foreign-distribution source. The Infrastructure.Windows suite passes 135/135 and complete focused mutation kills 143/143 tested mutants (100.00%). The branch is now rebased onto Issue #89's merge; a fresh #85 exact-head deep review remains required.
+
+## Rebased candidate
+
+Issue #89 merged as `b207c856dbff0bb4803d00fe1cfbd397b8214e89`. After rebasing #85 onto that verified main, locked restore and the Release solution build passed with zero warnings or errors. Domain passed 66/66, Infrastructure.Windows 135/135, and Architecture 5/5. The final Infrastructure.Windows coverage run reports 94.23% branch coverage (minimum 90%). Commit validation and a fresh exact-head deep review remain required after saving the rebase evidence.
+
+`NENE_COMMANDER_WSL_TEST_ROOT` is not set. Repository inspection found no executable test or script that reads it; current live-proof material consists of the normative opt-in contract and deterministic Windows-temporary-root tests. Therefore no live WSL copy or deletion can be run from the current tree. A live tier still requires an explicit harness that validates a dedicated empty root, rejects the distribution root, `/home`, any user home, `/mnt`, the repository, and their ancestors, and revalidates the root before cleanup.

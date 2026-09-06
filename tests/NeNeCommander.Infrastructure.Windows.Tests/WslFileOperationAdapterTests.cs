@@ -363,6 +363,15 @@ public sealed class WslFileOperationAdapterTests
             [Snapshot(source)],
             Wsl("\\\\wsl.localhost\\Debian\\target"),
             CancellationToken.None);
+        WslFileSystemEntry foreignSource = Entry(
+            Wsl("\\\\wsl.localhost\\Debian\\home\\foreign"),
+            "foreign",
+            DirectoryEntryKind.Directory);
+        fileSystem.Set(foreignSource);
+        ProviderStepOutcome mixedSources = await adapter.PreflightTransferAsync(
+            [Snapshot(source), Snapshot(foreignSource)],
+            destination,
+            CancellationToken.None);
         WslPath recursiveDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source\\child");
         fileSystem.Set(Entry(recursiveDestination, "child", DirectoryEntryKind.Directory));
         ProviderStepOutcome recursive = await adapter.PreflightTransferAsync(
@@ -386,6 +395,7 @@ public sealed class WslFileOperationAdapterTests
                 FileAttributes.ReparsePoint))],
             destination,
             CancellationToken.None);
+        fileSystem.Set(source);
         ProviderStepOutcome missingDestination = await adapter.PreflightTransferAsync(
             [Snapshot(source)],
             Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
@@ -404,6 +414,7 @@ public sealed class WslFileOperationAdapterTests
             [Snapshot(source)], linkedDestination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedSources.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, recursive.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, existing.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linkedSource.Failure);

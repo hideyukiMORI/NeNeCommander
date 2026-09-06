@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
@@ -179,26 +180,16 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         WslFileSystemEntry? destinationEntry = _fileSystem.Find(wslDestination);
-        if (destinationEntry is null || destinationEntry.Kind != DirectoryEntryKind.Directory)
-        {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
-        }
-        if (IsReparsePoint(destinationEntry))
-        {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
-        }
-
-        foreach (FileEntrySnapshot source in sources)
-        {
-            ProviderStepOutcome outcome = WithRevalidatedEntry(
-                source,
-                entry => PreflightSource(entry, wslDestination));
-            if (outcome.Failure is not null)
-            {
-                return outcome;
-            }
-        }
-        return ProviderStepOutcome.Succeeded();
+        return destinationEntry is null || destinationEntry.Kind != DirectoryEntryKind.Directory
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound)
+            : IsReparsePoint(destinationEntry)
+                ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+                : sources
+                    .Select(source => WithRevalidatedEntry(
+                        source,
+                        entry => PreflightSource(entry, wslDestination)))
+                    .FirstOrDefault(outcome => outcome.Failure is not null) ??
+                    ProviderStepOutcome.Succeeded();
     }
 
     private ProviderStepOutcome PreflightSource(WslFileSystemEntry source, WslPath destination)
@@ -377,14 +368,8 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         IReadOnlyList<FileEntrySnapshot> sources,
         WslPath destination)
     {
-        foreach (FileEntrySnapshot source in sources)
-        {
-            if (source.Path is not WslPath wsl || !SharesDistribution(wsl, destination))
-            {
-                return false;
-            }
-        }
-        return true;
+        return sources.All(source =>
+            source.Path is WslPath wsl && SharesDistribution(wsl, destination));
     }
 
     private static Task<ProviderStepOutcome> RejectTransfer(

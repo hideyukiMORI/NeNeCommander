@@ -56,8 +56,16 @@ Against the saved implementation, the four new cases were the only failures in t
 
 Exact-head security deep review, canonical Ready CI, and live WSL proof remain pending at this saved checkpoint.
 
+## Resumed integration review
+
+Draft head `d10f7619a146491f8747cfcfcdf9c05b8deb45b2` passed dependency review `34014276416`. Exact-head deep run `34014279382` passed its canonical, restore, dependency-audit, repeated-adversarial, test, coverage, and CodeQL execution stages, then stopped at unchanged Domain mutation score 94.97% before the other three mutation layers. The ten survivors exactly match Issue #81's first failed deep artifact. Investigation confirmed that maximum-length input acceptance lacked direct behavioral proof. Independent Issue #89 added the exact 32767/32768 boundary proof, passed deep run `34015752322` and canonical run `34016537381`, and merged as `b207c856` without changing production parsing or thresholds. No blind retry is accepted as evidence.
+
+That CodeQL analysis opened two alerts in the #85 WSL adapter. The loops now express first-failure projection and all-source distribution validation directly. Test setup now proves linked-destination rejection independently of a previously linked source and adds a mixed-distribution source batch. Infrastructure.Windows passes 135/135, and the three-file complete focused mutation run kills 143/143 tested mutants (100.00%). The branch is rebased onto Issue #89's merge and still requires a new exact-head CodeQL/deep result.
+
+Rebase proof on `b207c856dbff0bb4803d00fe1cfbd397b8214e89` passed locked restore, a zero-warning Release solution build, Domain 66/66, Infrastructure.Windows 135/135, Architecture 5/5, and 94.23% Infrastructure.Windows branch coverage. Final commit validation and exact-head deep review remain pending.
+
 ## Environmental proof and decisions
 
-No live WSL tree was copied or deleted. Deterministic real I/O tests used a test-owned Windows temporary root. Live WSL proof requires a configured, validated `NENE_COMMANDER_WSL_TEST_ROOT`; unit success does not establish it. UNC/removable media, high contrast, DPI and the remaining runtime UI matrix remain release proof.
+No live WSL tree was copied or deleted. Deterministic real I/O tests used a test-owned Windows temporary root. `NENE_COMMANDER_WSL_TEST_ROOT` is unset, and the repository currently contains no executable test or script that reads it. Live proof therefore requires both a configured dedicated empty root and an explicit harness that enforces FS-012's forbidden-root and cleanup checks; unit success does not establish it. UNC/removable media, high contrast, DPI and the remaining runtime UI matrix remain release proof.
 
-Cross-distribution and Windows/WSL transfer, WSL atomic move, overwrite and recycle remain unavailable. Issues #72 (hidden-item key), #73 (collision policy) and #74 (settings persistence policy) still need hide's documented product decisions. Do not infer these decisions from the shutdown request.
+Cross-distribution and Windows/WSL transfer, WSL atomic move, overwrite and recycle remain unavailable. Issues #72 (hidden-item key), #73 (collision policy), and #74 (settings persistence policy) are tracked separately and must not expand #85's scope.
