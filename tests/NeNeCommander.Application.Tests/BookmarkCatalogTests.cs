@@ -246,6 +246,25 @@ public sealed class BookmarkCatalogTests
         Assert.AreEqual("Work", current.Bookmarks[0].Category?.Value);
     }
 
+    /// <summary>Proves a case-only spelling change also invalidates an empty category snapshot.</summary>
+    [TestMethod]
+    public void DeleteCategoryWhenCapturedEmptyCategorySpellingChangedRejectsAsStale()
+    {
+        BookmarkCategoryName displayed = Category("Work");
+        BookmarkCatalog initial = Catalog([displayed], []);
+        BookmarkCategorySelection selection = initial.Select(displayed) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+        BookmarkCatalog current = Catalog([Category("work")], []);
+
+        BookmarkCatalogChangeRejected rejected =
+            Assert.IsInstanceOfType<BookmarkCatalogChangeRejected>(
+                current.DeleteCategory(selection));
+
+        Assert.AreSame(BookmarkCatalogFailureKind.StaleSelection, rejected.Kind);
+        Assert.HasCount(1, current.Categories);
+        Assert.AreEqual("work", current.Categories[0].Value);
+    }
+
     /// <summary>Proves Windows path casing does not make a complete category selection stale.</summary>
     [TestMethod]
     public void RenameCategoryWhenOnlyWindowsPathCasingChangedAcceptsSameIdentity()

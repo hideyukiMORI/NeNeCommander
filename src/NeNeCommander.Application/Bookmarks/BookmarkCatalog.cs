@@ -276,6 +276,13 @@ public sealed record BookmarkCatalog
 
     private bool CategorySelectionMatches(BookmarkCategorySelection selection)
     {
+        int categoryIndex = CategoryIndex(selection.Category);
+        if (categoryIndex < 0 || !StringComparer.Ordinal.Equals(
+            _categories[categoryIndex].Value,
+            selection.Category.Value))
+        {
+            return false;
+        }
         List<BookmarkEntry> current = [];
         foreach (BookmarkEntry bookmark in _bookmarks)
         {
