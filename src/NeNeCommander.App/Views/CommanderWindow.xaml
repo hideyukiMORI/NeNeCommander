@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:panes="using:NeNeCommander.Presentation.WinUI.Panes"
+    xmlns:settings="using:NeNeCommander.Presentation.WinUI.Settings"
     xmlns:views="using:NeNeCommander.App.Views"
     Activated="OnActivated">
     <Grid
@@ -148,9 +149,20 @@
                     Height="{StaticResource DensityProgressSegmentSize}"
                     Width="{StaticResource DensityProgressSegmentSize}" />
             </DataTemplate>
+
+            <DataTemplate
+                x:Key="SettingsSchemeOptionTemplate"
+                x:DataType="settings:SettingsColorSchemeOption">
+                <RadioButton
+                    Checked="OnSettingsSchemeChecked"
+                    Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                    GroupName="SettingsColorSchemes"
+                    IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+            </DataTemplate>
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -322,8 +334,80 @@
         </Border>
 
         <Border
-            x:Name="OperationBar"
+            x:Name="SettingsWarning"
             Grid.Row="1"
+            AutomationProperties.AutomationId="SettingsWarning"
+            Background="{StaticResource StatusWarningSurfaceBrush}"
+            BorderBrush="{StaticResource StatusWarningBrush}"
+            BorderThickness="{StaticResource BorderOperationBarThickness}"
+            CornerRadius="{StaticResource RadiusOperationBar}"
+            Padding="{StaticResource SpacingOperationBar}"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="SettingsWarningText"
+                Foreground="{StaticResource StatusWarningBrush}"
+                TextWrapping="Wrap" />
+        </Border>
+
+        <Grid
+            x:Name="SettingsOverlay"
+            Grid.RowSpan="3"
+            Background="{StaticResource SurfaceWindowBrush}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="10">
+            <Border
+                AutomationProperties.AutomationId="SettingsModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                MinWidth="{StaticResource DensityNameEntryWidth}"
+                Padding="{StaticResource SpacingWindowOuter}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                    <TextBlock
+                        x:Uid="SettingsTitle"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold" />
+                    <TextBlock
+                        x:Uid="SettingsAutoSaveExplanation"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <CheckBox
+                        x:Name="SettingsShowHiddenAtLaunch"
+                        x:Uid="SettingsShowHiddenAtLaunch"
+                        AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
+                        Checked="OnSettingsShowHiddenChanged"
+                        Unchecked="OnSettingsShowHiddenChanged" />
+                    <TextBlock
+                        x:Uid="SettingsHiddenCurrentPaneExplanation"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Uid="SettingsColorSchemeLabel"
+                        FontWeight="Bold" />
+                    <ItemsControl
+                        x:Name="SettingsSchemeOptions"
+                        AutomationProperties.AutomationId="SettingsSchemeOptions"
+                        ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}" />
+                    <TextBlock
+                        x:Name="SettingsSaveStatus"
+                        AutomationProperties.AutomationId="SettingsSaveStatus"
+                        Foreground="{StaticResource TextSecondaryBrush}" />
+                    <Button
+                        x:Name="SettingsClose"
+                        x:Uid="SettingsClose"
+                        AutomationProperties.AutomationId="SettingsClose"
+                        Click="OnSettingsClose"
+                        HorizontalAlignment="Right" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border
+            x:Name="OperationBar"
+            Grid.Row="2"
             AutomationProperties.AutomationId="OperationBar"
             Background="{StaticResource SurfacePaneBrush}"
             BorderBrush="{StaticResource BorderSubtleBrush}"

@@ -28,13 +28,16 @@ internal static partial class WindowsFileIdentifier
             OpenExisting,
             FileFlagBackupSemantics | FileFlagOpenReparsePoint,
             IntPtr.Zero);
-        return handle.IsInvalid
-            ? throw CreateQueryFailure()
-            : DescribeHandle(handle);
+        return DescribeHandle(handle);
     }
 
-    private static string DescribeHandle(SafeFileHandle handle)
+    internal static string DescribeHandle(SafeFileHandle handle)
     {
+        ArgumentNullException.ThrowIfNull(handle);
+        if (handle.IsInvalid)
+        {
+            throw CreateQueryFailure();
+        }
         byte[] information = new byte[FileIdInformationLength];
         return GetFileInformationByHandleEx(handle, FileIdInfoClass, information, information.Length)
             ? Convert.ToHexString(information)

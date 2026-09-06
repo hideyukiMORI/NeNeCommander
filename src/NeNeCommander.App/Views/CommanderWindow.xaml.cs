@@ -12,58 +12,74 @@ using NeNeCommander.App.Input;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Sessions;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Presentation.WinUI.Settings;
 
 namespace NeNeCommander.App.Views;
 
 /// <summary>Hosts the design-neutral dual-pane shell, forwards typed keyboard intents, and renders progress as it is reported.</summary>
-public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
+public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 {
     private readonly FileSystemPath _initialLeftLocation;
     private readonly FileSystemPath _initialRightLocation;
     private readonly KeyboardIntentMapper _keyboardIntentMapper;
-    private readonly DualPaneSession _panes;
+    private readonly CommanderSession _session;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
     private ActiveConflictModal? _renderedConflictModal;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
+    private ColorScheme? _renderedScheme;
+    private bool _renderingSettings;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
-    /// <param name="panes">Coordinator that owns both pane sessions and the active side.</param>
+    /// <param name="session">Coordinator over the pane and settings state owners.</param>
     /// <param name="initialLeftLocation">Validated location read into the left pane when the shell loads.</param>
     /// <param name="initialRightLocation">Validated location read into the right pane when the shell loads.</param>
     /// <param name="defectObserver">Application callback that publishes unexpected task defects.</param>
     public CommanderWindow(
         KeyboardIntentMapper keyboardIntentMapper,
-        DualPaneSession panes,
+        CommanderSession session,
         FileSystemPath initialLeftLocation,
         FileSystemPath initialRightLocation,
         Action<Exception> defectObserver)
     {
         ArgumentNullException.ThrowIfNull(keyboardIntentMapper);
-        ArgumentNullException.ThrowIfNull(panes);
+        ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(initialLeftLocation);
         ArgumentNullException.ThrowIfNull(initialRightLocation);
         ArgumentNullException.ThrowIfNull(defectObserver);
         _keyboardIntentMapper = keyboardIntentMapper;
-        _panes = panes;
+        _session = session;
         _initialLeftLocation = initialLeftLocation;
         _initialRightLocation = initialRightLocation;
         _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
         InitializeComponent();
         Title = _resources.GetString("CommanderWindowTitle");
+        _renderedScheme = session.Current.Settings.Settings.ColorScheme;
     }
+
+    /// <summary>Occurs when the session selects a scheme for the composition root to apply.</summary>
+    public event EventHandler<ColorSchemeChangedEventArgs>? ColorSchemeChanged;
 
     /// <inheritdoc />
     public void OperationProgressed(DualPaneSnapshot snapshot)
     {
         RenderPanes(snapshot);
+    }
+
+    /// <inheritdoc />
+    public void SettingsProgressed(SettingsSnapshot snapshot)
+    {
+        _ = snapshot;
+        _ = DispatcherQueue.TryEnqueue(() => RenderSession(_session.Current));
     }
 
     private void OnLoaded(object _, RoutedEventArgs args)
@@ -83,9 +99,10 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     {
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
-        if (ConflictModal.Visibility == Visibility.Visible)
+        if (ConflictModal.Visibility == Visibility.Visible ||
+            SettingsOverlay.Visibility == Visibility.Visible)
         {
-            outcome = KeyboardIntentMapper.DeferConflictConfirmToNativeControl(outcome);
+            outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
         args.Handled = ForwardOutcome(outcome);
     }
@@ -96,21 +113,33 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
     }
 
-    private async Task<DualPaneSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
+    private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
-        _ = await _panes.NavigateAsync(PaneSide.Left, _initialLeftLocation, cancellationToken);
-        return await _panes.NavigateAsync(PaneSide.Right, _initialRightLocation, cancellationToken);
+        _ = await _session.NavigateAsync(PaneSide.Left, _initialLeftLocation, cancellationToken);
+        return await _session.NavigateAsync(PaneSide.Right, _initialRightLocation, cancellationToken);
     }
 
     /// <summary>
     /// Renders the snapshot the coordinator reports when its work completes. Expected failures
     /// arrive as closed activities, so the owned task faults only on a defect.
     /// </summary>
-    private async Task RenderAfterAsync(Task<DualPaneSnapshot> work)
+    private async Task RenderAfterAsync(Task<CommanderSnapshot> work)
     {
-        RenderPanes(_panes.Current);
-        DualPaneSnapshot snapshot = await work;
-        RenderPanes(snapshot);
+        RenderSession(_session.Current);
+        CommanderSnapshot snapshot = await work;
+        RenderSession(snapshot);
+    }
+
+    private void RenderSession(CommanderSnapshot snapshot)
+    {
+        RenderPanes(snapshot.Panes);
+        RenderSettings(SettingsPresenter.Present(snapshot.Settings));
+        ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
+        if (_renderedScheme != scheme)
+        {
+            _renderedScheme = scheme;
+            ColorSchemeChanged?.Invoke(this, new ColorSchemeChangedEventArgs(scheme));
+        }
     }
 
     private void RenderPanes(DualPaneSnapshot snapshot)
@@ -131,6 +160,32 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         RenderConflict(presentation.ConflictModal);
         _operationContext = presentation.InputContext;
         _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+    }
+
+    private void RenderSettings(SettingsPresentation presentation)
+    {
+        _renderingSettings = true;
+        bool opening = presentation.IsOpen && SettingsOverlay.Visibility != Visibility.Visible;
+        SettingsOverlay.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
+        SettingsShowHiddenAtLaunch.IsChecked = presentation.ShowHiddenItemsAtLaunch;
+        if (opening || SettingsSchemeOptions.ItemsSource is null)
+        {
+            SettingsSchemeOptions.ItemsSource = presentation.Schemes;
+        }
+        SettingsSaveStatus.Text = _resources.GetString(presentation.SaveStatus.ResourceKey);
+        SettingsWarning.Visibility = presentation.Warning.IsVisible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        SettingsWarningText.Text = _resources.GetString(presentation.Warning.ResourceKey);
+        if (presentation.IsOpen)
+        {
+            _operationContext = KeyboardContext.Modal;
+            if (opening)
+            {
+                _ = SettingsClose.Focus(FocusState.Programmatic);
+            }
+        }
+        _renderingSettings = false;
     }
 
     private void RenderTone(OperationBarTone tone)
@@ -297,7 +352,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     {
         if (GetKeyboardContext() == KeyboardContext.FileList)
         {
-            ListView activeList = _panes.Current.ActiveSide == PaneSide.Left ? LeftFileList : RightFileList;
+            ListView activeList = _session.Current.Panes.ActiveSide == PaneSide.Left ? LeftFileList : RightFileList;
             _ = activeList.Focus(FocusState.Programmatic);
         }
     }
@@ -318,13 +373,43 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
                 ? UserIntent.SubmitName(NameEntry.Text)
                 : intent;
         _ = _paneWork.TryStart(cancellationToken =>
-            RenderAfterAsync(_panes.HandleAsync(forwarded, this, cancellationToken)));
+            RenderAfterAsync(_session.HandleAsync(forwarded, this, cancellationToken)));
+    }
+
+    private void OnSettingsClose(object _, RoutedEventArgs args)
+    {
+        ForwardIntent(UserIntent.Escape);
+    }
+
+    private void OnSettingsShowHiddenChanged(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (_renderingSettings || sender is not CheckBox checkbox || checkbox.IsChecked is null)
+        {
+            return;
+        }
+        HiddenItemVisibility visibility = checkbox.IsChecked is true
+            ? HiddenItemVisibility.Shown
+            : HiddenItemVisibility.Hidden;
+        ForwardIntent(UserIntent.SelectLaunchHiddenItemVisibility(visibility));
+    }
+
+    private void OnSettingsSchemeChecked(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (_renderingSettings ||
+            sender is not RadioButton { IsChecked: true, DataContext: SettingsColorSchemeOption option })
+        {
+            return;
+        }
+        ForwardIntent(UserIntent.SelectColorScheme(option.Scheme));
     }
 
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
-    public Task StopAsync()
+    public async Task StopAsync()
     {
-        return _paneWork.StopAsync();
+        await _paneWork.StopAsync().ConfigureAwait(true);
+        await _session.StopAsync().ConfigureAwait(true);
     }
 
     private KeyboardContext GetKeyboardContext()

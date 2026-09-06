@@ -69,6 +69,7 @@
   <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
   <data name="KeyLabelCtrlD" xml:space="preserve"><value>Ctrl+D</value></data>
   <data name="KeyLabelCtrlH" xml:space="preserve"><value>Ctrl+H</value></data>
+  <data name="KeyLabelCtrlComma" xml:space="preserve"><value>Ctrl+,</value></data>
   <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
   <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
@@ -101,6 +102,28 @@
   <data name="IntentLabelDelete" xml:space="preserve"><value>Delete</value></data>
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>Pane</value></data>
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>Hidden</value></data>
+  <data name="IntentLabelOpenSettings" xml:space="preserve"><value>Settings</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>Cancel</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="KeyLabelComma" xml:space="preserve"><value>,</value></data>
+  <data name="SettingsTitle.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="SettingsAutoSaveExplanation.Text" xml:space="preserve"><value>Changes are saved automatically. Close or Escape does not undo them.</value></data>
+  <data name="SettingsShowHiddenAtLaunch.Content" xml:space="preserve"><value>Show hidden items at startup</value></data>
+  <data name="SettingsHiddenCurrentPaneExplanation.Text" xml:space="preserve"><value>This changes the next startup default. Current panes keep their own visibility.</value></data>
+  <data name="SettingsColorSchemeLabel.Text" xml:space="preserve"><value>Color scheme</value></data>
+  <data name="SettingsClose.Content" xml:space="preserve"><value>Close</value></data>
+  <data name="SettingsSaveStatusSucceeded" xml:space="preserve"><value>Saved</value></data>
+  <data name="SettingsSaveStatusPending" xml:space="preserve"><value>Saving…</value></data>
+  <data name="SettingsSaveStatusFailed" xml:space="preserve"><value>Not saved</value></data>
+  <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
+  <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>The settings file could not be used. Defaults are active, and the file was left unchanged.</value></data>
+  <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>Your choice is active for this session but could not be saved.</value></data>
+  <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
+  <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
+  <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>
+  <data name="ColorSchemeNameSolarizedDark" xml:space="preserve"><value>Solarized Dark</value></data>
+  <data name="ColorSchemeNameSolarizedLight" xml:space="preserve"><value>Solarized Light</value></data>
+  <data name="ColorSchemeNameDracula" xml:space="preserve"><value>Dracula</value></data>
+  <data name="ColorSchemeNameNeNeBlack" xml:space="preserve"><value>NeNe Black</value></data>
+  <data name="ColorSchemeNameNeNeLight" xml:space="preserve"><value>NeNe Light</value></data>
 </root>

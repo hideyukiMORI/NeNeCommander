@@ -34,6 +34,7 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F8` | request deletion under the provider's declared delete policy |
 | `Ctrl+L` | focus and select the active pane address input |
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
+| `Ctrl+,` | open the session-owned settings editor from the file list or navigation surface |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
@@ -51,7 +52,7 @@ When focus is inside an address, rename, search, settings, or dialog text editor
 - Status: **active**
 - Enforcement: mapper tests.
 
-A modal confirmation or conflict resolver receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns `Enter` (confirm) and `Escape` (cancel); every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name.
+A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns `Enter` (confirm) and `Escape` (cancel); every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns `Escape` as close, saves each selection immediately, and never rolls a saved or pending selection back when it closes.
 
 ### KBD-003 — Key mapping is layout-safe
 

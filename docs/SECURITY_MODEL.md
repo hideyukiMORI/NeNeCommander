@@ -89,7 +89,7 @@ Logs use typed event IDs and provider kinds. Credentials, environment values, fi
 - Status: **active**
 - Enforcement: command and provider tests.
 
-Unknown capability, ambiguous identity, verification failure, stale state, malformed settings, unavailable security scanner, or incomplete destructive confirmation stops the affected operation. It never selects a permissive fallback.
+Unknown capability, ambiguous identity, verification failure, stale state, malformed settings, unavailable security scanner, or incomplete destructive confirmation stops the affected operation. It never selects a permissive fallback. Settings writes preserve malformed input; reject reparse points observed in the Windows local ancestor chain and at the document itself; freeze the temporary file's Win32 identity while its owned handle is open; and revalidate the approved ancestor anchor, destination identity and exact content, plus temporary identity and exact bytes immediately before atomic publish. A later observation cannot replace the approved ancestor anchor. Every observed entry kind at the fixed sibling temporary path is a collision, and closed failures report directory-creation state and temporary residue separately. ADR-0040 records the residual reopen race of the path-based BCL directory, document, publish, and cleanup operations after those checks.
 
 ### SEC-012 — External AI review requires explicit approval
 

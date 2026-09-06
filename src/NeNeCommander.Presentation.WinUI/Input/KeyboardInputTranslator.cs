@@ -27,6 +27,7 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.F6 => KeyboardKey.F6,
             (int)VirtualKey.F7 => KeyboardKey.F7,
             (int)VirtualKey.F8 => KeyboardKey.F8,
+            188 when modifier == KeyboardModifier.Control => KeyboardKey.Comma,
             _ => KeyboardKey.Other,
         };
         return KeyboardInput.Create(key, modifier, repeatState, context);
@@ -50,6 +51,7 @@ internal static class KeyboardInputTranslator
             'l' or '\u000c' => KeyboardKey.L,
             'r' or '\u0012' => KeyboardKey.R,
             'u' or '\u0015' => KeyboardKey.U,
+            ',' => KeyboardKey.Comma,
             _ => KeyboardKey.Other,
         };
         return KeyboardInput.Create(key, modifier, repeatState, context);

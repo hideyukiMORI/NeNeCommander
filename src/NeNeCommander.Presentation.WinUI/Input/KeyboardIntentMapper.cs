@@ -48,12 +48,14 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Refresh),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
         new(KeyboardContext.NavigationSurface, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.TextEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
@@ -84,7 +86,7 @@ public sealed class KeyboardIntentMapper
         return declared.AsReadOnly();
     }
 
-    internal static KeyboardMappingOutcome DeferConflictConfirmToNativeControl(
+    internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
         ArgumentNullException.ThrowIfNull(outcome);

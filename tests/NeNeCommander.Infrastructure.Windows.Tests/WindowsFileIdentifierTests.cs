@@ -18,6 +18,14 @@ public sealed class WindowsFileIdentifierTests
             () => WindowsFileIdentifier.Describe(null!));
     }
 
+    /// <summary>Proves the owned-handle identity boundary rejects a missing handle.</summary>
+    [TestMethod]
+    public void DescribeHandleWhenHandleIsNullThrowsArgumentNullException()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => WindowsFileIdentifier.DescribeHandle(null!));
+    }
+
     /// <summary>Proves one entry has a stable fixed-width volume and 128-bit identifier token.</summary>
     [TestMethod]
     public void DescribeWhenEntryExistsReturnsStableFixedWidthToken()

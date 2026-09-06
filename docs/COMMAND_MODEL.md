@@ -22,7 +22,7 @@ There is no direct UI-to-filesystem route.
 - Status: **active**
 - Enforcement: dependency boundary and forbidden-API scan.
 
-Every filesystem mutation is represented by one typed operation request and executed by `FileOperationGateway`. The gateway owns preflight validation, conflict policy, progress, cancellation, provider dispatch, error normalization, and outcome creation.
+Every user-file mutation is represented by one typed operation request and executed by `FileOperationGateway`. The gateway owns preflight validation, conflict policy, progress, cancellation, provider dispatch, error normalization, and outcome creation. The sole settings document is a separate application-owned persistence concern and is written only as one complete typed value through `ISettingsStore` under ADR-0040.
 
 ### CMD-002 — Pane transitions use `PaneReducer`
 
@@ -98,7 +98,8 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | keyboard mapping | `KeyboardIntentMapper` |
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |
 | expected operation results | canonical closed `OperationOutcome` model |
-| settings persistence | `ISettingsStore` boundary |
+| settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |
+| settings modal ownership and intent routing | `CommanderSession` over `DualPaneSession` and `SettingsSession` |
 | color scheme | scheme resource dictionary merged by the composition root |
 | file launching | `IFileLauncher` boundary |
 | time | `IClock` boundary |

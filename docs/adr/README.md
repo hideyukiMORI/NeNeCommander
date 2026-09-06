@@ -50,3 +50,4 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 - [ADR-0022: Select the color scheme through the settings document](0022-color-scheme-through-settings.md)
 - [ADR-0023: Render the shell as the approved Direction C layout](0023-direction-c-shell-layout.md)
 - [ADR-0024: Decide the visible set of a pane from the persisted hidden-item visibility](0024-hidden-item-visibility.md)
+- [ADR-0040: Persist complete settings through one session-owned editor](0040-atomic-settings-write-and-session-editor.md)

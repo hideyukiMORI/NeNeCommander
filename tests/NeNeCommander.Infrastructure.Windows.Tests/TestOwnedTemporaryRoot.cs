@@ -18,6 +18,7 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
     private const string Prefix = "NeNeCommander-Test-";
 
     private readonly List<string> _junctions;
+    private readonly List<string> _fileSymbolicLinks;
     private readonly List<string> _listingDeniedDirectories;
     private readonly string _fullPath;
     private readonly string _temporaryParent;
@@ -27,6 +28,7 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         _fullPath = fullPath;
         _temporaryParent = temporaryParent;
         _junctions = [];
+        _fileSymbolicLinks = [];
         _listingDeniedDirectories = [];
         Path = path;
     }
@@ -146,6 +148,20 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
             : throw new InvalidOperationException("The junction fixture could not be created.");
     }
 
+    /// <summary>Creates an NTFS file symbolic link inside the root to a file inside the same root.</summary>
+    internal string CreateFileSymbolicLink(string childName, string targetChildName)
+    {
+        string linkPath = Resolve(childName);
+        string targetPath = Resolve(targetChildName);
+        _ = File.CreateSymbolicLink(linkPath, targetPath);
+        if ((File.GetAttributes(linkPath) & FileAttributes.ReparsePoint) == 0)
+        {
+            throw new InvalidOperationException("The file symbolic-link fixture could not be created.");
+        }
+        _fileSymbolicLinks.Add(linkPath);
+        return linkPath;
+    }
+
     /// <summary>Creates a directory directly inside the root.</summary>
     internal string CreateDirectory(string childName)
     {
@@ -191,6 +207,12 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
             ApplyListingRule(deniedDirectory, AccessControlModification.Remove);
         }
         _listingDeniedDirectories.Clear();
+        foreach (string fileSymbolicLink in _fileSymbolicLinks)
+        {
+            // A symbolic link is removed as a link so its target is never deleted through it.
+            File.Delete(fileSymbolicLink);
+        }
+        _fileSymbolicLinks.Clear();
         foreach (string junction in _junctions)
         {
             // A junction is removed as a link so its target contents are never deleted through it.
