@@ -244,7 +244,13 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(PaneSide.Left, frozen.ActiveSide);
         Assert.AreEqual(awaitingSnapshot, navigation);
 
-        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+        FileEntrySnapshot resolvedCurrent = conflict.Source.WithConflictChoice(
+            TransferConflictChoice.Create(conflict, TransferConflictDecision.Skip));
+        TransferConflict repeatedConflict = TransferConflict.Create(
+            resolvedCurrent,
+            conflict.ExistingTarget,
+            conflict.KeepBothCandidate);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([repeatedConflict]));
         DualPaneSnapshot repeatedSnapshot = await fixture.Panes.HandleAsync(
             UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
             RecordingDualPaneObserver.Create(),
@@ -252,7 +258,11 @@ public sealed class DualPaneSessionTests
         _ = Assert.IsInstanceOfType<OperationAwaitingConflict>(repeatedSnapshot.Operation);
 
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
-            TransferPlanEntry.Skip(conflict.Source, conflict.ExistingTarget)]));
+            TransferPlanEntry.Skip(
+                repeatedConflict.Source.WithConflictChoice(TransferConflictChoice.Create(
+                    repeatedConflict,
+                    TransferConflictDecision.Skip)),
+                conflict.ExistingTarget)]));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
         DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(

@@ -694,10 +694,79 @@ public sealed class DualPanePresenterTests
 
         ActiveConflictModal modal = Assert.IsInstanceOfType<ActiveConflictModal>(presentation.ConflictModal);
         Assert.AreSame(TransferConflictDecision.Cancel, modal.InitialFocus);
+        Assert.AreEqual(source.Path.CanonicalText, modal.SourceText);
+        Assert.AreEqual(target.CanonicalText, modal.ExistingTargetText);
         Assert.AreEqual(candidate.CanonicalText, modal.KeepBothCandidateText);
+        Assert.AreEqual(1, modal.ConflictCount);
         Assert.AreSame(KeyboardContext.Modal, presentation.InputContext);
         Assert.AreSame(OperationStatus.CopyAwaitingConflict, presentation.OperationStatus);
         Assert.AreSame(OperationBarTone.AwaitingConfirmation, presentation.Tone);
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
+            null!,
+            TransferConflictDecision.Cancel,
+            modal.Continuation));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
+            (ConflictSet)TransferPreflightOutcome.Conflicted([
+                TransferConflict.Create(source, target, candidate)]),
+            null!,
+            modal.Continuation));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
+            (ConflictSet)TransferPreflightOutcome.Conflicted([
+                TransferConflict.Create(source, target, candidate)]),
+            TransferConflictDecision.Cancel,
+            null!));
+    }
+
+    /// <summary>Proves a candidate race creates a new modal transition while repeated rendering stays stable.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    public async Task PresentWhenConflictReoccursReplacesModalWithLatestCandidate()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;
+        FileEntrySnapshot source = FileEntrySnapshot.Create(
+            leftListing.Entries[0].Path,
+            identity,
+            DeletionCapability.PermanentOnly);
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(rightListing.Location.Child("a.txt")).Path;
+        FileSystemPath firstCandidate = Assert.IsInstanceOfType<PathParseSuccess>(
+            rightListing.Location.Child("a (2).txt")).Path;
+        FileSystemPath racedCandidate = Assert.IsInstanceOfType<PathParseSuccess>(
+            rightListing.Location.Child("a (3).txt")).Path;
+        port.EnqueueInspection(FileInspectionOutcome.Succeeded(source));
+        TransferConflict firstConflict = TransferConflict.Create(source, target, firstCandidate);
+        port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([firstConflict]));
+        port.EnqueuePreflight((sources, _) => TransferPreflightOutcome.Conflicted([
+            TransferConflict.Create(sources[0], target, racedCandidate)]));
+
+        DualPaneSnapshot firstSnapshot = await panes.HandleAsync(
+            UserIntent.Copy,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        DualPanePresentation first = DualPanePresenter.Present(firstSnapshot);
+        DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, first);
+        DualPaneSnapshot racedSnapshot = await panes.HandleAsync(
+            UserIntent.ResolveConflict(TransferConflictDecision.KeepBoth, TransferConflictScope.All),
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, repeated);
+
+        Assert.AreSame(first.ConflictModal, repeated.ConflictModal);
+        Assert.AreNotSame(repeated.ConflictModal, raced.ConflictModal);
+        ActiveConflictModal modal = Assert.IsInstanceOfType<ActiveConflictModal>(raced.ConflictModal);
+        Assert.AreEqual(racedCandidate.CanonicalText, modal.KeepBothCandidateText);
+        Assert.AreSame(TransferConflictDecision.Cancel, modal.InitialFocus);
     }
 
     /// <summary>Proves a partly completed transfer fills exactly the completed proportion of the bar.</summary>

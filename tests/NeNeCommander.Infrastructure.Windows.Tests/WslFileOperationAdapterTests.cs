@@ -313,6 +313,74 @@ public sealed class WslFileOperationAdapterTests
             Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(foreignCapability).Failure);
     }
 
+    /// <summary>Proves preflight builds its immutable plan from the one revalidated source entry.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task PreflightTransferAsyncUsesOneRevalidatedSourceEntryForItsPlan()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslFileSystemEntry entry = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt"),
+            "source",
+            DirectoryEntryKind.File);
+        FileEntrySnapshot source = Snapshot(entry);
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(entry);
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+
+        TransferPreflightSucceeded succeeded = Assert.IsInstanceOfType<TransferPreflightSucceeded>(
+            await Adapter(fileSystem).PreflightTransferAsync(
+                [source],
+                destination,
+                CancellationToken.None));
+
+        Assert.HasCount(1, succeeded.Plan);
+        Assert.AreSame(source, succeeded.Plan[0].Source);
+        Assert.AreEqual(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\target\\source.txt"),
+            succeeded.Plan[0].Target);
+        Assert.AreEqual(1, fileSystem.FindCount(entry.Path));
+
+        fileSystem.Set(Entry(entry.Path, "replacement", DirectoryEntryKind.File));
+        TransferPreflightOutcome replaced = await Adapter(fileSystem).PreflightTransferAsync(
+            [source],
+            destination,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, replaced.Failure);
+        Assert.AreEqual(2, fileSystem.FindCount(entry.Path));
+        Assert.IsEmpty(fileSystem.Copied);
+    }
+
+    /// <summary>Proves replacement after preflight is rejected before the first filesystem effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task ExecuteAsyncWhenSourceChangesAfterPreflightRejectsWithoutEffect()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        fileSystem.ReplaceSourceWhenTargetChecked = Entry(source, "replacement", DirectoryEntryKind.File);
+        using FileOperationGateway gateway = new(Adapter(fileSystem));
+        CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                CopyRequest.Create([source], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            request,
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.IsEmpty(fileSystem.Copied);
+    }
+
     /// <summary>Proves a failed copy that leaves its target reports the exact partial move effect.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -794,6 +862,8 @@ public sealed class WslFileOperationAdapterTests
     private sealed class ScriptedWslFileSystem : IWslFileSystem
     {
         private readonly Dictionary<string, WslFileSystemEntry> _entries = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _findCounts = new(StringComparer.Ordinal);
+        private bool _sourceReplacedWhenTargetChecked;
 
         internal Exception? Failure { get; set; }
 
@@ -817,15 +887,24 @@ public sealed class WslFileOperationAdapterTests
 
         internal bool TargetContainsReparsePoint { get; set; }
 
+        internal WslFileSystemEntry? ReplaceSourceWhenTargetChecked { get; set; }
+
         public WslFileSystemEntry? Find(WslPath path)
         {
             ThrowWhenConfigured();
+            _findCounts[path.CanonicalText] = FindCount(path) + 1;
             return _entries.GetValueOrDefault(path.CanonicalText);
         }
 
         public bool TargetExists(WslPath path)
         {
             ThrowWhenConfigured();
+            if (!_sourceReplacedWhenTargetChecked &&
+                ReplaceSourceWhenTargetChecked is WslFileSystemEntry replacement)
+            {
+                Set(replacement);
+                _sourceReplacedWhenTargetChecked = true;
+            }
             return _entries.ContainsKey(path.CanonicalText);
         }
 
@@ -891,6 +970,11 @@ public sealed class WslFileOperationAdapterTests
         internal void Set(WslFileSystemEntry entry)
         {
             _entries[entry.Path.CanonicalText] = entry;
+        }
+
+        internal int FindCount(WslPath path)
+        {
+            return _findCounts.GetValueOrDefault(path.CanonicalText);
         }
 
         private void ThrowWhenConfigured()

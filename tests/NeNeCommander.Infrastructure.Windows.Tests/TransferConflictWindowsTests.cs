@@ -29,7 +29,6 @@ public sealed class TransferConflictWindowsTests
         TransferConflict conflict = awaiting.Conflicts!.Conflicts[0];
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            awaiting.Conflicts,
             TransferConflictDecision.KeepBoth,
             TransferConflictScope.Current,
             IgnoredFileOperationProgress.Create(),
@@ -60,7 +59,6 @@ public sealed class TransferConflictWindowsTests
             CancellationToken.None);
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            awaiting.Conflicts!,
             TransferConflictDecision.KeepBoth,
             TransferConflictScope.Current,
             IgnoredFileOperationProgress.Create(),
@@ -89,7 +87,6 @@ public sealed class TransferConflictWindowsTests
 
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            awaiting.Conflicts!,
             TransferConflictDecision.KeepBoth,
             TransferConflictScope.Current,
             IgnoredFileOperationProgress.Create(),
@@ -122,7 +119,6 @@ public sealed class TransferConflictWindowsTests
 
         FileOperationOutcome raced = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            awaiting.Conflicts!,
             TransferConflictDecision.KeepBoth,
             TransferConflictScope.All,
             IgnoredFileOperationProgress.Create(),
@@ -151,7 +147,6 @@ public sealed class TransferConflictWindowsTests
             CancellationToken.None);
         FileOperationOutcome skipped = await gateway.ResumeAsync(
             firstAwaiting.Continuation!,
-            firstAwaiting.Conflicts!,
             TransferConflictDecision.Skip,
             TransferConflictScope.All,
             IgnoredFileOperationProgress.Create(),

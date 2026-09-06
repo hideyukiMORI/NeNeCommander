@@ -41,7 +41,7 @@ public static class DualPanePresenter
             TranslateTone(snapshot.Operation),
             KeyHintPresenter.Present(inputContext),
             TranslateNameEntry(snapshot.Operation),
-            TranslateConflictModal(snapshot.Operation),
+            TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
             inputContext);
     }
 
@@ -116,11 +116,19 @@ public static class DualPanePresenter
         };
     }
 
-    private static ConflictModalPresentation TranslateConflictModal(OperationActivity activity)
+    private static ConflictModalPresentation TranslateConflictModal(
+        OperationActivity activity,
+        ConflictModalPresentation? previous)
     {
-        return activity is OperationAwaitingConflict awaiting
-            ? new ActiveConflictModal(awaiting.Conflicts, awaiting.InitialFocus)
-            : ConflictModalPresentation.Hidden;
+        return activity is not OperationAwaitingConflict awaiting
+            ? ConflictModalPresentation.Hidden
+            : previous is ActiveConflictModal active &&
+                ReferenceEquals(active.Continuation, awaiting.Continuation)
+                ? active
+                : new ActiveConflictModal(
+                    awaiting.Conflicts,
+                    awaiting.InitialFocus,
+                    awaiting.Continuation);
     }
 
     private static TransferResultDetail TranslateTransferResult(FileOperationOutcome outcome)

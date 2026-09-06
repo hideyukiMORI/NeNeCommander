@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
 {
     private readonly Queue<TaskCompletionSource<FileInspectionOutcome>> _inspections;
     private readonly Queue<ProviderStepOutcome> _steps;
-    private readonly Queue<TransferPreflightOutcome> _preflights;
+    private readonly Queue<Func<IReadOnlyList<FileEntrySnapshot>, FileSystemPath, TransferPreflightOutcome>> _preflights;
 
     private QueuedFileOperationPort()
     {
@@ -45,7 +46,15 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
 
     internal void EnqueuePreflight(TransferPreflightOutcome outcome)
     {
-        _preflights.Enqueue(outcome);
+        ArgumentNullException.ThrowIfNull(outcome);
+        _preflights.Enqueue((_, _) => outcome);
+    }
+
+    internal void EnqueuePreflight(
+        Func<IReadOnlyList<FileEntrySnapshot>, FileSystemPath, TransferPreflightOutcome> preflight)
+    {
+        ArgumentNullException.ThrowIfNull(preflight);
+        _preflights.Enqueue(preflight);
     }
 
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
@@ -60,7 +69,7 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
     {
         if (_preflights.Count > 0)
         {
-            return Task.FromResult(_preflights.Dequeue());
+            return Task.FromResult(_preflights.Dequeue()(sources, destination));
         }
         ProviderStepOutcome step = _steps.Dequeue();
         if (step.Failure is FileOperationFailureKind failure)

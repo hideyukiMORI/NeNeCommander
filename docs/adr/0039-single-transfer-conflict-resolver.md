@@ -42,9 +42,9 @@ design judgments, NeNe Commanderサナ selected the following contract.
   validation uses the existing path boundary. Linked directories and
   reparse-point trees are rejected. A race that takes a candidate returns a new
   conflict and never overwrites it.
-- Skip is represented as an untransferred item decision/progress record. It is
-  not a filesystem effect. Move deletes an original source only after its copy
-  and verification have succeeded.
+- Skip is represented in the `NotTransferred` outcome while ordinary progress
+  records the processed-item count. It is not a filesystem effect. Move deletes
+  an original source only after its copy and verification have succeeded.
 - Apply-to-all is explicit, disabled by default, and scoped to this operation.
   A later conflict still revalidates the batch and may return a new conflict.
 

@@ -28,6 +28,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private readonly DualPaneSession _panes;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private ActiveConflictModal? _renderedConflictModal;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
 
@@ -210,17 +211,20 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
         if (conflictModal is not ActiveConflictModal active)
         {
             ConflictModal.Visibility = Visibility.Collapsed;
+            _renderedConflictModal = null;
             return;
         }
-        if (ConflictModal.Visibility == Visibility.Collapsed)
+        bool isNewConflict = !ReferenceEquals(_renderedConflictModal, active);
+        ConflictSource.Text = active.SourceText;
+        ConflictExistingTarget.Text = active.ExistingTargetText;
+        ConflictKeepBothCandidate.Text = active.KeepBothCandidateText;
+        ConflictModal.Visibility = Visibility.Visible;
+        if (isNewConflict)
         {
-            ConflictSource.Text = active.SourceText;
-            ConflictExistingTarget.Text = active.ExistingTargetText;
-            ConflictKeepBothCandidate.Text = active.KeepBothCandidateText;
             ConflictApplyToAll.IsChecked = false;
-            ConflictModal.Visibility = Visibility.Visible;
+            _ = ConflictCancel.Focus(FocusState.Programmatic);
         }
-        _ = ConflictCancel.Focus(FocusState.Programmatic);
+        _renderedConflictModal = active;
     }
 
     private void OnConflictSkip(object _, RoutedEventArgs args)

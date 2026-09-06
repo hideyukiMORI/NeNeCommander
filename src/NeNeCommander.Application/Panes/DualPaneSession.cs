@@ -248,7 +248,6 @@ public sealed class DualPaneSession
             FileOperationProgress.Create(0, awaiting.Continuation.Sources.Count));
         FileOperationOutcome outcome = await _gateway.ResumeAsync(
             awaiting.Continuation,
-            awaiting.Conflicts,
             decision,
             scope,
             new ProgressRelay(this, awaiting.Kind, observer),
