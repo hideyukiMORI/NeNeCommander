@@ -89,8 +89,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     }
 
     /// <summary>
-    /// Reads settings through the sole settings boundary. An absent or rejected document keeps
-    /// the default settings and leaves the stored document untouched (SEC-011).
+    /// Replaces the one composition-root scheme dictionary with the selected closed scheme.
     /// </summary>
     private void ApplyColorScheme(ColorScheme scheme)
     {
