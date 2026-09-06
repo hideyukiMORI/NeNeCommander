@@ -9,6 +9,7 @@ namespace NeNeCommander.Domain.Tests;
 public sealed class FileSystemPathTests
 {
     private const int MaximumPathLength = 32767;
+    private const int LegacyWslAliasExpansionLength = 9;
 
     /// <summary>Proves local path canonicalization.</summary>
     [TestMethod]
@@ -173,6 +174,77 @@ public sealed class FileSystemPathTests
         Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
     }
 
+    /// <summary>Proves an exact-boundary UNC canonical path is accepted and remains closed under parsing.</summary>
+    [TestMethod]
+    public void ParseWhenUncCanonicalTextMeetsBoundaryAcceptsAndReparses()
+    {
+        string input = CreateUncRootWithCanonicalLength(MaximumPathLength);
+
+        PathParseSuccess success = RequireSuccess(FileSystemPath.Parse(input));
+        PathParseSuccess reparsed = RequireSuccess(FileSystemPath.Parse(success.Path.CanonicalText));
+
+        Assert.AreEqual(MaximumPathLength, success.Path.CanonicalText.Length);
+        Assert.AreEqual(success.Path.CanonicalText, reparsed.Path.CanonicalText);
+        Assert.IsTrue(FileSystemPathIdentityComparer.Instance.Equals(success.Path, reparsed.Path));
+    }
+
+    /// <summary>Proves a UNC root separator cannot expand canonical text past the fixed boundary.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    public void ParseWhenUncCanonicalTextExceedsBoundaryTooLongFailure()
+    {
+        string input = CreateUncRootWithCanonicalLength(MaximumPathLength + 1);
+
+        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
+
+        Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
+    }
+
+    /// <summary>Proves an exact-boundary WSL alias canonical path is accepted and remains closed under parsing.</summary>
+    [TestMethod]
+    public void ParseWhenWslAliasCanonicalTextMeetsBoundaryAcceptsAndReparses()
+    {
+        string input = CreateWslAliasPathWithCanonicalLength(MaximumPathLength);
+
+        PathParseSuccess success = RequireSuccess(FileSystemPath.Parse(input));
+        PathParseSuccess reparsed = RequireSuccess(FileSystemPath.Parse(success.Path.CanonicalText));
+
+        Assert.AreEqual(MaximumPathLength, success.Path.CanonicalText.Length);
+        Assert.AreEqual(success.Path.CanonicalText, reparsed.Path.CanonicalText);
+        Assert.IsTrue(FileSystemPathIdentityComparer.Instance.Equals(success.Path, reparsed.Path));
+    }
+
+    /// <summary>Proves WSL alias expansion cannot produce canonical text past the fixed boundary.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-002")]
+    public void ParseWhenWslAliasCanonicalTextExceedsBoundaryTooLongFailure()
+    {
+        string input = CreateWslAliasPathWithCanonicalLength(MaximumPathLength + 1);
+
+        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
+
+        Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
+    }
+
+    /// <summary>Proves maximum-length raw WSL alias text is rejected when its canonical form expands past the boundary.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-002")]
+    public void ParseWhenMaximumRawWslAliasExpandsPastCanonicalBoundaryTooLongFailure()
+    {
+        string input = CreateWslAliasPathWithRawLength(MaximumPathLength);
+
+        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
+
+        Assert.AreEqual(MaximumPathLength, input.Length);
+        Assert.AreEqual(
+            MaximumPathLength + LegacyWslAliasExpansionLength,
+            input.Replace("\\\\wsl$\\", "\\\\wsl.localhost\\").Length);
+        Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
+    }
+
     /// <summary>Proves control characters cannot cross the path boundary.</summary>
     [TestMethod]
     public void ParseWhenInputContainsControlCharacterInvalidSegmentFailure()
@@ -195,6 +267,23 @@ public sealed class FileSystemPathTests
         int pairCount = (remainderLength - 1) / 2;
         return root + string.Concat(Enumerable.Repeat("a\\", pairCount)) +
             new string('a', remainderLength - (pairCount * 2));
+    }
+
+    private static string CreateUncRootWithCanonicalLength(int canonicalLength)
+    {
+        const string prefix = "\\\\s\\";
+        return prefix + new string('a', canonicalLength - prefix.Length - 1);
+    }
+
+    private static string CreateWslAliasPathWithCanonicalLength(int canonicalLength)
+    {
+        return CreateWslAliasPathWithRawLength(canonicalLength - LegacyWslAliasExpansionLength);
+    }
+
+    private static string CreateWslAliasPathWithRawLength(int rawLength)
+    {
+        const string prefix = "\\\\wsl$\\U\\";
+        return prefix + new string('a', rawLength - prefix.Length);
     }
 
     private static PathParseFailure RequireFailure(PathParseOutcome outcome)

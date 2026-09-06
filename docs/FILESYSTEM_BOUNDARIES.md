@@ -23,6 +23,8 @@ Filesystem behavior is selected from a parsed provider boundary and an explicit 
 
 Parsing removes redundant separators and `.` segments and resolves `..` without crossing a root. It does not trim legal filename characters, invent a drive, case-fold Linux names, resolve links, touch the filesystem, or silently reinterpret a relative path.
 
+Both untrusted input and every successful `CanonicalText` are limited to 32767 UTF-16 code units. The parser checks the canonical result after provider normalization, including the trailing separator of a UNC root and expansion of the legacy `\\wsl$` alias to `\\wsl.localhost`; a result above the limit is `TooLong`. An accepted canonical value can be parsed again with the same canonical representation and provider identity.
+
 All sets, duplicate checks, selection checks, and confirmation comparisons use `FileSystemPathIdentityComparer`. Windows local and UNC identity is case-insensitive. A WSL distribution name is case-insensitive, while its Linux path is case-sensitive. Direct record equality is not a filesystem identity decision.
 
 For operation snapshots, Windows local and Windows-side WSL entries use the operating system's volume/file identifier plus kind, byte length, creation time, and last-write time. The identifier query opens the entry itself without following a reparse point. This snapshot detects both replacement and rewrite; it does not replace the mandatory effect-boundary revalidation.
