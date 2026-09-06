@@ -11,20 +11,25 @@ internal sealed record WslFileSystemEntry
 {
     internal WslFileSystemEntry(
         WslPath path,
+        string name,
         FileIdentity identity,
         DirectoryEntryKind kind,
         FileAttributes attributes)
     {
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(kind);
         Path = path;
+        Name = name;
         Identity = identity;
         Kind = kind;
         Attributes = attributes;
     }
 
     internal WslPath Path { get; }
+
+    internal string Name { get; }
 
     internal FileIdentity Identity { get; }
 

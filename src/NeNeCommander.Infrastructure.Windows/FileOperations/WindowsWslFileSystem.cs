@@ -44,6 +44,37 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         return File.Exists(resolvedPath) || Directory.Exists(resolvedPath);
     }
 
+    public bool ContainsReparsePoint(WslFileSystemEntry source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return WindowsLocalTreeCopy.ContainsReparsePoint(ResolveEntry(source));
+    }
+
+    public bool ContainsReparsePoint(WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        string resolvedPath = _resolvePath(target);
+        FileAttributes attributes = File.GetAttributes(resolvedPath);
+        FileSystemInfo entry = (attributes & FileAttributes.Directory) != 0
+            ? new DirectoryInfo(resolvedPath)
+            : new FileInfo(resolvedPath);
+        return WindowsLocalTreeCopy.ContainsReparsePoint(entry);
+    }
+
+    public void Copy(WslFileSystemEntry source, WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+        WindowsLocalTreeCopy.Copy(ResolveEntry(source), _resolvePath(target));
+    }
+
+    public bool Matches(WslFileSystemEntry source, WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), _resolvePath(target));
+    }
+
     public void CreateDirectory(WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -91,6 +122,15 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
             entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),
             entry.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture));
         FileIdentity identity = ((FileIdentityAccepted)FileIdentity.Parse(value)).Identity;
-        return new WslFileSystemEntry(path, identity, kind, entry.Attributes);
+        return new WslFileSystemEntry(path, entry.Name, identity, kind, entry.Attributes);
     }
+
+    private FileSystemInfo ResolveEntry(WslFileSystemEntry source)
+    {
+        string sourceText = _resolvePath(source.Path);
+        return source.Kind == DirectoryEntryKind.Directory
+            ? new DirectoryInfo(sourceText)
+            : new FileInfo(sourceText);
+    }
+
 }

@@ -33,7 +33,7 @@ Inputs are length-bounded, parsed once, normalized without identity loss, and re
 - Status: **active**
 - Enforcement: failure-injection and race tests.
 
-Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target. Windows local and Windows-side WSL identity combine the Win32 volume/file identifier obtained without following a reparse point with rewrite-sensitive metadata; query ambiguity or failure is closed. WSL mutations additionally revalidate the distribution and parent boundary, refuse reparse points, and never fall back to a shell command.
+Preflight does not grant permanent trust. Adapters revalidate identity and containment at the side-effect boundary, treat links explicitly, use handles or provider identity where available, and report time-of-check/time-of-use changes without widening the target. Windows local and Windows-side WSL identity combine the Win32 volume/file identifier obtained without following a reparse point with rewrite-sensitive metadata; query ambiguity or failure is closed. WSL mutations additionally revalidate the distribution and parent or destination boundary, refuse reparse points before tree copy and source deletion, preserve a failed copy's partial-target effect, and never fall back to a shell command.
 
 ### SEC-004 — CI and runtime use least privilege
 

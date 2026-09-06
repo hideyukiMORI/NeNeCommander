@@ -20,7 +20,7 @@ The WSL adapter uses the canonical `\\wsl.localhost` path through `System.IO` an
 
 Before each side effect the adapter resolves the current entry, compares a `wsl-v1` identity containing the shared `WindowsFileIdentifier` plus kind, length, and timestamps, and refuses changed or missing entries. Reparse points are rejected instead of followed. Existing targets return `Conflict`; the adapter never replaces or chooses a collision result.
 
-Transfer preflight, copy, move, copy verification, atomic-move capability, recycle, cross-distribution transfer, and cross-provider transfer return `ProviderUnavailable` until a later ADR defines their complete capability, metadata, partial-result, and collision behavior.
+ADR-0037 subsequently enables same-distribution WSL preflight, copy, verification, and composite move. Atomic-move capability, recycle, cross-distribution transfer, and cross-provider transfer remain unavailable until a later ADR defines their complete capability, metadata, partial-result, and collision behavior.
 
 ## Rejected alternatives
 
@@ -32,7 +32,7 @@ Transfer preflight, copy, move, copy verification, atomic-move capability, recyc
 
 ## Consequences
 
-- Existing F7, F2, and confirmed F8 commands can operate on a WSL pane without a second UI or application path.
+- Existing F7, F2, and confirmed F8 commands can operate on a WSL pane without a second UI or application path. ADR-0037 later adds F5/F6 within one distribution through the same gateway.
 - WSL deletion is always reported as permanent and remains confirmation-bound.
 - Same-name targets remain conflicts. ADR-0036 does not decide Issue #73's product collision policy.
 - A residual path race remains between identifier lookup and the `System.IO` side effect, as recorded for Windows local in ADR-0033; this decision does not claim handle-relative Linux mutation.
