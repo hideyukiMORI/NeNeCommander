@@ -43,6 +43,19 @@ The matching [daily report](../reports/2026-09-06-wsl-same-distribution-transfer
 4. Resolve any findings while Draft. Once ready, verify the final head/base and mark Ready to request the full canonical CI command `pwsh -NoProfile -File ./eng/check.ps1`. It was not run for this Issue before shutdown. Do not merge without fresh successful evidence or duplicate a successful CI gate locally.
 5. Only after successful integration, squash merge and synchronize main. Cross-provider transfer is future separate work; do not start it as part of shutdown recovery without resumed authorization.
 
+## Resume review delta
+
+hide resumed Issue #85 on 2026-09-06. Complete-diff review added failure-first proof for four missing boundary checks and then repaired them within the existing WSL provider path:
+
+- copy repeats recursive source/destination containment immediately before its side effect;
+- verification rescans both the source tree and copied target tree for late reparse points before comparison;
+- copied-target link inspection is recursive instead of top-level only;
+- permanent source deletion rescans the complete source tree for a late reparse point.
+
+Against the saved implementation, the four new cases were the only failures in the 135-test Infrastructure run. After the repair, the Release test-project build passed with zero warnings/errors, Infrastructure passed 135/135, branch coverage was 94.48%, and complete focused mutation killed 144/144 tested mutants. The Windows namespace still reopens paths between checks and effects as already documented; this change does not claim handle-relative race elimination.
+
+Exact-head security deep review, canonical Ready CI, and live WSL proof remain pending at this saved checkpoint.
+
 ## Environmental proof and decisions
 
 No live WSL tree was copied or deleted. Deterministic real I/O tests used a test-owned Windows temporary root. Live WSL proof requires a configured, validated `NENE_COMMANDER_WSL_TEST_ROOT`; unit success does not establish it. UNC/removable media, high contrast, DPI and the remaining runtime UI matrix remain release proof.

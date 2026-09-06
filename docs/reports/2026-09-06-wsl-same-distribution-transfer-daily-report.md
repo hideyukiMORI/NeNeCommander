@@ -66,3 +66,18 @@ The broad diagnostic `dotnet format NeNeCommander.slnx --verify-no-changes --no-
 Pending: final-head security deep review, dependency review, complete canonical CI and live WSL/release environmental proof. The full command `pwsh -NoProfile -File ./eng/check.ps1` was not executed for Issue #85 at shutdown. No waiver or threshold reduction was introduced.
 
 - Save-time formatting: changed text files normalized to CRLF; dotnet format whitespace NeNeCommander.slnx --verify-no-changes --no-restore and git diff --check both exited 0.
+
+## Resume review
+
+hide resumed Issue #85 on 2026-09-06. Complete-diff review found four missing effect-boundary checks: copy did not repeat recursive source/destination containment, verification did not rescan the source tree for a late reparse point, copied-target inspection checked only the top-level entry, and permanent source deletion did not rescan the source tree. These gaps conflicted with ADR-0037, FS-012, and SEC-003.
+
+Failure-first proof added four cases to the Infrastructure project. Against the saved implementation, 131/135 tests passed and exactly the four new cases failed. The adapter now repeats containment before copy, verification refuses a reparse point anywhere in the current source or copied target tree, and permanent deletion refuses a reparse point anywhere in the current source tree. `WindowsWslFileSystem` uses the existing non-following recursive tree inspection for both source and target trees. This closes the identified checks without claiming that Windows path reopening is handle-relative or race-free.
+
+Focused resume verification:
+
+- `dotnet build tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj --configuration Release --no-restore`: exit 0, zero warnings/errors.
+- `dotnet test --project tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj --configuration Release --no-build --no-restore`: exit 0, 135/135 passed.
+- The same test project with MTP coverage arguments produced 94.48% Infrastructure branch coverage (minimum 90%).
+- Complete focused mutation of `WslFileOperationAdapter.cs`, `WindowsWslFileSystem.cs`, and `WslFileSystemEntry.cs`: exit 0, 144/144 tested mutants killed, 100.00%.
+
+Exact-head deep review and canonical Ready CI remain integration evidence. Live WSL tree copy and deletion remain unexecuted environmental proof.

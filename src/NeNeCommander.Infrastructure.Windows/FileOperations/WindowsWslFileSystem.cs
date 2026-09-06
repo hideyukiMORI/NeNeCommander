@@ -53,7 +53,12 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
     public bool ContainsReparsePoint(WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        return (File.GetAttributes(_resolvePath(target)) & FileAttributes.ReparsePoint) != 0;
+        string resolvedPath = _resolvePath(target);
+        FileAttributes attributes = File.GetAttributes(resolvedPath);
+        FileSystemInfo entry = (attributes & FileAttributes.Directory) != 0
+            ? new DirectoryInfo(resolvedPath)
+            : new FileInfo(resolvedPath);
+        return WindowsLocalTreeCopy.ContainsReparsePoint(entry);
     }
 
     public void Copy(WslFileSystemEntry source, WslPath target)

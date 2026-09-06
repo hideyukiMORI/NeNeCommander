@@ -230,6 +230,10 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
+        if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
         if (_fileSystem.TargetExists(target))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
@@ -257,6 +261,9 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             : WithRevalidatedEntry(source, entry =>
                 SharesDistribution(entry.Path, wslDestination) &&
                 IsUsableDestination(wslDestination) &&
+                !IsReparsePoint(entry) &&
+                !_fileSystem.ContainsReparsePoint(entry) &&
+                ProviderPathContainment.Evaluate(entry.Path, wslDestination) is not ContainedPath &&
                 BuildTarget(entry, wslDestination) is WslPath target &&
                 _fileSystem.TargetExists(target) &&
                 !_fileSystem.ContainsReparsePoint(target) &&
@@ -308,7 +315,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return mode != DeletionExecutionMode.Permanent
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, entry =>
-                IsReparsePoint(entry)
+                IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry)
                     ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
                     : Delete(entry));
     }

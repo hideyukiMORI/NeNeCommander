@@ -55,6 +55,9 @@ public sealed class WindowsWslFileSystemTests
         WslPath copiedDirectory = Wsl("/owned/copied-directory");
         fileSystem.Copy(directoryEntry, copiedDirectory);
         Assert.IsTrue(fileSystem.Matches(directoryEntry, copiedDirectory));
+        _ = root.CreateDirectory("linked-tree");
+        _ = root.CreateJunction("linked-tree\\nested-link", "link-target");
+        Assert.IsTrue(fileSystem.ContainsReparsePoint(Wsl("/owned/linked-tree")));
         fileSystem.Delete(RequireEntry(fileSystem.Find(copiedDirectory)));
         fileSystem.Rename(directoryEntry, renamedDirectory);
         Assert.IsFalse(Directory.Exists(root.Resolve("created")));

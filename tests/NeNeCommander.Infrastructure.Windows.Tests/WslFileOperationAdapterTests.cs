@@ -477,6 +477,83 @@ public sealed class WslFileOperationAdapterTests
         Assert.HasCount(0, fileSystem.Copied);
     }
 
+    /// <summary>Proves copy repeats recursive containment validation at its side-effect boundary.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public async Task CopyAsyncWhenDestinationIsInsideSourceReturnsConflictWithoutEffect()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslFileSystemEntry sourceEntry = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
+            "source",
+            DirectoryEntryKind.Directory);
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source\\child");
+        fileSystem.Set(sourceEntry);
+        fileSystem.Set(Entry(destination, "child", DirectoryEntryKind.Directory));
+        WslFileOperationAdapter adapter = Adapter(fileSystem);
+
+        ProviderStepOutcome outcome = await adapter.CopyAsync(
+            Snapshot(sourceEntry),
+            destination,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
+        Assert.HasCount(0, fileSystem.Copied);
+    }
+
+    /// <summary>Proves verification refuses links introduced into either tree after copy.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task VerifyCopyAsyncWhenSourceOrTargetTreeGainsLinkReturnsVerificationFailure()
+    {
+        ScriptedWslFileSystem fileSystem = new();
+        WslFileSystemEntry sourceEntry = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
+            "source",
+            DirectoryEntryKind.Directory);
+        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath target = Wsl("\\\\wsl.localhost\\Ubuntu\\target\\source");
+        fileSystem.Set(sourceEntry);
+        fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
+        fileSystem.Set(Entry(target, "target", DirectoryEntryKind.Directory));
+        WslFileOperationAdapter adapter = Adapter(fileSystem);
+
+        fileSystem.ContainsNestedReparsePoint = true;
+        ProviderStepOutcome linkedSource = await adapter.VerifyCopyAsync(
+            Snapshot(sourceEntry), destination, CancellationToken.None);
+        fileSystem.ContainsNestedReparsePoint = false;
+        fileSystem.TargetContainsReparsePoint = true;
+        ProviderStepOutcome linkedTarget = await adapter.VerifyCopyAsync(
+            Snapshot(sourceEntry), destination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.Verification, linkedSource.Failure);
+        Assert.AreSame(FileOperationFailureKind.Verification, linkedTarget.Failure);
+    }
+
+    /// <summary>Proves permanent deletion refuses a link introduced into a source tree.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-003")]
+    public async Task DeleteAsyncWhenSourceTreeGainsLinkReturnsFailureWithoutEffect()
+    {
+        ScriptedWslFileSystem fileSystem = new() { ContainsNestedReparsePoint = true };
+        WslFileSystemEntry sourceEntry = Entry(
+            Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
+            "source",
+            DirectoryEntryKind.Directory);
+        fileSystem.Set(sourceEntry);
+
+        ProviderStepOutcome outcome = await Adapter(fileSystem).DeleteAsync(
+            Snapshot(sourceEntry),
+            DeletionExecutionMode.Permanent,
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.HasCount(0, fileSystem.Deleted);
+    }
+
     /// <summary>Proves a copy failure before target creation remains effect-free.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenCopyFailsBeforeTargetCreationReportsNoEffect()

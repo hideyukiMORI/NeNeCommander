@@ -39,13 +39,13 @@ Status: normative
 - Completed WSL directory-read work: [Issue #81](https://github.com/hideyukiMORI/NeNeCommander/issues/81) (closed by PR #82); dependency run `33985129013`, exact-head deep retry `33985643645`, and canonical Ready run `33986546237` passed before squash merge `1b514282`.
 - Completed WSL same-distribution mutation work: [Issue #83](https://github.com/hideyukiMORI/NeNeCommander/issues/83) (closed by PR #84); dependency run `33988561920`, exact-head deep run `33988574140`, and canonical Ready run `33989351752` passed before squash merge `4b01d286`.
 - Completed Domain boundary-proof work: [Issue #89](https://github.com/hideyukiMORI/NeNeCommander/issues/89) (closed by PR #90); exact-head deep run `34015752322` and canonical Ready run `34016537381` passed before squash merge `b207c856`.
-- Paused WSL same-distribution transfer work: [Issue #85](https://github.com/hideyukiMORI/NeNeCommander/issues/85); add complete-batch preflight, copy, verification, and composite move without enabling atomic or cross-provider transfer.
+- Active WSL same-distribution transfer work: [Issue #85](https://github.com/hideyukiMORI/NeNeCommander/issues/85); add complete-batch preflight, copy, verification, and composite move without enabling atomic or cross-provider transfer.
 - Policy foundation authorized by hide on: `2026-09-02`
 
 ## Current checkpoint
 
 - Issue #89 is integrated. Its 32767/32768 path-length boundary proof removed the reproducible Domain mutation threshold failure without changing production parsing or thresholds.
-- Shutdown checkpoint requested by hide on 2026-09-06: Issue #85 is paused for Draft preservation; full integration and live WSL evidence remain pending. Resume only after hide requests continuation; follow the WSL transfer handoff. The background implementation and notification processes are stopped.
+- Issue #85 resumed by hide on 2026-09-06. Final-diff review found and repaired missing copy-boundary recursive containment and late source/target tree-link revalidation. Focused Infrastructure proof and mutation pass; exact-head security deep review, canonical Ready CI, and live WSL evidence remain pending.
 
 - Verified implementation baseline: `b207c856dbff0bb4803d00fe1cfbd397b8214e89`
 - Daily report: [`docs/reports/2026-09-05-hidden-item-visibility-daily-report.md`](reports/2026-09-05-hidden-item-visibility-daily-report.md)
