@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
 
@@ -7,6 +8,8 @@ namespace NeNeCommander.Domain.Tests;
 [TestClass]
 public sealed class FileSystemPathTests
 {
+    private const int MaximumPathLength = 32767;
+
     /// <summary>Proves local path canonicalization.</summary>
     [TestMethod]
     public void ParseWhenWindowsLocalPathContainsRedundantSegmentsCanonicalLocalPath()
@@ -148,11 +151,22 @@ public sealed class FileSystemPathTests
         Assert.AreSame(PathParseFailureKind.Empty, failure.Kind);
     }
 
-    /// <summary>Proves the parser applies its fixed size boundary.</summary>
+    /// <summary>Proves the parser accepts a valid path at its exact fixed size boundary.</summary>
+    [TestMethod]
+    public void ParseWhenInputMeetsBoundaryAcceptsPath()
+    {
+        string input = CreateWindowsLocalPath(MaximumPathLength);
+
+        PathParseSuccess success = RequireSuccess(FileSystemPath.Parse(input));
+
+        Assert.AreEqual(MaximumPathLength, success.Path.CanonicalText.Length);
+    }
+
+    /// <summary>Proves the parser rejects the first length beyond its fixed size boundary.</summary>
     [TestMethod]
     public void ParseWhenInputExceedsBoundaryTooLongFailure()
     {
-        string input = "C:\\" + new string('a', 32768);
+        string input = CreateWindowsLocalPath(MaximumPathLength + 1);
 
         PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
 
@@ -172,6 +186,15 @@ public sealed class FileSystemPathTests
     {
         return outcome as PathParseSuccess ??
             throw new AssertFailedException($"Expected {nameof(PathParseSuccess)}, received {outcome.GetType().Name}.");
+    }
+
+    private static string CreateWindowsLocalPath(int totalLength)
+    {
+        const string root = "C:\\";
+        int remainderLength = totalLength - root.Length;
+        int pairCount = (remainderLength - 1) / 2;
+        return root + string.Concat(Enumerable.Repeat("a\\", pairCount)) +
+            new string('a', remainderLength - (pairCount * 2));
     }
 
     private static PathParseFailure RequireFailure(PathParseOutcome outcome)
