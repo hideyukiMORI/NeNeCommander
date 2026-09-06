@@ -78,6 +78,57 @@ function Assert-ConformanceFailure {
     }
 }
 
+function Assert-ConformanceSuccess {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Name,
+
+        [Parameter(Mandatory)]
+        [scriptblock] $Validate
+    )
+
+    $caseRoot = Join-Path $proofRoot $Name
+    Copy-ProofFoundation -RepositoryRoot $root -Destination $caseRoot
+    & $Validate $caseRoot
+
+    $output = (& pwsh -NoProfile -File (Join-Path $caseRoot 'eng/conformance.ps1') -RepositoryRoot $caseRoot -Quiet 2>&1) -join "`n"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Positive proof '$Name' unexpectedly failed. Output: $output"
+    }
+}
+
+function Assert-SourceConformanceFailure {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Name,
+
+        [Parameter(Mandatory)]
+        [string] $Source
+    )
+
+    $caseRoot = Join-Path $proofRoot 'cs010-source-cases'
+    if (-not (Test-Path -LiteralPath $caseRoot -PathType Container)) {
+        Copy-ProofFoundation -RepositoryRoot $root -Destination $caseRoot
+    }
+
+    $testRoot = Join-Path $caseRoot 'tests/PolicyProof'
+    $sourcePath = Join-Path $testRoot 'Violation.cs'
+    New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+    Set-Content -LiteralPath $sourcePath -Value $Source
+    try {
+        $output = (& pwsh -NoProfile -File (Join-Path $caseRoot 'eng/conformance.ps1') -RepositoryRoot $caseRoot -Quiet 2>&1) -join "`n"
+        if ($LASTEXITCODE -eq 0) {
+            throw "Negative proof '$Name' unexpectedly passed."
+        }
+        if ($output -notmatch '\[CS-010\]') {
+            throw "Negative proof '$Name' failed for the wrong reason. Expected CS-010. Output: $output"
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $sourcePath -Force
+    }
+}
+
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
     Assert-FoundationMaterialization
@@ -160,6 +211,57 @@ try {
         Set-Content -LiteralPath (Join-Path $testRoot 'EnvironmentViolation.cs') -Value "internal sealed class EnvironmentViolation { private static string Read() { return Environment.CurrentDirectory; } }`r`n"
     }
 
+    Assert-ConformanceSuccess -Name 'environment-location-adapter' -Validate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Settings/WindowsLocalSettingsLocation.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        if ($content -notmatch 'Environment\.GetFolderPath' -or
+            $content -notmatch 'Environment\.SpecialFolder\.LocalApplicationData') {
+            throw 'The positive environment-location adapter no longer exercises its approved API concern.'
+        }
+    }
+
+    Assert-SourceConformanceFailure -Name 'ambient-alias-after-header' -Source "// Header`r`nusing DT = System.DateTime;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-alias-after-directive' -Source "#nullable enable`r`nusing DTO = System.DateTimeOffset;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-global-alias' -Source "global using TP = global::System.TimeProvider;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-escaped-alias' -Source "using @DT = global :: @System . @DateTime;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-inline-namespace-alias' -Source "namespace PolicyProof { using DTO = System.DateTimeOffset; internal sealed class Violation { } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-system-namespace-alias' -Source "using S = System;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-diagnostics-namespace-alias' -Source "using D = System.Diagnostics;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-environment-type-alias' -Source "using E = System.Environment;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-type-alias' -Source "using SW = System.Diagnostics.Stopwatch;`r`ninternal sealed class Violation { }`r`n"
+
+    Assert-SourceConformanceFailure -Name 'ambient-datetime-static-import' -Source "using static System.DateTime;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-datetime-offset-static-import' -Source "using static global::System.DateTimeOffset;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-time-provider-static-import' -Source "using static @System.@TimeProvider;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-static-import' -Source "using static System.Diagnostics.Stopwatch;`r`ninternal sealed class Violation { }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-environment-static-import' -Source "using static System.Environment;`r`ninternal sealed class Violation { }`r`n"
+
+    Assert-SourceConformanceFailure -Name 'time-provider-system-access' -Source "internal sealed class Violation { private static object Read() { return TimeProvider . System; } }`r`n"
+    Assert-SourceConformanceFailure -Name 'escaped-time-provider-system-access' -Source "internal sealed class Violation { private static object Read() { return @TimeProvider . @System; } }`r`n"
+
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-static-access' -Source "internal sealed class Violation { private static long Read() { return Stopwatch . GetTimestamp(); } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-qualified-construction' -Source "internal sealed class Violation { private static object Read() { return new System.Diagnostics.Stopwatch(); } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-global-construction' -Source "internal sealed class Violation { private static object Read() { return new global::System.Diagnostics.Stopwatch(); } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-target-typed-construction' -Source "using System.Diagnostics;`r`ninternal sealed class Violation { private static Stopwatch Read() { Stopwatch timer = new(); return timer; } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-initializer-construction' -Source "using System.Diagnostics;`r`ninternal sealed class Violation { private static object Read() { return new Stopwatch { }; } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-stopwatch-escaped-access' -Source "using System.Diagnostics;`r`ninternal sealed class Violation { private static object Read() { return @Stopwatch . @StartNew(); } }`r`n"
+
+    Assert-SourceConformanceFailure -Name 'interpolated-direct-wall-clock' -Source 'internal sealed class Violation { private static string Read() { return $"{DateTime . UtcNow:o}"; } }'
+    Assert-SourceConformanceFailure -Name 'escaped-direct-wall-clock' -Source "internal sealed class Violation { private static object Read() { return @DateTime . @Now; } }`r`n"
+    Assert-SourceConformanceFailure -Name 'ambient-environment-clock' -Source "internal sealed class Violation { private static long Read() { return Environment . TickCount64; } }`r`n"
+    Assert-SourceConformanceFailure -Name 'escaped-environment-clock' -Source "internal sealed class Violation { private static long Read() { return @Environment . @TickCount64; } }`r`n"
+
+    Assert-ConformanceFailure -Name 'environment-clock-inside-location-adapter' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Settings/WindowsLocalSettingsLocation.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace(
+            'string localApplicationData = Environment.GetFolderPath(',
+            "long tickCount = Environment.TickCount64;`r`n        string localApplicationData = Environment.GetFolderPath(")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
     Assert-ConformanceFailure -Name 'color-scheme-dictionary-drift' -ExpectedRule 'ARC-012' -Mutate {
         param($caseRoot)
         $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/Schemes/dracula.xaml'
@@ -228,7 +330,7 @@ try {
         throw 'Valid commit message unexpectedly failed.'
     }
 
-    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, environment boundary, color scheme dictionary parity, presentation resource keys, and commit messages.'
+    Write-Host 'Gate proofs passed: required files, rule uniqueness, protected build and restore settings, suppressions, production interlock, platform API boundary, environment and ambient clock boundaries, color scheme dictionary parity, presentation resource keys, and commit messages.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {
