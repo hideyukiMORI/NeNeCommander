@@ -11,6 +11,7 @@ internal sealed class ScriptedSettingsStore : ISettingsStore
     private readonly Queue<TaskCompletionSource<SettingsWriteOutcome>> _plannedWrites = new();
     private readonly List<UserSettings> _writes = [];
     private readonly SettingsReadOutcome _readOutcome;
+    private TaskCompletionSource _writeRecorded = CreateWriteRecordedSignal();
 
     internal ScriptedSettingsStore(SettingsReadOutcome readOutcome)
     {
@@ -39,6 +40,23 @@ internal sealed class ScriptedSettingsStore : ISettingsStore
         return completion;
     }
 
+    internal async Task WaitForWriteCountAsync(int expected)
+    {
+        while (true)
+        {
+            Task writeRecorded;
+            lock (_sync)
+            {
+                if (_writes.Count >= expected)
+                {
+                    return;
+                }
+                writeRecorded = _writeRecorded.Task;
+            }
+            await writeRecorded.ConfigureAwait(false);
+        }
+    }
+
     public Task<SettingsReadOutcome> ReadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,10 +68,21 @@ internal sealed class ScriptedSettingsStore : ISettingsStore
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        TaskCompletionSource writeRecorded;
+        Task<SettingsWriteOutcome> completion;
         lock (_sync)
         {
             _writes.Add(settings);
-            return _plannedWrites.Dequeue().Task;
+            writeRecorded = _writeRecorded;
+            _writeRecorded = CreateWriteRecordedSignal();
+            completion = _plannedWrites.Dequeue().Task;
         }
+        writeRecorded.SetResult();
+        return completion;
+    }
+
+    private static TaskCompletionSource CreateWriteRecordedSignal()
+    {
+        return new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 }

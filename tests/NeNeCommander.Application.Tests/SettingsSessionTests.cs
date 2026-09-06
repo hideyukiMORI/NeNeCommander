@@ -101,7 +101,7 @@ public sealed class SettingsSessionTests
         Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await first;
-        await WaitForWriteCountAsync(store, 2);
+        await store.WaitForWriteCountAsync(2);
         Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
         _ = Assert.IsInstanceOfType<SettingsPersistencePending>(session.Current.Persistence);
         secondWrite.SetResult(SettingsWriteOutcome.Rejected(
@@ -150,7 +150,7 @@ public sealed class SettingsSessionTests
         _ = session.SelectColorSchemeAsync(ColorScheme.Dracula, observer, CancellationToken.None);
 
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
-        await WaitForWriteCountAsync(store, 2);
+        await store.WaitForWriteCountAsync(2);
         Assert.IsFalse(stopping.IsCompleted);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await stopping;
@@ -181,7 +181,7 @@ public sealed class SettingsSessionTests
 
         _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => first);
         await observedSignal.Task;
-        await WaitForWriteCountAsync(store, 2);
+        await store.WaitForWriteCountAsync(2);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await second;
 
@@ -330,15 +330,6 @@ public sealed class SettingsSessionTests
         Assert.IsEmpty(store.Writes);
         Assert.IsEmpty(observer.Settings);
         await session.StopAsync();
-    }
-
-    private static async Task WaitForWriteCountAsync(ScriptedSettingsStore store, int expected)
-    {
-        for (int attempt = 0; attempt < 20 && store.Writes.Count < expected; attempt++)
-        {
-            await Task.Yield();
-        }
-        Assert.HasCount(expected, store.Writes);
     }
 
     private sealed class ControlledSynchronizationContext : SynchronizationContext

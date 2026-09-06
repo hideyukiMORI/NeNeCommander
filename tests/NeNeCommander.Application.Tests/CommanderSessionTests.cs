@@ -180,7 +180,7 @@ public sealed class CommanderSessionTests
         Assert.HasCount(1, store.Writes);
         Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
-        await WaitForWriteCountAsync(store, 2);
+        await store.WaitForWriteCountAsync(2);
         Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await session.StopAsync();
@@ -248,12 +248,4 @@ public sealed class CommanderSessionTests
         return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path;
     }
 
-    private static async Task WaitForWriteCountAsync(ScriptedSettingsStore store, int expected)
-    {
-        for (int attempt = 0; attempt < 20 && store.Writes.Count < expected; attempt++)
-        {
-            await Task.Yield();
-        }
-        Assert.HasCount(expected, store.Writes);
-    }
 }
