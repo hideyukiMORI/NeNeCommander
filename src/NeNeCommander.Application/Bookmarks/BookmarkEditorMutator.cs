@@ -1,8 +1,26 @@
+using System.Collections.Frozen;
+using System.Collections.Generic;
+
 namespace NeNeCommander.Application.Bookmarks;
 
 /// <summary>Validates one complete draft or stale-safe metadata mutation without owning state.</summary>
 internal static class BookmarkEditorMutator
 {
+    private static readonly FrozenDictionary<BookmarkCatalogFailureKind, BookmarkEditorProblem>
+        ProblemByFailure = new Dictionary<BookmarkCatalogFailureKind, BookmarkEditorProblem>
+        {
+            [BookmarkCatalogFailureKind.TooManyCategories] = BookmarkEditorProblem.CategoryLimit,
+            [BookmarkCatalogFailureKind.TooManyBookmarks] = BookmarkEditorProblem.BookmarkLimit,
+            [BookmarkCatalogFailureKind.DuplicateCategory] = BookmarkEditorProblem.DuplicateCategory,
+            [BookmarkCatalogFailureKind.InvalidCategoryReference] =
+                BookmarkEditorProblem.InvalidCategory,
+            [BookmarkCatalogFailureKind.DuplicateBookmark] = BookmarkEditorProblem.DuplicateBookmark,
+            [BookmarkCatalogFailureKind.DuplicateShortcutSlot] =
+                BookmarkEditorProblem.DuplicateShortcut,
+            [BookmarkCatalogFailureKind.InvalidElement] = BookmarkEditorProblem.InvalidCategory,
+            [BookmarkCatalogFailureKind.StaleSelection] = BookmarkEditorProblem.StaleSelection,
+        }.ToFrozenDictionary();
+
     internal static BookmarkEditorMutationResult SaveBookmark(
         BookmarkDrafting state,
         BookmarkCatalog catalog)
@@ -87,7 +105,7 @@ internal static class BookmarkEditorMutator
                 new BookmarkEditorTransition.CatalogChanged(changed.Catalog));
         }
         BookmarkCatalogFailureKind failure = ((BookmarkCatalogChangeRejected)outcome).Kind;
-        BookmarkEditorProblem problem = MapFailure(failure);
+        BookmarkEditorProblem problem = ProblemFor(failure);
         BookmarksEditorState rejectedState = failureState switch
         {
             BookmarkDrafting draft => new BookmarkDrafting(
@@ -145,21 +163,9 @@ internal static class BookmarkEditorMutator
         return current?.Category;
     }
 
-    private static BookmarkEditorProblem MapFailure(BookmarkCatalogFailureKind failure)
+    internal static BookmarkEditorProblem ProblemFor(BookmarkCatalogFailureKind failure)
     {
-        return failure == BookmarkCatalogFailureKind.TooManyCategories
-            ? BookmarkEditorProblem.CategoryLimit
-            : failure == BookmarkCatalogFailureKind.TooManyBookmarks
-                ? BookmarkEditorProblem.BookmarkLimit
-                : failure == BookmarkCatalogFailureKind.DuplicateCategory
-                    ? BookmarkEditorProblem.DuplicateCategory
-                    : failure == BookmarkCatalogFailureKind.DuplicateShortcutSlot
-                        ? BookmarkEditorProblem.DuplicateShortcut
-                        : failure == BookmarkCatalogFailureKind.DuplicateBookmark
-                            ? BookmarkEditorProblem.DuplicateBookmark
-                            : failure == BookmarkCatalogFailureKind.StaleSelection
-                                ? BookmarkEditorProblem.StaleSelection
-                                : BookmarkEditorProblem.InvalidCategory;
+        return ProblemByFailure[failure];
     }
 
     private static BookmarkBrowseContext RebindRenamedCategory(

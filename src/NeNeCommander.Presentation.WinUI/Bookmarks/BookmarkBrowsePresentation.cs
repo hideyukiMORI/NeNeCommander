@@ -14,15 +14,18 @@ public sealed record BookmarkBrowsePresentation
         string searchText,
         IReadOnlyList<BookmarkCategoryOption> categories,
         IReadOnlyList<BookmarkRow> rows,
-        BookmarkRow? selectedRow)
+        BookmarkRow? selectedRow,
+        BookmarkEmptyContent emptyContent)
     {
         ArgumentNullException.ThrowIfNull(searchText);
         ArgumentNullException.ThrowIfNull(categories);
         ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(emptyContent);
         SearchText = searchText;
         _categories = new List<BookmarkCategoryOption>(categories).AsReadOnly();
         _rows = new List<BookmarkRow>(rows).AsReadOnly();
         SelectedRow = selectedRow;
+        EmptyContent = emptyContent;
     }
 
     /// <summary>Gets the verbatim search text retained by the session.</summary>
@@ -33,4 +36,6 @@ public sealed record BookmarkBrowsePresentation
     public IReadOnlyList<BookmarkRow> Rows => _rows;
     /// <summary>Gets the selected visible row, when present.</summary>
     public BookmarkRow? SelectedRow { get; }
+    /// <summary>Gets the closed placeholder for the current result region.</summary>
+    public BookmarkEmptyContent EmptyContent { get; }
 }

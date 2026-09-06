@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -219,11 +220,12 @@ public sealed class SettingsSession
         }
     }
 
-    internal void FinishBookmarkNavigationFailed()
+    internal void FinishBookmarkNavigationFailed(PaneActivity reason)
     {
+        ArgumentNullException.ThrowIfNull(reason);
         lock (_sync)
         {
-            _bookmarkEditor.FinishNavigationFailed();
+            _bookmarkEditor.FinishNavigationFailed(reason);
         }
     }
 

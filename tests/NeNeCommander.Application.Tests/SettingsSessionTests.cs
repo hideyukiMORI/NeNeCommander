@@ -431,6 +431,25 @@ public sealed class SettingsSessionTests
         Assert.IsEmpty(store.Writes);
     }
 
+    /// <summary>Proves browse Cancel closes the sole modal without queuing persistence.</summary>
+    [TestMethod]
+    public async Task ApplyBookmarkEditorActionWhenBrowsingCancelClosesWithoutWriteAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        _ = session.OpenBookmarks();
+
+        await session.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            new BookmarkRegistrationDefaults(string.Empty, string.Empty),
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Closed, session.Current.Editor);
+        Assert.AreSame(BookmarksEditorState.Closed, session.Current.BookmarksEditor);
+        Assert.IsEmpty(store.Writes);
+    }
+
     private static BookmarkCatalog Catalog(string name, string path)
     {
         BookmarkDisplayName displayName = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(

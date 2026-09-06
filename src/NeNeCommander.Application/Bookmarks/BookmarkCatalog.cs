@@ -122,6 +122,13 @@ public sealed record BookmarkCatalog
         return BookmarkIndex(selection) >= 0;
     }
 
+    internal static bool SelectionsMatch(BookmarkSelection left, BookmarkSelection right)
+    {
+        ArgumentNullException.ThrowIfNull(left);
+        ArgumentNullException.ThrowIfNull(right);
+        return EntriesMatch(left.Entry, right.Entry);
+    }
+
     /// <summary>Captures a current user category and all entries that reference it.</summary>
     public BookmarkCategorySelection? Select(BookmarkCategoryName category)
     {

@@ -1,4 +1,5 @@
 using System;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Bookmarks;
 
@@ -44,8 +45,7 @@ internal sealed class BookmarkEditorSession
             BookmarkEditorAction.BeginDeleteCategoryAction delete =>
                 BeginDeleteCategory(delete.Selection, catalog),
             BookmarkEditorAction.ConfirmDeleteCategoryAction => ConfirmDeleteCategory(catalog),
-            BookmarkEditorAction.CancelAction => Cancel(),
-            _ => Changed(),
+            _ => ApplyCancel(action),
         };
     }
 
@@ -53,13 +53,26 @@ internal sealed class BookmarkEditorSession
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(catalog);
-        BookmarkBrowseContext? context = CurrentBrowseContext();
-        if (context is null || !catalog.Matches(selection))
+        BookmarkBrowseContext? context;
+        if (Current is BookmarksBrowsing browsing)
         {
-            if (context is not null)
+            context = browsing.Context;
+        }
+        else if (Current is BookmarkNavigationFailed failed)
+        {
+            if (!BookmarkCatalog.SelectionsMatch(selection, failed.Selection))
             {
-                Current = Browse(context, BookmarkEditorProblem.StaleSelection);
+                return false;
             }
+            context = failed.ReturnContext;
+        }
+        else
+        {
+            return false;
+        }
+        if (!catalog.Matches(selection))
+        {
+            Current = Browse(context, BookmarkEditorProblem.StaleSelection);
             return false;
         }
         Current = new BookmarkNavigationPending(context, selection);
@@ -74,11 +87,12 @@ internal sealed class BookmarkEditorSession
         }
     }
 
-    internal void FinishNavigationFailed()
+    internal void FinishNavigationFailed(PaneActivity reason)
     {
+        ArgumentNullException.ThrowIfNull(reason);
         if (Current is BookmarkNavigationPending pending)
         {
-            Current = new BookmarkNavigationFailed(pending.ReturnContext, pending.Selection);
+            Current = new BookmarkNavigationFailed(pending.ReturnContext, pending.Selection, reason);
         }
     }
 
@@ -223,10 +237,12 @@ internal sealed class BookmarkEditorSession
         BookmarkSelection selection,
         BookmarkCatalog catalog)
     {
-        BookmarkBrowseContext? context = CurrentBrowseContext();
-        return context is null
+        return Current is not BookmarksBrowsing browsing
             ? Changed()
-            : ApplyMutationResult(BookmarkEditorMutator.DeleteBookmark(context, selection, catalog));
+            : ApplyMutationResult(BookmarkEditorMutator.DeleteBookmark(
+                browsing.Context,
+                selection,
+                catalog));
     }
 
     private BookmarkEditorTransition.StateChanged BeginDeleteCategory(
@@ -279,14 +295,10 @@ internal sealed class BookmarkEditorSession
         return result.Transition;
     }
 
-    private BookmarkBrowseContext? CurrentBrowseContext()
+    private BookmarkEditorTransition ApplyCancel(BookmarkEditorAction action)
     {
-        return Current switch
-        {
-            BookmarksBrowsing browsing => browsing.Context,
-            BookmarkNavigationFailed failed => failed.ReturnContext,
-            _ => null,
-        };
+        _ = (BookmarkEditorAction.CancelAction)action;
+        return Cancel();
     }
 
     private static BookmarkCategoryFilter? ResolveFilter(
@@ -297,9 +309,8 @@ internal sealed class BookmarkEditorSession
         {
             return filter;
         }
-        BookmarkCategorySelection? category = filter is BookmarkUserCategoryFilter user
-            ? catalog.Select(user.Category)
-            : null;
+        BookmarkUserCategoryFilter user = (BookmarkUserCategoryFilter)filter;
+        BookmarkCategorySelection? category = catalog.Select(user.Category);
         return category is null ? null : BookmarkCategoryFilter.For(category.Category);
     }
 

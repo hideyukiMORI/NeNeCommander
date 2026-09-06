@@ -35,10 +35,15 @@ version 2 serializationを要求する7件のうち5件が失敗し、valid vers
 shapeの2件だけが成功した。修正後はversion 1 readから次writeでversion 2になること、root/nestedの
 missing/wrong-kind、invalid Unicodeを個別に追加し、Infrastructure全222件に成功した。
 session-owned browse/draft/confirm/pending/failed state、stale action、category rename/delete、path identity、
-one queue/one navigation routeを追加したApplication全268件、Domain全66件にも成功した。
+one queue/one navigation routeを追加したApplication全305件、Domain全71件にも成功した。
 Ctrl+B追加後に既存modal proofのhint件数期待が9のまま残って1件失敗したが、canonical Ctrl+Bと
-既存Ctrl+,/Escapeの順序を含む10件の表示契約へ更新した。bookmark projectionを含むPresentation全92件、
+既存Ctrl+,/Escapeの順序を含む10件の表示契約へ更新した。bookmark projectionを含むPresentation全98件、
 Application Release build 0 warning/error、conformance 112、Commit security 18に成功した。
+typed navigation failure/cancellationは正規化reasonと選択をmanagerに保持し、Retryはそのcomplete snapshotだけを
+current catalogへ再照合する。別selectionのcrafted navigationはfailure state、catalog、writeを維持してread0で
+拒否する。empty catalogとfilter/search no-resultsは別のlocalized copyを出し、selection-dependent actionを無効にする。
+protected branch coverageはDomain/Application 100.00%、Infrastructure.Windows 91.14%、
+Presentation.WinUI 90.84%で全thresholdを満たした。
 現時点は実装途中であり、coverage、mutation、security deep、Draft-to-Ready canonical CIを
 merge-readiness evidenceとしてまだ主張しない。
 
@@ -54,9 +59,11 @@ productionへ持ち込んでいない。これらの実環境証拠はIssue #94�
 ## 次の作業
 
 - path canonicalization closureの先行[Issue #103](https://github.com/hideyukiMORI/NeNeCommander/issues/103) /
-  [PR #104](https://github.com/hideyukiMORI/NeNeCommander/pull/104)を統合後、#99を最新mainへ更新する。
-- current UI/state/schema候補を独立reviewし、残るbehavioral proofを閉じる。
-- affected coverage/mutation、dependency、Commit checks後にDraft PR #102を更新する。
+  [PR #104](https://github.com/hideyukiMORI/NeNeCommander/pull/104)はmerge `0dab3f67`で統合済み。
+  deep `34041924385`、canonical `34043839856`成功の最新mainへ#99を更新済み。
+- current UI/state/schema候補の独立reviewはblocker 0。post-rebase behavioral suites、coverage、
+  conformance、Commit checksは成功した。
+- affected mutationとdependencyを確認し、Draft PR #102を最終候補へ更新する。
 - final exact headでsecurity deepを実行し、Ready後にcanonical CIを一度取得する。
 
 [Issue #100](https://github.com/hideyukiMORI/NeNeCommander/issues/100)のwindow shortcutと

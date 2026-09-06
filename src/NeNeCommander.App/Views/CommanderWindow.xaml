@@ -507,12 +507,22 @@
                                 <Button x:Name="BookmarkDeleteCategory" x:Uid="BookmarkDeleteCategory" />
                             </StackPanel>
                         </Grid>
-                        <ListView
-                            x:Name="BookmarkRows"
-                            Grid.Column="1"
-                            AutomationProperties.AutomationId="BookmarkRows"
-                            ItemTemplate="{StaticResource BookmarkRowTemplate}"
-                            IsDoubleTapEnabled="True" />
+                        <Grid Grid.Column="1">
+                            <ListView
+                                x:Name="BookmarkRows"
+                                AutomationProperties.AutomationId="BookmarkRows"
+                                ItemTemplate="{StaticResource BookmarkRowTemplate}"
+                                IsDoubleTapEnabled="True" />
+                            <TextBlock
+                                x:Name="BookmarkEmptyContent"
+                                AutomationProperties.AutomationId="BookmarkEmptyContent"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                        </Grid>
                     </Grid>
 
                     <ScrollViewer x:Name="BookmarkDraftBody" Grid.Row="3" Visibility="Collapsed">
@@ -567,7 +577,7 @@
                     </StackPanel>
                     <StackPanel x:Name="BookmarkNavigationFailedFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
                         <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />
-                        <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkCancel" />
+                        <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkNavigationBack" />
                     </StackPanel>
                 </Grid>
             </Border>

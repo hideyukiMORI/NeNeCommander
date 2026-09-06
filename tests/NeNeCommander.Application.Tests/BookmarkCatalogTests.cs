@@ -30,6 +30,10 @@ public sealed class BookmarkCatalogTests
             Assert.IsInstanceOfType<BookmarkCategoryNameRejected>(
                 BookmarkCategoryName.Parse(unpairedSurrogate)).Kind);
         Assert.AreSame(
+            BookmarkTextFailureKind.InvalidUnicode,
+            Assert.IsInstanceOfType<BookmarkCategoryNameRejected>(
+                BookmarkCategoryName.Parse("bad\uDC00")).Kind);
+        Assert.AreSame(
             BookmarkTextFailureKind.Empty,
             Assert.IsInstanceOfType<BookmarkDisplayNameRejected>(
                 BookmarkDisplayName.Parse(" ")).Kind);
@@ -392,6 +396,100 @@ public sealed class BookmarkCatalogTests
         Assert.AreEqual("Second", deleted.Bookmarks[0].Name.Value);
     }
 
+    /// <summary>Proves lookup traverses ordered entries and absent keys remain unbound.</summary>
+    [TestMethod]
+    public void LookupWhenEntriesVaryFindsLaterMatchesAndReturnsNullForAbsentKeys()
+    {
+        BookmarkEntry first = Entry("First", "C:\\one", null, BookmarkShortcutSlot.One);
+        BookmarkEntry second = Entry("Second", "C:\\two", null, BookmarkShortcutSlot.Two);
+        BookmarkCatalog catalog = Catalog([], [first, second]);
+
+        Assert.AreSame(second, catalog.Find(BookmarkShortcutSlot.Two));
+        Assert.AreSame(second, catalog.Find(new BookmarkKey(null, second.Name)));
+        Assert.IsNull(catalog.Find(new BookmarkKey(null, Name("Missing"))));
+        Assert.IsNull(catalog.Select(new BookmarkKey(null, Name("Missing"))));
+        Assert.IsNull(catalog.Select(Category("Missing")));
+    }
+
+    /// <summary>Proves complete bookmark snapshots reject case-only spelling and slot changes.</summary>
+    [TestMethod]
+    public void BookmarkMutationWhenCompleteDisplayValueChangesRejectsEachStaleField()
+    {
+        BookmarkCategoryName displayedCategory = Category("Work");
+        BookmarkEntry displayed = Entry(
+            "Repo",
+            "C:\\repo",
+            displayedCategory,
+            BookmarkShortcutSlot.One);
+        BookmarkSelection selection = new(displayed);
+        BookmarkCatalog nameChanged = Catalog(
+            [displayedCategory],
+            [Entry("repo", "C:\\repo", displayedCategory, BookmarkShortcutSlot.One)]);
+        BookmarkCategoryName currentCategory = Category("work");
+        BookmarkCatalog categoryChanged = Catalog(
+            [currentCategory],
+            [Entry("Repo", "C:\\repo", currentCategory, BookmarkShortcutSlot.One)]);
+        BookmarkCatalog slotChanged = Catalog(
+            [displayedCategory],
+            [Entry("Repo", "C:\\repo", displayedCategory, BookmarkShortcutSlot.Two)]);
+
+        AssertStale(nameChanged.DeleteBookmark(selection));
+        AssertStale(categoryChanged.DeleteBookmark(selection));
+        AssertStale(slotChanged.DeleteBookmark(selection));
+    }
+
+    /// <summary>Proves missing bookmark and category snapshots reject both mutation shapes.</summary>
+    [TestMethod]
+    public void MutationWhenSelectedValuesAreNoLongerPresentRejectsAsStale()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = Entry("Repo", "C:\\repo", category, null);
+        BookmarkCatalog initial = Catalog([category], [entry]);
+        BookmarkSelection bookmark = new(entry);
+        BookmarkCategorySelection categorySelection = initial.Select(category) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+
+        AssertStale(BookmarkCatalog.Empty.ReplaceBookmark(
+            bookmark,
+            Entry("Replacement", "C:\\replacement", null, null)));
+        Assert.IsFalse(BookmarkCatalog.Empty.Matches(categorySelection));
+    }
+
+    /// <summary>Proves category confirmation rejects an added affected entry without partial mutation.</summary>
+    [TestMethod]
+    public void CategoryMutationWhenAffectedEntrySetChangesRejectsTheWholeCatalog()
+    {
+        BookmarkCategoryName other = Category("Other");
+        BookmarkCategoryName work = Category("Work");
+        BookmarkEntry first = Entry("First", "C:\\one", work, null);
+        BookmarkCatalog initial = Catalog([other, work], [first]);
+        BookmarkCategorySelection selection = initial.Select(work) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+        BookmarkCatalog current = Catalog(
+            [other, work],
+            [first, Entry("Second", "C:\\two", work, null)]);
+
+        AssertStale(current.RenameCategory(selection, Category("Projects")));
+        Assert.HasCount(2, current.Categories);
+        Assert.HasCount(2, current.Bookmarks);
+    }
+
+    /// <summary>Proves case-insensitive bookmark keys keep equality and hash behavior aligned.</summary>
+    [TestMethod]
+    public void BookmarkKeyWhenSpellingVariesKeepsEqualityAndHashCodesAligned()
+    {
+        BookmarkKey uncategorizedUpper = new(null, Name("Repo"));
+        BookmarkKey uncategorizedLower = new(null, Name("repo"));
+        BookmarkKey categorizedUpper = new(Category("Work"), Name("Repo"));
+        BookmarkKey categorizedLower = new(Category("work"), Name("repo"));
+
+        Assert.AreEqual(uncategorizedUpper, uncategorizedLower);
+        Assert.AreEqual(uncategorizedUpper.GetHashCode(), uncategorizedLower.GetHashCode());
+        Assert.AreEqual(categorizedUpper, categorizedLower);
+        Assert.AreEqual(categorizedUpper.GetHashCode(), categorizedLower.GetHashCode());
+        Assert.AreNotEqual(uncategorizedUpper, categorizedUpper);
+    }
+
     private static BookmarkCategoryName Category(string value)
     {
         return Assert.IsInstanceOfType<BookmarkCategoryNameAccepted>(
@@ -432,5 +530,12 @@ public sealed class BookmarkCatalogTests
     {
         return Assert.IsInstanceOfType<BookmarkCatalogRejected>(
             BookmarkCatalog.Create(categories, bookmarks));
+    }
+
+    private static void AssertStale(BookmarkCatalogMutationOutcome outcome)
+    {
+        Assert.AreSame(
+            BookmarkCatalogFailureKind.StaleSelection,
+            Assert.IsInstanceOfType<BookmarkCatalogChangeRejected>(outcome).Kind);
     }
 }

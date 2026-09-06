@@ -26,6 +26,7 @@ internal sealed class BookmarkManagerView
     private readonly Grid _browseBody;
     private readonly ListView _categories;
     private readonly ListView _rows;
+    private readonly TextBlock _emptyContent;
     private readonly Button _addCategory;
     private readonly Button _renameCategory;
     private readonly Button _deleteCategory;
@@ -81,6 +82,7 @@ internal sealed class BookmarkManagerView
         _browseBody = Find<Grid>("BookmarkBrowseBody");
         _categories = Find<ListView>("BookmarkCategories");
         _rows = Find<ListView>("BookmarkRows");
+        _emptyContent = Find<TextBlock>("BookmarkEmptyContent");
         _addCategory = Find<Button>("BookmarkAddCategory");
         _renameCategory = Find<Button>("BookmarkRenameCategory");
         _deleteCategory = Find<Button>("BookmarkDeleteCategory");
@@ -171,6 +173,10 @@ internal sealed class BookmarkManagerView
         {
             _rows.SelectedItem = browse.SelectedRow;
         }
+        _emptyContent.Visibility = browse.EmptyContent == BookmarkEmptyContent.Hidden
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        _emptyContent.Text = _resources.GetString(browse.EmptyContent.ResourceKey);
         bool editable = presentation.Details.IsBrowsing;
         _search.IsEnabled = editable;
         _categories.IsEnabled = editable;

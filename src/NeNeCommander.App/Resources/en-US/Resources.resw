@@ -148,7 +148,7 @@
   <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>Rename category</value></data>
   <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>Delete category</value></data>
   <data name="BookmarkMove.Content" xml:space="preserve"><value>Move</value></data>
-  <data name="BookmarkAdd.Content" xml:space="preserve"><value>Add</value></data>
+  <data name="BookmarkAdd.Content" xml:space="preserve"><value>Add current folder</value></data>
   <data name="BookmarkEdit.Content" xml:space="preserve"><value>Edit</value></data>
   <data name="BookmarkDelete.Content" xml:space="preserve"><value>Delete</value></data>
   <data name="BookmarkClose.Content" xml:space="preserve"><value>Close</value></data>
@@ -178,7 +178,13 @@
   <data name="BookmarkStatusRenamingCategory" xml:space="preserve"><value>Enter the new category name.</value></data>
   <data name="BookmarkStatusConfirmCategoryDelete" xml:space="preserve"><value>Review the affected bookmarks before deleting this category.</value></data>
   <data name="BookmarkStatusNavigationPending" xml:space="preserve"><value>Moving to bookmark…</value></data>
-  <data name="BookmarkStatusNavigationFailed" xml:space="preserve"><value>Could not move to this bookmark. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationAccessDenied" xml:space="preserve"><value>Access to the bookmarked folder was denied. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>The bookmarked folder was not found. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>The bookmark provider is unavailable. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>Moving to this bookmark was cancelled. The current folder was kept.</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>There are no bookmarks yet. Add one with “Add current folder”.</value></data>
+  <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>No bookmarks match the current search and category.</value></data>
+  <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>Back to list</value></data>
   <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>Enter a valid name.</value></data>
   <data name="BookmarkProblemInvalidPath" xml:space="preserve"><value>Enter a valid path.</value></data>
   <data name="BookmarkProblemInvalidCategory" xml:space="preserve"><value>Select a valid category.</value></data>
@@ -188,7 +194,7 @@
   <data name="BookmarkProblemCategoryLimit" xml:space="preserve"><value>The category limit has been reached.</value></data>
   <data name="BookmarkProblemBookmarkLimit" xml:space="preserve"><value>The bookmark limit has been reached.</value></data>
   <data name="BookmarkProblemStaleSelection" xml:space="preserve"><value>This item changed. Review the current bookmark list and try again.</value></data>
-  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>Deleting this category would create duplicate bookmark names in Uncategorized.</value></data>
+  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>Deleting this category would create duplicate bookmark names in Uncategorized. Rename or reorganize them first.</value></data>
   <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
   <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
   <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>

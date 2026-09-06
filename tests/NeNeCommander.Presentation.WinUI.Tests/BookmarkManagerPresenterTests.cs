@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
 using NeNeCommander.Presentation.WinUI.Settings;
 
@@ -133,8 +136,8 @@ public sealed class BookmarkManagerPresenterTests
             [typeof(BookmarkBrowseContext), typeof(BookmarkSelection)],
             [context, selection]);
         BookmarksEditorState failed = Construct<BookmarkNavigationFailed>(
-            [typeof(BookmarkBrowseContext), typeof(BookmarkSelection)],
-            [context, selection]);
+            [typeof(BookmarkBrowseContext), typeof(BookmarkSelection), typeof(PaneActivity)],
+            [context, selection, Cancelled(entry.Path.Value)]);
 
         BookmarkManagerPresentation pendingPresentation = Present(catalog, pending);
         BookmarkManagerPresentation failedPresentation = Present(catalog, failed);
@@ -148,6 +151,202 @@ public sealed class BookmarkManagerPresenterTests
         Assert.AreSame(
             BookmarkManagerFocusTarget.RetryNavigation,
             failedPresentation.Details.InitialFocus);
+        Assert.AreEqual(
+            "BookmarkStatusNavigationCancelled",
+            failedPresentation.Details.StatusResourceKey);
+    }
+
+    /// <summary>Proves every reachable pane failure uses the shared normalized status mapping.</summary>
+    [TestMethod]
+    public void PresentWhenNavigationFailsReportsItsNormalizedReasonWithoutRawDetails()
+    {
+        BookmarkEntry entry = Entry("Offline", "C:\\offline", null, null);
+        BookmarkCatalog catalog = Catalog([], [entry]);
+        BookmarkSelection selection = new(entry);
+        BookmarkBrowseContext context = new("", BookmarkCategoryFilter.All, selection);
+        (PaneActivity Reason, string ResourceKey)[] cases =
+        [
+            (Failed(entry.Path.Value, FileOperationFailureKind.AccessDenied),
+                "BookmarkStatusNavigationAccessDenied"),
+            (Failed(entry.Path.Value, FileOperationFailureKind.NotFound),
+                "BookmarkStatusNavigationNotFound"),
+            (Failed(entry.Path.Value, FileOperationFailureKind.ProviderUnavailable),
+                "BookmarkStatusNavigationProviderUnavailable"),
+            (Cancelled(entry.Path.Value), "BookmarkStatusNavigationCancelled"),
+        ];
+
+        foreach ((PaneActivity reason, string resourceKey) in cases)
+        {
+            BookmarksEditorState state = Construct<BookmarkNavigationFailed>(
+                [typeof(BookmarkBrowseContext), typeof(BookmarkSelection), typeof(PaneActivity)],
+                [context, selection, reason]);
+
+            BookmarkManagerPresentation presentation = Present(catalog, state);
+
+            Assert.AreEqual(resourceKey, presentation.Details.StatusResourceKey);
+            Assert.AreSame(selection, presentation.Details.NavigationSelection);
+            Assert.AreSame(
+                BookmarkManagerFocusTarget.RetryNavigation,
+                presentation.Details.InitialFocus);
+        }
+    }
+
+    /// <summary>Proves the result region distinguishes an empty catalog from an empty result.</summary>
+    [TestMethod]
+    public void PresentWhenRowsAreEmptyProjectsClosedEmptyContent()
+    {
+        BookmarkEntry entry = Entry("Repo", "C:\\repo", null, null);
+        BookmarkCatalog catalog = Catalog([], [entry]);
+
+        BookmarkManagerPresentation emptyCatalog = Present(
+            BookmarkCatalog.Empty,
+            Browsing("", BookmarkCategoryFilter.All));
+        BookmarkManagerPresentation noMatches = Present(
+            catalog,
+            Browsing("missing", BookmarkCategoryFilter.All));
+        BookmarkManagerPresentation rowsAvailable = Present(
+            catalog,
+            Browsing("", BookmarkCategoryFilter.All));
+
+        Assert.AreSame(BookmarkEmptyContent.NoBookmarks, emptyCatalog.Browse.EmptyContent);
+        Assert.IsEmpty(emptyCatalog.Browse.Rows);
+        Assert.AreSame(BookmarkEmptyContent.NoMatches, noMatches.Browse.EmptyContent);
+        Assert.IsEmpty(noMatches.Browse.Rows);
+        Assert.AreSame(BookmarkEmptyContent.Hidden, rowsAvailable.Browse.EmptyContent);
+        Assert.HasCount(1, rowsAvailable.Browse.Rows);
+    }
+
+    /// <summary>Proves every catalog validation problem has one stable product resource.</summary>
+    [TestMethod]
+    public void PresentWhenEditorReportsCatalogProblemsMapsEveryClosedProblemResource()
+    {
+        (BookmarkEditorProblem Problem, string ResourceKey)[] cases =
+        [
+            (BookmarkEditorProblem.InvalidName, "BookmarkProblemInvalidName"),
+            (BookmarkEditorProblem.InvalidPath, "BookmarkProblemInvalidPath"),
+            (BookmarkEditorProblem.InvalidCategory, "BookmarkProblemInvalidCategory"),
+            (BookmarkEditorProblem.DuplicateCategory, "BookmarkProblemDuplicateCategory"),
+            (BookmarkEditorProblem.DuplicateBookmark, "BookmarkProblemDuplicateBookmark"),
+            (BookmarkEditorProblem.DuplicateShortcut, "BookmarkProblemDuplicateShortcut"),
+            (BookmarkEditorProblem.CategoryLimit, "BookmarkProblemCategoryLimit"),
+            (BookmarkEditorProblem.BookmarkLimit, "BookmarkProblemBookmarkLimit"),
+            (BookmarkEditorProblem.CategoryDeleteCollision, "BookmarkProblemCategoryDeleteCollision"),
+            (BookmarkEditorProblem.StaleSelection, "BookmarkProblemStaleSelection"),
+        ];
+
+        foreach ((BookmarkEditorProblem problem, string resourceKey) in cases)
+        {
+            BookmarksEditorState state = Construct<BookmarksBrowsing>(
+                [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)],
+                [new BookmarkBrowseContext("", BookmarkCategoryFilter.All, null), problem]);
+
+            BookmarkManagerPresentation presentation = Present(BookmarkCatalog.Empty, state);
+
+            Assert.AreEqual(resourceKey, presentation.Details.StatusResourceKey);
+        }
+    }
+
+    /// <summary>Proves add and rename category states retain their draft and focus semantics.</summary>
+    [TestMethod]
+    public void PresentWhenCategoryDraftVariesDistinguishesAddFromRename()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCatalog catalog = Catalog([work], []);
+        BookmarkBrowseContext context = new("", BookmarkCategoryFilter.For(work), null);
+        BookmarkCategorySelection selection = catalog.Select(work) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+        BookmarksEditorState adding = Construct<BookmarkCategoryDrafting>(
+            [
+                typeof(BookmarkBrowseContext),
+                typeof(BookmarkCategorySelection),
+                typeof(string),
+                typeof(BookmarkEditorProblem),
+            ],
+            [context, null, "New", null]);
+        BookmarksEditorState renaming = Construct<BookmarkCategoryDrafting>(
+            [
+                typeof(BookmarkBrowseContext),
+                typeof(BookmarkCategorySelection),
+                typeof(string),
+                typeof(BookmarkEditorProblem),
+            ],
+            [context, selection, "Projects", null]);
+
+        BookmarkEditorDetails addDetails = Present(catalog, adding).Details;
+        BookmarkEditorDetails renameDetails = Present(catalog, renaming).Details;
+
+        Assert.IsTrue(addDetails.IsCategoryDrafting);
+        Assert.IsTrue(addDetails.IsAddingCategory);
+        Assert.AreEqual("New", addDetails.CategoryDraftName);
+        Assert.AreEqual("BookmarkStatusAddingCategory", addDetails.StatusResourceKey);
+        Assert.AreSame(BookmarkManagerFocusTarget.CategoryName, addDetails.InitialFocus);
+        Assert.IsFalse(renameDetails.IsAddingCategory);
+        Assert.AreSame(selection, renameDetails.CategorySelection);
+        Assert.AreEqual("Projects", renameDetails.CategoryDraftName);
+        Assert.AreEqual("BookmarkStatusRenamingCategory", renameDetails.StatusResourceKey);
+    }
+
+    /// <summary>Proves search covers displayed category and canonical path while filters remain closed.</summary>
+    [TestMethod]
+    public void PresentWhenSearchAndCategoryFiltersVaryKeepsCatalogOrderAndClosedMembership()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkEntry uncategorized = Entry("Notes", "C:\\notes", null, null);
+        BookmarkEntry repository = Entry("Repository", "C:\\work\\src", work, BookmarkShortcutSlot.One);
+        BookmarkCatalog catalog = Catalog([work], [uncategorized, repository]);
+
+        BookmarkManagerPresentation byPath = Present(
+            catalog,
+            Browsing("src", BookmarkCategoryFilter.All));
+        BookmarkManagerPresentation byCategory = Present(
+            catalog,
+            Browsing("work", BookmarkCategoryFilter.All));
+        BookmarkManagerPresentation uncategorizedOnly = Present(
+            catalog,
+            Browsing("", BookmarkCategoryFilter.Uncategorized));
+        BookmarkManagerPresentation workOnly = Present(
+            catalog,
+            Browsing("", BookmarkCategoryFilter.For(work)));
+
+        Assert.HasCount(1, byPath.Browse.Rows);
+        Assert.AreEqual("Repository", byPath.Browse.Rows[0].NameText);
+        Assert.HasCount(1, byCategory.Browse.Rows);
+        Assert.AreEqual("Repository", byCategory.Browse.Rows[0].NameText);
+        Assert.HasCount(1, uncategorizedOnly.Browse.Rows);
+        Assert.AreEqual("Notes", uncategorizedOnly.Browse.Rows[0].NameText);
+        Assert.HasCount(1, workOnly.Browse.Rows);
+        Assert.AreEqual("Repository", workOnly.Browse.Rows[0].NameText);
+    }
+
+    /// <summary>Proves a closed editor produces a hidden, empty, ready projection.</summary>
+    [TestMethod]
+    public void PresentWhenManagerIsClosedKeepsTheOverlayHidden()
+    {
+        SettingsSnapshot snapshot = Construct<SettingsSnapshot>(
+            [
+                typeof(UserSettings),
+                typeof(SettingsEditorState),
+                typeof(BookmarksEditorState),
+                typeof(SettingsPersistenceState),
+            ],
+            [
+                UserSettings.Default,
+                SettingsEditorState.Closed,
+                BookmarksEditorState.Closed,
+                SettingsPersistenceState.Succeeded,
+            ]);
+
+        BookmarkManagerPresentation presentation = BookmarkManagerPresenter.Present(
+            snapshot,
+            "All bookmarks",
+            "Uncategorized");
+
+        Assert.IsFalse(presentation.IsOpen);
+        Assert.AreEqual("BookmarkStatusReady", presentation.Details.StatusResourceKey);
+        Assert.IsNull(presentation.Details.BookmarkDraft);
+        Assert.IsNull(presentation.Details.CategorySelection);
+        Assert.IsNull(presentation.Details.NavigationSelection);
+        Assert.AreEqual(0, presentation.Details.CategoryDeleteCount);
     }
 
     /// <summary>Proves the public presenter rejects missing snapshots and reserved labels.</summary>
@@ -171,6 +370,15 @@ public sealed class BookmarkManagerPresenterTests
             Snapshot(catalog, state),
             "All bookmarks",
             "Uncategorized");
+    }
+
+    private static BookmarksBrowsing Browsing(
+        string searchText,
+        BookmarkCategoryFilter filter)
+    {
+        return Construct<BookmarksBrowsing>(
+            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)],
+            [new BookmarkBrowseContext(searchText, filter, null), null]);
     }
 
     private static SettingsSnapshot Snapshot(
@@ -227,5 +435,19 @@ public sealed class BookmarkManagerPresenterTests
             parameterTypes,
             null) ?? throw new AssertFailedException($"The {typeof(T).Name} constructor was not found.");
         return (T)constructor.Invoke(values);
+    }
+
+    private static PaneReadFailed Failed(
+        FileSystemPath target,
+        FileOperationFailureKind failure)
+    {
+        return Construct<PaneReadFailed>(
+            [typeof(FileSystemPath), typeof(FileOperationFailureKind)],
+            [target, failure]);
+    }
+
+    private static PaneReadCancelled Cancelled(FileSystemPath target)
+    {
+        return Construct<PaneReadCancelled>([typeof(FileSystemPath)], [target]);
     }
 }

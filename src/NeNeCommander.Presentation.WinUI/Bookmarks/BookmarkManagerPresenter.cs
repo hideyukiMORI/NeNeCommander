@@ -5,6 +5,7 @@ using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Input;
+using NeNeCommander.Presentation.WinUI.Panes;
 using NeNeCommander.Presentation.WinUI.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
@@ -132,7 +133,12 @@ public static class BookmarkManagerPresenter
                 selectedRow = row;
             }
         }
-        return new BookmarkBrowsePresentation(context.SearchText, categories, rows, selectedRow);
+        return new BookmarkBrowsePresentation(
+            context.SearchText,
+            categories,
+            rows,
+            selectedRow,
+            EmptyContent(catalog, rows));
     }
 
     private static bool Matches(
@@ -218,7 +224,7 @@ public static class BookmarkManagerPresenter
                     : "BookmarkStatusRenamingCategory",
                 BookmarkCategoryDeleteConfirmation => "BookmarkStatusConfirmCategoryDelete",
                 BookmarkNavigationPending => "BookmarkStatusNavigationPending",
-                BookmarkNavigationFailed => "BookmarkStatusNavigationFailed",
+                BookmarkNavigationFailed failed => NavigationFailureResourceKey(failed),
                 _ => "BookmarkStatusReady",
             };
     }
@@ -259,5 +265,36 @@ public static class BookmarkManagerPresenter
         return problem == BookmarkEditorProblem.CategoryDeleteCollision
             ? "BookmarkProblemCategoryDeleteCollision"
             : fallback;
+    }
+
+    private static BookmarkEmptyContent EmptyContent(
+        BookmarkCatalog catalog,
+        List<BookmarkRow> rows)
+    {
+        BookmarkEmptyContent empty = catalog.Bookmarks.Count == 0
+            ? BookmarkEmptyContent.NoBookmarks
+            : BookmarkEmptyContent.NoMatches;
+        return rows.Count > 0 ? BookmarkEmptyContent.Hidden : empty;
+    }
+
+    private static string NavigationFailureResourceKey(BookmarkNavigationFailed failed)
+    {
+        PaneStatus status = PaneActivityStatusPresenter.Present(
+            failed.Reason,
+            PaneStatus.ProviderUnavailable);
+        string resourceKey = "BookmarkStatusNavigationProviderUnavailable";
+        if (status == PaneStatus.AccessDenied)
+        {
+            resourceKey = "BookmarkStatusNavigationAccessDenied";
+        }
+        if (status == PaneStatus.NotFound)
+        {
+            resourceKey = "BookmarkStatusNavigationNotFound";
+        }
+        if (status == PaneStatus.Cancelled)
+        {
+            resourceKey = "BookmarkStatusNavigationCancelled";
+        }
+        return resourceKey;
     }
 }

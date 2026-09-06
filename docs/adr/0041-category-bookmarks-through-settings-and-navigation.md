@@ -98,6 +98,9 @@ movement and resizing. `Ctrl+P` remains available for the separately tracked com
   current category name and that captured entry set to match before producing one complete
   replacement catalog. A concurrent category, bookmark name, path, category, or slot change makes
   the selection stale and rejects the whole mutation without changing current or persisted state.
+  After a manager navigation failure, Retry accepts only a reprojection of the retained complete
+  selection that still matches the current catalog. A different current bookmark supplied while
+  the failure body is visible is rejected without another read or metadata write.
 - **Category deletion is one referentially complete metadata mutation.** The confirmation names the
   affected bookmark count and the Uncategorized destination and initially focuses Cancel. Confirm
   removes the user category and moves every referenced bookmark to the null Uncategorized category
@@ -147,6 +150,10 @@ movement and resizing. `Ctrl+P` remains available for the separately tracked com
   the bookmark-name contract, otherwise it leaves the name empty without truncation. The draft
   category is the current user-category or Uncategorized filter, while All defaults to
   Uncategorized, and the slot starts unassigned.
+  An empty catalog shows localized registration guidance. A nonempty catalog whose active search
+  and category filter return no rows shows a separate localized no-results explanation. Neither
+  state invents a selection; registration remains available while move, edit, and delete remain
+  disabled.
 
 The concrete version-2 JSON shape is:
 
@@ -255,7 +262,8 @@ Command and presentation tests prove `Ctrl+B` and every `Ctrl+1` through `Ctrl+9
 approved contexts; produced and raw-key translation where the Windows runtime requires it; no
 `Ctrl+P` binding; no file read for an unassigned slot; current-catalog slot resolution; immutable
 manager-selection comparison; active-pane-only navigation; old listing and registration retention
-after typed read failure; modal and operation precedence; Cancel initial focus for category deletion;
+after typed read failure; normalized failure and cancellation reasons; retained-selection-only Retry;
+empty-catalog and no-results guidance; modal and operation precedence; Cancel initial focus for category deletion;
 canonical localized slot labels; warning independence from operation progress; and deterministic
 projection for browse, draft, confirmation, pending, and failed states. Source and resource checks keep
 the two locale resource sets aligned and retain the named AutomationIds. The approved Claude Design
