@@ -291,7 +291,7 @@ public sealed class WslFileOperationAdapterTests
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         WslFileOperationAdapter adapter = Adapter(fileSystem);
 
-        ProviderStepOutcome preflight = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome preflight = await adapter.PreflightTransferAsync(
             [source], destination, CancellationToken.None);
         AtomicMoveCapabilityOutcome capability = await adapter.GetAtomicMoveCapabilityAsync(
             source, destination, CancellationToken.None);
@@ -359,7 +359,7 @@ public sealed class WslFileOperationAdapterTests
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         WslFileOperationAdapter adapter = Adapter(fileSystem);
 
-        ProviderStepOutcome foreign = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome foreign = await adapter.PreflightTransferAsync(
             [Snapshot(source)],
             Wsl("\\\\wsl.localhost\\Debian\\target"),
             CancellationToken.None);
@@ -368,26 +368,26 @@ public sealed class WslFileOperationAdapterTests
             "foreign",
             DirectoryEntryKind.Directory);
         fileSystem.Set(foreignSource);
-        ProviderStepOutcome mixedSources = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome mixedSources = await adapter.PreflightTransferAsync(
             [Snapshot(source), Snapshot(foreignSource)],
             destination,
             CancellationToken.None);
         WslPath recursiveDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source\\child");
         fileSystem.Set(Entry(recursiveDestination, "child", DirectoryEntryKind.Directory));
-        ProviderStepOutcome recursive = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome recursive = await adapter.PreflightTransferAsync(
             [Snapshot(source)],
             recursiveDestination,
             CancellationToken.None);
         WslPath collision = Wsl("\\\\wsl.localhost\\Ubuntu\\target\\source");
         fileSystem.Set(Entry(collision, "collision", DirectoryEntryKind.Directory));
-        ProviderStepOutcome existing = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome existing = await adapter.PreflightTransferAsync(
             [Snapshot(source)], destination, CancellationToken.None);
         fileSystem.Set(Entry(
             source.Path,
             "source",
             DirectoryEntryKind.Directory,
             FileAttributes.ReparsePoint));
-        ProviderStepOutcome linkedSource = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome linkedSource = await adapter.PreflightTransferAsync(
             [Snapshot(Entry(
                 source.Path,
                 "source",
@@ -396,13 +396,13 @@ public sealed class WslFileOperationAdapterTests
             destination,
             CancellationToken.None);
         fileSystem.Set(source);
-        ProviderStepOutcome missingDestination = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome missingDestination = await adapter.PreflightTransferAsync(
             [Snapshot(source)],
             Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
             CancellationToken.None);
         WslPath fileDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\file-destination");
         fileSystem.Set(Entry(fileDestination, "file-destination", DirectoryEntryKind.File));
-        ProviderStepOutcome fileTarget = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome fileTarget = await adapter.PreflightTransferAsync(
             [Snapshot(source)], fileDestination, CancellationToken.None);
         WslPath linkedDestination = Wsl("\\\\wsl.localhost\\Ubuntu\\linked-destination");
         fileSystem.Set(Entry(
@@ -410,7 +410,7 @@ public sealed class WslFileOperationAdapterTests
             "linked-destination",
             DirectoryEntryKind.Directory,
             FileAttributes.ReparsePoint));
-        ProviderStepOutcome linkedTarget = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome linkedTarget = await adapter.PreflightTransferAsync(
             [Snapshot(source)], linkedDestination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
@@ -472,7 +472,7 @@ public sealed class WslFileOperationAdapterTests
             source, destination, CancellationToken.None);
         fileSystem.TargetContainsReparsePoint = false;
         fileSystem.ContainsNestedReparsePoint = true;
-        ProviderStepOutcome nestedLinkPreflight = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome nestedLinkPreflight = await adapter.PreflightTransferAsync(
             [source], destination, CancellationToken.None);
         ProviderStepOutcome nestedLinkCopy = await adapter.CopyAsync(
             source, destination, CancellationToken.None);

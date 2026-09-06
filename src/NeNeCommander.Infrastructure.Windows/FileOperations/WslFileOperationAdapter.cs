@@ -39,7 +39,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return _executionBoundary.ExecuteAsync(() => Inspect(path));
     }
 
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -47,7 +47,10 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Preflight(sources, destination), FileOperationFailureKind.ProviderUnavailable));
+            () => ConvertPreflight(
+                Guarded(() => Preflight(sources, destination), FileOperationFailureKind.ProviderUnavailable),
+                sources,
+                destination));
     }
 
     public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
@@ -190,6 +193,28 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
                         entry => PreflightSource(entry, wslDestination)))
                     .FirstOrDefault(outcome => outcome.Failure is not null) ??
                     ProviderStepOutcome.Succeeded();
+    }
+
+    private TransferPreflightOutcome ConvertPreflight(
+        ProviderStepOutcome outcome,
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination)
+    {
+        if (outcome.Failure is FileOperationFailureKind failure)
+        {
+            return TransferPreflightOutcome.Rejected(failure);
+        }
+        WslPath wslDestination = (WslPath)destination;
+        List<TransferPlanEntry> plan = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            WslFileSystemEntry entry = _fileSystem.Find((WslPath)source.Path) ??
+                throw new InvalidOperationException("A successful preflight source must still exist.");
+            WslPath target = BuildTarget(entry, wslDestination) ??
+                throw new InvalidOperationException("A successful preflight target must be representable.");
+            plan.Add(TransferPlanEntry.Transfer(source, target));
+        }
+        return TransferPreflightOutcome.Succeeded(plan);
     }
 
     private ProviderStepOutcome PreflightSource(WslFileSystemEntry source, WslPath destination)

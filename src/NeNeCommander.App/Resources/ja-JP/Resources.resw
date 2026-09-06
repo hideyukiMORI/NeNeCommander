@@ -22,12 +22,23 @@
   <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>移動は途中で停止しました</value></data>
   <data name="OperationStatusMoveRejected" xml:space="preserve"><value>移動は変更前に拒否されました</value></data>
   <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>移動の要求が無効です</value></data>
+  <data name="OperationStatusMoveAwaitingConflict" xml:space="preserve"><value>移動には同名衝突の判断が必要です</value></data>
   <data name="OperationStatusCopying" xml:space="preserve"><value>コピー中…</value></data>
   <data name="OperationStatusCopySucceeded" xml:space="preserve"><value>コピーが完了しました</value></data>
   <data name="OperationStatusCopyCancelled" xml:space="preserve"><value>コピーを中止しました</value></data>
   <data name="OperationStatusCopyPartiallyCompleted" xml:space="preserve"><value>コピーは途中で停止しました</value></data>
   <data name="OperationStatusCopyRejected" xml:space="preserve"><value>コピーは変更前に拒否されました</value></data>
   <data name="OperationStatusCopyRequestRejected" xml:space="preserve"><value>コピーの要求が無効です</value></data>
+  <data name="OperationStatusCopyAwaitingConflict" xml:space="preserve"><value>コピーには同名衝突の判断が必要です</value></data>
+  <data name="ConflictModalTitle.Text" xml:space="preserve"><value>同じ名前の転送先が既にあります</value></data>
+  <data name="ConflictApplyToAll.Content" xml:space="preserve"><value>この操作のすべての衝突に適用</value></data>
+  <data name="ConflictSkip.Content" xml:space="preserve"><value>転送しない</value></data>
+  <data name="ConflictKeepBoth.Content" xml:space="preserve"><value>両方を保持</value></data>
+  <data name="ConflictCancel.Content" xml:space="preserve"><value>中止</value></data>
+  <data name="TransferResultNotTransferred.Text" xml:space="preserve"><value>未転送</value></data>
+  <data name="TransferResultCopied.Text" xml:space="preserve"><value>コピー済み</value></data>
+  <data name="TransferResultVerified.Text" xml:space="preserve"><value>検証済み</value></data>
+  <data name="TransferResultSourceDeleted.Text" xml:space="preserve"><value>転送元削除済み</value></data>
   <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>ディレクトリを作成中…</value></data>
   <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>新しいディレクトリの名前を入力してください</value></data>
   <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>ディレクトリを作成しました</value></data>

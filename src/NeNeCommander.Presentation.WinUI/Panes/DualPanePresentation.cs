@@ -22,6 +22,7 @@ public sealed record DualPanePresentation
         OperationBarTone tone,
         IReadOnlyList<KeyHint> keyHints,
         NameEntryPresentation nameEntry,
+        ConflictModalPresentation conflictModal,
         KeyboardContext inputContext)
     {
         ArgumentNullException.ThrowIfNull(left);
@@ -34,6 +35,7 @@ public sealed record DualPanePresentation
         ArgumentNullException.ThrowIfNull(tone);
         ArgumentNullException.ThrowIfNull(keyHints);
         ArgumentNullException.ThrowIfNull(nameEntry);
+        ArgumentNullException.ThrowIfNull(conflictModal);
         ArgumentNullException.ThrowIfNull(inputContext);
         Left = left;
         LeftFrame = leftFrame;
@@ -45,6 +47,7 @@ public sealed record DualPanePresentation
         Tone = tone;
         KeyHints = keyHints;
         NameEntry = nameEntry;
+        ConflictModal = conflictModal;
         InputContext = inputContext;
     }
 
@@ -77,6 +80,9 @@ public sealed record DualPanePresentation
 
     /// <summary>Gets whether the host shows and focuses the name editor and, when it does, the text it starts from.</summary>
     public NameEntryPresentation NameEntry { get; }
+
+    /// <summary>Gets the transfer conflict modal presentation.</summary>
+    public ConflictModalPresentation ConflictModal { get; }
 
     /// <summary>
     /// Gets the keyboard context the operation state imposes on the file list: modal while a

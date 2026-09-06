@@ -27,6 +27,9 @@ public sealed record OperationStatus
     /// <summary>Gets the status when the move request itself was invalid and never reached the gateway.</summary>
     public static OperationStatus MoveRequestRejected { get; } = new("OperationStatusMoveRequestRejected");
 
+    /// <summary>Gets the status while a move awaits an explicit conflict decision.</summary>
+    public static OperationStatus MoveAwaitingConflict { get; } = new("OperationStatusMoveAwaitingConflict");
+
     /// <summary>Gets the status while a copy runs.</summary>
     public static OperationStatus Copying { get; } = new("OperationStatusCopying");
 
@@ -44,6 +47,9 @@ public sealed record OperationStatus
 
     /// <summary>Gets the status when the copy request itself was invalid and never reached the gateway.</summary>
     public static OperationStatus CopyRequestRejected { get; } = new("OperationStatusCopyRequestRejected");
+
+    /// <summary>Gets the status while a copy awaits an explicit conflict decision.</summary>
+    public static OperationStatus CopyAwaitingConflict { get; } = new("OperationStatusCopyAwaitingConflict");
 
     /// <summary>Gets the status while a directory is being created.</summary>
     public static OperationStatus CreatingDirectory { get; } = new("OperationStatusCreatingDirectory");

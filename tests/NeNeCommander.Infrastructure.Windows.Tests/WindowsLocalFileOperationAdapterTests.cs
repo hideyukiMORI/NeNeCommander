@@ -76,7 +76,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
 
         root.ReplaceFilePreservingMetadata("a.txt", "other");
         FileEntrySnapshot after = await InspectAsync(adapter, ParsePath(path));
-        ProviderStepOutcome outcome = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome outcome = await adapter.PreflightTransferAsync(
             [before],
             destination,
             CancellationToken.None);
@@ -107,8 +107,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
         WindowsLocalFileOperationAdapter adapter = new();
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
 
-        ProviderStepOutcome missing = await adapter.PreflightTransferAsync([source], ParsePath(root.Resolve("missing")), CancellationToken.None);
-        ProviderStepOutcome unc = await adapter.PreflightTransferAsync([source], ParsePath("\\\\server\\share"), CancellationToken.None);
+        TransferPreflightOutcome missing = await adapter.PreflightTransferAsync([source], ParsePath(root.Resolve("missing")), CancellationToken.None);
+        TransferPreflightOutcome unc = await adapter.PreflightTransferAsync([source], ParsePath("\\\\server\\share"), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.NotFound, missing.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unc.Failure);
@@ -129,13 +129,13 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.WriteFile("dest\\A.TXT", "x");
         FileEntrySnapshot folder = await InspectAsync(adapter, ParsePath(root.Resolve("tree")));
 
-        ProviderStepOutcome collision = await adapter.PreflightTransferAsync([file], destination, CancellationToken.None);
-        ProviderStepOutcome intoItself = await adapter.PreflightTransferAsync(
+        TransferPreflightOutcome collision = await adapter.PreflightTransferAsync([file], destination, CancellationToken.None);
+        TransferPreflightOutcome intoItself = await adapter.PreflightTransferAsync(
             [folder],
             ParsePath(root.Resolve("tree\\inner")),
             CancellationToken.None);
         File.Delete(root.Resolve("dest\\A.TXT"));
-        ProviderStepOutcome clean = await adapter.PreflightTransferAsync([file, folder], destination, CancellationToken.None);
+        TransferPreflightOutcome clean = await adapter.PreflightTransferAsync([file, folder], destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Conflict, collision.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, intoItself.Failure);
@@ -154,7 +154,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("a.txt", "abcdef");
 
-        ProviderStepOutcome outcome = await adapter.PreflightTransferAsync([source], destination, CancellationToken.None);
+        TransferPreflightOutcome outcome = await adapter.PreflightTransferAsync([source], destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
     }

@@ -650,9 +650,54 @@ public sealed class DualPanePresenterTests
             port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None);
 
         Assert.AreSame(OperationBarTone.Idle, succeeded.Tone);
-        Assert.AreSame(OperationDetail.None, succeeded.Detail);
+        TransferResultDetail result = Assert.IsInstanceOfType<TransferResultDetail>(succeeded.Detail);
+        Assert.AreEqual(0, result.NotTransferred);
+        Assert.AreEqual(1, result.Copied);
+        Assert.AreEqual(1, result.Verified);
+        Assert.AreEqual(1, result.SourceDeleted);
         Assert.AreSame(OperationBarTone.Idle, cancelled.Tone);
         Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
+    }
+
+    /// <summary>Proves conflict presentation keeps the existing modal context and exposes the safe candidate.</summary>
+    [TestMethod]
+    public async Task PresentWhenCopyAwaitsConflictShowsCandidateWithCancelAsInitialFocus()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway,
+            out QueuedFileOperationPort port);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;
+        FileEntrySnapshot source = FileEntrySnapshot.Create(
+            leftListing.Entries[0].Path,
+            identity,
+            DeletionCapability.PermanentOnly);
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(rightListing.Location.Child("a.txt")).Path;
+        FileSystemPath candidate = Assert.IsInstanceOfType<PathParseSuccess>(rightListing.Location.Child("a (2).txt")).Path;
+        port.EnqueueInspection(FileInspectionOutcome.Succeeded(source));
+        port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([
+            TransferConflict.Create(source, target, candidate)]));
+
+        DualPaneSnapshot snapshot = await panes.HandleAsync(
+            UserIntent.Copy,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+
+        ActiveConflictModal modal = Assert.IsInstanceOfType<ActiveConflictModal>(presentation.ConflictModal);
+        Assert.AreSame(TransferConflictDecision.Cancel, modal.InitialFocus);
+        Assert.AreEqual(candidate.CanonicalText, modal.KeepBothCandidateText);
+        Assert.AreSame(KeyboardContext.Modal, presentation.InputContext);
+        Assert.AreSame(OperationStatus.CopyAwaitingConflict, presentation.OperationStatus);
+        Assert.AreSame(OperationBarTone.AwaitingConfirmation, presentation.Tone);
     }
 
     /// <summary>Proves a partly completed transfer fills exactly the completed proportion of the bar.</summary>

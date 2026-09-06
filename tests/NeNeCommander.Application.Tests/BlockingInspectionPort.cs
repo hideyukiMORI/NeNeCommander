@@ -37,12 +37,20 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         return _pendingInspection.Task;
     }
 
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        List<TransferPlanEntry> plan = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            string name = source.Path.CanonicalText[(source.Path.CanonicalText.LastIndexOf('\\') + 1)..];
+            plan.Add(TransferPlanEntry.Transfer(
+                source,
+                ((PathParseSuccess)destination.Child(name)).Path));
+        }
+        return Task.FromResult(TransferPreflightOutcome.Succeeded(plan));
     }
 
     public Task<ProviderStepOutcome> CopyAsync(

@@ -22,12 +22,23 @@
   <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>Move stopped after partial completion</value></data>
   <data name="OperationStatusMoveRejected" xml:space="preserve"><value>Move was rejected before any change</value></data>
   <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>Move request is not valid</value></data>
+  <data name="OperationStatusMoveAwaitingConflict" xml:space="preserve"><value>Move needs a conflict decision</value></data>
   <data name="OperationStatusCopying" xml:space="preserve"><value>Copying…</value></data>
   <data name="OperationStatusCopySucceeded" xml:space="preserve"><value>Copy completed</value></data>
   <data name="OperationStatusCopyCancelled" xml:space="preserve"><value>Copy cancelled</value></data>
   <data name="OperationStatusCopyPartiallyCompleted" xml:space="preserve"><value>Copy stopped after partial completion</value></data>
   <data name="OperationStatusCopyRejected" xml:space="preserve"><value>Copy was rejected before any change</value></data>
   <data name="OperationStatusCopyRequestRejected" xml:space="preserve"><value>Copy request is not valid</value></data>
+  <data name="OperationStatusCopyAwaitingConflict" xml:space="preserve"><value>Copy needs a conflict decision</value></data>
+  <data name="ConflictModalTitle.Text" xml:space="preserve"><value>A target with this name already exists</value></data>
+  <data name="ConflictApplyToAll.Content" xml:space="preserve"><value>Apply to all conflicts in this operation</value></data>
+  <data name="ConflictSkip.Content" xml:space="preserve"><value>Skip</value></data>
+  <data name="ConflictKeepBoth.Content" xml:space="preserve"><value>Keep both</value></data>
+  <data name="ConflictCancel.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="TransferResultNotTransferred.Text" xml:space="preserve"><value>Not transferred</value></data>
+  <data name="TransferResultCopied.Text" xml:space="preserve"><value>Copied</value></data>
+  <data name="TransferResultVerified.Text" xml:space="preserve"><value>Verified</value></data>
+  <data name="TransferResultSourceDeleted.Text" xml:space="preserve"><value>Source deleted</value></data>
   <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>Creating directory…</value></data>
   <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>Enter a name for the new directory</value></data>
   <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>Directory created</value></data>

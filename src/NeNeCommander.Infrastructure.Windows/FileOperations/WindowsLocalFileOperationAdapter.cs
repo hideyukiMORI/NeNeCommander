@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
@@ -43,7 +44,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<ProviderStepOutcome> PreflightTransferAsync(
+    public Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -51,7 +52,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Preflight(sources, destination), FileOperationFailureKind.Inspection));
+            () => GuardedPreflight(() => Preflight(sources, destination)));
     }
 
     /// <inheritdoc />
@@ -192,12 +193,12 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return destination is not WindowsLocalPath localDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry => MoveEntry(entry, source.Path, localDestination));
+            : WithRevalidatedEntry(source, entry => MoveEntry(entry, source, localDestination));
     }
 
     private static ProviderStepOutcome MoveEntry(
         FileSystemInfo entry,
-        FileSystemPath source,
+        FileEntrySnapshot source,
         WindowsLocalPath destination)
     {
         DirectoryInfo destinationDirectory = new(destination.CanonicalText);
@@ -211,11 +212,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
-        if (ProviderPathContainment.Evaluate(source, destination) is ContainedPath)
+        if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
         }
-        string targetText = BuildTargetText(destination, entry);
+        string targetText = BuildTargetText(source, destination, entry);
         if (TargetExists(targetText))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
@@ -326,30 +327,129 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
     }
 
-    private static ProviderStepOutcome Preflight(IReadOnlyList<FileEntrySnapshot> sources, FileSystemPath destination)
+    private static TransferPreflightOutcome Preflight(
+        IReadOnlyList<FileEntrySnapshot> sources,
+        FileSystemPath destination)
     {
         if (destination is not WindowsLocalPath localDestination)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
         }
-        if (!new DirectoryInfo(localDestination.CanonicalText).Exists)
+        DirectoryInfo destinationDirectory = new(localDestination.CanonicalText);
+        if (!destinationDirectory.Exists)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.NotFound);
         }
-        IEnumerable<ProviderStepOutcome> sourceOutcomes = sources.Select(source => WithRevalidatedEntry(source, entry =>
-            ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath ||
-            TargetExists(BuildTargetText(localDestination, entry))
-                ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-                : ProviderStepOutcome.Succeeded()));
-        ProviderStepOutcome? failure = sourceOutcomes.FirstOrDefault(sourceOutcome => sourceOutcome.Failure is not null);
-        return failure ?? ProviderStepOutcome.Succeeded();
+        if ((destinationDirectory.Attributes & FileAttributes.ReparsePoint) != 0)
+        {
+            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+        }
+
+        HashSet<string> reservations = new(StringComparer.OrdinalIgnoreCase);
+        List<TransferPlanEntry> plan = [];
+        List<TransferConflict> conflicts = [];
+        foreach (FileEntrySnapshot source in sources)
+        {
+            RevalidationOutcome revalidation = WindowsLocalEntryIdentity.Revalidate(source);
+            if (revalidation is EntryRejected rejected)
+            {
+                return TransferPreflightOutcome.Rejected(rejected.Failure);
+            }
+            FileSystemInfo entry = ((EntryMatched)revalidation).Entry;
+            if ((entry.Attributes & FileAttributes.ReparsePoint) != 0 ||
+                WindowsLocalTreeCopy.ContainsReparsePoint(entry))
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+            }
+            if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
+            }
+
+            FileSystemPath? ordinaryTarget = DirectChild(localDestination, entry.Name);
+            if (ordinaryTarget is null)
+            {
+                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+            }
+            TransferConflictChoice? choice = source.ConflictChoice;
+            bool ordinaryUnavailable = TargetExists(ordinaryTarget.CanonicalText) ||
+                reservations.Contains(ordinaryTarget.CanonicalText);
+            if (!ordinaryUnavailable && choice is null)
+            {
+                _ = reservations.Add(ordinaryTarget.CanonicalText);
+                plan.Add(TransferPlanEntry.Transfer(source, ordinaryTarget));
+                continue;
+            }
+            if (choice?.Decision == TransferConflictDecision.Skip)
+            {
+                plan.Add(TransferPlanEntry.Skip(source, ordinaryTarget));
+                continue;
+            }
+
+            FileSystemPath? candidate = choice?.Decision == TransferConflictDecision.KeepBoth
+                ? choice.KeepBothCandidate
+                : AllocateKeepBoth(localDestination, entry, reservations);
+            if (candidate is null ||
+                candidate.Parent is not FileSystemPath candidateParent ||
+                !FileSystemPathIdentityComparer.Instance.Equals(candidateParent, destination) ||
+                TargetExists(candidate.CanonicalText) ||
+                reservations.Contains(candidate.CanonicalText))
+            {
+                FileSystemPath? replacement = AllocateKeepBoth(localDestination, entry, reservations);
+                if (replacement is null)
+                {
+                    return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+                }
+                _ = reservations.Add(replacement.CanonicalText);
+                conflicts.Add(TransferConflict.Create(source, ordinaryTarget, replacement));
+                continue;
+            }
+            if (choice?.Decision == TransferConflictDecision.KeepBoth)
+            {
+                _ = reservations.Add(candidate.CanonicalText);
+                plan.Add(TransferPlanEntry.Transfer(source, candidate));
+                continue;
+            }
+            _ = reservations.Add(candidate.CanonicalText);
+            conflicts.Add(TransferConflict.Create(source, ordinaryTarget, candidate));
+        }
+        return conflicts.Count > 0
+            ? TransferPreflightOutcome.Conflicted(conflicts)
+            : TransferPreflightOutcome.Succeeded(plan);
+    }
+
+    private static FileSystemPath? AllocateKeepBoth(
+        WindowsLocalPath destination,
+        FileSystemInfo entry,
+        HashSet<string> reservations)
+    {
+        string extension = entry is FileInfo ? Path.GetExtension(entry.Name) : string.Empty;
+        string stem = extension.Length == 0 ? entry.Name : entry.Name[..^extension.Length];
+        for (BigInteger suffix = 2; ; suffix++)
+        {
+            string candidateName = stem + " (" + suffix.ToString(CultureInfo.InvariantCulture) + ")" + extension;
+            FileSystemPath? candidate = DirectChild(destination, candidateName);
+            if (candidate is null)
+            {
+                return null;
+            }
+            if (!TargetExists(candidate.CanonicalText) && !reservations.Contains(candidate.CanonicalText))
+            {
+                return candidate;
+            }
+        }
+    }
+
+    private static FileSystemPath? DirectChild(WindowsLocalPath destination, string name)
+    {
+        return name.Length > 255 ? null : (destination.Child(name) as PathParseSuccess)?.Path;
     }
 
     private static ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WindowsLocalPath localDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry => CopyEntry(entry, BuildTargetText(localDestination, entry)));
+            : WithRevalidatedEntry(source, entry => CopyEntry(entry, BuildTargetText(source, localDestination, entry)));
     }
 
     private static ProviderStepOutcome CopyEntry(FileSystemInfo entry, string targetText)
@@ -389,7 +489,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return destination is not WindowsLocalPath localDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, entry =>
-                WindowsLocalTreeCopy.Matches(entry, BuildTargetText(localDestination, entry))
+                WindowsLocalTreeCopy.Matches(entry, BuildTargetText(source, localDestination, entry))
                     ? ProviderStepOutcome.Succeeded()
                     : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
     }
@@ -448,9 +548,31 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return normalized == FileOperationFailureKind.ProviderUnavailable ? fallback : normalized;
     }
 
-    private static string BuildTargetText(WindowsLocalPath destination, FileSystemInfo entry)
+    private static string BuildTargetText(
+        FileEntrySnapshot source,
+        WindowsLocalPath destination,
+        FileSystemInfo entry)
     {
-        return WindowsLocalTreeCopy.ResolveDirectChild(destination.CanonicalText, entry.Name);
+        return source.TransferTarget?.CanonicalText ??
+            WindowsLocalTreeCopy.ResolveDirectChild(destination.CanonicalText, entry.Name);
+    }
+
+    private static TransferPreflightOutcome GuardedPreflight(Func<TransferPreflightOutcome> step)
+    {
+        try
+        {
+            return step();
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return TransferPreflightOutcome.Rejected(
+                Normalize(exception.HResult, FileOperationFailureKind.Inspection));
+        }
+        catch (IOException exception)
+        {
+            return TransferPreflightOutcome.Rejected(
+                Normalize(exception.HResult, FileOperationFailureKind.Inspection));
+        }
     }
 
     private static bool TargetExists(string targetText)
