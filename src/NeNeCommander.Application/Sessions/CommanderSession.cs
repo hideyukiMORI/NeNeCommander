@@ -60,13 +60,26 @@ public sealed class CommanderSession
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
         SettingsEditorState editor = _settings.Current.Editor;
+        if (editor == SettingsEditorState.Bookmarks &&
+            intent is BookmarkNavigationSelection managerNavigation)
+        {
+            return await NavigateManagerBookmarkAsync(
+                managerNavigation.Selection,
+                observer,
+                cancellationToken).ConfigureAwait(false);
+        }
         BookmarkEntry? directBookmark = editor == SettingsEditorState.Closed &&
             intent is BookmarkShortcutSelection shortcut
             ? _settings.Current.Settings.Bookmarks.Find(shortcut.Slot)
             : null;
-        bool bookmarkNavigationIntent = directBookmark is not null ||
-            (editor == SettingsEditorState.Bookmarks && intent is BookmarkNavigationSelection);
-        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 && !bookmarkNavigationIntent)
+        if (directBookmark is not null)
+        {
+            return await NavigateDirectBookmarkAsync(
+                directBookmark,
+                observer,
+                cancellationToken).ConfigureAwait(false);
+        }
+        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0)
         {
             return Current;
         }
@@ -77,8 +90,7 @@ public sealed class CommanderSession
         }
         if (editor == SettingsEditorState.Bookmarks)
         {
-            return await HandleBookmarkIntentAsync(intent, observer, cancellationToken)
-                .ConfigureAwait(false);
+            return HandleBookmarkIntent(intent, observer, cancellationToken);
         }
         if (intent == UserIntent.OpenSettings)
         {
@@ -98,10 +110,7 @@ public sealed class CommanderSession
         }
         if (intent is BookmarkShortcutSelection)
         {
-            return await NavigateDirectBookmarkAsync(
-                directBookmark,
-                observer,
-                cancellationToken).ConfigureAwait(false);
+            return Current;
         }
         _ = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
         return Current;
@@ -140,7 +149,7 @@ public sealed class CommanderSession
         };
     }
 
-    private async Task<CommanderSnapshot> HandleBookmarkIntentAsync(
+    private CommanderSnapshot HandleBookmarkIntent(
         UserIntent intent,
         ICommanderProgressObserver observer,
         CancellationToken cancellationToken)
@@ -163,23 +172,14 @@ public sealed class CommanderSession
                 cancellationToken);
             return Current;
         }
-        return intent is BookmarkNavigationSelection navigation
-            ? await NavigateManagerBookmarkAsync(
-                navigation.Selection,
-                observer,
-                cancellationToken).ConfigureAwait(false)
-            : Current;
+        return Current;
     }
 
     private async Task<CommanderSnapshot> NavigateDirectBookmarkAsync(
-        BookmarkEntry? bookmark,
+        BookmarkEntry bookmark,
         ICommanderProgressObserver observer,
         CancellationToken cancellationToken)
     {
-        if (bookmark is null)
-        {
-            return Current;
-        }
         if (!TryBeginBookmarkNavigation())
         {
             return Current;

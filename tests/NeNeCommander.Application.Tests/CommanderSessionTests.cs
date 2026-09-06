@@ -124,6 +124,14 @@ public sealed class CommanderSessionTests
         Assert.AreSame(PaneContent.Absent, explicitNavigation.Panes.Right.Content);
         read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "item.txt")));
         _ = await navigation;
+
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "next.txt")));
+        _ = await session.HandleAsync(
+            UserIntent.BookmarkSlotOne,
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(2, left.Requests);
     }
 
     /// <summary>Proves an unrelated left-pane read blocks a direct bookmark read.</summary>
@@ -183,6 +191,8 @@ public sealed class CommanderSessionTests
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.BookmarkSlotOne, observer, CancellationToken.None);
+        Assert.HasCount(1, left.Requests);
         TaskCompletionSource<DirectoryReadOutcome> read = left.EnqueuePending();
         Task<CommanderSnapshot> navigation = session.HandleAsync(
             UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
@@ -232,6 +242,15 @@ public sealed class CommanderSessionTests
             "C:\\bookmark",
             Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content)
                 .Listing.Location.CanonicalText);
+
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "again.txt")));
+        _ = await session.HandleAsync(
+            UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(3, left.Requests);
     }
 
     /// <summary>Proves failed manager navigation retains modal, selection metadata, and old listing.</summary>
@@ -484,7 +503,17 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         using FileOperationGateway gateway = CreateGateway();
-        CommanderSession session = CreateSession(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        BookmarkCatalog catalog = Catalog(
+            Entry("Target", "C:\\target", BookmarkShortcutSlot.One));
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+            SettingsReadOutcome.Read(UserSettings.Create(
+                ColorScheme.NeNeDark,
+                HiddenItemVisibility.Hidden,
+                catalog)));
         RecordingCommanderObserver observer = new();
 
         CommanderSnapshot opened = await session.HandleAsync(
@@ -494,6 +523,10 @@ public sealed class CommanderSessionTests
         CommanderSnapshot frozen = await session.NavigateAsync(
             PaneSide.Left,
             ParsePath("C:\\frozen"),
+            CancellationToken.None);
+        _ = await session.HandleAsync(
+            UserIntent.BookmarkSlotOne,
+            observer,
             CancellationToken.None);
 
         Assert.AreSame(SettingsEditorState.Open, opened.Settings.Editor);
