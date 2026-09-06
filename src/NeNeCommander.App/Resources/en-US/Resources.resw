@@ -56,6 +56,12 @@
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
   <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
   <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
+  <data name="KeyLabelCtrlD" xml:space="preserve"><value>Ctrl+D</value></data>
+  <data name="KeyLabelCtrlH" xml:space="preserve"><value>Ctrl+H</value></data>
+  <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
+  <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
+  <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
+  <data name="KeyLabelAltUp" xml:space="preserve"><value>Alt+↑</value></data>
   <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
   <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
   <data name="KeyLabelL" xml:space="preserve"><value>l</value></data>

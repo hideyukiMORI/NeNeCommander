@@ -39,7 +39,6 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.F6), UserIntent.Move);
         AssertMaps(mapper, Input(KeyboardKey.F7), UserIntent.CreateDirectory);
         AssertMaps(mapper, Input(KeyboardKey.F8), UserIntent.Delete);
-        AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
     }
 
     /// <summary>Proves every modified Windows-compatible alias.</summary>
@@ -53,6 +52,7 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.U, KeyboardModifier.Control), UserIntent.MoveHalfPageUp);
         AssertMaps(mapper, Input(KeyboardKey.L, KeyboardModifier.Control), UserIntent.FocusAddress);
         AssertMaps(mapper, Input(KeyboardKey.R, KeyboardModifier.Control), UserIntent.Refresh);
+        AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
     }
 
     /// <summary>Proves the gg chord includes its exact lifetime boundary.</summary>

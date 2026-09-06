@@ -24,7 +24,7 @@ public sealed class KeyHintPresenterTests
         AssertHint(hints[3], "KeyLabelF7", "IntentLabelCreateDirectory");
         AssertHint(hints[4], "KeyLabelF8", "IntentLabelDelete");
         AssertHint(hints[5], "KeyLabelTab", "IntentLabelActivateOtherPane");
-        AssertHint(hints[6], "KeyLabelH", "IntentLabelToggleHiddenItems");
+        AssertHint(hints[6], "KeyLabelCtrlH", "IntentLabelToggleHiddenItems");
         AssertHint(hints[7], "KeyLabelEscape", "IntentLabelEscape");
     }
 
@@ -75,7 +75,7 @@ public sealed class KeyHintPresenterTests
         HashSet<string> declaredLabels = [];
         foreach (KeyBinding binding in KeyboardIntentMapper.BindingsFor(context))
         {
-            _ = declaredLabels.Add(binding.Key.LabelResourceKey);
+            _ = declaredLabels.Add(binding.KeyLabelResourceKey);
         }
         foreach (KeyHint hint in KeyHintPresenter.Present(context))
         {
