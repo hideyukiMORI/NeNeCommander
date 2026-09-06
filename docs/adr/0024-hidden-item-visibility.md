@@ -38,7 +38,7 @@ The missing piece was the fact itself. `DirectoryEntry` carried a path, a provid
 - **Keeping `PaneState.VisibleItems` as paths and holding the entries only in `DirectoryListing`.** The reducer would need the listing passed alongside the state to recompute a visible set, an invariant nothing could enforce, and the presenter would have to intersect the listing with a path set on every render.
 - **A `HiddenItemVisibility` field owned by `PaneSession`.** One line shorter today and wrong the moment the toggle key exists: the session would re-apply its own stale value on the next read and silently undo the transition. Two owners for one value is what ARC-004 forbids.
 - **A new `PaneStatus` for "some entries are not shown".** It reads helpful and it lies: `Complete` and `EntriesOmitted` describe the read, and overloading them with a pane preference would make the status mean two different things. If hiding needs a visible indicator, it is a bar or header affordance with its own resources.
-- **Adding the toggle keystroke in the same change.** It needs a `docs/KEYBOARD_MODEL.md` revision, a new binding in the canonical table, its generated hint, and the key-map uniqueness proof. Bundling it would hide a keyboard-contract change inside a settings-consumption change.
+- **Adding the toggle keystroke in the original visibility change.** It needed a `docs/KEYBOARD_MODEL.md` revision, a new binding in the canonical table, its generated hint, and the key-map uniqueness proof. It was therefore implemented by the later focused Issue #72 instead of being hidden inside the settings-consumption change.
 
 ## Consequences
 
@@ -46,7 +46,7 @@ The missing piece was the fact itself. `DirectoryEntry` carried a path, a provid
 - `DirectoryEntry.Create` and `PaneState.Create` each take one more argument, and `PaneSession` takes four. All three sit exactly at CS-013's parameter ceiling; the next value either of them needs will have to be grouped into a type.
 - The visible set is materialized once per state, so a visibility change or a location change allocates one extra list of the visible entries. A listing is bounded at 10,000 entries (ADR-0010), so the cost is bounded too.
 - `PaneState.Entries` is internal: only the reducer needs the omitted entries, to recover focus. Nothing outside the Application layer can see an entry the pane does not show.
-- `PaneReducer.ApplyHiddenItemVisibility` has no keyboard route yet. It is public because it is a canonical transition and is proved by tests today; the keystroke ADR adds the binding and nothing else.
+- `PaneReducer.ApplyHiddenItemVisibility` is reached by the `Ctrl+H` binding through `ToggleHiddenItems`; the route changes session state without writing settings.
 - The hidden row is distinguished by its name colour alone. The kind icon and the `DIR` label keep their own brushes, so a hidden directory still reads as a directory.
 - `DirectoryListing` ordering does not depend on visibility, so showing hidden entries never reorders the entries that were already visible.
 

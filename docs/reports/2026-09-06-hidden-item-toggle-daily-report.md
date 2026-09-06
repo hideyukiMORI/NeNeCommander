@@ -6,4 +6,4 @@ Issue #72 selects `Ctrl+H` under the design delegation recorded by hide on 2026-
 
 The change is session-only. Settings persistence remains Issue #74 and no settings write path was added. The file-list hint is generated from the same binding table and localized in both `en-US` and `ja-JP` resources.
 
-Focused proof added: mapper mapping and binding count, file-list hint order, reducer toggle in both directions, focus recovery after hiding, and existing uniqueness/context tests. Full integration evidence is pending Draft PR review; no Ready transition or merge is claimed here.
+Focused proof added: Windows control-character translation for `Ctrl+H`, mapper mapping and binding count, file-list hint order, reducer toggle in both directions, focus recovery after hiding, and input/application freeze across text entry, modal, name-entry, and running states. Full integration evidence is pending Draft PR review; no Ready transition or merge is claimed here.

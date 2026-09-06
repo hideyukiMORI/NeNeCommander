@@ -353,6 +353,7 @@ public sealed class DualPaneSessionTests
 
         DualPaneSnapshot awaiting = await fixture.Panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot moved = await fixture.Panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot hiddenToggle = await fixture.Panes.HandleAsync(UserIntent.ToggleHiddenItems, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot activated = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot navigated = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\elsewhere"), CancellationToken.None);
         DualPaneSnapshot escaped = await fixture.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -362,6 +363,7 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(leftListing.Location, pending.Subject);
         Assert.AreEqual(string.Empty, pending.InitialName);
         Assert.AreEqual(awaiting, moved);
+        Assert.AreEqual(awaiting, hiddenToggle);
         Assert.AreEqual(awaiting, activated);
         Assert.AreEqual(awaiting, navigated);
         Assert.AreSame(OperationActivity.Idle, escaped.Operation);

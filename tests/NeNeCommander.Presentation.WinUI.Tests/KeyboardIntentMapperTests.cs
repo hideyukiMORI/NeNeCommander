@@ -247,6 +247,20 @@ public sealed class KeyboardIntentMapperTests
         AssertTranslatedCharacter('\u0015', KeyboardKey.U);
         AssertTranslatedCharacter('x', KeyboardKey.Other);
 
+        KeyboardInput controlH = KeyboardInputTranslator.TranslateCharacterData(
+            '\u0008',
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList,
+            KeyboardModifier.Control);
+        KeyboardInput unmodifiedBackspaceCharacter = KeyboardInputTranslator.TranslateCharacterData(
+            '\u0008',
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList,
+            KeyboardModifier.None);
+
+        Assert.AreSame(KeyboardKey.H, controlH.Key);
+        Assert.AreSame(KeyboardKey.Other, unmodifiedBackspaceCharacter.Key);
+
         KeyboardInput repeated = KeyboardInputTranslator.TranslateCharacterData(
             'j',
             KeyRepeatState.Repeated,

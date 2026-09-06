@@ -44,6 +44,7 @@ internal static class KeyboardInputTranslator
             'G' => KeyboardKey.UpperG,
             'g' => KeyboardKey.LowerG,
             'h' => KeyboardKey.H,
+            '\u0008' when modifier == KeyboardModifier.Control => KeyboardKey.H,
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
             'l' or '\u000c' => KeyboardKey.L,
