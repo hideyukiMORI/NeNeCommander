@@ -83,11 +83,14 @@ public abstract record FileSystemPath
         }
 
         string normalizedSeparators = input.Replace('/', '\\');
-        return IsDeviceNamespace(normalizedSeparators)
+        PathParseOutcome outcome = IsDeviceNamespace(normalizedSeparators)
             ? new PathParseFailure(PathParseFailureKind.DeviceNamespace)
             : normalizedSeparators.StartsWith("\\\\", StringComparison.Ordinal)
                 ? ParseUnc(normalizedSeparators)
                 : ParseLocal(normalizedSeparators);
+        return outcome is PathParseSuccess success && success.Path.CanonicalText.Length > MaximumPathLength
+            ? new PathParseFailure(PathParseFailureKind.TooLong)
+            : outcome;
     }
 
     private static PathParseOutcome ParseLocal(string input)
