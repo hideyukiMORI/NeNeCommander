@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
@@ -111,9 +112,11 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden]);
+            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null]);
+            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
         AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),

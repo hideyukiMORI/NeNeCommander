@@ -17,11 +17,21 @@ public sealed record KeyBinding
             [KeyboardModifier.Control] = new Dictionary<KeyboardKey, string>
             {
                 [KeyboardKey.D] = "KeyLabelCtrlD",
+                [KeyboardKey.B] = "KeyLabelCtrlB",
                 [KeyboardKey.H] = "KeyLabelCtrlH",
                 [KeyboardKey.Comma] = "KeyLabelCtrlComma",
                 [KeyboardKey.L] = "KeyLabelCtrlL",
                 [KeyboardKey.R] = "KeyLabelCtrlR",
                 [KeyboardKey.U] = "KeyLabelCtrlU",
+                [KeyboardKey.One] = "KeyLabelCtrl1",
+                [KeyboardKey.Two] = "KeyLabelCtrl2",
+                [KeyboardKey.Three] = "KeyLabelCtrl3",
+                [KeyboardKey.Four] = "KeyLabelCtrl4",
+                [KeyboardKey.Five] = "KeyLabelCtrl5",
+                [KeyboardKey.Six] = "KeyLabelCtrl6",
+                [KeyboardKey.Seven] = "KeyLabelCtrl7",
+                [KeyboardKey.Eight] = "KeyLabelCtrl8",
+                [KeyboardKey.Nine] = "KeyLabelCtrl9",
             },
             [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
             {

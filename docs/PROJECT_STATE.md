@@ -45,6 +45,8 @@ Status: normative
 - Completed transfer-conflict resolver work: [Issue #73](https://github.com/hideyukiMORI/NeNeCommander/issues/73) (closed by PR #91); exact-head deep run `34024958974`, dependency run `34024930887`, and canonical Ready run `34025761545` passed before squash merge `495ee51f`.
 - Completed settings-persistence work: [Issue #74](https://github.com/hideyukiMORI/NeNeCommander/issues/74) (closed by PR #92); the corrected exact-head deep run `34031541883`, dependency run `34031503892`, and canonical Ready run `34033250650` passed before squash merge `b6096d6a`.
 - Completed deterministic settings-test work: [Issue #97](https://github.com/hideyukiMORI/NeNeCommander/issues/97) (closed by PR #98); dependency run `34034884120` and canonical Ready run `34034893392` passed before squash merge `894b999d`.
+- Active categorized-bookmark work: [Issue #99](https://github.com/hideyukiMORI/NeNeCommander/issues/99); ADR-0041 extends the single settings document and queue with a bounded catalog and routes manager and fixed-slot navigation through the active pane's existing read path. The branch remains Draft work and has no merge-readiness evidence yet.
+- Follow-up user requests: [Issue #100](https://github.com/hideyukiMORI/NeNeCommander/issues/100) tracks window movement and resizing shortcuts; [Issue #101](https://github.com/hideyukiMORI/NeNeCommander/issues/101) tracks `Ctrl+P` command search. Neither is implemented by Issue #99.
 - Policy foundation authorized by hide on: `2026-09-02`
 
 ## Current checkpoint
@@ -57,6 +59,8 @@ Status: normative
 - Live WSL proof remains unexecuted and is tracked by [Issue #93](https://github.com/hideyukiMORI/NeNeCommander/issues/93); the repository still has no executable live harness and the prior environment readback found `NENE_COMMANDER_WSL_TEST_ROOT` unset. The Windows high-contrast, DPI, narrow-width, eight-scheme, and keyboard-modal matrix remains unexecuted and is tracked by [Issue #94](https://github.com/hideyukiMORI/NeNeCommander/issues/94). Neither release tier is a passing result until its required cells run.
 
 - Verified implementation baseline: `894b999dc92c574501d7f240ac901331b0c447da`
+- Bookmark report: [`docs/reports/2026-09-06-category-bookmarks-daily-report.md`](reports/2026-09-06-category-bookmarks-daily-report.md)
+- Bookmark handoff: [`docs/handoffs/2026-09-06-category-bookmarks-handoff.md`](handoffs/2026-09-06-category-bookmarks-handoff.md)
 - Transfer-conflict report: [`docs/reports/2026-09-06-transfer-conflict-resolver-daily-report.md`](reports/2026-09-06-transfer-conflict-resolver-daily-report.md)
 - Transfer-conflict handoff: [`docs/handoffs/2026-09-06-transfer-conflict-resolver-handoff.md`](handoffs/2026-09-06-transfer-conflict-resolver-handoff.md)
 - Settings persistence report: [`docs/reports/2026-09-06-settings-persistence-daily-report.md`](reports/2026-09-06-settings-persistence-daily-report.md)

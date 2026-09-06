@@ -18,7 +18,7 @@ public sealed class KeyHintPresenterTests
     {
         IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.FileList);
 
-        Assert.HasCount(9, hints);
+        Assert.HasCount(10, hints);
         AssertHint(hints[0], "KeyLabelF2", "IntentLabelRename");
         AssertHint(hints[1], "KeyLabelF5", "IntentLabelCopy");
         AssertHint(hints[2], "KeyLabelF6", "IntentLabelMove");
@@ -26,8 +26,9 @@ public sealed class KeyHintPresenterTests
         AssertHint(hints[4], "KeyLabelF8", "IntentLabelDelete");
         AssertHint(hints[5], "KeyLabelTab", "IntentLabelActivateOtherPane");
         AssertHint(hints[6], "KeyLabelCtrlH", "IntentLabelToggleHiddenItems");
-        AssertHint(hints[7], "KeyLabelCtrlComma", "IntentLabelOpenSettings");
-        AssertHint(hints[8], "KeyLabelEscape", "IntentLabelEscape");
+        AssertHint(hints[7], "KeyLabelCtrlB", "IntentLabelOpenBookmarks");
+        AssertHint(hints[8], "KeyLabelCtrlComma", "IntentLabelOpenSettings");
+        AssertHint(hints[9], "KeyLabelEscape", "IntentLabelEscape");
     }
 
     /// <summary>Proves a pending modal shows only its two declared keys.</summary>
@@ -78,11 +79,14 @@ public sealed class KeyHintPresenterTests
     {
         AssertBindingLabel(KeyboardModifier.None, KeyboardKey.F5, "KeyLabelF5");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.D, "KeyLabelCtrlD");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.B, "KeyLabelCtrlB");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.H, "KeyLabelCtrlH");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.Comma, "KeyLabelCtrlComma");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.L, "KeyLabelCtrlL");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.R, "KeyLabelCtrlR");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.U, "KeyLabelCtrlU");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.One, "KeyLabelCtrl1");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.Nine, "KeyLabelCtrl9");
         AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.Up, "KeyLabelAltUp");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.Up, "KeyLabelUnmapped");
         AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.D, "KeyLabelUnmapped");

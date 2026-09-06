@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NeNeCommander.Application.Bookmarks;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -65,6 +66,16 @@ public sealed class SettingsSession
         }
     }
 
+    /// <summary>Opens the bookmark catalog editor without changing metadata.</summary>
+    public SettingsSnapshot OpenBookmarks()
+    {
+        lock (_sync)
+        {
+            _editor = SettingsEditorState.Bookmarks;
+            return Snapshot();
+        }
+    }
+
     /// <summary>Closes the settings modal without rolling back save-on-change selections.</summary>
     /// <returns>The current closed snapshot.</returns>
     public SettingsSnapshot Close()
@@ -92,7 +103,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(scheme, _settings.HiddenItemVisibility),
+                UserSettings.Create(scheme, _settings.HiddenItemVisibility, _settings.Bookmarks),
                 observer,
                 cancellationToken);
         }
@@ -114,7 +125,32 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(_settings.ColorScheme, visibility),
+                UserSettings.Create(_settings.ColorScheme, visibility, _settings.Bookmarks),
+                observer,
+                cancellationToken);
+        }
+    }
+
+    /// <summary>Accepts and queues one complete bookmark catalog while preserving preferences.</summary>
+    /// <param name="catalog">Complete validated replacement catalog.</param>
+    /// <param name="observer">Receives the state current after this write completes.</param>
+    /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
+    /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
+    public Task SaveBookmarkCatalogAsync(
+        BookmarkCatalog catalog,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            return QueueWrite(
+                UserSettings.Create(
+                    _settings.ColorScheme,
+                    _settings.HiddenItemVisibility,
+                    catalog),
                 observer,
                 cancellationToken);
         }

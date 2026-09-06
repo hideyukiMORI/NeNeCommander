@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Presentation.WinUI.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
@@ -14,7 +15,10 @@ public sealed class SettingsPresenterTests
     public void PresentWhenEditorIsOpenProjectsEveryChoice()
     {
         SettingsSnapshot snapshot = Snapshot(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(
+                ColorScheme.Dracula,
+                HiddenItemVisibility.Shown,
+                BookmarkCatalog.Empty),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
 

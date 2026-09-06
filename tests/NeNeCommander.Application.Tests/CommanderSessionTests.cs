@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
@@ -15,6 +16,154 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class CommanderSessionTests
 {
+    /// <summary>Proves an assigned fixed slot reads only the active pane through its existing port.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBookmarkSlotIsAssignedNavigatesOnlyTheActivePaneAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        BookmarkCatalog catalog = Catalog(
+            Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One));
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+            SettingsReadOutcome.Read(UserSettings.Create(
+                ColorScheme.NeNeDark,
+                HiddenItemVisibility.Hidden,
+                catalog)));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+
+        CommanderSnapshot navigated = await session.HandleAsync(
+            UserIntent.BookmarkSlotOne,
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(2, left.Requests);
+        Assert.IsEmpty(right.Requests);
+        Assert.AreEqual("C:\\bookmark", left.Requests[1].Location.CanonicalText);
+        PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content);
+        Assert.AreEqual("C:\\bookmark", content.Listing.Location.CanonicalText);
+    }
+
+    /// <summary>Proves an unassigned fixed slot is a metadata no-op with no filesystem read.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBookmarkSlotIsUnassignedPerformsNoReadAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+
+        CommanderSnapshot unchanged = await session.HandleAsync(
+            UserIntent.BookmarkSlotNine,
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        Assert.IsEmpty(left.Requests);
+        Assert.IsEmpty(right.Requests);
+        Assert.AreSame(PaneContent.Absent, unchanged.Panes.Left.Content);
+    }
+
+    /// <summary>Proves successful manager navigation closes only after the existing read succeeds.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenManagerBookmarkSucceedsClosesAfterReadAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        BookmarkEntry entry = Entry("Target", "C:\\bookmark", null);
+        BookmarkCatalog catalog = Catalog(entry);
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSessionWithCatalog(left, right, gateway, catalog);
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+        TaskCompletionSource<DirectoryReadOutcome> read = left.EnqueuePending();
+        Task<CommanderSnapshot> navigation = session.HandleAsync(
+            UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Bookmarks, session.Current.Settings.Editor);
+        Assert.HasCount(2, left.Requests);
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        CommanderSnapshot navigated = await navigation;
+
+        Assert.AreSame(SettingsEditorState.Closed, navigated.Settings.Editor);
+        Assert.AreEqual(
+            "C:\\bookmark",
+            Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content)
+                .Listing.Location.CanonicalText);
+    }
+
+    /// <summary>Proves failed manager navigation retains modal, selection metadata, and old listing.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenManagerBookmarkFailsKeepsManagerAndOldListingAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        BookmarkEntry entry = Entry("Offline", "\\\\server\\share", null);
+        BookmarkCatalog catalog = Catalog(entry);
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSessionWithCatalog(left, right, gateway, catalog);
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        CommanderSnapshot failed = await session.HandleAsync(
+            UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Bookmarks, failed.Settings.Editor);
+        Assert.AreSame(catalog, failed.Settings.Settings.Bookmarks);
+        Assert.AreEqual(
+            "C:\\left",
+            Assert.IsInstanceOfType<PaneContentListed>(failed.Panes.Left.Content)
+                .Listing.Location.CanonicalText);
+        _ = Assert.IsInstanceOfType<PaneReadFailed>(failed.Panes.Left.Activity);
+    }
+
+    /// <summary>Proves a stale displayed key cannot be rebound to a replacement path.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenManagerSelectionIsStaleRejectsWithoutReadAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        BookmarkEntry oldEntry = Entry("Target", "C:\\old", null);
+        BookmarkEntry currentEntry = Entry("Target", "C:\\new", null);
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSessionWithCatalog(
+            left,
+            right,
+            gateway,
+            Catalog(currentEntry));
+        RecordingCommanderObserver observer = new();
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        CommanderSnapshot rejected = await session.HandleAsync(
+            UserIntent.NavigateBookmark(new BookmarkSelection(oldEntry)),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Bookmarks, rejected.Settings.Editor);
+        Assert.IsEmpty(left.Requests);
+        Assert.IsEmpty(right.Requests);
+        Assert.AreEqual("C:\\new", rejected.Settings.Settings.Bookmarks.Bookmarks[0].Path.Value.CanonicalText);
+    }
+
     /// <summary>Proves opening settings freezes both pane navigation paths until Escape closes it.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenSettingsAreOpenFreezesPanesUntilEscapeAsync()
@@ -194,6 +343,16 @@ public sealed class CommanderSessionTests
         FileOperationGateway gateway,
         ISettingsStore store)
     {
+        return CreateSession(left, right, gateway, store, SettingsReadOutcome.Absent());
+    }
+
+    private static CommanderSession CreateSession(
+        ScriptedDirectoryReadPort left,
+        ScriptedDirectoryReadPort right,
+        FileOperationGateway gateway,
+        ISettingsStore store,
+        SettingsReadOutcome initialOutcome)
+    {
         PaneSession leftPane = new(
             left,
             Capacity(),
@@ -206,7 +365,24 @@ public sealed class CommanderSessionTests
             HiddenItemVisibility.Hidden);
         return new CommanderSession(
             new DualPaneSession(leftPane, rightPane, gateway),
-            new SettingsSession(store, SettingsReadOutcome.Absent(), static _ => { }));
+            new SettingsSession(store, initialOutcome, static _ => { }));
+    }
+
+    private static CommanderSession CreateSessionWithCatalog(
+        ScriptedDirectoryReadPort left,
+        ScriptedDirectoryReadPort right,
+        FileOperationGateway gateway,
+        BookmarkCatalog catalog)
+    {
+        return CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+            SettingsReadOutcome.Read(UserSettings.Create(
+                ColorScheme.NeNeDark,
+                HiddenItemVisibility.Hidden,
+                catalog)));
     }
 
     private static FileOperationGateway CreateGateway()
@@ -246,6 +422,24 @@ public sealed class CommanderSessionTests
     private static FileSystemPath ParsePath(string text)
     {
         return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path;
+    }
+
+    private static BookmarkEntry Entry(
+        string name,
+        string path,
+        BookmarkShortcutSlot? slot)
+    {
+        BookmarkDisplayName displayName = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
+            BookmarkDisplayName.Parse(name)).Name;
+        BookmarkPath bookmarkPath = Assert.IsInstanceOfType<BookmarkPathAccepted>(
+            BookmarkPath.Parse(path)).Path;
+        return BookmarkEntry.Create(displayName, bookmarkPath, null, slot);
+    }
+
+    private static BookmarkCatalog Catalog(BookmarkEntry entry)
+    {
+        return Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([], [entry])).Catalog;
     }
 
 }

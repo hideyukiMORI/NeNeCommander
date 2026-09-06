@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
@@ -359,15 +360,16 @@ public sealed class WindowsLocalSettingsStoreTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
-        UserSettings settings = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown);
+        UserSettings settings = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(settings, CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         byte[] bytes = File.ReadAllBytes(root.Resolve(DocumentName));
         CollectionAssert.AreEqual(
-            System.Text.Encoding.UTF8.GetBytes(
-                "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"}"),
+            Encoding.UTF8.GetBytes(
+                "{\"schemaVersion\":2,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
+                "\"bookmarkCategories\":[],\"bookmarks\":[]}"),
             bytes);
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
     }
@@ -383,12 +385,13 @@ public sealed class WindowsLocalSettingsStoreTests
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.SolarizedLight, HiddenItemVisibility.Hidden),
+            UserSettings.Create(ColorScheme.SolarizedLight, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.AreEqual(
-            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"solarized-light\"}",
+            "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"solarized-light\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -424,12 +427,13 @@ public sealed class WindowsLocalSettingsStoreTests
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown),
+            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.AreEqual(
-            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}",
+            "{\"schemaVersion\":2,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
             File.ReadAllText(root.Resolve(DocumentName)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
     }
@@ -497,20 +501,21 @@ public sealed class WindowsLocalSettingsStoreTests
         _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
 
         SettingsWriteOutcome first = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden),
+            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty),
             CancellationToken.None);
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
             CancellationToken.None);
         SettingsWriteOutcome third = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden),
+            UserSettings.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(second);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(third);
         Assert.AreEqual(
-            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"monokai\"}",
+            "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"monokai\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -523,16 +528,17 @@ public sealed class WindowsLocalSettingsStoreTests
         WindowsLocalSettingsStore store = CreateStoreAt(root, NestedDocument);
 
         SettingsWriteOutcome first = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden),
+            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty),
             CancellationToken.None);
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(second);
         Assert.AreEqual(
-            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"}",
+            "{\"schemaVersion\":2,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
             File.ReadAllText(root.Resolve(NestedDocument)));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
     }
@@ -562,7 +568,7 @@ public sealed class WindowsLocalSettingsStoreTests
         SettingsWriteRejected first = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(UserSettings.Default, CancellationToken.None));
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
             CancellationToken.None);
 
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, first.Failure);
@@ -648,7 +654,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden),
+                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
@@ -685,7 +691,7 @@ public sealed class WindowsLocalSettingsStoreTests
         SettingsWriteOutcome first = await store.WriteAsync(UserSettings.Default, CancellationToken.None);
         SettingsWriteRejected second = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
                 CancellationToken.None));
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
@@ -713,7 +719,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
@@ -993,7 +999,7 @@ public sealed class WindowsLocalSettingsStoreTests
             });
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
             cancellation.Token);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
@@ -1382,7 +1388,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Directory.Move(root.Resolve("parked-parent"), root.Resolve("settings-parent"));
         SettingsWriteRejected second = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown),
+                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, second.Failure);
