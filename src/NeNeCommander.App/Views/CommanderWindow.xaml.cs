@@ -82,7 +82,12 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
-        args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
+        KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
+        if (ConflictModal.Visibility == Visibility.Visible)
+        {
+            outcome = KeyboardIntentMapper.DeferConflictConfirmToNativeControl(outcome);
+        }
+        args.Handled = ForwardOutcome(outcome);
     }
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)
@@ -309,11 +314,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void ForwardIntent(UserIntent intent)
     {
-        UserIntent forwarded = intent == UserIntent.Confirm && ConflictModal.Visibility == Visibility.Visible
-            ? UserIntent.ResolveConflict(
-                TransferConflictDecision.Cancel,
-                TransferConflictScope.Current)
-            : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
+        UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
                 ? UserIntent.SubmitName(NameEntry.Text)
                 : intent;
         _ = _paneWork.TryStart(cancellationToken =>

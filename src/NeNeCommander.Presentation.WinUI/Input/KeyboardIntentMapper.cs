@@ -84,6 +84,15 @@ public sealed class KeyboardIntentMapper
         return declared.AsReadOnly();
     }
 
+    internal static KeyboardMappingOutcome DeferConflictConfirmToNativeControl(
+        KeyboardMappingOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        return outcome is MappedKeyboardIntent mapped && mapped.Intent == UserIntent.Confirm
+            ? new KeyboardPassThrough()
+            : outcome;
+    }
+
     /// <summary>Maps exactly one translated event under its explicit focus context.</summary>
     /// <param name="input">Complete translated keyboard event.</param>
     /// <returns>A mapped intent, pass-through decision, or pending-chord state.</returns>
