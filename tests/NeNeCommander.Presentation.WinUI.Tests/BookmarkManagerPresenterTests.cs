@@ -36,9 +36,18 @@ public sealed class BookmarkManagerPresenterTests
         Assert.AreEqual("All bookmarks", presentation.Browse.Categories[0].DisplayText);
         Assert.AreEqual("Uncategorized", presentation.Browse.Categories[1].DisplayText);
         Assert.AreEqual("Work", presentation.Browse.Categories[2].DisplayText);
+        Assert.IsTrue(presentation.Browse.Categories[0].IsSelected);
+        Assert.IsFalse(presentation.Browse.Categories[1].IsSelected);
+        Assert.IsFalse(presentation.Browse.Categories[2].IsSelected);
+        Assert.IsNull(presentation.Browse.Categories[0].Selection);
+        Assert.IsNull(presentation.Browse.Categories[1].Selection);
+        Assert.IsNotNull(presentation.Browse.Categories[2].Selection);
         Assert.HasCount(1, presentation.Browse.Rows);
         Assert.AreEqual("Repository", presentation.Browse.Rows[0].NameText);
+        Assert.AreEqual("C:\\work", presentation.Browse.Rows[0].PathText);
+        Assert.AreEqual("Work", presentation.Browse.Rows[0].CategoryText);
         Assert.AreEqual("KeyLabelCtrl2", presentation.Browse.Rows[0].ShortcutLabelResourceKey);
+        Assert.IsTrue(presentation.Browse.Rows[0].IsSelected);
         Assert.AreSame(presentation.Browse.Rows[0], presentation.Browse.SelectedRow);
         Assert.AreSame(BookmarkManagerFocusTarget.Search, presentation.Details.InitialFocus);
         Assert.AreSame(SettingsSaveStatus.Succeeded, presentation.Persistence.SaveStatus);
@@ -101,6 +110,38 @@ public sealed class BookmarkManagerPresenterTests
         Assert.AreEqual("BookmarkStatusEditing", presentation.Details.StatusResourceKey);
     }
 
+    /// <summary>Proves an add draft exposes its selected category, unassigned shortcut, and ready status.</summary>
+    [TestMethod]
+    public void PresentWhenNewBookmarkDraftHasNoProblemProjectsEveryDefaultChoice()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCatalog catalog = Catalog([work], []);
+        BookmarkDraft draft = new(
+            "Repo",
+            "C:\\repo",
+            BookmarkCategoryFilter.Uncategorized,
+            null);
+        BookmarksEditorState state = Construct<BookmarkDrafting>(
+            [
+                typeof(BookmarkBrowseContext),
+                typeof(BookmarkSelection),
+                typeof(BookmarkDraft),
+                typeof(BookmarkEditorProblem),
+            ],
+            [new BookmarkBrowseContext(string.Empty, BookmarkCategoryFilter.All, null), null, draft, null]);
+
+        BookmarkManagerPresentation presentation = Present(catalog, state);
+
+        Assert.IsTrue(presentation.Details.IsAddingBookmark);
+        Assert.AreSame(draft, presentation.Details.BookmarkDraft);
+        Assert.AreEqual("BookmarkStatusAdding", presentation.Details.StatusResourceKey);
+        Assert.AreEqual("Uncategorized", presentation.Details.SelectedDraftCategory!.DisplayText);
+        Assert.IsTrue(presentation.Details.Shortcuts[0].IsSelected);
+        Assert.IsNull(presentation.Details.SelectedShortcut!.Slot);
+        Assert.AreEqual("BookmarkShortcutUnassigned", presentation.Details.SelectedShortcut.LabelResourceKey);
+        Assert.AreSame(BookmarkManagerFocusTarget.BookmarkName, presentation.Details.InitialFocus);
+    }
+
     /// <summary>Proves category deletion exposes its affected count and safe initial focus.</summary>
     [TestMethod]
     public void PresentWhenCategoryDeleteAwaitsConfirmationReportsCountAndCancelFocus()
@@ -144,6 +185,7 @@ public sealed class BookmarkManagerPresenterTests
 
         Assert.IsTrue(pendingPresentation.Details.IsNavigationPending);
         Assert.IsTrue(pendingPresentation.Details.IsInputFrozen);
+        Assert.AreSame(selection, pendingPresentation.Details.NavigationSelection);
         Assert.AreEqual("BookmarkStatusNavigationPending", pendingPresentation.Details.StatusResourceKey);
         Assert.IsTrue(failedPresentation.Details.IsNavigationFailed);
         Assert.IsFalse(failedPresentation.Details.IsInputFrozen);
@@ -291,9 +333,11 @@ public sealed class BookmarkManagerPresenterTests
     public void PresentWhenSearchAndCategoryFiltersVaryKeepsCatalogOrderAndClosedMembership()
     {
         BookmarkCategoryName work = Category("Work");
+        BookmarkCategoryName personal = Category("Personal");
         BookmarkEntry uncategorized = Entry("Notes", "C:\\notes", null, null);
         BookmarkEntry repository = Entry("Repository", "C:\\work\\src", work, BookmarkShortcutSlot.One);
-        BookmarkCatalog catalog = Catalog([work], [uncategorized, repository]);
+        BookmarkEntry journal = Entry("Journal", "C:\\personal", personal, null);
+        BookmarkCatalog catalog = Catalog([work, personal], [uncategorized, repository, journal]);
 
         BookmarkManagerPresentation byPath = Present(
             catalog,
@@ -314,8 +358,38 @@ public sealed class BookmarkManagerPresenterTests
         Assert.AreEqual("Repository", byCategory.Browse.Rows[0].NameText);
         Assert.HasCount(1, uncategorizedOnly.Browse.Rows);
         Assert.AreEqual("Notes", uncategorizedOnly.Browse.Rows[0].NameText);
+        Assert.AreEqual("Uncategorized", uncategorizedOnly.Browse.Rows[0].CategoryText);
+        Assert.AreEqual("KeyLabelUnmapped", uncategorizedOnly.Browse.Rows[0].ShortcutLabelResourceKey);
+        Assert.IsTrue(uncategorizedOnly.Browse.Categories[1].IsSelected);
         Assert.HasCount(1, workOnly.Browse.Rows);
         Assert.AreEqual("Repository", workOnly.Browse.Rows[0].NameText);
+        Assert.IsTrue(workOnly.Browse.Categories[2].IsSelected);
+        Assert.IsFalse(workOnly.Browse.Categories[3].IsSelected);
+    }
+
+    /// <summary>Proves stale draft categories do not fabricate a selected presentation option.</summary>
+    [TestMethod]
+    public void PresentWhenDraftCategoryIsAbsentFromCatalogLeavesDraftCategoryUnselected()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCategoryName stale = Category("Stale");
+        BookmarkDraft draft = new(
+            "Repo",
+            "C:\\repo",
+            BookmarkCategoryFilter.For(stale),
+            BookmarkShortcutSlot.One);
+        BookmarksEditorState state = Construct<BookmarkDrafting>(
+            [
+                typeof(BookmarkBrowseContext),
+                typeof(BookmarkSelection),
+                typeof(BookmarkDraft),
+                typeof(BookmarkEditorProblem),
+            ],
+            [new BookmarkBrowseContext(string.Empty, BookmarkCategoryFilter.All, null), null, draft, null]);
+
+        BookmarkEditorDetails details = Present(Catalog([work], []), state).Details;
+
+        Assert.IsNull(details.SelectedDraftCategory);
     }
 
     /// <summary>Proves a closed editor produces a hidden, empty, ready projection.</summary>
@@ -342,11 +416,89 @@ public sealed class BookmarkManagerPresenterTests
             "Uncategorized");
 
         Assert.IsFalse(presentation.IsOpen);
+        Assert.AreEqual(string.Empty, presentation.Browse.SearchText);
+        Assert.IsTrue(presentation.Browse.Categories[0].IsSelected);
+        Assert.IsNull(presentation.Browse.SelectedRow);
+        Assert.IsNotNull(presentation.Browse);
+        Assert.IsNotNull(presentation.Details);
+        Assert.IsNotNull(presentation.Persistence);
         Assert.AreEqual("BookmarkStatusReady", presentation.Details.StatusResourceKey);
         Assert.IsNull(presentation.Details.BookmarkDraft);
         Assert.IsNull(presentation.Details.CategorySelection);
         Assert.IsNull(presentation.Details.NavigationSelection);
+        Assert.AreEqual(string.Empty, presentation.Details.CategoryDraftName);
         Assert.AreEqual(0, presentation.Details.CategoryDeleteCount);
+    }
+
+    /// <summary>Proves render-ready bookmark values reject missing required boundary inputs.</summary>
+    [TestMethod]
+    public void BookmarkPresentationWhenRequiredInputIsMissingRejectsTheCall()
+    {
+        BookmarkManagerPresentation valid = Present(
+            Catalog([], [Entry("Repo", "C:\\repo", null, null)]),
+            Browsing(string.Empty, BookmarkCategoryFilter.All));
+        BookmarkCategoryOption category = valid.Browse.Categories[0];
+        BookmarkRow row = valid.Browse.Rows[0];
+        BookmarkShortcutOption shortcut = valid.Details.Shortcuts[0];
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkBrowsePresentation(string.Empty, null!, valid.Browse.Rows, null, valid.Browse.EmptyContent));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkBrowsePresentation(string.Empty, valid.Browse.Categories, null!, null, valid.Browse.EmptyContent));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkBrowsePresentation(string.Empty, valid.Browse.Categories, valid.Browse.Rows, null, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkCategoryOption(null!, "All", null, BookmarkOptionSelection.Selected));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new BookmarkCategoryOption(BookmarkCategoryFilter.All, " ", null, BookmarkOptionSelection.Selected));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkCategoryOption(BookmarkCategoryFilter.All, "All", null, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkRow(null!, "Uncategorized", "KeyLabelUnmapped", BookmarkOptionSelection.NotSelected));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new BookmarkRow(row.Selection, " ", "KeyLabelUnmapped", BookmarkOptionSelection.NotSelected));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkRow(row.Selection, "Uncategorized", null!, BookmarkOptionSelection.NotSelected));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkRow(row.Selection, "Uncategorized", "KeyLabelUnmapped", null!));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new BookmarkShortcutOption(null, " ", BookmarkOptionSelection.Selected));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkShortcutOption(null, "BookmarkShortcutUnassigned", null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkPersistencePresentation(null!, SettingsWarningPresentation.Hidden));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkPersistencePresentation(SettingsSaveStatus.Succeeded, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkManagerPresentation(null!, valid.Browse, valid.Details, valid.Persistence));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkManagerPresentation(SettingsEditorState.Bookmarks, null!, valid.Details, valid.Persistence));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkManagerPresentation(SettingsEditorState.Bookmarks, valid.Browse, null!, valid.Persistence));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkManagerPresentation(SettingsEditorState.Bookmarks, valid.Browse, valid.Details, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkEditorDetails(null!, valid.Details.DraftCategories, valid.Details.Shortcuts, "Ready"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkEditorDetails(
+                BookmarksEditorState.Closed,
+                null!,
+                valid.Details.Shortcuts,
+                "Ready"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new BookmarkEditorDetails(
+                BookmarksEditorState.Closed,
+                valid.Details.DraftCategories,
+                null!,
+                "Ready"));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new BookmarkEditorDetails(
+                BookmarksEditorState.Closed,
+                valid.Details.DraftCategories,
+                valid.Details.Shortcuts,
+                " "));
+        Assert.AreSame(category, valid.Browse.Categories[0]);
+        Assert.AreSame(shortcut, valid.Details.Shortcuts[0]);
     }
 
     /// <summary>Proves the public presenter rejects missing snapshots and reserved labels.</summary>

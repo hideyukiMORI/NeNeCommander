@@ -60,3 +60,13 @@ Ready for the one canonical CI gate.
 
 Do not implement Issue #100 or #101 in this branch. Do not close the currently running user application
 process or modify its settings while hide evaluates it.
+
+## Stop checkpoint — 2026-09-07
+
+再開時はoriginal workspace main（`a453`、古い）ではなく、`C:\Users\info\WORKS\NeNeCommander-99`を開く。現状はbase `0dab3f67c07fceafc77827e78f068a36c36e7003`、head `895057ff3ed61bf7efde55b9c50185991cfe97c6`、Draft PR #102未merge。dirty差分はBookmarkCatalogのCodeQL #101修正、既存Presentationテスト差分、新規`BookmarkPresentationBehaviorTests` 5件（Ptests合計107 PASS）である。
+
+保存済み証拠: Application focused 21/21、Presentation 107/107、manual mutantは既存test FAIL、isolated coverage-offは35/35 Killed。正式deep `34049550861`はP76.33で失敗し、full coverage-off / `disable-mix-mutants` / concurrency=1 はいずれも80.95%で静的3型が全Survived。report JSON SHA256は`327BC00DBD4AD1D67833E5D13E0260CBB808325FE2D256F2B05588A6058FF89D`。証跡は`artifacts/security/deep-review-34049550861/mutation/NeNeCommander.Presentation.WinUI/reports/mutation-report.json`、`artifacts/security/mutation/presentation-full-off/`、`presentation-full-off-no-mix/`、`presentation-full-off-no-mix-concurrency1/`。Stryker run終了codeは2/2/1。canonical config、ADR、閾値、依存は未変更。SOL usage上限とLuna担当状態は親rootで管理する。
+
+有力なupstream候補は[Stryker PR #3695](https://github.com/stryker-mutator/stryker-net/pull/3695)（提案commit `b2fd312`）と[Issue #3742](https://github.com/stryker-mutator/stryker-net/issues/3742)で、MTP testhost reuse/static initializerのverdict汚染を扱う。4.16.0への包含・修正版releaseは未確認。次回はPR/修正版の確認と正規の検証機構設計から再開し、blind rerun、基準緩和、依存更新をしない。
+
+未確認は#93/#94、未実装は#100/#101。hide PID 3188、real settings、診断worktree、artifactには無操作・保持。再開手順はstatus/diff確認、focused evidence確認、ownerと同期して必要な軽量gateを実行し、canonical Ready/deep新実行は禁止とする。

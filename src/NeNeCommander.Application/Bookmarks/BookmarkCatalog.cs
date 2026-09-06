@@ -358,16 +358,10 @@ public sealed record BookmarkCatalog
     private static bool HasDuplicateSlots(IReadOnlyList<BookmarkEntry> bookmarks)
     {
         HashSet<int> slots = [];
-        foreach (BookmarkShortcutSlot slot in bookmarks
+        return bookmarks
             .Select(bookmark => bookmark.ShortcutSlot)
-            .OfType<BookmarkShortcutSlot>())
-        {
-            if (!slots.Add(slot.Number))
-            {
-                return true;
-            }
-        }
-        return false;
+            .OfType<BookmarkShortcutSlot>()
+            .Any(slot => !slots.Add(slot.Number));
     }
 
     private static bool ContainsNull<T>(IReadOnlyList<T> values)

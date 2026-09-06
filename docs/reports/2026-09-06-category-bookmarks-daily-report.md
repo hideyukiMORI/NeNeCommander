@@ -69,3 +69,13 @@ productionへ持ち込んでいない。これらの実環境証拠はIssue #94�
 [Issue #100](https://github.com/hideyukiMORI/NeNeCommander/issues/100)のwindow shortcutと
 [Issue #101](https://github.com/hideyukiMORI/NeNeCommander/issues/101)のcommand searchは追跡のみで、
 このbranchでは実装しない。live WSLとWindows UI matrixは引き続きIssue #93/#94のrelease tierである。
+
+## 2026-09-07 checkpoint
+
+実装は完了候補だがDraft PR #102は未mergeである。current baseは`0dab3f67c07fceafc77827e78f068a36c36e7003`、作業headは`895057ff3ed61bf7efde55b9c50185991cfe97c6`。dirty差分はBookmarkCatalogのCodeQL #101修正（`Select`/`OfType`/`Any`の1-pass判定）、既存Presentationテスト4件相当の追加・更新、および新規`BookmarkPresentationBehaviorTests`の5件で、focused Application 21/21、Presentation 107/107が成功している。commit/pushとDraft PR更新はこのcheckpoint保存後にownerが行う。
+
+CodeQL alert #101はまだ再解析していない。正式deep `34049550861`はPresentation mutation 76.33%で失敗した。手動のOperationStatus文字列mutantは既存testがFAILし、isolated coverage-off focused runは35/35 Killedだった。一方、full scope 910 mutantsのcoverage-off、coverage-off+disable-mix-mutants、concurrency=1診断は全て80.95%で、OperationStatus 35、PaneStatus 10、SettingsSaveStatus 4がSurvivedのまま。証跡は`artifacts/security/deep-review-34049550861/mutation/NeNeCommander.Presentation.WinUI/reports/mutation-report.json`、`artifacts/security/mutation/presentation-full-off/reports/mutation-report.json`、`artifacts/security/mutation/presentation-full-off-no-mix/reports/mutation-report.json`、`artifacts/security/mutation/presentation-full-off-no-mix-concurrency1/reports/mutation-report.json`に保持し、off/no-mix/concurrency1のreport SHA256は`327BC00DBD4AD1D67833E5D13E0260CBB808325FE2D256F2B05588A6058FF89D`である。各runの終了codeは順に2、2、1で、canonical config・ADR・閾値・依存は変更していない。
+
+Stryker upstreamの未修正candidateとして[PR #3695](https://github.com/stryker-mutator/stryker-net/pull/3695)（提案commit `b2fd312`）と[Issue #3742](https://github.com/stryker-mutator/stryker-net/issues/3742)がMTP testhost reuse/static initializerの判定汚染を扱う。4.16.0への包含・修正版releaseは未確認で、ローカル適用や依存更新は実施していない。再開時はこのupstream状態と正規の検証機構を確認し、同設定のblind rerunや閾値緩和を行わない。
+
+Issue #99/#102はDraft維持。#93/#94は未確認、#100/#101は未実装。hideのPID 3188とreal settingsは無操作。診断worktreeとartifactは保持する。次回は`C:\Users\info\WORKS\NeNeCommander-99`を開く（original workspace mainは`a453`で古い）。
