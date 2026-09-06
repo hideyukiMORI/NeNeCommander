@@ -153,6 +153,12 @@ public abstract record UserIntent
         return new BookmarkNavigationSelection(selection);
     }
 
+    /// <summary>Creates an intent for one closed bookmark-manager action.</summary>
+    public static UserIntent ManageBookmarks(BookmarkEditorAction action)
+    {
+        return new BookmarkEditorActionSubmission(action);
+    }
+
     private sealed record MoveNextIntent : UserIntent;
     private sealed record MovePreviousIntent : UserIntent;
     private sealed record FocusFirstIntent : UserIntent;

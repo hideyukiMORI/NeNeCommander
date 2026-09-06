@@ -95,11 +95,20 @@ public sealed class CommanderSessionTests
             CancellationToken.None);
 
         Assert.AreSame(SettingsEditorState.Bookmarks, session.Current.Settings.Editor);
+        _ = Assert.IsInstanceOfType<BookmarkNavigationPending>(
+            session.Current.Settings.BookmarksEditor);
+        CommanderSnapshot escapeIgnored = await session.HandleAsync(
+            UserIntent.Escape,
+            observer,
+            CancellationToken.None);
+        _ = Assert.IsInstanceOfType<BookmarkNavigationPending>(
+            escapeIgnored.Settings.BookmarksEditor);
         Assert.HasCount(2, left.Requests);
         read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
         CommanderSnapshot navigated = await navigation;
 
         Assert.AreSame(SettingsEditorState.Closed, navigated.Settings.Editor);
+        _ = Assert.IsInstanceOfType<BookmarksEditorClosed>(navigated.Settings.BookmarksEditor);
         Assert.AreEqual(
             "C:\\bookmark",
             Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content)
@@ -134,6 +143,9 @@ public sealed class CommanderSessionTests
             Assert.IsInstanceOfType<PaneContentListed>(failed.Panes.Left.Content)
                 .Listing.Location.CanonicalText);
         _ = Assert.IsInstanceOfType<PaneReadFailed>(failed.Panes.Left.Activity);
+        BookmarkNavigationFailed navigationFailure =
+            Assert.IsInstanceOfType<BookmarkNavigationFailed>(failed.Settings.BookmarksEditor);
+        Assert.AreEqual(entry, navigationFailure.Selection.Entry);
     }
 
     /// <summary>Proves a stale displayed key cannot be rebound to a replacement path.</summary>
@@ -162,6 +174,60 @@ public sealed class CommanderSessionTests
         Assert.IsEmpty(left.Requests);
         Assert.IsEmpty(right.Requests);
         Assert.AreEqual("C:\\new", rejected.Settings.Settings.Bookmarks.Bookmarks[0].Path.Value.CanonicalText);
+        _ = Assert.IsInstanceOfType<BookmarksBrowsing>(rejected.Settings.BookmarksEditor);
+    }
+
+    /// <summary>Proves bookmark Save uses pane-derived defaults and the sole settings queue.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBookmarkDraftIsSavedQueuesOneCompleteCatalogAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\Current\\Folder", "old.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
+        CommanderSession session = CreateSession(left, right, gateway, store);
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(
+            PaneSide.Left,
+            ParsePath("C:\\Current\\Folder"),
+            CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        _ = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.BeginAddBookmark),
+            observer,
+            CancellationToken.None);
+        BookmarkDrafting draft = Assert.IsInstanceOfType<BookmarkDrafting>(
+            session.Current.Settings.BookmarksEditor);
+        Assert.AreEqual("Folder", draft.Draft.Name);
+        Assert.AreEqual("C:\\Current\\Folder", draft.Draft.Path);
+
+        _ = await session.HandleAsync(
+            UserIntent.ManageBookmarks(
+                BookmarkEditorAction.UpdateBookmark(
+                    new BookmarkDraft(
+                        draft.Draft.Name,
+                        draft.Draft.Path,
+                        BookmarkCategoryFilter.Uncategorized,
+                        BookmarkShortcutSlot.Two))),
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot saved = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.Save),
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(1, store.Writes);
+        Assert.HasCount(1, saved.Settings.Settings.Bookmarks.Bookmarks);
+        Assert.AreEqual("Folder", saved.Settings.Settings.Bookmarks.Bookmarks[0].Name.Value);
+        Assert.AreSame(
+            BookmarkShortcutSlot.Two,
+            saved.Settings.Settings.Bookmarks.Bookmarks[0].ShortcutSlot);
+        _ = Assert.IsInstanceOfType<SettingsPersistencePending>(saved.Settings.Persistence);
+        write.SetResult(SettingsWriteOutcome.Succeeded());
+        await session.StopAsync();
     }
 
     /// <summary>Proves opening settings freezes both pane navigation paths until Escape closes it.</summary>

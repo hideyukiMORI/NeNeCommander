@@ -1,7 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NeNeCommander.Application.Settings;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
@@ -189,8 +189,14 @@ public sealed class SettingsPresenterTests
         System.Reflection.ConstructorInfo constructor = typeof(SettingsSnapshot).GetConstructor(
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
             null,
-            [typeof(UserSettings), typeof(SettingsEditorState), typeof(SettingsPersistenceState)],
+            [
+                typeof(UserSettings),
+                typeof(SettingsEditorState),
+                typeof(BookmarksEditorState),
+                typeof(SettingsPersistenceState),
+            ],
             null) ?? throw new AssertFailedException("The settings snapshot constructor was not found.");
-        return (SettingsSnapshot)constructor.Invoke([settings, editor, persistence]);
+        return (SettingsSnapshot)constructor.Invoke(
+            [settings, editor, BookmarksEditorState.Closed, persistence]);
     }
 }

@@ -10,7 +10,7 @@ Status: informational
 - Base: `a4532b38231a4ec543116d412143436f2b92f882`
 - ADR: [`docs/adr/0041-category-bookmarks-through-settings-and-navigation.md`](../adr/0041-category-bookmarks-through-settings-and-navigation.md)
 - Report: [`docs/reports/2026-09-06-category-bookmarks-daily-report.md`](../reports/2026-09-06-category-bookmarks-daily-report.md)
-- PR: not created yet; work remains an uncommitted implementation checkpoint
+- Draft PR: [#102](https://github.com/hideyukiMORI/NeNeCommander/pull/102); first pushed checkpoint `680d1f6`
 
 ## Canonical mechanisms
 
@@ -31,21 +31,27 @@ Status: informational
 
 ## Current proof and incomplete work
 
-Application全256件、Infrastructure全219件、Domain全66件、Presentation全86件、Architecture全5件が
-成功した。Infrastructure failure-first measured 5 failures among 7 new behavioral proofs on old
-production; the current focused persistence set passes 10/10. Ctrl+B追加後に既存modal testのhint件数が
-9のままで1件失敗し、Ctrl+B、既存Ctrl+,、Escapeを含む10件の表示契約へ更新後にPresentation全件を
-再確認した。These are development checks, not merge readiness.
+Application全268件、Infrastructure全222件、Domain全66件、Presentation全92件が成功した。
+Application Release buildは0 warning/error、conformanceは112、Commit security checksは18件成功した。
+Infrastructure failure-first measured 5 failures among 7 initial behavioral proofs on old production;
+strict schema proofはversion 1 readから次writeする移行とroot/nestedの個別wrong-kind/missing casesまで追加した。
+path identityのstale比較は`FileSystemPathIdentityComparer`へ統一し、Windows/UNC case-only positiveとWSL
+component-case negativeを確認した。These are development checks, not merge readiness.
 
-The complete bookmark editor state and actions, Presentation projection, XAML overlay, localized
-product copy, and final Claude Design link remain incomplete. The final visual implementation must use
-existing semantic resources, keep persistence warning outside the scrolling list, avoid adding all
-slot hints to the permanent footer, and preserve Cancel initial focus for category deletion.
+The complete bookmark editor closed states and actions, Presentation projection, localized XAML overlay,
+fixed persistence status/warning, canonical slot labels, and sole `CommanderSession.HandleAsync` route are
+present in the current uncommitted checkpoint. The adopted functional handoff is
+[NeNe Commander Bookmark Manager](https://claude.ai/design/p/ff811404-8e96-4dd0-92c1-320b3002b4b9?file=NeNe+Commander+Bookmark+Manager.dc.html).
+It does not establish real WinUI focus, keyboard, high-contrast, DPI, or narrow-width proof; those remain
+release-environment work under Issue #94.
 
-After implementation, run affected whole tests, coverage and meaningful mutation, dependency review,
-conformance, and Commit checks. The final unchanged head requires security deep because strict JSON,
-persisted paths, command routing, and settings mutation preflight changed. Only then may the Draft PR
-become Ready for the one canonical CI gate.
+Issue #103 / PR #104 must first close the global `FileSystemPath.Parse` post-normalization length boundary.
+After it merges, rebase #99 without adding a bookmark-local duplicate guard, rerun affected checks, and
+obtain the required coverage, meaningful mutation, dependency, security-deep, and canonical evidence.
+
+The final unchanged head requires security deep because strict JSON, persisted paths, command routing,
+and settings mutation preflight changed. Only after the precursor integration and remaining formal proof
+may the Draft PR become Ready for the one canonical CI gate.
 
 Do not implement Issue #100 or #101 in this branch. Do not close the currently running user application
 process or modify its settings while hide evaluates it.

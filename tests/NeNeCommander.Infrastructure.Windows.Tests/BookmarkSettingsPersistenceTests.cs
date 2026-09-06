@@ -39,6 +39,25 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(documentPath + ".tmp"));
     }
 
+    /// <summary>Proves the next write after a valid version-one read publishes complete version two.</summary>
+    [TestMethod]
+    public async Task WriteAsyncAfterVersionOneReadPublishesExplicitEmptyVersionTwoCatalogAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteFile(DocumentName, VersionOne);
+        WindowsLocalSettingsStore store = CreateStore(root);
+        UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(
+            await store.ReadAsync(CancellationToken.None)).Settings;
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            await store.WriteAsync(settings, CancellationToken.None));
+
+        Assert.AreEqual(
+            "{\"schemaVersion\":2,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
+            File.ReadAllText(root.Resolve(DocumentName)));
+    }
+
     /// <summary>Proves valid multibyte paths and names round-trip with canonical category spelling.</summary>
     [TestMethod]
     public async Task ReadAsyncWhenVersionTwoIsValidReturnsCanonicalReboundBookmarksAsync()
@@ -123,6 +142,8 @@ public sealed class BookmarkSettingsPersistenceTests
                 SettingsReadFailureKind.UnexpectedProperty),
             (VersionTwoWithBookmark("\"name\":\"A\",\"path\":\"C:\\\\\",\"category\":null"),
                 SettingsReadFailureKind.Incomplete),
+            (VersionTwoWithBookmark("\"name\":\"A\",\"path\":\"C:\\\\\",\"shortcutSlot\":null"),
+                SettingsReadFailureKind.Incomplete),
             (VersionTwoWithBookmark(
                 "\"name\":\"A\",\"path\":\"C:\\\\\",\"category\":null,\"shortcutSlot\":null,\"extra\":0"),
                 SettingsReadFailureKind.UnexpectedProperty),
@@ -138,6 +159,36 @@ public sealed class BookmarkSettingsPersistenceTests
                 await store.ReadAsync(CancellationToken.None));
 
             Assert.AreSame(failure, rejected.Kind);
+        }
+    }
+
+    /// <summary>Proves each bookmark field rejects its own wrong JSON kind without partial state.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenVersionTwoBookmarkFieldHasWrongKindRejectsEachDocumentAsync()
+    {
+        string[] documents =
+        [
+            VersionTwoWithBookmark(
+                "\"name\":0,\"path\":\"C:\\\\\",\"category\":null,\"shortcutSlot\":null"),
+            VersionTwoWithBookmark(
+                "\"name\":\"A\",\"path\":false,\"category\":null,\"shortcutSlot\":null"),
+            VersionTwoWithBookmark(
+                "\"name\":\"A\",\"path\":\"C:\\\\\",\"category\":[],\"shortcutSlot\":null"),
+            VersionTwoWithBookmark(
+                "\"name\":\"A\",\"path\":\"C:\\\\\",\"category\":null,\"shortcutSlot\":\"1\""),
+        ];
+
+        foreach (string document in documents)
+        {
+            using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+            _ = root.WriteFile(DocumentName, document);
+            WindowsLocalSettingsStore store = CreateStore(root);
+
+            SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+                await store.ReadAsync(CancellationToken.None));
+
+            Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+            Assert.AreEqual(document, File.ReadAllText(root.Resolve(DocumentName)));
         }
     }
 
@@ -201,6 +252,30 @@ public sealed class BookmarkSettingsPersistenceTests
                 await store.ReadAsync(CancellationToken.None));
 
             Assert.AreSame(failure, rejected.Kind);
+        }
+    }
+
+    /// <summary>Proves both version-two catalog roots must be arrays.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenVersionTwoCatalogRootHasWrongKindRejectsEachDocumentAsync()
+    {
+        string[] documents =
+        [
+            VersionTwo("{}", "[]"),
+            VersionTwo("[]", "{}"),
+        ];
+
+        foreach (string document in documents)
+        {
+            using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+            _ = root.WriteFile(DocumentName, document);
+            WindowsLocalSettingsStore store = CreateStore(root);
+
+            SettingsRejected rejected = Assert.IsInstanceOfType<SettingsRejected>(
+                await store.ReadAsync(CancellationToken.None));
+
+            Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
+            Assert.AreEqual(document, File.ReadAllText(root.Resolve(DocumentName)));
         }
     }
 

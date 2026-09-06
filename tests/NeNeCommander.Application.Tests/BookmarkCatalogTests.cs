@@ -41,6 +41,14 @@ public sealed class BookmarkCatalogTests
             BookmarkTextFailureKind.ControlCharacter,
             Assert.IsInstanceOfType<BookmarkDisplayNameRejected>(
                 BookmarkDisplayName.Parse("Na\nme")).Kind);
+        Assert.AreEqual(
+            new string('n', BookmarkDisplayName.MaximumLength),
+            Name(new string('n', BookmarkDisplayName.MaximumLength)).Value);
+        Assert.AreSame(
+            BookmarkTextFailureKind.TooLong,
+            Assert.IsInstanceOfType<BookmarkDisplayNameRejected>(
+                BookmarkDisplayName.Parse(
+                    new string('n', BookmarkDisplayName.MaximumLength + 1))).Kind);
     }
 
     /// <summary>Proves bookmark paths add Unicode losslessness without changing the global parser.</summary>
@@ -126,6 +134,21 @@ public sealed class BookmarkCatalogTests
         Assert.AreSame(
             BookmarkCatalogFailureKind.InvalidCategoryReference,
             Rejected([], [Entry("Orphan", "C:\\one", work, null)]).Kind);
+    }
+
+    /// <summary>Proves null category and bookmark elements are typed whole-catalog rejections.</summary>
+    [TestMethod]
+    public void CreateWhenCollectionContainsNullRejectsWithoutEnumeratingPartialState()
+    {
+        BookmarkCategoryName[] categoriesWithNull = new BookmarkCategoryName[1];
+        BookmarkEntry[] bookmarksWithNull = new BookmarkEntry[1];
+
+        Assert.AreSame(
+            BookmarkCatalogFailureKind.InvalidElement,
+            Rejected(categoriesWithNull, []).Kind);
+        Assert.AreSame(
+            BookmarkCatalogFailureKind.InvalidElement,
+            Rejected([], bookmarksWithNull).Kind);
     }
 
     /// <summary>Proves exact collection limits are accepted and their next values are rejected.</summary>
@@ -221,6 +244,133 @@ public sealed class BookmarkCatalogTests
         Assert.AreSame(BookmarkCatalogFailureKind.StaleSelection, rejected.Kind);
         Assert.AreEqual("Work", current.Categories[0].Value);
         Assert.AreEqual("Work", current.Bookmarks[0].Category?.Value);
+    }
+
+    /// <summary>Proves Windows path casing does not make a complete category selection stale.</summary>
+    [TestMethod]
+    public void RenameCategoryWhenOnlyWindowsPathCasingChangedAcceptsSameIdentity()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCatalog displayed = Catalog(
+            [work],
+            [Entry("Repo", "C:\\Folder", work, BookmarkShortcutSlot.One)]);
+        BookmarkCategorySelection selection = displayed.Select(work) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+        BookmarkCatalog current = Catalog(
+            [work],
+            [Entry("Repo", "c:\\folder", work, BookmarkShortcutSlot.One)]);
+
+        BookmarkCatalogChanged changed = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            current.RenameCategory(selection, Category("Projects")));
+
+        Assert.AreEqual("Projects", changed.Catalog.Categories[0].Value);
+        Assert.AreEqual("Projects", changed.Catalog.Bookmarks[0].Category?.Value);
+    }
+
+    /// <summary>Proves UNC server, share, and component casing use the existing same-identity rule.</summary>
+    [TestMethod]
+    public void DeleteBookmarkWhenOnlyUncPathCasingChangedAcceptsSameIdentity()
+    {
+        BookmarkEntry displayedEntry = Entry(
+            "Share",
+            "\\\\Server\\Share\\Folder",
+            null,
+            BookmarkShortcutSlot.One);
+        BookmarkSelection selection = new(displayedEntry);
+        BookmarkCatalog current = Catalog(
+            [],
+            [Entry(
+                "Share",
+                "\\\\server\\share\\folder",
+                null,
+                BookmarkShortcutSlot.One)]);
+
+        BookmarkCatalogChanged changed = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            current.DeleteBookmark(selection));
+
+        Assert.IsEmpty(changed.Catalog.Bookmarks);
+    }
+
+    /// <summary>Proves Linux component casing changes make a WSL bookmark selection stale.</summary>
+    [TestMethod]
+    public void DeleteBookmarkWhenWslPathComponentCasingChangedRejectsAsStale()
+    {
+        BookmarkEntry displayedEntry = Entry(
+            "Repo",
+            "\\\\wsl.localhost\\Ubuntu\\home\\Folder",
+            null,
+            BookmarkShortcutSlot.One);
+        BookmarkSelection selection = new(displayedEntry);
+        BookmarkCatalog current = Catalog(
+            [],
+            [Entry(
+                "Repo",
+                "\\\\wsl.localhost\\Ubuntu\\home\\folder",
+                null,
+                BookmarkShortcutSlot.One)]);
+
+        BookmarkCatalogChangeRejected rejected =
+            Assert.IsInstanceOfType<BookmarkCatalogChangeRejected>(
+                current.DeleteBookmark(selection));
+
+        Assert.AreSame(BookmarkCatalogFailureKind.StaleSelection, rejected.Kind);
+        Assert.HasCount(1, current.Bookmarks);
+    }
+
+    /// <summary>Proves successful category rename and deletion preserve bookmark order and references.</summary>
+    [TestMethod]
+    public void CategoryMutationsWhenSelectionsAreCurrentRebindWithoutReorderingEntries()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCatalog catalog = Catalog(
+            [work],
+            [Entry("First", "C:\\one", work, null), Entry("Second", "C:\\two", null, null)]);
+        BookmarkCategorySelection renameSelection = catalog.Select(work) ??
+            throw new InvalidOperationException("The category fixture must be selectable.");
+        BookmarkCatalog renamed = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            catalog.RenameCategory(renameSelection, Category("Projects"))).Catalog;
+        BookmarkCategoryName projects = renamed.Categories[0];
+
+        Assert.AreSame(projects, renamed.Bookmarks[0].Category);
+        Assert.AreEqual("First", renamed.Bookmarks[0].Name.Value);
+        Assert.AreEqual("Second", renamed.Bookmarks[1].Name.Value);
+        BookmarkCategorySelection deleteSelection = renamed.Select(projects) ??
+            throw new InvalidOperationException("The renamed category must be selectable.");
+        BookmarkCatalog deleted = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            renamed.DeleteCategory(deleteSelection)).Catalog;
+
+        Assert.IsEmpty(deleted.Categories);
+        Assert.IsNull(deleted.Bookmarks[0].Category);
+        Assert.AreEqual("First", deleted.Bookmarks[0].Name.Value);
+        Assert.AreEqual("Second", deleted.Bookmarks[1].Name.Value);
+    }
+
+    /// <summary>Proves replacement collisions reject and an unchanged selected entry can be deleted.</summary>
+    [TestMethod]
+    public void BookmarkMutationsWhenReplacementCollidesRejectAndCurrentDeleteSucceeds()
+    {
+        BookmarkEntry first = Entry("First", "C:\\one", null, BookmarkShortcutSlot.One);
+        BookmarkEntry second = Entry("Second", "C:\\two", null, BookmarkShortcutSlot.Two);
+        BookmarkCatalog catalog = Catalog([], [first, second]);
+        BookmarkSelection firstSelection = new(first);
+
+        Assert.AreSame(
+            BookmarkCatalogFailureKind.DuplicateBookmark,
+            Assert.IsInstanceOfType<BookmarkCatalogChangeRejected>(
+                catalog.ReplaceBookmark(
+                    firstSelection,
+                    Entry("second", "C:\\three", null, BookmarkShortcutSlot.One))).Kind);
+        Assert.AreSame(
+            BookmarkCatalogFailureKind.DuplicateShortcutSlot,
+            Assert.IsInstanceOfType<BookmarkCatalogChangeRejected>(
+                catalog.ReplaceBookmark(
+                    firstSelection,
+                    Entry("Third", "C:\\three", null, BookmarkShortcutSlot.Two))).Kind);
+
+        BookmarkCatalog deleted = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            catalog.DeleteBookmark(firstSelection)).Catalog;
+        Assert.HasCount(1, deleted.Bookmarks);
+        Assert.AreEqual("Second", deleted.Bookmarks[0].Name.Value);
     }
 
     private static BookmarkCategoryName Category(string value)

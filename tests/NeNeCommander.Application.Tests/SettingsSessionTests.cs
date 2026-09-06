@@ -409,6 +409,28 @@ public sealed class SettingsSessionTests
         await session.StopAsync();
     }
 
+    /// <summary>Proves stopped settings ownership rejects bookmark actions before editor or I/O changes.</summary>
+    [TestMethod]
+    public async Task ApplyBookmarkEditorActionAfterStopRejectsBeforeStateOrIoChangesAsync()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession session = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        _ = session.OpenBookmarks();
+        SettingsSnapshot before = session.Current;
+        await session.StopAsync();
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            session.ApplyBookmarkEditorAction(
+                BookmarkEditorAction.BeginAddBookmark,
+                new BookmarkRegistrationDefaults("Folder", "C:\\Folder"),
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+
+        Assert.AreSame(before.Settings, session.Current.Settings);
+        Assert.AreEqual(before.BookmarksEditor, session.Current.BookmarksEditor);
+        Assert.IsEmpty(store.Writes);
+    }
+
     private static BookmarkCatalog Catalog(string name, string path)
     {
         BookmarkDisplayName displayName = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(

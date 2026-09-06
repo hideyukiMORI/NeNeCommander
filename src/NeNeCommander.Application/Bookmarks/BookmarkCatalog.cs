@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Bookmarks;
 
@@ -116,6 +116,12 @@ public sealed record BookmarkCatalog
         return entry is null ? null : new BookmarkSelection(entry);
     }
 
+    internal bool Matches(BookmarkSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        return BookmarkIndex(selection) >= 0;
+    }
+
     /// <summary>Captures a current user category and all entries that reference it.</summary>
     public BookmarkCategorySelection? Select(BookmarkCategoryName category)
     {
@@ -134,6 +140,12 @@ public sealed record BookmarkCatalog
             }
         }
         return new BookmarkCategorySelection(current, entries);
+    }
+
+    internal bool Matches(BookmarkCategorySelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        return CategoryIndex(selection.Category) >= 0 && CategorySelectionMatches(selection);
     }
 
     /// <summary>Adds one user category at the end of the preserved category order.</summary>
@@ -242,7 +254,7 @@ public sealed record BookmarkCatalog
         {
             BookmarkEntry current = _bookmarks[index];
             if (new BookmarkKey(current.Category, current.Name) == selection.Key &&
-                current == selection.Entry)
+                EntriesMatch(current, selection.Entry))
             {
                 return index;
             }
@@ -272,7 +284,26 @@ public sealed record BookmarkCatalog
                 current.Add(bookmark);
             }
         }
-        return current.SequenceEqual(selection.Entries);
+        if (current.Count != selection.Entries.Count)
+        {
+            return false;
+        }
+        for (int index = 0; index < current.Count; index++)
+        {
+            if (!EntriesMatch(current[index], selection.Entries[index]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool EntriesMatch(BookmarkEntry left, BookmarkEntry right)
+    {
+        return left.Name == right.Name &&
+            left.Category == right.Category &&
+            left.ShortcutSlot == right.ShortcutSlot &&
+            FileSystemPathIdentityComparer.Instance.Equals(left.Path.Value, right.Path.Value);
     }
 
     private static BookmarkCatalogMutationOutcome Mutation(

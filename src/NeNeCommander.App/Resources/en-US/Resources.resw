@@ -139,6 +139,56 @@
   <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
   <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>The settings file could not be used. Defaults are active, and the file was left unchanged.</value></data>
   <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>Your choice is active for this session but could not be saved.</value></data>
+  <data name="BookmarkManagerTitle.Text" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="BookmarkSearch.PlaceholderText" xml:space="preserve"><value>Search bookmarks</value></data>
+  <data name="BookmarkAllCategories" xml:space="preserve"><value>All bookmarks</value></data>
+  <data name="BookmarkUncategorized" xml:space="preserve"><value>Uncategorized</value></data>
+  <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>Categories</value></data>
+  <data name="BookmarkAddCategory.Content" xml:space="preserve"><value>Add category</value></data>
+  <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>Rename category</value></data>
+  <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>Delete category</value></data>
+  <data name="BookmarkMove.Content" xml:space="preserve"><value>Move</value></data>
+  <data name="BookmarkAdd.Content" xml:space="preserve"><value>Add</value></data>
+  <data name="BookmarkEdit.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="BookmarkDelete.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="BookmarkClose.Content" xml:space="preserve"><value>Close</value></data>
+  <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>Add bookmark</value></data>
+  <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>Edit bookmark</value></data>
+  <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="BookmarkPathLabel.Text" xml:space="preserve"><value>Path</value></data>
+  <data name="BookmarkCategoryLabel.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="BookmarkShortcutLabel.Text" xml:space="preserve"><value>Shortcut</value></data>
+  <data name="BookmarkShortcutUnassigned" xml:space="preserve"><value>Unassigned</value></data>
+  <data name="BookmarkSave.Content" xml:space="preserve"><value>Save</value></data>
+  <data name="BookmarkCancel.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BookmarkCategoryAddTitle" xml:space="preserve"><value>Add category</value></data>
+  <data name="BookmarkCategoryRenameTitle" xml:space="preserve"><value>Rename category</value></data>
+  <data name="BookmarkCategoryNameLabel.Text" xml:space="preserve"><value>Category name</value></data>
+  <data name="BookmarkCategoryDeleteTitle.Text" xml:space="preserve"><value>Delete category?</value></data>
+  <data name="BookmarkCategoryDeleteExplanation.Text" xml:space="preserve"><value>Bookmarks in this category will move to Uncategorized.</value></data>
+  <data name="BookmarkCategoryDeleteCategoryLabel.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="BookmarkCategoryDeleteCountLabel.Text" xml:space="preserve"><value>Bookmarks affected</value></data>
+  <data name="BookmarkCategoryDeleteDestinationLabel.Text" xml:space="preserve"><value>Destination</value></data>
+  <data name="BookmarkCategoryDeleteConfirm.Content" xml:space="preserve"><value>Delete category</value></data>
+  <data name="BookmarkNavigationRetry.Content" xml:space="preserve"><value>Retry</value></data>
+  <data name="BookmarkStatusReady" xml:space="preserve"><value>Select a bookmark to move there.</value></data>
+  <data name="BookmarkStatusAdding" xml:space="preserve"><value>Enter the bookmark details.</value></data>
+  <data name="BookmarkStatusEditing" xml:space="preserve"><value>Edit the bookmark details.</value></data>
+  <data name="BookmarkStatusAddingCategory" xml:space="preserve"><value>Enter a category name.</value></data>
+  <data name="BookmarkStatusRenamingCategory" xml:space="preserve"><value>Enter the new category name.</value></data>
+  <data name="BookmarkStatusConfirmCategoryDelete" xml:space="preserve"><value>Review the affected bookmarks before deleting this category.</value></data>
+  <data name="BookmarkStatusNavigationPending" xml:space="preserve"><value>Moving to bookmark…</value></data>
+  <data name="BookmarkStatusNavigationFailed" xml:space="preserve"><value>Could not move to this bookmark. The current folder was kept.</value></data>
+  <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>Enter a valid name.</value></data>
+  <data name="BookmarkProblemInvalidPath" xml:space="preserve"><value>Enter a valid path.</value></data>
+  <data name="BookmarkProblemInvalidCategory" xml:space="preserve"><value>Select a valid category.</value></data>
+  <data name="BookmarkProblemDuplicateCategory" xml:space="preserve"><value>A category with this name already exists.</value></data>
+  <data name="BookmarkProblemDuplicateBookmark" xml:space="preserve"><value>A bookmark with this name already exists in that category.</value></data>
+  <data name="BookmarkProblemDuplicateShortcut" xml:space="preserve"><value>This shortcut is already assigned.</value></data>
+  <data name="BookmarkProblemCategoryLimit" xml:space="preserve"><value>The category limit has been reached.</value></data>
+  <data name="BookmarkProblemBookmarkLimit" xml:space="preserve"><value>The bookmark limit has been reached.</value></data>
+  <data name="BookmarkProblemStaleSelection" xml:space="preserve"><value>This item changed. Review the current bookmark list and try again.</value></data>
+  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>Deleting this category would create duplicate bookmark names in Uncategorized.</value></data>
   <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
   <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
   <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>

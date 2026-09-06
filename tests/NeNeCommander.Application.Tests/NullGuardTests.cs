@@ -291,11 +291,13 @@ public sealed class NullGuardTests
         AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
             [HiddenItemVisibility.Hidden, null, CancellationToken.None]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [null, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded]);
+            [null, SettingsEditorState.Closed, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, null, SettingsPersistenceState.Succeeded]);
+            [UserSettings.Default, null, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, SettingsEditorState.Closed, null]);
+            [UserSettings.Default, SettingsEditorState.Closed, null, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, SettingsEditorState.Closed, BookmarksEditorState.Closed, null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceStartupRejected), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceFailed), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),

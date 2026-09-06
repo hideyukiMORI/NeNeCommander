@@ -32,27 +32,31 @@ typed pathを渡す。未割当、stale、modal、operation busyではprovider r
 
 Infrastructure担当のisolated filterでは、旧productionにversion 2、strict UTF-8、UTF-8 size、
 version 2 serializationを要求する7件のうち5件が失敗し、valid version 1 migrationとclosed nested
-shapeの2件だけが成功した。修正後のfocused persistence proofは10/10、Infrastructure全219件、
-Application全256件、Domain全66件、Presentation全86件、Architecture全5件に成功した。
+shapeの2件だけが成功した。修正後はversion 1 readから次writeでversion 2になること、root/nestedの
+missing/wrong-kind、invalid Unicodeを個別に追加し、Infrastructure全222件に成功した。
+session-owned browse/draft/confirm/pending/failed state、stale action、category rename/delete、path identity、
+one queue/one navigation routeを追加したApplication全268件、Domain全66件にも成功した。
 Ctrl+B追加後に既存modal proofのhint件数期待が9のまま残って1件失敗したが、canonical Ctrl+Bと
-既存Ctrl+,/Escapeの順序を含む10件の表示契約へ更新し、Presentation全86件で再確認した。
+既存Ctrl+,/Escapeの順序を含む10件の表示契約へ更新した。bookmark projectionを含むPresentation全92件、
+Application Release build 0 warning/error、conformance 112、Commit security 18に成功した。
 現時点は実装途中であり、coverage、mutation、security deep、Draft-to-Ready canonical CIを
 merge-readiness evidenceとしてまだ主張しない。
 
 ## GUI handoff
 
-Claude Designとの相談は別担当が継続中である。採択済みのbehaviorは、上段search、左categoryと右bookmark
-の2列、独立Bookmark modal、明示Save/Cancel draft、category削除専用confirm、成功時だけmodalを閉じる
-navigation、固定status/warning領域である。最終artifact URL、focus、narrow-width、semantic resources、
-AutomationIds、localized product copyはhandoff確定後に同期する。生成mockの数値styleや新しいtoken名は
-未承認でありproductionへ持ち込まない。
+採択済みの[Claude Design handoff](https://claude.ai/design/p/ff811404-8e96-4dd0-92c1-320b3002b4b9?file=NeNe+Commander+Bookmark+Manager.dc.html)に沿い、
+上段search、左categoryと右bookmarkの2列、独立Bookmark modal、明示Save/Cancel draft、category削除専用
+confirm、成功時だけmodalを閉じるnavigation、固定status/warning領域を既存semantic resourcesだけで実装した。
+Canvasで視認できたfocus ringはRetryとcategory deletion Cancelだけで、native WinUIの実focus、keyboard、
+high contrast、DPI、狭幅を実証したとは扱わない。生成mockの数値styleや新しいtoken名は未承認であり
+productionへ持ち込んでいない。これらの実環境証拠はIssue #94に残す。
 
 ## 次の作業
 
-- Infrastructure full regressionと統合buildを確定する。
-- session-owned bookmark browse/edit/confirm stateとsole `CommanderSession.HandleAsync` actionsを完成する。
-- approved Canvas handoffを既存semantic resourcesだけでPresentation/XAMLへ反映する。
-- affected coverage/mutation、dependency、Commit checks後にDraft checkpointを更新する。
+- path canonicalization closureの先行[Issue #103](https://github.com/hideyukiMORI/NeNeCommander/issues/103) /
+  [PR #104](https://github.com/hideyukiMORI/NeNeCommander/pull/104)を統合後、#99を最新mainへ更新する。
+- current UI/state/schema候補を独立reviewし、残るbehavioral proofを閉じる。
+- affected coverage/mutation、dependency、Commit checks後にDraft PR #102を更新する。
 - final exact headでsecurity deepを実行し、Ready後にcanonical CIを一度取得する。
 
 [Issue #100](https://github.com/hideyukiMORI/NeNeCommander/issues/100)のwindow shortcutと

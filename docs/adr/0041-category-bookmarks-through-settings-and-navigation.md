@@ -6,8 +6,8 @@ Date: 2026-09-06
 
 Accepted for Issue #99 on 2026-09-06 by the NeNe Commander design owner under hide's delegated
 authority. This acceptance covers the behavior, storage, command, and navigation contracts. The
-final UI arrangement still requires reconciliation with the Claude Design handoff; it is not yet a
-user-approved screen.
+functional UI structure was reconciled with the Claude Design handoff and accepted by the design
+owner; this does not claim that hide separately approved the generated screen or its visual details.
 
 ## Context
 
@@ -88,8 +88,10 @@ movement and resizing. `Ctrl+P` remains available for the separately tracked com
   is visible in the bookmark manager without becoming operation progress.
 - **Stale manager actions fail closed.** Selecting a bookmark captures both its key and its complete
   immutable entry. Save, delete, move, and manager navigation submit that selection to the session
-  owner, which requires the current catalog still to contain the same key with the same path,
-  category, name, and slot. A stale key that now names a different path is not silently rebound.
+  owner, which requires the current catalog still to contain the same key with the same
+  provider-defined path identity, category, name, and slot. A stale key that now names a different
+  path identity is not silently rebound. Windows-local and UNC casing follows their existing
+  identity comparer, while WSL Linux path-component casing remains significant.
   A stale selection is rejected without filesystem I/O or metadata change, and the registered
   catalog and pane listing remain intact. Selecting a category captures its name and the complete
   immutable, ordered set of entries that referenced it. Rename and deletion require both the
@@ -128,10 +130,14 @@ movement and resizing. `Ctrl+P` remains available for the separately tracked com
 - **The manager follows the approved shell and semantic resources.** It remains a distinct overlay
   over the existing two-pane shell, does not add a second operation bar, and does not place all ten
   bookmark bindings in the always-visible operation hint strip. Assigned slot labels are shown in
-  the manager from the canonical binding data. Final layout, responsive behavior, focus order,
-  empty and validation states, localized product text, AutomationIds, and use of existing semantic
-  resources will be fixed by the Issue #99 Claude Design handoff before production UI is accepted.
-  Generated numeric colors, fonts, spacing, and unapproved token names are not adopted by this ADR.
+  the manager from the canonical binding data. The accepted Claude Design handoff is
+  [NeNe Commander Bookmark Manager](https://claude.ai/design/p/ff811404-8e96-4dd0-92c1-320b3002b4b9?file=NeNe+Commander+Bookmark+Manager.dc.html):
+  search above a two-column category/bookmark browser, fixed persistence status outside the lists,
+  explicit form footers, and a dedicated category-deletion confirmation body. It uses existing
+  semantic resources; generated numeric colors, fonts, spacing, and unapproved token names are not
+  adopted. The Canvas demonstrated Retry and category-deletion Cancel focus rings only. Native
+  initial focus, keyboard behavior, accessibility, high contrast, DPI, and narrow-width evidence
+  must come from WinUI checks and the remaining Issue #94 environmental tier.
 - **Filtering and registration defaults are closed session projections.** The manager places
   case-insensitive substring search above a two-column category and bookmark list. Search matches
   bookmark name, canonical path text, and the localized/displayed category name while preserving
@@ -250,10 +256,12 @@ approved contexts; produced and raw-key translation where the Windows runtime re
 `Ctrl+P` binding; no file read for an unassigned slot; current-catalog slot resolution; immutable
 manager-selection comparison; active-pane-only navigation; old listing and registration retention
 after typed read failure; modal and operation precedence; Cancel initial focus for category deletion;
-native Enter/Space and Escape behavior; canonical localized slot labels; warning independence from
-operation progress; both locales; AutomationIds; and bounded narrow-window rendering. The approved
-Claude Design artifact and any remaining real-window high-contrast, DPI, narrow-width, and keyboard
-evidence are recorded separately under the release environmental tier.
+canonical localized slot labels; warning independence from operation progress; and deterministic
+projection for browse, draft, confirmation, pending, and failed states. Source and resource checks keep
+the two locale resource sets aligned and retain the named AutomationIds. The approved Claude Design
+artifact shows the adopted structure but does not prove native WinUI focus, Enter/Space/Escape behavior,
+high contrast, DPI, or narrow-width rendering. Those real-window checks remain separately tracked under
+the release environmental tier in Issue #94.
 
 Because versioned untrusted JSON, persisted paths, command routing, and filesystem-mutation
 preflight all change, the exact final head requires the security deep-review workflow in addition to

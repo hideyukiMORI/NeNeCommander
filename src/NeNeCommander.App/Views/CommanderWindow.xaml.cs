@@ -31,6 +31,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderSession _session;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private readonly BookmarkManagerView _bookmarkView;
     private ActiveConflictModal? _renderedConflictModal;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
@@ -62,6 +63,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
         InitializeComponent();
+        _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
         Title = _resources.GetString("CommanderWindowTitle");
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
     }
@@ -100,7 +102,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
         if (ConflictModal.Visibility == Visibility.Visible ||
-            SettingsOverlay.Visibility == Visibility.Visible)
+            SettingsOverlay.Visibility == Visibility.Visible ||
+            BookmarkOverlay.Visibility == Visibility.Visible)
         {
             outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
@@ -134,6 +137,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         RenderPanes(snapshot.Panes);
         RenderSettings(SettingsPresenter.Present(snapshot.Settings));
+        _bookmarkView.Render(snapshot.Settings);
+        if (_bookmarkView.IsOpen)
+        {
+            _operationContext = KeyboardContext.Modal;
+        }
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
