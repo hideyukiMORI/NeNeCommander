@@ -386,8 +386,12 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
                 continue;
             }
 
-            FileSystemPath? candidate = choice?.Decision == TransferConflictDecision.KeepBoth
-                ? choice.KeepBothCandidate
+            TransferConflictChoice? keepBothChoice = choice is not null &&
+                choice.Decision == TransferConflictDecision.KeepBoth
+                ? choice
+                : null;
+            FileSystemPath? candidate = keepBothChoice is not null
+                ? keepBothChoice.KeepBothCandidate
                 : AllocateKeepBoth(localDestination, entry, reservations);
             if (candidate is null ||
                 candidate.Parent is not FileSystemPath candidateParent ||
@@ -404,7 +408,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
                 conflicts.Add(TransferConflict.Create(source, ordinaryTarget, replacement));
                 continue;
             }
-            if (choice?.Decision == TransferConflictDecision.KeepBoth)
+            if (keepBothChoice is not null)
             {
                 _ = reservations.Add(candidate.CanonicalText);
                 plan.Add(TransferPlanEntry.Transfer(source, candidate));

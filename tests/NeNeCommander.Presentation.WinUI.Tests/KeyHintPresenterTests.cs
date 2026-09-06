@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -70,6 +71,21 @@ public sealed class KeyHintPresenterTests
         AssertLabelsComeFromBindings(KeyboardContext.Modal);
     }
 
+    /// <summary>Proves the binding-derived label projection preserves every declared modifier chord.</summary>
+    [TestMethod]
+    public void KeyLabelResourceKeyWhenBindingUsesModifierReturnsExactChordLabel()
+    {
+        AssertBindingLabel(KeyboardModifier.None, KeyboardKey.F5, "KeyLabelF5");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.D, "KeyLabelCtrlD");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.H, "KeyLabelCtrlH");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.L, "KeyLabelCtrlL");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.R, "KeyLabelCtrlR");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.U, "KeyLabelCtrlU");
+        AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.Up, "KeyLabelAltUp");
+        AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.Up, "KeyLabelUnmapped");
+        AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.D, "KeyLabelUnmapped");
+    }
+
     private static void AssertLabelsComeFromBindings(KeyboardContext context)
     {
         HashSet<string> declaredLabels = [];
@@ -87,5 +103,15 @@ public sealed class KeyHintPresenterTests
     {
         Assert.AreEqual(keyLabelResourceKey, hint.KeyLabelResourceKey);
         Assert.AreEqual(intentLabelResourceKey, hint.IntentLabelResourceKey);
+    }
+
+    private static void AssertBindingLabel(
+        KeyboardModifier modifier,
+        KeyboardKey key,
+        string expectedResourceKey)
+    {
+        KeyBinding binding = new(KeyboardContext.FileList, key, modifier, UserIntent.Refresh);
+
+        Assert.AreEqual(expectedResourceKey, binding.KeyLabelResourceKey);
     }
 }

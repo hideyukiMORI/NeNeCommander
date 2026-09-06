@@ -249,7 +249,7 @@ public sealed partial class CommanderWindow : Window, IDualPaneProgressObserver
 
     private void ForwardConflictDecision(TransferConflictDecision decision)
     {
-        TransferConflictScope scope = ConflictApplyToAll.IsChecked == true
+        TransferConflictScope scope = ConflictApplyToAll.IsChecked is true
             ? TransferConflictScope.All
             : TransferConflictScope.Current;
         ForwardIntent(UserIntent.ResolveConflict(decision, scope));
