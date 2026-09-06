@@ -7,9 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
 /// Projects the shortcut hints one focus context shows. The order and the wording of the hints are
-/// declared here; the keystroke of every hint is read from the canonical key map, so a hint can
-/// only advertise a binding the mapper actually performs (KBD-005). A context that declares no
-/// projection shows no hints.
+/// declared here; the complete key-cap resource of every hint is read from the canonical key map,
+/// including its modifier, so a hint can only advertise a binding the mapper actually performs
+/// (KBD-005). A context that declares no projection shows no hints.
 /// </summary>
 public static class KeyHintPresenter
 {
@@ -32,7 +32,7 @@ public static class KeyHintPresenter
         KeyBinding? binding = bindings.FirstOrDefault(binding => binding.Intent == label.Intent);
         if (binding is not null)
         {
-            hints.Add(new KeyHint(binding.Key.LabelResourceKey, label.ResourceKey));
+            hints.Add(new KeyHint(binding.KeyLabelResourceKey, label.ResourceKey));
         }
     }
 
@@ -53,6 +53,7 @@ public static class KeyHintPresenter
             new(UserIntent.CreateDirectory, "IntentLabelCreateDirectory"),
             new(UserIntent.Delete, "IntentLabelDelete"),
             new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
+            new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
             new(UserIntent.Escape, "IntentLabelEscape"),
         ];
     }

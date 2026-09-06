@@ -75,7 +75,7 @@ All user-facing text is in `src/NeNeCommander.App/Resources/{en-US,ja-JP}/Resour
 | destructive confirmation (`F8`) with item count | operation status + detail, both panes frozen | `OperationAwaitingConfirmation` |
 | name entry (`F7` empty, `F2` prefilled and selected) | name entry TextBox | `ActiveNameEntry(initialText)` |
 | completed: succeeded / cancelled / partially completed / rejected / request rejected | operation status | `OperationCompleted`, `OperationRequestRejected` |
-| hidden and system entries | list row (reported, visibility toggle is a later transition) | `DirectoryEntry` |
+| hidden and system entries | list row (reported, toggled with `Ctrl+H` in the active file-list pane) | `DirectoryEntry` |
 | disabled / conflict resolver | not yet in the product; leave room, do not design behavior | FS-007 later Issue |
 
 ## Fixtures the design must be checked against

@@ -89,6 +89,34 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(rightListing.Entries[1].Path, Focus(rightMoved.Right));
     }
 
+    /// <summary>Proves hidden-item toggling changes only the active pane.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenToggleHiddenItemsChangesOnlyActivePane()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = ListingWithVisibility(
+            "C:\\left",
+            ("hidden.txt", DirectoryEntryKind.File, EntryVisibility.Hidden),
+            ("visible.txt", DirectoryEntryKind.File, EntryVisibility.Normal));
+        DirectoryListing rightListing = ListingWithVisibility(
+            "C:\\right",
+            ("hidden.txt", DirectoryEntryKind.File, EntryVisibility.Hidden),
+            ("visible.txt", DirectoryEntryKind.File, EntryVisibility.Normal));
+        await fixture.ListBothAsync(leftListing, rightListing);
+
+        DualPaneSnapshot shown = await fixture.Panes.HandleAsync(
+            UserIntent.ToggleHiddenItems,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        Assert.HasCount(
+            2,
+            Assert.IsInstanceOfType<PaneContentListed>(shown.Left.Content).State.VisibleEntries);
+        Assert.HasCount(
+            1,
+            Assert.IsInstanceOfType<PaneContentListed>(shown.Right.Content).State.VisibleEntries);
+    }
+
     /// <summary>Proves a read in flight lands in the pane that started it even after activation changes.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -325,6 +353,7 @@ public sealed class DualPaneSessionTests
 
         DualPaneSnapshot awaiting = await fixture.Panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot moved = await fixture.Panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot hiddenToggle = await fixture.Panes.HandleAsync(UserIntent.ToggleHiddenItems, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot activated = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot navigated = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\elsewhere"), CancellationToken.None);
         DualPaneSnapshot escaped = await fixture.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -334,6 +363,7 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(leftListing.Location, pending.Subject);
         Assert.AreEqual(string.Empty, pending.InitialName);
         Assert.AreEqual(awaiting, moved);
+        Assert.AreEqual(awaiting, hiddenToggle);
         Assert.AreEqual(awaiting, activated);
         Assert.AreEqual(awaiting, navigated);
         Assert.AreSame(OperationActivity.Idle, escaped.Operation);
@@ -706,6 +736,7 @@ public sealed class DualPaneSessionTests
 
         Task<DualPaneSnapshot> move = panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenIntent = await panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot frozenHiddenToggle = await panes.HandleAsync(UserIntent.ToggleHiddenItems, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenActivation = await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenNavigation = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\other"), CancellationToken.None);
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
@@ -715,6 +746,8 @@ public sealed class DualPaneSessionTests
 
         Assert.AreSame(OperationKind.Move, Assert.IsInstanceOfType<OperationRunning>(frozenIntent.Operation).Kind);
         Assert.AreSame(leftListing.Entries[0].Path, Focus(frozenIntent.Left));
+        Assert.AreSame(frozenIntent.Left, frozenHiddenToggle.Left);
+        Assert.AreSame(frozenIntent.Right, frozenHiddenToggle.Right);
         Assert.AreSame(PaneSide.Left, frozenActivation.ActiveSide);
         Assert.AreEqual("C:\\right", Assert.IsInstanceOfType<PaneContentListed>(frozenNavigation.Right.Content).Listing.Location.CanonicalText);
         _ = Assert.IsInstanceOfType<OperationCompleted>(completed.Operation);
@@ -755,6 +788,7 @@ public sealed class DualPaneSessionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
         DualPaneSnapshot frozenMove = await fixture.Panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot frozenHiddenToggle = await fixture.Panes.HandleAsync(UserIntent.ToggleHiddenItems, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenActivation = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenNavigation = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\other"), CancellationToken.None);
         DualPaneSnapshot escaped = await fixture.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -769,6 +803,8 @@ public sealed class DualPaneSessionTests
 
         _ = Assert.IsInstanceOfType<OperationAwaitingConfirmation>(frozenMove.Operation);
         Assert.AreSame(leftListing.Entries[0].Path, Focus(frozenMove.Left));
+        Assert.AreSame(frozenMove.Left, frozenHiddenToggle.Left);
+        Assert.AreSame(frozenMove.Right, frozenHiddenToggle.Right);
         Assert.AreSame(PaneSide.Left, frozenActivation.ActiveSide);
         Assert.AreEqual("C:\\right", Assert.IsInstanceOfType<PaneContentListed>(frozenNavigation.Right.Content).Listing.Location.CanonicalText);
         Assert.AreSame(OperationActivity.Idle, escaped.Operation);
@@ -864,6 +900,29 @@ public sealed class DualPaneSessionTests
                 entries[index].Name,
                 entries[index].Kind,
                 EntryVisibility.Normal);
+        }
+        DirectoryListingCreation creation = DirectoryListing.Create(
+            parsedLocation,
+            built,
+            DirectoryListingCompleteness.Complete,
+            0);
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
+    }
+
+    private static DirectoryListing ListingWithVisibility(
+        string location,
+        params (string Name, DirectoryEntryKind Kind, EntryVisibility Visibility)[] entries)
+    {
+        FileSystemPath parsedLocation = ParsePath(location);
+        DirectoryEntry[] built = new DirectoryEntry[entries.Length];
+        for (int index = 0; index < entries.Length; index++)
+        {
+            string separator = parsedLocation.CanonicalText.EndsWith('\\') ? string.Empty : "\\";
+            built[index] = DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + separator + entries[index].Name),
+                entries[index].Name,
+                entries[index].Kind,
+                entries[index].Visibility);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

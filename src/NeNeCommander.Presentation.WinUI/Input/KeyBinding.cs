@@ -31,6 +31,23 @@ public sealed record KeyBinding
     /// <summary>Gets the explicit modifier state the binding declares.</summary>
     public KeyboardModifier Modifier { get; }
 
+    /// <summary>Gets the localized key-cap resource for this key and its modifier chord.</summary>
+    public string KeyLabelResourceKey => Modifier == KeyboardModifier.None
+        ? Key.LabelResourceKey
+        : Modifier == KeyboardModifier.Control && Key == KeyboardKey.D
+            ? "KeyLabelCtrlD"
+            : Modifier == KeyboardModifier.Control && Key == KeyboardKey.H
+                ? "KeyLabelCtrlH"
+                : Modifier == KeyboardModifier.Control && Key == KeyboardKey.L
+                    ? "KeyLabelCtrlL"
+                    : Modifier == KeyboardModifier.Control && Key == KeyboardKey.R
+                        ? "KeyLabelCtrlR"
+                        : Modifier == KeyboardModifier.Control && Key == KeyboardKey.U
+                            ? "KeyLabelCtrlU"
+                            : Modifier == KeyboardModifier.Alt && Key == KeyboardKey.Up
+                                ? "KeyLabelAltUp"
+                                : "KeyLabelUnmapped";
+
     /// <summary>Gets the sole intent the binding emits.</summary>
     public UserIntent Intent { get; }
 }

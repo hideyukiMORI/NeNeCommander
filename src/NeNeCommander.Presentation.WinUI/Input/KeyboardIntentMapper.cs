@@ -36,6 +36,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.PageUp, KeyboardModifier.None, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.Tab, KeyboardModifier.None, UserIntent.ActivateOtherPane),
         new(KeyboardContext.FileList, KeyboardKey.Space, KeyboardModifier.None, UserIntent.ToggleSelection),
+        new(KeyboardContext.FileList, KeyboardKey.H, KeyboardModifier.Control, UserIntent.ToggleHiddenItems),
         new(KeyboardContext.FileList, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.FileList, KeyboardKey.F2, KeyboardModifier.None, UserIntent.Rename),
         new(KeyboardContext.FileList, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Copy),

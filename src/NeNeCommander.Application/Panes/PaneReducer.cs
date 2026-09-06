@@ -30,6 +30,13 @@ public static class PaneReducer
         {
             return ToggleSelection(state);
         }
+        if (intent == UserIntent.ToggleHiddenItems)
+        {
+            HiddenItemVisibility next = state.HiddenItemVisibility == HiddenItemVisibility.Hidden
+                ? HiddenItemVisibility.Shown
+                : HiddenItemVisibility.Hidden;
+            return ApplyHiddenItemVisibility(state, next);
+        }
         if (intent == UserIntent.Escape)
         {
             return state.Transition(state.FocusItem, Array.Empty<FileSystemPath>());
