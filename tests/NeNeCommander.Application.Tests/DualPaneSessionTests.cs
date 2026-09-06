@@ -89,6 +89,34 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(rightListing.Entries[1].Path, Focus(rightMoved.Right));
     }
 
+    /// <summary>Proves hidden-item toggling changes only the active pane.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenToggleHiddenItemsChangesOnlyActivePane()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = ListingWithVisibility(
+            "C:\\left",
+            ("hidden.txt", DirectoryEntryKind.File, EntryVisibility.Hidden),
+            ("visible.txt", DirectoryEntryKind.File, EntryVisibility.Normal));
+        DirectoryListing rightListing = ListingWithVisibility(
+            "C:\\right",
+            ("hidden.txt", DirectoryEntryKind.File, EntryVisibility.Hidden),
+            ("visible.txt", DirectoryEntryKind.File, EntryVisibility.Normal));
+        await fixture.ListBothAsync(leftListing, rightListing);
+
+        DualPaneSnapshot shown = await fixture.Panes.HandleAsync(
+            UserIntent.ToggleHiddenItems,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        Assert.HasCount(
+            2,
+            Assert.IsInstanceOfType<PaneContentListed>(shown.Left.Content).State.VisibleEntries);
+        Assert.HasCount(
+            1,
+            Assert.IsInstanceOfType<PaneContentListed>(shown.Right.Content).State.VisibleEntries);
+    }
+
     /// <summary>Proves a read in flight lands in the pane that started it even after activation changes.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -864,6 +892,29 @@ public sealed class DualPaneSessionTests
                 entries[index].Name,
                 entries[index].Kind,
                 EntryVisibility.Normal);
+        }
+        DirectoryListingCreation creation = DirectoryListing.Create(
+            parsedLocation,
+            built,
+            DirectoryListingCompleteness.Complete,
+            0);
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
+    }
+
+    private static DirectoryListing ListingWithVisibility(
+        string location,
+        params (string Name, DirectoryEntryKind Kind, EntryVisibility Visibility)[] entries)
+    {
+        FileSystemPath parsedLocation = ParsePath(location);
+        DirectoryEntry[] built = new DirectoryEntry[entries.Length];
+        for (int index = 0; index < entries.Length; index++)
+        {
+            string separator = parsedLocation.CanonicalText.EndsWith('\\') ? string.Empty : "\\";
+            built[index] = DirectoryEntry.Create(
+                ParsePath(parsedLocation.CanonicalText + separator + entries[index].Name),
+                entries[index].Name,
+                entries[index].Kind,
+                entries[index].Visibility);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

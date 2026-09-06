@@ -83,6 +83,7 @@
   <data name="IntentLabelCreateDirectory" xml:space="preserve"><value>Create</value></data>
   <data name="IntentLabelDelete" xml:space="preserve"><value>Delete</value></data>
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>Pane</value></data>
+  <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>Hidden</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>Cancel</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>Confirm</value></data>
 </root>

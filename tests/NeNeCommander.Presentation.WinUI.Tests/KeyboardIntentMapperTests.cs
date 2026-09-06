@@ -39,6 +39,7 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.F6), UserIntent.Move);
         AssertMaps(mapper, Input(KeyboardKey.F7), UserIntent.CreateDirectory);
         AssertMaps(mapper, Input(KeyboardKey.F8), UserIntent.Delete);
+        AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
     }
 
     /// <summary>Proves every modified Windows-compatible alias.</summary>
@@ -118,6 +119,16 @@ public sealed class KeyboardIntentMapperTests
         KeyboardMappingOutcome modalEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
         KeyboardMappingOutcome textEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.TextEntry));
         KeyboardMappingOutcome modalMovement = mapper.Map(Input(KeyboardKey.J, KeyboardContext.Modal));
+        KeyboardMappingOutcome textHiddenToggle = mapper.Map(KeyboardInput.Create(
+            KeyboardKey.H,
+            KeyboardModifier.Control,
+            KeyRepeatState.Initial,
+            KeyboardContext.TextEntry));
+        KeyboardMappingOutcome modalHiddenToggle = mapper.Map(KeyboardInput.Create(
+            KeyboardKey.H,
+            KeyboardModifier.Control,
+            KeyRepeatState.Initial,
+            KeyboardContext.Modal));
 
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(text);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modal);
@@ -126,6 +137,8 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreSame(UserIntent.Confirm, Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEnter).Intent);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textEnter);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalMovement);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textHiddenToggle);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalHiddenToggle);
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
@@ -324,7 +337,7 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(24, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(25, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));

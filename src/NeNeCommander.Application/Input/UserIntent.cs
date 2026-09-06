@@ -35,6 +35,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to toggle explicit selection for the focus item.</summary>
     public static UserIntent ToggleSelection { get; } = new ToggleSelectionIntent();
 
+    /// <summary>Gets the intent to toggle hidden and system entries in the active pane.</summary>
+    public static UserIntent ToggleHiddenItems { get; } = new ToggleHiddenItemsIntent();
+
     /// <summary>Gets the intent to cancel transient state or clear selection.</summary>
     public static UserIntent Escape { get; } = new EscapeIntent();
 
@@ -84,6 +87,7 @@ public abstract record UserIntent
     private sealed record OpenFocusedIntent : UserIntent;
     private sealed record ActivateOtherPaneIntent : UserIntent;
     private sealed record ToggleSelectionIntent : UserIntent;
+    private sealed record ToggleHiddenItemsIntent : UserIntent;
     private sealed record EscapeIntent : UserIntent;
     private sealed record RenameIntent : UserIntent;
     private sealed record CopyIntent : UserIntent;

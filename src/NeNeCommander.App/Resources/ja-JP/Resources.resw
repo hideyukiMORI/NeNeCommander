@@ -83,6 +83,7 @@
   <data name="IntentLabelCreateDirectory" xml:space="preserve"><value>作成</value></data>
   <data name="IntentLabelDelete" xml:space="preserve"><value>削除</value></data>
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>ペイン</value></data>
+  <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>隠し項目</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>中止</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>実行</value></data>
 </root>

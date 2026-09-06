@@ -53,6 +53,7 @@ public static class KeyHintPresenter
             new(UserIntent.CreateDirectory, "IntentLabelCreateDirectory"),
             new(UserIntent.Delete, "IntentLabelDelete"),
             new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
+            new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
             new(UserIntent.Escape, "IntentLabelEscape"),
         ];
     }

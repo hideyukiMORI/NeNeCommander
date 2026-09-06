@@ -17,14 +17,15 @@ public sealed class KeyHintPresenterTests
     {
         IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.FileList);
 
-        Assert.HasCount(7, hints);
+        Assert.HasCount(8, hints);
         AssertHint(hints[0], "KeyLabelF2", "IntentLabelRename");
         AssertHint(hints[1], "KeyLabelF5", "IntentLabelCopy");
         AssertHint(hints[2], "KeyLabelF6", "IntentLabelMove");
         AssertHint(hints[3], "KeyLabelF7", "IntentLabelCreateDirectory");
         AssertHint(hints[4], "KeyLabelF8", "IntentLabelDelete");
         AssertHint(hints[5], "KeyLabelTab", "IntentLabelActivateOtherPane");
-        AssertHint(hints[6], "KeyLabelEscape", "IntentLabelEscape");
+        AssertHint(hints[6], "KeyLabelH", "IntentLabelToggleHiddenItems");
+        AssertHint(hints[7], "KeyLabelEscape", "IntentLabelEscape");
     }
 
     /// <summary>Proves a pending modal shows only its two declared keys.</summary>

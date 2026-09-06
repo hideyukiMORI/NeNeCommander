@@ -446,6 +446,24 @@ public sealed class PaneReducerTests
         Assert.AreSame(HiddenItemVisibility.Shown, shown.HiddenItemVisibility);
     }
 
+    /// <summary>Proves the toggle intent uses the reducer visibility transition in both directions.</summary>
+    [TestMethod]
+    public void ApplyWhenToggleHiddenItemsFlipsVisibilityAndVisibleEntries()
+    {
+        DirectoryEntry hidden = Entry("hidden.txt", EntryVisibility.Hidden);
+        DirectoryEntry normal = Entry("normal.txt", EntryVisibility.Normal);
+        PaneState state = CreateState([hidden, normal], 4, HiddenItemVisibility.Hidden);
+
+        PaneState shown = PaneReducer.Apply(state, UserIntent.ToggleHiddenItems);
+        PaneState hiddenAgain = PaneReducer.Apply(shown, UserIntent.ToggleHiddenItems);
+
+        Assert.AreSame(HiddenItemVisibility.Shown, shown.HiddenItemVisibility);
+        Assert.HasCount(2, shown.VisibleEntries);
+        Assert.AreSame(HiddenItemVisibility.Hidden, hiddenAgain.HiddenItemVisibility);
+        Assert.HasCount(1, hiddenAgain.VisibleEntries);
+        Assert.AreSame(normal.Path, hiddenAgain.FocusItem);
+    }
+
     /// <summary>Proves an empty pane stays focusless across a visibility change.</summary>
     [TestMethod]
     public void ApplyHiddenItemVisibilityWhenPaneIsEmptyKeepsNoFocus()
