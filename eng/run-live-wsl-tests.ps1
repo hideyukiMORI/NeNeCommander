@@ -219,19 +219,19 @@ try {
     $homeText = Get-WslText -Distribution $distribution -Arguments @(
         'sh',
         '-c',
-        'set -eu; homes=$(getent passwd); test -n "$homes"; printf "%s\n" "$homes" | cut -d: -f6 | while IFS= read -r home; do readlink -m -- "$home"; done')
+        'set -eu; account_homes=$(getent passwd); test -n "$account_homes"; printf "%s\n" "$account_homes" | cut -d: -f6 | while IFS= read -r account_home; do readlink -m -- "$account_home"; done')
     $homes = @($homeText -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     $mount = Get-WslText -Distribution $distribution -Arguments @('findmnt', '-T', $linuxRoot, '-n', '-o', 'TARGET,FSTYPE')
     $mountParts = $mount -split '\s+'
     $rootTouchesHome = $false
-    foreach ($home in $homes) {
-        if (-not $home.StartsWith('/', [System.StringComparison]::Ordinal)) {
+    foreach ($accountHomePath in $homes) {
+        if (-not $accountHomePath.StartsWith('/', [System.StringComparison]::Ordinal)) {
             $rootTouchesHome = $true
         }
-        elseif ($home -cne '/' -and (
-            $home -eq $linuxRoot -or
-            $home.StartsWith($linuxRoot + '/', [System.StringComparison]::Ordinal) -or
-            $linuxRoot.StartsWith($home.TrimEnd('/') + '/', [System.StringComparison]::Ordinal))) {
+        elseif ($accountHomePath -cne '/' -and (
+            $accountHomePath -eq $linuxRoot -or
+            $accountHomePath.StartsWith($linuxRoot + '/', [System.StringComparison]::Ordinal) -or
+            $linuxRoot.StartsWith($accountHomePath.TrimEnd('/') + '/', [System.StringComparison]::Ordinal))) {
             $rootTouchesHome = $true
         }
     }
