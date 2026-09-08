@@ -33,6 +33,9 @@ public sealed record PaneStatus
     /// <summary>Gets the status for a read stopped by cancellation.</summary>
     public static PaneStatus Cancelled { get; } = new("PaneStatusCancelled");
 
+    /// <summary>Gets the status for raw address text rejected by the canonical parser.</summary>
+    public static PaneStatus InvalidAddress { get; } = new("PaneStatusInvalidAddress");
+
     private PaneStatus(string resourceKey)
     {
         ResourceKey = resourceKey;

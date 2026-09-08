@@ -31,11 +31,16 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderSession _session;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private AddressEditorPresentation? _addressPresentation;
+    private AddressEditorState? _defaultFileListFocusSuppressedState;
+    private AddressEditorState? _leftAddressOwner;
+    private AddressEditorState? _rightAddressOwner;
     private ActiveConflictModal? _renderedConflictModal;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
     private bool _renderingSettings;
+    private bool _renderingAddressTransition;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -132,8 +137,33 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
+        AddressEditorPresentation? previousAddress = _addressPresentation;
+        AddressEditorPresentation address = AddressEditorPresenter.Present(
+            snapshot.AddressEditor,
+            previousAddress);
+        bool addressChanged = !ReferenceEquals(address, previousAddress);
+        _addressPresentation = address;
+        if (addressChanged)
+        {
+            _defaultFileListFocusSuppressedState = previousAddress is not null &&
+                address.EditingSide is null
+                    ? address.SourceState
+                    : null;
+        }
+        if (snapshot.Settings.Editor == SettingsEditorState.Open ||
+            snapshot.Panes.Operation is OperationAwaitingConfirmation or OperationAwaitingName or
+                OperationAwaitingConflict)
+        {
+            _defaultFileListFocusSuppressedState = null;
+        }
+        _renderingAddressTransition = addressChanged;
         RenderPanes(snapshot.Panes);
+        _renderingAddressTransition = false;
         RenderSettings(SettingsPresenter.Present(snapshot.Settings));
+        if (addressChanged)
+        {
+            RenderAddressTransition(address);
+        }
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
@@ -146,8 +176,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _presentation);
         _presentation = presentation;
-        RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
-        RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
+        RenderPane(PaneSide.Left, presentation.Left, LeftAddress, LeftStatus, LeftFileList);
+        RenderPane(PaneSide.Right, presentation.Right, RightAddress, RightStatus, RightFileList);
         RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
         RenderNumber(presentation.LeftFrame, LeftPaneNumberSurface, LeftPaneNumber);
         RenderFrame(presentation.RightFrame, RightPaneBorder, RightPaneHeader);
@@ -159,7 +189,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderNameEntry(presentation.NameEntry);
         RenderConflict(presentation.ConflictModal);
         _operationContext = presentation.InputContext;
-        _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+        if (!_renderingAddressTransition && ShouldScheduleFileListFocus())
+        {
+            _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+        }
     }
 
     private void RenderSettings(SettingsPresentation presentation)
@@ -310,9 +343,17 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         ForwardIntent(UserIntent.ResolveConflict(decision, scope));
     }
 
-    private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
+    private void RenderPane(
+        PaneSide side,
+        PanePresentation presentation,
+        TextBox address,
+        TextBlock status,
+        ListView fileList)
     {
-        address.Text = presentation.AddressText;
+        if (_addressPresentation?.EditingSide != side)
+        {
+            address.Text = presentation.AddressText;
+        }
         if (!ReferenceEquals(fileList.ItemsSource, presentation.Rows))
         {
             fileList.ItemsSource = presentation.Rows;
@@ -322,7 +363,34 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             fileList.ScrollIntoView(presentation.FocusRow);
         }
-        status.Text = _resources.GetString(presentation.Status.ResourceKey);
+        PaneStatus paneStatus = _addressPresentation?.EditingSide == side &&
+            _addressPresentation.Status is PaneStatus addressStatus
+                ? addressStatus
+                : presentation.Status;
+        status.Text = _resources.GetString(paneStatus.ResourceKey);
+    }
+
+    private void RenderAddressTransition(AddressEditorPresentation presentation)
+    {
+        if (presentation.EditingSide is PaneSide side)
+        {
+            TextBox address = AddressOf(side);
+            SetAddressOwner(side, presentation.SourceState);
+            if (presentation.ReplacementText is string replacement)
+            {
+                address.Text = replacement;
+            }
+            _ = address.Focus(FocusState.Programmatic);
+            if (presentation.SelectAll)
+            {
+                address.SelectAll();
+            }
+            return;
+        }
+        if (presentation.FileListFocusSide is PaneSide fileListSide)
+        {
+            FocusFileList(fileListSide);
+        }
     }
 
     private static void RenderFrame(PaneFrame frame, Border border, Border header)
@@ -369,11 +437,76 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void ForwardIntent(UserIntent intent)
     {
-        UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
-                ? UserIntent.SubmitName(NameEntry.Text)
-                : intent;
+        if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox focusedAddress)
+        {
+            focusedAddress.SelectAll();
+            return;
+        }
+        UserIntent forwarded = CreateForwardedIntent(intent);
         _ = _paneWork.TryStart(cancellationToken =>
             RenderAfterAsync(_session.HandleAsync(forwarded, this, cancellationToken)));
+    }
+
+    private UserIntent CreateForwardedIntent(UserIntent intent)
+    {
+        return intent == UserIntent.Confirm && FocusedAddressSide() is PaneSide side &&
+            AddressOwnerOf(side) is AddressEditorState owner &&
+            ReferenceEquals(owner, _session.Current.AddressEditor)
+                ? UserIntent.SubmitAddress(owner, AddressOf(side).Text)
+                : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
+                    ? UserIntent.SubmitName(NameEntry.Text)
+                    : intent;
+    }
+
+    private void OnAddressGotFocus(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
+        {
+            return;
+        }
+        AddressEditorState current = _session.Current.AddressEditor;
+        if (EditorOwnsSide(current, side))
+        {
+            SetAddressOwner(side, current);
+            return;
+        }
+        bool started = _paneWork.TryStart(cancellationToken =>
+            RenderAfterAddressFocusAsync(side, cancellationToken));
+        if (!started)
+        {
+            FocusFileList(_session.Current.Panes.ActiveSide);
+        }
+    }
+
+    private void OnAddressLostFocus(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
+        {
+            return;
+        }
+        AddressEditorState? owner = AddressOwnerOf(side);
+        SetAddressOwner(side, null);
+        if (owner is not null && ReferenceEquals(owner, _session.Current.AddressEditor))
+        {
+            ForwardIntent(UserIntent.LeaveAddress(owner));
+        }
+    }
+
+    private async Task RenderAfterAddressFocusAsync(PaneSide side, CancellationToken cancellationToken)
+    {
+        Task<CommanderSnapshot> work = _session.HandleAsync(
+            UserIntent.BeginAddressEdit(side),
+            this,
+            cancellationToken);
+        RenderSession(_session.Current);
+        CommanderSnapshot snapshot = await work;
+        RenderSession(snapshot);
+        if (!EditorOwnsSide(snapshot.AddressEditor, side))
+        {
+            FocusFileList(snapshot.Panes.ActiveSide);
+        }
     }
 
     private void OnSettingsClose(object _, RoutedEventArgs args)
@@ -419,8 +552,73 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return KeyboardContext.Modal;
         }
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
-            ? KeyboardContext.TextEntry
-            : KeyboardContext.FileList;
+        return ReferenceEquals(focused, LeftAddress) || ReferenceEquals(focused, RightAddress)
+            ? KeyboardContext.AddressEntry
+            : focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
+                ? KeyboardContext.TextEntry
+                : KeyboardContext.FileList;
+    }
+
+    private bool ShouldScheduleFileListFocus()
+    {
+        return _addressPresentation?.EditingSide is null &&
+            !ReferenceEquals(
+                _addressPresentation?.SourceState,
+                _defaultFileListFocusSuppressedState);
+    }
+
+    private TextBox? FocusedAddress()
+    {
+        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
+        return ReferenceEquals(focused, LeftAddress)
+            ? LeftAddress
+            : ReferenceEquals(focused, RightAddress) ? RightAddress : null;
+    }
+
+    private PaneSide? FocusedAddressSide()
+    {
+        TextBox? address = FocusedAddress();
+        return address is null ? null : SideOf(address);
+    }
+
+    private PaneSide? SideOf(TextBox address)
+    {
+        return ReferenceEquals(address, LeftAddress)
+            ? PaneSide.Left
+            : ReferenceEquals(address, RightAddress) ? PaneSide.Right : null;
+    }
+
+    private TextBox AddressOf(PaneSide side)
+    {
+        return side == PaneSide.Left ? LeftAddress : RightAddress;
+    }
+
+    private AddressEditorState? AddressOwnerOf(PaneSide side)
+    {
+        return side == PaneSide.Left ? _leftAddressOwner : _rightAddressOwner;
+    }
+
+    private void SetAddressOwner(PaneSide side, AddressEditorState? owner)
+    {
+        if (side == PaneSide.Left)
+        {
+            _leftAddressOwner = owner;
+        }
+        else
+        {
+            _rightAddressOwner = owner;
+        }
+    }
+
+    private static bool EditorOwnsSide(AddressEditorState state, PaneSide side)
+    {
+        return (state is AddressEditing editing && editing.Side == side) ||
+            (state is AddressInputRejected rejected && rejected.Side == side);
+    }
+
+    private void FocusFileList(PaneSide side)
+    {
+        ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
+        _ = fileList.Focus(FocusState.Programmatic);
     }
 }

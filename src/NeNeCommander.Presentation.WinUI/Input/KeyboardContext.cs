@@ -12,6 +12,9 @@ public abstract record KeyboardContext
     /// <summary>Gets a text-editor context that owns printable and editing input.</summary>
     public static KeyboardContext TextEntry { get; } = new TextEntryContext();
 
+    /// <summary>Gets the address editor context that owns only navigation submission keys.</summary>
+    public static KeyboardContext AddressEntry { get; } = new AddressEntryContext();
+
     /// <summary>Gets a modal context that blocks the underlying file-list map.</summary>
     public static KeyboardContext Modal { get; } = new ModalContext();
 
@@ -22,5 +25,6 @@ public abstract record KeyboardContext
     private sealed record FileListContext : KeyboardContext;
     private sealed record NavigationSurfaceContext : KeyboardContext;
     private sealed record TextEntryContext : KeyboardContext;
+    private sealed record AddressEntryContext : KeyboardContext;
     private sealed record ModalContext : KeyboardContext;
 }

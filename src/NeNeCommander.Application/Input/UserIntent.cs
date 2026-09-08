@@ -1,4 +1,6 @@
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Input;
@@ -81,6 +83,24 @@ public abstract record UserIntent
     public static UserIntent SubmitName(string name)
     {
         return new NameSubmission(name);
+    }
+
+    /// <summary>Creates an address-edit start intent for the pane whose native control received focus.</summary>
+    public static UserIntent BeginAddressEdit(PaneSide side)
+    {
+        return new AddressFocusSubmission(side);
+    }
+
+    /// <summary>Creates an address submission carrying untrusted native editor text verbatim.</summary>
+    public static UserIntent SubmitAddress(AddressEditorState expectedState, string rawText)
+    {
+        return new AddressSubmission(expectedState, rawText);
+    }
+
+    /// <summary>Creates a focus-departure intent qualified by the editor state that lost focus.</summary>
+    public static UserIntent LeaveAddress(AddressEditorState expectedState)
+    {
+        return new AddressFocusDeparture(expectedState);
     }
 
     /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>

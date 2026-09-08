@@ -143,6 +143,28 @@ public sealed class KeyboardIntentMapperTests
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
+    /// <summary>Proves address editing owns only confirm, cancel, and focus-address bindings.</summary>
+    [TestMethod]
+    public void MapWhenAddressEntryOwnsInputMapsNavigationKeysAndPassesNativeEditingThrough()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        AssertMaps(mapper, Input(KeyboardKey.Enter, KeyboardContext.AddressEntry), UserIntent.Confirm);
+        AssertMaps(mapper, Input(KeyboardKey.Escape, KeyboardContext.AddressEntry), UserIntent.Escape);
+        AssertMaps(
+            mapper,
+            Input(KeyboardKey.L, KeyboardModifier.Control, KeyboardContext.AddressEntry),
+            UserIntent.FocusAddress);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.Other, KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.J, KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.L, KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.L, KeyboardModifier.Other, KeyboardContext.AddressEntry)));
+    }
+
     /// <summary>Proves a native-control modal leaves Enter and Space to focus while retaining Escape.</summary>
     [TestMethod]
     public void DeferModalConfirmToNativeControlPreservesFocusedControlKeyboardBehavior()
@@ -358,6 +380,7 @@ public sealed class KeyboardIntentMapperTests
             KeyboardContext.NavigationSurface,
             KeyboardContext.Modal,
             KeyboardContext.TextEntry,
+            KeyboardContext.AddressEntry,
         ];
 
         foreach (KeyboardContext context in contexts)
@@ -376,6 +399,7 @@ public sealed class KeyboardIntentMapperTests
             KeyboardContext.NavigationSurface,
             KeyboardContext.Modal,
             KeyboardContext.TextEntry,
+            KeyboardContext.AddressEntry,
         ];
 
         foreach (KeyboardContext context in contexts)
@@ -392,6 +416,7 @@ public sealed class KeyboardIntentMapperTests
         Assert.HasCount(7, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
+        Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));
     }
 
     /// <summary>Proves every key identity names one distinct key-cap label resource.</summary>

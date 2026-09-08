@@ -59,6 +59,9 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.TextEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.AddressEntry, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.AddressEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.AddressEntry, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
     ];
 
     private readonly IClock _clock;
@@ -105,6 +108,12 @@ public sealed class KeyboardIntentMapper
         {
             _pendingChordStartedAt = null;
             return MapOwnedKey(input);
+        }
+
+        if (input.Context == KeyboardContext.AddressEntry)
+        {
+            _pendingChordStartedAt = null;
+            return MapDeclaredKey(input);
         }
 
         if (input.Key == KeyboardKey.Other)

@@ -14,6 +14,7 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>This location is not a directory</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>This location is unavailable</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>Listing was cancelled</value></data>
+  <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>Enter a valid absolute location</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>Moving…</value></data>

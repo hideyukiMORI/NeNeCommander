@@ -14,6 +14,7 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>この場所はディレクトリではありません</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>この場所は利用できません</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>一覧の読み込みを中止しました</value></data>
+  <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>有効な絶対パスを入力してください</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>移動しています…</value></data>
