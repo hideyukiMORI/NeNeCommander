@@ -513,7 +513,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         TextBlock status,
         ListView fileList)
     {
-        if (_addressPresentation?.EditingSide != side)
+        AddressEditorPresentation? addressPresentation = _addressPresentation;
+        bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
+            editingSide == side;
+        if (!isEditingAddress)
         {
             address.Text = presentation.AddressText;
         }
@@ -526,8 +529,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             fileList.ScrollIntoView(presentation.FocusRow);
         }
-        PaneStatus paneStatus = _addressPresentation?.EditingSide == side &&
-            _addressPresentation.Status is PaneStatus addressStatus
+        PaneStatus paneStatus = isEditingAddress &&
+            addressPresentation is { Status: PaneStatus addressStatus }
                 ? addressStatus
                 : presentation.Status;
         status.Text = _resources.GetString(paneStatus.ResourceKey);
