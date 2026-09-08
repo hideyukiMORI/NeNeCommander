@@ -50,6 +50,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.FileList, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Refresh),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
@@ -59,6 +60,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
@@ -67,6 +69,15 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.AddressEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.AddressEntry, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
     ];
+
+    private static readonly IReadOnlyList<CommandPaletteKeyBinding> DeclaredPaletteBindings =
+        Array.AsReadOnly<CommandPaletteKeyBinding>(
+    [
+        new(KeyboardKey.Up, CommandPaletteKeyAction.MovePrevious),
+        new(KeyboardKey.Down, CommandPaletteKeyAction.MoveNext),
+        new(KeyboardKey.Enter, CommandPaletteKeyAction.Execute),
+        new(KeyboardKey.Escape, CommandPaletteKeyAction.Cancel),
+    ]);
 
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
@@ -93,6 +104,10 @@ public sealed class KeyboardIntentMapper
         return declared.AsReadOnly();
     }
 
+    /// <summary>Gets the keys owned by the Presentation palette state in stable order.</summary>
+    public static IReadOnlyList<CommandPaletteKeyBinding> CommandPaletteBindings { get; } =
+        DeclaredPaletteBindings;
+
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
@@ -108,6 +123,11 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
+        if (input.Context == KeyboardContext.CommandPalette)
+        {
+            _pendingChordStartedAt = null;
+            return MapCommandPaletteKey(input);
+        }
         if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
             _pendingChordStartedAt = null;
@@ -166,6 +186,17 @@ public sealed class KeyboardIntentMapper
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
         return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+    }
+
+    private static KeyboardMappingOutcome MapCommandPaletteKey(KeyboardInput input)
+    {
+        CommandPaletteKeyBinding? binding = DeclaredPaletteBindings.FirstOrDefault(binding =>
+            binding.Key == input.Key);
+        return binding is null ||
+            (binding.Action == CommandPaletteKeyAction.Execute &&
+                input.RepeatState == KeyRepeatState.Repeated)
+            ? new KeyboardPassThrough()
+            : new MappedCommandPaletteAction(binding.Action);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)

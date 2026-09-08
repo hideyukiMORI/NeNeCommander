@@ -51,6 +51,7 @@ internal static class KeyboardInputTranslator
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
             'l' or '\u000c' => KeyboardKey.L,
+            'p' or '\u0010' => KeyboardKey.P,
             'r' or '\u0012' => KeyboardKey.R,
             'u' or '\u0015' => KeyboardKey.U,
             ',' => KeyboardKey.Comma,

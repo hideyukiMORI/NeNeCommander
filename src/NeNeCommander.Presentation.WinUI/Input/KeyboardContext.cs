@@ -18,6 +18,9 @@ public abstract record KeyboardContext
     /// <summary>Gets a modal context that blocks the underlying file-list map.</summary>
     public static KeyboardContext Modal { get; } = new ModalContext();
 
+    /// <summary>Gets the command-palette context that owns selection, execution, and cancellation.</summary>
+    public static KeyboardContext CommandPalette { get; } = new CommandPaletteContext();
+
     private KeyboardContext()
     {
     }
@@ -27,4 +30,5 @@ public abstract record KeyboardContext
     private sealed record TextEntryContext : KeyboardContext;
     private sealed record AddressEntryContext : KeyboardContext;
     private sealed record ModalContext : KeyboardContext;
+    private sealed record CommandPaletteContext : KeyboardContext;
 }

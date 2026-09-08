@@ -79,6 +79,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned settings editor.</summary>
     public static UserIntent OpenSettings { get; } = new OpenSettingsIntent();
 
+    /// <summary>Gets the intent to open the session-owned command palette.</summary>
+    public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
+
     private protected UserIntent()
     {
     }
@@ -107,6 +110,12 @@ public abstract record UserIntent
     public static UserIntent LeaveAddress(AddressEditorState expectedState)
     {
         return new AddressFocusDeparture(expectedState);
+    }
+
+    /// <summary>Creates a palette selection qualified by the exact open state that owns it.</summary>
+    public static UserIntent SubmitCommand(CommandPaletteOpen expectedState, UserIntent selectedIntent)
+    {
+        return new CommandPaletteSubmission(expectedState, selectedIntent);
     }
 
     /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
@@ -156,4 +165,5 @@ public abstract record UserIntent
     private sealed record RefreshIntent : UserIntent;
     private sealed record ConfirmIntent : UserIntent;
     private sealed record OpenSettingsIntent : UserIntent;
+    private sealed record OpenCommandPaletteIntent : UserIntent;
 }

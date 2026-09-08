@@ -54,6 +54,7 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.U, KeyboardModifier.Control), UserIntent.MoveHalfPageUp);
         AssertMaps(mapper, Input(KeyboardKey.L, KeyboardModifier.Control), UserIntent.FocusAddress);
         AssertMaps(mapper, Input(KeyboardKey.R, KeyboardModifier.Control), UserIntent.Refresh);
+        AssertMaps(mapper, Input(KeyboardKey.P, KeyboardModifier.Control), UserIntent.OpenCommandPalette);
         AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
         AssertMaps(mapper, Input(KeyboardKey.Comma, KeyboardModifier.Control), UserIntent.OpenSettings);
     }
@@ -264,6 +265,10 @@ public sealed class KeyboardIntentMapperTests
             mapper,
             Input(KeyboardKey.Comma, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenSettings);
+        AssertMaps(
+            mapper,
+            Input(KeyboardKey.P, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            UserIntent.OpenCommandPalette);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             mapper.Map(Input(KeyboardKey.J, KeyboardContext.NavigationSurface)));
     }
@@ -337,6 +342,8 @@ public sealed class KeyboardIntentMapperTests
         AssertTranslatedCharacter('k', KeyboardKey.K);
         AssertTranslatedCharacter('l', KeyboardKey.L);
         AssertTranslatedCharacter('\u000c', KeyboardKey.L);
+        AssertTranslatedCharacter('p', KeyboardKey.P);
+        AssertTranslatedCharacter('\u0010', KeyboardKey.P);
         AssertTranslatedCharacter('r', KeyboardKey.R);
         AssertTranslatedCharacter('\u0012', KeyboardKey.R);
         AssertTranslatedCharacter('u', KeyboardKey.U);
@@ -450,8 +457,8 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(28, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(9, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(29, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(10, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
         Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));
@@ -469,6 +476,7 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelL", KeyboardKey.L.LabelResourceKey);
         Assert.AreEqual("KeyLabelD", KeyboardKey.D.LabelResourceKey);
         Assert.AreEqual("KeyLabelR", KeyboardKey.R.LabelResourceKey);
+        Assert.AreEqual("KeyLabelP", KeyboardKey.P.LabelResourceKey);
         Assert.AreEqual("KeyLabelU", KeyboardKey.U.LabelResourceKey);
         Assert.AreEqual("KeyLabelComma", KeyboardKey.Comma.LabelResourceKey);
         Assert.AreEqual("KeyLabelDown", KeyboardKey.Down.LabelResourceKey);
@@ -489,6 +497,28 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelF8", KeyboardKey.F8.LabelResourceKey);
         Assert.AreEqual("KeyLabelUnmapped", KeyboardKey.Other.LabelResourceKey);
         AssertLabelResourceKeysAreDistinct();
+    }
+
+    /// <summary>Proves the palette context owns only selection, execution, and cancellation keys.</summary>
+    [TestMethod]
+    public void MapWhenContextIsCommandPaletteEmitsPresentationActionsOnly()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        AssertPaletteAction(mapper, KeyboardKey.Up, CommandPaletteKeyAction.MovePrevious);
+        AssertPaletteAction(mapper, KeyboardKey.Down, CommandPaletteKeyAction.MoveNext);
+        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
+        AssertPaletteAction(mapper, KeyboardKey.Escape, CommandPaletteKeyAction.Cancel);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.Tab, KeyboardContext.CommandPalette)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.J, KeyboardContext.CommandPalette)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.CommandPalette)));
+        Assert.HasCount(4, KeyboardIntentMapper.CommandPaletteBindings);
     }
 
     /// <summary>Proves the binding query rejects an absent context.</summary>
@@ -550,6 +580,16 @@ public sealed class KeyboardIntentMapperTests
     private static KeyboardIntentMapper CreateMapper()
     {
         return new KeyboardIntentMapper(AdjustableClock.Create());
+    }
+
+    private static void AssertPaletteAction(
+        KeyboardIntentMapper mapper,
+        KeyboardKey key,
+        CommandPaletteKeyAction expected)
+    {
+        MappedCommandPaletteAction mapped = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
+            mapper.Map(Input(key, KeyboardContext.CommandPalette)));
+        Assert.AreEqual(expected, mapped.Action);
     }
 
     private static KeyboardInput Input(KeyboardKey key)
