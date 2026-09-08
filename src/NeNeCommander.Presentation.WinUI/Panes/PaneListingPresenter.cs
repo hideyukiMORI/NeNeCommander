@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 
@@ -204,6 +205,9 @@ public static class PaneListingPresenter
             PaneLoading => PaneStatus.Loading,
             PaneReadCancelled => PaneStatus.Cancelled,
             PaneReadFailed failed => TranslateFailure(failed.Failure),
+            PaneLaunching => PaneStatus.Launching,
+            PaneLaunchCancelled => PaneStatus.LaunchCancelled,
+            PaneLaunchFailed failed => TranslateLaunchFailure(failed.Failure),
             _ => idleStatus,
         };
     }
@@ -224,5 +228,16 @@ public static class PaneListingPresenter
         return failure == FileOperationFailureKind.AccessDenied
             ? PaneStatus.AccessDenied
             : failure == FileOperationFailureKind.NotFound ? PaneStatus.NotFound : PaneStatus.ProviderUnavailable;
+    }
+
+    private static PaneStatus TranslateLaunchFailure(FileLaunchFailureKind failure)
+    {
+        return failure == FileLaunchFailureKind.NotFound
+            ? PaneStatus.LaunchNotFound
+            : failure == FileLaunchFailureKind.AccessDenied
+                ? PaneStatus.LaunchAccessDenied
+                : failure == FileLaunchFailureKind.AssociationUnavailable
+                    ? PaneStatus.AssociationUnavailable
+                    : PaneStatus.LaunchUnavailable;
     }
 }

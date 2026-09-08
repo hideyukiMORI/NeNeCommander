@@ -922,8 +922,18 @@ public sealed class DualPanePresenterTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
         return new DualPaneSession(
-            new PaneSession(left, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
-            new PaneSession(right, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
+            new PaneSession(
+                left,
+                new AcceptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
+            new PaneSession(
+                right,
+                new AcceptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
             gateway);
     }
 

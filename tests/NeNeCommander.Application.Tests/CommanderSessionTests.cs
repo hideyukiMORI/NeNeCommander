@@ -599,11 +599,13 @@ public sealed class CommanderSessionTests
     {
         PaneSession leftPane = new(
             left,
+            new ScriptedFileLauncher(),
             Capacity(),
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
         PaneSession rightPane = new(
             right,
+            new ScriptedFileLauncher(),
             Capacity(),
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);

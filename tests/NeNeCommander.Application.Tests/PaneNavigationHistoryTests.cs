@@ -11,6 +11,14 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class PaneNavigationHistoryTests
 {
+    /// <summary>Proves a history cannot be constructed without its required location sequence.</summary>
+    [TestMethod]
+    public void CreateWhenLocationsIsNullThrowsArgumentNullException()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => PaneNavigationHistory.Create(null!, 0));
+    }
+
     /// <summary>Proves a history always contains between one and 100 locations.</summary>
     [TestMethod]
     public void CreateWhenLocationCountIsOutsideBoundThrowsArgumentOutOfRangeException()
@@ -65,6 +73,16 @@ public sealed class PaneNavigationHistoryTests
         PaneNavigationHistory history = PaneNavigationHistory.Create([ParsePath("C:\\other")], 0);
 
         _ = Assert.ThrowsExactly<ArgumentException>(() => state.WithNavigationHistory(history));
+    }
+
+    /// <summary>Proves a pane cannot replace its required navigation history with absence.</summary>
+    [TestMethod]
+    public void WithNavigationHistoryWhenHistoryIsNullThrowsArgumentNullException()
+    {
+        PaneState state = CreateState("C:\\root");
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => state.WithNavigationHistory(null!));
     }
 
     private static PaneState CreateState(string location)

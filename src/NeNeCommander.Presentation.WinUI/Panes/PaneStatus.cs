@@ -1,7 +1,7 @@
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
 /// <summary>
-/// Identifies the closed status a pane shows for its content and read activity.
+/// Identifies the closed status a pane shows for its content and external activity.
 /// Each status names a localization resource; no user-facing text is assembled in code.
 /// </summary>
 public sealed record PaneStatus
@@ -32,6 +32,24 @@ public sealed record PaneStatus
 
     /// <summary>Gets the status for a read stopped by cancellation.</summary>
     public static PaneStatus Cancelled { get; } = new("PaneStatusCancelled");
+
+    /// <summary>Gets the status for a file path being handed to the Windows Shell.</summary>
+    public static PaneStatus Launching { get; } = new("PaneStatusLaunching");
+
+    /// <summary>Gets the status for cancellation observed before a file handoff.</summary>
+    public static PaneStatus LaunchCancelled { get; } = new("PaneStatusLaunchCancelled");
+
+    /// <summary>Gets the status for a launch target that no longer exists.</summary>
+    public static PaneStatus LaunchNotFound { get; } = new("PaneStatusLaunchNotFound");
+
+    /// <summary>Gets the status for an operating-system launch access denial.</summary>
+    public static PaneStatus LaunchAccessDenied { get; } = new("PaneStatusLaunchAccessDenied");
+
+    /// <summary>Gets the status for a launch target without an available association.</summary>
+    public static PaneStatus AssociationUnavailable { get; } = new("PaneStatusAssociationUnavailable");
+
+    /// <summary>Gets the status for an unsupported provider or another Windows Shell rejection.</summary>
+    public static PaneStatus LaunchUnavailable { get; } = new("PaneStatusLaunchUnavailable");
 
     /// <summary>Gets the status for raw address text rejected by the canonical parser.</summary>
     public static PaneStatus InvalidAddress { get; } = new("PaneStatusInvalidAddress");

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
@@ -399,7 +400,46 @@ public sealed class PaneListingPresenterTests
         Assert.AreEqual("PaneStatusNotFound", PaneStatus.NotFound.ResourceKey);
         Assert.AreEqual("PaneStatusProviderUnavailable", PaneStatus.ProviderUnavailable.ResourceKey);
         Assert.AreEqual("PaneStatusCancelled", PaneStatus.Cancelled.ResourceKey);
+        Assert.AreEqual("PaneStatusLaunching", PaneStatus.Launching.ResourceKey);
+        Assert.AreEqual("PaneStatusLaunchCancelled", PaneStatus.LaunchCancelled.ResourceKey);
+        Assert.AreEqual("PaneStatusLaunchNotFound", PaneStatus.LaunchNotFound.ResourceKey);
+        Assert.AreEqual("PaneStatusLaunchAccessDenied", PaneStatus.LaunchAccessDenied.ResourceKey);
+        Assert.AreEqual("PaneStatusAssociationUnavailable", PaneStatus.AssociationUnavailable.ResourceKey);
+        Assert.AreEqual("PaneStatusLaunchUnavailable", PaneStatus.LaunchUnavailable.ResourceKey);
         Assert.AreEqual("PaneStatusInvalidAddress", PaneStatus.InvalidAddress.ResourceKey);
+    }
+
+    /// <summary>Proves every file handoff activity projects to its closed localized status.</summary>
+    [TestMethod]
+    public async Task PresentWhenFileLaunchChangesActivityTranslatesStatus()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            CreateListing("C:\\root", ["a.txt"], DirectoryListingCompleteness.Complete, 0)));
+        ScriptedFileLauncher launcher = new();
+        TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
+        launcher.Enqueue(FileLaunchOutcome.Cancelled());
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.NotFound));
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AssociationUnavailable));
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ShellRejected));
+        PaneSession session = CreateSession(port, launcher);
+        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        Task<PaneSnapshot> pending = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        Assert.AreSame(PaneStatus.Launching, Present(session.Current).Status);
+        release.SetResult(FileLaunchOutcome.Accepted());
+        _ = await pending;
+        Assert.AreSame(PaneStatus.LaunchCancelled, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
+        Assert.AreSame(PaneStatus.LaunchNotFound, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
+        Assert.AreSame(PaneStatus.LaunchAccessDenied, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
+        Assert.AreSame(PaneStatus.AssociationUnavailable, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
+        Assert.AreSame(PaneStatus.LaunchUnavailable, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
     }
 
     private static async Task<PaneSnapshot> ListAsync(DirectoryListing listing)
@@ -407,6 +447,11 @@ public sealed class PaneListingPresenterTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
         return await CreateSession(port).NavigateAsync(listing.Location, CancellationToken.None);
+    }
+
+    private static PanePresentation Present(PaneSnapshot snapshot)
+    {
+        return PaneListingPresenter.Present(snapshot, PaneFrame.Active);
     }
 
     private static async Task<PaneSnapshot> ReadAbsentAsync(DirectoryReadOutcome outcome)
@@ -432,9 +477,27 @@ public sealed class PaneListingPresenterTests
 
     private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
     {
+        return CreateSession(port, new AcceptedFileLauncher(), visibility);
+    }
+
+    private static PaneSession CreateSession(IDirectoryReadPort port, IFileLauncher fileLauncher)
+    {
+        return CreateSession(port, fileLauncher, HiddenItemVisibility.Hidden);
+    }
+
+    private static PaneSession CreateSession(
+        IDirectoryReadPort port,
+        IFileLauncher fileLauncher,
+        HiddenItemVisibility visibility)
+    {
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
-        return new PaneSession(port, capacity, DirectoryListing.EntryBoundaryLimit, visibility);
+        return new PaneSession(
+            port,
+            fileLauncher,
+            capacity,
+            DirectoryListing.EntryBoundaryLimit,
+            visibility);
     }
 
     private static DirectoryListing CreateListing(

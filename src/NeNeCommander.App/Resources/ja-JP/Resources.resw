@@ -14,6 +14,12 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>この場所はディレクトリではありません</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>この場所は利用できません</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>一覧の読み込みを中止しました</value></data>
+  <data name="PaneStatusLaunching" xml:space="preserve"><value>ファイルを開いています…</value></data>
+  <data name="PaneStatusLaunchCancelled" xml:space="preserve"><value>ファイルを開く処理を中止しました</value></data>
+  <data name="PaneStatusLaunchNotFound" xml:space="preserve"><value>ファイルが見つかりません</value></data>
+  <data name="PaneStatusLaunchAccessDenied" xml:space="preserve"><value>このファイルへのアクセスは拒否されました</value></data>
+  <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>このファイルを開けるアプリがありません</value></data>
+  <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>このファイルを開けません</value></data>
   <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>有効な絶対パスを入力してください</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
