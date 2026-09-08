@@ -15,6 +15,409 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class CommanderSessionTests
 {
+    /// <summary>Proves keyboard and native-focus entry capture the intended listed pane.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenAddressEditingStartsCapturesAndActivatesRequestedPaneAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+
+        CommanderSnapshot leftEditing = await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot repeatedShortcut = await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot repeatedFocus = await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Left),
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot ignoredMovement = await session.HandleAsync(
+            UserIntent.MoveNext,
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot rightEditing = await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Right),
+            observer,
+            CancellationToken.None);
+
+        AddressEditing leftState = Assert.IsInstanceOfType<AddressEditing>(leftEditing.AddressEditor);
+        Assert.AreSame(leftState, repeatedShortcut.AddressEditor);
+        Assert.AreSame(leftState, repeatedFocus.AddressEditor);
+        Assert.AreSame(leftState, ignoredMovement.AddressEditor);
+        Assert.AreSame(PaneSide.Left, leftState.Side);
+        Assert.AreEqual("C:\\left", leftState.OriginalLocation.CanonicalText);
+        AddressEditing rightState = Assert.IsInstanceOfType<AddressEditing>(rightEditing.AddressEditor);
+        Assert.AreSame(PaneSide.Right, rightState.Side);
+        Assert.AreEqual("C:\\right", rightState.OriginalLocation.CanonicalText);
+        Assert.AreSame(PaneSide.Right, rightEditing.Panes.ActiveSide);
+    }
+
+    /// <summary>Proves invalid raw input remains exact, performs no read, and preserves selection.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenAddressIsInvalidKeepsRawEditorAndPaneContentAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, observer, CancellationToken.None);
+        AddressEditorState editing = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+        PaneContentListed before = Assert.IsInstanceOfType<PaneContentListed>(session.Current.Panes.Left.Content);
+        const string RawText = " C:\\invalid ";
+
+        CommanderSnapshot rejected = await session.HandleAsync(
+            UserIntent.SubmitAddress(editing, RawText),
+            observer,
+            CancellationToken.None);
+
+        AddressInputRejected state = Assert.IsInstanceOfType<AddressInputRejected>(rejected.AddressEditor);
+        Assert.AreEqual(RawText, state.RawText);
+        Assert.AreSame(PathParseFailureKind.Relative, state.Failure);
+        Assert.HasCount(1, left.Requests);
+        PaneContentListed after = Assert.IsInstanceOfType<PaneContentListed>(rejected.Panes.Left.Content);
+        Assert.AreSame(before, after);
+        Assert.HasCount(1, after.State.Selection);
+    }
+
+    /// <summary>Proves a valid submission closes before reading through the captured pane route.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenAddressIsValidClosesBeforeExistingNavigationCompletesAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        TaskCompletionSource<DirectoryReadOutcome> targetRead = left.EnqueuePending();
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        AddressEditorState editing = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+
+        Task<CommanderSnapshot> navigating = session.HandleAsync(
+            UserIntent.SubmitAddress(editing, "c:/target"),
+            observer,
+            CancellationToken.None);
+
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(session.Current.AddressEditor);
+        Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
+        PaneLoading loading = Assert.IsInstanceOfType<PaneLoading>(session.Current.Panes.Left.Activity);
+        Assert.AreEqual("C:\\target", loading.Target.CanonicalText);
+        Assert.HasCount(2, left.Requests);
+        Assert.AreEqual("C:\\target", left.Requests[1].Location.CanonicalText);
+        targetRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "new.txt")));
+        CommanderSnapshot navigated = await navigating;
+        PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content);
+        Assert.AreEqual("C:\\target", content.Listing.Location.CanonicalText);
+    }
+
+    /// <summary>Proves Escape closes address editing without reaching pane selection reduction.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenEscapeCancelsAddressPreservesSelectionAndRequestsListFocusAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.FocusAddress, observer, CancellationToken.None);
+
+        CommanderSnapshot cancelled = await session.HandleAsync(
+            UserIntent.Escape,
+            observer,
+            CancellationToken.None);
+
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(cancelled.AddressEditor);
+        Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
+        PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(cancelled.Panes.Left.Content);
+        Assert.AreEqual("C:\\left", content.Listing.Location.CanonicalText);
+        Assert.HasCount(1, content.State.Selection);
+    }
+
+    /// <summary>Proves an old control's LostFocus cannot close a newer address editor.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenStaleAddressDepartureArrivesKeepsNewEditorAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+        AddressEditorState oldState = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+        AddressEditorState newState = (await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Right),
+            observer,
+            CancellationToken.None)).AddressEditor;
+
+        CommanderSnapshot afterDeparture = await session.HandleAsync(
+            UserIntent.LeaveAddress(oldState),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(newState, afterDeparture.AddressEditor);
+        Assert.AreSame(PaneSide.Right, Assert.IsInstanceOfType<AddressEditing>(newState).Side);
+
+        CommanderSnapshot departed = await session.HandleAsync(
+            UserIntent.LeaveAddress(newState),
+            observer,
+            CancellationToken.None);
+        Assert.AreSame(AddressEditorState.Closed, departed.AddressEditor);
+    }
+
+    /// <summary>Proves provider failure and cancellation retain the listed content and selection.</summary>
+    [TestMethod]
+    [DataRow("failed")]
+    [DataRow("cancelled")]
+    public async Task HandleAsyncWhenAddressReadDoesNotSucceedPreservesPaneAsync(string outcomeName)
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        bool cancelled = outcomeName == "cancelled";
+        left.Enqueue(cancelled
+            ? DirectoryReadOutcome.Cancelled()
+            : DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, observer, CancellationToken.None);
+        PaneContentListed before = Assert.IsInstanceOfType<PaneContentListed>(session.Current.Panes.Left.Content);
+        AddressEditorState editing = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+
+        CommanderSnapshot completed = await session.HandleAsync(
+            UserIntent.SubmitAddress(editing, "C:\\target"),
+            observer,
+            CancellationToken.None);
+
+        PaneContentListed after = Assert.IsInstanceOfType<PaneContentListed>(completed.Panes.Left.Content);
+        Assert.AreSame(before, after);
+        Assert.HasCount(1, after.State.Selection);
+        if (cancelled)
+        {
+            _ = Assert.IsInstanceOfType<PaneReadCancelled>(completed.Panes.Left.Activity);
+        }
+        else
+        {
+            PaneReadFailed failure = Assert.IsInstanceOfType<PaneReadFailed>(completed.Panes.Left.Activity);
+            Assert.AreSame(FileOperationFailureKind.AccessDenied, failure.Failure);
+        }
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(completed.AddressEditor);
+        Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
+    }
+
+    /// <summary>Proves any pane read in flight refuses address entry without changing activation.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenPaneReadIsRunningRefusesAddressEntryAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+        TaskCompletionSource<DirectoryReadOutcome> leftRead = left.EnqueuePending();
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+        Task<CommanderSnapshot> loading = session.NavigateAsync(
+            PaneSide.Left,
+            ParsePath("C:\\loading"),
+            CancellationToken.None);
+
+        CommanderSnapshot refused = await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Right),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+        Assert.AreSame(PaneSide.Left, refused.Panes.ActiveSide);
+        leftRead.SetResult(DirectoryReadOutcome.Cancelled());
+        _ = await loading;
+    }
+
+    /// <summary>Proves an operation modal keeps ownership over a requested address editor.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenOperationModalOwnsInputRefusesAddressEntryAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.Rename, observer, CancellationToken.None);
+
+        CommanderSnapshot refused = await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<OperationAwaitingName>(refused.Panes.Operation);
+        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+    }
+
+    /// <summary>Proves a submission qualified by an old editor cannot navigate either pane.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenStaleAddressSubmissionArrivesPerformsNoReadAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+        AddressEditorState oldState = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+        AddressEditorState newState = (await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Right),
+            observer,
+            CancellationToken.None)).AddressEditor;
+
+        CommanderSnapshot refused = await session.HandleAsync(
+            UserIntent.SubmitAddress(oldState, "C:\\target"),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(newState, refused.AddressEditor);
+        Assert.HasCount(1, left.Requests);
+        Assert.HasCount(1, right.Requests);
+    }
+
+    /// <summary>Proves correction after rejection keeps the captured side and uses normal navigation.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenRejectedAddressIsCorrectedNavigatesCapturedPaneAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\corrected", "new.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        AddressEditorState editing = (await session.HandleAsync(
+            UserIntent.FocusAddress,
+            observer,
+            CancellationToken.None)).AddressEditor;
+        AddressEditorState rejected = (await session.HandleAsync(
+            UserIntent.SubmitAddress(editing, "relative"),
+            observer,
+            CancellationToken.None)).AddressEditor;
+        CommanderSnapshot repeated = await session.HandleAsync(
+            UserIntent.BeginAddressEdit(PaneSide.Left),
+            observer,
+            CancellationToken.None);
+
+        CommanderSnapshot corrected = await session.HandleAsync(
+            UserIntent.SubmitAddress(rejected, "C:\\corrected"),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(rejected, repeated.AddressEditor);
+        PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(corrected.Panes.Left.Content);
+        Assert.AreEqual("C:\\corrected", content.Listing.Location.CanonicalText);
+        Assert.HasCount(2, left.Requests);
+    }
+
+    /// <summary>Proves an address editor cannot start before its pane has listed a location.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenActivePaneHasNoListingRefusesAddressEntryAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+
+        CommanderSnapshot refused = await session.HandleAsync(
+            UserIntent.FocusAddress,
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+        Assert.IsEmpty(left.Requests);
+        Assert.IsEmpty(right.Requests);
+    }
+
     /// <summary>Proves opening settings freezes both pane navigation paths until Escape closes it.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenSettingsAreOpenFreezesPanesUntilEscapeAsync()

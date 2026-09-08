@@ -399,6 +399,7 @@ public sealed class PaneListingPresenterTests
         Assert.AreEqual("PaneStatusNotFound", PaneStatus.NotFound.ResourceKey);
         Assert.AreEqual("PaneStatusProviderUnavailable", PaneStatus.ProviderUnavailable.ResourceKey);
         Assert.AreEqual("PaneStatusCancelled", PaneStatus.Cancelled.ResourceKey);
+        Assert.AreEqual("PaneStatusInvalidAddress", PaneStatus.InvalidAddress.ResourceKey);
     }
 
     private static async Task<PaneSnapshot> ListAsync(DirectoryListing listing)

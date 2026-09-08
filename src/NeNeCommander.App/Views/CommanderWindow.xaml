@@ -217,6 +217,8 @@
                                 AutomationProperties.AutomationId="LeftAddress"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                GotFocus="OnAddressGotFocus"
+                                LostFocus="OnAddressLostFocus"
                                 Style="{StaticResource PlainTextEditorStyle}" />
                             <TextBlock
                                 x:Name="LeftStatus"
@@ -284,6 +286,8 @@
                                 AutomationProperties.AutomationId="RightAddress"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                GotFocus="OnAddressGotFocus"
+                                LostFocus="OnAddressLostFocus"
                                 Style="{StaticResource PlainTextEditorStyle}" />
                             <TextBlock
                                 x:Name="RightStatus"

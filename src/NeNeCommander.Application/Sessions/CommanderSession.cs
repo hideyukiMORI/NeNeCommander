@@ -17,6 +17,7 @@ public sealed class CommanderSession
 {
     private readonly DualPaneSession _panes;
     private readonly SettingsSession _settings;
+    private AddressEditorState _addressEditor;
 
     /// <summary>Initializes the application session over its two declared state owners.</summary>
     /// <param name="panes">Sole dual-pane coordinator.</param>
@@ -27,10 +28,11 @@ public sealed class CommanderSession
         ArgumentNullException.ThrowIfNull(settings);
         _panes = panes;
         _settings = settings;
+        _addressEditor = AddressEditorState.Closed;
     }
 
     /// <summary>Gets the current complete application-session snapshot.</summary>
-    public CommanderSnapshot Current => new(_panes.Current, _settings.Current);
+    public CommanderSnapshot Current => new(_panes.Current, _settings.Current, _addressEditor);
 
     /// <summary>Reads one pane location unless the settings editor owns modal input.</summary>
     public async Task<CommanderSnapshot> NavigateAsync(
@@ -40,7 +42,8 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(side);
         ArgumentNullException.ThrowIfNull(location);
-        if (_settings.Current.Editor == SettingsEditorState.Open)
+        if (_settings.Current.Editor == SettingsEditorState.Open ||
+            _addressEditor is not AddressEditorClosed)
         {
             return Current;
         }
@@ -60,6 +63,20 @@ public sealed class CommanderSession
         {
             HandleSettingsIntent(intent, observer);
             return Current;
+        }
+        if (_addressEditor is not AddressEditorClosed)
+        {
+            return await HandleAddressIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+        }
+        if (intent == UserIntent.FocusAddress)
+        {
+            return await BeginAddressEditAsync(_panes.Current.ActiveSide, observer, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        if (intent is AddressFocusSubmission focusedAddress)
+        {
+            return await BeginAddressEditAsync(focusedAddress.Side, observer, cancellationToken)
+                .ConfigureAwait(false);
         }
         if (intent == UserIntent.OpenSettings)
         {
@@ -111,5 +128,123 @@ public sealed class CommanderSession
         return _panes.Current.Operation is
             OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or
             OperationAwaitingConflict;
+    }
+
+    private async Task<CommanderSnapshot> HandleAddressIntentAsync(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (intent == UserIntent.FocusAddress)
+        {
+            return Current;
+        }
+        if (intent is AddressFocusSubmission focusedAddress)
+        {
+            return await BeginAddressEditAsync(focusedAddress.Side, observer, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        if (intent == UserIntent.Escape)
+        {
+            PaneSide side = EditorSide(_addressEditor);
+            _addressEditor = AddressEditorState.CloseFocusing(side);
+            return Current;
+        }
+        if (intent is AddressFocusDeparture departure)
+        {
+            if (ReferenceEquals(_addressEditor, departure.ExpectedState))
+            {
+                _addressEditor = AddressEditorState.Closed;
+            }
+            return Current;
+        }
+        return intent is AddressSubmission submission
+            ? await SubmitAddressAsync(submission, cancellationToken).ConfigureAwait(false)
+            : Current;
+    }
+
+    private async Task<CommanderSnapshot> BeginAddressEditAsync(
+        PaneSide side,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (AddressSide(_addressEditor) == side)
+        {
+            return Current;
+        }
+        if (PaneInteractionIsFrozen() || AnyPaneReadIsRunning())
+        {
+            return Current;
+        }
+        DualPaneSnapshot panes = _panes.Current;
+        PaneSnapshot requested = SnapshotOf(panes, side);
+        if (requested.Content is not PaneContentListed listed)
+        {
+            return Current;
+        }
+        if (panes.ActiveSide != side)
+        {
+            _ = await _panes.HandleAsync(UserIntent.ActivateOtherPane, observer, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        _addressEditor = new AddressEditing(side, listed.Listing.Location);
+        return Current;
+    }
+
+    private async Task<CommanderSnapshot> SubmitAddressAsync(
+        AddressSubmission submission,
+        CancellationToken cancellationToken)
+    {
+        if (!ReferenceEquals(_addressEditor, submission.ExpectedState) ||
+            PaneInteractionIsFrozen() ||
+            AnyPaneReadIsRunning())
+        {
+            return Current;
+        }
+        PaneSide side = EditorSide(_addressEditor);
+        FileSystemPath original = EditorOriginalLocation(_addressEditor);
+        PathParseOutcome outcome = FileSystemPath.Parse(submission.RawText);
+        if (outcome is PathParseFailure failure)
+        {
+            _addressEditor = new AddressInputRejected(side, original, submission.RawText, failure.Kind);
+            return Current;
+        }
+        FileSystemPath target = ((PathParseSuccess)outcome).Path;
+        _addressEditor = AddressEditorState.CloseFocusing(side);
+        _ = await _panes.NavigateAsync(side, target, cancellationToken).ConfigureAwait(false);
+        return Current;
+    }
+
+    private bool AnyPaneReadIsRunning()
+    {
+        DualPaneSnapshot panes = _panes.Current;
+        return panes.Left.Activity is PaneLoading || panes.Right.Activity is PaneLoading;
+    }
+
+    private static PaneSnapshot SnapshotOf(DualPaneSnapshot panes, PaneSide side)
+    {
+        return side == PaneSide.Left ? panes.Left : panes.Right;
+    }
+
+    private static PaneSide? AddressSide(AddressEditorState state)
+    {
+        return state switch
+        {
+            AddressEditing editing => editing.Side,
+            AddressInputRejected rejected => rejected.Side,
+            _ => null,
+        };
+    }
+
+    private static PaneSide EditorSide(AddressEditorState state)
+    {
+        return state is AddressEditing editing ? editing.Side : ((AddressInputRejected)state).Side;
+    }
+
+    private static FileSystemPath EditorOriginalLocation(AddressEditorState state)
+    {
+        return state is AddressEditing editing
+            ? editing.OriginalLocation
+            : ((AddressInputRejected)state).OriginalLocation;
     }
 }

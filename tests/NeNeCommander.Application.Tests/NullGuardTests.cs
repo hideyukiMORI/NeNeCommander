@@ -55,6 +55,16 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [null, "name"]);
         AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [path, null]);
         AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SubmitName), [null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.BeginAddressEdit), [null]);
+        AssertStaticNullGuard(
+            typeof(UserIntent),
+            nameof(UserIntent.SubmitAddress),
+            [null, "C:\\target"]);
+        AssertStaticNullGuard(
+            typeof(UserIntent),
+            nameof(UserIntent.SubmitAddress),
+            [AddressEditorState.Closed, null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.LeaveAddress), [null]);
         AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         AssertStaticNullGuard(
             typeof(PermanentDeletionConfirmation),
@@ -227,8 +237,29 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public application-session constructor was not found.");
         AssertConstructorNullGuard(commanderConstructor, [null, settings]);
         AssertConstructorNullGuard(commanderConstructor, [panes, null]);
-        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [null, settings.Current]);
-        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [panes.Current, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [null, settings.Current, AddressEditorState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, null, AddressEditorState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, settings.Current, null]);
+        AssertInternalConstructorNullGuard(typeof(AddressEditing), [null, path]);
+        AssertInternalConstructorNullGuard(typeof(AddressEditing), [PaneSide.Left, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [null, path, "raw", PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, null, "raw", PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, path, null, PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, path, "raw", null]);
     }
 
     /// <summary>Proves asynchronous application-session entries reject absent required values.</summary>
