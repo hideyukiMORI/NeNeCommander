@@ -70,3 +70,11 @@ process or modify its settings while hide evaluates it.
 有力なupstream候補は[Stryker PR #3695](https://github.com/stryker-mutator/stryker-net/pull/3695)（提案commit `b2fd312`）と[Issue #3742](https://github.com/stryker-mutator/stryker-net/issues/3742)で、MTP testhost reuse/static initializerのverdict汚染を扱う。4.16.0への包含・修正版releaseは未確認。次回はPR/修正版の確認と正規の検証機構設計から再開し、blind rerun、基準緩和、依存更新をしない。
 
 未確認は#93/#94、未実装は#100/#101。hide PID 3188、real settings、診断worktree、artifactには無操作・保持。再開手順はstatus/diff確認、focused evidence確認、ownerと同期して必要な軽量gateを実行し、canonical Ready/deep新実行は禁止とする。
+
+## Checkpoint — 2026-09-08
+
+Implementation head observed before this documentation update: `a612c13b6a32b569ac7cd8ec0ac84dc3a9c2dc73`; the worktree was clean at readback. The previous `895057ff` plus dirty scope is stale. The bounded `895057ff..a612c13b` review found must-fix 0. `HasDuplicateSlots` preserves null exclusion, slot uniqueness, and first-duplicate short-circuit; added Presentation tests cover selection, filtering, navigation retention, stale choices, localized keys, and constructor boundaries.
+
+The 2026-09-08 upstream readback found Stryker 4.16.0 as the pinned/local tool/log version. [PR #3695](https://github.com/stryker-mutator/stryker-net/pull/3695) is Open/unmerged (head `b2fd312268c9c0b2f0ddbe4909c076fab5a08e57`, dirty), [Issue #3742](https://github.com/stryker-mutator/stryker-net/issues/3742) is Open (updated 2026-09-01), and the latest 4.16.0 release is dated 2026-07-03. PR #3695 proposes fresh MTP-host isolation for `IsStaticValue` / `MustBeTestedInIsolation` mutants. Existing evidence is consistent with an upstream static-host reuse issue; no released equivalent fix was identified as of this readback, and this does not prove the proposed change fixes this repository. No rerun, VSTest migration diagnosis, or dependency update was performed.
+
+For this checkpoint, #99 remains Draft. Resume after release notes and merged-source confirmation, followed by a focused toolchain Issue/ADR for pin, security, and conformance proof; then run impact-scoped verification and obtain exact-head security deep and the Ready canonical gate. Documentation validation: `git diff --check` passed and Commit mode passed; tests and mutation were not run.
