@@ -166,6 +166,70 @@ public sealed class KeyboardIntentMapperTests
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
+    /// <summary>Proves a held Enter cannot cross into a newly opened confirmation scope.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-013")]
+    public void MapWhenModalEnterRepeatsConsumesItUntilTheNextInitialPress()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        KeyboardMappingOutcome repeated = mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.Modal));
+        KeyboardMappingOutcome initial = mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Initial,
+            KeyboardContext.Modal));
+
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(repeated);
+        Assert.AreSame(
+            UserIntent.Confirm,
+            Assert.IsInstanceOfType<MappedKeyboardIntent>(initial).Intent);
+    }
+
+    /// <summary>Proves a palette Enter repeat cannot cross into any resulting input owner.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-013")]
+    public void MapWhenPaletteEnterChangesOwnerConsumesItsRepeatUntilNewInitialEnter()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
+
+        AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.FileList)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.Modal)));
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+
+        AssertMaps(mapper, Input(KeyboardKey.Enter, KeyboardContext.AddressEntry), UserIntent.Confirm);
+        AssertMaps(
+            mapper,
+            KeyboardInput.Create(
+                KeyboardKey.Enter,
+                KeyboardModifier.None,
+                KeyRepeatState.Repeated,
+                KeyboardContext.FileList),
+            UserIntent.OpenFocused);
+    }
+
     /// <summary>Proves address editing owns only confirm, cancel, and focus-address bindings.</summary>
     [TestMethod]
     public void MapWhenAddressEntryOwnsInputMapsNavigationKeysAndPassesNativeEditingThrough()
@@ -200,6 +264,11 @@ public sealed class KeyboardIntentMapperTests
         KeyboardMappingOutcome enter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
         KeyboardMappingOutcome space = mapper.Map(Input(KeyboardKey.Space, KeyboardContext.Modal));
         KeyboardMappingOutcome escape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.Modal));
+        KeyboardMappingOutcome repeatedEnter = mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.Modal));
 
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             KeyboardIntentMapper.DeferModalConfirmToNativeControl(enter));
@@ -209,6 +278,8 @@ public sealed class KeyboardIntentMapperTests
             UserIntent.Escape,
             Assert.IsInstanceOfType<MappedKeyboardIntent>(
                 KeyboardIntentMapper.DeferModalConfirmToNativeControl(escape)).Intent);
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
+            KeyboardIntentMapper.DeferModalConfirmToNativeControl(repeatedEnter));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
             KeyboardIntentMapper.DeferModalConfirmToNativeControl(null!));
     }
@@ -499,7 +570,7 @@ public sealed class KeyboardIntentMapperTests
         AssertLabelResourceKeysAreDistinct();
     }
 
-    /// <summary>Proves the palette context owns only selection, execution, and cancellation keys.</summary>
+    /// <summary>Proves the palette context owns selection, execution, cancellation, and focus-loop keys.</summary>
     [TestMethod]
     public void MapWhenContextIsCommandPaletteEmitsPresentationActionsOnly()
     {
@@ -509,16 +580,28 @@ public sealed class KeyboardIntentMapperTests
         AssertPaletteAction(mapper, KeyboardKey.Down, CommandPaletteKeyAction.MoveNext);
         AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
         AssertPaletteAction(mapper, KeyboardKey.Escape, CommandPaletteKeyAction.Cancel);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.Tab, KeyboardContext.CommandPalette)));
+        AssertPaletteAction(mapper, KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus);
+        MappedCommandPaletteAction controlTab = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
+            mapper.Map(Input(
+                KeyboardKey.Tab,
+                KeyboardModifier.Control,
+                KeyboardContext.CommandPalette)));
+        MappedCommandPaletteAction altTab = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
+            mapper.Map(Input(
+                KeyboardKey.Tab,
+                KeyboardModifier.Alt,
+                KeyboardContext.CommandPalette)));
+        Assert.AreSame(CommandPaletteKeyAction.MoveFocus, controlTab.Action);
+        Assert.AreSame(CommandPaletteKeyAction.MoveFocus, altTab.Action);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             mapper.Map(Input(KeyboardKey.J, KeyboardContext.CommandPalette)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardInput.Create(
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
             KeyboardKey.Enter,
             KeyboardModifier.None,
             KeyRepeatState.Repeated,
             KeyboardContext.CommandPalette)));
-        Assert.HasCount(4, KeyboardIntentMapper.CommandPaletteBindings);
+        AssertPaletteAction(mapper, KeyboardKey.Down, CommandPaletteKeyAction.MoveNext, KeyRepeatState.Repeated);
+        Assert.HasCount(5, KeyboardIntentMapper.CommandPaletteBindings);
     }
 
     /// <summary>Proves the binding query rejects an absent context.</summary>
@@ -587,8 +670,21 @@ public sealed class KeyboardIntentMapperTests
         KeyboardKey key,
         CommandPaletteKeyAction expected)
     {
+        AssertPaletteAction(mapper, key, expected, KeyRepeatState.Initial);
+    }
+
+    private static void AssertPaletteAction(
+        KeyboardIntentMapper mapper,
+        KeyboardKey key,
+        CommandPaletteKeyAction expected,
+        KeyRepeatState repeatState)
+    {
         MappedCommandPaletteAction mapped = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
-            mapper.Map(Input(key, KeyboardContext.CommandPalette)));
+            mapper.Map(KeyboardInput.Create(
+                key,
+                KeyboardModifier.None,
+                repeatState,
+                KeyboardContext.CommandPalette)));
         Assert.AreEqual(expected, mapped.Action);
     }
 

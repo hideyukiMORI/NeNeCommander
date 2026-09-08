@@ -548,8 +548,9 @@ public sealed class DualPanePresenterTests
         Assert.HasCount(2, pending.KeyHints);
         Assert.AreEqual("KeyLabelEnter", pending.KeyHints[0].KeyLabelResourceKey);
         Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
-        Assert.HasCount(9, escaped.KeyHints);
+        Assert.HasCount(10, escaped.KeyHints);
         Assert.AreEqual("KeyLabelF2", escaped.KeyHints[0].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlP", escaped.KeyHints[7].KeyLabelResourceKey);
         Assert.AreSame(OperationStatus.Idle, escaped.OperationStatus);
         Assert.AreSame(OperationDetail.None, escaped.Detail);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);

@@ -34,15 +34,23 @@ running or awaiting a modal decision.
 
 ## Focus, keyboard, and selection
 
-Initial focus is the native search field. Tab and Shift+Tab form a two-stop loop between the search
-field and the composite candidate list. Context, details, hints, rows, badges, and the scrim do not
-add tab stops, and focus cannot reach the frozen panes while the palette is open.
+Initial focus is the native search field. The canonical palette key map emits a Presentation-only
+focus action for Tab, and the host applies native focus to the other stop. Tab and Shift+Tab form a
+two-stop loop between the search field and the composite candidate list. Context, details, hints,
+rows, badges, and the scrim do not add tab stops, and focus cannot reach the frozen panes while the
+palette is open.
 
 Up and Down move the selected candidate from either tab stop. The search field retains UIA focus
 when it owns focus; changing the candidate is selection, not synthetic focus. Enter executes only an
 available selected candidate, and Escape cancels. During native IME composition, Up, Down, Enter,
 and Escape belong to the IME and do not change or execute the palette selection or close it. Printable input,
 editing chords, dead keys, and composition remain native.
+
+Clicking or tapping a candidate selects that row and uses the same qualified execution path as
+Enter. An unavailable row only changes selection and exposes its reason. Clicking or tapping the
+scrim uses the same qualified cancellation as Escape; input inside the palette surface does not
+propagate to the scrim. There is no row button, confirmation column, or additional pointer-only
+command path.
 
 Every query change selects the first filtered row and scrolls the list to its start. Zero results
 have no selection. Unavailable rows remain selectable and reachable so their reason can be read;

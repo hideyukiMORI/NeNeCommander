@@ -118,6 +118,12 @@ public abstract record UserIntent
         return new CommandPaletteSubmission(expectedState, selectedIntent);
     }
 
+    /// <summary>Creates a palette cancellation qualified by the exact open state that owns it.</summary>
+    public static UserIntent CancelCommandPalette(CommandPaletteOpen expectedState)
+    {
+        return new CommandPaletteCancellation(expectedState);
+    }
+
     /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
     public static UserIntent ResolveConflict(
         TransferConflictDecision decision,

@@ -18,6 +18,22 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 [TestClass]
 public sealed class CommandPalettePresenterTests
 {
+    /// <summary>Proves displayed palette hints project the canonical palette binding order.</summary>
+    [TestMethod]
+    public void KeyHintsComeFromCanonicalPaletteBindings()
+    {
+        IReadOnlyList<CommandPaletteKeyHint> hints = CommandPaletteKeyHintPresenter.Present();
+
+        Assert.HasCount(5, hints);
+        Assert.AreEqual("KeyLabelUp", hints[0].KeyLabelResourceKey);
+        Assert.AreEqual("CommandPaletteHintPrevious", hints[0].IntentLabelResourceKey);
+        Assert.AreEqual("KeyLabelDown", hints[1].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelEnter", hints[2].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelEscape", hints[3].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelTab", hints[4].KeyLabelResourceKey);
+        Assert.AreEqual("CommandPaletteHintFocus", hints[4].IntentLabelResourceKey);
+    }
+
     /// <summary>Proves empty, title, shortcut, and zero-result queries preserve the specified behavior.</summary>
     [TestMethod]
     public async Task PresentWhenQueryChangesFiltersLocalizedRowsAndSelectsFirstAsync()
@@ -87,6 +103,26 @@ public sealed class CommandPalettePresenterTests
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);
+    }
+
+    /// <summary>Proves pointer selection accepts only a row owned by the current projection.</summary>
+    [TestMethod]
+    public async Task SelectWhenPointerChoosesRowRejectsAStaleProjectionAsync()
+    {
+        CommandPaletteViewState current = CommandPalettePresenter.Present(
+            await OpenPaletteAsync(null),
+            Localize);
+        CommandPaletteViewState stale = CommandPalettePresenter.Present(
+            await OpenPaletteAsync(null),
+            Localize);
+
+        bool selected = current.Select(current.Rows[1]);
+        bool rejected = current.Select(stale.Rows[0]);
+
+        Assert.IsTrue(selected);
+        Assert.IsFalse(rejected);
+        Assert.AreSame(UserIntent.NavigateParent, current.SelectedRow!.Intent);
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => current.Select(null!));
     }
 
     /// <summary>Proves absence at either presenter boundary is rejected.</summary>

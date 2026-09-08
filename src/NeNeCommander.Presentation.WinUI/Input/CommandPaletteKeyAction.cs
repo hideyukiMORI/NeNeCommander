@@ -15,6 +15,9 @@ public abstract record CommandPaletteKeyAction
     /// <summary>Gets the action that cancels the current palette.</summary>
     public static CommandPaletteKeyAction Cancel { get; } = new CancelAction();
 
+    /// <summary>Gets the action that moves native focus to the other palette tab stop.</summary>
+    public static CommandPaletteKeyAction MoveFocus { get; } = new MoveFocusAction();
+
     private CommandPaletteKeyAction()
     {
     }
@@ -23,4 +26,5 @@ public abstract record CommandPaletteKeyAction
     private sealed record MoveNextAction : CommandPaletteKeyAction;
     private sealed record ExecuteAction : CommandPaletteKeyAction;
     private sealed record CancelAction : CommandPaletteKeyAction;
+    private sealed record MoveFocusAction : CommandPaletteKeyAction;
 }

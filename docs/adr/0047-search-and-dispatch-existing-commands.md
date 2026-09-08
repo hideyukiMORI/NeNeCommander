@@ -91,10 +91,18 @@ command route.
   is a no-op and the palette remains open. Escape cancels the palette. Printable keys, editing
   chords, dead keys, and IME events pass to native controls. While IME composition is active, Up,
   Down, Enter, and Escape belong to the IME; they do not move or execute a candidate or close the
-  palette.
-- **Tab is native traversal inside a two-stop focus loop.** Initial focus is the search field.
-  Tab and Shift+Tab cycle only between `SearchField` and the composite `CandidateList`; neither is
-  a command binding. Context, detail, hints, rows, badges, and the scrim are not extra tab stops.
+  palette. An initial palette Enter arms one mapper-owned repeat guard. Every repeated Enter from
+  that physical press is consumed without an intent even after execution changes the context to a
+  file list, address editor, or existing confirmation modal; other keys and context changes do not
+  release the guard. The next initial Enter releases it and follows normal mapping, arming a fresh
+  guard when it executes another palette candidate. Ordinary file-list Enter repeat behavior is
+  unchanged when no palette guard is active. Only a later initial Enter press or an explicit native
+  button click can confirm a modal opened by the palette.
+- **Tab uses one Presentation focus action inside a two-stop native focus loop.** Initial focus is
+  the search field. `KeyboardIntentMapper` maps Tab to a Presentation-only focus action; App only
+  applies native focus to the other stop and emits no `UserIntent`. Tab and Shift+Tab cycle only
+  between `SearchField` and the composite `CandidateList`. Context, detail, hints, rows, badges,
+  and the scrim are not extra tab stops.
   The underlying panes remain inert. Up and Down change selection without moving UIA focus away
   from the search field when it owns focus.
 - **Submission is qualified and fail-closed.** A typed submission carries the expected open-state
@@ -118,6 +126,12 @@ command route.
   rename/create/delete use their existing modal focus, `ActivateOtherPane` focuses the new active
   pane, and other commands retain their existing result focus. This prevents palette closure from
   overwriting the focus selected by the executed command.
+- **Pointer input is a thin adapter to the same qualified routes.** Clicking or tapping a candidate
+  selects that exact current filtered row and submits it through the same expected open-state and
+  catalog-intent pair as Enter. An unavailable row is selected to expose its reason and remains
+  open. Clicking or tapping the scrim emits an expected-state-qualified palette cancellation;
+  events inside the palette surface do not bubble into that cancellation. A stale row or scrim
+  callback cannot close or execute a later palette or modal.
 - **Visual integration follows the accepted B engineering handoff.** The palette is a compact
   top-aligned overlay with the detail bar below the candidate list. It reuses existing semantic
   Surface, Text, Border, Focus, Selection, Status, Operation, Spacing, Typography, Radius,

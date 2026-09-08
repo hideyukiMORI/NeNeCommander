@@ -100,6 +100,8 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | expected operation results | canonical closed `OperationOutcome` model |
 | settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |
 | settings modal ownership and intent routing | `CommanderSession` over `DualPaneSession` and `SettingsSession` |
+| command-palette catalog, captured scope, availability, and qualified routing | `CommanderSession` with `CommandCatalog` |
+| localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
 | color scheme | scheme resource dictionary merged by the composition root |
 | focused file launch | `PaneSession` provider decision through the `IFileLauncher` boundary |
 | time | `IClock` boundary |

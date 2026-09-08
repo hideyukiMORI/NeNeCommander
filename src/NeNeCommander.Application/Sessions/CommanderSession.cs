@@ -174,8 +174,12 @@ public sealed class CommanderSession
         CancellationToken cancellationToken)
     {
         DualPaneSnapshot current = _panes.Current;
-        if (intent == UserIntent.Escape)
+        if (intent is CommandPaletteCancellation cancellation)
         {
+            if (!ReferenceEquals(open, cancellation.ExpectedState))
+            {
+                return Current;
+            }
             _commandPalette = PaletteScopeOwnsInput(open, current)
                 ? CommandPaletteState.CloseFocusing(open.ActiveSide)
                 : CommandPaletteState.Closed;

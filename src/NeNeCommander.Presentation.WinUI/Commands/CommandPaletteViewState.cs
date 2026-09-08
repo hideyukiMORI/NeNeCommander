@@ -34,6 +34,12 @@ public sealed class CommandPaletteViewState
     /// <summary>Gets the filtered rows in stable catalog order.</summary>
     public IReadOnlyList<CommandPaletteRow> Rows { get; private set; }
 
+    /// <summary>Gets the localized target summary shared by every captured row.</summary>
+    public string Target => _allRows[0].Target;
+
+    /// <summary>Gets the localized opposite-pane summary shared by every captured row.</summary>
+    public string Opposite => _allRows[0].Opposite;
+
     /// <summary>Gets the selected filtered row, or absence when the query has zero results.</summary>
     public CommandPaletteRow? SelectedRow => _selectedIndex < 0 ? null : Rows[_selectedIndex];
 
@@ -65,5 +71,21 @@ public sealed class CommandPaletteViewState
         {
             _selectedIndex--;
         }
+    }
+
+    /// <summary>Selects one row from the current filtered projection.</summary>
+    /// <returns><see langword="true"/> when this view owns the row; otherwise false.</returns>
+    public bool Select(CommandPaletteRow row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        for (int index = 0; index < Rows.Count; index++)
+        {
+            if (ReferenceEquals(Rows[index], row))
+            {
+                _selectedIndex = index;
+                return true;
+            }
+        }
+        return false;
     }
 }

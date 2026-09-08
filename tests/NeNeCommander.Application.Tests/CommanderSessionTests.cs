@@ -649,6 +649,35 @@ public sealed class CommanderSessionTests
         Assert.AreSame(PaneSide.Left, palette.ActiveSide);
     }
 
+    /// <summary>Proves every no-source and root-navigation reason is captured without preflight.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenPaletteOpensOnEmptyRootCapturesUnavailableReasonsAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(EmptyListing("C:\\")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
+
+        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            new RecordingCommanderObserver(),
+            CancellationToken.None)).CommandPalette);
+
+        AssertUnavailable(palette, UserIntent.OpenFocused, CommandUnavailableReason.FocusRequired);
+        AssertUnavailable(palette, UserIntent.Rename, CommandUnavailableReason.FocusRequired);
+        AssertUnavailable(palette, UserIntent.ToggleSelection, CommandUnavailableReason.FocusRequired);
+        AssertUnavailable(palette, UserIntent.Copy, CommandUnavailableReason.SourceRequired);
+        AssertUnavailable(palette, UserIntent.Move, CommandUnavailableReason.SourceRequired);
+        AssertUnavailable(palette, UserIntent.Delete, CommandUnavailableReason.SourceRequired);
+        AssertUnavailable(palette, UserIntent.NavigateParent, CommandUnavailableReason.ParentUnavailable);
+    }
+
     /// <summary>Proves an open palette freezes pane entry points and valid Escape preserves state.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenPaletteCancelsPreservesPanesAndReturnsToCapturedSideAsync()
@@ -670,8 +699,9 @@ public sealed class CommanderSessionTests
 
         _ = await session.HandleAsync(UserIntent.ActivateOtherPane, observer, CancellationToken.None);
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\blocked"), CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>(session.Current.CommandPalette);
         CommanderSnapshot cancelled = await session.HandleAsync(
-            UserIntent.Escape,
+            UserIntent.CancelCommandPalette(open),
             observer,
             CancellationToken.None);
 
@@ -750,6 +780,119 @@ public sealed class CommanderSessionTests
         Assert.AreEqual("C:\\left\\item.txt", awaiting.Subject.CanonicalText);
     }
 
+    /// <summary>Proves settings and address commands transfer ownership to their existing editors.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenPaletteSubmitsEditorCommandsTransfersExistingOwnerAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        CommandPaletteOpen settingsPalette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).CommandPalette);
+
+        CommanderSnapshot settings = await session.HandleAsync(
+            UserIntent.SubmitCommand(settingsPalette, UserIntent.OpenSettings),
+            observer,
+            CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.Escape, observer, CancellationToken.None);
+        CommandPaletteOpen addressPalette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).CommandPalette);
+        CommanderSnapshot address = await session.HandleAsync(
+            UserIntent.SubmitCommand(addressPalette, UserIntent.FocusAddress),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(CommandPaletteState.Closed, settings.CommandPalette);
+        Assert.AreSame(SettingsEditorState.Open, settings.Settings.Editor);
+        Assert.AreSame(CommandPaletteState.Closed, address.CommandPalette);
+        AddressEditing editing = Assert.IsInstanceOfType<AddressEditing>(address.AddressEditor);
+        Assert.AreSame(PaneSide.Left, editing.Side);
+    }
+
+    /// <summary>Proves pane activation executes once and leaves the new side authoritative.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenPaletteActivatesOtherPaneKeepsNewSideAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).CommandPalette);
+
+        CommanderSnapshot activated = await session.HandleAsync(
+            UserIntent.SubmitCommand(open, UserIntent.ActivateOtherPane),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(CommandPaletteState.Closed, activated.CommandPalette);
+        Assert.AreSame(PaneSide.Right, activated.Panes.ActiveSide);
+        Assert.AreSame(open.Left, activated.Panes.Left);
+        Assert.AreSame(open.Right, activated.Panes.Right);
+    }
+
+    /// <summary>Proves palette Delete enters the existing confirmation with its captured source.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-008")]
+    public async Task HandleAsyncWhenPaletteSubmitsDeletePreservesConfirmationTargetAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = Listing("C:\\left", "item.txt");
+        left.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(PermanentInspection(listing.Entries[0].Path));
+        using FileOperationGateway gateway = new(port);
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, listing.Location, CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).CommandPalette);
+
+        CommanderSnapshot dispatched = await session.HandleAsync(
+            UserIntent.SubmitCommand(open, UserIntent.Delete),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(CommandPaletteState.Closed, dispatched.CommandPalette);
+        OperationAwaitingConfirmation awaiting =
+            Assert.IsInstanceOfType<OperationAwaitingConfirmation>(dispatched.Panes.Operation);
+        Assert.HasCount(1, awaiting.Request.Sources);
+        Assert.AreSame(listing.Entries[0].Path, awaiting.Request.Sources[0]);
+        Assert.HasCount(1, port.Calls);
+        Assert.AreEqual("Inspect:C:\\left\\item.txt", port.Calls[0]);
+    }
+
     /// <summary>Proves an old Enter event cannot close or execute a newly opened palette.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenOldPaletteSubmissionArrivesKeepsCurrentPaletteAsync()
@@ -769,17 +912,22 @@ public sealed class CommanderSessionTests
             UserIntent.OpenCommandPalette,
             observer,
             CancellationToken.None)).CommandPalette);
-        _ = await session.HandleAsync(UserIntent.Escape, observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.CancelCommandPalette(old), observer, CancellationToken.None);
         CommandPaletteOpen current = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
             CancellationToken.None)).CommandPalette);
 
+        CommanderSnapshot staleCancel = await session.HandleAsync(
+            UserIntent.CancelCommandPalette(old),
+            observer,
+            CancellationToken.None);
         CommanderSnapshot ignored = await session.HandleAsync(
             UserIntent.SubmitCommand(old, UserIntent.Rename),
             observer,
             CancellationToken.None);
 
+        Assert.AreSame(current, staleCancel.CommandPalette);
         Assert.AreSame(current, ignored.CommandPalette);
         Assert.AreSame(OperationActivity.Idle, ignored.Panes.Operation);
     }
@@ -841,11 +989,14 @@ public sealed class CommanderSessionTests
             out DualPaneSession panes);
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
-        _ = await session.HandleAsync(UserIntent.OpenCommandPalette, observer, CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).CommandPalette);
         _ = await panes.HandleAsync(UserIntent.Rename, observer, CancellationToken.None);
 
         CommanderSnapshot closed = await session.HandleAsync(
-            UserIntent.Escape,
+            UserIntent.CancelCommandPalette(open),
             observer,
             CancellationToken.None);
 
@@ -901,6 +1052,60 @@ public sealed class CommanderSessionTests
         _ = await pending;
     }
 
+    /// <summary>Proves external work in the right pane independently blocks palette capture.</summary>
+    [TestMethod]
+    [DataRow("loading")]
+    [DataRow("launching")]
+    public async Task HandleAsyncWhenRightPaneExternalWorkRunsRefusesPaletteAsync(string activity)
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        ScriptedFileLauncher leftLauncher = new();
+        ScriptedFileLauncher rightLauncher = new();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+            leftLauncher,
+            rightLauncher,
+            out _);
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        _ = await session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ActivateOtherPane, observer, CancellationToken.None);
+        Task<CommanderSnapshot> pending;
+        if (activity == "loading")
+        {
+            TaskCompletionSource<DirectoryReadOutcome> completion = right.EnqueuePending();
+            pending = session.NavigateAsync(PaneSide.Right, ParsePath("C:\\target"), CancellationToken.None);
+            CommanderSnapshot refused = await session.HandleAsync(
+                UserIntent.OpenCommandPalette,
+                observer,
+                CancellationToken.None);
+            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            _ = Assert.IsInstanceOfType<PaneLoading>(refused.Panes.Right.Activity);
+            completion.SetResult(DirectoryReadOutcome.Cancelled());
+        }
+        else
+        {
+            TaskCompletionSource<NeNeCommander.Application.Launching.FileLaunchOutcome> completion =
+                rightLauncher.EnqueuePending();
+            pending = session.HandleAsync(UserIntent.OpenFocused, observer, CancellationToken.None);
+            CommanderSnapshot refused = await session.HandleAsync(
+                UserIntent.OpenCommandPalette,
+                observer,
+                CancellationToken.None);
+            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            _ = Assert.IsInstanceOfType<PaneLaunching>(refused.Panes.Right.Activity);
+            completion.SetResult(NeNeCommander.Application.Launching.FileLaunchOutcome.Accepted());
+        }
+        _ = await pending;
+    }
+
     private static CommanderSession CreateSession(
         ScriptedDirectoryReadPort left,
         ScriptedDirectoryReadPort right,
@@ -938,6 +1143,25 @@ public sealed class CommanderSessionTests
         ScriptedFileLauncher leftLauncher,
         out DualPaneSession panes)
     {
+        return CreateSession(
+            left,
+            right,
+            gateway,
+            store,
+            leftLauncher,
+            new ScriptedFileLauncher(),
+            out panes);
+    }
+
+    private static CommanderSession CreateSession(
+        ScriptedDirectoryReadPort left,
+        ScriptedDirectoryReadPort right,
+        FileOperationGateway gateway,
+        ISettingsStore store,
+        ScriptedFileLauncher leftLauncher,
+        ScriptedFileLauncher rightLauncher,
+        out DualPaneSession panes)
+    {
         PaneSession leftPane = new(
             left,
             leftLauncher,
@@ -946,7 +1170,7 @@ public sealed class CommanderSessionTests
             HiddenItemVisibility.Hidden);
         PaneSession rightPane = new(
             right,
-            new ScriptedFileLauncher(),
+            rightLauncher,
             Capacity(),
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -959,6 +1183,16 @@ public sealed class CommanderSessionTests
     private static CommandCandidate Candidate(CommandPaletteOpen palette, UserIntent intent)
     {
         return palette.Candidates.Single(candidate => candidate.Intent == intent);
+    }
+
+    private static void AssertUnavailable(
+        CommandPaletteOpen palette,
+        UserIntent intent,
+        CommandUnavailableReason expected)
+    {
+        CommandUnavailable unavailable = Assert.IsInstanceOfType<CommandUnavailable>(
+            Candidate(palette, intent).Availability);
+        Assert.AreSame(expected, unavailable.Reason);
     }
 
     private static FileOperationGateway CreateGateway()
@@ -984,7 +1218,16 @@ public sealed class CommanderSessionTests
                 parsedLocation,
                 [entry],
                 DirectoryListingCompleteness.Complete,
-                0)).Listing;
+            0)).Listing;
+    }
+
+    private static DirectoryListing EmptyListing(string location)
+    {
+        return Assert.IsInstanceOfType<DirectoryListingAccepted>(DirectoryListing.Create(
+            ParsePath(location),
+            [],
+            DirectoryListingCompleteness.Complete,
+            0)).Listing;
     }
 
     private static FileInspectionOutcome Inspection(FileSystemPath path)
@@ -993,6 +1236,14 @@ public sealed class CommanderSessionTests
             FileIdentity.Parse("identity:" + path.CanonicalText));
         return FileInspectionOutcome.Succeeded(
             FileEntrySnapshot.Create(path, identity.Identity, DeletionCapability.Recycle));
+    }
+
+    private static FileInspectionOutcome PermanentInspection(FileSystemPath path)
+    {
+        FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(
+            FileIdentity.Parse("identity:" + path.CanonicalText));
+        return FileInspectionOutcome.Succeeded(
+            FileEntrySnapshot.Create(path, identity.Identity, DeletionCapability.PermanentOnly));
     }
 
     private static FileSystemPath ParsePath(string text)

@@ -77,10 +77,12 @@ public sealed class KeyboardIntentMapper
         new(KeyboardKey.Down, CommandPaletteKeyAction.MoveNext),
         new(KeyboardKey.Enter, CommandPaletteKeyAction.Execute),
         new(KeyboardKey.Escape, CommandPaletteKeyAction.Cancel),
+        new(KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus),
     ]);
 
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
+    private bool _paletteEnterRepeatGuardActive;
 
     /// <summary>Initializes the mapper with a monotonic clock used only for chord expiry.</summary>
     /// <param name="clock">Monotonic clock.</param>
@@ -123,10 +125,27 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
+        if (input.Key == KeyboardKey.Enter &&
+            input.RepeatState == KeyRepeatState.Repeated &&
+            _paletteEnterRepeatGuardActive)
+        {
+            _pendingChordStartedAt = null;
+            return new KeyboardConsumed();
+        }
+        if (input.Key == KeyboardKey.Enter && input.RepeatState == KeyRepeatState.Initial)
+        {
+            _paletteEnterRepeatGuardActive = false;
+        }
         if (input.Context == KeyboardContext.CommandPalette)
         {
             _pendingChordStartedAt = null;
-            return MapCommandPaletteKey(input);
+            KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
+            if (outcome is MappedCommandPaletteAction mapped &&
+                mapped.Action == CommandPaletteKeyAction.Execute)
+            {
+                _paletteEnterRepeatGuardActive = true;
+            }
+            return outcome;
         }
         if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
@@ -183,6 +202,12 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static KeyboardMappingOutcome MapOwnedKey(KeyboardInput input)
     {
+        if (input.Context == KeyboardContext.Modal &&
+            input.Key == KeyboardKey.Enter &&
+            input.RepeatState == KeyRepeatState.Repeated)
+        {
+            return new KeyboardConsumed();
+        }
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
         return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
@@ -192,11 +217,12 @@ public sealed class KeyboardIntentMapper
     {
         CommandPaletteKeyBinding? binding = DeclaredPaletteBindings.FirstOrDefault(binding =>
             binding.Key == input.Key);
-        return binding is null ||
-            (binding.Action == CommandPaletteKeyAction.Execute &&
-                input.RepeatState == KeyRepeatState.Repeated)
+        return binding is null
             ? new KeyboardPassThrough()
-            : new MappedCommandPaletteAction(binding.Action);
+            : binding.Action == CommandPaletteKeyAction.Execute &&
+                input.RepeatState == KeyRepeatState.Repeated
+                    ? new KeyboardConsumed()
+                    : new MappedCommandPaletteAction(binding.Action);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)
