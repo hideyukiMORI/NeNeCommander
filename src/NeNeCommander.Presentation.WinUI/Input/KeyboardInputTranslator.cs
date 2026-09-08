@@ -15,6 +15,8 @@ internal static class KeyboardInputTranslator
         {
             (int)VirtualKey.Down => KeyboardKey.Down,
             (int)VirtualKey.Up => KeyboardKey.Up,
+            (int)VirtualKey.Left => KeyboardKey.Left,
+            (int)VirtualKey.Right => KeyboardKey.Right,
             (int)VirtualKey.Back => KeyboardKey.Backspace,
             (int)VirtualKey.Enter => KeyboardKey.Enter,
             (int)VirtualKey.PageDown => KeyboardKey.PageDown,

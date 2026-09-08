@@ -24,6 +24,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | entry boundary | The positive number of provider entries after which a read stops and reports a bounded listing. |
 | pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed read activity (idle, loading, failed, cancelled). |
 | pane session | The sole `PaneSession` coordinator that owns one pane snapshot and advances it through intents and reads. |
+| pane history | The immutable sequence of at most 100 successful locations, including current, held independently by each `PaneState`; `PaneReducer` alone appends locations or moves its Back/Forward cursor after a successful read. |
 | pane side | `PaneSide.Left` or `PaneSide.Right`; the closed identity of one pane surface. |
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |

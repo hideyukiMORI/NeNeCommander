@@ -31,6 +31,12 @@ public abstract record UserIntent
     /// <summary>Gets the intent to navigate to the parent location.</summary>
     public static UserIntent NavigateParent { get; } = new NavigateParentIntent();
 
+    /// <summary>Gets the intent to navigate to the previous successful location.</summary>
+    public static UserIntent NavigateBack { get; } = new NavigateBackIntent();
+
+    /// <summary>Gets the intent to navigate to the next successful location.</summary>
+    public static UserIntent NavigateForward { get; } = new NavigateForwardIntent();
+
     /// <summary>Gets the intent to open the focused item.</summary>
     public static UserIntent OpenFocused { get; } = new OpenFocusedIntent();
 
@@ -134,6 +140,8 @@ public abstract record UserIntent
     private sealed record MoveHalfPageDownIntent : UserIntent;
     private sealed record MoveHalfPageUpIntent : UserIntent;
     private sealed record NavigateParentIntent : UserIntent;
+    private sealed record NavigateBackIntent : UserIntent;
+    private sealed record NavigateForwardIntent : UserIntent;
     private sealed record OpenFocusedIntent : UserIntent;
     private sealed record ActivateOtherPaneIntent : UserIntent;
     private sealed record ToggleSelectionIntent : UserIntent;

@@ -26,6 +26,8 @@ public sealed record KeyBinding
             [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
             {
                 [KeyboardKey.Up] = "KeyLabelAltUp",
+                [KeyboardKey.Left] = "KeyLabelAltLeft",
+                [KeyboardKey.Right] = "KeyLabelAltRight",
             },
         };
 

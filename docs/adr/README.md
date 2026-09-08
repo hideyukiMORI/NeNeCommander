@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0045: Retain bounded location history in each pane state](0045-bounded-pane-location-history.md)
 - [ADR-0044: Route address input through the existing pane navigation path](0044-address-input-through-pane-navigation.md) (0043 is reserved by Issue #93.)
 - [ADR-0042: Bound both raw and canonical filesystem path text](0042-bound-raw-and-canonical-path-length.md)
 - [ADR-0037: Copy and composite-move within one WSL distribution](0037-wsl-same-distribution-transfer.md)

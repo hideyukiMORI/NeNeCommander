@@ -48,6 +48,8 @@ public sealed class KeyboardIntentMapperTests
         KeyboardIntentMapper mapper = CreateMapper();
 
         AssertMaps(mapper, Input(KeyboardKey.Up, KeyboardModifier.Alt), UserIntent.NavigateParent);
+        AssertMaps(mapper, Input(KeyboardKey.Left, KeyboardModifier.Alt), UserIntent.NavigateBack);
+        AssertMaps(mapper, Input(KeyboardKey.Right, KeyboardModifier.Alt), UserIntent.NavigateForward);
         AssertMaps(mapper, Input(KeyboardKey.D, KeyboardModifier.Control), UserIntent.MoveHalfPageDown);
         AssertMaps(mapper, Input(KeyboardKey.U, KeyboardModifier.Control), UserIntent.MoveHalfPageUp);
         AssertMaps(mapper, Input(KeyboardKey.L, KeyboardModifier.Control), UserIntent.FocusAddress);
@@ -130,6 +132,22 @@ public sealed class KeyboardIntentMapperTests
             KeyboardModifier.Control,
             KeyRepeatState.Initial,
             KeyboardContext.Modal));
+        KeyboardMappingOutcome textBack = mapper.Map(Input(
+            KeyboardKey.Left,
+            KeyboardModifier.Alt,
+            KeyboardContext.TextEntry));
+        KeyboardMappingOutcome textForward = mapper.Map(Input(
+            KeyboardKey.Right,
+            KeyboardModifier.Alt,
+            KeyboardContext.TextEntry));
+        KeyboardMappingOutcome modalBack = mapper.Map(Input(
+            KeyboardKey.Left,
+            KeyboardModifier.Alt,
+            KeyboardContext.Modal));
+        KeyboardMappingOutcome modalForward = mapper.Map(Input(
+            KeyboardKey.Right,
+            KeyboardModifier.Alt,
+            KeyboardContext.Modal));
 
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(text);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modal);
@@ -140,6 +158,10 @@ public sealed class KeyboardIntentMapperTests
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalMovement);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textHiddenToggle);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalHiddenToggle);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textBack);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textForward);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalBack);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalForward);
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
@@ -163,6 +185,10 @@ public sealed class KeyboardIntentMapperTests
             mapper.Map(Input(KeyboardKey.L, KeyboardContext.AddressEntry)));
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             mapper.Map(Input(KeyboardKey.L, KeyboardModifier.Other, KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.Left, KeyboardModifier.Alt, KeyboardContext.AddressEntry)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.Right, KeyboardModifier.Alt, KeyboardContext.AddressEntry)));
     }
 
     /// <summary>Proves a native-control modal leaves Enter and Space to focus while retaining Escape.</summary>
@@ -228,6 +254,14 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardContext.NavigationSurface), UserIntent.Refresh);
         AssertMaps(
             mapper,
+            Input(KeyboardKey.Left, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
+            UserIntent.NavigateBack);
+        AssertMaps(
+            mapper,
+            Input(KeyboardKey.Right, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
+            UserIntent.NavigateForward);
+        AssertMaps(
+            mapper,
             Input(KeyboardKey.Comma, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenSettings);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
@@ -244,6 +278,8 @@ public sealed class KeyboardIntentMapperTests
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
             mapper.Map(Input(KeyboardKey.J, KeyboardModifier.Other)));
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Comma)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Left)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Right)));
     }
 
     /// <summary>Proves every supported framework virtual key has one canonical translation.</summary>
@@ -252,6 +288,8 @@ public sealed class KeyboardIntentMapperTests
     {
         AssertTranslatedVirtualKey(VirtualKey.Down, KeyboardKey.Down);
         AssertTranslatedVirtualKey(VirtualKey.Up, KeyboardKey.Up);
+        AssertTranslatedVirtualKey(VirtualKey.Left, KeyboardKey.Left);
+        AssertTranslatedVirtualKey(VirtualKey.Right, KeyboardKey.Right);
         AssertTranslatedVirtualKey(VirtualKey.Back, KeyboardKey.Backspace);
         AssertTranslatedVirtualKey(VirtualKey.Enter, KeyboardKey.Enter);
         AssertTranslatedVirtualKey(VirtualKey.PageDown, KeyboardKey.PageDown);
@@ -412,8 +450,8 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(26, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(7, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(28, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(9, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
         Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));
@@ -435,6 +473,8 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelComma", KeyboardKey.Comma.LabelResourceKey);
         Assert.AreEqual("KeyLabelDown", KeyboardKey.Down.LabelResourceKey);
         Assert.AreEqual("KeyLabelUp", KeyboardKey.Up.LabelResourceKey);
+        Assert.AreEqual("KeyLabelLeft", KeyboardKey.Left.LabelResourceKey);
+        Assert.AreEqual("KeyLabelRight", KeyboardKey.Right.LabelResourceKey);
         Assert.AreEqual("KeyLabelBackspace", KeyboardKey.Backspace.LabelResourceKey);
         Assert.AreEqual("KeyLabelEnter", KeyboardKey.Enter.LabelResourceKey);
         Assert.AreEqual("KeyLabelPageDown", KeyboardKey.PageDown.LabelResourceKey);

@@ -84,6 +84,8 @@ public sealed class KeyHintPresenterTests
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.R, "KeyLabelCtrlR");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.U, "KeyLabelCtrlU");
         AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.Up, "KeyLabelAltUp");
+        AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.Left, "KeyLabelAltLeft");
+        AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.Right, "KeyLabelAltRight");
         AssertBindingLabel(KeyboardModifier.Control, KeyboardKey.Up, "KeyLabelUnmapped");
         AssertBindingLabel(KeyboardModifier.Alt, KeyboardKey.D, "KeyLabelUnmapped");
     }
