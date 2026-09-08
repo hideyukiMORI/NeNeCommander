@@ -63,7 +63,7 @@ public sealed class PaneSession
     public Task<PaneSnapshot> NavigateAsync(FileSystemPath location, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(location);
-        return NavigateAsync(location, null, cancellationToken);
+        return NavigateAsync(location, null, PaneNavigationAction.Append, cancellationToken);
     }
 
     /// <summary>
@@ -101,7 +101,11 @@ public sealed class PaneSession
     {
         return Current.Activity is PaneLoading
             ? Task.FromResult(Current)
-            : NavigateAsync(listed.State.Location, preferredFocus, cancellationToken);
+            : NavigateAsync(
+                listed.State.Location,
+                preferredFocus,
+                PaneNavigationAction.Preserve,
+                cancellationToken);
     }
 
     /// <summary>
@@ -125,14 +129,30 @@ public sealed class PaneSession
         }
         if (intent == UserIntent.Refresh)
         {
-            return NavigateAsync(listed.State.Location, listed.State.FocusItem, cancellationToken);
+            return NavigateAsync(
+                listed.State.Location,
+                listed.State.FocusItem,
+                PaneNavigationAction.Preserve,
+                cancellationToken);
         }
         if (intent == UserIntent.NavigateParent)
         {
             FileSystemPath? parent = listed.State.Location.Parent;
             return parent is null
                 ? Task.FromResult(Current)
-                : NavigateAsync(parent, listed.State.Location, cancellationToken);
+                : NavigateAsync(
+                    parent,
+                    listed.State.Location,
+                    PaneNavigationAction.Append,
+                    cancellationToken);
+        }
+        if (intent == UserIntent.NavigateBack)
+        {
+            return NavigateHistoryAsync(listed, PaneNavigationAction.Back, cancellationToken);
+        }
+        if (intent == UserIntent.NavigateForward)
+        {
+            return NavigateHistoryAsync(listed, PaneNavigationAction.Forward, cancellationToken);
         }
 
         PaneState next = PaneReducer.Apply(listed.State, intent);
@@ -147,15 +167,36 @@ public sealed class PaneSession
     {
         DirectoryEntry? focused = listed.FindFocusedEntry();
         return focused is not null && focused.Kind == DirectoryEntryKind.Directory
-            ? NavigateAsync(focused.Path, null, cancellationToken)
+            ? NavigateAsync(
+                focused.Path,
+                null,
+                PaneNavigationAction.Append,
+                cancellationToken)
             : Task.FromResult(Current);
+    }
+
+    private Task<PaneSnapshot> NavigateHistoryAsync(
+        PaneContentListed listed,
+        PaneNavigationAction action,
+        CancellationToken cancellationToken)
+    {
+        FileSystemPath? target = action == PaneNavigationAction.Back
+            ? listed.State.NavigationHistory.BackTarget
+            : listed.State.NavigationHistory.ForwardTarget;
+        return target is null
+            ? Task.FromResult(Current)
+            : NavigateAsync(target, null, action, cancellationToken);
     }
 
     private async Task<PaneSnapshot> NavigateAsync(
         FileSystemPath location,
         FileSystemPath? preferredFocus,
+        PaneNavigationAction action,
         CancellationToken cancellationToken)
     {
+        PaneState? previousState = Current.Content is PaneContentListed previous
+            ? previous.State
+            : null;
         object navigation = new();
         _latestNavigation = navigation;
         Current = Current.WithActivity(new PaneLoading(location));
@@ -169,18 +210,31 @@ public sealed class PaneSession
 
         Current = outcome switch
         {
-            DirectoryReadSucceeded succeeded => PaneSnapshot.IdleWith(new PaneContentListed(
-                PaneReducer.Navigate(
-                    succeeded.Listing,
-                    _visiblePageCapacity,
-                    preferredFocus,
-                    ResolveHiddenItemVisibility()),
-                succeeded.Listing)),
+            DirectoryReadSucceeded succeeded => CompleteNavigation(
+                succeeded,
+                previousState,
+                preferredFocus,
+                action),
             DirectoryReadCancelled => Current.WithActivity(new PaneReadCancelled(location)),
             DirectoryReadFailed failed => Current.WithActivity(new PaneReadFailed(location, failed.Failure)),
             _ => throw new InvalidOperationException("The directory read outcome variant is not navigable."),
         };
         return Current;
+    }
+
+    private PaneSnapshot CompleteNavigation(
+        DirectoryReadSucceeded succeeded,
+        PaneState? previousState,
+        FileSystemPath? preferredFocus,
+        PaneNavigationAction action)
+    {
+        PaneState navigated = PaneReducer.Navigate(
+            succeeded.Listing,
+            _visiblePageCapacity,
+            preferredFocus,
+            ResolveHiddenItemVisibility());
+        PaneState committed = PaneReducer.CommitNavigation(previousState, navigated, action);
+        return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing));
     }
 
     /// <summary>

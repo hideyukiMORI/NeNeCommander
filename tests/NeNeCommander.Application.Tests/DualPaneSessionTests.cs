@@ -90,6 +90,54 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(rightListing.Entries[1].Path, Focus(rightMoved.Right));
     }
 
+    /// <summary>Proves each active pane moves only its own independent location-history cursor.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenHistoryMovesKeepsTheOtherPaneHistoryIndependent()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing left = Listing("C:\\left");
+        DirectoryListing right = Listing("C:\\right");
+        DirectoryListing leftNext = Listing("C:\\left-next");
+        DirectoryListing rightNext = Listing("C:\\right-next");
+        await fixture.ListBothAsync(left, right);
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftNext));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightNext));
+        _ = await fixture.Panes.NavigateAsync(PaneSide.Left, leftNext.Location, CancellationToken.None);
+        _ = await fixture.Panes.NavigateAsync(PaneSide.Right, rightNext.Location, CancellationToken.None);
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(left));
+
+        DualPaneSnapshot leftBack = await fixture.Panes.HandleAsync(
+            UserIntent.NavigateBack,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        _ = await fixture.Panes.HandleAsync(
+            UserIntent.ActivateOtherPane,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(right));
+        DualPaneSnapshot rightBack = await fixture.Panes.HandleAsync(
+            UserIntent.NavigateBack,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        Assert.AreEqual(
+            0,
+            Assert.IsInstanceOfType<PaneContentListed>(leftBack.Left.Content)
+                .State.NavigationHistory.CurrentIndex);
+        Assert.AreEqual(
+            1,
+            Assert.IsInstanceOfType<PaneContentListed>(leftBack.Right.Content)
+                .State.NavigationHistory.CurrentIndex);
+        Assert.AreEqual(
+            0,
+            Assert.IsInstanceOfType<PaneContentListed>(rightBack.Left.Content)
+                .State.NavigationHistory.CurrentIndex);
+        Assert.AreEqual(
+            0,
+            Assert.IsInstanceOfType<PaneContentListed>(rightBack.Right.Content)
+                .State.NavigationHistory.CurrentIndex);
+    }
+
     /// <summary>Proves hidden-item toggling changes only the active pane.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenToggleHiddenItemsChangesOnlyActivePane()

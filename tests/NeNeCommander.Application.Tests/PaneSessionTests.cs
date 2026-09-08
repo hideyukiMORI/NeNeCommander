@@ -304,6 +304,9 @@ public sealed class PaneSessionTests
         Assert.AreSame(freshSnapshot, staleSnapshot);
         Assert.AreSame(freshSnapshot, session.Current);
         Assert.AreSame(PaneActivity.Idle, session.Current.Activity);
+        PaneNavigationHistory history = HistoryOf(session.Current);
+        Assert.HasCount(1, history.Locations);
+        Assert.AreSame(fresh.Location, history.Locations[0]);
     }
 
     /// <summary>Proves the composed visibility decides the first listing's visible set.</summary>
@@ -346,6 +349,110 @@ public sealed class PaneSessionTests
         Assert.HasCount(1, listed.State.VisibleEntries);
         Assert.AreSame(second.Entries[0], listed.State.VisibleEntries[0]);
         Assert.AreSame(HiddenItemVisibility.Shown, listed.State.HiddenItemVisibility);
+    }
+
+    /// <summary>Proves Back and Forward read the retained locations and commit only their cursor.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenHistoryMovesBackAndForwardReadsLocationsAndClearsSelection()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing("C:\\root", ("z.txt", DirectoryEntryKind.File));
+        DirectoryListing other = Listing("C:\\other", ("b.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(root.Location, CancellationToken.None);
+        _ = await session.NavigateAsync(other.Location, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+
+        PaneSnapshot backed = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+        PaneSnapshot forwarded = await session.HandleAsync(UserIntent.NavigateForward, CancellationToken.None);
+
+        Assert.AreSame(root.Location, port.Requests[2].Location);
+        Assert.AreSame(other.Location, port.Requests[3].Location);
+        PaneContentListed backListed = Assert.IsInstanceOfType<PaneContentListed>(backed.Content);
+        Assert.AreSame(root.Entries[0].Path, backListed.State.FocusItem);
+        Assert.IsEmpty(backListed.State.Selection);
+        Assert.AreEqual(0, backListed.State.NavigationHistory.CurrentIndex);
+        PaneNavigationHistory history = HistoryOf(forwarded);
+        Assert.AreEqual(1, history.CurrentIndex);
+        Assert.HasCount(2, history.Locations);
+    }
+
+    /// <summary>Proves unavailable directions return the current snapshot without starting a read.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenHistoryHasNoCandidateDoesNotRead()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root")));
+        PaneSession session = CreateSession(port);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        PaneSnapshot back = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+        PaneSnapshot forward = await session.HandleAsync(UserIntent.NavigateForward, CancellationToken.None);
+
+        Assert.AreSame(listed, back);
+        Assert.AreSame(listed, forward);
+        Assert.HasCount(1, port.Requests);
+    }
+
+    /// <summary>Proves failed and cancelled Back reads leave the same candidate available for retry.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBackFailsOrIsCancelledPreservesHistoryUntilSuccess()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing("C:\\root");
+        DirectoryListing other = Listing("C:\\other");
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        port.Enqueue(DirectoryReadOutcome.Cancelled());
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(root.Location, CancellationToken.None);
+        _ = await session.NavigateAsync(other.Location, CancellationToken.None);
+
+        PaneSnapshot failed = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+        PaneSnapshot cancelled = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+        PaneSnapshot succeeded = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+
+        Assert.AreEqual(1, HistoryOf(failed).CurrentIndex);
+        Assert.AreEqual(1, HistoryOf(cancelled).CurrentIndex);
+        Assert.AreEqual(0, HistoryOf(succeeded).CurrentIndex);
+        Assert.AreSame(root.Location, port.Requests[2].Location);
+        Assert.AreSame(root.Location, port.Requests[3].Location);
+        Assert.AreSame(root.Location, port.Requests[4].Location);
+    }
+
+    /// <summary>Proves same-location and refresh reads retain a Forward candidate after Back.</summary>
+    [TestMethod]
+    public async Task NavigateAndRefreshWhenLocationIdentityIsUnchangedPreserveForwardHistory()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing("C:\\root");
+        DirectoryListing other = Listing("C:\\other");
+        DirectoryListing sameIdentity = Listing("c:\\ROOT");
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(root.Location, CancellationToken.None);
+        _ = await session.NavigateAsync(other.Location, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+
+        _ = await session.NavigateAsync(sameIdentity.Location, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.Refresh, CancellationToken.None);
+        PaneSnapshot forwarded = await session.HandleAsync(UserIntent.NavigateForward, CancellationToken.None);
+
+        PaneNavigationHistory history = HistoryOf(forwarded);
+        Assert.HasCount(2, history.Locations);
+        Assert.AreEqual(1, history.CurrentIndex);
+        Assert.AreSame(other.Location, Assert.IsInstanceOfType<PaneContentListed>(forwarded.Content).State.Location);
     }
 
     /// <summary>Proves the composition boundary rejects an entry boundary outside the fixed range.</summary>
@@ -392,6 +499,11 @@ public sealed class PaneSessionTests
     private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
     {
         return new PaneSession(port, Capacity(4), DirectoryListing.EntryBoundaryLimit, visibility);
+    }
+
+    private static PaneNavigationHistory HistoryOf(PaneSnapshot snapshot)
+    {
+        return Assert.IsInstanceOfType<PaneContentListed>(snapshot.Content).State.NavigationHistory;
     }
 
     private static VisiblePageCapacity Capacity(int rows)

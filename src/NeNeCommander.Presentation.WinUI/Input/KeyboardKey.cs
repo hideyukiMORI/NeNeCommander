@@ -43,6 +43,12 @@ public abstract record KeyboardKey
     /// <summary>Gets the up-arrow virtual key.</summary>
     public static KeyboardKey Up { get; } = new UpKey();
 
+    /// <summary>Gets the left-arrow virtual key.</summary>
+    public static KeyboardKey Left { get; } = new LeftKey();
+
+    /// <summary>Gets the right-arrow virtual key.</summary>
+    public static KeyboardKey Right { get; } = new RightKey();
+
     /// <summary>Gets the Backspace virtual key.</summary>
     public static KeyboardKey Backspace { get; } = new BackspaceKey();
 
@@ -150,6 +156,16 @@ public abstract record KeyboardKey
     private sealed record UpKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelUp";
+    }
+
+    private sealed record LeftKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelLeft";
+    }
+
+    private sealed record RightKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelRight";
     }
 
     private sealed record BackspaceKey : KeyboardKey

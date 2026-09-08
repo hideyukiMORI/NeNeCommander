@@ -12,6 +12,8 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `k` or `Up` | focus previous visible item |
 | `h`, `Backspace`, or `Alt+Up` | navigate to parent |
 | `l` or `Enter` | open focused item; enter it when it is a container |
+| `Alt+Left` | navigate to the previous successful location in the active pane |
+| `Alt+Right` | navigate to the next successful location in the active pane |
 | `g` then `g` | focus first visible item |
 | `G` | focus last visible item |
 | `Ctrl+D` or `PageDown` | move focus down by half the visible page |
@@ -20,6 +22,10 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Space` | toggle selection of the focus item without moving focus |
 | `Ctrl+H` | toggle hidden and system entries in the active pane |
 | `Escape` | cancel a running file operation, then cancel pending chord, then close transient UI, then clear selection |
+
+Back and Forward retain at most 100 successful locations per pane, including current. They restore
+location only and commit their cursor after the target read succeeds. Refresh, same-location,
+failed, cancelled, superseded, and stale reads do not change history.
 
 The `gg` chord expires after 750 ms, measured through the injected monotonic clock. An unrelated mapped second key cancels the pending chord and is then processed normally. An unmapped event, including the raw virtual-key event that precedes a produced character, passes through without touching the chord. Auto-repeat is accepted for single-key movement and ignored for chord prefixes and destructive commands.
 

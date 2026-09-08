@@ -75,6 +75,8 @@
   <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
   <data name="KeyLabelAltUp" xml:space="preserve"><value>Alt+↑</value></data>
+  <data name="KeyLabelAltLeft" xml:space="preserve"><value>Alt+←</value></data>
+  <data name="KeyLabelAltRight" xml:space="preserve"><value>Alt+→</value></data>
   <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
   <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
   <data name="KeyLabelL" xml:space="preserve"><value>l</value></data>
@@ -83,6 +85,8 @@
   <data name="KeyLabelU" xml:space="preserve"><value>u</value></data>
   <data name="KeyLabelDown" xml:space="preserve"><value>↓</value></data>
   <data name="KeyLabelUp" xml:space="preserve"><value>↑</value></data>
+  <data name="KeyLabelLeft" xml:space="preserve"><value>←</value></data>
+  <data name="KeyLabelRight" xml:space="preserve"><value>→</value></data>
   <data name="KeyLabelBackspace" xml:space="preserve"><value>BS</value></data>
   <data name="KeyLabelEnter" xml:space="preserve"><value>Enter</value></data>
   <data name="KeyLabelPageDown" xml:space="preserve"><value>PgDn</value></data>

@@ -91,7 +91,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | WSL same-distribution mutation provider | `WslFileOperationAdapter` behind the provider router |
 | Windows local atomic-move capability | provider query using mounted-volume identity, consumed by `FileOperationGateway` |
 | directory reads | `IDirectoryReadPort` boundary with `DirectoryListing` ordering |
-| pane navigation and intent routing | `PaneSession` |
+| pane navigation, history reads, and intent routing | `PaneSession` |
 | active side, intent routing between panes, and starting file operations | `DualPaneSession` |
 | pane projection | `PaneListingPresenter` over `PaneSnapshot` |
 | pane state | `PaneReducer` |

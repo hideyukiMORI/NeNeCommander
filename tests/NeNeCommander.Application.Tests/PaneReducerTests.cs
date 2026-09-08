@@ -336,6 +336,63 @@ public sealed class PaneReducerTests
         Assert.IsEmpty(state.VisibleEntries);
     }
 
+    /// <summary>Proves a new visit after Back removes the abandoned Forward suffix.</summary>
+    [TestMethod]
+    public void CommitNavigationWhenAppendingAfterBackTruncatesForwardLocations()
+    {
+        PaneState first = Navigate(CreateListing("C:\\first"), null, HiddenItemVisibility.Hidden);
+        PaneState second = Commit(first, "C:\\second", PaneNavigationAction.Append);
+        PaneState third = Commit(second, "C:\\third", PaneNavigationAction.Append);
+        PaneState backed = Commit(third, "C:\\second", PaneNavigationAction.Back);
+
+        PaneState branched = Commit(backed, "C:\\branch", PaneNavigationAction.Append);
+
+        PaneNavigationHistory history = branched.NavigationHistory;
+        Assert.HasCount(3, history.Locations);
+        Assert.AreEqual("C:\\first", history.Locations[0].CanonicalText);
+        Assert.AreEqual("C:\\second", history.Locations[1].CanonicalText);
+        Assert.AreEqual("C:\\branch", history.Locations[2].CanonicalText);
+        Assert.AreEqual(2, history.CurrentIndex);
+        Assert.IsNull(history.ForwardTarget);
+    }
+
+    /// <summary>Proves history includes current, evicts its oldest entry, and never exceeds 100.</summary>
+    [TestMethod]
+    public void CommitNavigationWhenLocationLimitIsExceededEvictsOldestLocation()
+    {
+        PaneState state = Navigate(CreateListing("C:\\initial"), null, HiddenItemVisibility.Hidden);
+        for (int index = 1; index <= PaneNavigationHistory.LocationLimit; index++)
+        {
+            state = Commit(state, "C:\\location" + index, PaneNavigationAction.Append);
+        }
+
+        PaneNavigationHistory history = state.NavigationHistory;
+        Assert.HasCount(PaneNavigationHistory.LocationLimit, history.Locations);
+        Assert.AreEqual("C:\\location1", history.Locations[0].CanonicalText);
+        Assert.AreEqual("C:\\location100", history.Locations[^1].CanonicalText);
+        Assert.AreEqual(PaneNavigationHistory.LocationLimit - 1, history.CurrentIndex);
+    }
+
+    /// <summary>Proves the canonical provider comparer decides whether a visit is a new location.</summary>
+    [TestMethod]
+    public void CommitNavigationWhenPathCaseVariesUsesProviderIdentityRules()
+    {
+        PaneState windows = Navigate(CreateListing("C:\\Root"), null, HiddenItemVisibility.Hidden);
+        PaneState sameWindows = Commit(windows, "c:\\ROOT", PaneNavigationAction.Append);
+        PaneState wsl = Navigate(
+            CreateListing("\\\\wsl.localhost\\Ubuntu\\home\\Name"),
+            null,
+            HiddenItemVisibility.Hidden);
+
+        PaneState distinctWsl = Commit(
+            wsl,
+            "\\\\wsl.localhost\\ubuntu\\home\\name",
+            PaneNavigationAction.Append);
+
+        Assert.HasCount(1, sameWindows.NavigationHistory.Locations);
+        Assert.HasCount(2, distinctWsl.NavigationHistory.Locations);
+    }
+
     /// <summary>Proves a focus item that stays visible survives a visibility change untouched.</summary>
     [TestMethod]
     public void ApplyHiddenItemVisibilityWhenFocusStaysVisibleKeepsIt()
@@ -483,6 +540,12 @@ public sealed class PaneReducerTests
         HiddenItemVisibility visibility)
     {
         return PaneReducer.Navigate(listing, CreateCapacity(3), preferredFocus, visibility);
+    }
+
+    private static PaneState Commit(PaneState previous, string location, PaneNavigationAction action)
+    {
+        PaneState navigated = Navigate(CreateListing(location), null, previous.HiddenItemVisibility);
+        return PaneReducer.CommitNavigation(previous, navigated, action);
     }
 
     private static DirectoryListing CreateListing(
