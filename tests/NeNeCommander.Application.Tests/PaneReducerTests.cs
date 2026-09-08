@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
@@ -264,6 +265,20 @@ public sealed class PaneReducerTests
         Assert.HasCount(2, state.VisibleEntries);
     }
 
+    /// <summary>Proves forward recovery starts at a hidden preferred item in the first position.</summary>
+    [TestMethod]
+    public void NavigateWhenFirstPreferredFocusIsHiddenFocusesNextVisibleEntry()
+    {
+        DirectoryListing listing = CreateListing(
+            "C:\\root",
+            ("a.txt", EntryVisibility.Hidden),
+            ("b.txt", EntryVisibility.Normal));
+
+        PaneState state = Navigate(listing, listing.Entries[0].Path, HiddenItemVisibility.Hidden);
+
+        Assert.AreSame(listing.Entries[1].Path, state.FocusItem);
+    }
+
     /// <summary>Proves an omitted preferred item with no later visible entry falls back to the earlier one.</summary>
     [TestMethod]
     public void NavigateWhenPreferredFocusIsHiddenAndLastFocusesPreviousVisibleEntry()
@@ -276,6 +291,21 @@ public sealed class PaneReducerTests
         PaneState state = Navigate(listing, listing.Entries[1].Path, HiddenItemVisibility.Hidden);
 
         Assert.AreSame(listing.Entries[0].Path, state.FocusItem);
+    }
+
+    /// <summary>Proves backward recovery chooses the nearest earlier visible item.</summary>
+    [TestMethod]
+    public void NavigateWhenLastPreferredFocusIsHiddenFocusesNearestPreviousVisibleEntry()
+    {
+        DirectoryListing listing = CreateListing(
+            "C:\\root",
+            ("a.txt", EntryVisibility.Normal),
+            ("b.txt", EntryVisibility.Normal),
+            ("c.txt", EntryVisibility.Hidden));
+
+        PaneState state = Navigate(listing, listing.Entries[2].Path, HiddenItemVisibility.Hidden);
+
+        Assert.AreSame(listing.Entries[1].Path, state.FocusItem);
     }
 
     /// <summary>Proves the backward search skips omitted entries until it finds a visible one.</summary>
@@ -391,6 +421,18 @@ public sealed class PaneReducerTests
 
         Assert.HasCount(1, sameWindows.NavigationHistory.Locations);
         Assert.HasCount(2, distinctWsl.NavigationHistory.Locations);
+    }
+
+    /// <summary>Proves navigation commits reject absent required state and action values.</summary>
+    [TestMethod]
+    public void CommitNavigationWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        PaneState state = Navigate(CreateListing("C:\\root"), null, HiddenItemVisibility.Hidden);
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => PaneReducer.CommitNavigation(null, null!, PaneNavigationAction.Append));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => PaneReducer.CommitNavigation(null, state, null!));
     }
 
     /// <summary>Proves a focus item that stays visible survives a visibility change untouched.</summary>
