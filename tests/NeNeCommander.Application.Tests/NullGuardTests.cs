@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
@@ -110,6 +111,7 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
+        AssertStaticNullGuard(typeof(FileLaunchOutcome), nameof(FileLaunchOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
             [null, capacity, null, HiddenItemVisibility.Hidden]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
@@ -158,6 +160,7 @@ public sealed class NullGuardTests
         ConstructorInfo constructor = typeof(PaneSession).GetConstructor(
             [
                 typeof(IDirectoryReadPort),
+                typeof(IFileLauncher),
                 typeof(VisiblePageCapacity),
                 typeof(int),
                 typeof(HiddenItemVisibility),
@@ -165,13 +168,21 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public session constructor was not found.");
         PaneSession session = new(
             port,
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
 
-        AssertConstructorNullGuard(constructor, [null, capacity, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(constructor, [port, null, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(constructor, [port, capacity, 1, null]);
+        AssertConstructorNullGuard(
+            constructor,
+            [null, new ScriptedFileLauncher(), capacity, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(constructor, [port, null, capacity, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(
+            constructor,
+            [port, new ScriptedFileLauncher(), null, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(
+            constructor,
+            [port, new ScriptedFileLauncher(), capacity, 1, null]);
         AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.RefreshFocusingAsync), [null, CancellationToken.None]);
@@ -190,11 +201,13 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         PaneSession left = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
         PaneSession right = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -270,11 +283,13 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         PaneSession left = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
         PaneSession right = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -352,6 +367,10 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(PaneReadCancelled), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [null, FileOperationFailureKind.NotFound]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [path, null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunching), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [null, FileLaunchFailureKind.NotFound]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
     }

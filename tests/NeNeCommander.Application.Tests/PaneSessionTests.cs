@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
@@ -85,21 +86,155 @@ public sealed class PaneSessionTests
         Assert.AreEqual("The directory read outcome variant is not navigable.", failure.Message);
     }
 
-    /// <summary>Proves opening a focused file next to a directory starts no read.</summary>
+    /// <summary>Proves opening a focused Windows file performs one handoff without another read.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenOpenFocusedOnFileBesideDirectoryDoesNotRead()
+    public async Task HandleAsyncWhenOpenFocusedOnWindowsFileLaunchesOnceWithoutRead()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
             Listing("C:\\root", ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File))));
-        PaneSession session = CreateSession(port);
+        ScriptedFileLauncher launcher = new();
+        launcher.Enqueue(FileLaunchOutcome.Accepted());
+        PaneSession session = CreateSession(port, launcher);
+        using CancellationTokenSource cancellation = new();
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
         PaneSnapshot onFile = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
 
-        PaneSnapshot afterOpen = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        PaneSnapshot afterOpen = await session.HandleAsync(UserIntent.OpenFocused, cancellation.Token);
 
-        Assert.AreSame(onFile, afterOpen);
+        Assert.HasCount(1, launcher.Targets);
+        Assert.AreSame(
+            Assert.IsInstanceOfType<WindowsLocalPath>(
+                Assert.IsInstanceOfType<PaneContentListed>(onFile.Content).State.FocusItem),
+            launcher.Targets[0]);
+        Assert.AreEqual(cancellation.Token, launcher.CancellationTokens[0]);
+        Assert.AreSame(onFile.Content, afterOpen.Content);
+        Assert.AreSame(PaneActivity.Idle, afterOpen.Activity);
         Assert.HasCount(1, port.Requests);
+    }
+
+    /// <summary>Proves launch activity freezes repeat dispatch until the handoff outcome arrives.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenFileLaunchIsPendingFreezesRepeatedIntent()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+        ScriptedFileLauncher launcher = new();
+        TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
+        PaneSession session = CreateSession(port, launcher);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        Task<PaneSnapshot> opening = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        PaneSnapshot repeated = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+
+        PaneLaunching activity = Assert.IsInstanceOfType<PaneLaunching>(repeated.Activity);
+        Assert.AreSame(launcher.Targets[0], activity.Target);
+        Assert.AreSame(listed.Content, repeated.Content);
+        Assert.HasCount(1, launcher.Targets);
+        release.SetResult(FileLaunchOutcome.Accepted());
+        PaneSnapshot completed = await opening;
+        Assert.AreSame(PaneActivity.Idle, completed.Activity);
+        Assert.AreSame(listed.Content, completed.Content);
+    }
+
+    /// <summary>Proves every direct pane-read entry point is frozen while a file handoff is pending.</summary>
+    [TestMethod]
+    public async Task PaneReadEntryPointsWhenFileLaunchIsPendingDoNotStartReadOrChangeState()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        ScriptedFileLauncher launcher = new();
+        TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
+        PaneSession session = CreateSession(port, launcher);
+        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        Task<PaneSnapshot> opening = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        PaneSnapshot launching = session.Current;
+
+        PaneSnapshot navigated = await session.NavigateAsync(ParsePath("C:\\other"), CancellationToken.None);
+        PaneSnapshot refreshed = await session.RefreshAsync(CancellationToken.None);
+        PaneSnapshot focusRefreshed = await session.RefreshFocusingAsync(
+            listing.Entries[0].Path,
+            CancellationToken.None);
+
+        Assert.AreSame(launching, navigated);
+        Assert.AreSame(launching, refreshed);
+        Assert.AreSame(launching, focusRefreshed);
+        Assert.AreSame(launching, session.Current);
+        Assert.HasCount(1, port.Requests);
+        release.SetResult(FileLaunchOutcome.Accepted());
+        PaneSnapshot completed = await opening;
+        Assert.AreSame(listed.Content, completed.Content);
+        Assert.AreSame(PaneActivity.Idle, completed.Activity);
+        Assert.HasCount(1, port.Requests);
+    }
+
+    /// <summary>Proves normalized launch failure and cancellation preserve all listed pane state.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenFileLaunchDoesNotHandoffReportsTypedActivity()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+        ScriptedFileLauncher launcher = new();
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
+        launcher.Enqueue(FileLaunchOutcome.Cancelled());
+        PaneSession session = CreateSession(port, launcher);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        PaneSnapshot failed = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        PaneSnapshot cancelled = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+
+        PaneLaunchFailed failure = Assert.IsInstanceOfType<PaneLaunchFailed>(failed.Activity);
+        Assert.AreSame(FileLaunchFailureKind.AccessDenied, failure.Failure);
+        Assert.AreSame(listed.Content, failed.Content);
+        Assert.AreSame(failure.Target, Assert.IsInstanceOfType<PaneLaunchCancelled>(cancelled.Activity).Target);
+        Assert.AreSame(listed.Content, cancelled.Content);
+        Assert.HasCount(2, launcher.Targets);
+    }
+
+    /// <summary>Proves unsupported provider files fail before the Windows-local launch port.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    public async Task HandleAsyncWhenFocusedFileProviderIsUnsupportedDoesNotCallLauncher()
+    {
+        string[] locations = ["\\\\wsl.localhost\\Ubuntu\\home", "\\\\server\\share\\folder"];
+        foreach (string location in locations)
+        {
+            ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+            port.Enqueue(DirectoryReadOutcome.Succeeded(
+                Listing(location, ("a.txt", DirectoryEntryKind.File))));
+            ScriptedFileLauncher launcher = new();
+            PaneSession session = CreateSession(port, launcher);
+            PaneSnapshot listed = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
+
+            PaneSnapshot snapshot = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+
+            PaneLaunchFailed failed = Assert.IsInstanceOfType<PaneLaunchFailed>(snapshot.Activity);
+            Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
+            Assert.AreSame(listed.Content, snapshot.Content);
+            Assert.IsEmpty(launcher.Targets);
+        }
+    }
+
+    /// <summary>Proves an unregistered launch outcome variant is a defect instead of implicit success.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenFileLaunchOutcomeVariantIsUnsupportedThrows()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+        ScriptedFileLauncher launcher = new();
+        launcher.Enqueue(new UnsupportedFileLaunchOutcome());
+        PaneSession session = CreateSession(port, launcher);
+        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+
+        InvalidOperationException failure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () => await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None));
+
+        Assert.AreEqual("The file launch outcome variant is not supported.", failure.Message);
     }
 
     /// <summary>Proves intents are ignored before any listing exists.</summary>
@@ -143,7 +278,8 @@ public sealed class PaneSessionTests
         DirectoryListing docs = Listing("C:\\root\\docs", ("readme.md", DirectoryEntryKind.File));
         port.Enqueue(DirectoryReadOutcome.Succeeded(root));
         port.Enqueue(DirectoryReadOutcome.Succeeded(docs));
-        PaneSession session = CreateSession(port);
+        ScriptedFileLauncher launcher = new();
+        PaneSession session = CreateSession(port, launcher);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
 
         PaneSnapshot snapshot = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
@@ -152,25 +288,24 @@ public sealed class PaneSessionTests
         PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(snapshot.Content);
         Assert.AreSame(docs, listed.Listing);
         Assert.AreSame(docs.Entries[0].Path, listed.State.FocusItem);
+        Assert.IsEmpty(launcher.Targets);
     }
 
-    /// <summary>Proves opening a file or an empty listing starts no read.</summary>
+    /// <summary>Proves opening an empty listing starts neither a read nor a file handoff.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenOpenFocusedOnFileOrEmptyListingDoesNotRead()
+    public async Task HandleAsyncWhenOpenFocusedOnEmptyListingDoesNothing()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
         port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\empty")));
-        PaneSession session = CreateSession(port);
+        ScriptedFileLauncher launcher = new();
+        PaneSession session = CreateSession(port, launcher);
 
-        PaneSnapshot fileListed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
-        PaneSnapshot afterFile = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
         PaneSnapshot emptyListed = await session.NavigateAsync(ParsePath("C:\\empty"), CancellationToken.None);
         PaneSnapshot afterEmpty = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
 
-        Assert.AreSame(fileListed, afterFile);
         Assert.AreSame(emptyListed, afterEmpty);
-        Assert.HasCount(2, port.Requests);
+        Assert.HasCount(1, port.Requests);
+        Assert.IsEmpty(launcher.Targets);
     }
 
     /// <summary>Proves navigating to the parent reads it and focuses the origin directory.</summary>
@@ -466,6 +601,7 @@ public sealed class PaneSessionTests
 
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new PaneSession(
             port,
+            new ScriptedFileLauncher(),
             capacity,
             entryBoundary,
             HiddenItemVisibility.Hidden));
@@ -498,7 +634,25 @@ public sealed class PaneSessionTests
 
     private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
     {
-        return new PaneSession(port, Capacity(4), DirectoryListing.EntryBoundaryLimit, visibility);
+        return CreateSession(port, new ScriptedFileLauncher(), visibility);
+    }
+
+    private static PaneSession CreateSession(IDirectoryReadPort port, IFileLauncher fileLauncher)
+    {
+        return CreateSession(port, fileLauncher, HiddenItemVisibility.Hidden);
+    }
+
+    private static PaneSession CreateSession(
+        IDirectoryReadPort port,
+        IFileLauncher fileLauncher,
+        HiddenItemVisibility visibility)
+    {
+        return new PaneSession(
+            port,
+            fileLauncher,
+            Capacity(4),
+            DirectoryListing.EntryBoundaryLimit,
+            visibility);
     }
 
     private static PaneNavigationHistory HistoryOf(PaneSnapshot snapshot)

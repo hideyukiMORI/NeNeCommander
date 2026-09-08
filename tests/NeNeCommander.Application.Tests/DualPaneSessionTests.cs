@@ -1007,6 +1007,7 @@ public sealed class DualPaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         PaneSession shared = new(
             port,
+            new ScriptedFileLauncher(),
             Capacity(4),
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -1103,11 +1104,13 @@ public sealed class DualPaneSessionTests
             Gateway = gateway;
             LeftSession = new PaneSession(
                 left,
+                new ScriptedFileLauncher(),
                 Capacity(4),
                 DirectoryListing.EntryBoundaryLimit,
                 HiddenItemVisibility.Hidden);
             RightSession = new PaneSession(
                 right,
+                new ScriptedFileLauncher(),
                 Capacity(4),
                 DirectoryListing.EntryBoundaryLimit,
                 HiddenItemVisibility.Hidden);

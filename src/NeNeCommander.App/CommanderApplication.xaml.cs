@@ -7,6 +7,7 @@ using NeNeCommander.App.Themes;
 using NeNeCommander.App.Views;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Application.Sessions;
@@ -14,6 +15,7 @@ using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Launching;
 using NeNeCommander.Infrastructure.Windows.Settings;
 using NeNeCommander.Infrastructure.Windows.Time;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -125,11 +127,12 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
         ProviderDirectoryReadPort directoryReader = new(ioExecutionBoundary);
+        WindowsShellFileLauncher fileLauncher = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
         _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
         DualPaneSession panes = new(
-            CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
-            CreatePaneSession(directoryReader, capacity, hiddenItemVisibility),
+            CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
+            CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
             _gateway);
         CommanderSession session = new(panes, settingsSession);
         return new CommanderWindow(
@@ -151,11 +154,13 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
 
     private static PaneSession CreatePaneSession(
         IDirectoryReadPort directoryReader,
+        IFileLauncher fileLauncher,
         VisiblePageCapacity capacity,
         HiddenItemVisibility hiddenItemVisibility)
     {
         return new PaneSession(
             directoryReader,
+            fileLauncher,
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             hiddenItemVisibility);

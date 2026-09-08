@@ -22,9 +22,10 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | visible set | The ordered entries of a pane that its `HiddenItemVisibility` admits, held by `PaneState` as `VisibleEntries`. `PaneReducer` alone decides it; movement, paging, focus, and selection address it and nothing else. |
 | listing | An immutable `DirectoryListing`: the deterministically ordered entries of one location plus its completeness and unrepresentable-entry count. |
 | entry boundary | The positive number of provider entries after which a read stops and reports a bounded listing. |
-| pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed read activity (idle, loading, failed, cancelled). |
-| pane session | The sole `PaneSession` coordinator that owns one pane snapshot and advances it through intents and reads. |
+| pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed external activity (idle, reading, launching, failed, or cancelled). |
+| pane session | The sole `PaneSession` coordinator that owns one pane snapshot and advances it through intents, reads, and focused-file handoffs. |
 | pane history | The immutable sequence of at most 100 successful locations, including current, held independently by each `PaneState`; `PaneReducer` alone appends locations or moves its Back/Forward cursor after a successful read. |
+| file handoff | One user-requested transfer of a validated Windows local path to its current Windows Shell association through `IFileLauncher`; acceptance does not claim process creation, successful opening, or external application completion. |
 | pane side | `PaneSide.Left` or `PaneSide.Right`; the closed identity of one pane surface. |
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
