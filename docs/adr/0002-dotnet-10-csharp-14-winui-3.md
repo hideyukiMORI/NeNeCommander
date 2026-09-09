@@ -10,7 +10,7 @@ The product targets Windows 11 and needs modern desktop UI, asynchronous APIs, a
 
 ## Decision
 
-Use the exact .NET SDK in `global.json`, C# 14, WinUI 3 through the Windows App SDK, and Windows 11 as the supported operating-system family. Upgrade the SDK and packages only through a dedicated ADR update with a full gate pass.
+Use the exact .NET SDK in `global.json`, C# 14, WinUI 3 through the Windows App SDK, and Windows 11 as the supported operating-system family. Upgrade the SDK and packages only through a dedicated ADR update with a full gate pass. The SDK pin moved from 10.0.400 to 10.0.401 on 2026-09-09 to follow the .NET 10.0.12 security servicing release; the exact-pin mechanism, `rollForward: disable`, the language version, and the UI stack did not change.
 
 ## Rejected alternatives
 
