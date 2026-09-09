@@ -76,6 +76,7 @@ public sealed class NullGuardTests
             typeof(AtomicMoveCapabilityOutcome),
             nameof(AtomicMoveCapabilityOutcome.Failed),
             [null]);
+        AssertInternalConstructorNullGuard(typeof(AtomicMoveCapabilityFailed), [null]);
         AssertStaticNullGuard(
             typeof(ProviderStepOutcome),
             nameof(ProviderStepOutcome.FailedAfterEffect),
@@ -311,6 +312,56 @@ public sealed class NullGuardTests
             () => commander.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Proves the application session validates its arguments before it routes on the current
+    /// modal owner. While the settings editor owns input every entry returns the unchanged
+    /// snapshot, so an unvalidated absent argument would be swallowed instead of rejected.
+    /// </summary>
+    [TestMethod]
+    public async Task CommanderSessionWhenSettingsOwnInputStillRejectsAbsentArgumentsAsync()
+    {
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
+        CommanderSession commander = new(
+            new DualPaneSession(
+                new PaneSession(
+                    left,
+                    new ScriptedFileLauncher(),
+                    capacity,
+                    DirectoryListing.EntryBoundaryLimit,
+                    HiddenItemVisibility.Hidden),
+                new PaneSession(
+                    ScriptedDirectoryReadPort.Create(),
+                    new ScriptedFileLauncher(),
+                    capacity,
+                    DirectoryListing.EntryBoundaryLimit,
+                    HiddenItemVisibility.Hidden),
+                gateway),
+            new SettingsSession(
+                new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+                SettingsReadOutcome.Absent(),
+                static _ => { }));
+        CommanderSnapshot opened = await commander.HandleAsync(
+            UserIntent.OpenSettings,
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(PaneSide.Left, null!, CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(null!, new RecordingCommanderObserver(), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
+
+        Assert.AreSame(SettingsEditorState.Open, opened.Settings.Editor);
+        Assert.AreSame(SettingsEditorState.Open, commander.Current.Settings.Editor);
+        Assert.IsEmpty(left.Requests);
+    }
+
     /// <summary>Proves settings and application-session boundaries reject absent required values.</summary>
     [TestMethod]
     public void SettingsSessionWhenRequiredArgumentIsNullThrowsArgumentNullException()
@@ -349,6 +400,33 @@ public sealed class NullGuardTests
             [SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, null]);
         AssertInternalConstructorNullGuard(typeof(ColorSchemeSelection), [null]);
         AssertInternalConstructorNullGuard(typeof(LaunchHiddenItemVisibilitySelection), [null]);
+    }
+
+    /// <summary>
+    /// Proves each settings-session entry rejects its own absent argument and names that
+    /// parameter, so the caller sees the argument it supplied rather than an internal
+    /// collaborator's parameter name.
+    /// </summary>
+    [TestMethod]
+    public void SettingsSessionWhenSelectionArgumentIsNullNamesTheRejectedParameter()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession settings = new(store, SettingsReadOutcome.Absent(), static _ => { });
+
+        ArgumentNullException scheme = Assert.ThrowsExactly<ArgumentNullException>(
+            () => settings.SelectColorSchemeAsync(
+                null!,
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+        ArgumentNullException visibility = Assert.ThrowsExactly<ArgumentNullException>(
+            () => settings.SelectLaunchHiddenItemVisibilityAsync(
+                null!,
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+
+        Assert.AreEqual("scheme", scheme.ParamName);
+        Assert.AreEqual("visibility", visibility.ParamName);
+        Assert.IsEmpty(store.Writes);
     }
     /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
     [TestMethod]

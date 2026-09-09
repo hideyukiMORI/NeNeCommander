@@ -7,6 +7,9 @@
     <TestingExtensionsProfile>Default</TestingExtensionsProfile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj" />
   </ItemGroup>
 </Project>

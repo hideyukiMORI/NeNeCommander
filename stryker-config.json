@@ -2,7 +2,7 @@
   "stryker-config": {
     "configuration": "Release",
     "mutation-level": "Complete",
-    "test-runner": "mtp",
+    "test-runner": "vstest",
     "break-on-initial-test-failure": true,
     "concurrency": 4,
     "reporters": [
