@@ -10,7 +10,7 @@ The repository requires one test runner, native .NET 10 orchestration, WinUI com
 
 ## Decision
 
-Use `MSTest.Sdk` 4.4.0 with the .NET 10 `Microsoft.Testing.Platform` runner selected in `global.json`. Use its Default extension profile for Microsoft code coverage and TRX support. VSTest mode and other test frameworks are prohibited. The pin was upgraded from 4.3.3 on 2026-09-05 after the official stable release review; the runner mechanism and extension profile did not change.
+Use `MSTest.Sdk` 4.4.0 with the .NET 10 `Microsoft.Testing.Platform` runner selected in `global.json`. Use its Default extension profile for Microsoft code coverage and TRX support. VSTest mode and other test frameworks are prohibited. The pin was upgraded from 4.3.3 on 2026-09-05 after the official stable release review; the runner mechanism and extension profile did not change. ADR-0048 defines the sole exception: the mutation tier drives the same test assemblies through an isolating VSTest host because the pinned Stryker.NET MTP runner cannot isolate mutants or attribute coverage per test; canonical test execution stays on MTP and is unchanged.
 
 ## Rejected alternatives
 

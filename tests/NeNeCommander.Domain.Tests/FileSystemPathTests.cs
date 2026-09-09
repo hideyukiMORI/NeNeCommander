@@ -174,6 +174,23 @@ public sealed class FileSystemPathTests
         Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
     }
 
+    /// <summary>
+    /// Proves the raw bound is independent of the canonical bound. Untrusted text beyond the
+    /// boundary is rejected before normalization, even when collapsing its redundant separators
+    /// would have produced canonical text far inside the boundary.
+    /// </summary>
+    [TestMethod]
+    public void ParseWhenRawInputExceedsBoundaryButCollapsesInsideItTooLongFailure()
+    {
+        string input = "C:\\" + new string('\\', MaximumPathLength) + "item.txt";
+
+        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
+        PathParseSuccess collapsed = RequireSuccess(FileSystemPath.Parse("C:\\\\item.txt"));
+
+        Assert.AreSame(PathParseFailureKind.TooLong, failure.Kind);
+        Assert.AreEqual("C:\\item.txt", collapsed.Path.CanonicalText);
+    }
+
     /// <summary>Proves an exact-boundary UNC canonical path is accepted and remains closed under parsing.</summary>
     [TestMethod]
     public void ParseWhenUncCanonicalTextMeetsBoundaryAcceptsAndReparses()
