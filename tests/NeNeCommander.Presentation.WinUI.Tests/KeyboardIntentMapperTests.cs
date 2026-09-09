@@ -604,6 +604,83 @@ public sealed class KeyboardIntentMapperTests
         Assert.HasCount(5, KeyboardIntentMapper.CommandPaletteBindings);
     }
 
+    /// <summary>
+    /// Proves a held Enter that the palette never started is consumed rather than executed, so a
+    /// repeat produced by an earlier owner cannot run the selected command.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenPaletteReceivesAnUnstartedEnterRepeatConsumesItWithoutExecuting()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        KeyboardMappingOutcome repeated = mapper.Map(Repeated(
+            KeyboardKey.Enter,
+            KeyboardContext.CommandPalette));
+
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(repeated);
+        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
+    }
+
+    /// <summary>
+    /// Proves only a repeated modal Enter is consumed, so a held Enter still reaches a text editor
+    /// and a held Escape still cancels the modal that owns it.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenOwnedContextKeyRepeatsOnlyModalEnterIsConsumed()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        KeyboardMappingOutcome textEnter = mapper.Map(Repeated(
+            KeyboardKey.Enter,
+            KeyboardContext.TextEntry));
+        KeyboardMappingOutcome modalEscape = mapper.Map(Repeated(
+            KeyboardKey.Escape,
+            KeyboardContext.Modal));
+        KeyboardMappingOutcome textEscape = mapper.Map(Repeated(
+            KeyboardKey.Escape,
+            KeyboardContext.TextEntry));
+
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textEnter);
+        Assert.AreSame(
+            UserIntent.Escape,
+            Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEscape).Intent);
+        Assert.AreSame(
+            UserIntent.Escape,
+            Assert.IsInstanceOfType<MappedKeyboardIntent>(textEscape).Intent);
+    }
+
+    /// <summary>
+    /// Proves address editing cancels a pending chord even when its own key is passed through, so
+    /// a later file-list prefix starts a new chord instead of completing the abandoned one.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenAddressEntryKeyFollowsGCancelsTheChord()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+
+        KeyboardMappingOutcome typed = mapper.Map(Input(
+            KeyboardKey.Other,
+            KeyboardContext.AddressEntry));
+
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(typed);
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+    }
+
+    /// <summary>
+    /// Proves the mapper and its palette values reject every absent part, so no event without a
+    /// clock, input, key, or intent can reach the canonical key map.
+    /// </summary>
+    [TestMethod]
+    public void ConstructKeyboardMappingWhenAnyPartIsNullThrowsArgumentNullException()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new KeyboardIntentMapper(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CreateMapper().Map(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteKeyBinding(null!, CommandPaletteKeyAction.Execute));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new MappedKeyboardIntent(null!));
+    }
+
     /// <summary>Proves the binding query rejects an absent context.</summary>
     [TestMethod]
     public void BindingsForWhenContextIsNullThrowsArgumentNullException()
@@ -705,6 +782,11 @@ public sealed class KeyboardIntentMapperTests
     private static KeyboardInput Input(KeyboardKey key, KeyboardContext context)
     {
         return KeyboardInput.Create(key, KeyboardModifier.None, KeyRepeatState.Initial, context);
+    }
+
+    private static KeyboardInput Repeated(KeyboardKey key, KeyboardContext context)
+    {
+        return KeyboardInput.Create(key, KeyboardModifier.None, KeyRepeatState.Repeated, context);
     }
 
     private static KeyboardInput Input(

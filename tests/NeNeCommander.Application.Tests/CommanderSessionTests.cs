@@ -635,6 +635,9 @@ public sealed class CommanderSessionTests
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
         Assert.AreSame(CommandAvailability.Available, Candidate(palette, UserIntent.OpenFocused).Availability);
+        Assert.AreSame(
+            CommandAvailability.Available,
+            Candidate(palette, UserIntent.NavigateParent).Availability);
         Assert.AreEqual(
             CommandUnavailableReason.PassivePaneUnavailable,
             Assert.IsInstanceOfType<CommandUnavailable>(Candidate(palette, UserIntent.Copy).Availability).Reason);

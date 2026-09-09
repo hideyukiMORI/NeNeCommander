@@ -60,7 +60,7 @@ The command used the existing configuration and did not change the runner, exclu
 
 The older passing comparator `34239166946` at `43b60a9` scored 90.81% across 566 Presentation mutants. Issue #101's deep run expanded that set to 731 and scored 80.98%; the local test additions raised the result to 83.99%.
 
-Independent review confirmed that the current report includes survivors whose exact expected values are asserted by the reported covering test set, including entries with all 106 tests in `CoveredBy` and none in `KilledBy`. This makes the numeric survivor total an unreliable proxy for missing contracts. A Stryker 4.16 / Microsoft.Testing.Platform activation issue is suspected, especially for the large increase in survivors in previously passing static Presentation code, but has not been proved. Do not describe every survivor as equivalent, false, or explained.
+Independent review confirmed that the current report includes survivors whose exact expected values are asserted by the reported covering test set, including entries with all 106 tests in `CoveredBy` and none in `KilledBy`. This makes the numeric survivor total an unreliable proxy for missing contracts. A Stryker 4.16 / Microsoft.Testing.Platform activation issue is suspected, especially for the large increase in survivors in previously passing static Presentation code, but has not been proved. Do not describe every survivor as equivalent, false, or explained. ADR-0048 later proved that suspicion and settled it.
 
 Three small behavioral tests remain reasonable candidates if work resumes: the palette hint intent-label blank guard, `CommandPaletteViewState`'s null rows guard, and clearing a pending `g` chord when raw Address input changes context. Closed-switch refactors in `CommandLabelCatalog` and key-binding projection are also review candidates. These are unapproved and unimplemented; they cannot by themselves account for the 44 additional successful mutant outcomes needed to reach 90% from the local recheck.
 
@@ -77,3 +77,37 @@ After an approved correction, the next integration candidate still requires:
 5. squash merge through the protected PR path.
 
 No deep retry, Ready transition, canonical gate, or merge was run after the failed local diagnostic. Issue #93 still owns live WSL proof. Issue #94 still owns native WinUI IME, Narrator/UIA, high contrast, DPI, narrow-window, eight-scheme, and keyboard-modal proof. Issue #99 remains the separate bookmark slice and must consume the command model only through an independently accepted change.
+
+## 2026-09-10 checkpoint
+
+The decision required above was taken by ADR-0048, which replaced the mutation runner rather than the thresholds. The sections above are retained unchanged; this section records what resumed work established. Everything above the heading describes the stopped checkpoint and no longer describes the branch.
+
+### Rebase base and conflicts
+
+The branch was rebased onto main `f25cfb2b`. `docs/adr/README.md` conflicted because main added the ADR-0048 entry where the branch added ADR-0047; both entries are kept in descending order. `docs/PROJECT_STATE.md` conflicted because main's docs-closure commit rewrote the same checkpoint block; main's version is taken whole, the branch's stopped-checkpoint edit is dropped, and the branch no longer modifies that file. No source or test file conflicted.
+
+`dotnet restore NeNeCommander.slnx -p:Configuration=Release --locked-mode` passed with the committed lock files after the rebase. No lock file changed.
+
+### Verification ledger for this checkpoint
+
+| Evidence | Scope and result |
+|---|---|
+| `dotnet restore NeNeCommander.slnx -p:Configuration=Release --locked-mode` | PASS after rebase; no lock regeneration |
+| `dotnet test tests/NeNeCommander.Presentation.WinUI.Tests -c Release` | PASS; 115/115 |
+| `dotnet test tests/NeNeCommander.Application.Tests -c Release` | PASS; 296/296 |
+| Presentation.WinUI mutation, isolating VSTest host, rebased head before this checkpoint's tests | 92.23%; 660 killed, 17 timed out, 50 survived, 7 without coverage |
+| Presentation.WinUI mutation, isolating VSTest host, rebased head after this checkpoint's tests | PASS at 94.14%; 673 killed, 18 timed out, 36 survived, 7 without coverage |
+| Application mutation, isolating VSTest host, rebased head before this checkpoint's tests | 95.62%; 911 killed, 5 timed out, 41 survived, 1 without coverage |
+| Application mutation, isolating VSTest host, rebased head after this checkpoint's tests | PASS at 95.72%; 912 killed, 5 timed out, 40 survived, 1 without coverage |
+
+Both mutation runs used the repository `stryker-config.json` unchanged. Thresholds, mutation level, runner, and exclusions were not altered. The truthful stopped-checkpoint comparison for Presentation is 89.78% at `358c294`, measured by the ADR-0048 diagnostics with the same isolating host; the MTP-era 80.98% and 83.99% figures recorded above are not comparable.
+
+### Behavior added
+
+Seven Presentation test methods and one Application assertion were added; no production code changed. They kill `KeyboardIntentMapper` lines 91, 127, 157, 205, and 222; `CommandPaletteKeyBinding` line 10; `MappedKeyboardIntent` line 11; `CommandPaletteKeyHint` lines 10 and 11; `CommandPaletteRow` line 22; `CommandPaletteViewState` lines 19, 20, and 49; `CommandPalettePresenter` line 33; and `CommandCatalog` line 71. The daily report lists each test with the contract it proves.
+
+Four Presentation survivors in Issue #101 code are retained as equivalent: the unreachable `throw` and its message in `CommandPaletteKeyHintPresenter` (lines 33 and 36) and in `CommandPalettePresenter` (lines 85 and 88), because `CommandPaletteKeyAction` and `CommandUnavailableReason` are closed record hierarchies with private constructors whose members are all handled. `KeyHintPresenter` lines 33 and 46 are retained for the same closed-projection reason. All other survivors are pre-existing on main.
+
+### Remaining proof
+
+The three earlier candidate corrections listed above are now resolved: the chord-clearing contract and the view-state guards are tested, and the palette-hint blank guard is covered by the key-hint construction test. The exact-head dependency review, security deep review including CodeQL reanalysis of alert #102, and the canonical Ready gate for this candidate are recorded in PR #113. Issue #93, Issue #94, and Issue #99 remain as stated above.

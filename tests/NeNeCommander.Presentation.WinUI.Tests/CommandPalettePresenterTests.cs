@@ -282,6 +282,78 @@ public sealed class CommandPalettePresenterTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => view.UpdateQuery(null!));
     }
 
+    /// <summary>
+    /// Proves a query is rejected for its own absence and not merely by the row predicate, so an
+    /// empty projection cannot silently accept an absent query and keep stale selection state.
+    /// </summary>
+    [TestMethod]
+    public async Task UpdateQueryWhenProjectionIsEmptyStillRejectsAnAbsentQueryAsync()
+    {
+        CommandPaletteViewState empty = new(
+            await OpenPaletteAsync(null),
+            Array.Empty<CommandPaletteRow>());
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => empty.UpdateQuery(null!));
+
+        Assert.AreEqual(string.Empty, empty.Query);
+        Assert.IsEmpty(empty.Rows);
+        Assert.IsNull(empty.SelectedRow);
+    }
+
+    /// <summary>
+    /// Proves every projected row reads its shortcut from the canonical file-list key map, so a
+    /// candidate the map does not declare fails loudly instead of rendering an absent shortcut.
+    /// </summary>
+    [TestMethod]
+    public async Task PresentWhenCandidateHasNoCanonicalFileListShortcutThrowsAsync()
+    {
+        CommandPaletteOpen template = await OpenPaletteAsync(null);
+        List<CommandCandidate> unbound =
+        [
+            CreateCandidate(UserIntent.Confirm, CommandAvailability.Available),
+        ];
+        CommandPaletteOpen open = CreateOpen(template, PaneSide.Left, unbound.AsReadOnly());
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            CommandPalettePresenter.Present(open, ProjectResource));
+    }
+
+    /// <summary>
+    /// Proves every Presentation-owned palette value rejects each absent part, so no key hint,
+    /// row, or view state can reach the shell without its candidate, resource key, or scope.
+    /// </summary>
+    [TestMethod]
+    public async Task ConstructPaletteProjectionWhenAnyPartIsNullThrowsAsync()
+    {
+        CommandPaletteOpen open = await OpenPaletteAsync(null);
+        IReadOnlyList<CommandPaletteRow> rows = CommandPalettePresenter.Present(open, Localize).Rows;
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteKeyHint(null!, "CommandPaletteHintExecute"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteKeyHint("KeyLabelEnter", null!));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new CommandPaletteKeyHint(" ", "CommandPaletteHintExecute"));
+        _ = Assert.ThrowsExactly<ArgumentException>(() =>
+            new CommandPaletteKeyHint("KeyLabelEnter", " "));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteRow(
+                null!,
+                "Title",
+                "Shortcut",
+                "Target",
+                "Opposite",
+                string.Empty,
+                string.Empty,
+                "Detail",
+                "AutomationName",
+                "AutomationId"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteViewState(null!, rows));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CommandPaletteViewState(open, null!));
+    }
+
     private static async Task<CommandPaletteOpen> OpenPaletteAsync(
         DirectoryReadOutcome? passiveListing)
     {
