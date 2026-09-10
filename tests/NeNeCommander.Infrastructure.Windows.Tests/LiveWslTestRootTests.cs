@@ -24,7 +24,8 @@ public sealed class LiveWslTestRootTests
             LiveWslRootAdmission.Create(null, null, null),
             [],
             RejectingFileSystem(),
-            RejectResolution);
+            RejectResolution,
+            RejectLinkCreation);
 
         LiveWslRootOpenRejected rejected = Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome);
         Assert.AreSame(LiveWslRootFailureKind.Unexecuted, rejected.Failure);
@@ -39,17 +40,20 @@ public sealed class LiveWslTestRootTests
             Admission("C:\\temp"),
             registered,
             RejectingFileSystem(),
-            RejectResolution);
+            RejectResolution,
+            RejectLinkCreation);
         LiveWslRootOpenOutcome unsafeRoot = LiveWslTestRoot.Open(
             Admission("\\\\wsl.localhost\\Ubuntu\\home\\NeNeCommander-Live-Proof"),
             registered,
             RejectingFileSystem(),
-            RejectResolution);
+            RejectResolution,
+            RejectLinkCreation);
         LiveWslRootOpenOutcome unregistered = LiveWslTestRoot.Open(
             Admission("\\\\wsl.localhost\\Debian\\tmp\\NeNeCommander-Live-Proof"),
             registered,
             RejectingFileSystem(),
-            RejectResolution);
+            RejectResolution,
+            RejectLinkCreation);
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
@@ -78,7 +82,8 @@ public sealed class LiveWslTestRootTests
             admission,
             [WslRoot(DistributionName)],
             RejectingFileSystem(),
-            RejectResolution);
+            RejectResolution,
+            RejectLinkCreation);
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
@@ -419,11 +424,19 @@ public sealed class LiveWslTestRootTests
             return Resolve(host, path);
         }
 
+        // The deterministic root has no distribution, so its link fixture is an NTFS symbolic
+        // link created through the same seam the live owner fills with `ln -s`.
+        void CreateLink(WslPath target, WslPath link)
+        {
+            _ = File.CreateSymbolicLink(Resolved(link), Resolved(target));
+        }
+
         return LiveWslTestRoot.Open(
             Admission(ConfiguredWslText()),
             [WslRoot(DistributionName)],
             new WindowsWslFileSystem(Resolved, WindowsFileIdentifier.ReadHandleFacts),
-            Resolved);
+            Resolved,
+            CreateLink);
     }
 
     private static WindowsWslFileSystem RejectingFileSystem()
@@ -444,6 +457,11 @@ public sealed class LiveWslTestRootTests
         return path.LinuxPath.Equals("/", StringComparison.Ordinal)
             ? host.Resolve("distribution")
             : host.Resolve("distribution" + path.LinuxPath.Replace('/', '\\'));
+    }
+
+    private static void RejectLinkCreation(WslPath target, WslPath link)
+    {
+        throw new AssertFailedException("Unsafe input reached link creation: " + link.LinuxPath.Length);
     }
 
     private static string RejectResolution(WslPath path)

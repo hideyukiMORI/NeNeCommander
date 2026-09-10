@@ -24,6 +24,7 @@ internal sealed class LiveWslTestRoot
     private readonly Dictionary<string, LiveWslRootEntry> _ownedEntries;
     private readonly WindowsWslFileSystem _fileSystem;
     private readonly Func<WslPath, string> _resolvePath;
+    private readonly Action<WslPath, WslPath> _createLink;
     private readonly WslPath _configuredRoot;
     private LiveWslRootEntry _configuredRootEntry;
 
@@ -33,6 +34,7 @@ internal sealed class LiveWslTestRoot
         WslPath runRoot,
         WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath,
+        Action<WslPath, WslPath> createLink,
         IReadOnlyList<LiveWslRootEntry> outerAncestors,
         Dictionary<string, LiveWslRootEntry> ownedEntries)
     {
@@ -41,6 +43,7 @@ internal sealed class LiveWslTestRoot
         RunRoot = runRoot;
         _fileSystem = fileSystem;
         _resolvePath = resolvePath;
+        _createLink = createLink;
         _outerAncestors = outerAncestors;
         _ownedEntries = ownedEntries;
     }
@@ -66,7 +69,12 @@ internal sealed class LiveWslTestRoot
         // The live run uses the production WSL file system exactly as the composition root does:
         // the canonical namespace mapping and the ADR-0049 9P-guarded handle-facts reader.
         return discovery is WslDistributionCatalogSucceeded succeeded
-            ? Open(admission, succeeded.Roots, new WindowsWslFileSystem(), static path => path.CanonicalText)
+            ? Open(
+                admission,
+                succeeded.Roots,
+                new WindowsWslFileSystem(),
+                static path => path.CanonicalText,
+                LiveWslLinkFixture.Create)
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.DistributionUnavailable);
     }
 
@@ -79,17 +87,20 @@ internal sealed class LiveWslTestRoot
     /// <param name="registeredRoots">Distribution roots reported by the canonical catalog.</param>
     /// <param name="fileSystem">Production WSL file system that owns every identity.</param>
     /// <param name="resolvePath">Namespace mapping used for setup, evidence, and cleanup.</param>
+    /// <param name="createLink">Creates one link fixture from its target and link path.</param>
     /// <returns>The opened owner or a closed rejection.</returns>
     internal static LiveWslRootOpenOutcome Open(
         LiveWslRootAdmission admission,
         IReadOnlyList<WslPath> registeredRoots,
         WindowsWslFileSystem fileSystem,
-        Func<WslPath, string> resolvePath)
+        Func<WslPath, string> resolvePath,
+        Action<WslPath, WslPath> createLink)
     {
         ArgumentNullException.ThrowIfNull(admission);
         ArgumentNullException.ThrowIfNull(registeredRoots);
         ArgumentNullException.ThrowIfNull(fileSystem);
         ArgumentNullException.ThrowIfNull(resolvePath);
+        ArgumentNullException.ThrowIfNull(createLink);
         if (admission.ConfiguredRoot is not string configuredRoot)
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.Unexecuted);
@@ -115,7 +126,7 @@ internal sealed class LiveWslTestRoot
 
         try
         {
-            return OpenVerified(root, fileSystem, resolvePath);
+            return OpenVerified(root, fileSystem, resolvePath, createLink);
         }
         catch (UnauthorizedAccessException)
         {
@@ -174,8 +185,17 @@ internal sealed class LiveWslTestRoot
         {
             throw new InvalidOperationException("The live link target is not owned by this run.");
         }
+        if (ProviderPathContainment.Evaluate(RunRoot, path) is not ContainedPath ||
+            ProviderPathContainment.Evaluate(RunRoot, target) is not ContainedPath)
+        {
+            throw new InvalidOperationException("The live link fixture escaped its run root.");
+        }
         RequireVerifiedSetup();
-        _ = File.CreateSymbolicLink(_resolvePath(path), _resolvePath(target));
+
+        // ADR-0043/ADR-0049: an unprivileged Windows process cannot create a link on the WSL
+        // share, so the live owner makes it inside the distribution. Cleanup still unlinks the
+        // link entry from the Windows side without following it.
+        _createLink(target, path);
         Register(path);
         return path;
     }
@@ -382,7 +402,8 @@ internal sealed class LiveWslTestRoot
     private static LiveWslRootOpenOutcome OpenVerified(
         WslPath root,
         WindowsWslFileSystem fileSystem,
-        Func<WslPath, string> resolvePath)
+        Func<WslPath, string> resolvePath,
+        Action<WslPath, WslPath> createLink)
     {
         WslPath temporaryRoot = (WslPath)(root.Parent ?? throw new InvalidOperationException("Missing parent."));
         WslPath distributionRoot = (WslPath)(temporaryRoot.Parent ?? throw new InvalidOperationException("Missing root."));
@@ -454,6 +475,7 @@ internal sealed class LiveWslTestRoot
                 runRoot,
                 fileSystem,
                 resolvePath,
+                createLink,
                 outerAncestors,
                 owned))
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.IdentityChanged);

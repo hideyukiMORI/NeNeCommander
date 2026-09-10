@@ -90,6 +90,8 @@ Issue #93 and release readiness open.
   and bypasses the product adapter and Windows-side link checks.
 - Add the live filter to the canonical gate: a machine without an explicit root would turn an
   environmental skip into misleading merge evidence.
+- Creating link fixtures with an elevated live tier: it changes the gate's privilege model.
+- Dropping the link cells to a later environmental Issue: it drops an Issue #93 acceptance cell.
 
 ## Consequences
 
@@ -131,6 +133,18 @@ inode, link count, and change time of an owned fixture equal the values reported
 `stat`, a symlink fixture and its target produce different tokens, and an unchanged fixture yields
 the same token after an intervening read. The launcher requires the exact declared number of
 Passed live cases; any skip or absence fails the tier.
+
+A symlink fixture cannot be created through the Windows namespace by an unprivileged process:
+`SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE` applies to local volumes only and `\\wsl.localhost`
+is a network redirector, so `CreateSymbolicLink` fails with `ERROR_ACCESS_DENIED` even with
+Developer Mode on. The owner therefore creates each link fixture with one fixed, argument-list
+`wsl.exe --distribution <distribution> --exec ln -s -- <target> <link>` whose target and link both
+lie inside the owned run child; it is the only `wsl.exe` write the harness performs, it is setup
+rather than a product mutation, identity, or cleanup path, and its result is observed only through
+`WindowsWslFileSystem.Find` on the link entry without following it. Cleanup still unlinks the link
+entry from the Windows side without following it and proves that the target survived. Elevating
+the live tier and removing the link cells from this ADR were rejected because the first changes
+the gate's privilege model and the second drops an Issue #93 acceptance cell.
 
 ## Executable proof
 
