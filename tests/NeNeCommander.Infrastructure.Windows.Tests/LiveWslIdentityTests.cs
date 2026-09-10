@@ -30,6 +30,7 @@ public sealed class LiveWslIdentityTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             _ = root.CreateDirectory("stat-source");
@@ -40,8 +41,9 @@ public sealed class LiveWslIdentityTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     /// <summary>Requires an owned symbolic link and its target to produce different identities.</summary>
@@ -54,6 +56,7 @@ public sealed class LiveWslIdentityTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             _ = root.WriteFile("link-target.bin", [5, 8, 13]);
@@ -70,8 +73,9 @@ public sealed class LiveWslIdentityTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     /// <summary>Requires an unchanged owned fixture to repeat one identity across an intervening read.</summary>
@@ -82,6 +86,7 @@ public sealed class LiveWslIdentityTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             _ = root.WriteFile("stable.bin", [2, 3, 5, 7, 11]);
@@ -95,8 +100,9 @@ public sealed class LiveWslIdentityTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     private static void RequireStatAgreement(TestContext context, LiveWslTestRoot root, string relativePath)

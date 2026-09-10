@@ -43,20 +43,35 @@ internal static class LiveWslRunFixture
         _ = Assert.IsInstanceOfType<LiveWslRootCheckAccepted>(root.VerifyForEffect());
     }
 
-    internal static void RequireCleanup(TestContext context, LiveWslTestRoot root)
+    /// <summary>
+    /// Closes the run root and records the redacted outcome. This runs from a cell's finally block
+    /// and never asserts, so a failing cell reports its own cause instead of a cleanup assertion
+    /// raised while that cause is still in flight.
+    /// </summary>
+    /// <param name="context">Test context that receives the redacted record.</param>
+    /// <param name="root">Run root to close.</param>
+    /// <returns>The cleanup outcome for the cell to require once its body succeeded.</returns>
+    internal static LiveWslRootCleanupOutcome Close(TestContext context, LiveWslTestRoot root)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(root);
         LiveWslRootCleanupOutcome cleanup = root.Cleanup();
+        context.WriteLine(
+            "LiveWsl cleanup=" + cleanup.GetType().Name +
+            " provider=Wsl root=redacted identity=redacted" +
+            (cleanup is LiveWslRootCleanupRejected rejected
+                ? " failure=" + rejected.Failure.GetType().Name
+                : string.Empty));
+        return cleanup;
+    }
+
+    internal static void RequireCleanup(LiveWslRootCleanupOutcome cleanup)
+    {
         if (cleanup is LiveWslRootCleanupRejected rejected)
         {
-            context.WriteLine(
-                "LiveWsl cleanup=Rejected provider=Wsl root=redacted identity=redacted failure=" +
-                rejected.Failure.GetType().Name);
             Assert.Fail("LiveWsl:CleanupRejected:" + rejected.Failure.GetType().Name);
         }
         _ = Assert.IsInstanceOfType<LiveWslRootCleanupCompleted>(cleanup);
-        context.WriteLine("LiveWsl cleanup=Completed provider=Wsl root=redacted identity=redacted");
     }
 
     private static string? Parameter(TestContext context, string name)

@@ -27,6 +27,7 @@ public sealed class LiveWslTransferTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             WslPath source = root.CreateDirectory("copy-source");
@@ -60,8 +61,9 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     /// <summary>Requires composite move to delete its source only after verified exact-byte copy.</summary>
@@ -72,6 +74,7 @@ public sealed class LiveWslTransferTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             WslPath source = root.CreateDirectory("move-source");
@@ -107,8 +110,9 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     /// <summary>Requires an owned source link to be rejected with zero effects and remain unchanged.</summary>
@@ -121,6 +125,7 @@ public sealed class LiveWslTransferTests
     {
         TestContext context = RequireContext();
         LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
         try
         {
             WslPath sentinel = root.WriteFile("sentinel.bin", [21, 34, 55]);
@@ -148,8 +153,9 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            LiveWslRunFixture.RequireCleanup(context, root);
+            cleanup = LiveWslRunFixture.Close(context, root);
         }
+        LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
     private static FileOperationGateway CreateGateway()
