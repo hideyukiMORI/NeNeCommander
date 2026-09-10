@@ -31,8 +31,41 @@ public abstract record KeyboardKey
     /// <summary>Gets the produced r key.</summary>
     public static KeyboardKey R { get; } = new RKey();
 
+    /// <summary>Gets the produced p key.</summary>
+    public static KeyboardKey P { get; } = new PKey();
+
     /// <summary>Gets the produced u key.</summary>
     public static KeyboardKey U { get; } = new UKey();
+
+    /// <summary>Gets the produced b key.</summary>
+    public static KeyboardKey B { get; } = new BKey();
+
+    /// <summary>Gets the 1 key.</summary>
+    public static KeyboardKey One { get; } = new NumberKey("KeyLabel1");
+
+    /// <summary>Gets the 2 key.</summary>
+    public static KeyboardKey Two { get; } = new NumberKey("KeyLabel2");
+
+    /// <summary>Gets the 3 key.</summary>
+    public static KeyboardKey Three { get; } = new NumberKey("KeyLabel3");
+
+    /// <summary>Gets the 4 key.</summary>
+    public static KeyboardKey Four { get; } = new NumberKey("KeyLabel4");
+
+    /// <summary>Gets the 5 key.</summary>
+    public static KeyboardKey Five { get; } = new NumberKey("KeyLabel5");
+
+    /// <summary>Gets the 6 key.</summary>
+    public static KeyboardKey Six { get; } = new NumberKey("KeyLabel6");
+
+    /// <summary>Gets the 7 key.</summary>
+    public static KeyboardKey Seven { get; } = new NumberKey("KeyLabel7");
+
+    /// <summary>Gets the 8 key.</summary>
+    public static KeyboardKey Eight { get; } = new NumberKey("KeyLabel8");
+
+    /// <summary>Gets the 9 key.</summary>
+    public static KeyboardKey Nine { get; } = new NumberKey("KeyLabel9");
 
     /// <summary>Gets the produced comma key.</summary>
     public static KeyboardKey Comma { get; } = new CommaKey();
@@ -42,6 +75,12 @@ public abstract record KeyboardKey
 
     /// <summary>Gets the up-arrow virtual key.</summary>
     public static KeyboardKey Up { get; } = new UpKey();
+
+    /// <summary>Gets the left-arrow virtual key.</summary>
+    public static KeyboardKey Left { get; } = new LeftKey();
+
+    /// <summary>Gets the right-arrow virtual key.</summary>
+    public static KeyboardKey Right { get; } = new RightKey();
 
     /// <summary>Gets the Backspace virtual key.</summary>
     public static KeyboardKey Backspace { get; } = new BackspaceKey();
@@ -132,9 +171,29 @@ public abstract record KeyboardKey
         public override string LabelResourceKey => "KeyLabelR";
     }
 
+    private sealed record PKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelP";
+    }
+
     private sealed record UKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelU";
+    }
+
+    private sealed record BKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelB";
+    }
+
+    private sealed record NumberKey : KeyboardKey
+    {
+        internal NumberKey(string labelResourceKey)
+        {
+            LabelResourceKey = labelResourceKey;
+        }
+
+        public override string LabelResourceKey { get; }
     }
 
     private sealed record CommaKey : KeyboardKey
@@ -150,6 +209,16 @@ public abstract record KeyboardKey
     private sealed record UpKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelUp";
+    }
+
+    private sealed record LeftKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelLeft";
+    }
+
+    private sealed record RightKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelRight";
     }
 
     private sealed record BackspaceKey : KeyboardKey

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -20,65 +21,55 @@ public static class KeyHintPresenter
     {
         IReadOnlyList<KeyBinding> bindings = KeyboardIntentMapper.BindingsFor(context);
         List<KeyHint> hints = [];
-        foreach (IntentLabel label in ResolveLabels(context))
+        foreach (UserIntent intent in ResolveIntents(context))
         {
-            AddHint(hints, bindings, label);
+            AddHint(hints, bindings, intent);
         }
         return hints.AsReadOnly();
     }
 
-    private static void AddHint(List<KeyHint> hints, IReadOnlyList<KeyBinding> bindings, IntentLabel label)
+    private static void AddHint(List<KeyHint> hints, IReadOnlyList<KeyBinding> bindings, UserIntent intent)
     {
-        KeyBinding? binding = bindings.FirstOrDefault(binding => binding.Intent == label.Intent);
+        KeyBinding? binding = bindings.FirstOrDefault(binding => binding.Intent == intent);
         if (binding is not null)
         {
-            hints.Add(new KeyHint(binding.KeyLabelResourceKey, label.ResourceKey));
+            hints.Add(new KeyHint(
+                binding.KeyLabelResourceKey,
+                CommandLabelCatalog.LabelFor(intent).ResourceKey));
         }
     }
 
-    private static IReadOnlyList<IntentLabel> ResolveLabels(KeyboardContext context)
+    private static IReadOnlyList<UserIntent> ResolveIntents(KeyboardContext context)
     {
         return context == KeyboardContext.FileList
             ? CreateFileListLabels()
             : context == KeyboardContext.Modal ? CreateModalLabels() : [];
     }
 
-    private static IReadOnlyList<IntentLabel> CreateFileListLabels()
+    private static IReadOnlyList<UserIntent> CreateFileListLabels()
     {
         return
         [
-            new(UserIntent.Rename, "IntentLabelRename"),
-            new(UserIntent.Copy, "IntentLabelCopy"),
-            new(UserIntent.Move, "IntentLabelMove"),
-            new(UserIntent.CreateDirectory, "IntentLabelCreateDirectory"),
-            new(UserIntent.Delete, "IntentLabelDelete"),
-            new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
-            new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
-            new(UserIntent.OpenSettings, "IntentLabelOpenSettings"),
-            new(UserIntent.Escape, "IntentLabelEscape"),
+            UserIntent.Rename,
+            UserIntent.Copy,
+            UserIntent.Move,
+            UserIntent.CreateDirectory,
+            UserIntent.Delete,
+            UserIntent.ActivateOtherPane,
+            UserIntent.ToggleHiddenItems,
+            UserIntent.OpenCommandPalette,
+            UserIntent.OpenBookmarks,
+            UserIntent.OpenSettings,
+            UserIntent.Escape,
         ];
     }
 
-    private static IReadOnlyList<IntentLabel> CreateModalLabels()
+    private static IReadOnlyList<UserIntent> CreateModalLabels()
     {
         return
         [
-            new(UserIntent.Confirm, "IntentLabelConfirm"),
-            new(UserIntent.Escape, "IntentLabelEscape"),
+            UserIntent.Confirm,
+            UserIntent.Escape,
         ];
-    }
-
-    /// <summary>One declared hint: the intent to look up in the key map and how to name it.</summary>
-    private sealed record IntentLabel
-    {
-        internal IntentLabel(UserIntent intent, string resourceKey)
-        {
-            Intent = intent;
-            ResourceKey = resourceKey;
-        }
-
-        internal UserIntent Intent { get; }
-
-        internal string ResourceKey { get; }
     }
 }

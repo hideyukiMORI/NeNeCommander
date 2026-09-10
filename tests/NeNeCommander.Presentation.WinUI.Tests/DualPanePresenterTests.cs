@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -547,8 +548,13 @@ public sealed class DualPanePresenterTests
         Assert.HasCount(2, pending.KeyHints);
         Assert.AreEqual("KeyLabelEnter", pending.KeyHints[0].KeyLabelResourceKey);
         Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
-        Assert.HasCount(9, escaped.KeyHints);
+        Assert.HasCount(11, escaped.KeyHints);
         Assert.AreEqual("KeyLabelF2", escaped.KeyHints[0].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlP", escaped.KeyHints[7].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlB", escaped.KeyHints[8].KeyLabelResourceKey);
+        Assert.AreEqual("IntentLabelOpenBookmarks", escaped.KeyHints[8].IntentLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlComma", escaped.KeyHints[9].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelEscape", escaped.KeyHints[10].KeyLabelResourceKey);
         Assert.AreSame(OperationStatus.Idle, escaped.OperationStatus);
         Assert.AreSame(OperationDetail.None, escaped.Detail);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);
@@ -859,12 +865,14 @@ public sealed class DualPanePresenterTests
         Assert.AreEqual("OperationStatusMovePartiallyCompleted", OperationStatus.MovePartiallyCompleted.ResourceKey);
         Assert.AreEqual("OperationStatusMoveRejected", OperationStatus.MoveRejected.ResourceKey);
         Assert.AreEqual("OperationStatusMoveRequestRejected", OperationStatus.MoveRequestRejected.ResourceKey);
+        Assert.AreEqual("OperationStatusMoveAwaitingConflict", OperationStatus.MoveAwaitingConflict.ResourceKey);
         Assert.AreEqual("OperationStatusCopying", OperationStatus.Copying.ResourceKey);
         Assert.AreEqual("OperationStatusCopySucceeded", OperationStatus.CopySucceeded.ResourceKey);
         Assert.AreEqual("OperationStatusCopyCancelled", OperationStatus.CopyCancelled.ResourceKey);
         Assert.AreEqual("OperationStatusCopyPartiallyCompleted", OperationStatus.CopyPartiallyCompleted.ResourceKey);
         Assert.AreEqual("OperationStatusCopyRejected", OperationStatus.CopyRejected.ResourceKey);
         Assert.AreEqual("OperationStatusCopyRequestRejected", OperationStatus.CopyRequestRejected.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyAwaitingConflict", OperationStatus.CopyAwaitingConflict.ResourceKey);
         Assert.AreEqual("OperationStatusCreatingDirectory", OperationStatus.CreatingDirectory.ResourceKey);
         Assert.AreEqual("OperationStatusCreateDirectoryAwaitingName", OperationStatus.CreateDirectoryAwaitingName.ResourceKey);
         Assert.AreEqual("OperationStatusDirectoryCreated", OperationStatus.DirectoryCreated.ResourceKey);
@@ -884,6 +892,240 @@ public sealed class DualPanePresenterTests
         Assert.AreEqual("OperationStatusDeletePartiallyCompleted", OperationStatus.DeletePartiallyCompleted.ResourceKey);
         Assert.AreEqual("OperationStatusDeleteRejected", OperationStatus.DeleteRejected.ResourceKey);
         Assert.AreEqual("OperationStatusDeleteRequestRejected", OperationStatus.DeleteRequestRejected.ResourceKey);
+        Assert.AreEqual("OperationStatusMoveAwaitingConflict", OperationStatus.MoveAwaitingConflict.ResourceKey);
+        Assert.AreEqual("OperationStatusCopyAwaitingConflict", OperationStatus.CopyAwaitingConflict.ResourceKey);
+    }
+
+    /// <summary>Proves each render projection rejects an absent required value and each count rejects a negative value.</summary>
+    [TestMethod]
+    public async Task PresentationContractsWhenRequiredInputIsAbsentRejectTheCall()
+    {
+        DualPanePresentation presentation = await CreateListedPresentation();
+        PanePresentation left = presentation.Left;
+        PaneRow row = left.Rows[0];
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            null!, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, null!, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, null!, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, null!,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            null!, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, null!, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, null!,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            null!, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, null!, presentation.NameEntry,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, null!,
+            presentation.ConflictModal, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            null!, presentation.InputContext));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left, presentation.LeftFrame, presentation.Right, presentation.RightFrame,
+            presentation.ActiveSide, presentation.OperationStatus, presentation.Detail,
+            presentation.Tone, presentation.KeyHints, presentation.NameEntry,
+            presentation.ConflictModal, null!));
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(
+            null!, left.FocusRow, left.Status, left.AddressText, left.SourceSnapshot, left.SourceFrame));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(
+            left.OwnedRows, left.FocusRow, null!, left.AddressText, left.SourceSnapshot, left.SourceFrame));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(
+            left.OwnedRows, left.FocusRow, left.Status, null!, left.SourceSnapshot, left.SourceFrame));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(
+            left.OwnedRows, left.FocusRow, left.Status, left.AddressText, null!, left.SourceFrame));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(
+            left.OwnedRows, left.FocusRow, left.Status, left.AddressText, left.SourceSnapshot, null!));
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
+            null!, row.Mark, row.Kind, row.Visibility));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
+            row.Entry, null!, row.Kind, row.Visibility));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
+            row.Entry, row.Mark, null!, row.Visibility));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
+            row.Entry, row.Mark, row.Kind, null!));
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRows(null!));
+        PaneRows rows = new([row]);
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => rows.Replace(0, null!));
+
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(-1, 0, 0, 0));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, -1, 0, 0));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, -1, 0));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, 0, -1));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new OperationItemCountDetail(0));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new OperationProgressDetail(null!));
+    }
+
+    /// <summary>
+    /// Proves the complete dual-pane projection rejects every absent part, so no render-ready
+    /// presentation can reach the shell with a missing pane, frame, status, detail, tone, key
+    /// hint set, name entry, conflict modal, or input context.
+    /// </summary>
+    [TestMethod]
+    public async Task ConstructDualPanePresentationWhenAnyPartIsNullThrowsArgumentNullException()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"])));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", ["b.txt"])));
+        _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        DualPaneSnapshot snapshot = await panes.NavigateAsync(
+            PaneSide.Right,
+            ParsePath("C:\\right"),
+            CancellationToken.None);
+        DualPanePresentation complete = DualPanePresenter.Present(snapshot);
+
+        AssertPanePartsRejectNull(null, complete.LeftFrame, complete.Right, complete.RightFrame, complete);
+        AssertPanePartsRejectNull(complete.Left, null, complete.Right, complete.RightFrame, complete);
+        AssertPanePartsRejectNull(complete.Left, complete.LeftFrame, null, complete.RightFrame, complete);
+        AssertPanePartsRejectNull(complete.Left, complete.LeftFrame, complete.Right, null, complete);
+        AssertStatusPartsRejectNull(complete, null, complete.OperationStatus, complete.Detail, complete.Tone);
+        AssertStatusPartsRejectNull(complete, complete.ActiveSide, null, complete.Detail, complete.Tone);
+        AssertStatusPartsRejectNull(complete, complete.ActiveSide, complete.OperationStatus, null, complete.Tone);
+        AssertStatusPartsRejectNull(complete, complete.ActiveSide, complete.OperationStatus, complete.Detail, null);
+        AssertChromePartsRejectNull(complete, null, complete.NameEntry, complete.ConflictModal, complete.InputContext);
+        AssertChromePartsRejectNull(complete, complete.KeyHints, null, complete.ConflictModal, complete.InputContext);
+        AssertChromePartsRejectNull(complete, complete.KeyHints, complete.NameEntry, null, complete.InputContext);
+        AssertChromePartsRejectNull(complete, complete.KeyHints, complete.NameEntry, complete.ConflictModal, null);
+    }
+
+    /// <summary>
+    /// Proves a keyboard input value rejects every absent translated part, so no event with an
+    /// unknown key, modifier, repeat state, or focus context can reach the intent mapper.
+    /// </summary>
+    [TestMethod]
+    public void CreateKeyboardInputWhenAnyPartIsNullThrowsArgumentNullException()
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => KeyboardInput.Create(
+            null!,
+            KeyboardModifier.None,
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => KeyboardInput.Create(
+            KeyboardKey.J,
+            null!,
+            KeyRepeatState.Initial,
+            KeyboardContext.FileList));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => KeyboardInput.Create(
+            KeyboardKey.J,
+            KeyboardModifier.None,
+            null!,
+            KeyboardContext.FileList));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => KeyboardInput.Create(
+            KeyboardKey.J,
+            KeyboardModifier.None,
+            KeyRepeatState.Initial,
+            null!));
+    }
+
+    private static void AssertPanePartsRejectNull(
+        PanePresentation? left,
+        PaneFrame? leftFrame,
+        PanePresentation? right,
+        PaneFrame? rightFrame,
+        DualPanePresentation complete)
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            left!,
+            leftFrame!,
+            right!,
+            rightFrame!,
+            complete.ActiveSide,
+            complete.OperationStatus,
+            complete.Detail,
+            complete.Tone,
+            complete.KeyHints,
+            complete.NameEntry,
+            complete.ConflictModal,
+            complete.InputContext));
+    }
+
+    private static void AssertStatusPartsRejectNull(
+        DualPanePresentation complete,
+        PaneSide? activeSide,
+        OperationStatus? operationStatus,
+        OperationDetail? detail,
+        OperationBarTone? tone)
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            complete.Left,
+            complete.LeftFrame,
+            complete.Right,
+            complete.RightFrame,
+            activeSide!,
+            operationStatus!,
+            detail!,
+            tone!,
+            complete.KeyHints,
+            complete.NameEntry,
+            complete.ConflictModal,
+            complete.InputContext));
+    }
+
+    private static void AssertChromePartsRejectNull(
+        DualPanePresentation complete,
+        IReadOnlyList<KeyHint>? keyHints,
+        NameEntryPresentation? nameEntry,
+        ConflictModalPresentation? conflictModal,
+        KeyboardContext? inputContext)
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new DualPanePresentation(
+            complete.Left,
+            complete.LeftFrame,
+            complete.Right,
+            complete.RightFrame,
+            complete.ActiveSide,
+            complete.OperationStatus,
+            complete.Detail,
+            complete.Tone,
+            keyHints!,
+            nameEntry!,
+            conflictModal!,
+            inputContext!));
     }
 
     /// <summary>Proves the presenter rejects an absent snapshot.</summary>
@@ -909,6 +1151,22 @@ public sealed class DualPanePresenterTests
         return CreatePanes(out left, out right, out gateway, out QueuedFileOperationPort _);
     }
 
+    private static async Task<DualPanePresentation> CreateListedPresentation()
+    {
+        DualPaneSession panes = CreatePanes(
+            out ScriptedDirectoryReadPort left,
+            out ScriptedDirectoryReadPort right,
+            out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", []);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+        return DualPanePresenter.Present(panes.Current);
+    }
+
     private static DualPaneSession CreatePanes(
         out ScriptedDirectoryReadPort left,
         out ScriptedDirectoryReadPort right,
@@ -922,8 +1180,18 @@ public sealed class DualPanePresenterTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
         return new DualPaneSession(
-            new PaneSession(left, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
-            new PaneSession(right, capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden),
+            new PaneSession(
+                left,
+                new AcceptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
+            new PaneSession(
+                right,
+                new AcceptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
             gateway);
     }
 

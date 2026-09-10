@@ -95,6 +95,18 @@ if ($null -ne $policy) {
             [int] $mutationProject.breakAt -ne [int] $expectedMutationProjects[$mutationPath]) {
             Add-SecurityViolation -Rule 'TST-008' -Message "Mutation threshold is missing or weakened for $mutationPath."
         }
+
+        # ADR-0048: the mutation tier runs through an isolating VSTest host, so every mutation
+        # test project must carry the VSTest adapter and test host alongside the canonical MTP runner.
+        $mutationProjectName = [System.IO.Path]::GetFileNameWithoutExtension($mutationPath)
+        $mutationTestProjectPath = "tests/$mutationProjectName.Tests/$mutationProjectName.Tests.csproj"
+        $mutationTestProjectFullPath = Join-Path $root $mutationTestProjectPath
+        if (-not (Test-Path -LiteralPath $mutationTestProjectFullPath -PathType Leaf)) {
+            Add-SecurityViolation -Rule 'TST-008' -Message "Mutation test project $mutationTestProjectPath is missing."
+        }
+        elseif ((Get-Content -LiteralPath $mutationTestProjectFullPath -Raw) -notmatch '<PackageReference\s+Include="Microsoft\.NET\.Test\.Sdk"\s*/>') {
+            Add-SecurityViolation -Rule 'TST-008' -Message "Mutation test project $mutationTestProjectPath must reference Microsoft.NET.Test.Sdk for the isolating VSTest host."
+        }
     }
 
     $allowedActionRepositories = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
@@ -298,6 +310,49 @@ foreach ($file in $nuGetConfigurationFiles) {
     }
 }
 
+# ADR-0049: the Windows-side WSL identity form is selected by the validated provider, so its
+# file-system literal and both native entry points stay inside one owner, and only the WSL
+# file system may reach the 9P-guarded reader. The unguarded reader is production-unreachable.
+$wslIdentityOwner = 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsFileIdentifier.cs'
+$wslIdentityConsumer = 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsWslFileSystem.cs'
+$wslIdentitySurface = [ordered]@{
+    'the 9P file system name' = '"9P"'
+    'ReadWslFacts' = '\bReadWslFacts\b'
+    'ReadHandleFacts' = '\bReadHandleFacts\b'
+}
+$wslIdentityOwnerPresent = $false
+$wslIdentityGuardUsed = $false
+foreach ($file in (Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('src') | Where-Object { $_.Extension -ceq '.cs' })) {
+    $relativePath = Get-SecurityRelativePath -Path $file.FullName
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    if ($relativePath -ceq $wslIdentityOwner) {
+        $wslIdentityOwnerPresent = $true
+        foreach ($surface in $wslIdentitySurface.GetEnumerator()) {
+            if ($content -notmatch $surface.Value) {
+                Add-SecurityViolation -Rule 'SEC-014' -Message "$relativePath must own $($surface.Key)."
+            }
+        }
+        continue
+    }
+
+    foreach ($surface in $wslIdentitySurface.GetEnumerator()) {
+        if ($content -notmatch $surface.Value) {
+            continue
+        }
+        if ($surface.Key -ceq 'ReadWslFacts' -and $relativePath -ceq $wslIdentityConsumer) {
+            $wslIdentityGuardUsed = $true
+            continue
+        }
+        Add-SecurityViolation -Rule 'SEC-014' -Message "$relativePath uses $($surface.Key) outside the WSL identity owner."
+    }
+}
+if (-not $wslIdentityOwnerPresent) {
+    Add-SecurityViolation -Rule 'SEC-014' -Message "The WSL identity owner $wslIdentityOwner is missing."
+}
+if (-not $wslIdentityGuardUsed) {
+    Add-SecurityViolation -Rule 'SEC-014' -Message "$wslIdentityConsumer must obtain identity through the 9P-guarded reader."
+}
+
 if ($null -ne $cases) {
     $caseIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($case in @($cases.cases)) {
@@ -351,7 +406,7 @@ $strykerConfigPath = Join-Path $root 'stryker-config.json'
 if (Test-Path -LiteralPath $strykerConfigPath -PathType Leaf) {
     $strykerConfig = (Get-Content -LiteralPath $strykerConfigPath -Raw | ConvertFrom-Json).'stryker-config'
     if ($strykerConfig.'mutation-level' -cne 'Complete' -or
-        $strykerConfig.'test-runner' -cne 'mtp' -or
+        $strykerConfig.'test-runner' -cne 'vstest' -or
         $strykerConfig.'break-on-initial-test-failure' -ne $true -or
         $strykerConfig.thresholds.high -ne 100 -or
         $strykerConfig.thresholds.low -ne 95 -or

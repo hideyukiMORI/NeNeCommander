@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
@@ -21,7 +21,7 @@ namespace NeNeCommander.Infrastructure.Windows.Settings;
 public sealed class WindowsLocalSettingsStore : ISettingsStore
 {
     private const int StreamBufferSize = 4096;
-    private const int SupportedSchemaVersion = 1;
+    private const int SupportedSchemaVersion = 2;
     private const string TemporarySuffix = ".tmp";
 
     private readonly WindowsLocalPath _documentPath;
@@ -124,8 +124,8 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
     }
 
     /// <summary>
-    /// Opens the document for shared reading, rejects it on length before any byte is decoded,
-    /// and hands the bounded text to the sole validator.
+    /// Opens the document for shared reading, rejects it on length before parsing, and hands the
+    /// bounded bytes to the sole validator.
     /// </summary>
     private async Task<ReadDocumentObservation> ReadDocumentAsync(CancellationToken cancellationToken)
     {
@@ -150,7 +150,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
 
         byte[] bytes = new byte[checked((int)stream.Length)];
         await stream.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
-        SettingsReadOutcome outcome = SettingsDocumentValidator.Validate(Decode(bytes));
+        SettingsReadOutcome outcome = SettingsDocumentValidator.Validate(bytes);
         ExistingDocumentSnapshot document = outcome is SettingsRead
             ? new PresentDocument(
                 WindowsLocalEntryIdentity.Describe(new FileInfo(_documentPath.CanonicalText)),
@@ -164,6 +164,13 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        byte[] serialized = Serialize(settings);
+        if (serialized.Length > SettingsDocumentValidator.MaximumDocumentLength)
+        {
+            return RejectedBeforeTemporary(
+                SettingsWriteFailureKind.TooLarge,
+                SettingsDirectoryEffect.NotAttempted);
+        }
         SettingsLocationSnapshot location = ExpectedLocationForWrite();
         if (location is BlockedLocation blockedLocation)
         {
@@ -207,7 +214,6 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         SettingsDirectoryEffect directoryEffect = SettingsDirectoryEffect.NotAttempted;
         TemporaryOwnershipState temporaryOwnership = TemporaryOwnershipState.NotOwned;
         string? temporaryIdentifier = null;
-        byte[] serialized = Serialize(settings);
         try
         {
             SafeLocation safeLocation = (SafeLocation)location;
@@ -527,7 +533,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
             }
 
             byte[] bytes = ReadExactBytes(stream);
-            if (SettingsDocumentValidator.Validate(Decode(bytes)) is not SettingsRead)
+            if (SettingsDocumentValidator.Validate(bytes) is not SettingsRead)
             {
                 rejection = RejectedBeforeTemporary(
                     SettingsWriteFailureKind.ExistingDocumentRejected,
@@ -585,13 +591,6 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         byte[] bytes = new byte[checked((int)stream.Length)];
         stream.ReadExactly(bytes);
         return bytes;
-    }
-
-    private static string Decode(byte[] bytes)
-    {
-        using MemoryStream input = new(bytes, writable: false);
-        using StreamReader reader = new(input, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        return reader.ReadToEnd();
     }
 
     private void RememberExpectedDocument(ExistingDocumentSnapshot document)
@@ -674,9 +673,45 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 "showHiddenItems",
                 settings.HiddenItemVisibility == HiddenItemVisibility.Shown);
             writer.WriteString("colorScheme", settings.ColorScheme.Identifier);
+            writer.WriteStartArray("bookmarkCategories");
+            foreach (BookmarkCategoryName category in settings.Bookmarks.Categories)
+            {
+                writer.WriteStringValue(category.Value);
+            }
+            writer.WriteEndArray();
+            writer.WriteStartArray("bookmarks");
+            foreach (BookmarkEntry bookmark in settings.Bookmarks.Bookmarks)
+            {
+                WriteBookmark(writer, bookmark);
+            }
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
         return output.ToArray();
+    }
+
+    private static void WriteBookmark(Utf8JsonWriter writer, BookmarkEntry bookmark)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("name", bookmark.Name.Value);
+        writer.WriteString("path", bookmark.Path.Value.CanonicalText);
+        if (bookmark.Category is null)
+        {
+            writer.WriteNull("category");
+        }
+        else
+        {
+            writer.WriteString("category", bookmark.Category.Value);
+        }
+        if (bookmark.ShortcutSlot is null)
+        {
+            writer.WriteNull("shortcutSlot");
+        }
+        else
+        {
+            writer.WriteNumber("shortcutSlot", bookmark.ShortcutSlot.Number);
+        }
+        writer.WriteEndObject();
     }
 
     private static SettingsWriteOutcome Reject(

@@ -15,6 +15,7 @@ using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Panes;
@@ -31,11 +32,20 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderSession _session;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private readonly BookmarkManagerView _bookmarkView;
+    private AddressEditorPresentation? _addressPresentation;
+    private AddressEditorState? _defaultFileListFocusSuppressedState;
+    private AddressEditorState? _leftAddressOwner;
+    private AddressEditorState? _rightAddressOwner;
     private ActiveConflictModal? _renderedConflictModal;
+    private CommandPaletteViewState? _commandPaletteView;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
     private bool _renderingSettings;
+    private bool _renderingAddressTransition;
+    private bool _renderingCommandPalette;
+    private bool _commandPaletteIsComposing;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -62,7 +72,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
         InitializeComponent();
+        _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
         Title = _resources.GetString("CommanderWindowTitle");
+        CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
     }
 
@@ -97,10 +109,16 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
-        KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
+        KeyboardContext context = GetKeyboardContext();
+        KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
+        if (context == KeyboardContext.CommandPalette && _commandPaletteIsComposing)
+        {
+            return;
+        }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
         if (ConflictModal.Visibility == Visibility.Visible ||
-            SettingsOverlay.Visibility == Visibility.Visible)
+            SettingsOverlay.Visibility == Visibility.Visible ||
+            BookmarkOverlay.Visibility == Visibility.Visible)
         {
             outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
@@ -132,8 +150,39 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
+        AddressEditorPresentation? previousAddress = _addressPresentation;
+        AddressEditorPresentation address = AddressEditorPresenter.Present(
+            snapshot.AddressEditor,
+            previousAddress);
+        bool addressChanged = !ReferenceEquals(address, previousAddress);
+        _addressPresentation = address;
+        if (addressChanged)
+        {
+            _defaultFileListFocusSuppressedState = previousAddress is not null &&
+                address.EditingSide is null
+                    ? address.SourceState
+                    : null;
+        }
+        if (snapshot.Settings.Editor == SettingsEditorState.Open ||
+            snapshot.Panes.Operation is OperationAwaitingConfirmation or OperationAwaitingName or
+                OperationAwaitingConflict)
+        {
+            _defaultFileListFocusSuppressedState = null;
+        }
+        _renderingAddressTransition = addressChanged;
         RenderPanes(snapshot.Panes);
+        _renderingAddressTransition = false;
         RenderSettings(SettingsPresenter.Present(snapshot.Settings));
+        _bookmarkView.Render(snapshot.Settings);
+        if (_bookmarkView.IsOpen)
+        {
+            _operationContext = KeyboardContext.Modal;
+        }
+        if (addressChanged)
+        {
+            RenderAddressTransition(address);
+        }
+        RenderCommandPalette(snapshot);
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
@@ -146,8 +195,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _presentation);
         _presentation = presentation;
-        RenderPane(presentation.Left, LeftAddress, LeftStatus, LeftFileList);
-        RenderPane(presentation.Right, RightAddress, RightStatus, RightFileList);
+        RenderPane(PaneSide.Left, presentation.Left, LeftAddress, LeftStatus, LeftFileList);
+        RenderPane(PaneSide.Right, presentation.Right, RightAddress, RightStatus, RightFileList);
         RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
         RenderNumber(presentation.LeftFrame, LeftPaneNumberSurface, LeftPaneNumber);
         RenderFrame(presentation.RightFrame, RightPaneBorder, RightPaneHeader);
@@ -159,7 +208,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderNameEntry(presentation.NameEntry);
         RenderConflict(presentation.ConflictModal);
         _operationContext = presentation.InputContext;
-        _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+        if (!_renderingAddressTransition && ShouldScheduleFileListFocus())
+        {
+            _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
+        }
     }
 
     private void RenderSettings(SettingsPresentation presentation)
@@ -186,6 +238,158 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             }
         }
         _renderingSettings = false;
+    }
+
+    private void RenderCommandPalette(CommanderSnapshot snapshot)
+    {
+        CommandPaletteState state = snapshot.CommandPalette;
+        if (state is not CommandPaletteOpen open)
+        {
+            bool wasOpen = _commandPaletteView is not null;
+            _commandPaletteView = null;
+            _commandPaletteIsComposing = false;
+            CommandPaletteOverlay.Visibility = Visibility.Collapsed;
+            if (wasOpen &&
+                state is CommandPaletteClosed { FileListFocusSide: PaneSide focusSide })
+            {
+                FocusFileList(focusSide);
+            }
+            else if (wasOpen && PaletteExecutionLeavesFileListOwner(snapshot))
+            {
+                FocusFileList(snapshot.Panes.ActiveSide);
+            }
+            return;
+        }
+
+        bool opening = _commandPaletteView is null ||
+            !ReferenceEquals(_commandPaletteView.SourceState, open);
+        if (opening)
+        {
+            _commandPaletteView = CommandPalettePresenter.Present(open, _resources.GetString);
+            _renderingCommandPalette = true;
+            CommandPaletteSearch.Text = string.Empty;
+            _renderingCommandPalette = false;
+        }
+        CommandPaletteOverlay.Visibility = Visibility.Visible;
+        RenderCommandPaletteView();
+        if (opening)
+        {
+            _ = CommandPaletteSearch.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private static bool PaletteExecutionLeavesFileListOwner(CommanderSnapshot snapshot)
+    {
+        return snapshot.Settings.Editor == SettingsEditorState.Closed &&
+            snapshot.AddressEditor is AddressEditorClosed &&
+            snapshot.Panes.Operation is not (
+                OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
+    }
+
+    private void RenderCommandPaletteView()
+    {
+        if (_commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        CommandPaletteContext.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            _resources.GetString("CommandPaletteContextFormat"),
+            view.Target,
+            view.Opposite);
+        _renderingCommandPalette = true;
+        CommandPaletteCandidateList.ItemsSource = view.Rows;
+        CommandPaletteCandidateList.SelectedItem = view.SelectedRow;
+        _renderingCommandPalette = false;
+        CommandPaletteZeroResults.Visibility = view.Rows.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CommandPaletteDetail.Text = view.SelectedRow?.Detail ?? string.Empty;
+        if (view.SelectedRow is CommandPaletteRow selected)
+        {
+            CommandPaletteCandidateList.ScrollIntoView(selected);
+        }
+    }
+
+    private void OnCommandPaletteQueryChanged(object sender, TextChangedEventArgs args)
+    {
+        _ = args;
+        if (_renderingCommandPalette ||
+            sender is not TextBox search ||
+            _commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        view.UpdateQuery(search.Text);
+        RenderCommandPaletteView();
+    }
+
+    private void OnCommandPaletteCompositionStarted(
+        TextBox sender,
+        TextCompositionStartedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        _commandPaletteIsComposing = true;
+    }
+
+    private void OnCommandPaletteCompositionEnded(
+        TextBox sender,
+        TextCompositionEndedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        _commandPaletteIsComposing = false;
+    }
+
+    private void OnCommandPaletteCandidateClick(object sender, ItemClickEventArgs args)
+    {
+        _ = sender;
+        if (_commandPaletteView is not CommandPaletteViewState view ||
+            args.ClickedItem is not CommandPaletteRow row ||
+            !view.Select(row))
+        {
+            return;
+        }
+        RenderCommandPaletteView();
+        if (row.IsAvailable)
+        {
+            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, row.Intent));
+        }
+    }
+
+    private void OnCommandPaletteSelectionChanged(object sender, SelectionChangedEventArgs args)
+    {
+        _ = sender;
+        if (_renderingCommandPalette ||
+            _commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        if (args.AddedItems.Count == 1 &&
+            args.AddedItems[0] is CommandPaletteRow row &&
+            view.Select(row))
+        {
+            RenderCommandPaletteView();
+            return;
+        }
+        RenderCommandPaletteView();
+    }
+
+    private void OnCommandPaletteScrimTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        if (_commandPaletteView is CommandPaletteViewState view)
+        {
+            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
+        }
+    }
+
+    private void OnCommandPaletteSurfaceTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        args.Handled = true;
     }
 
     private void RenderTone(OperationBarTone tone)
@@ -310,9 +514,20 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         ForwardIntent(UserIntent.ResolveConflict(decision, scope));
     }
 
-    private void RenderPane(PanePresentation presentation, TextBox address, TextBlock status, ListView fileList)
+    private void RenderPane(
+        PaneSide side,
+        PanePresentation presentation,
+        TextBox address,
+        TextBlock status,
+        ListView fileList)
     {
-        address.Text = presentation.AddressText;
+        AddressEditorPresentation? addressPresentation = _addressPresentation;
+        bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
+            editingSide == side;
+        if (!isEditingAddress)
+        {
+            address.Text = presentation.AddressText;
+        }
         if (!ReferenceEquals(fileList.ItemsSource, presentation.Rows))
         {
             fileList.ItemsSource = presentation.Rows;
@@ -322,7 +537,34 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             fileList.ScrollIntoView(presentation.FocusRow);
         }
-        status.Text = _resources.GetString(presentation.Status.ResourceKey);
+        PaneStatus paneStatus = isEditingAddress &&
+            addressPresentation is { Status: PaneStatus addressStatus }
+                ? addressStatus
+                : presentation.Status;
+        status.Text = _resources.GetString(paneStatus.ResourceKey);
+    }
+
+    private void RenderAddressTransition(AddressEditorPresentation presentation)
+    {
+        if (presentation.EditingSide is PaneSide side)
+        {
+            TextBox address = AddressOf(side);
+            SetAddressOwner(side, presentation.SourceState);
+            if (presentation.ReplacementText is string replacement)
+            {
+                address.Text = replacement;
+            }
+            _ = address.Focus(FocusState.Programmatic);
+            if (presentation.SelectAll)
+            {
+                address.SelectAll();
+            }
+            return;
+        }
+        if (presentation.FileListFocusSide is PaneSide fileListSide)
+        {
+            FocusFileList(fileListSide);
+        }
     }
 
     private static void RenderFrame(PaneFrame frame, Border border, Border header)
@@ -359,21 +601,138 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private bool ForwardOutcome(KeyboardMappingOutcome outcome)
     {
+        if (outcome is MappedCommandPaletteAction paletteAction)
+        {
+            return ForwardCommandPaletteAction(paletteAction.Action);
+        }
         if (outcome is MappedKeyboardIntent mapped)
         {
             ForwardIntent(mapped.Intent);
             return true;
         }
-        return outcome is KeyboardAwaitingChord;
+        return outcome is KeyboardAwaitingChord or KeyboardConsumed;
+    }
+
+    private bool ForwardCommandPaletteAction(CommandPaletteKeyAction action)
+    {
+        if (_commandPaletteView is not CommandPaletteViewState view)
+        {
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MovePrevious)
+        {
+            view.MovePrevious();
+            RenderCommandPaletteView();
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MoveNext)
+        {
+            view.MoveNext();
+            RenderCommandPaletteView();
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.Cancel)
+        {
+            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MoveFocus)
+        {
+            return MoveCommandPaletteFocus();
+        }
+        if (action == CommandPaletteKeyAction.Execute &&
+            view.SelectedRow is CommandPaletteRow { IsAvailable: true } selected)
+        {
+            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, selected.Intent));
+        }
+        return true;
+    }
+
+    private bool MoveCommandPaletteFocus()
+    {
+        if (_commandPaletteView is null)
+        {
+            return false;
+        }
+        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
+        _ = ReferenceEquals(focused, CommandPaletteSearch)
+            ? CommandPaletteCandidateList.Focus(FocusState.Keyboard)
+            : CommandPaletteSearch.Focus(FocusState.Keyboard);
+        return true;
     }
 
     private void ForwardIntent(UserIntent intent)
     {
-        UserIntent forwarded = intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
-                ? UserIntent.SubmitName(NameEntry.Text)
-                : intent;
+        if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox focusedAddress)
+        {
+            focusedAddress.SelectAll();
+            return;
+        }
+        UserIntent forwarded = CreateForwardedIntent(intent);
         _ = _paneWork.TryStart(cancellationToken =>
             RenderAfterAsync(_session.HandleAsync(forwarded, this, cancellationToken)));
+    }
+
+    private UserIntent CreateForwardedIntent(UserIntent intent)
+    {
+        return intent == UserIntent.Confirm && FocusedAddressSide() is PaneSide side &&
+            AddressOwnerOf(side) is AddressEditorState owner &&
+            ReferenceEquals(owner, _session.Current.AddressEditor)
+                ? UserIntent.SubmitAddress(owner, AddressOf(side).Text)
+                : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
+                    ? UserIntent.SubmitName(NameEntry.Text)
+                    : intent;
+    }
+
+    private void OnAddressGotFocus(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
+        {
+            return;
+        }
+        AddressEditorState current = _session.Current.AddressEditor;
+        if (EditorOwnsSide(current, side))
+        {
+            SetAddressOwner(side, current);
+            return;
+        }
+        bool started = _paneWork.TryStart(cancellationToken =>
+            RenderAfterAddressFocusAsync(side, cancellationToken));
+        if (!started)
+        {
+            FocusFileList(_session.Current.Panes.ActiveSide);
+        }
+    }
+
+    private void OnAddressLostFocus(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
+        {
+            return;
+        }
+        AddressEditorState? owner = AddressOwnerOf(side);
+        SetAddressOwner(side, null);
+        if (owner is not null && ReferenceEquals(owner, _session.Current.AddressEditor))
+        {
+            ForwardIntent(UserIntent.LeaveAddress(owner));
+        }
+    }
+
+    private async Task RenderAfterAddressFocusAsync(PaneSide side, CancellationToken cancellationToken)
+    {
+        Task<CommanderSnapshot> work = _session.HandleAsync(
+            UserIntent.BeginAddressEdit(side),
+            this,
+            cancellationToken);
+        RenderSession(_session.Current);
+        CommanderSnapshot snapshot = await work;
+        RenderSession(snapshot);
+        if (!EditorOwnsSide(snapshot.AddressEditor, side))
+        {
+            FocusFileList(snapshot.Panes.ActiveSide);
+        }
     }
 
     private void OnSettingsClose(object _, RoutedEventArgs args)
@@ -414,13 +773,82 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private KeyboardContext GetKeyboardContext()
     {
+        if (CommandPaletteOverlay.Visibility == Visibility.Visible)
+        {
+            return KeyboardContext.CommandPalette;
+        }
         if (_operationContext == KeyboardContext.Modal)
         {
             return KeyboardContext.Modal;
         }
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
-            ? KeyboardContext.TextEntry
-            : KeyboardContext.FileList;
+        return ReferenceEquals(focused, LeftAddress) || ReferenceEquals(focused, RightAddress)
+            ? KeyboardContext.AddressEntry
+            : focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
+                ? KeyboardContext.TextEntry
+                : KeyboardContext.FileList;
+    }
+
+    private bool ShouldScheduleFileListFocus()
+    {
+        return _addressPresentation?.EditingSide is null &&
+            !ReferenceEquals(
+                _addressPresentation?.SourceState,
+                _defaultFileListFocusSuppressedState);
+    }
+
+    private TextBox? FocusedAddress()
+    {
+        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
+        return ReferenceEquals(focused, LeftAddress)
+            ? LeftAddress
+            : ReferenceEquals(focused, RightAddress) ? RightAddress : null;
+    }
+
+    private PaneSide? FocusedAddressSide()
+    {
+        TextBox? address = FocusedAddress();
+        return address is null ? null : SideOf(address);
+    }
+
+    private PaneSide? SideOf(TextBox address)
+    {
+        return ReferenceEquals(address, LeftAddress)
+            ? PaneSide.Left
+            : ReferenceEquals(address, RightAddress) ? PaneSide.Right : null;
+    }
+
+    private TextBox AddressOf(PaneSide side)
+    {
+        return side == PaneSide.Left ? LeftAddress : RightAddress;
+    }
+
+    private AddressEditorState? AddressOwnerOf(PaneSide side)
+    {
+        return side == PaneSide.Left ? _leftAddressOwner : _rightAddressOwner;
+    }
+
+    private void SetAddressOwner(PaneSide side, AddressEditorState? owner)
+    {
+        if (side == PaneSide.Left)
+        {
+            _leftAddressOwner = owner;
+        }
+        else
+        {
+            _rightAddressOwner = owner;
+        }
+    }
+
+    private static bool EditorOwnsSide(AddressEditorState state, PaneSide side)
+    {
+        return (state is AddressEditing editing && editing.Side == side) ||
+            (state is AddressInputRejected rejected && rejected.Side == side);
+    }
+
+    private void FocusFileList(PaneSide side)
+    {
+        ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
+        _ = fileList.Focus(FocusState.Programmatic);
     }
 }

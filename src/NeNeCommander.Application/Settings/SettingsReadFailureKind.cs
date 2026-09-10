@@ -27,6 +27,9 @@ public abstract record SettingsReadFailureKind
     /// <summary>Gets the failure for text that names no approved color scheme.</summary>
     public static SettingsReadFailureKind UnknownColorScheme { get; } = new UnknownColorSchemeFailure();
 
+    /// <summary>Gets the failure for an invalid or internally inconsistent bookmark catalog.</summary>
+    public static SettingsReadFailureKind InvalidBookmarks { get; } = new InvalidBookmarksFailure();
+
     /// <summary>Gets the failure for an expected input failure that prevented reading the document.</summary>
     public static SettingsReadFailureKind Unreadable { get; } = new UnreadableFailure();
 
@@ -41,5 +44,6 @@ public abstract record SettingsReadFailureKind
     private sealed record UnexpectedPropertyFailure : SettingsReadFailureKind;
     private sealed record IncompleteFailure : SettingsReadFailureKind;
     private sealed record UnknownColorSchemeFailure : SettingsReadFailureKind;
+    private sealed record InvalidBookmarksFailure : SettingsReadFailureKind;
     private sealed record UnreadableFailure : SettingsReadFailureKind;
 }

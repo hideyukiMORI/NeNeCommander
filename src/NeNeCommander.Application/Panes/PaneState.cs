@@ -29,6 +29,7 @@ public sealed record PaneState
         VisibleEntries = SelectVisible(entries, hiddenItemVisibility);
         FocusItem = VisibleEntries.Count == 0 ? null : VisibleEntries[0].Path;
         Selection = EmptySelection;
+        NavigationHistory = PaneNavigationHistory.Create([location], 0);
     }
 
     /// <summary>Gets the current validated location.</summary>
@@ -54,6 +55,11 @@ public sealed record PaneState
 
     /// <summary>Gets the explicitly selected items, which are always visible items.</summary>
     public IReadOnlyList<FileSystemPath> Selection { get; private init; }
+
+    /// <summary>
+    /// Gets this pane's bounded successful-location sequence. Only the reducer replaces it.
+    /// </summary>
+    internal PaneNavigationHistory NavigationHistory { get; private init; }
 
     private static IReadOnlyList<FileSystemPath> EmptySelection => Array.AsReadOnly(Array.Empty<FileSystemPath>());
 
@@ -130,6 +136,21 @@ public sealed record PaneState
             HiddenItemVisibility = hiddenItemVisibility,
             VisibleEntries = SelectVisible(Entries, hiddenItemVisibility),
         };
+    }
+
+    /// <summary>
+    /// Attaches the history snapshot produced by the reducer after verifying that its cursor names
+    /// this listed location.
+    /// </summary>
+    internal PaneState WithNavigationHistory(PaneNavigationHistory navigationHistory)
+    {
+        ArgumentNullException.ThrowIfNull(navigationHistory);
+        FileSystemPath current = navigationHistory.Locations[navigationHistory.CurrentIndex];
+        return FileSystemPathIdentityComparer.Instance.Equals(Location, current)
+            ? this with { NavigationHistory = navigationHistory }
+            : throw new ArgumentException(
+                "History current must identify the pane location.",
+                nameof(navigationHistory));
     }
 
     private static ReadOnlyCollection<DirectoryEntry> SelectVisible(

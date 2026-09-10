@@ -14,6 +14,13 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>This location is not a directory</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>This location is unavailable</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>Listing was cancelled</value></data>
+  <data name="PaneStatusLaunching" xml:space="preserve"><value>Opening file…</value></data>
+  <data name="PaneStatusLaunchCancelled" xml:space="preserve"><value>File opening was cancelled</value></data>
+  <data name="PaneStatusLaunchNotFound" xml:space="preserve"><value>The file is no longer available</value></data>
+  <data name="PaneStatusLaunchAccessDenied" xml:space="preserve"><value>Access to this file was denied</value></data>
+  <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>No application is available for this file</value></data>
+  <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>This file cannot be opened</value></data>
+  <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>Enter a valid absolute location</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>Moving…</value></data>
@@ -67,13 +74,35 @@
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
   <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
   <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
+  <data name="KeyLabelB" xml:space="preserve"><value>b</value></data>
+  <data name="KeyLabel1" xml:space="preserve"><value>1</value></data>
+  <data name="KeyLabel2" xml:space="preserve"><value>2</value></data>
+  <data name="KeyLabel3" xml:space="preserve"><value>3</value></data>
+  <data name="KeyLabel4" xml:space="preserve"><value>4</value></data>
+  <data name="KeyLabel5" xml:space="preserve"><value>5</value></data>
+  <data name="KeyLabel6" xml:space="preserve"><value>6</value></data>
+  <data name="KeyLabel7" xml:space="preserve"><value>7</value></data>
+  <data name="KeyLabel8" xml:space="preserve"><value>8</value></data>
+  <data name="KeyLabel9" xml:space="preserve"><value>9</value></data>
   <data name="KeyLabelCtrlD" xml:space="preserve"><value>Ctrl+D</value></data>
   <data name="KeyLabelCtrlH" xml:space="preserve"><value>Ctrl+H</value></data>
   <data name="KeyLabelCtrlComma" xml:space="preserve"><value>Ctrl+,</value></data>
   <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
   <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
+  <data name="KeyLabelCtrlB" xml:space="preserve"><value>Ctrl+B</value></data>
+  <data name="KeyLabelCtrl1" xml:space="preserve"><value>Ctrl+1</value></data>
+  <data name="KeyLabelCtrl2" xml:space="preserve"><value>Ctrl+2</value></data>
+  <data name="KeyLabelCtrl3" xml:space="preserve"><value>Ctrl+3</value></data>
+  <data name="KeyLabelCtrl4" xml:space="preserve"><value>Ctrl+4</value></data>
+  <data name="KeyLabelCtrl5" xml:space="preserve"><value>Ctrl+5</value></data>
+  <data name="KeyLabelCtrl6" xml:space="preserve"><value>Ctrl+6</value></data>
+  <data name="KeyLabelCtrl7" xml:space="preserve"><value>Ctrl+7</value></data>
+  <data name="KeyLabelCtrl8" xml:space="preserve"><value>Ctrl+8</value></data>
+  <data name="KeyLabelCtrl9" xml:space="preserve"><value>Ctrl+9</value></data>
   <data name="KeyLabelAltUp" xml:space="preserve"><value>Alt+↑</value></data>
+  <data name="KeyLabelAltLeft" xml:space="preserve"><value>Alt+←</value></data>
+  <data name="KeyLabelAltRight" xml:space="preserve"><value>Alt+→</value></data>
   <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
   <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
   <data name="KeyLabelL" xml:space="preserve"><value>l</value></data>
@@ -82,6 +111,8 @@
   <data name="KeyLabelU" xml:space="preserve"><value>u</value></data>
   <data name="KeyLabelDown" xml:space="preserve"><value>↓</value></data>
   <data name="KeyLabelUp" xml:space="preserve"><value>↑</value></data>
+  <data name="KeyLabelLeft" xml:space="preserve"><value>←</value></data>
+  <data name="KeyLabelRight" xml:space="preserve"><value>→</value></data>
   <data name="KeyLabelBackspace" xml:space="preserve"><value>BS</value></data>
   <data name="KeyLabelEnter" xml:space="preserve"><value>Enter</value></data>
   <data name="KeyLabelPageDown" xml:space="preserve"><value>PgDn</value></data>
@@ -102,6 +133,7 @@
   <data name="IntentLabelDelete" xml:space="preserve"><value>Delete</value></data>
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>Pane</value></data>
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>Hidden</value></data>
+  <data name="IntentLabelOpenBookmarks" xml:space="preserve"><value>Bookmarks</value></data>
   <data name="IntentLabelOpenSettings" xml:space="preserve"><value>Settings</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>Cancel</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>Confirm</value></data>
@@ -118,6 +150,62 @@
   <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
   <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>The settings file could not be used. Defaults are active, and the file was left unchanged.</value></data>
   <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>Your choice is active for this session but could not be saved.</value></data>
+  <data name="BookmarkManagerTitle.Text" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="BookmarkSearch.PlaceholderText" xml:space="preserve"><value>Search bookmarks</value></data>
+  <data name="BookmarkAllCategories" xml:space="preserve"><value>All bookmarks</value></data>
+  <data name="BookmarkUncategorized" xml:space="preserve"><value>Uncategorized</value></data>
+  <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>Categories</value></data>
+  <data name="BookmarkAddCategory.Content" xml:space="preserve"><value>Add category</value></data>
+  <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>Rename category</value></data>
+  <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>Delete category</value></data>
+  <data name="BookmarkMove.Content" xml:space="preserve"><value>Move</value></data>
+  <data name="BookmarkAdd.Content" xml:space="preserve"><value>Add current folder</value></data>
+  <data name="BookmarkEdit.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="BookmarkDelete.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="BookmarkClose.Content" xml:space="preserve"><value>Close</value></data>
+  <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>Add bookmark</value></data>
+  <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>Edit bookmark</value></data>
+  <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="BookmarkPathLabel.Text" xml:space="preserve"><value>Path</value></data>
+  <data name="BookmarkCategoryLabel.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="BookmarkShortcutLabel.Text" xml:space="preserve"><value>Shortcut</value></data>
+  <data name="BookmarkShortcutUnassigned" xml:space="preserve"><value>Unassigned</value></data>
+  <data name="BookmarkSave.Content" xml:space="preserve"><value>Save</value></data>
+  <data name="BookmarkCancel.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BookmarkCategoryAddTitle" xml:space="preserve"><value>Add category</value></data>
+  <data name="BookmarkCategoryRenameTitle" xml:space="preserve"><value>Rename category</value></data>
+  <data name="BookmarkCategoryNameLabel.Text" xml:space="preserve"><value>Category name</value></data>
+  <data name="BookmarkCategoryDeleteTitle.Text" xml:space="preserve"><value>Delete category?</value></data>
+  <data name="BookmarkCategoryDeleteExplanation.Text" xml:space="preserve"><value>Bookmarks in this category will move to Uncategorized.</value></data>
+  <data name="BookmarkCategoryDeleteCategoryLabel.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="BookmarkCategoryDeleteCountLabel.Text" xml:space="preserve"><value>Bookmarks affected</value></data>
+  <data name="BookmarkCategoryDeleteDestinationLabel.Text" xml:space="preserve"><value>Destination</value></data>
+  <data name="BookmarkCategoryDeleteConfirm.Content" xml:space="preserve"><value>Delete category</value></data>
+  <data name="BookmarkNavigationRetry.Content" xml:space="preserve"><value>Retry</value></data>
+  <data name="BookmarkStatusReady" xml:space="preserve"><value>Select a bookmark to move there.</value></data>
+  <data name="BookmarkStatusAdding" xml:space="preserve"><value>Enter the bookmark details.</value></data>
+  <data name="BookmarkStatusEditing" xml:space="preserve"><value>Edit the bookmark details.</value></data>
+  <data name="BookmarkStatusAddingCategory" xml:space="preserve"><value>Enter a category name.</value></data>
+  <data name="BookmarkStatusRenamingCategory" xml:space="preserve"><value>Enter the new category name.</value></data>
+  <data name="BookmarkStatusConfirmCategoryDelete" xml:space="preserve"><value>Review the affected bookmarks before deleting this category.</value></data>
+  <data name="BookmarkStatusNavigationPending" xml:space="preserve"><value>Moving to bookmark…</value></data>
+  <data name="BookmarkStatusNavigationAccessDenied" xml:space="preserve"><value>Access to the bookmarked folder was denied. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>The bookmarked folder was not found. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>The bookmark provider is unavailable. The current folder was kept.</value></data>
+  <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>Moving to this bookmark was cancelled. The current folder was kept.</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>There are no bookmarks yet. Add one with “Add current folder”.</value></data>
+  <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>No bookmarks match the current search and category.</value></data>
+  <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>Back to list</value></data>
+  <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>Enter a valid name.</value></data>
+  <data name="BookmarkProblemInvalidPath" xml:space="preserve"><value>Enter a valid path.</value></data>
+  <data name="BookmarkProblemInvalidCategory" xml:space="preserve"><value>Select a valid category.</value></data>
+  <data name="BookmarkProblemDuplicateCategory" xml:space="preserve"><value>A category with this name already exists.</value></data>
+  <data name="BookmarkProblemDuplicateBookmark" xml:space="preserve"><value>A bookmark with this name already exists in that category.</value></data>
+  <data name="BookmarkProblemDuplicateShortcut" xml:space="preserve"><value>This shortcut is already assigned.</value></data>
+  <data name="BookmarkProblemCategoryLimit" xml:space="preserve"><value>The category limit has been reached.</value></data>
+  <data name="BookmarkProblemBookmarkLimit" xml:space="preserve"><value>The bookmark limit has been reached.</value></data>
+  <data name="BookmarkProblemStaleSelection" xml:space="preserve"><value>This item changed. Review the current bookmark list and try again.</value></data>
+  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>Deleting this category would create duplicate bookmark names in Uncategorized. Rename or reorganize them first.</value></data>
   <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
   <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
   <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>
@@ -126,4 +214,38 @@
   <data name="ColorSchemeNameDracula" xml:space="preserve"><value>Dracula</value></data>
   <data name="ColorSchemeNameNeNeBlack" xml:space="preserve"><value>NeNe Black</value></data>
   <data name="ColorSchemeNameNeNeLight" xml:space="preserve"><value>NeNe Light</value></data>
+  <data name="KeyLabelCtrlP" xml:space="preserve"><value>Ctrl+P</value></data>
+  <data name="IntentLabelOpenFocused" xml:space="preserve"><value>Open focused item</value></data>
+  <data name="IntentLabelNavigateParent" xml:space="preserve"><value>Go to parent</value></data>
+  <data name="IntentLabelNavigateBack" xml:space="preserve"><value>Go back</value></data>
+  <data name="IntentLabelNavigateForward" xml:space="preserve"><value>Go forward</value></data>
+  <data name="IntentLabelRefresh" xml:space="preserve"><value>Refresh pane</value></data>
+  <data name="IntentLabelFocusAddress" xml:space="preserve"><value>Edit address</value></data>
+  <data name="IntentLabelToggleSelection" xml:space="preserve"><value>Toggle selection</value></data>
+  <data name="IntentLabelOpenCommandPalette" xml:space="preserve"><value>Commands</value></data>
+  <data name="CommandPaletteSearch.AutomationProperties.Name" xml:space="preserve"><value>Search commands</value></data>
+  <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>Search commands</value></data>
+  <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>Command candidates</value></data>
+  <data name="CommandPaletteZeroResults.Text" xml:space="preserve"><value>No matching commands</value></data>
+  <data name="CommandPaletteContextFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CommandPaletteTargetLeft" xml:space="preserve"><value>Target: left pane</value></data>
+  <data name="CommandPaletteTargetRight" xml:space="preserve"><value>Target: right pane</value></data>
+  <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>Opposite: left pane</value></data>
+  <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>Opposite: right pane</value></data>
+  <data name="CommandPaletteAvailableDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · Unavailable: {2}</value></data>
+  <data name="CommandPaletteAvailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}</value></data>
+  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; Unavailable; {4}</value></data>
+  <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
+  <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>Focus an item first</value></data>
+  <data name="CommandUnavailableSourceRequired" xml:space="preserve"><value>Select or focus an item first</value></data>
+  <data name="CommandUnavailablePassivePane" xml:space="preserve"><value>The opposite pane has no listed location</value></data>
+  <data name="CommandUnavailableParent" xml:space="preserve"><value>The current location has no parent</value></data>
+  <data name="CommandUnavailableBack" xml:space="preserve"><value>No previous location</value></data>
+  <data name="CommandUnavailableForward" xml:space="preserve"><value>No later location</value></data>
+  <data name="CommandPaletteHintPrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="CommandPaletteHintNext" xml:space="preserve"><value>Next</value></data>
+  <data name="CommandPaletteHintExecute" xml:space="preserve"><value>Run</value></data>
+  <data name="CommandPaletteHintCancel" xml:space="preserve"><value>Close</value></data>
+  <data name="CommandPaletteHintFocus" xml:space="preserve"><value>Focus</value></data>
 </root>

@@ -10,8 +10,15 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0049: Identify Windows-side WSL entries through one provider-scoped 9P identity](0049-wsl-9p-entry-identity.md)
+- [ADR-0048: Execute the mutation tier through an isolating VSTest host](0048-mutation-tier-test-execution.md)
+- [ADR-0047: Search and dispatch existing commands through one session-owned palette](0047-search-and-dispatch-existing-commands.md)
+- [ADR-0046: Launch Windows local files through the Shell association](0046-launch-windows-local-files-through-shell-association.md)
+- [ADR-0045: Retain bounded location history in each pane state](0045-bounded-pane-location-history.md)
+- [ADR-0044: Route address input through the existing pane navigation path](0044-address-input-through-pane-navigation.md)
 - [ADR-0043: Own live WSL proof through one dedicated test root](0043-own-live-wsl-test-root.md)
 - [ADR-0042: Bound both raw and canonical filesystem path text](0042-bound-raw-and-canonical-path-length.md)
+- [ADR-0041: Manage categorized bookmarks through settings and the canonical navigation route](0041-category-bookmarks-through-settings-and-navigation.md)
 - [ADR-0037: Copy and composite-move within one WSL distribution](0037-wsl-same-distribution-transfer.md)
 - [ADR-0039: Resolve transfer conflicts through the existing operation gateway](0039-single-transfer-conflict-resolver.md)
 - [ADR-0036: Route WSL same-distribution mutations through the canonical gateway](0036-wsl-same-distribution-mutations.md)

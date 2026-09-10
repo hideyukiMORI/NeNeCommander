@@ -86,6 +86,22 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
+    Assert-SecurityFailure -Name 'mutation-runner-not-isolating' -ExpectedRule 'TST-008' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'stryker-config.json'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('"test-runner": "vstest"', '"test-runner": "mtp"')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-SecurityFailure -Name 'mutation-test-host-reference-removed' -ExpectedRule 'TST-008' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/NeNeCommander.Domain.Tests/NeNeCommander.Domain.Tests.csproj'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('<PackageReference Include="Microsoft.NET.Test.Sdk" />', '')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
     Assert-SecurityFailure -Name 'codeql-generated-filter-weakened' -ExpectedRule 'SEC-008' -Mutate {
         param($caseRoot)
         $path = Join-Path $caseRoot '.github/codeql/codeql-config.yml'
@@ -102,7 +118,21 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
-    Write-Host 'Security proofs passed: mutable actions, secrets, unsafe scripts, audit weakening, privileged PR execution, mutation weakening, and CodeQL weakening are rejected.'
+    Assert-SecurityFailure -Name 'wsl-identity-file-system-literal-leaked' -ExpectedRule 'SEC-014' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsWslFileSystem.cs'
+        Add-Content -LiteralPath $path -Value "// A second owner decided the `"9P`" identity form."
+    }
+
+    Assert-SecurityFailure -Name 'wsl-identity-guard-bypassed' -ExpectedRule 'SEC-014' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsWslFileSystem.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('WindowsFileIdentifier.ReadWslFacts', 'WindowsFileIdentifier.ReadHandleFacts')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Write-Host 'Security proofs passed: mutable actions, secrets, unsafe scripts, audit weakening, privileged PR execution, mutation weakening, mutation runner and test-host regression, CodeQL weakening, and WSL identity ownership escapes are rejected.'
 }
 finally {
     if (Test-Path -LiteralPath $proofRoot) {

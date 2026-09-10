@@ -1,12 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
@@ -55,6 +59,16 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [null, "name"]);
         AssertStaticNullGuard(typeof(RenameRequest), nameof(RenameRequest.Create), [path, null]);
         AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.SubmitName), [null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.BeginAddressEdit), [null]);
+        AssertStaticNullGuard(
+            typeof(UserIntent),
+            nameof(UserIntent.SubmitAddress),
+            [null, "C:\\target"]);
+        AssertStaticNullGuard(
+            typeof(UserIntent),
+            nameof(UserIntent.SubmitAddress),
+            [AddressEditorState.Closed, null]);
+        AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.LeaveAddress), [null]);
         AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         AssertStaticNullGuard(
             typeof(PermanentDeletionConfirmation),
@@ -65,6 +79,7 @@ public sealed class NullGuardTests
             typeof(AtomicMoveCapabilityOutcome),
             nameof(AtomicMoveCapabilityOutcome.Failed),
             [null]);
+        AssertInternalConstructorNullGuard(typeof(AtomicMoveCapabilityFailed), [null]);
         AssertStaticNullGuard(
             typeof(ProviderStepOutcome),
             nameof(ProviderStepOutcome.FailedAfterEffect),
@@ -100,6 +115,7 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
+        AssertStaticNullGuard(typeof(FileLaunchOutcome), nameof(FileLaunchOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
             [null, capacity, null, HiddenItemVisibility.Hidden]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
@@ -111,9 +127,11 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden]);
+            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null]);
+            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
         AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
@@ -148,6 +166,7 @@ public sealed class NullGuardTests
         ConstructorInfo constructor = typeof(PaneSession).GetConstructor(
             [
                 typeof(IDirectoryReadPort),
+                typeof(IFileLauncher),
                 typeof(VisiblePageCapacity),
                 typeof(int),
                 typeof(HiddenItemVisibility),
@@ -155,13 +174,21 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public session constructor was not found.");
         PaneSession session = new(
             port,
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
 
-        AssertConstructorNullGuard(constructor, [null, capacity, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(constructor, [port, null, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(constructor, [port, capacity, 1, null]);
+        AssertConstructorNullGuard(
+            constructor,
+            [null, new ScriptedFileLauncher(), capacity, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(constructor, [port, null, capacity, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(
+            constructor,
+            [port, new ScriptedFileLauncher(), null, 1, HiddenItemVisibility.Hidden]);
+        AssertConstructorNullGuard(
+            constructor,
+            [port, new ScriptedFileLauncher(), capacity, 1, null]);
         AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.RefreshFocusingAsync), [null, CancellationToken.None]);
@@ -180,11 +207,13 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         PaneSession left = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
         PaneSession right = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -227,8 +256,65 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public application-session constructor was not found.");
         AssertConstructorNullGuard(commanderConstructor, [null, settings]);
         AssertConstructorNullGuard(commanderConstructor, [panes, null]);
-        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [null, settings.Current]);
-        AssertInternalConstructorNullGuard(typeof(CommanderSnapshot), [panes.Current, null]);
+        CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available);
+        IReadOnlyList<CommandCandidate> candidates = [candidate];
+        CommandPaletteOpen open = new(
+            panes.Current.Left,
+            panes.Current.Right,
+            panes.Current.ActiveSide,
+            candidates);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [null, settings.Current, AddressEditorState.Closed, CommandPaletteState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, null, AddressEditorState.Closed, CommandPaletteState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, settings.Current, null, CommandPaletteState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, settings.Current, AddressEditorState.Closed, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandCandidate),
+            [null, CommandAvailability.Available]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandCandidate),
+            [UserIntent.OpenFocused, null]);
+        AssertInternalConstructorNullGuard(typeof(CommandUnavailable), [null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [null, panes.Current.Right, panes.Current.ActiveSide, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, null, panes.Current.ActiveSide, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, panes.Current.Right, null, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, panes.Current.Right, panes.Current.ActiveSide, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteSubmission),
+            [null, UserIntent.OpenFocused]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteSubmission),
+            [open, null]);
+        AssertInternalConstructorNullGuard(typeof(CommandPaletteCancellation), [null]);
+        AssertInternalConstructorNullGuard(typeof(AddressEditing), [null, path]);
+        AssertInternalConstructorNullGuard(typeof(AddressEditing), [PaneSide.Left, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [null, path, "raw", PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, null, "raw", PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, path, null, PathParseFailureKind.Relative]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressInputRejected),
+            [PaneSide.Left, path, "raw", null]);
     }
 
     /// <summary>Proves asynchronous application-session entries reject absent required values.</summary>
@@ -239,11 +325,13 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         PaneSession left = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
         PaneSession right = new(
             ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
             capacity,
             DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden);
@@ -263,6 +351,56 @@ public sealed class NullGuardTests
             () => commander.HandleAsync(null!, new RecordingCommanderObserver(), CancellationToken.None));
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => commander.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Proves the application session validates its arguments before it routes on the current
+    /// modal owner. While the settings editor owns input every entry returns the unchanged
+    /// snapshot, so an unvalidated absent argument would be swallowed instead of rejected.
+    /// </summary>
+    [TestMethod]
+    public async Task CommanderSessionWhenSettingsOwnInputStillRejectsAbsentArgumentsAsync()
+    {
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
+        CommanderSession commander = new(
+            new DualPaneSession(
+                new PaneSession(
+                    left,
+                    new ScriptedFileLauncher(),
+                    capacity,
+                    DirectoryListing.EntryBoundaryLimit,
+                    HiddenItemVisibility.Hidden),
+                new PaneSession(
+                    ScriptedDirectoryReadPort.Create(),
+                    new ScriptedFileLauncher(),
+                    capacity,
+                    DirectoryListing.EntryBoundaryLimit,
+                    HiddenItemVisibility.Hidden),
+                gateway),
+            new SettingsSession(
+                new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+                SettingsReadOutcome.Absent(),
+                static _ => { }));
+        CommanderSnapshot opened = await commander.HandleAsync(
+            UserIntent.OpenSettings,
+            new RecordingCommanderObserver(),
+            CancellationToken.None);
+
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.NavigateAsync(PaneSide.Left, null!, CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(null!, new RecordingCommanderObserver(), CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => commander.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
+
+        Assert.AreSame(SettingsEditorState.Open, opened.Settings.Editor);
+        Assert.AreSame(SettingsEditorState.Open, commander.Current.Settings.Editor);
+        Assert.IsEmpty(left.Requests);
     }
 
     /// <summary>Proves settings and application-session boundaries reject absent required values.</summary>
@@ -288,11 +426,13 @@ public sealed class NullGuardTests
         AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
             [HiddenItemVisibility.Hidden, null, CancellationToken.None]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [null, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded]);
+            [null, SettingsEditorState.Closed, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, null, SettingsPersistenceState.Succeeded]);
+            [UserSettings.Default, null, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, SettingsEditorState.Closed, null]);
+            [UserSettings.Default, SettingsEditorState.Closed, null, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, SettingsEditorState.Closed, BookmarksEditorState.Closed, null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceStartupRejected), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceFailed), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),
@@ -303,6 +443,33 @@ public sealed class NullGuardTests
             [SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, null]);
         AssertInternalConstructorNullGuard(typeof(ColorSchemeSelection), [null]);
         AssertInternalConstructorNullGuard(typeof(LaunchHiddenItemVisibilitySelection), [null]);
+    }
+
+    /// <summary>
+    /// Proves each settings-session entry rejects its own absent argument and names that
+    /// parameter, so the caller sees the argument it supplied rather than an internal
+    /// collaborator's parameter name.
+    /// </summary>
+    [TestMethod]
+    public void SettingsSessionWhenSelectionArgumentIsNullNamesTheRejectedParameter()
+    {
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession settings = new(store, SettingsReadOutcome.Absent(), static _ => { });
+
+        ArgumentNullException scheme = Assert.ThrowsExactly<ArgumentNullException>(
+            () => settings.SelectColorSchemeAsync(
+                null!,
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+        ArgumentNullException visibility = Assert.ThrowsExactly<ArgumentNullException>(
+            () => settings.SelectLaunchHiddenItemVisibilityAsync(
+                null!,
+                new RecordingCommanderObserver(),
+                CancellationToken.None));
+
+        Assert.AreEqual("scheme", scheme.ParamName);
+        Assert.AreEqual("visibility", visibility.ParamName);
+        Assert.IsEmpty(store.Writes);
     }
     /// <summary>Proves internal pane state records preserve their null invariants for every collaborator.</summary>
     [TestMethod]
@@ -321,8 +488,197 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(PaneReadCancelled), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [null, FileOperationFailureKind.NotFound]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [path, null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunching), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [null, FileLaunchFailureKind.NotFound]);
+        AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
+    }
+
+    /// <summary>Proves every bookmark value boundary rejects each absent required value.</summary>
+    [TestMethod]
+    public void BookmarkValuesWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkDisplayName name = DisplayName("Target");
+        BookmarkPath path = BookmarkPath("C:\\target");
+        BookmarkEntry entry = BookmarkEntry.Create(name, path, category, BookmarkShortcutSlot.One);
+        BookmarkSelection selection = new(entry);
+
+        AssertNullGuard(() => _ = new BookmarkBrowseContext(null!, BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkBrowseContext(string.Empty, null!, null));
+        AssertNullGuard(() => _ = new BookmarkDraft(null!, "C:\\target", BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkDraft("Target", null!, BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkDraft("Target", "C:\\target", null!, null));
+        AssertNullGuard(() => _ = BookmarkEntry.Create(null!, path, category, null));
+        AssertNullGuard(() => _ = BookmarkEntry.Create(name, null!, category, null));
+        AssertNullGuard(() => _ = new BookmarkKey(category, null!));
+        AssertNullGuard(() => _ = new BookmarkSelection(null!));
+        AssertNullGuard(() => _ = new BookmarkCategorySelection(null!, [entry]));
+        AssertNullGuard(() => _ = new BookmarkCategorySelection(category, null!));
+        AssertNullGuard(() => _ = new BookmarkUserCategoryFilter(null!));
+        AssertNullGuard(() => _ = new BookmarkRegistrationDefaults(null!, "C:\\target"));
+        AssertNullGuard(() => _ = new BookmarkRegistrationDefaults("Target", null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationStart.Accepted(null!));
+        AssertNullGuard(() => _ = new BookmarkEditorTransition.CatalogChanged(null!));
+        AssertNullGuard(() => _ = new BookmarkEditorMutationResult(null!, new BookmarkEditorTransition.StateChanged()));
+        AssertNullGuard(() => _ = new BookmarkEditorMutationResult(BookmarksEditorState.Closed, null!));
+        AssertNullGuard(() => _ = UserIntent.ManageBookmarks(null!));
+        AssertNullGuard(() => _ = UserIntent.NavigateBookmark(null!));
+        AssertNullGuard(() => _ = new BookmarkShortcutSelection(null!));
+        AssertNullGuard(() => _ = new ResolvedBookmarkNavigation(null!));
+
+        Assert.AreSame(entry, selection.Entry);
+    }
+
+    /// <summary>Proves every bookmark editor state and action rejects each absent required value.</summary>
+    [TestMethod]
+    public void BookmarkEditorInputsWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            null);
+        BookmarkSelection selection = new(entry);
+        BookmarkCategorySelection categorySelection = new(category, [entry]);
+        BookmarkBrowseContext context = new(string.Empty, BookmarkCategoryFilter.All, null);
+        BookmarkDraft draft = new("Target", "C:\\target", BookmarkCategoryFilter.All, null);
+
+        AssertNullGuard(() => _ = new BookmarksBrowsing(null!, null));
+        AssertNullGuard(() => _ = new BookmarkDrafting(null!, null, draft, null));
+        AssertNullGuard(() => _ = new BookmarkDrafting(context, null, null!, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDrafting(null!, null, string.Empty, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDrafting(context, null, null!, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(null!, categorySelection));
+        AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(context, null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationPending(null!, selection));
+        AssertNullGuard(() => _ = new BookmarkNavigationPending(context, null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(
+            null!,
+            selection,
+            new PaneReadCancelled(ParsePath("C:\\target"))));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(
+            context,
+            null!,
+            new PaneReadCancelled(ParsePath("C:\\target"))));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(context, selection, null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.Search(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.Filter(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginEditBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.UpdateBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginRenameCategory(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.UpdateCategory(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.DeleteBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginDeleteCategory(null!));
+    }
+
+    /// <summary>Proves every catalog entry point rejects each absent required value before mutating.</summary>
+    [TestMethod]
+    public void BookmarkCatalogWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            BookmarkShortcutSlot.One);
+        BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([category], [entry])).Catalog;
+        BookmarkSelection selection = new(catalog.Bookmarks[0]);
+        BookmarkCategorySelection categorySelection = catalog.Select(category) ??
+            throw new AssertFailedException("The category fixture must be selectable.");
+
+        AssertNullGuard(() => _ = BookmarkCatalog.Create(null!, [entry]));
+        AssertNullGuard(() => _ = BookmarkCatalog.Create([category], null!));
+        AssertNullGuard(() => _ = catalog.Find((BookmarkShortcutSlot)null!));
+        AssertNullGuard(() => _ = catalog.Find((BookmarkKey)null!));
+        AssertNullGuard(() => _ = catalog.Select((BookmarkCategoryName)null!));
+        AssertNullGuard(() => _ = catalog.Matches((BookmarkSelection)null!));
+        AssertNullGuard(() => _ = catalog.Matches((BookmarkCategorySelection)null!));
+        AssertNullGuard(() => _ = BookmarkCatalog.SelectionsMatch(null!, selection));
+        AssertNullGuard(() => _ = BookmarkCatalog.SelectionsMatch(selection, null!));
+        AssertNullGuard(() => _ = catalog.AddCategory(null!));
+        AssertNullGuard(() => _ = catalog.RenameCategory(null!, category));
+        AssertNullGuard(() => _ = catalog.RenameCategory(categorySelection, null!));
+        AssertNullGuard(() => _ = catalog.DeleteCategory(null!));
+        AssertNullGuard(() => _ = catalog.AddBookmark(null!));
+        AssertNullGuard(() => _ = catalog.ReplaceBookmark(null!, entry));
+        AssertNullGuard(() => _ = catalog.ReplaceBookmark(selection, null!));
+        AssertNullGuard(() => _ = catalog.DeleteBookmark(null!));
+    }
+
+    /// <summary>Proves the bookmark editor and settings owners reject absent bookmark arguments.</summary>
+    [TestMethod]
+    public void BookmarkSessionsWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            null);
+        BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([category], [entry])).Catalog;
+        BookmarkSelection selection = new(catalog.Bookmarks[0]);
+        BookmarkRegistrationDefaults defaults = new(string.Empty, string.Empty);
+        BookmarkEditorSession editor = new();
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession settings = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        RecordingCommanderObserver observer = new();
+
+        AssertNullGuard(() => _ = editor.Apply(null!, catalog, defaults));
+        AssertNullGuard(() => _ = editor.Apply(BookmarkEditorAction.Cancel, null!, defaults));
+        AssertNullGuard(() => _ = editor.Apply(BookmarkEditorAction.Cancel, catalog, null!));
+        AssertNullGuard(() => _ = editor.BeginNavigation(null!, catalog));
+        AssertNullGuard(() => _ = editor.BeginNavigation(selection, null!));
+        AssertNullGuard(() => editor.FinishNavigationFailed(null!));
+        AssertNullGuard(() => _ = settings.SaveBookmarkCatalogAsync(null!, observer, CancellationToken.None));
+        AssertNullGuard(() => _ = settings.SaveBookmarkCatalogAsync(catalog, null!, CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            null!,
+            defaults,
+            observer,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            null!,
+            observer,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            defaults,
+            null!,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.BeginBookmarkNavigation(null!));
+        AssertNullGuard(() => settings.FinishBookmarkNavigationFailed(null!));
+
+        Assert.IsEmpty(store.Writes);
+    }
+
+    private static void AssertNullGuard(Action action)
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(action);
+    }
+
+    private static BookmarkCategoryName Category(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkCategoryNameAccepted>(
+            BookmarkCategoryName.Parse(value)).Name;
+    }
+
+    private static BookmarkDisplayName DisplayName(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
+            BookmarkDisplayName.Parse(value)).Name;
+    }
+
+    private static BookmarkPath BookmarkPath(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkPathAccepted>(
+            NeNeCommander.Application.Bookmarks.BookmarkPath.Parse(value)).Path;
     }
 
     private static void AssertInternalConstructorNullGuard(Type type, object?[] arguments)

@@ -18,6 +18,8 @@
     { "id": "ADV-015", "owner": "Domain", "defense": "Reject Windows device names, ambiguous roots, invalid UNC shares, overlong canonical paths, and unrepresentable provider entry segments." },
     { "id": "ADV-016", "owner": "Application", "defense": "Freeze source and destination identities when pane activation changes mid-operation." },
     { "id": "ADV-017", "owner": "Infrastructure.Windows", "defense": "Normalize Windows local and WSL permission or availability changes without widening access or retry scope." },
-    { "id": "ADV-018", "owner": "Application", "defense": "Stop a batch before mutation when any source fails complete preflight or capability discovery." }
+    { "id": "ADV-018", "owner": "Application", "defense": "Stop a batch before mutation when any source fails complete preflight or capability discovery." },
+    { "id": "ADV-019", "owner": "Application", "defense": "Launch only a typed Windows local file path as one Shell filename; reject unsupported providers before the port and never reinterpret path text as command syntax." },
+    { "id": "ADV-020", "owner": "Infrastructure.Windows", "defense": "Reject a Windows-side WSL entry whose replacement restores inode, kind, length, and last-write time by way of change time or link count; never share one identity between a link and its target; and refuse the 9P identity form on any other file system." }
   ]
 }

@@ -23,11 +23,11 @@ public static class SettingsPresenter
             snapshot.Editor,
             snapshot.Settings.HiddenItemVisibility,
             schemes,
-            SaveStatus(snapshot.Persistence),
-            Warning(snapshot.Persistence));
+            PresentSaveStatus(snapshot.Persistence),
+            PresentWarning(snapshot.Persistence));
     }
 
-    private static SettingsSaveStatus SaveStatus(SettingsPersistenceState persistence)
+    internal static SettingsSaveStatus PresentSaveStatus(SettingsPersistenceState persistence)
     {
         return persistence is SettingsPersistencePending
             ? SettingsSaveStatus.Pending
@@ -36,7 +36,7 @@ public static class SettingsPresenter
                 : SettingsSaveStatus.Failed;
     }
 
-    private static SettingsWarningPresentation Warning(SettingsPersistenceState persistence)
+    internal static SettingsWarningPresentation PresentWarning(SettingsPersistenceState persistence)
     {
         return persistence is SettingsPersistenceStartupRejected
             ? SettingsWarningPresentation.StartupRejected

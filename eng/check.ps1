@@ -24,8 +24,8 @@ try {
     }
 
     $sdkVersion = (& dotnet --version).Trim()
-    if ($LASTEXITCODE -ne 0 -or $sdkVersion -cne '10.0.400') {
-        throw "Required .NET SDK 10.0.400 is not active. Actual: '$sdkVersion'."
+    if ($LASTEXITCODE -ne 0 -or $sdkVersion -cne '10.0.401') {
+        throw "Required .NET SDK 10.0.401 is not active. Actual: '$sdkVersion'."
     }
 
     Write-Host '==> Conformance'

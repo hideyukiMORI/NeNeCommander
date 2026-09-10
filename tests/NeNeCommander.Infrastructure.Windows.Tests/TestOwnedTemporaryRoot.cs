@@ -130,22 +130,24 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
     /// </summary>
     internal string CreateJunction(string childName, string targetChildName)
     {
-        string linkPath = Resolve(childName);
-        string targetPath = Resolve(targetChildName);
-        using Process mklink = Process.Start(new ProcessStartInfo
-        {
-            FileName = "cmd.exe",
-            ArgumentList = { "/c", "mklink", "/J", linkPath, targetPath },
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        }) ?? throw new InvalidOperationException("The junction process could not be started.");
-        mklink.WaitForExit();
+        string linkPath = MakeLink("/J", childName, targetChildName);
         _junctions.Add(linkPath);
-        return mklink.ExitCode == 0 && (new DirectoryInfo(linkPath).Attributes & FileAttributes.ReparsePoint) != 0
+        return (new DirectoryInfo(linkPath).Attributes & FileAttributes.ReparsePoint) != 0
             ? linkPath
             : throw new InvalidOperationException("The junction fixture could not be created.");
+    }
+
+    /// <summary>
+    /// Creates a second NTFS directory entry for one existing file inside the root, so the entry's
+    /// hard link count changes without touching its content, length, or last-write time. Hard links
+    /// need no privilege, so the fixture is deterministic on NTFS.
+    /// </summary>
+    internal string CreateHardLink(string childName, string targetChildName)
+    {
+        string linkPath = MakeLink("/H", childName, targetChildName);
+        return File.Exists(linkPath)
+            ? linkPath
+            : throw new InvalidOperationException("The hard-link fixture could not be created.");
     }
 
     /// <summary>Creates an NTFS file symbolic link inside the root to a file inside the same root.</summary>
@@ -220,6 +222,25 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         }
         _junctions.Clear();
         Directory.Delete(resolved, recursive: true);
+    }
+
+    private string MakeLink(string linkOption, string childName, string targetChildName)
+    {
+        string linkPath = Resolve(childName);
+        string targetPath = Resolve(targetChildName);
+        using Process mklink = Process.Start(new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            ArgumentList = { "/c", "mklink", linkOption, linkPath, targetPath },
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        }) ?? throw new InvalidOperationException("The link process could not be started.");
+        mklink.WaitForExit();
+        return mklink.ExitCode == 0
+            ? linkPath
+            : throw new InvalidOperationException("The link fixture could not be created.");
     }
 
     private static void ApplyListingRule(string directoryPath, AccessControlModification modification)
