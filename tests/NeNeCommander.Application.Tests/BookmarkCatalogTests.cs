@@ -488,6 +488,47 @@ public sealed class BookmarkCatalogTests
         Assert.AreEqual(categorizedUpper, categorizedLower);
         Assert.AreEqual(categorizedUpper.GetHashCode(), categorizedLower.GetHashCode());
         Assert.AreNotEqual(uncategorizedUpper, categorizedUpper);
+        Assert.AreNotEqual(uncategorizedUpper.GetHashCode(), categorizedUpper.GetHashCode());
+        Assert.AreNotEqual(
+            categorizedUpper.GetHashCode(),
+            new BookmarkKey(Category("Work"), Name("Other")).GetHashCode());
+    }
+
+    /// <summary>Proves a later category selection rebinds only the entries that reference it.</summary>
+    [TestMethod]
+    public void CategoryMutationsWhenLaterCategoryIsSelectedRebindOnlyThatCategory()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCategoryName home = Category("Home");
+        BookmarkCatalog catalog = Catalog(
+            [work, home],
+            [
+                Entry("First", "C:\\one", work, null),
+                Entry("Second", "C:\\two", home, null),
+                Entry("Third", "C:\\three", null, null),
+            ]);
+        BookmarkCategorySelection homeSelection = catalog.Select(home) ??
+            throw new InvalidOperationException("The later category fixture must be selectable.");
+
+        BookmarkCatalog renamed = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            catalog.RenameCategory(homeSelection, Category("Projects"))).Catalog;
+
+        Assert.AreEqual("Work", renamed.Categories[0].Value);
+        Assert.AreEqual("Projects", renamed.Categories[1].Value);
+        Assert.AreEqual("Work", renamed.Bookmarks[0].Category?.Value);
+        Assert.AreEqual("Projects", renamed.Bookmarks[1].Category?.Value);
+        Assert.IsNull(renamed.Bookmarks[2].Category);
+
+        BookmarkCategorySelection projectsSelection = renamed.Select(renamed.Categories[1]) ??
+            throw new InvalidOperationException("The renamed category must be selectable.");
+        BookmarkCatalog deleted = Assert.IsInstanceOfType<BookmarkCatalogChanged>(
+            renamed.DeleteCategory(projectsSelection)).Catalog;
+
+        Assert.HasCount(1, deleted.Categories);
+        Assert.AreEqual("Work", deleted.Categories[0].Value);
+        Assert.AreEqual("Work", deleted.Bookmarks[0].Category?.Value);
+        Assert.IsNull(deleted.Bookmarks[1].Category);
+        Assert.IsNull(deleted.Bookmarks[2].Category);
     }
 
     private static BookmarkCategoryName Category(string value)

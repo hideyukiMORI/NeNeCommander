@@ -783,6 +783,29 @@ public sealed class BookmarkEditorSessionTests
         Assert.HasCount(1, catalog.Bookmarks);
     }
 
+    /// <summary>Proves opening the manager and a category draft start from empty declared text.</summary>
+    [TestMethod]
+    public void OpenAndBeginAddCategoryStartFromEmptyDeclaredText()
+    {
+        BookmarkEditorSession editor = OpenEditor();
+
+        BookmarksBrowsing opened = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current);
+        _ = editor.Apply(
+            BookmarkEditorAction.BeginAddCategory,
+            BookmarkCatalog.Empty,
+            EmptyDefaults());
+        BookmarkCategoryDrafting drafting =
+            Assert.IsInstanceOfType<BookmarkCategoryDrafting>(editor.Current);
+
+        Assert.AreEqual(string.Empty, opened.Context.SearchText);
+        Assert.AreSame(BookmarkCategoryFilter.All, opened.Context.Filter);
+        Assert.IsNull(opened.Context.Selection);
+        Assert.IsNull(opened.Problem);
+        Assert.AreEqual(string.Empty, drafting.Name);
+        Assert.IsNull(drafting.Original);
+        Assert.IsNull(drafting.Problem);
+    }
+
     private static BookmarkEditorSession OpenEditor()
     {
         BookmarkEditorSession editor = new();
