@@ -10,14 +10,17 @@ public sealed record CommanderSnapshot
     internal CommanderSnapshot(
         DualPaneSnapshot panes,
         SettingsSnapshot settings,
-        AddressEditorState addressEditor)
+        AddressEditorState addressEditor,
+        CommandPaletteState commandPalette)
     {
         ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(addressEditor);
+        ArgumentNullException.ThrowIfNull(commandPalette);
         Panes = panes;
         Settings = settings;
         AddressEditor = addressEditor;
+        CommandPalette = commandPalette;
     }
 
     /// <summary>Gets the dual-pane state and file-operation activity.</summary>
@@ -28,4 +31,7 @@ public sealed record CommanderSnapshot
 
     /// <summary>Gets the application-owned address editor state.</summary>
     public AddressEditorState AddressEditor { get; }
+
+    /// <summary>Gets the application-owned command palette state.</summary>
+    public CommandPaletteState CommandPalette { get; }
 }

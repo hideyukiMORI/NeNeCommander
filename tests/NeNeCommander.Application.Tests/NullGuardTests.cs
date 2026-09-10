@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
@@ -251,15 +253,51 @@ public sealed class NullGuardTests
             throw new AssertFailedException("The public application-session constructor was not found.");
         AssertConstructorNullGuard(commanderConstructor, [null, settings]);
         AssertConstructorNullGuard(commanderConstructor, [panes, null]);
+        CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available);
+        IReadOnlyList<CommandCandidate> candidates = [candidate];
+        CommandPaletteOpen open = new(
+            panes.Current.Left,
+            panes.Current.Right,
+            panes.Current.ActiveSide,
+            candidates);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [null, settings.Current, AddressEditorState.Closed]);
+            [null, settings.Current, AddressEditorState.Closed, CommandPaletteState.Closed]);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [panes.Current, null, AddressEditorState.Closed]);
+            [panes.Current, null, AddressEditorState.Closed, CommandPaletteState.Closed]);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [panes.Current, settings.Current, null]);
+            [panes.Current, settings.Current, null, CommandPaletteState.Closed]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommanderSnapshot),
+            [panes.Current, settings.Current, AddressEditorState.Closed, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandCandidate),
+            [null, CommandAvailability.Available]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandCandidate),
+            [UserIntent.OpenFocused, null]);
+        AssertInternalConstructorNullGuard(typeof(CommandUnavailable), [null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [null, panes.Current.Right, panes.Current.ActiveSide, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, null, panes.Current.ActiveSide, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, panes.Current.Right, null, candidates]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteOpen),
+            [panes.Current.Left, panes.Current.Right, panes.Current.ActiveSide, null]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteSubmission),
+            [null, UserIntent.OpenFocused]);
+        AssertInternalConstructorNullGuard(
+            typeof(CommandPaletteSubmission),
+            [open, null]);
+        AssertInternalConstructorNullGuard(typeof(CommandPaletteCancellation), [null]);
         AssertInternalConstructorNullGuard(typeof(AddressEditing), [null, path]);
         AssertInternalConstructorNullGuard(typeof(AddressEditing), [PaneSide.Left, null]);
         AssertInternalConstructorNullGuard(

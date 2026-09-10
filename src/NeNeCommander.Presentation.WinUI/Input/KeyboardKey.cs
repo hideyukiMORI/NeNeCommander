@@ -31,6 +31,9 @@ public abstract record KeyboardKey
     /// <summary>Gets the produced r key.</summary>
     public static KeyboardKey R { get; } = new RKey();
 
+    /// <summary>Gets the produced p key.</summary>
+    public static KeyboardKey P { get; } = new PKey();
+
     /// <summary>Gets the produced u key.</summary>
     public static KeyboardKey U { get; } = new UKey();
 
@@ -136,6 +139,11 @@ public abstract record KeyboardKey
     private sealed record RKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelR";
+    }
+
+    private sealed record PKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelP";
     }
 
     private sealed record UKey : KeyboardKey

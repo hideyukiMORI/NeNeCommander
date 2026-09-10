@@ -15,6 +15,7 @@ using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Panes;
@@ -36,11 +37,14 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private AddressEditorState? _leftAddressOwner;
     private AddressEditorState? _rightAddressOwner;
     private ActiveConflictModal? _renderedConflictModal;
+    private CommandPaletteViewState? _commandPaletteView;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
     private bool _renderingSettings;
     private bool _renderingAddressTransition;
+    private bool _renderingCommandPalette;
+    private bool _commandPaletteIsComposing;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -68,6 +72,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _resources = new ResourceLoader();
         InitializeComponent();
         Title = _resources.GetString("CommanderWindowTitle");
+        CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
     }
 
@@ -102,7 +107,12 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
-        KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, GetKeyboardContext());
+        KeyboardContext context = GetKeyboardContext();
+        KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
+        if (context == KeyboardContext.CommandPalette && _commandPaletteIsComposing)
+        {
+            return;
+        }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
         if (ConflictModal.Visibility == Visibility.Visible ||
             SettingsOverlay.Visibility == Visibility.Visible)
@@ -164,6 +174,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             RenderAddressTransition(address);
         }
+        RenderCommandPalette(snapshot);
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
@@ -219,6 +230,158 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             }
         }
         _renderingSettings = false;
+    }
+
+    private void RenderCommandPalette(CommanderSnapshot snapshot)
+    {
+        CommandPaletteState state = snapshot.CommandPalette;
+        if (state is not CommandPaletteOpen open)
+        {
+            bool wasOpen = _commandPaletteView is not null;
+            _commandPaletteView = null;
+            _commandPaletteIsComposing = false;
+            CommandPaletteOverlay.Visibility = Visibility.Collapsed;
+            if (wasOpen &&
+                state is CommandPaletteClosed { FileListFocusSide: PaneSide focusSide })
+            {
+                FocusFileList(focusSide);
+            }
+            else if (wasOpen && PaletteExecutionLeavesFileListOwner(snapshot))
+            {
+                FocusFileList(snapshot.Panes.ActiveSide);
+            }
+            return;
+        }
+
+        bool opening = _commandPaletteView is null ||
+            !ReferenceEquals(_commandPaletteView.SourceState, open);
+        if (opening)
+        {
+            _commandPaletteView = CommandPalettePresenter.Present(open, _resources.GetString);
+            _renderingCommandPalette = true;
+            CommandPaletteSearch.Text = string.Empty;
+            _renderingCommandPalette = false;
+        }
+        CommandPaletteOverlay.Visibility = Visibility.Visible;
+        RenderCommandPaletteView();
+        if (opening)
+        {
+            _ = CommandPaletteSearch.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private static bool PaletteExecutionLeavesFileListOwner(CommanderSnapshot snapshot)
+    {
+        return snapshot.Settings.Editor == SettingsEditorState.Closed &&
+            snapshot.AddressEditor is AddressEditorClosed &&
+            snapshot.Panes.Operation is not (
+                OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
+    }
+
+    private void RenderCommandPaletteView()
+    {
+        if (_commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        CommandPaletteContext.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            _resources.GetString("CommandPaletteContextFormat"),
+            view.Target,
+            view.Opposite);
+        _renderingCommandPalette = true;
+        CommandPaletteCandidateList.ItemsSource = view.Rows;
+        CommandPaletteCandidateList.SelectedItem = view.SelectedRow;
+        _renderingCommandPalette = false;
+        CommandPaletteZeroResults.Visibility = view.Rows.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CommandPaletteDetail.Text = view.SelectedRow?.Detail ?? string.Empty;
+        if (view.SelectedRow is CommandPaletteRow selected)
+        {
+            CommandPaletteCandidateList.ScrollIntoView(selected);
+        }
+    }
+
+    private void OnCommandPaletteQueryChanged(object sender, TextChangedEventArgs args)
+    {
+        _ = args;
+        if (_renderingCommandPalette ||
+            sender is not TextBox search ||
+            _commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        view.UpdateQuery(search.Text);
+        RenderCommandPaletteView();
+    }
+
+    private void OnCommandPaletteCompositionStarted(
+        TextBox sender,
+        TextCompositionStartedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        _commandPaletteIsComposing = true;
+    }
+
+    private void OnCommandPaletteCompositionEnded(
+        TextBox sender,
+        TextCompositionEndedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        _commandPaletteIsComposing = false;
+    }
+
+    private void OnCommandPaletteCandidateClick(object sender, ItemClickEventArgs args)
+    {
+        _ = sender;
+        if (_commandPaletteView is not CommandPaletteViewState view ||
+            args.ClickedItem is not CommandPaletteRow row ||
+            !view.Select(row))
+        {
+            return;
+        }
+        RenderCommandPaletteView();
+        if (row.IsAvailable)
+        {
+            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, row.Intent));
+        }
+    }
+
+    private void OnCommandPaletteSelectionChanged(object sender, SelectionChangedEventArgs args)
+    {
+        _ = sender;
+        if (_renderingCommandPalette ||
+            _commandPaletteView is not CommandPaletteViewState view)
+        {
+            return;
+        }
+        if (args.AddedItems.Count == 1 &&
+            args.AddedItems[0] is CommandPaletteRow row &&
+            view.Select(row))
+        {
+            RenderCommandPaletteView();
+            return;
+        }
+        RenderCommandPaletteView();
+    }
+
+    private void OnCommandPaletteScrimTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        if (_commandPaletteView is CommandPaletteViewState view)
+        {
+            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
+        }
+    }
+
+    private void OnCommandPaletteSurfaceTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        args.Handled = true;
     }
 
     private void RenderTone(OperationBarTone tone)
@@ -350,7 +513,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         TextBlock status,
         ListView fileList)
     {
-        if (_addressPresentation?.EditingSide != side)
+        AddressEditorPresentation? addressPresentation = _addressPresentation;
+        bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
+            editingSide == side;
+        if (!isEditingAddress)
         {
             address.Text = presentation.AddressText;
         }
@@ -363,8 +529,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             fileList.ScrollIntoView(presentation.FocusRow);
         }
-        PaneStatus paneStatus = _addressPresentation?.EditingSide == side &&
-            _addressPresentation.Status is PaneStatus addressStatus
+        PaneStatus paneStatus = isEditingAddress &&
+            addressPresentation is { Status: PaneStatus addressStatus }
                 ? addressStatus
                 : presentation.Status;
         status.Text = _resources.GetString(paneStatus.ResourceKey);
@@ -427,12 +593,64 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private bool ForwardOutcome(KeyboardMappingOutcome outcome)
     {
+        if (outcome is MappedCommandPaletteAction paletteAction)
+        {
+            return ForwardCommandPaletteAction(paletteAction.Action);
+        }
         if (outcome is MappedKeyboardIntent mapped)
         {
             ForwardIntent(mapped.Intent);
             return true;
         }
-        return outcome is KeyboardAwaitingChord;
+        return outcome is KeyboardAwaitingChord or KeyboardConsumed;
+    }
+
+    private bool ForwardCommandPaletteAction(CommandPaletteKeyAction action)
+    {
+        if (_commandPaletteView is not CommandPaletteViewState view)
+        {
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MovePrevious)
+        {
+            view.MovePrevious();
+            RenderCommandPaletteView();
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MoveNext)
+        {
+            view.MoveNext();
+            RenderCommandPaletteView();
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.Cancel)
+        {
+            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
+            return true;
+        }
+        if (action == CommandPaletteKeyAction.MoveFocus)
+        {
+            return MoveCommandPaletteFocus();
+        }
+        if (action == CommandPaletteKeyAction.Execute &&
+            view.SelectedRow is CommandPaletteRow { IsAvailable: true } selected)
+        {
+            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, selected.Intent));
+        }
+        return true;
+    }
+
+    private bool MoveCommandPaletteFocus()
+    {
+        if (_commandPaletteView is null)
+        {
+            return false;
+        }
+        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
+        _ = ReferenceEquals(focused, CommandPaletteSearch)
+            ? CommandPaletteCandidateList.Focus(FocusState.Keyboard)
+            : CommandPaletteSearch.Focus(FocusState.Keyboard);
+        return true;
     }
 
     private void ForwardIntent(UserIntent intent)
@@ -547,6 +765,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private KeyboardContext GetKeyboardContext()
     {
+        if (CommandPaletteOverlay.Visibility == Visibility.Visible)
+        {
+            return KeyboardContext.CommandPalette;
+        }
         if (_operationContext == KeyboardContext.Modal)
         {
             return KeyboardContext.Modal;

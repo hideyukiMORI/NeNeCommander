@@ -137,4 +137,38 @@
   <data name="ColorSchemeNameDracula" xml:space="preserve"><value>Dracula</value></data>
   <data name="ColorSchemeNameNeNeBlack" xml:space="preserve"><value>NeNe Black</value></data>
   <data name="ColorSchemeNameNeNeLight" xml:space="preserve"><value>NeNe Light</value></data>
+  <data name="KeyLabelCtrlP" xml:space="preserve"><value>Ctrl+P</value></data>
+  <data name="IntentLabelOpenFocused" xml:space="preserve"><value>Open focused item</value></data>
+  <data name="IntentLabelNavigateParent" xml:space="preserve"><value>Go to parent</value></data>
+  <data name="IntentLabelNavigateBack" xml:space="preserve"><value>Go back</value></data>
+  <data name="IntentLabelNavigateForward" xml:space="preserve"><value>Go forward</value></data>
+  <data name="IntentLabelRefresh" xml:space="preserve"><value>Refresh pane</value></data>
+  <data name="IntentLabelFocusAddress" xml:space="preserve"><value>Edit address</value></data>
+  <data name="IntentLabelToggleSelection" xml:space="preserve"><value>Toggle selection</value></data>
+  <data name="IntentLabelOpenCommandPalette" xml:space="preserve"><value>Commands</value></data>
+  <data name="CommandPaletteSearch.AutomationProperties.Name" xml:space="preserve"><value>Search commands</value></data>
+  <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>Search commands</value></data>
+  <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>Command candidates</value></data>
+  <data name="CommandPaletteZeroResults.Text" xml:space="preserve"><value>No matching commands</value></data>
+  <data name="CommandPaletteContextFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CommandPaletteTargetLeft" xml:space="preserve"><value>Target: left pane</value></data>
+  <data name="CommandPaletteTargetRight" xml:space="preserve"><value>Target: right pane</value></data>
+  <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>Opposite: left pane</value></data>
+  <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>Opposite: right pane</value></data>
+  <data name="CommandPaletteAvailableDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · Unavailable: {2}</value></data>
+  <data name="CommandPaletteAvailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}</value></data>
+  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; Unavailable; {4}</value></data>
+  <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
+  <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>Focus an item first</value></data>
+  <data name="CommandUnavailableSourceRequired" xml:space="preserve"><value>Select or focus an item first</value></data>
+  <data name="CommandUnavailablePassivePane" xml:space="preserve"><value>The opposite pane has no listed location</value></data>
+  <data name="CommandUnavailableParent" xml:space="preserve"><value>The current location has no parent</value></data>
+  <data name="CommandUnavailableBack" xml:space="preserve"><value>No previous location</value></data>
+  <data name="CommandUnavailableForward" xml:space="preserve"><value>No later location</value></data>
+  <data name="CommandPaletteHintPrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="CommandPaletteHintNext" xml:space="preserve"><value>Next</value></data>
+  <data name="CommandPaletteHintExecute" xml:space="preserve"><value>Run</value></data>
+  <data name="CommandPaletteHintCancel" xml:space="preserve"><value>Close</value></data>
+  <data name="CommandPaletteHintFocus" xml:space="preserve"><value>Focus</value></data>
 </root>
