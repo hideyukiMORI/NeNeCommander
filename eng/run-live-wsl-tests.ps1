@@ -133,6 +133,13 @@ function Assert-LiveWslResults {
         if ($matched.Count -ne 1 -or $matched[0].outcome -cne 'Passed') {
             throw 'A required live WSL cell was missing, skipped, or did not pass.'
         }
+
+        # The cell name, outcome, and interval are the redacted release evidence; the root,
+        # distribution, and account names never reach this record.
+        Write-Host (
+            'LiveWsl cell=' + $name + ' outcome=' + $matched[0].outcome +
+            ' start=' + $matched[0].startTime + ' end=' + $matched[0].endTime +
+            ' duration=' + $matched[0].duration)
     }
     Write-Host ('LiveWsl passed cells: ' + $results.Count)
 }
@@ -225,9 +232,11 @@ try {
     [void] [System.IO.Directory]::CreateDirectory($resultsDirectory)
     $resultsPath = Join-Path $resultsDirectory 'live.trx'
 
+    # `--results-directory` is owned by the `dotnet test` driver and must precede the separator;
+    # the report and settings options after it belong to Microsoft.Testing.Platform.
     & dotnet test --project $testProject --configuration Release --no-build --no-restore `
-        --filter 'TestCategory=LiveWsl' -- --settings $settingsPath --report-trx `
-        --report-trx-filename live.trx --results-directory $resultsDirectory
+        --filter 'TestCategory=LiveWsl' --results-directory $resultsDirectory `
+        -- --settings $settingsPath --report-trx --report-trx-filename live.trx
     if ($LASTEXITCODE -ne 0) {
         throw 'The live WSL proof failed.'
     }
@@ -235,14 +244,13 @@ try {
     Write-Host 'LiveWsl result: PASS'
 }
 finally {
+    # Only the runsettings file is ephemeral. Issue #93 requires the result record to be retained
+    # as release evidence, so its path is reported instead of deleted.
     if ($null -ne $settingsPath -and (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
         Remove-Item -LiteralPath $settingsPath -Force
     }
     if ($null -ne $resultsPath -and (Test-Path -LiteralPath $resultsPath -PathType Leaf)) {
-        Remove-Item -LiteralPath $resultsPath -Force
-    }
-    if ($null -ne $resultsDirectory -and (Test-Path -LiteralPath $resultsDirectory -PathType Container)) {
-        Remove-Item -LiteralPath $resultsDirectory -Force
+        Write-Host ('LiveWsl record: ' + $resultsPath)
     }
     Write-Host ('LiveWsl end: ' + [DateTimeOffset]::Now.ToString('yyyy-MM-ddTHH:mm:sszzz', [Globalization.CultureInfo]::InvariantCulture))
     Pop-Location
