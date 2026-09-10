@@ -1,9 +1,12 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -192,6 +195,32 @@ public sealed class WindowsWslFileSystemTests
         StringAssert.Contains(file.Value, "|file|00000000|1|7|");
     }
 
+    /// <summary>
+    /// Proves the WSL adapter revalidates the real handle identity immediately before its side
+    /// effect, so an entry replaced after inspection is rejected with zero effects on disk.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-020")]
+    public async Task RenameAsyncWhenEntryIsReplacedAfterInspectionRejectsWithoutEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteFile("entry.txt", "content");
+        WslFileOperationAdapter adapter = new(new WindowsLocalIoExecutionBoundary(), FileSystem(root));
+
+        FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            await adapter.InspectAsync(Wsl("/owned/entry.txt"), CancellationToken.None)).Snapshot;
+        root.ReplaceFilePreservingMetadata("entry.txt", "replace");
+        ProviderStepOutcome outcome = await adapter.RenameAsync(
+            snapshot,
+            Wsl("/owned/renamed.txt"),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
+        Assert.IsTrue(File.Exists(root.Resolve("entry.txt")));
+        Assert.IsFalse(File.Exists(root.Resolve("renamed.txt")));
+    }
+
     /// <summary>Proves an identity token that cannot be bounded closes the entry instead of truncating.</summary>
     [TestMethod]
     public void FindWhenTokenExceedsTheIdentityBoundaryFailsClosed()
@@ -200,8 +229,10 @@ public sealed class WindowsWslFileSystemTests
         _ = root.WriteFile("entry.txt", "content");
         WindowsWslFileSystem fileSystem = FileSystem(root);
 
-        _ = Assert.ThrowsExactly<IOException>(
+        IOException exception = Assert.ThrowsExactly<IOException>(
             () => fileSystem.Find(Wsl(new string('d', 500), "/owned/entry.txt")));
+
+        Assert.AreEqual("The WSL identity token exceeds the identity boundary.", exception.Message);
         Assert.IsNotNull(fileSystem.Find(Wsl(new string('d', 400), "/owned/entry.txt")));
     }
 

@@ -151,6 +151,27 @@ public sealed class WindowsFileIdentifierTests
         }
     }
 
+    /// <summary>
+    /// Proves a handle whose device answers no identity query closes the identity instead of
+    /// composing one from an unfilled buffer. The always-present NUL device is the deterministic
+    /// local stand-in for a provider that rejects an information class, as 9P rejects several.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-020")]
+    public void FactsReadersWhenDeviceAnswersNoIdentityQueryFailClosed()
+    {
+        const string device = "\\\\.\\NUL";
+
+        IOException facts = Assert.ThrowsExactly<IOException>(
+            () => WindowsFileIdentifier.ReadHandleFacts(device));
+        IOException guarded = Assert.ThrowsExactly<IOException>(
+            () => WindowsFileIdentifier.ReadWslFacts(device));
+
+        Assert.AreEqual(unchecked((int)0x80070057), facts.HResult);
+        Assert.AreEqual(unchecked((int)0x80070001), guarded.HResult);
+    }
+
     /// <summary>Proves the wsl-v2 token has the exact ADR-0049 field order and separators.</summary>
     [TestMethod]
     public void ComposeWslTokenWhenFactsAreCompleteReturnsTheExactOrderedToken()

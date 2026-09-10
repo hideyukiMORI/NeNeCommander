@@ -191,6 +191,7 @@ internal static partial class WindowsFileIdentifier
 
     private static string ReadFileSystemName(SafeFileHandle handle)
     {
+        // The call null-terminates the name inside the requested character count.
         char[] fileSystemName = new char[FileSystemNameLength];
         return GetVolumeInformationByHandle(
                 handle,
@@ -201,7 +202,7 @@ internal static partial class WindowsFileIdentifier
                 IntPtr.Zero,
                 fileSystemName,
                 fileSystemName.Length)
-            ? new string(fileSystemName).TrimEnd('\0')
+            ? new string(fileSystemName, 0, Array.IndexOf(fileSystemName, '\0'))
             : throw CreateQueryFailure();
     }
 
