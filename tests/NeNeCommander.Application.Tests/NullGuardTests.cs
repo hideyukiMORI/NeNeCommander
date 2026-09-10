@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
@@ -126,9 +127,11 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden]);
+            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null]);
+            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
         AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
@@ -423,11 +426,13 @@ public sealed class NullGuardTests
         AssertInstanceNullGuard(settings, nameof(SettingsSession.SelectLaunchHiddenItemVisibilityAsync),
             [HiddenItemVisibility.Hidden, null, CancellationToken.None]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [null, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded]);
+            [null, SettingsEditorState.Closed, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, null, SettingsPersistenceState.Succeeded]);
+            [UserSettings.Default, null, BookmarksEditorState.Closed, SettingsPersistenceState.Succeeded]);
         AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
-            [UserSettings.Default, SettingsEditorState.Closed, null]);
+            [UserSettings.Default, SettingsEditorState.Closed, null, SettingsPersistenceState.Succeeded]);
+        AssertInternalConstructorNullGuard(typeof(SettingsSnapshot),
+            [UserSettings.Default, SettingsEditorState.Closed, BookmarksEditorState.Closed, null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceStartupRejected), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsPersistenceFailed), [null]);
         AssertInternalConstructorNullGuard(typeof(SettingsWriteRejected),
@@ -489,6 +494,191 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
         AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
+    }
+
+    /// <summary>Proves every bookmark value boundary rejects each absent required value.</summary>
+    [TestMethod]
+    public void BookmarkValuesWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkDisplayName name = DisplayName("Target");
+        BookmarkPath path = BookmarkPath("C:\\target");
+        BookmarkEntry entry = BookmarkEntry.Create(name, path, category, BookmarkShortcutSlot.One);
+        BookmarkSelection selection = new(entry);
+
+        AssertNullGuard(() => _ = new BookmarkBrowseContext(null!, BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkBrowseContext(string.Empty, null!, null));
+        AssertNullGuard(() => _ = new BookmarkDraft(null!, "C:\\target", BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkDraft("Target", null!, BookmarkCategoryFilter.All, null));
+        AssertNullGuard(() => _ = new BookmarkDraft("Target", "C:\\target", null!, null));
+        AssertNullGuard(() => _ = BookmarkEntry.Create(null!, path, category, null));
+        AssertNullGuard(() => _ = BookmarkEntry.Create(name, null!, category, null));
+        AssertNullGuard(() => _ = new BookmarkKey(category, null!));
+        AssertNullGuard(() => _ = new BookmarkSelection(null!));
+        AssertNullGuard(() => _ = new BookmarkCategorySelection(null!, [entry]));
+        AssertNullGuard(() => _ = new BookmarkCategorySelection(category, null!));
+        AssertNullGuard(() => _ = new BookmarkUserCategoryFilter(null!));
+        AssertNullGuard(() => _ = new BookmarkRegistrationDefaults(null!, "C:\\target"));
+        AssertNullGuard(() => _ = new BookmarkRegistrationDefaults("Target", null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationStart.Accepted(null!));
+        AssertNullGuard(() => _ = new BookmarkEditorTransition.CatalogChanged(null!));
+        AssertNullGuard(() => _ = new BookmarkEditorMutationResult(null!, new BookmarkEditorTransition.StateChanged()));
+        AssertNullGuard(() => _ = new BookmarkEditorMutationResult(BookmarksEditorState.Closed, null!));
+        AssertNullGuard(() => _ = UserIntent.ManageBookmarks(null!));
+        AssertNullGuard(() => _ = UserIntent.NavigateBookmark(null!));
+        AssertNullGuard(() => _ = new BookmarkShortcutSelection(null!));
+        AssertNullGuard(() => _ = new ResolvedBookmarkNavigation(null!));
+
+        Assert.AreSame(entry, selection.Entry);
+    }
+
+    /// <summary>Proves every bookmark editor state and action rejects each absent required value.</summary>
+    [TestMethod]
+    public void BookmarkEditorInputsWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            null);
+        BookmarkSelection selection = new(entry);
+        BookmarkCategorySelection categorySelection = new(category, [entry]);
+        BookmarkBrowseContext context = new(string.Empty, BookmarkCategoryFilter.All, null);
+        BookmarkDraft draft = new("Target", "C:\\target", BookmarkCategoryFilter.All, null);
+
+        AssertNullGuard(() => _ = new BookmarksBrowsing(null!, null));
+        AssertNullGuard(() => _ = new BookmarkDrafting(null!, null, draft, null));
+        AssertNullGuard(() => _ = new BookmarkDrafting(context, null, null!, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDrafting(null!, null, string.Empty, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDrafting(context, null, null!, null));
+        AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(null!, categorySelection));
+        AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(context, null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationPending(null!, selection));
+        AssertNullGuard(() => _ = new BookmarkNavigationPending(context, null!));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(
+            null!,
+            selection,
+            new PaneReadCancelled(ParsePath("C:\\target"))));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(
+            context,
+            null!,
+            new PaneReadCancelled(ParsePath("C:\\target"))));
+        AssertNullGuard(() => _ = new BookmarkNavigationFailed(context, selection, null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.Search(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.Filter(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginEditBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.UpdateBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginRenameCategory(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.UpdateCategory(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.DeleteBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginDeleteCategory(null!));
+    }
+
+    /// <summary>Proves every catalog entry point rejects each absent required value before mutating.</summary>
+    [TestMethod]
+    public void BookmarkCatalogWhenRequiredArgumentIsNullThrowsArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            BookmarkShortcutSlot.One);
+        BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([category], [entry])).Catalog;
+        BookmarkSelection selection = new(catalog.Bookmarks[0]);
+        BookmarkCategorySelection categorySelection = catalog.Select(category) ??
+            throw new AssertFailedException("The category fixture must be selectable.");
+
+        AssertNullGuard(() => _ = BookmarkCatalog.Create(null!, [entry]));
+        AssertNullGuard(() => _ = BookmarkCatalog.Create([category], null!));
+        AssertNullGuard(() => _ = catalog.Find((BookmarkShortcutSlot)null!));
+        AssertNullGuard(() => _ = catalog.Find((BookmarkKey)null!));
+        AssertNullGuard(() => _ = catalog.Select((BookmarkCategoryName)null!));
+        AssertNullGuard(() => _ = catalog.Matches((BookmarkSelection)null!));
+        AssertNullGuard(() => _ = catalog.Matches((BookmarkCategorySelection)null!));
+        AssertNullGuard(() => _ = BookmarkCatalog.SelectionsMatch(null!, selection));
+        AssertNullGuard(() => _ = BookmarkCatalog.SelectionsMatch(selection, null!));
+        AssertNullGuard(() => _ = catalog.AddCategory(null!));
+        AssertNullGuard(() => _ = catalog.RenameCategory(null!, category));
+        AssertNullGuard(() => _ = catalog.RenameCategory(categorySelection, null!));
+        AssertNullGuard(() => _ = catalog.DeleteCategory(null!));
+        AssertNullGuard(() => _ = catalog.AddBookmark(null!));
+        AssertNullGuard(() => _ = catalog.ReplaceBookmark(null!, entry));
+        AssertNullGuard(() => _ = catalog.ReplaceBookmark(selection, null!));
+        AssertNullGuard(() => _ = catalog.DeleteBookmark(null!));
+    }
+
+    /// <summary>Proves the bookmark editor and settings owners reject absent bookmark arguments.</summary>
+    [TestMethod]
+    public void BookmarkSessionsWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        BookmarkCategoryName category = Category("Work");
+        BookmarkEntry entry = BookmarkEntry.Create(
+            DisplayName("Target"),
+            BookmarkPath("C:\\target"),
+            category,
+            null);
+        BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
+            BookmarkCatalog.Create([category], [entry])).Catalog;
+        BookmarkSelection selection = new(catalog.Bookmarks[0]);
+        BookmarkRegistrationDefaults defaults = new(string.Empty, string.Empty);
+        BookmarkEditorSession editor = new();
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        SettingsSession settings = new(store, SettingsReadOutcome.Absent(), static _ => { });
+        RecordingCommanderObserver observer = new();
+
+        AssertNullGuard(() => _ = editor.Apply(null!, catalog, defaults));
+        AssertNullGuard(() => _ = editor.Apply(BookmarkEditorAction.Cancel, null!, defaults));
+        AssertNullGuard(() => _ = editor.Apply(BookmarkEditorAction.Cancel, catalog, null!));
+        AssertNullGuard(() => _ = editor.BeginNavigation(null!, catalog));
+        AssertNullGuard(() => _ = editor.BeginNavigation(selection, null!));
+        AssertNullGuard(() => editor.FinishNavigationFailed(null!));
+        AssertNullGuard(() => _ = settings.SaveBookmarkCatalogAsync(null!, observer, CancellationToken.None));
+        AssertNullGuard(() => _ = settings.SaveBookmarkCatalogAsync(catalog, null!, CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            null!,
+            defaults,
+            observer,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            null!,
+            observer,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.ApplyBookmarkEditorAction(
+            BookmarkEditorAction.Cancel,
+            defaults,
+            null!,
+            CancellationToken.None));
+        AssertNullGuard(() => _ = settings.BeginBookmarkNavigation(null!));
+        AssertNullGuard(() => settings.FinishBookmarkNavigationFailed(null!));
+
+        Assert.IsEmpty(store.Writes);
+    }
+
+    private static void AssertNullGuard(Action action)
+    {
+        _ = Assert.ThrowsExactly<ArgumentNullException>(action);
+    }
+
+    private static BookmarkCategoryName Category(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkCategoryNameAccepted>(
+            BookmarkCategoryName.Parse(value)).Name;
+    }
+
+    private static BookmarkDisplayName DisplayName(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
+            BookmarkDisplayName.Parse(value)).Name;
+    }
+
+    private static BookmarkPath BookmarkPath(string value)
+    {
+        return Assert.IsInstanceOfType<BookmarkPathAccepted>(
+            NeNeCommander.Application.Bookmarks.BookmarkPath.Parse(value)).Path;
     }
 
     private static void AssertInternalConstructorNullGuard(Type type, object?[] arguments)

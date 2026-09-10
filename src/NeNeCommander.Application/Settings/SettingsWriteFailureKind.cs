@@ -25,6 +25,9 @@ public abstract record SettingsWriteFailureKind
     public static SettingsWriteFailureKind UnsafeLocation { get; } =
         new UnsafeLocationFailure();
 
+    /// <summary>Gets the rejection for a serialized document beyond the fixed byte boundary.</summary>
+    public static SettingsWriteFailureKind TooLarge { get; } = new TooLargeFailure();
+
     private SettingsWriteFailureKind()
     {
     }
@@ -35,4 +38,5 @@ public abstract record SettingsWriteFailureKind
     private sealed record TemporaryArtifactCollisionFailure : SettingsWriteFailureKind;
     private sealed record DestinationChangedFailure : SettingsWriteFailureKind;
     private sealed record UnsafeLocationFailure : SettingsWriteFailureKind;
+    private sealed record TooLargeFailure : SettingsWriteFailureKind;
 }

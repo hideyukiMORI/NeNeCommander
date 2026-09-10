@@ -32,6 +32,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderSession _session;
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
+    private readonly BookmarkManagerView _bookmarkView;
     private AddressEditorPresentation? _addressPresentation;
     private AddressEditorState? _defaultFileListFocusSuppressedState;
     private AddressEditorState? _leftAddressOwner;
@@ -71,6 +72,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
         InitializeComponent();
+        _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
         Title = _resources.GetString("CommanderWindowTitle");
         CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
@@ -115,7 +117,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
         if (ConflictModal.Visibility == Visibility.Visible ||
-            SettingsOverlay.Visibility == Visibility.Visible)
+            SettingsOverlay.Visibility == Visibility.Visible ||
+            BookmarkOverlay.Visibility == Visibility.Visible)
         {
             outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
@@ -170,6 +173,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderPanes(snapshot.Panes);
         _renderingAddressTransition = false;
         RenderSettings(SettingsPresenter.Present(snapshot.Settings));
+        _bookmarkView.Render(snapshot.Settings);
+        if (_bookmarkView.IsOpen)
+        {
+            _operationContext = KeyboardContext.Modal;
+        }
         if (addressChanged)
         {
             RenderAddressTransition(address);

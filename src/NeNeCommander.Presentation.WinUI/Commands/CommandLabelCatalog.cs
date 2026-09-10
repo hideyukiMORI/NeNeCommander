@@ -27,6 +27,7 @@ public static class CommandLabelCatalog
         new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
         new(UserIntent.OpenSettings, "IntentLabelOpenSettings"),
         new(UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
+        new(UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks"),
         new(UserIntent.Escape, "IntentLabelEscape"),
         new(UserIntent.Confirm, "IntentLabelConfirm"),
     ]);

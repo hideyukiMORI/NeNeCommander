@@ -58,6 +58,7 @@ public static class KeyHintPresenter
             UserIntent.ActivateOtherPane,
             UserIntent.ToggleHiddenItems,
             UserIntent.OpenCommandPalette,
+            UserIntent.OpenBookmarks,
             UserIntent.OpenSettings,
             UserIntent.Escape,
         ];

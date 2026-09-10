@@ -152,7 +152,7 @@ public sealed class InfrastructureBoundaryTests
             SettingsReadFailureKind.Malformed);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
+                                 "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
             SettingsReadFailureKind.UnknownVersion);
         AssertSettingsFailure(
                                  /*lang=json,strict*/

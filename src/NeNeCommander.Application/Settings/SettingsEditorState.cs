@@ -9,10 +9,14 @@ public abstract record SettingsEditorState
     /// <summary>Gets the open modal editor state.</summary>
     public static SettingsEditorState Open { get; } = new OpenState();
 
+    /// <summary>Gets the open bookmark-catalog editor state.</summary>
+    public static SettingsEditorState Bookmarks { get; } = new BookmarksState();
+
     private SettingsEditorState()
     {
     }
 
     private sealed record ClosedState : SettingsEditorState;
     private sealed record OpenState : SettingsEditorState;
+    private sealed record BookmarksState : SettingsEditorState;
 }

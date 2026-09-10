@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Tests;
@@ -15,16 +16,21 @@ public sealed class UserSettingsTests
 
         Assert.AreSame(ColorScheme.NeNeDark, settings.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Hidden, settings.HiddenItemVisibility);
+        Assert.AreSame(BookmarkCatalog.Empty, settings.Bookmarks);
     }
 
     /// <summary>Proves created settings expose exactly the validated components they were given.</summary>
     [TestMethod]
     public void CreateWhenComponentsAreValidatedExposesThemUnchanged()
     {
-        UserSettings settings = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown);
+        UserSettings settings = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Shown,
+            BookmarkCatalog.Empty);
 
         Assert.AreSame(ColorScheme.Dracula, settings.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
+        Assert.AreSame(BookmarkCatalog.Empty, settings.Bookmarks);
         Assert.AreNotEqual(UserSettings.Default, settings);
     }
 
@@ -32,7 +38,10 @@ public sealed class UserSettingsTests
     [TestMethod]
     public void ReadOutcomeWhenCreatedCarriesExactlyOneClosedVariant()
     {
-        UserSettings settings = UserSettings.Create(ColorScheme.NeNeLight, HiddenItemVisibility.Hidden);
+        UserSettings settings = UserSettings.Create(
+            ColorScheme.NeNeLight,
+            HiddenItemVisibility.Hidden,
+            BookmarkCatalog.Empty);
 
         Assert.AreSame(
             settings,

@@ -1,4 +1,5 @@
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
@@ -82,6 +83,45 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned command palette.</summary>
     public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
 
+    /// <summary>Gets the intent to open the session-owned bookmark catalog editor.</summary>
+    public static UserIntent OpenBookmarks { get; } = new OpenBookmarksIntent();
+
+    /// <summary>Gets direct bookmark-navigation slot 1.</summary>
+    public static UserIntent BookmarkSlotOne { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.One);
+
+    /// <summary>Gets direct bookmark-navigation slot 2.</summary>
+    public static UserIntent BookmarkSlotTwo { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Two);
+
+    /// <summary>Gets direct bookmark-navigation slot 3.</summary>
+    public static UserIntent BookmarkSlotThree { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Three);
+
+    /// <summary>Gets direct bookmark-navigation slot 4.</summary>
+    public static UserIntent BookmarkSlotFour { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Four);
+
+    /// <summary>Gets direct bookmark-navigation slot 5.</summary>
+    public static UserIntent BookmarkSlotFive { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Five);
+
+    /// <summary>Gets direct bookmark-navigation slot 6.</summary>
+    public static UserIntent BookmarkSlotSix { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Six);
+
+    /// <summary>Gets direct bookmark-navigation slot 7.</summary>
+    public static UserIntent BookmarkSlotSeven { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Seven);
+
+    /// <summary>Gets direct bookmark-navigation slot 8.</summary>
+    public static UserIntent BookmarkSlotEight { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Eight);
+
+    /// <summary>Gets direct bookmark-navigation slot 9.</summary>
+    public static UserIntent BookmarkSlotNine { get; } =
+        new BookmarkShortcutSelection(BookmarkShortcutSlot.Nine);
+
     private protected UserIntent()
     {
     }
@@ -148,6 +188,18 @@ public abstract record UserIntent
         return new LaunchHiddenItemVisibilitySelection(visibility);
     }
 
+    /// <summary>Creates a manager navigation intent from the complete entry the user selected.</summary>
+    public static UserIntent NavigateBookmark(BookmarkSelection selection)
+    {
+        return new BookmarkNavigationSelection(selection);
+    }
+
+    /// <summary>Creates an intent for one closed bookmark-manager action.</summary>
+    public static UserIntent ManageBookmarks(BookmarkEditorAction action)
+    {
+        return new BookmarkEditorActionSubmission(action);
+    }
+
     private sealed record MoveNextIntent : UserIntent;
     private sealed record MovePreviousIntent : UserIntent;
     private sealed record FocusFirstIntent : UserIntent;
@@ -172,4 +224,5 @@ public abstract record UserIntent
     private sealed record ConfirmIntent : UserIntent;
     private sealed record OpenSettingsIntent : UserIntent;
     private sealed record OpenCommandPaletteIntent : UserIntent;
+    private sealed record OpenBookmarksIntent : UserIntent;
 }

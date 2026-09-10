@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.Directories;
-using NeNeCommander.Application.FileOperations;
-using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 
@@ -55,7 +53,7 @@ public static class PaneListingPresenter
                     : new PanePresentation(
                         ReuseEmptyRows(previous),
                         null,
-                        TranslateActivity(snapshot.Activity, PaneStatus.NoListing),
+                        PaneActivityStatusPresenter.Present(snapshot.Activity, PaneStatus.NoListing),
                         TargetText(snapshot.Activity),
                         snapshot,
                         frame);
@@ -106,7 +104,7 @@ public static class PaneListingPresenter
         return new PanePresentation(
             ownedRows,
             FindFocusRow(ownedRows, listed.State.FocusItem),
-            TranslateActivity(snapshot.Activity, TranslateListing(listed.Listing)),
+            PaneActivityStatusPresenter.Present(snapshot.Activity, TranslateListing(listed.Listing)),
             listed.Listing.Location.CanonicalText,
             snapshot,
             frame);
@@ -150,7 +148,7 @@ public static class PaneListingPresenter
         return new PanePresentation(
             rows,
             FindFocusRow(rows, listed.State.FocusItem),
-            TranslateActivity(snapshot.Activity, TranslateListing(listed.Listing)),
+            PaneActivityStatusPresenter.Present(snapshot.Activity, TranslateListing(listed.Listing)),
             listed.Listing.Location.CanonicalText,
             snapshot,
             frame);
@@ -198,20 +196,6 @@ public static class PaneListingPresenter
             : listing.UnrepresentableEntryCount > 0 ? PaneStatus.EntriesOmitted : PaneStatus.Complete;
     }
 
-    private static PaneStatus TranslateActivity(PaneActivity activity, PaneStatus idleStatus)
-    {
-        return activity switch
-        {
-            PaneLoading => PaneStatus.Loading,
-            PaneReadCancelled => PaneStatus.Cancelled,
-            PaneReadFailed failed => TranslateFailure(failed.Failure),
-            PaneLaunching => PaneStatus.Launching,
-            PaneLaunchCancelled => PaneStatus.LaunchCancelled,
-            PaneLaunchFailed failed => TranslateLaunchFailure(failed.Failure),
-            _ => idleStatus,
-        };
-    }
-
     private static string TargetText(PaneActivity activity)
     {
         return activity switch
@@ -223,21 +207,4 @@ public static class PaneListingPresenter
         };
     }
 
-    private static PaneStatus TranslateFailure(FileOperationFailureKind failure)
-    {
-        return failure == FileOperationFailureKind.AccessDenied
-            ? PaneStatus.AccessDenied
-            : failure == FileOperationFailureKind.NotFound ? PaneStatus.NotFound : PaneStatus.ProviderUnavailable;
-    }
-
-    private static PaneStatus TranslateLaunchFailure(FileLaunchFailureKind failure)
-    {
-        return failure == FileLaunchFailureKind.NotFound
-            ? PaneStatus.LaunchNotFound
-            : failure == FileLaunchFailureKind.AccessDenied
-                ? PaneStatus.LaunchAccessDenied
-                : failure == FileLaunchFailureKind.AssociationUnavailable
-                    ? PaneStatus.AssociationUnavailable
-                    : PaneStatus.LaunchUnavailable;
-    }
 }
