@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
@@ -11,6 +10,7 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 internal sealed class WindowsWslFileSystem : IWslFileSystem
 {
     private readonly Func<WslPath, string> _resolvePath;
+    private readonly Func<string, WslHandleFacts> _readFacts;
 
     internal WindowsWslFileSystem()
         : this(path => path.CanonicalText)
@@ -18,9 +18,18 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
     }
 
     internal WindowsWslFileSystem(Func<WslPath, string> resolvePath)
+        : this(resolvePath, WindowsFileIdentifier.ReadWslFacts)
+    {
+    }
+
+    internal WindowsWslFileSystem(
+        Func<WslPath, string> resolvePath,
+        Func<string, WslHandleFacts> readFacts)
     {
         ArgumentNullException.ThrowIfNull(resolvePath);
+        ArgumentNullException.ThrowIfNull(readFacts);
         _resolvePath = resolvePath;
+        _readFacts = readFacts;
     }
 
     public WslFileSystemEntry? Find(WslPath path)
@@ -107,22 +116,18 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         }
     }
 
-    private static WslFileSystemEntry CreateEntry(
+    private WslFileSystemEntry CreateEntry(
         WslPath path,
         FileSystemInfo entry,
         DirectoryEntryKind kind)
     {
-        long length = entry is FileInfo file ? file.Length : 0;
-        string value = string.Join(
-            '|',
-            "wsl-v1",
-            WindowsFileIdentifier.Describe(entry.FullName),
-            kind == DirectoryEntryKind.Directory ? "directory" : "file",
-            length.ToString(CultureInfo.InvariantCulture),
-            entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),
-            entry.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture));
-        FileIdentity identity = ((FileIdentityAccepted)FileIdentity.Parse(value)).Identity;
-        return new WslFileSystemEntry(path, entry.Name, identity, kind, entry.Attributes);
+        // ADR-0049: identity comes from the entry's own handle, never from enumeration data.
+        WslHandleFacts facts = _readFacts(entry.FullName);
+        string value = WindowsFileIdentifier.ComposeWslToken(path.DistributionName, facts);
+        FileIdentity identity = FileIdentity.Parse(value) is FileIdentityAccepted accepted
+            ? accepted.Identity
+            : throw new IOException("The WSL identity token exceeds the identity boundary.");
+        return new WslFileSystemEntry(path, entry.Name, identity, kind, (FileAttributes)facts.Attributes);
     }
 
     private FileSystemInfo ResolveEntry(WslFileSystemEntry source)
