@@ -20,22 +20,28 @@ internal sealed class LiveWslTestRoot
     private const string OwnershipMarkerName = ".nene-commander-owner";
     private static readonly byte[] OwnershipMarkerBytes = [0x4E, 0x65, 0x4E, 0x65];
 
-    private readonly List<LiveWslRootEntry> _ancestorChain;
+    private readonly IReadOnlyList<LiveWslRootEntry> _outerAncestors;
     private readonly Dictionary<string, LiveWslRootEntry> _ownedEntries;
+    private readonly WindowsWslFileSystem _fileSystem;
     private readonly Func<WslPath, string> _resolvePath;
     private readonly WslPath _configuredRoot;
+    private LiveWslRootEntry _configuredRootEntry;
 
     private LiveWslTestRoot(
         WslPath configuredRoot,
+        LiveWslRootEntry configuredRootEntry,
         WslPath runRoot,
+        WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath,
-        List<LiveWslRootEntry> ancestorChain,
+        IReadOnlyList<LiveWslRootEntry> outerAncestors,
         Dictionary<string, LiveWslRootEntry> ownedEntries)
     {
         _configuredRoot = configuredRoot;
+        _configuredRootEntry = configuredRootEntry;
         RunRoot = runRoot;
+        _fileSystem = fileSystem;
         _resolvePath = resolvePath;
-        _ancestorChain = ancestorChain;
+        _outerAncestors = outerAncestors;
         _ownedEntries = ownedEntries;
     }
 
@@ -56,18 +62,33 @@ internal sealed class LiveWslTestRoot
         }
 
         WslDistributionCatalogOutcome discovery = await new WslDistributionCatalog().DiscoverAsync(cancellationToken);
+
+        // The live run uses the production WSL file system exactly as the composition root does:
+        // the canonical namespace mapping and the ADR-0049 9P-guarded handle-facts reader.
         return discovery is WslDistributionCatalogSucceeded succeeded
-            ? Open(admission, succeeded.Roots, static path => path.CanonicalText)
+            ? Open(admission, succeeded.Roots, new WindowsWslFileSystem(), static path => path.CanonicalText)
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.DistributionUnavailable);
     }
 
+    /// <summary>
+    /// Opens the configured root through the production WSL file system. The caller supplies the
+    /// same namespace mapping that <paramref name="fileSystem"/> was composed with, so identity and
+    /// setup always describe the same entry.
+    /// </summary>
+    /// <param name="admission">Launcher-owned admission facts.</param>
+    /// <param name="registeredRoots">Distribution roots reported by the canonical catalog.</param>
+    /// <param name="fileSystem">Production WSL file system that owns every identity.</param>
+    /// <param name="resolvePath">Namespace mapping used for setup, evidence, and cleanup.</param>
+    /// <returns>The opened owner or a closed rejection.</returns>
     internal static LiveWslRootOpenOutcome Open(
         LiveWslRootAdmission admission,
         IReadOnlyList<WslPath> registeredRoots,
+        WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath)
     {
         ArgumentNullException.ThrowIfNull(admission);
         ArgumentNullException.ThrowIfNull(registeredRoots);
+        ArgumentNullException.ThrowIfNull(fileSystem);
         ArgumentNullException.ThrowIfNull(resolvePath);
         if (admission.ConfiguredRoot is not string configuredRoot)
         {
@@ -94,7 +115,7 @@ internal sealed class LiveWslTestRoot
 
         try
         {
-            return OpenVerified(root, resolvePath, admission);
+            return OpenVerified(root, fileSystem, resolvePath);
         }
         catch (UnauthorizedAccessException)
         {
@@ -124,7 +145,7 @@ internal sealed class LiveWslTestRoot
             {
                 RequireVerifiedSetup();
                 _ = Directory.CreateDirectory(resolved);
-                Register(current, LiveWslRootEntryKind.Regular);
+                Register(current);
             }
         }
         return current;
@@ -141,7 +162,7 @@ internal sealed class LiveWslTestRoot
             stream.Write(content);
             stream.Flush(true);
         }
-        Register(path, LiveWslRootEntryKind.Regular);
+        Register(path);
         return path;
     }
 
@@ -155,7 +176,7 @@ internal sealed class LiveWslTestRoot
         }
         RequireVerifiedSetup();
         _ = File.CreateSymbolicLink(_resolvePath(path), _resolvePath(target));
-        Register(path, LiveWslRootEntryKind.Link);
+        Register(path);
         return path;
     }
 
@@ -166,11 +187,36 @@ internal sealed class LiveWslTestRoot
         return File.ReadAllBytes(_resolvePath(path));
     }
 
+    /// <summary>
+    /// Observes one owned entry's identity again through the production WSL file system, so a live
+    /// cell can compare two observations of the same entry across an intervening read.
+    /// </summary>
+    /// <param name="relativePath">Path of the owned entry relative to the run child.</param>
+    /// <returns>The ADR-0049 identity token observed now.</returns>
+    internal string ReadIdentity(string relativePath)
+    {
+        WslPath path = OwnedPath(relativePath);
+        return LiveWslRootFileSystem.CaptureEntry(path, _fileSystem, _resolvePath).Identity;
+    }
+
+    /// <summary>Resolves one owned entry's validated WSL path after proving the run is intact.</summary>
+    /// <param name="relativePath">Path of the owned entry relative to the run child.</param>
+    /// <returns>The validated WSL path of the owned entry.</returns>
+    internal WslPath OwnedPath(string relativePath)
+    {
+        WslPath path = ResolveExisting(relativePath);
+        RequireVerifiedSetup();
+        return _ownedEntries.ContainsKey(_resolvePath(path))
+            ? path
+            : throw new InvalidOperationException("The live identity path is not owned by this run.");
+    }
+
     internal IReadOnlyList<LiveWslDeclaredEntry> ReadDeclaredTree(string relativePath)
     {
         WslPath path = ResolveExisting(relativePath);
         RequireVerifiedSetup();
-        IReadOnlyList<LiveWslRootEntry> entries = LiveWslRootFileSystem.EnumerateTree(path, _resolvePath);
+        IReadOnlyList<LiveWslRootEntry> entries =
+            LiveWslRootFileSystem.EnumerateTree(path, _fileSystem, _resolvePath);
         if (entries.Any(entry => !_ownedEntries.ContainsKey(entry.ResolvedPath)))
         {
             throw new InvalidOperationException("The live declared tree contains an unowned entry.");
@@ -182,8 +228,10 @@ internal sealed class LiveWslTestRoot
                 entry.Path.LinuxPath.Equals(path.LinuxPath, StringComparison.Ordinal)
                     ? string.Empty
                     : entry.Path.LinuxPath[prefix.Length..],
-                Directory.Exists(entry.ResolvedPath) ? DirectoryEntryKind.Directory : DirectoryEntryKind.File,
-                File.Exists(entry.ResolvedPath) ? new FileInfo(entry.ResolvedPath).Length : 0))
+                entry.Kind == LiveWslRootEntryKind.Directory
+                    ? DirectoryEntryKind.Directory
+                    : DirectoryEntryKind.File,
+                entry.Kind == LiveWslRootEntryKind.Directory ? 0 : new FileInfo(entry.ResolvedPath).Length))
             .OrderBy(entry => entry.RelativePath, StringComparer.Ordinal)
         ];
     }
@@ -240,32 +288,52 @@ internal sealed class LiveWslTestRoot
         {
             _ = _ownedEntries.Remove(candidate);
         }
+
+        // ADR-0049: the deleted source's parent changed its direct children, so its own token
+        // changed with them and is re-captured immediately after that mutation.
+        RecaptureOwnedDirectory(Parent(path));
         AdoptExpectedTree(targetRelativePath, expectedEntries);
     }
 
     internal LiveWslRootCheckOutcome VerifyForEffect()
     {
-        LiveWslRootCheckOutcome chain = LiveWslRootFileSystem.VerifyEntries(_ancestorChain);
-        if (chain is LiveWslRootCheckRejected)
-        {
-            return chain;
-        }
-        LiveWslRootCheckOutcome owned = LiveWslRootFileSystem.VerifyEntries(_ownedEntries.Values);
-        if (owned is LiveWslRootCheckRejected)
-        {
-            return owned;
-        }
-        WslPath marker = LiveWslRootPath.Child(RunRoot, OwnershipMarkerName);
-        if (!File.ReadAllBytes(_resolvePath(marker)).SequenceEqual(OwnershipMarkerBytes))
+        // ADR-0049 makes a directory's token change whenever its direct children change, so the
+        // order below reports the most specific closed reason: the create-new ownership marker and
+        // the stable file and link identities first, then foreign residue, then the volatile
+        // directory identities that residue would otherwise mask.
+        string markerResolved = _resolvePath(LiveWslRootPath.Child(RunRoot, OwnershipMarkerName));
+        if (!File.Exists(markerResolved) ||
+            !File.ReadAllBytes(markerResolved).SequenceEqual(OwnershipMarkerBytes))
         {
             return new LiveWslRootCheckRejected(LiveWslRootFailureKind.IdentityChanged);
         }
-        IReadOnlyList<LiveWslRootEntry> observed = LiveWslRootFileSystem.EnumerateTree(RunRoot, _resolvePath);
-        return observed.Count == _ownedEntries.Count &&
-            observed.All(entry => _ownedEntries.ContainsKey(entry.ResolvedPath)) &&
-            RootContainsOnlyRunChild()
-            ? LiveWslRootCheckOutcome.Accepted
-            : new LiveWslRootCheckRejected(LiveWslRootFailureKind.ForeignResidue);
+        LiveWslRootCheckOutcome stable = LiveWslRootFileSystem.VerifyEntries(
+            _ownedEntries.Values.Where(entry => entry.Kind != LiveWslRootEntryKind.Directory),
+            _fileSystem);
+        if (stable is LiveWslRootCheckRejected)
+        {
+            return stable;
+        }
+        if (!RootContainsOnlyRunChild())
+        {
+            return new LiveWslRootCheckRejected(LiveWslRootFailureKind.ForeignResidue);
+        }
+        IReadOnlyList<LiveWslRootEntry> observed =
+            LiveWslRootFileSystem.EnumerateTree(RunRoot, _fileSystem, _resolvePath);
+        if (observed.Count != _ownedEntries.Count ||
+            !observed.All(entry => _ownedEntries.ContainsKey(entry.ResolvedPath)))
+        {
+            return new LiveWslRootCheckRejected(LiveWslRootFailureKind.ForeignResidue);
+        }
+        LiveWslRootCheckOutcome directories = LiveWslRootFileSystem.VerifyEntries(
+            [
+                .. _ownedEntries.Values.Where(entry => entry.Kind == LiveWslRootEntryKind.Directory),
+                _configuredRootEntry,
+            ],
+            _fileSystem);
+        return directories is LiveWslRootCheckRejected
+            ? directories
+            : LiveWslRootFileSystem.VerifyShape(_outerAncestors, _fileSystem);
     }
 
     internal LiveWslRootCleanupOutcome Cleanup()
@@ -283,6 +351,7 @@ internal sealed class LiveWslTestRoot
             {
                 File.Delete(link.ResolvedPath);
                 _ = _ownedEntries.Remove(link.ResolvedPath);
+                RecaptureOwnedDirectory(Parent(link.Path));
             }
             LiveWslRootCheckOutcome afterUnlink = VerifyForEffect();
             if (afterUnlink is LiveWslRootCheckRejected rejectedAfterUnlink)
@@ -290,8 +359,13 @@ internal sealed class LiveWslTestRoot
                 return new LiveWslRootCleanupRejected(rejectedAfterUnlink.Failure);
             }
             Directory.Delete(_resolvePath(RunRoot), recursive: true);
-            return !Directory.EnumerateFileSystemEntries(_resolvePath(_configuredRoot)).Any() &&
-                LiveWslRootFileSystem.VerifyEntries(_ancestorChain) is LiveWslRootCheckAccepted
+
+            // The configured root lost its only direct child, so its own token changed with it.
+            _configuredRootEntry =
+                LiveWslRootFileSystem.CaptureDirectory(_configuredRoot, _fileSystem, _resolvePath);
+            return _configuredRootEntry.Kind == LiveWslRootEntryKind.Directory &&
+                !Directory.EnumerateFileSystemEntries(_resolvePath(_configuredRoot)).Any() &&
+                LiveWslRootFileSystem.VerifyShape(_outerAncestors, _fileSystem) is LiveWslRootCheckAccepted
                 ? LiveWslRootCleanupOutcome.Completed
                 : new LiveWslRootCleanupRejected(LiveWslRootFailureKind.CleanupFailed);
         }
@@ -307,109 +381,87 @@ internal sealed class LiveWslTestRoot
 
     private static LiveWslRootOpenOutcome OpenVerified(
         WslPath root,
-        Func<WslPath, string> resolvePath,
-        LiveWslRootAdmission admission)
+        WindowsWslFileSystem fileSystem,
+        Func<WslPath, string> resolvePath)
     {
         WslPath temporaryRoot = (WslPath)(root.Parent ?? throw new InvalidOperationException("Missing parent."));
         WslPath distributionRoot = (WslPath)(temporaryRoot.Parent ?? throw new InvalidOperationException("Missing root."));
-        List<LiveWslRootEntry> chain =
+
+        // ADR-0049 integration: the C# owner alone captures the temporary root and the configured
+        // root at fixture start and compares them immediately before its first mutation.
+        LiveWslRootEntry[] outerAncestors =
         [
-            LiveWslRootFileSystem.CaptureDirectory(distributionRoot, resolvePath),
-            LiveWslRootFileSystem.CaptureDirectory(temporaryRoot, resolvePath),
-            LiveWslRootFileSystem.CaptureDirectory(root, resolvePath),
+            LiveWslRootFileSystem.CaptureDirectory(distributionRoot, fileSystem, resolvePath),
+            LiveWslRootFileSystem.CaptureDirectory(temporaryRoot, fileSystem, resolvePath),
         ];
-        if (chain.Any(entry => entry.Kind == LiveWslRootEntryKind.Link))
+        LiveWslRootEntry configuredRootEntry =
+            LiveWslRootFileSystem.CaptureDirectory(root, fileSystem, resolvePath);
+        if (outerAncestors.Any(entry => entry.Kind == LiveWslRootEntryKind.Link) ||
+            configuredRootEntry.Kind == LiveWslRootEntryKind.Link)
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.LinkDetected);
-        }
-        if (!chain[1].Identity.Equals(admission.TemporaryRootIdentity, StringComparison.Ordinal) ||
-            !chain[2].Identity.Equals(admission.ConfiguredRootIdentity, StringComparison.Ordinal))
-        {
-            return new LiveWslRootOpenRejected(LiveWslRootFailureKind.IdentityChanged);
         }
         if (Directory.EnumerateFileSystemEntries(resolvePath(root)).Any())
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.RootNotEmpty);
         }
-        if (LiveWslRootFileSystem.VerifyEntries(chain) is LiveWslRootCheckRejected rejected)
-        {
-            return new LiveWslRootOpenRejected(rejected.Failure);
-        }
-
         WslPath runRoot = LiveWslRootPath.Child(root, RunChildName);
         string runResolved = resolvePath(runRoot);
         if (Directory.Exists(runResolved) || File.Exists(runResolved))
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.RootNotEmpty);
         }
+
+        LiveWslRootCheckOutcome admitted = LiveWslRootFileSystem.VerifyEntries(
+            [.. outerAncestors, configuredRootEntry],
+            fileSystem);
+        if (admitted is LiveWslRootCheckRejected rejected)
+        {
+            return new LiveWslRootOpenRejected(rejected.Failure);
+        }
+
         _ = Directory.CreateDirectory(runResolved);
-        LiveWslRootEntry runEntry = LiveWslRootFileSystem.CaptureDirectory(runRoot, resolvePath);
+        configuredRootEntry = LiveWslRootFileSystem.CaptureDirectory(root, fileSystem, resolvePath);
         string[] rootEntries = [.. Directory.EnumerateFileSystemEntries(resolvePath(root))];
-        if (LiveWslRootFileSystem.VerifyEntries(chain) is LiveWslRootCheckRejected ||
+        if (LiveWslRootFileSystem.VerifyShape(outerAncestors, fileSystem) is LiveWslRootCheckRejected ||
+            configuredRootEntry.Kind != LiveWslRootEntryKind.Directory ||
             rootEntries.Length != 1 ||
             !rootEntries[0].Equals(runResolved, StringComparison.Ordinal))
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.IdentityChanged);
         }
         WslPath marker = LiveWslRootPath.Child(runRoot, OwnershipMarkerName);
-        LiveWslRootEntry markerEntry;
         using (FileStream stream = new(resolvePath(marker), FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
             stream.Write(OwnershipMarkerBytes);
             stream.Flush(true);
-            markerEntry = LiveWslRootEntry.Create(
-                marker,
-                resolvePath(marker),
-                WindowsFileIdentifier.DescribeHandle(stream.SafeFileHandle),
-                LiveWslRootEntryKind.Regular);
         }
+
+        // ADR-0049: the marker identity comes from the production file system on the marker's own
+        // path, because the 9P namespace answers no identity query for the open write handle. The
+        // run child is captured after that final owner mutation of its direct children.
+        LiveWslRootEntry markerEntry = LiveWslRootFileSystem.CaptureEntry(marker, fileSystem, resolvePath);
+        LiveWslRootEntry runEntry = LiveWslRootFileSystem.CaptureDirectory(runRoot, fileSystem, resolvePath);
         Dictionary<string, LiveWslRootEntry> owned = new(StringComparer.Ordinal)
         {
             [runResolved] = runEntry,
             [resolvePath(marker)] = markerEntry,
         };
-        return new LiveWslRootOpened(new LiveWslTestRoot(root, runRoot, resolvePath, chain, owned));
+        return markerEntry.Kind == LiveWslRootEntryKind.File
+            ? new LiveWslRootOpened(new LiveWslTestRoot(
+                root,
+                configuredRootEntry,
+                runRoot,
+                fileSystem,
+                resolvePath,
+                outerAncestors,
+                owned))
+            : new LiveWslRootOpenRejected(LiveWslRootFailureKind.IdentityChanged);
     }
 
-    private void Register(WslPath path, LiveWslRootEntryKind kind)
+    private static WslPath Parent(WslPath path)
     {
-        if (ProviderPathContainment.Evaluate(RunRoot, path) is not ContainedPath)
-        {
-            throw new InvalidOperationException("The live fixture escaped its run root.");
-        }
-        LiveWslRootEntry entry = LiveWslRootFileSystem.CaptureEntry(path, _resolvePath, kind);
-        _ownedEntries.Add(entry.ResolvedPath, entry);
-    }
-
-    private void AdoptExpectedTree(string relativePath, IReadOnlyList<string> expectedEntries)
-    {
-        ArgumentNullException.ThrowIfNull(expectedEntries);
-        LiveWslRootCheckOutcome chain = LiveWslRootFileSystem.VerifyEntries(_ancestorChain);
-        LiveWslRootCheckOutcome owned = LiveWslRootFileSystem.VerifyEntries(_ownedEntries.Values);
-        if (chain is LiveWslRootCheckRejected || owned is LiveWslRootCheckRejected)
-        {
-            throw new InvalidOperationException("The live root changed before target adoption.");
-        }
-        WslPath path = ResolveExisting(relativePath);
-        IReadOnlyList<LiveWslRootEntry> produced = LiveWslRootFileSystem.EnumerateTree(path, _resolvePath);
-        string prefix = path.LinuxPath + "/";
-        string[] actual =
-        [
-            .. produced.Select(entry => entry.Path.LinuxPath.Equals(path.LinuxPath, StringComparison.Ordinal)
-                ? string.Empty
-                : entry.Path.LinuxPath[prefix.Length..])
-            .Order(StringComparer.Ordinal)
-        ];
-        string[] expected = [.. expectedEntries.Order(StringComparer.Ordinal)];
-        if (!actual.SequenceEqual(expected, StringComparer.Ordinal) ||
-            produced.Any(entry => entry.Kind == LiveWslRootEntryKind.Link))
-        {
-            throw new InvalidOperationException("The produced live tree differs from the expected fixture tree.");
-        }
-        foreach (LiveWslRootEntry entry in produced)
-        {
-            _ownedEntries.Add(entry.ResolvedPath, entry);
-        }
+        return (WslPath)(path.Parent ?? throw new InvalidOperationException("The live entry has no parent."));
     }
 
     private static void RequireTransferEffects(
@@ -432,6 +484,70 @@ internal sealed class LiveWslTestRoot
         }
     }
 
+    private void Register(WslPath path)
+    {
+        if (ProviderPathContainment.Evaluate(RunRoot, path) is not ContainedPath)
+        {
+            throw new InvalidOperationException("The live fixture escaped its run root.");
+        }
+        LiveWslRootEntry entry = LiveWslRootFileSystem.CaptureEntry(path, _fileSystem, _resolvePath);
+        _ownedEntries.Add(entry.ResolvedPath, entry);
+
+        // ADR-0049: the parent directory's token changed with its direct children, so the owner
+        // re-captures it immediately after the mutation it just performed.
+        RecaptureOwnedDirectory(Parent(path));
+    }
+
+    private void RecaptureOwnedDirectory(WslPath directory)
+    {
+        string resolved = _resolvePath(directory);
+        if (!_ownedEntries.ContainsKey(resolved))
+        {
+            throw new InvalidOperationException("The mutated live parent is not an owned directory.");
+        }
+        LiveWslRootEntry recaptured =
+            LiveWslRootFileSystem.CaptureDirectory(directory, _fileSystem, _resolvePath);
+        if (recaptured.Kind != LiveWslRootEntryKind.Directory)
+        {
+            throw new InvalidOperationException("The mutated live parent is no longer a directory.");
+        }
+        _ownedEntries[resolved] = recaptured;
+    }
+
+    private void AdoptExpectedTree(string relativePath, IReadOnlyList<string> expectedEntries)
+    {
+        ArgumentNullException.ThrowIfNull(expectedEntries);
+        WslPath path = ResolveExisting(relativePath);
+
+        // ADR-0049: the product created the produced tree inside this owned parent, so the parent's
+        // token changed with its direct children and is re-captured immediately after the mutation.
+        RecaptureOwnedDirectory(Parent(path));
+        IReadOnlyList<LiveWslRootEntry> produced =
+            LiveWslRootFileSystem.EnumerateTree(path, _fileSystem, _resolvePath);
+        string prefix = path.LinuxPath + "/";
+        string[] actual =
+        [
+            .. produced.Select(entry => entry.Path.LinuxPath.Equals(path.LinuxPath, StringComparison.Ordinal)
+                ? string.Empty
+                : entry.Path.LinuxPath[prefix.Length..])
+            .Order(StringComparer.Ordinal)
+        ];
+        string[] expected = [.. expectedEntries.Order(StringComparer.Ordinal)];
+        if (!actual.SequenceEqual(expected, StringComparer.Ordinal) ||
+            produced.Any(entry => entry.Kind == LiveWslRootEntryKind.Link))
+        {
+            throw new InvalidOperationException("The produced live tree differs from the expected fixture tree.");
+        }
+        foreach (LiveWslRootEntry entry in produced)
+        {
+            _ownedEntries.Add(entry.ResolvedPath, entry);
+        }
+        if (VerifyForEffect() is LiveWslRootCheckRejected)
+        {
+            throw new InvalidOperationException("The live root changed around target adoption.");
+        }
+    }
+
     private void RequireVerifiedSetup()
     {
         if (VerifyForEffect() is LiveWslRootCheckRejected)
@@ -445,8 +561,8 @@ internal sealed class LiveWslTestRoot
         RequireVerifiedSetup();
         string resolved = _resolvePath(path);
         if (!_ownedEntries.TryGetValue(resolved, out LiveWslRootEntry? entry) ||
-            entry.Kind != LiveWslRootEntryKind.Regular ||
-            LiveWslRootFileSystem.VerifyEntries([entry]) is LiveWslRootCheckRejected)
+            entry.Kind != LiveWslRootEntryKind.File ||
+            LiveWslRootFileSystem.VerifyEntries([entry], _fileSystem) is LiveWslRootCheckRejected)
         {
             throw new InvalidOperationException("The live evidence path is not an owned regular entry.");
         }
@@ -469,7 +585,7 @@ internal sealed class LiveWslTestRoot
             {
                 RequireVerifiedSetup();
                 _ = Directory.CreateDirectory(_resolvePath(current));
-                Register(current, LiveWslRootEntryKind.Regular);
+                Register(current);
             }
             else if (!_ownedEntries.ContainsKey(_resolvePath(current)))
             {

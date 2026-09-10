@@ -6,55 +6,25 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $testProject = Join-Path $repositoryRoot 'tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj'
-$infrastructureAssembly = Join-Path $repositoryRoot 'src/NeNeCommander.Infrastructure.Windows/bin/Release/net10.0-windows10.0.26100.0/NeNeCommander.Infrastructure.Windows.dll'
-$identityTypeName = 'NeNeCommander.Infrastructure.Windows.FileOperations.WindowsFileIdentifier'
 $rootParameterName = 'NENE_COMMANDER_WSL_TEST_ROOT'
-$temporaryRootIdentityParameterName = 'NENE_COMMANDER_WSL_TMP_IDENTITY'
-$configuredRootIdentityParameterName = 'NENE_COMMANDER_WSL_ROOT_IDENTITY'
 $homeFactParameterName = 'NENE_COMMANDER_WSL_HOME_FACT'
 $mountFactParameterName = 'NENE_COMMANDER_WSL_MOUNT_FACT'
 $homeFactAccepted = 'HomeOutsideRoot:v1'
 $mountFactAccepted = 'NativeWslFileSystem:v1'
+
+# ADR-0049 moved every identity into the C# owner, which captures the temporary root and the
+# configured root itself and compares them immediately before its first mutation. The launcher
+# therefore loads no assembly, reflects into no member, and passes no identity.
+$requiredCases = @(
+    'ExecuteAsyncWhenLiveNestedCopyCompletesPreservesSourceAndTargetAsync',
+    'ExecuteAsyncWhenLiveCompositeMoveCompletesDeletesSourceAfterVerifiedTargetAsync',
+    'ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync',
+    'FindWhenLiveOwnedFixtureIsInspectedMatchesDistributionStatAsync',
+    'FindWhenLiveOwnedLinkIsInspectedDiffersFromItsTargetAsync',
+    'FindWhenLiveOwnedFixtureIsReadAgainRepeatsTheSameIdentityAsync')
 $settingsPath = $null
 $resultsDirectory = $null
 $resultsPath = $null
-
-function Get-LiveWslIdentityMethod {
-    if (-not (Test-Path -LiteralPath $infrastructureAssembly -PathType Leaf)) {
-        throw 'The current Release infrastructure assembly is unavailable.'
-    }
-
-    $assembly = [System.Reflection.Assembly]::LoadFrom($infrastructureAssembly)
-    $identityType = $assembly.GetType($identityTypeName, $true, $false)
-    $flags = [System.Reflection.BindingFlags]::Static -bor [System.Reflection.BindingFlags]::NonPublic
-    $method = $identityType.GetMethod('Describe', $flags)
-    if ($null -eq $method -or $method.ReturnType -ne [string]) {
-        throw 'The fixed Windows file identity member is unavailable.'
-    }
-    $parameters = @($method.GetParameters())
-    if ($parameters.Count -ne 1 -or $parameters[0].ParameterType -ne [string]) {
-        throw 'The fixed Windows file identity member has an unexpected signature.'
-    }
-
-    return $method
-}
-
-function Get-LiveWslIdentity {
-    param(
-        [Parameter(Mandatory)]
-        [System.Reflection.MethodInfo] $Method,
-
-        [Parameter(Mandatory)]
-        [string] $Path
-    )
-
-    $identity = [string] $Method.Invoke($null, @($Path))
-    if ($identity -cnotmatch '^[0-9A-F]{48}$') {
-        throw 'The fixed Windows file identity member returned an invalid value.'
-    }
-
-    return $identity
-}
 
 function Get-WslText {
     param(
@@ -144,7 +114,10 @@ function New-LiveWslRunSettings {
 function Assert-LiveWslResults {
     param(
         [Parameter(Mandatory)]
-        [string] $Path
+        [string] $Path,
+
+        [Parameter(Mandatory)]
+        [string[]] $Expected
     )
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
@@ -152,19 +125,16 @@ function Assert-LiveWslResults {
     }
     [xml] $document = Get-Content -LiteralPath $Path -Raw
     $results = @($document.SelectNodes("//*[local-name()='UnitTestResult']"))
-    $expected = @(
-        'ExecuteAsyncWhenLiveNestedCopyCompletesPreservesSourceAndTargetAsync',
-        'ExecuteAsyncWhenLiveCompositeMoveCompletesDeletesSourceAfterVerifiedTargetAsync',
-        'ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync')
-    if ($results.Count -ne $expected.Count) {
-        throw 'The live WSL result record does not contain exactly three required cells.'
+    if ($results.Count -ne $Expected.Count) {
+        throw 'The live WSL result record does not contain exactly the declared required cells.'
     }
-    foreach ($name in $expected) {
+    foreach ($name in $Expected) {
         $matched = @($results | Where-Object { $_.testName -ceq $name })
         if ($matched.Count -ne 1 -or $matched[0].outcome -cne 'Passed') {
             throw 'A required live WSL cell was missing, skipped, or did not pass.'
         }
     }
+    Write-Host ('LiveWsl passed cells: ' + $results.Count)
 }
 
 Push-Location $repositoryRoot
@@ -184,6 +154,7 @@ try {
     Write-Host ('Snapshot: ' + $snapshotState)
     Write-Host ('OS: ' + [System.Environment]::OSVersion.VersionString)
     Write-Host (Get-WslVersionText)
+    Write-Host ('Declared live cells: ' + $requiredCases.Count)
 
     & dotnet build $testProject --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) {
@@ -208,11 +179,7 @@ try {
 
     $distribution = $rootMatch.Groups['distribution'].Value
     $leaf = $rootMatch.Groups['leaf'].Value
-    $temporaryRoot = "\\wsl.localhost\$distribution\tmp"
     $linuxRoot = "/tmp/$leaf"
-    $identityMethod = Get-LiveWslIdentityMethod
-    $temporaryRootIdentity = Get-LiveWslIdentity -Method $identityMethod -Path $temporaryRoot
-    $configuredRootIdentity = Get-LiveWslIdentity -Method $identityMethod -Path $configuredRoot
 
     $actualTemporaryRoot = Get-WslText -Distribution $distribution -Arguments @('readlink', '-f', '--', '/tmp')
     $actualRoot = Get-WslText -Distribution $distribution -Arguments @('readlink', '-f', '--', $linuxRoot)
@@ -243,16 +210,9 @@ try {
         throw 'The live WSL root is not on the admitted native WSL filesystem.'
     }
 
-    if ((Get-LiveWslIdentity -Method $identityMethod -Path $temporaryRoot) -cne $temporaryRootIdentity -or
-        (Get-LiveWslIdentity -Method $identityMethod -Path $configuredRoot) -cne $configuredRootIdentity) {
-        throw 'The live WSL root identity changed after admission queries.'
-    }
-
     $parameters = [System.Collections.Generic.Dictionary[string, string]]::new(
         [System.StringComparer]::Ordinal)
     $parameters.Add($rootParameterName, $configuredRoot)
-    $parameters.Add($temporaryRootIdentityParameterName, $temporaryRootIdentity)
-    $parameters.Add($configuredRootIdentityParameterName, $configuredRootIdentity)
     $parameters.Add($homeFactParameterName, $homeFactAccepted)
     $parameters.Add($mountFactParameterName, $mountFactAccepted)
     $settingsPath = New-LiveWslRunSettings -Parameters $parameters
@@ -271,7 +231,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw 'The live WSL proof failed.'
     }
-    Assert-LiveWslResults -Path $resultsPath
+    Assert-LiveWslResults -Path $resultsPath -Expected $requiredCases
     Write-Host 'LiveWsl result: PASS'
 }
 finally {

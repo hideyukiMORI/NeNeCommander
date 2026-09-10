@@ -14,15 +14,17 @@ public sealed class LiveWslTestRootTests
     private const string DistributionName = "Ubuntu";
     private const string ConfiguredName = "NeNeCommander-Live-Proof";
     private const string RunName = "NeNeCommander-Live-Run";
+    private const string MarkerName = ".nene-commander-owner";
 
     /// <summary>Proves an omitted opt-in is reported as unexecuted without filesystem access.</summary>
     [TestMethod]
     public void OpenWhenParameterIsAbsentReportsUnexecuted()
     {
         LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
-            Admission(null, null, null),
+            LiveWslRootAdmission.Create(null, null, null),
             [],
-            static _ => throw new InvalidOperationException());
+            RejectingFileSystem(),
+            RejectResolution);
 
         LiveWslRootOpenRejected rejected = Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome);
         Assert.AreSame(LiveWslRootFailureKind.Unexecuted, rejected.Failure);
@@ -34,22 +36,19 @@ public sealed class LiveWslTestRootTests
     {
         IReadOnlyList<WslPath> registered = [WslRoot(DistributionName)];
         LiveWslRootOpenOutcome malformed = LiveWslTestRoot.Open(
-            Admission("C:\\temp", Identifier('A'), Identifier('B')),
+            Admission("C:\\temp"),
             registered,
+            RejectingFileSystem(),
             RejectResolution);
         LiveWslRootOpenOutcome unsafeRoot = LiveWslTestRoot.Open(
-            Admission(
-                "\\\\wsl.localhost\\Ubuntu\\home\\NeNeCommander-Live-Proof",
-                Identifier('A'),
-                Identifier('B')),
+            Admission("\\\\wsl.localhost\\Ubuntu\\home\\NeNeCommander-Live-Proof"),
             registered,
+            RejectingFileSystem(),
             RejectResolution);
         LiveWslRootOpenOutcome unregistered = LiveWslTestRoot.Open(
-            Admission(
-                "\\\\wsl.localhost\\Debian\\tmp\\NeNeCommander-Live-Proof",
-                Identifier('A'),
-                Identifier('B')),
+            Admission("\\\\wsl.localhost\\Debian\\tmp\\NeNeCommander-Live-Proof"),
             registered,
+            RejectingFileSystem(),
             RejectResolution);
 
         Assert.AreSame(
@@ -65,75 +64,25 @@ public sealed class LiveWslTestRootTests
 
     /// <summary>Proves missing runner facts reject before the configured root is resolved.</summary>
     [TestMethod]
-    public void OpenWhenRunnerAdmissionIsIncompleteRejectsBeforeResolution()
+    [DataRow("home")]
+    [DataRow("mount")]
+    public void OpenWhenRunnerAdmissionIsIncompleteRejectsBeforeResolution(string missingFact)
     {
+        ArgumentNullException.ThrowIfNull(missingFact);
         LiveWslRootAdmission admission = LiveWslRootAdmission.Create(
             ConfiguredWslText(),
-            Identifier('A'),
-            null,
-            LiveWslRootAdmission.HomeFactAccepted,
-            LiveWslRootAdmission.MountFactAccepted);
+            missingFact.Equals("home", StringComparison.Ordinal) ? null : LiveWslRootAdmission.HomeFactAccepted,
+            missingFact.Equals("mount", StringComparison.Ordinal) ? null : LiveWslRootAdmission.MountFactAccepted);
 
         LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
             admission,
             [WslRoot(DistributionName)],
+            RejectingFileSystem(),
             RejectResolution);
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
             Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome).Failure);
-    }
-
-    /// <summary>Proves an identity from another root rejects before the run child is created.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-004")]
-    public void OpenWhenAdmissionIdentifiesAnotherRootRejectsBeforeMutation()
-    {
-        using TestOwnedTemporaryRoot host = CreateHost();
-        string other = host.CreateDirectory("distribution\\tmp\\NeNeCommander-Live-Other");
-        LiveWslRootAdmission admission = Admission(
-            ConfiguredWslText(),
-            WindowsFileIdentifier.Describe(host.Resolve("distribution\\tmp")),
-            WindowsFileIdentifier.Describe(other));
-
-        LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
-            admission,
-            [WslRoot(DistributionName)],
-            path => Resolve(host, path));
-
-        Assert.AreSame(
-            LiveWslRootFailureKind.IdentityChanged,
-            Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome).Failure);
-        Assert.IsEmpty(Directory.GetFileSystemEntries(host.Resolve(ConfiguredRelative(string.Empty))));
-    }
-
-    /// <summary>Proves replacing an admitted root rejects the replacement and preserves the original.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-004")]
-    public void OpenWhenAdmittedRootIsReplacedRejectsBeforeMutation()
-    {
-        using TestOwnedTemporaryRoot host = CreateHost();
-        string configured = host.Resolve(ConfiguredRelative(string.Empty));
-        LiveWslRootAdmission admission = Admission(
-            ConfiguredWslText(),
-            WindowsFileIdentifier.Describe(host.Resolve("distribution\\tmp")),
-            WindowsFileIdentifier.Describe(configured));
-        string parked = host.Resolve("distribution\\tmp\\parked");
-        Directory.Move(configured, parked);
-        _ = Directory.CreateDirectory(configured);
-
-        LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
-            admission,
-            [WslRoot(DistributionName)],
-            path => Resolve(host, path));
-
-        Assert.AreSame(
-            LiveWslRootFailureKind.IdentityChanged,
-            Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome).Failure);
-        Assert.IsEmpty(Directory.GetFileSystemEntries(configured));
-        Assert.IsTrue(Directory.Exists(parked));
     }
 
     /// <summary>Proves an initially nonempty configured root is rejected without deleting its entry.</summary>
@@ -170,6 +119,26 @@ public sealed class LiveWslTestRootTests
         Assert.IsTrue(File.Exists(sentinel));
     }
 
+    /// <summary>Proves an ancestor above the configured root that is a link is rejected at admission.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void OpenWhenTemporaryRootIsLinkRejectsWithoutFollowingTarget()
+    {
+        using TestOwnedTemporaryRoot host = TestOwnedTemporaryRoot.Create();
+        _ = host.CreateDirectory("distribution");
+        _ = host.CreateDirectory("distribution\\actual-tmp");
+        _ = host.CreateDirectory("distribution\\actual-tmp\\" + ConfiguredName);
+        _ = host.CreateJunction("distribution\\tmp", "distribution\\actual-tmp");
+
+        LiveWslRootOpenOutcome outcome = Open(host);
+
+        Assert.AreSame(
+            LiveWslRootFailureKind.LinkDetected,
+            Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome).Failure);
+        Assert.IsEmpty(Directory.GetFileSystemEntries(host.Resolve("distribution\\actual-tmp\\" + ConfiguredName)));
+    }
+
     /// <summary>Proves replacing the ownership marker makes cleanup refuse the complete run tree.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -178,7 +147,7 @@ public sealed class LiveWslTestRootTests
     {
         using TestOwnedTemporaryRoot host = CreateHost();
         LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
-        host.ReplaceFilePreservingMetadata(ConfiguredRelative(RunName + "\\.nene-commander-owner"), "Fake");
+        host.ReplaceFilePreservingMetadata(ConfiguredRelative(RunName + "\\" + MarkerName), "Fake");
 
         LiveWslRootCleanupOutcome outcome = root.Cleanup();
 
@@ -188,7 +157,7 @@ public sealed class LiveWslTestRootTests
         Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
     }
 
-    /// <summary>Proves rewriting marker bytes under the same identity makes cleanup refuse.</summary>
+    /// <summary>Proves rewriting marker bytes under the same path makes cleanup refuse.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-004")]
@@ -196,11 +165,34 @@ public sealed class LiveWslTestRootTests
     {
         using TestOwnedTemporaryRoot host = CreateHost();
         LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
-        string marker = host.Resolve(ConfiguredRelative(RunName + "\\.nene-commander-owner"));
+        string marker = host.Resolve(ConfiguredRelative(RunName + "\\" + MarkerName));
         File.WriteAllText(marker, "Fake");
 
         LiveWslRootCleanupOutcome outcome = root.Cleanup();
 
+        Assert.AreSame(
+            LiveWslRootFailureKind.IdentityChanged,
+            Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
+        Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+    }
+
+    /// <summary>
+    /// Proves a byte-identical marker replacement is still refused, because the ADR-0049 entry
+    /// identity changes even when the marker content, length, and last-write time do not.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-020")]
+    public void CleanupWhenOwnershipMarkerIsReplacedByteIdenticallyRefusesRecursiveDelete()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        string marker = host.Resolve(ConfiguredRelative(RunName + "\\" + MarkerName));
+        host.ReplaceFilePreservingMetadata(ConfiguredRelative(RunName + "\\" + MarkerName), "NeNe");
+
+        LiveWslRootCleanupOutcome outcome = root.Cleanup();
+
+        CollectionAssert.AreEqual("NeNe"u8.ToArray(), File.ReadAllBytes(marker));
         Assert.AreSame(
             LiveWslRootFailureKind.IdentityChanged,
             Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
@@ -242,6 +234,22 @@ public sealed class LiveWslTestRootTests
             Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
         Assert.IsTrue(File.Exists(foreign));
         Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+    }
+
+    /// <summary>Proves unregistered residue during setup refuses before any fixture effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void SetupWhenForeignResidueAppearsRejectsBeforeEffect()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        string foreign = host.WriteFile(ConfiguredRelative(RunName + "\\foreign.txt"), "foreign");
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() => root.CreateDirectory("blocked"));
+
+        Assert.IsTrue(File.Exists(foreign));
+        Assert.IsFalse(Directory.Exists(host.Resolve(ConfiguredRelative(RunName + "\\blocked"))));
     }
 
     /// <summary>Proves an owned link is unlinked before the run child is recursively removed.</summary>
@@ -306,6 +314,87 @@ public sealed class LiveWslTestRootTests
         Assert.IsFalse(File.Exists(System.IO.Path.Join(run, "blocked.txt")));
     }
 
+    /// <summary>
+    /// Proves replacing the configured root after admission refuses the next fixture effect, which
+    /// is the only interval the C# owner can observe now that it captures identity itself.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void SetupWhenConfiguredRootIsReplacedRejectsBeforeEffect()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        string configured = host.Resolve(ConfiguredRelative(string.Empty));
+        string parked = host.Resolve("distribution\\tmp\\parked");
+        Directory.Move(configured, parked);
+        _ = Directory.CreateDirectory(configured);
+        Directory.Move(
+            System.IO.Path.Join(parked, RunName),
+            System.IO.Path.Join(configured, RunName));
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() => root.CreateDirectory("blocked"));
+
+        Assert.IsTrue(Directory.Exists(System.IO.Path.Join(configured, RunName)));
+        Assert.IsFalse(Directory.Exists(System.IO.Path.Join(configured, RunName, "blocked")));
+    }
+
+    /// <summary>Proves an ancestor replaced by a link after admission refuses the next effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void SetupWhenTemporaryRootBecomesLinkRejectsBeforeEffect()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        Directory.Move(host.Resolve("distribution\\tmp"), host.Resolve("distribution\\parked-tmp"));
+        _ = host.CreateJunction("distribution\\tmp", "distribution\\parked-tmp");
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() => root.CreateDirectory("blocked"));
+
+        Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+        Assert.IsFalse(Directory.Exists(host.Resolve(ConfiguredRelative(RunName + "\\blocked"))));
+    }
+
+    /// <summary>
+    /// Proves a same-length owned fixture rewrite that restores creation and last-write time is
+    /// still refused, because the ADR-0049 identity carries the kernel-assigned change time.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-020")]
+    public void SetupWhenOwnedFixtureIsReplacedPreservingMetadataRejectsBeforeEffect()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        _ = root.WriteFile("payload.bin", [0x61, 0x62, 0x63, 0x64]);
+        host.ReplaceFilePreservingMetadata(ConfiguredRelative(RunName + "\\payload.bin"), "wxyz");
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(() => root.WriteFile("blocked.bin", [1]));
+
+        Assert.IsFalse(File.Exists(host.Resolve(ConfiguredRelative(RunName + "\\blocked.bin"))));
+        Assert.IsTrue(File.Exists(host.Resolve(ConfiguredRelative(RunName + "\\payload.bin"))));
+    }
+
+    /// <summary>Proves an owned fixture keeps one identity across reads and declared-tree evidence.</summary>
+    [TestMethod]
+    public void ReadIdentityWhenOwnedFixtureIsUnchangedRepeatsTheSameToken()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(Open(host)).Root;
+        _ = root.WriteFile("payload.bin", [7, 7, 7]);
+        _ = root.CreateFileSymbolicLink("payload-link.bin", "payload.bin");
+
+        string first = root.ReadIdentity("payload.bin");
+        CollectionAssert.AreEqual(new byte[] { 7, 7, 7 }, root.ReadFile("payload.bin"));
+        string second = root.ReadIdentity("payload.bin");
+        string link = root.ReadIdentity("payload-link.bin");
+
+        Assert.AreEqual(first, second);
+        Assert.AreNotEqual(first, link);
+        _ = Assert.IsInstanceOfType<LiveWslRootCleanupCompleted>(root.Cleanup());
+    }
+
     private static TestOwnedTemporaryRoot CreateHost()
     {
         TestOwnedTemporaryRoot host = CreateHostWithoutConfiguredRoot();
@@ -323,31 +412,31 @@ public sealed class LiveWslTestRootTests
 
     private static LiveWslRootOpenOutcome Open(TestOwnedTemporaryRoot host)
     {
+        // The deterministic root injects the unguarded NTFS handle-facts reader through the
+        // existing WindowsWslFileSystem seam, exactly as WindowsWslFileSystemTests do.
+        string Resolved(WslPath path)
+        {
+            return Resolve(host, path);
+        }
+
         return LiveWslTestRoot.Open(
-            Admission(
-                ConfiguredWslText(),
-                WindowsFileIdentifier.Describe(host.Resolve("distribution\\tmp")),
-                WindowsFileIdentifier.Describe(host.Resolve(ConfiguredRelative(string.Empty)))),
+            Admission(ConfiguredWslText()),
             [WslRoot(DistributionName)],
-            path => Resolve(host, path));
+            new WindowsWslFileSystem(Resolved, WindowsFileIdentifier.ReadHandleFacts),
+            Resolved);
     }
 
-    private static LiveWslRootAdmission Admission(
-        string? configuredRoot,
-        string? temporaryRootIdentity,
-        string? configuredRootIdentity)
+    private static WindowsWslFileSystem RejectingFileSystem()
+    {
+        return new WindowsWslFileSystem(RejectResolution, WindowsFileIdentifier.ReadHandleFacts);
+    }
+
+    private static LiveWslRootAdmission Admission(string? configuredRoot)
     {
         return LiveWslRootAdmission.Create(
             configuredRoot,
-            temporaryRootIdentity,
-            configuredRootIdentity,
             LiveWslRootAdmission.HomeFactAccepted,
             LiveWslRootAdmission.MountFactAccepted);
-    }
-
-    private static string Identifier(char value)
-    {
-        return new string(value, 48);
     }
 
     private static string Resolve(TestOwnedTemporaryRoot host, WslPath path)

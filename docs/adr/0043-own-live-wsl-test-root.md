@@ -30,7 +30,7 @@ The launcher reuses the exact Windows identity implementation by loading only th
 its fixed nonpublic static `Describe(string)` member. It does not scan assemblies, search for a
 fallback type or member, accept a user-selected member, add a second identity query, or broaden
 reflection permission in production or test C#. A missing artifact, load failure, or absent fixed
-member fails closed.
+member fails closed. Superseded within this ADR by the ADR-0049 integration below.
 
 Before checking home, canonical path, and mount facts, the launcher captures the stable Windows
 file identifier of `/tmp` and the configured root. It repeats both observations after those
@@ -40,7 +40,7 @@ configured root, and compares the latter two identities immediately before its f
 It then captures a newly created direct run child and create-new ownership marker. Before each
 product mutation and before cleanup it repeats provider-aware containment, non-link, stable-
 identity, and exact-owned-entry checks. The existence of the run child alone never establishes
-ownership.
+ownership. Superseded within this ADR by the ADR-0049 integration below.
 
 Fixtures and product-created targets are registered with their stable identities. Cleanup first
 proves that every observed entry belongs to the run, refuses any missing, replaced, or foreign
@@ -111,15 +111,38 @@ Issue #93 and release readiness open.
 There is no previous live harness to remove. ADR-0011 continues to own deterministic Windows
 temporary roots; this decision adds the one separately named live WSL owner it reserved.
 
+## Integration with ADR-0049
+
+ADR-0049 replaced the `FileIdInfo` query for Windows-side WSL entries with the `wsl-v2` tuple read
+by `WindowsWslFileSystem` through `ReadWslFacts`. This harness therefore obtains every identity,
+for `/tmp`, the configured root, the run child, the marker, fixtures, and product-created entries,
+from the production `WindowsWslFileSystem.Find` on the entry's own path; it never calls
+`WindowsFileIdentifier` directly and never derives identity from enumeration. The launcher no
+longer loads the Infrastructure assembly or reflects into a nonpublic identity member; it keeps
+the root-shape, account-home, mount-fact, ephemeral-runsettings, and exact-TRX-count duties, and
+the C# owner alone captures `/tmp` and configured-root identities at fixture start and compares
+them immediately before its first mutation. Deterministic root-safety tests inject the unguarded
+NTFS handle-facts reader through the existing `WindowsWslFileSystem` seam, exactly as
+`WindowsWslFileSystemTests` do. Because a directory's `wsl-v2` token changes whenever its direct
+children change, the owner re-captures an owned directory immediately after each mutation it
+performs and compares against that capture; entry identities of files and links stay stable
+across reads. The live tier gains the ADR-0049 read-only cells: on the configured distribution the
+inode, link count, and change time of an owned fixture equal the values reported by a read-only
+`stat`, a symlink fixture and its target produce different tokens, and an unchanged fixture yields
+the same token after an intervening read. The launcher requires the exact declared number of
+Passed live cases; any skip or absence fails the tier.
+
 ## Executable proof
 
-`LiveWslTestRootTests` proves unset, missing admission values, malformed, unregistered, unsafe-name,
-nonempty, runner/C# identity mismatch, root-link, root replacement, ownership-marker replacement,
-foreign residue, owned-link cleanup, and cleanup refusal behavior against
-`TestOwnedTemporaryRoot`. `LiveWslTransferTests` defines the required nested copy, composite move,
-byte and declared kind/entry-set/length equality, source preservation or deletion at the proper
-step, exact effects, link refusal with zero effects, and final cleanup assertions. Those three
-live cells are unexecuted because of Issue #105. The existing CS-010 gate proof continues to reject direct environment access in
+`LiveWslTestRootTests` proves unset, missing admission facts, malformed, unregistered, unsafe-name,
+nonempty, ancestor-link, root-link, run-child replacement, configured-root replacement,
+ancestor-turned-link, ownership-marker replacement including a byte-identical one, owned-fixture
+rewrite that restores length and last-write time, foreign residue during setup and cleanup,
+owned-link cleanup, and repeated-identity behavior against `TestOwnedTemporaryRoot` through the
+unguarded NTFS handle-facts seam. `LiveWslTransferTests` defines the required nested copy,
+composite move, byte and declared kind/entry-set/length equality, source preservation or deletion
+at the proper step, exact effects, link refusal with zero effects, and final cleanup assertions.
+`LiveWslIdentityTests` defines the ADR-0049 read-only cells above. The existing CS-010 gate proof continues to reject direct environment access in
 test code. A focused launcher proof verifies XML escaping, ephemeral runsettings cleanup, exact
 filtering, and an unset unexecuted result without changing the canonical gate. Focused tests, the
 affected Infrastructure project, Commit mode, deep review, the final canonical Ready gate, and the

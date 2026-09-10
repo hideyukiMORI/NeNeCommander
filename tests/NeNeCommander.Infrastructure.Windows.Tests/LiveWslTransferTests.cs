@@ -11,26 +11,22 @@ using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Defines the required but currently unexecuted live same-distribution WSL assertions.</summary>
+/// <summary>Defines the required live same-distribution WSL transfer assertions.</summary>
 [TestClass]
 [DoNotParallelize]
 public sealed class LiveWslTransferTests
 {
-    private const string RootParameterName = "NENE_COMMANDER_WSL_TEST_ROOT";
-    private const string TemporaryRootIdentityParameterName = "NENE_COMMANDER_WSL_TMP_IDENTITY";
-    private const string ConfiguredRootIdentityParameterName = "NENE_COMMANDER_WSL_ROOT_IDENTITY";
-    private const string HomeFactParameterName = "NENE_COMMANDER_WSL_HOME_FACT";
-    private const string MountFactParameterName = "NENE_COMMANDER_WSL_MOUNT_FACT";
-
     /// <summary>Gets the MSTest context carrying the ephemeral opt-in root parameter.</summary>
     public TestContext? TestContext { get; set; }
 
     /// <summary>Requires nested copy to preserve exact bytes, declared tree shape, and its source.</summary>
+    /// <returns>The running assertion.</returns>
     [TestMethod]
     [TestCategory("LiveWsl")]
     public async Task ExecuteAsyncWhenLiveNestedCopyCompletesPreservesSourceAndTargetAsync()
     {
-        LiveWslTestRoot root = await OpenAsync();
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
         try
         {
             WslPath source = root.CreateDirectory("copy-source");
@@ -38,14 +34,14 @@ public sealed class LiveWslTransferTests
             _ = root.WriteFile("copy-source/nested/payload.bin", [13, 10, 0, 42]);
             IReadOnlyList<LiveWslDeclaredEntry> declaredSource = root.ReadDeclaredTree("copy-source");
             WslPath destination = root.CreateDirectory("copy-destination");
-            RequireEffectBoundary(root);
+            LiveWslRunFixture.RequireEffectBoundary(root);
             using FileOperationGateway gateway = CreateGateway();
 
             FileOperationOutcome outcome = await gateway.ExecuteAsync(
                 Copy(source, destination),
                 IgnoredFileOperationProgress.Create(),
                 CancellationToken.None);
-            RecordOutcome("copy", outcome);
+            RecordOutcome(context, "copy", outcome);
 
             root.AdoptCopiedTree(
                 "copy-destination/copy-source",
@@ -64,16 +60,18 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            RequireCleanup(root);
+            LiveWslRunFixture.RequireCleanup(context, root);
         }
     }
 
     /// <summary>Requires composite move to delete its source only after verified exact-byte copy.</summary>
+    /// <returns>The running assertion.</returns>
     [TestMethod]
     [TestCategory("LiveWsl")]
     public async Task ExecuteAsyncWhenLiveCompositeMoveCompletesDeletesSourceAfterVerifiedTargetAsync()
     {
-        LiveWslTestRoot root = await OpenAsync();
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
         try
         {
             WslPath source = root.CreateDirectory("move-source");
@@ -81,14 +79,14 @@ public sealed class LiveWslTransferTests
             _ = root.WriteFile("move-source/nested/payload.bin", [3, 0, 9]);
             IReadOnlyList<LiveWslDeclaredEntry> declaredSource = root.ReadDeclaredTree("move-source");
             WslPath destination = root.CreateDirectory("move-destination");
-            RequireEffectBoundary(root);
+            LiveWslRunFixture.RequireEffectBoundary(root);
             using FileOperationGateway gateway = CreateGateway();
 
             FileOperationOutcome outcome = await gateway.ExecuteAsync(
                 Move(source, destination),
                 IgnoredFileOperationProgress.Create(),
                 CancellationToken.None);
-            RecordOutcome("move", outcome);
+            RecordOutcome(context, "move", outcome);
 
             root.AdoptMovedTree(
                 "move-source",
@@ -109,18 +107,20 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            RequireCleanup(root);
+            LiveWslRunFixture.RequireCleanup(context, root);
         }
     }
 
     /// <summary>Requires an owned source link to be rejected with zero effects and remain unchanged.</summary>
+    /// <returns>The running assertion.</returns>
     [TestMethod]
     [TestCategory("LiveWsl")]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-004")]
     public async Task ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync()
     {
-        LiveWslTestRoot root = await OpenAsync();
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
         try
         {
             WslPath sentinel = root.WriteFile("sentinel.bin", [21, 34, 55]);
@@ -128,14 +128,14 @@ public sealed class LiveWslTransferTests
             _ = root.WriteFile("link-source/payload.bin", [1, 1, 2, 3, 5]);
             _ = root.CreateFileSymbolicLink("link-source/sentinel-link.bin", "sentinel.bin");
             WslPath destination = root.CreateDirectory("link-destination");
-            RequireEffectBoundary(root);
+            LiveWslRunFixture.RequireEffectBoundary(root);
             using FileOperationGateway gateway = CreateGateway();
 
             FileOperationOutcome outcome = await gateway.ExecuteAsync(
                 Copy(source, destination),
                 IgnoredFileOperationProgress.Create(),
                 CancellationToken.None);
-            RecordOutcome("link-refusal", outcome);
+            RecordOutcome(context, "link-refusal", outcome);
 
             Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
             Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
@@ -148,36 +148,8 @@ public sealed class LiveWslTransferTests
         }
         finally
         {
-            RequireCleanup(root);
+            LiveWslRunFixture.RequireCleanup(context, root);
         }
-    }
-
-    private async Task<LiveWslTestRoot> OpenAsync()
-    {
-        LiveWslRootAdmission admission = LiveWslRootAdmission.Create(
-            ReadParameter(RootParameterName),
-            ReadParameter(TemporaryRootIdentityParameterName),
-            ReadParameter(ConfiguredRootIdentityParameterName),
-            ReadParameter(HomeFactParameterName),
-            ReadParameter(MountFactParameterName));
-        LiveWslRootOpenOutcome outcome = await LiveWslTestRoot.OpenAsync(admission, CancellationToken.None);
-        if (outcome is LiveWslRootOpenRejected { Failure: var failure })
-        {
-            if (failure == LiveWslRootFailureKind.Unexecuted)
-            {
-                Assert.Inconclusive("LiveWsl:Unexecuted:RootParameterAbsent");
-            }
-            Assert.Fail("LiveWsl:RootRejected:" + failure.GetType().Name);
-        }
-        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(outcome).Root;
-        TestContext!.WriteLine("LiveWsl setup=Opened provider=Wsl root=redacted identity=redacted");
-        return root;
-    }
-
-    private string? ReadParameter(string name)
-    {
-        TestContext context = TestContext ?? throw new InvalidOperationException("MSTest did not provide TestContext.");
-        return context.Properties.TryGetValue(name, out object? value) ? value as string : null;
     }
 
     private static FileOperationGateway CreateGateway()
@@ -200,14 +172,8 @@ public sealed class LiveWslTransferTests
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(creation).Request);
     }
 
-    private static void RequireEffectBoundary(LiveWslTestRoot root)
+    private static void RecordOutcome(TestContext context, string operation, FileOperationOutcome outcome)
     {
-        _ = Assert.IsInstanceOfType<LiveWslRootCheckAccepted>(root.VerifyForEffect());
-    }
-
-    private void RecordOutcome(string operation, FileOperationOutcome outcome)
-    {
-        TestContext context = TestContext ?? throw new InvalidOperationException("MSTest did not provide TestContext.");
         string effects = string.Join(',', outcome.Effects.Select(effect => effect.Kind.GetType().Name));
         context.WriteLine(
             "LiveWsl operation=" + operation +
@@ -216,17 +182,8 @@ public sealed class LiveWslTransferTests
             " effects=" + effects);
     }
 
-    private void RequireCleanup(LiveWslTestRoot root)
+    private TestContext RequireContext()
     {
-        LiveWslRootCleanupOutcome cleanup = root.Cleanup();
-        if (cleanup is LiveWslRootCleanupRejected rejected)
-        {
-            TestContext!.WriteLine(
-                "LiveWsl cleanup=Rejected provider=Wsl root=redacted identity=redacted failure=" +
-                rejected.Failure.GetType().Name);
-            Assert.Fail("LiveWsl:CleanupRejected:" + rejected.Failure.GetType().Name);
-        }
-        _ = Assert.IsInstanceOfType<LiveWslRootCleanupCompleted>(cleanup);
-        TestContext!.WriteLine("LiveWsl cleanup=Completed provider=Wsl root=redacted identity=redacted");
+        return TestContext ?? throw new InvalidOperationException("MSTest did not provide TestContext.");
     }
 }
