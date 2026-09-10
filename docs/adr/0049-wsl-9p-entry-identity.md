@@ -92,8 +92,11 @@ fix its root identity.
   copy verification, deletion, and the Issue #93 harness comes from `ReadWslFacts` on the entry's
   own handle. Mixing the two forms is prohibited because they disagree at mount points.
 - **Unopenable mounts close the operation.** An entry that cannot be opened through the share
-  (drvfs `/mnt/<drive>` today) reports `ProviderUnavailable`; the adapter does not fall back to
-  enumeration data, to `wsl.exe`, or to the Windows local provider.
+  (drvfs `/mnt/<drive>` today, which answers `ERROR_ACCESS_DENIED`) reports the failure that the
+  shared Windows failure normalizer already assigns to that error, `AccessDenied`; the adapter
+  does not add a WSL-only normalization and does not fall back to enumeration data, to `wsl.exe`,
+  or to the Windows local provider. (Corrected on 2026-09-11 from `ProviderUnavailable`: the
+  ADV-017 contract maps the observed error to `AccessDenied`, and both are closed failures.)
 - **No distribution epoch is claimed.** The namespace exposes no serial, object identifier, or
   creation time for the share, so a distribution is identified only by its canonical name. A
   recreated distribution with the same name is the same provider; its entries are then different

@@ -46,6 +46,8 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
 | `Ctrl+,` | open the session-owned settings editor from the file list or navigation surface |
 | `Ctrl+P` | open the session-owned command palette from the file list or navigation surface |
+| `Ctrl+B` | open the session-owned bookmark manager from the file list or navigation surface |
+| `Ctrl+1` through `Ctrl+9` | navigate the active pane to the bookmark assigned to that fixed slot; an unassigned slot performs no read |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 

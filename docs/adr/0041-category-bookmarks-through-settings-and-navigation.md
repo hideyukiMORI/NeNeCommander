@@ -318,8 +318,10 @@ the release environmental tier in Issue #94.
 Integration tests for the rebased head prove the precedence above in both directions: an open
 palette ignores `OpenBookmarks` and every slot; an open Bookmarks modal ignores `OpenCommandPalette`,
 `FocusAddress`, `AddressFocusSubmission`, and `OpenSettings`; an active address editor ignores
-`OpenBookmarks` and every slot without changing the edited text; `PaneLaunching` freezes both the
-manager and the slots; a successful direct and manager navigation each append one history location
+`OpenBookmarks` and every slot without changing the edited text; `PaneLaunching` keeps the manager
+from opening and keeps every slot from navigating (a manager navigation during a pending launch is
+unreachable because a launch cannot start while the modal owns input, so no separate manager freeze
+exists); a successful direct and manager navigation each append one history location
 and truncate Forward while a failed one leaves the history unchanged; and a palette submission naming
 `OpenBookmarks` or a slot is rejected without dispatch.
 
