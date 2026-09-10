@@ -25,6 +25,8 @@ internal sealed class LiveWslTestRoot
     private readonly WindowsWslFileSystem _fileSystem;
     private readonly Func<WslPath, string> _resolvePath;
     private readonly Action<WslPath, WslPath> _createLink;
+    private readonly Action<WslPath> _unlinkEntry;
+    private readonly Dictionary<string, WslPath> _linkTargets;
     private readonly WslPath _configuredRoot;
     private LiveWslRootEntry _configuredRootEntry;
 
@@ -35,6 +37,7 @@ internal sealed class LiveWslTestRoot
         WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath,
         Action<WslPath, WslPath> createLink,
+        Action<WslPath> unlinkEntry,
         IReadOnlyList<LiveWslRootEntry> outerAncestors,
         Dictionary<string, LiveWslRootEntry> ownedEntries)
     {
@@ -44,6 +47,8 @@ internal sealed class LiveWslTestRoot
         _fileSystem = fileSystem;
         _resolvePath = resolvePath;
         _createLink = createLink;
+        _unlinkEntry = unlinkEntry;
+        _linkTargets = new Dictionary<string, WslPath>(StringComparer.Ordinal);
         _outerAncestors = outerAncestors;
         _ownedEntries = ownedEntries;
     }
@@ -74,7 +79,8 @@ internal sealed class LiveWslTestRoot
                 succeeded.Roots,
                 new WindowsWslFileSystem(),
                 static path => path.CanonicalText,
-                LiveWslLinkFixture.Create)
+                LiveWslLinkFixture.Create,
+                LiveWslLinkFixture.Unlink)
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.DistributionUnavailable);
     }
 
@@ -88,19 +94,22 @@ internal sealed class LiveWslTestRoot
     /// <param name="fileSystem">Production WSL file system that owns every identity.</param>
     /// <param name="resolvePath">Namespace mapping used for setup, evidence, and cleanup.</param>
     /// <param name="createLink">Creates one link fixture from its target and link path.</param>
+    /// <param name="unlinkEntry">Removes one link entry without following it.</param>
     /// <returns>The opened owner or a closed rejection.</returns>
     internal static LiveWslRootOpenOutcome Open(
         LiveWslRootAdmission admission,
         IReadOnlyList<WslPath> registeredRoots,
         WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath,
-        Action<WslPath, WslPath> createLink)
+        Action<WslPath, WslPath> createLink,
+        Action<WslPath> unlinkEntry)
     {
         ArgumentNullException.ThrowIfNull(admission);
         ArgumentNullException.ThrowIfNull(registeredRoots);
         ArgumentNullException.ThrowIfNull(fileSystem);
         ArgumentNullException.ThrowIfNull(resolvePath);
         ArgumentNullException.ThrowIfNull(createLink);
+        ArgumentNullException.ThrowIfNull(unlinkEntry);
         if (admission.ConfiguredRoot is not string configuredRoot)
         {
             return new LiveWslRootOpenRejected(LiveWslRootFailureKind.Unexecuted);
@@ -126,7 +135,7 @@ internal sealed class LiveWslTestRoot
 
         try
         {
-            return OpenVerified(root, fileSystem, resolvePath, createLink);
+            return OpenVerified(root, fileSystem, resolvePath, createLink, unlinkEntry);
         }
         catch (UnauthorizedAccessException)
         {
@@ -197,6 +206,7 @@ internal sealed class LiveWslTestRoot
         // link entry from the Windows side without following it.
         _createLink(target, path);
         Register(path);
+        _linkTargets.Add(_resolvePath(path), target);
         return path;
     }
 
@@ -365,19 +375,33 @@ internal sealed class LiveWslTestRoot
             {
                 return new LiveWslRootCleanupRejected(rejected.Failure);
             }
+
+            // ADR-0043/ADR-0049 cleanup order. First every owned link entry is removed without
+            // following it, and the owner proves the entry is gone and its target unchanged.
             foreach (LiveWslRootEntry link in _ownedEntries.Values
                 .Where(entry => entry.Kind == LiveWslRootEntryKind.Link)
                 .ToArray())
             {
-                File.Delete(link.ResolvedPath);
-                _ = _ownedEntries.Remove(link.ResolvedPath);
-                RecaptureOwnedDirectory(Parent(link.Path));
+                if (UnlinkOwnedEntry(link) is LiveWslRootCleanupRejected rejectedUnlink)
+                {
+                    return rejectedUnlink;
+                }
+            }
+
+            // Second, the run child is re-enumerated without following links; any remaining
+            // reparse entry, owned or foreign, refuses the recursive removal.
+            if (LiveWslRootFileSystem.EnumerateTree(RunRoot, _fileSystem, _resolvePath)
+                .Any(entry => entry.Kind == LiveWslRootEntryKind.Link))
+            {
+                return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.LinkDetected);
             }
             LiveWslRootCheckOutcome afterUnlink = VerifyForEffect();
             if (afterUnlink is LiveWslRootCheckRejected rejectedAfterUnlink)
             {
                 return new LiveWslRootCleanupRejected(rejectedAfterUnlink.Failure);
             }
+
+            // Only now is the link-free run child removed from the Windows side.
             Directory.Delete(_resolvePath(RunRoot), recursive: true);
 
             // The configured root lost its only direct child, so its own token changed with it.
@@ -403,7 +427,8 @@ internal sealed class LiveWslTestRoot
         WslPath root,
         WindowsWslFileSystem fileSystem,
         Func<WslPath, string> resolvePath,
-        Action<WslPath, WslPath> createLink)
+        Action<WslPath, WslPath> createLink,
+        Action<WslPath> unlinkEntry)
     {
         WslPath temporaryRoot = (WslPath)(root.Parent ?? throw new InvalidOperationException("Missing parent."));
         WslPath distributionRoot = (WslPath)(temporaryRoot.Parent ?? throw new InvalidOperationException("Missing root."));
@@ -476,9 +501,36 @@ internal sealed class LiveWslTestRoot
                 fileSystem,
                 resolvePath,
                 createLink,
+                unlinkEntry,
                 outerAncestors,
                 owned))
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.IdentityChanged);
+    }
+
+    private LiveWslRootCleanupRejected? UnlinkOwnedEntry(LiveWslRootEntry link)
+    {
+        if (_fileSystem.Find(link.Path) is not WslFileSystemEntry observed ||
+            LiveWslRootFileSystem.EntryKind(observed) != LiveWslRootEntryKind.Link ||
+            !_linkTargets.TryGetValue(link.ResolvedPath, out WslPath? target) ||
+            !_ownedEntries.TryGetValue(_resolvePath(target), out LiveWslRootEntry? targetEntry))
+        {
+            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
+        }
+
+        // `unlink` removes the link entry itself and never follows it.
+        _unlinkEntry(link.Path);
+        if (_fileSystem.Find(link.Path) is not null)
+        {
+            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.CleanupFailed);
+        }
+        if (LiveWslRootFileSystem.VerifyEntries([targetEntry], _fileSystem) is LiveWslRootCheckRejected)
+        {
+            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
+        }
+        _ = _ownedEntries.Remove(link.ResolvedPath);
+        _ = _linkTargets.Remove(link.ResolvedPath);
+        RecaptureOwnedDirectory(Parent(link.Path));
+        return null;
     }
 
     private static WslPath Parent(WslPath path)

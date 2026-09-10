@@ -25,7 +25,8 @@ public sealed class LiveWslTestRootTests
             [],
             RejectingFileSystem(),
             RejectResolution,
-            RejectLinkCreation);
+            RejectLinkCreation,
+            RejectUnlink);
 
         LiveWslRootOpenRejected rejected = Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome);
         Assert.AreSame(LiveWslRootFailureKind.Unexecuted, rejected.Failure);
@@ -41,19 +42,22 @@ public sealed class LiveWslTestRootTests
             registered,
             RejectingFileSystem(),
             RejectResolution,
-            RejectLinkCreation);
+            RejectLinkCreation,
+            RejectUnlink);
         LiveWslRootOpenOutcome unsafeRoot = LiveWslTestRoot.Open(
             Admission("\\\\wsl.localhost\\Ubuntu\\home\\NeNeCommander-Live-Proof"),
             registered,
             RejectingFileSystem(),
             RejectResolution,
-            RejectLinkCreation);
+            RejectLinkCreation,
+            RejectUnlink);
         LiveWslRootOpenOutcome unregistered = LiveWslTestRoot.Open(
             Admission("\\\\wsl.localhost\\Debian\\tmp\\NeNeCommander-Live-Proof"),
             registered,
             RejectingFileSystem(),
             RejectResolution,
-            RejectLinkCreation);
+            RejectLinkCreation,
+            RejectUnlink);
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
@@ -83,7 +87,8 @@ public sealed class LiveWslTestRootTests
             [WslRoot(DistributionName)],
             RejectingFileSystem(),
             RejectResolution,
-            RejectLinkCreation);
+            RejectLinkCreation,
+            RejectUnlink);
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
@@ -273,6 +278,81 @@ public sealed class LiveWslTestRootTests
         Assert.IsEmpty(Directory.GetFileSystemEntries(host.Resolve(ConfiguredRelative(string.Empty))));
     }
 
+    /// <summary>
+    /// Proves a link entry that survives its unlink stops cleanup before the recursive removal,
+    /// so a tree containing a link is never partially deleted.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void CleanupWhenLinkSurvivesUnlinkRefusesRecursiveDelete()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(
+            Open(host, static _ => { })).Root;
+        _ = root.WriteFile("sentinel.txt", [1, 2, 3]);
+        _ = root.CreateFileSymbolicLink("source/link", "sentinel.txt");
+
+        LiveWslRootCleanupOutcome outcome = root.Cleanup();
+
+        Assert.AreSame(
+            LiveWslRootFailureKind.CleanupFailed,
+            Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
+        Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+        Assert.IsTrue(File.Exists(host.Resolve(ConfiguredRelative(RunName + "\\sentinel.txt"))));
+    }
+
+    /// <summary>Proves an unlink that removes the link target refuses instead of continuing.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void CleanupWhenUnlinkRemovesLinkTargetRefusesRecursiveDelete()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslRootOpenOutcome opened = Open(host, link =>
+        {
+            File.Delete(Resolve(host, link));
+            File.Delete(host.Resolve(ConfiguredRelative(RunName + "\\sentinel.txt")));
+        });
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(opened).Root;
+        _ = root.WriteFile("sentinel.txt", [1, 2, 3]);
+        _ = root.CreateFileSymbolicLink("source/link", "sentinel.txt");
+
+        LiveWslRootCleanupOutcome outcome = root.Cleanup();
+
+        Assert.AreSame(
+            LiveWslRootFailureKind.IdentityChanged,
+            Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
+        Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+    }
+
+    /// <summary>Proves any reparse entry left in the run child refuses the recursive removal.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-004")]
+    public void CleanupWhenReparseEntryRemainsRefusesRecursiveDelete()
+    {
+        using TestOwnedTemporaryRoot host = CreateHost();
+        LiveWslRootOpenOutcome opened = Open(host, link =>
+        {
+            File.Delete(Resolve(host, link));
+            _ = File.CreateSymbolicLink(
+                host.Resolve(ConfiguredRelative(RunName + "\\foreign-link.txt")),
+                host.Resolve(ConfiguredRelative(RunName + "\\sentinel.txt")));
+        });
+        LiveWslTestRoot root = Assert.IsInstanceOfType<LiveWslRootOpened>(opened).Root;
+        _ = root.WriteFile("sentinel.txt", [1, 2, 3]);
+        _ = root.CreateFileSymbolicLink("source/link", "sentinel.txt");
+
+        LiveWslRootCleanupOutcome outcome = root.Cleanup();
+
+        Assert.AreSame(
+            LiveWslRootFailureKind.LinkDetected,
+            Assert.IsInstanceOfType<LiveWslRootCleanupRejected>(outcome).Failure);
+        Assert.IsTrue(Directory.Exists(host.Resolve(ConfiguredRelative(RunName))));
+        Assert.IsTrue(File.Exists(host.Resolve(ConfiguredRelative(RunName + "\\sentinel.txt"))));
+    }
+
     /// <summary>Proves replacing the run child is not mistaken for retained ownership.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -417,15 +497,20 @@ public sealed class LiveWslTestRootTests
 
     private static LiveWslRootOpenOutcome Open(TestOwnedTemporaryRoot host)
     {
+        return Open(host, link => File.Delete(Resolve(host, link)));
+    }
+
+    private static LiveWslRootOpenOutcome Open(TestOwnedTemporaryRoot host, Action<WslPath> unlinkEntry)
+    {
         // The deterministic root injects the unguarded NTFS handle-facts reader through the
-        // existing WindowsWslFileSystem seam, exactly as WindowsWslFileSystemTests do.
+        // existing WindowsWslFileSystem seam, exactly as WindowsWslFileSystemTests do. It has no
+        // distribution, so its link fixture is an NTFS symbolic link created and removed through
+        // the same seams the live owner fills with `ln -s` and `unlink`.
         string Resolved(WslPath path)
         {
             return Resolve(host, path);
         }
 
-        // The deterministic root has no distribution, so its link fixture is an NTFS symbolic
-        // link created through the same seam the live owner fills with `ln -s`.
         void CreateLink(WslPath target, WslPath link)
         {
             _ = File.CreateSymbolicLink(Resolved(link), Resolved(target));
@@ -436,7 +521,8 @@ public sealed class LiveWslTestRootTests
             [WslRoot(DistributionName)],
             new WindowsWslFileSystem(Resolved, WindowsFileIdentifier.ReadHandleFacts),
             Resolved,
-            CreateLink);
+            CreateLink,
+            unlinkEntry);
     }
 
     private static WindowsWslFileSystem RejectingFileSystem()
@@ -462,6 +548,11 @@ public sealed class LiveWslTestRootTests
     private static void RejectLinkCreation(WslPath target, WslPath link)
     {
         throw new AssertFailedException("Unsafe input reached link creation: " + link.LinuxPath.Length);
+    }
+
+    private static void RejectUnlink(WslPath link)
+    {
+        throw new AssertFailedException("Unsafe input reached unlink: " + link.LinuxPath.Length);
     }
 
     private static string RejectResolution(WslPath path)

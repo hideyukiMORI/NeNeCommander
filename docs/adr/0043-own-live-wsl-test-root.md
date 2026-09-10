@@ -146,14 +146,31 @@ entry from the Windows side without following it and proves that the target surv
 the live tier and removing the link cells from this ADR were rejected because the first changes
 the gate's privilege model and the second drops an Issue #93 acceptance cell.
 
+The Windows namespace cannot unlink a Linux symlink through 9P: `File.Delete` on the link entry
+fails with `ERROR_PATH_NOT_FOUND` for absolute and relative targets alike while the target
+survives, and `Directory.Delete(recursive: true)` removes ordinary entries and then fails at the
+link, leaving a partially deleted tree. Cleanup therefore proceeds in a fixed order. First, for
+each owned entry whose current `WindowsWslFileSystem.Find` reports the `link` kind, the owner runs
+the same fixed argument-list `wsl.exe --distribution <distribution> --exec unlink -- <link>`
+runner used for fixture creation; `unlink` never follows a link, and the owner then proves the
+link entry is gone and the target's identity is unchanged. Second, the owner re-enumerates the run
+child without following links and refuses cleanup if any reparse entry remains, foreign or owned.
+Only then does it remove the run child recursively from the Windows side. `ln -s` and `unlink`
+are the only two `wsl.exe` writes the harness performs; both are confined to entries proven to
+lie inside the owned run child, and neither is a product path. The product adapter is unaffected:
+it already refuses to delete a link entry or a tree containing one, so no partial deletion can
+occur through `FileOperationGateway`; deleting Windows-side WSL link entries remains an
+unimplemented capability that needs its own ADR.
+
 ## Executable proof
 
 `LiveWslTestRootTests` proves unset, missing admission facts, malformed, unregistered, unsafe-name,
 nonempty, ancestor-link, root-link, run-child replacement, configured-root replacement,
 ancestor-turned-link, ownership-marker replacement including a byte-identical one, owned-fixture
 rewrite that restores length and last-write time, foreign residue during setup and cleanup,
-owned-link cleanup, and repeated-identity behavior against `TestOwnedTemporaryRoot` through the
-unguarded NTFS handle-facts seam. `LiveWslTransferTests` defines the required nested copy,
+owned-link cleanup, a link that survives its unlink, an unlink that removes the link target, a
+reparse entry left in the run child, and repeated-identity behavior against
+`TestOwnedTemporaryRoot` through the unguarded NTFS handle-facts seam. `LiveWslTransferTests` defines the required nested copy,
 composite move, byte and declared kind/entry-set/length equality, source preservation or deletion
 at the proper step, exact effects, link refusal with zero effects, and final cleanup assertions.
 `LiveWslIdentityTests` defines the ADR-0049 read-only cells above. The existing CS-010 gate proof continues to reject direct environment access in
