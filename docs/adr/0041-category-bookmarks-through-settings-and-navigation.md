@@ -236,8 +236,52 @@ parser, registry fallback, repair write, or compatibility file is added.
 ADR-0040 remains authoritative for atomic write ownership, identity checks, filesystem effects,
 cancellation, ordered queue shutdown, and persistence warnings. ADR-0010, ADR-0012, and ADR-0013
 remain authoritative for provider reads, active-pane navigation, and pane ownership. Issue #100
-tracks window movement and resizing shortcuts; Issue #101 tracks `Ctrl+P` command search. Neither
-feature is implemented here.
+tracks window movement and resizing shortcuts; ADR-0047 owns `Ctrl+P` command search. Neither
+feature is changed here.
+
+## Integration with decisions accepted after this proposal
+
+This decision was proposed before ADR-0044 (address input), ADR-0045 (pane history), ADR-0046
+(Windows file launch), ADR-0047 (command palette), and ADR-0048 (mutation tier) were accepted on
+`main`. The rebase onto that baseline resolves each interaction as follows. Every item is a contract
+that the same change proves with focused tests; none of them adds a second route or a bookmark
+specific rule.
+
+- **One modal precedence.** `CommanderSession.HandleAsync` keeps a single ordering: an open command
+  palette handles the intent first (ADR-0047), then an open Settings modal, then an open Bookmarks
+  modal, then an active address editor (ADR-0044), and only then idle dispatch. `OpenBookmarks`,
+  `BookmarkShortcutSelection`, and `BookmarkNavigationSelection` are therefore ignored while the
+  palette or the address editor owns input, and `OpenCommandPalette`, `FocusAddress`,
+  `AddressFocusSubmission`, and `OpenSettings` are ignored while the Bookmarks modal is open. The
+  direct-slot resolution moves from the head of `HandleAsync` into idle dispatch so that it can never
+  precede the palette or address owner. Manager navigation is handled only inside the Bookmarks
+  branch, as before.
+- **Freeze conditions include a pending launch.** `BookmarkInteractionIsFrozen` treats
+  `PaneLaunching` on either pane (ADR-0046) as frozen in addition to the existing running-operation,
+  confirmation, name-entry, conflict, and `PaneLoading` conditions. No bookmark modal opens and no
+  slot navigates while a Shell handoff is pending. The palette open admission is not changed by
+  this decision; the ordering above already excludes the palette while Bookmarks is open.
+- **History follows the shared navigation path.** A successful bookmark navigation, direct or from
+  the manager, reaches `PaneSession.NavigateAsync` unchanged and therefore appends one location to
+  the active pane's `PaneNavigationHistory` and truncates Forward exactly as ADR-0045 specifies. A
+  failed, cancelled, or stale-rejected bookmark navigation leaves the history unchanged.
+- **Bookmark commands stay outside the command catalog.** `OpenBookmarks` and the nine slot intents
+  are not members of `CommandCatalog`; ADR-0047 declares bookmark commands outside its first catalog,
+  and a palette submission naming them is rejected by the existing membership check. Adding
+  `OpenBookmarks` to the catalog is a separate follow-up Issue that revises ADR-0047's ordered list.
+  This change does not alter the catalog, its order, its availability rules, or the palette overlay.
+- **Keyboard contexts are unchanged.** `Ctrl+B` and `Ctrl+1` through `Ctrl+9` remain declared only
+  in `FileList` and `NavigationSurface`. They are not declared in the address-entry, command-palette,
+  or any modal context, and their hints appear only in the manager. KBD-005 collision analysis covers
+  the union with `Ctrl+L`, `Alt+Left`, `Alt+Right`, and `Ctrl+P`.
+- **Only isolating-host mutation evidence counts.** Every mutation figure recorded for this branch
+  before ADR-0048 came from the MTP runner and is not evidence, including the isolated "35/35 killed"
+  run. The rebased head is measured only with the isolating VSTest host declared in
+  `stryker-config.json`; thresholds, mutation level, exclusions, and the runner declaration are
+  unchanged.
+- **No synthesized native input.** The earlier native smoke attempts that would drive the window
+  with synthesized keyboard input are withdrawn and not repeated. Runtime evidence for the manager
+  remains Issue #94's environmental tier.
 
 ## Executable proof
 
@@ -270,6 +314,14 @@ the two locale resource sets aligned and retain the named AutomationIds. The app
 artifact shows the adopted structure but does not prove native WinUI focus, Enter/Space/Escape behavior,
 high contrast, DPI, or narrow-width rendering. Those real-window checks remain separately tracked under
 the release environmental tier in Issue #94.
+
+Integration tests for the rebased head prove the precedence above in both directions: an open
+palette ignores `OpenBookmarks` and every slot; an open Bookmarks modal ignores `OpenCommandPalette`,
+`FocusAddress`, `AddressFocusSubmission`, and `OpenSettings`; an active address editor ignores
+`OpenBookmarks` and every slot without changing the edited text; `PaneLaunching` freezes both the
+manager and the slots; a successful direct and manager navigation each append one history location
+and truncate Forward while a failed one leaves the history unchanged; and a palette submission naming
+`OpenBookmarks` or a slot is rejected without dispatch.
 
 Because versioned untrusted JSON, persisted paths, command routing, and filesystem-mutation
 preflight all change, the exact final head requires the security deep-review workflow in addition to
