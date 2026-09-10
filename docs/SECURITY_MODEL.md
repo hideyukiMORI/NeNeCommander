@@ -110,7 +110,7 @@ Critical and high findings stop development of unrelated release work until cont
 - Status: **active**
 - Enforcement: repository conformance and negative proof.
 
-Native Windows imports live only in Infrastructure.Windows and use source-generated marshalling. `AllowUnsafeBlocks` is enabled only for that project because the interop generator requires it; handwritten `unsafe` code and enabling unsafe blocks in any other project are prohibited. Interop failures are normalized at the provider boundary and never weaken identity, containment, or collision revalidation.
+Native Windows imports live only in Infrastructure.Windows and use source-generated marshalling. `AllowUnsafeBlocks` is enabled only for that project because the interop generator requires it; handwritten `unsafe` code and enabling unsafe blocks in any other project are prohibited. Interop failures are normalized at the provider boundary and never weaken identity, containment, or collision revalidation. Each identity form keeps exactly one owner: the ADR-0049 `9P` file-system literal and both WSL handle-facts entry points exist only in `WindowsFileIdentifier`, only `WindowsWslFileSystem` reaches the 9P-guarded reader, and no other production file reaches the unguarded reader.
 
 ## Hosting controls required before first push
 

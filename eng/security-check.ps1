@@ -310,6 +310,49 @@ foreach ($file in $nuGetConfigurationFiles) {
     }
 }
 
+# ADR-0049: the Windows-side WSL identity form is selected by the validated provider, so its
+# file-system literal and both native entry points stay inside one owner, and only the WSL
+# file system may reach the 9P-guarded reader. The unguarded reader is production-unreachable.
+$wslIdentityOwner = 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsFileIdentifier.cs'
+$wslIdentityConsumer = 'src/NeNeCommander.Infrastructure.Windows/FileOperations/WindowsWslFileSystem.cs'
+$wslIdentitySurface = [ordered]@{
+    'the 9P file system name' = '"9P"'
+    'ReadWslFacts' = '\bReadWslFacts\b'
+    'ReadHandleFacts' = '\bReadHandleFacts\b'
+}
+$wslIdentityOwnerPresent = $false
+$wslIdentityGuardUsed = $false
+foreach ($file in (Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('src') | Where-Object { $_.Extension -ceq '.cs' })) {
+    $relativePath = Get-SecurityRelativePath -Path $file.FullName
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    if ($relativePath -ceq $wslIdentityOwner) {
+        $wslIdentityOwnerPresent = $true
+        foreach ($surface in $wslIdentitySurface.GetEnumerator()) {
+            if ($content -notmatch $surface.Value) {
+                Add-SecurityViolation -Rule 'SEC-014' -Message "$relativePath must own $($surface.Key)."
+            }
+        }
+        continue
+    }
+
+    foreach ($surface in $wslIdentitySurface.GetEnumerator()) {
+        if ($content -notmatch $surface.Value) {
+            continue
+        }
+        if ($surface.Key -ceq 'ReadWslFacts' -and $relativePath -ceq $wslIdentityConsumer) {
+            $wslIdentityGuardUsed = $true
+            continue
+        }
+        Add-SecurityViolation -Rule 'SEC-014' -Message "$relativePath uses $($surface.Key) outside the WSL identity owner."
+    }
+}
+if (-not $wslIdentityOwnerPresent) {
+    Add-SecurityViolation -Rule 'SEC-014' -Message "The WSL identity owner $wslIdentityOwner is missing."
+}
+if (-not $wslIdentityGuardUsed) {
+    Add-SecurityViolation -Rule 'SEC-014' -Message "$wslIdentityConsumer must obtain identity through the 9P-guarded reader."
+}
+
 if ($null -ne $cases) {
     $caseIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($case in @($cases.cases)) {
