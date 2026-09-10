@@ -1705,6 +1705,43 @@ public sealed class CommanderSessionTests
         Assert.HasCount(1, left.Requests);
     }
 
+    /// <summary>Proves a pending operation modal freezes the bookmark manager and every fixed slot.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenOperationModalOwnsInputFreezesBookmarkInteractionAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSessionWithCatalog(
+            left,
+            right,
+            gateway,
+            Catalog(Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        CommanderSnapshot awaitingName = await session.HandleAsync(
+            UserIntent.Rename,
+            observer,
+            CancellationToken.None);
+
+        CommanderSnapshot managerRefused = await session.HandleAsync(
+            UserIntent.OpenBookmarks,
+            observer,
+            CancellationToken.None);
+        CommanderSnapshot slotRefused = await session.HandleAsync(
+            UserIntent.BookmarkSlotOne,
+            observer,
+            CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<OperationAwaitingName>(awaitingName.Panes.Operation);
+        _ = Assert.IsInstanceOfType<OperationAwaitingName>(slotRefused.Panes.Operation);
+        Assert.AreSame(SettingsEditorState.Closed, managerRefused.Settings.Editor);
+        Assert.AreSame(SettingsEditorState.Closed, slotRefused.Settings.Editor);
+        Assert.HasCount(1, left.Requests);
+        Assert.IsEmpty(right.Requests);
+    }
+
     /// <summary>Proves a pending Shell handoff freezes the bookmark manager and every fixed slot.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenPaneIsLaunchingFreezesBookmarkManagerAndSlotsAsync()

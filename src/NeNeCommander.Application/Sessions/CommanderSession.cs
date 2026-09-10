@@ -72,10 +72,6 @@ public sealed class CommanderSession
             return await HandlePaletteIntentAsync(openPalette, intent, observer, cancellationToken)
                 .ConfigureAwait(false);
         }
-        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0)
-        {
-            return Current;
-        }
         SettingsEditorState editor = _settings.Current.Editor;
         if (editor == SettingsEditorState.Open)
         {
@@ -115,6 +111,10 @@ public sealed class CommanderSession
                 ? Current
                 : await NavigateDirectBookmarkAsync(bookmark, observer, cancellationToken)
                     .ConfigureAwait(false);
+        }
+        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0)
+        {
+            return Current;
         }
         if (intent == UserIntent.FocusAddress)
         {
