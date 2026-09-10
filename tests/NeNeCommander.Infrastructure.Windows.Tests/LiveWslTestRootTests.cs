@@ -15,6 +15,7 @@ public sealed class LiveWslTestRootTests
     private const string ConfiguredName = "NeNeCommander-Live-Proof";
     private const string RunName = "NeNeCommander-Live-Run";
     private const string MarkerName = ".nene-commander-owner";
+    private const uint DirectoryAttribute = 0x00000010;
 
     /// <summary>Proves an omitted opt-in is reported as unexecuted without filesystem access.</summary>
     [TestMethod]
@@ -353,6 +354,32 @@ public sealed class LiveWslTestRootTests
         Assert.IsTrue(File.Exists(host.Resolve(ConfiguredRelative(RunName + "\\sentinel.txt"))));
     }
 
+    /// <summary>
+    /// Proves why the deterministic seam presents the 9P directory length. Once an NTFS directory
+    /// index stops fitting in its MFT record the handle reports a nonzero length, which the
+    /// ADR-0049 token would reject as a provider anomaly, while a 9P directory always reports zero.
+    /// </summary>
+    [TestMethod]
+    public void ReadProviderShapedFactsWhenNtfsDirectoryIndexIsNonResidentReportsTheWslLength()
+    {
+        using TestOwnedTemporaryRoot host = TestOwnedTemporaryRoot.Create();
+        string directory = host.CreateDirectory("spilled-index");
+        for (int index = 0; index < 256; index++)
+        {
+            _ = host.CreateFile(
+                "spilled-index\\entry-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".txt");
+        }
+
+        WslHandleFacts actual = WindowsFileIdentifier.ReadHandleFacts(directory);
+        WslHandleFacts shaped = ReadProviderShapedFacts(directory);
+
+        Assert.AreNotEqual(0, actual.EndOfFile);
+        Assert.AreEqual(0, shaped.EndOfFile);
+        Assert.AreEqual(actual.Inode, shaped.Inode);
+        Assert.AreEqual(actual.NumberOfLinks, shaped.NumberOfLinks);
+        Assert.AreEqual(actual.ChangeFileTimeUtc, shaped.ChangeFileTimeUtc);
+    }
+
     /// <summary>Proves replacing the run child is not mistaken for retained ownership.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -519,10 +546,36 @@ public sealed class LiveWslTestRootTests
         return LiveWslTestRoot.Open(
             Admission(ConfiguredWslText()),
             [WslRoot(DistributionName)],
-            new WindowsWslFileSystem(Resolved, WindowsFileIdentifier.ReadHandleFacts),
+            new WindowsWslFileSystem(Resolved, ReadProviderShapedFacts),
             Resolved,
             CreateLink,
             unlinkEntry);
+    }
+
+    /// <summary>
+    /// Reads the real NTFS handle facts and presents the one field where NTFS and 9P disagree in
+    /// the 9P shape. ADR-0049 measured that a 9P directory always reports length zero, so the
+    /// token treats a nonzero directory length as a provider anomaly and fails closed. NTFS
+    /// instead reports the size of the <c>$I30</c> index allocation once a directory's index stops
+    /// fitting in its MFT record, which depends on the entry count and the cluster size of the
+    /// agent's volume. Only that field is normalized; inode, attributes, reparse tag, link count,
+    /// and both timestamps stay exactly as the handle reported them.
+    /// </summary>
+    /// <param name="path">Existing NTFS path of the entry to read.</param>
+    /// <returns>The facts snapshot in the shape the WSL provider would report.</returns>
+    private static WslHandleFacts ReadProviderShapedFacts(string path)
+    {
+        WslHandleFacts facts = WindowsFileIdentifier.ReadHandleFacts(path);
+        return (facts.Attributes & DirectoryAttribute) == 0 || facts.EndOfFile == 0
+            ? facts
+            : new WslHandleFacts(
+                facts.Inode,
+                facts.Attributes,
+                facts.ReparseTag,
+                0,
+                facts.NumberOfLinks,
+                facts.LastWriteFileTimeUtc,
+                facts.ChangeFileTimeUtc);
     }
 
     private static WindowsWslFileSystem RejectingFileSystem()
