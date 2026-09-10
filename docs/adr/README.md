@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0049: Identify Windows-side WSL entries through one provider-scoped 9P identity](0049-wsl-9p-entry-identity.md)
 - [ADR-0048: Execute the mutation tier through an isolating VSTest host](0048-mutation-tier-test-execution.md)
 - [ADR-0047: Search and dispatch existing commands through one session-owned palette](0047-search-and-dispatch-existing-commands.md)
 - [ADR-0046: Launch Windows local files through the Shell association](0046-launch-windows-local-files-through-shell-association.md)
