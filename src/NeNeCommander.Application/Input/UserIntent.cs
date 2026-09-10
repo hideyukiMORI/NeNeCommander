@@ -1,5 +1,7 @@
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Input;
@@ -29,6 +31,12 @@ public abstract record UserIntent
 
     /// <summary>Gets the intent to navigate to the parent location.</summary>
     public static UserIntent NavigateParent { get; } = new NavigateParentIntent();
+
+    /// <summary>Gets the intent to navigate to the previous successful location.</summary>
+    public static UserIntent NavigateBack { get; } = new NavigateBackIntent();
+
+    /// <summary>Gets the intent to navigate to the next successful location.</summary>
+    public static UserIntent NavigateForward { get; } = new NavigateForwardIntent();
 
     /// <summary>Gets the intent to open the focused item.</summary>
     public static UserIntent OpenFocused { get; } = new OpenFocusedIntent();
@@ -71,6 +79,9 @@ public abstract record UserIntent
 
     /// <summary>Gets the intent to open the session-owned settings editor.</summary>
     public static UserIntent OpenSettings { get; } = new OpenSettingsIntent();
+
+    /// <summary>Gets the intent to open the session-owned command palette.</summary>
+    public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
 
     /// <summary>Gets the intent to open the session-owned bookmark catalog editor.</summary>
     public static UserIntent OpenBookmarks { get; } = new OpenBookmarksIntent();
@@ -123,6 +134,36 @@ public abstract record UserIntent
         return new NameSubmission(name);
     }
 
+    /// <summary>Creates an address-edit start intent for the pane whose native control received focus.</summary>
+    public static UserIntent BeginAddressEdit(PaneSide side)
+    {
+        return new AddressFocusSubmission(side);
+    }
+
+    /// <summary>Creates an address submission carrying untrusted native editor text verbatim.</summary>
+    public static UserIntent SubmitAddress(AddressEditorState expectedState, string rawText)
+    {
+        return new AddressSubmission(expectedState, rawText);
+    }
+
+    /// <summary>Creates a focus-departure intent qualified by the editor state that lost focus.</summary>
+    public static UserIntent LeaveAddress(AddressEditorState expectedState)
+    {
+        return new AddressFocusDeparture(expectedState);
+    }
+
+    /// <summary>Creates a palette selection qualified by the exact open state that owns it.</summary>
+    public static UserIntent SubmitCommand(CommandPaletteOpen expectedState, UserIntent selectedIntent)
+    {
+        return new CommandPaletteSubmission(expectedState, selectedIntent);
+    }
+
+    /// <summary>Creates a palette cancellation qualified by the exact open state that owns it.</summary>
+    public static UserIntent CancelCommandPalette(CommandPaletteOpen expectedState)
+    {
+        return new CommandPaletteCancellation(expectedState);
+    }
+
     /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
     public static UserIntent ResolveConflict(
         TransferConflictDecision decision,
@@ -166,6 +207,8 @@ public abstract record UserIntent
     private sealed record MoveHalfPageDownIntent : UserIntent;
     private sealed record MoveHalfPageUpIntent : UserIntent;
     private sealed record NavigateParentIntent : UserIntent;
+    private sealed record NavigateBackIntent : UserIntent;
+    private sealed record NavigateForwardIntent : UserIntent;
     private sealed record OpenFocusedIntent : UserIntent;
     private sealed record ActivateOtherPaneIntent : UserIntent;
     private sealed record ToggleSelectionIntent : UserIntent;
@@ -180,5 +223,6 @@ public abstract record UserIntent
     private sealed record RefreshIntent : UserIntent;
     private sealed record ConfirmIntent : UserIntent;
     private sealed record OpenSettingsIntent : UserIntent;
+    private sealed record OpenCommandPaletteIntent : UserIntent;
     private sealed record OpenBookmarksIntent : UserIntent;
 }

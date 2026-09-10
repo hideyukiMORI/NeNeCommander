@@ -62,6 +62,8 @@ Each port supports deterministic failure at preflight, first item, middle item, 
 
 Stryker.NET runs at `Complete` mutation level with no baseline. Domain and Application must score at least 95%; Infrastructure and Presentation must score at least 90%. Surviving mutants are fixed with behavior tests or simpler code; they are not excluded to satisfy the threshold.
 
+Stryker.NET runs with `test-runner: vstest` declared once in `stryker-config.json`, and every mutation test project references `Microsoft.NET.Test.Sdk` so the isolating VSTest host is present (ADR-0048). The pinned MTP runner reuses one host across mutants and does not attribute coverage per test, so its verdicts depend on process scheduling rather than on assertion strength. Canonical test execution stays on Microsoft.Testing.Platform under ADR-0006; only the mutation tier uses the isolating host.
+
 ### TST-009 — Coverage is branch-based and ratcheted
 
 - Status: **active**

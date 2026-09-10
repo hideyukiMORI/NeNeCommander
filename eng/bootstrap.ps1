@@ -9,8 +9,8 @@ Push-Location $root
 
 try {
     $sdkVersion = (& dotnet --version).Trim()
-    if ($LASTEXITCODE -ne 0 -or $sdkVersion -cne '10.0.400') {
-        throw "Install .NET SDK 10.0.400 before bootstrapping. Actual active SDK: '$sdkVersion'."
+    if ($LASTEXITCODE -ne 0 -or $sdkVersion -cne '10.0.401') {
+        throw "Install .NET SDK 10.0.401 before bootstrapping. Actual active SDK: '$sdkVersion'."
     }
 
     & git rev-parse --is-inside-work-tree *> $null

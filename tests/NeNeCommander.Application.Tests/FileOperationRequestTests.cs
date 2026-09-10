@@ -110,6 +110,37 @@ public sealed class FileOperationRequestTests
             Assert.IsInstanceOfType<FileOperationRequestRejected>(outcome).Kind);
     }
 
+    /// <summary>Proves any matching member rejects a mixed multi-source transfer.</summary>
+    [TestMethod]
+    public void CreateWhenOneOfSeveralSourcesMatchesDestinationDestinationIsSourceRejection()
+    {
+        FileSystemPath first = ParsePath("C:\\first");
+        FileSystemPath matching = ParsePath("C:\\matching");
+
+        FileOperationRequestCreation outcome = MoveRequest.Create(
+            [first, matching],
+            ParsePath("c:\\matching"));
+
+        Assert.AreSame(
+            FileOperationRequestFailureKind.DestinationIsSource,
+            Assert.IsInstanceOfType<FileOperationRequestRejected>(outcome).Kind);
+    }
+
+    /// <summary>Proves source-set rejection precedes destination identity rejection.</summary>
+    [TestMethod]
+    public void CreateWhenSourcesAreDuplicateAndDestinationMatchesDuplicateSourceDuplicateSourceRejection()
+    {
+        FileSystemPath source = ParsePath("C:\\source");
+
+        FileOperationRequestCreation outcome = MoveRequest.Create(
+            [source, ParsePath("c:\\source")],
+            source);
+
+        Assert.AreSame(
+            FileOperationRequestFailureKind.DuplicateSource,
+            Assert.IsInstanceOfType<FileOperationRequestRejected>(outcome).Kind);
+    }
+
     /// <summary>Proves a copy shares the transfer validation and freezes its destination.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

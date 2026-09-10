@@ -44,10 +44,13 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.F7, KeyboardModifier.None, UserIntent.CreateDirectory),
         new(KeyboardContext.FileList, KeyboardKey.F8, KeyboardModifier.None, UserIntent.Delete),
         new(KeyboardContext.FileList, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
+        new(KeyboardContext.FileList, KeyboardKey.Left, KeyboardModifier.Alt, UserIntent.NavigateBack),
+        new(KeyboardContext.FileList, KeyboardKey.Right, KeyboardModifier.Alt, UserIntent.NavigateForward),
         new(KeyboardContext.FileList, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.FileList, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.FileList, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
@@ -61,10 +64,13 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.Nine, KeyboardModifier.Control, UserIntent.BookmarkSlotNine),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Refresh),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Up, KeyboardModifier.Alt, UserIntent.NavigateParent),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.Left, KeyboardModifier.Alt, UserIntent.NavigateBack),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.Right, KeyboardModifier.Alt, UserIntent.NavigateForward),
         new(KeyboardContext.NavigationSurface, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
         new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.NavigationSurface, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.NavigationSurface, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
@@ -79,10 +85,24 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.TextEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.AddressEntry, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.AddressEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.AddressEntry, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
     ];
+
+    private static readonly IReadOnlyList<CommandPaletteKeyBinding> DeclaredPaletteBindings =
+        Array.AsReadOnly<CommandPaletteKeyBinding>(
+    [
+        new(KeyboardKey.Up, CommandPaletteKeyAction.MovePrevious),
+        new(KeyboardKey.Down, CommandPaletteKeyAction.MoveNext),
+        new(KeyboardKey.Enter, CommandPaletteKeyAction.Execute),
+        new(KeyboardKey.Escape, CommandPaletteKeyAction.Cancel),
+        new(KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus),
+    ]);
 
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
+    private bool _paletteEnterRepeatGuardActive;
 
     /// <summary>Initializes the mapper with a monotonic clock used only for chord expiry.</summary>
     /// <param name="clock">Monotonic clock.</param>
@@ -106,6 +126,10 @@ public sealed class KeyboardIntentMapper
         return declared.AsReadOnly();
     }
 
+    /// <summary>Gets the keys owned by the Presentation palette state in stable order.</summary>
+    public static IReadOnlyList<CommandPaletteKeyBinding> CommandPaletteBindings { get; } =
+        DeclaredPaletteBindings;
+
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
@@ -121,10 +145,38 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
+        if (input.Key == KeyboardKey.Enter &&
+            input.RepeatState == KeyRepeatState.Repeated &&
+            _paletteEnterRepeatGuardActive)
+        {
+            _pendingChordStartedAt = null;
+            return new KeyboardConsumed();
+        }
+        if (input.Key == KeyboardKey.Enter && input.RepeatState == KeyRepeatState.Initial)
+        {
+            _paletteEnterRepeatGuardActive = false;
+        }
+        if (input.Context == KeyboardContext.CommandPalette)
+        {
+            _pendingChordStartedAt = null;
+            KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
+            if (outcome is MappedCommandPaletteAction mapped &&
+                mapped.Action == CommandPaletteKeyAction.Execute)
+            {
+                _paletteEnterRepeatGuardActive = true;
+            }
+            return outcome;
+        }
         if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
             _pendingChordStartedAt = null;
             return MapOwnedKey(input);
+        }
+
+        if (input.Context == KeyboardContext.AddressEntry)
+        {
+            _pendingChordStartedAt = null;
+            return MapDeclaredKey(input);
         }
 
         if (input.Key == KeyboardKey.Other)
@@ -170,9 +222,27 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static KeyboardMappingOutcome MapOwnedKey(KeyboardInput input)
     {
+        if (input.Context == KeyboardContext.Modal &&
+            input.Key == KeyboardKey.Enter &&
+            input.RepeatState == KeyRepeatState.Repeated)
+        {
+            return new KeyboardConsumed();
+        }
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
         return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+    }
+
+    private static KeyboardMappingOutcome MapCommandPaletteKey(KeyboardInput input)
+    {
+        CommandPaletteKeyBinding? binding = DeclaredPaletteBindings.FirstOrDefault(binding =>
+            binding.Key == input.Key);
+        return binding is null
+            ? new KeyboardPassThrough()
+            : binding.Action == CommandPaletteKeyAction.Execute &&
+                input.RepeatState == KeyRepeatState.Repeated
+                    ? new KeyboardConsumed()
+                    : new MappedCommandPaletteAction(binding.Action);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)

@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -16,6 +17,9 @@ internal static class PaneActivityStatusPresenter
             PaneLoading => PaneStatus.Loading,
             PaneReadCancelled => PaneStatus.Cancelled,
             PaneReadFailed failed => PresentFailure(failed.Failure),
+            PaneLaunching => PaneStatus.Launching,
+            PaneLaunchCancelled => PaneStatus.LaunchCancelled,
+            PaneLaunchFailed failed => PresentLaunchFailure(failed.Failure),
             _ => idleStatus,
         };
     }
@@ -27,5 +31,16 @@ internal static class PaneActivityStatusPresenter
             : failure == FileOperationFailureKind.NotFound
                 ? PaneStatus.NotFound
                 : PaneStatus.ProviderUnavailable;
+    }
+
+    private static PaneStatus PresentLaunchFailure(FileLaunchFailureKind failure)
+    {
+        return failure == FileLaunchFailureKind.NotFound
+            ? PaneStatus.LaunchNotFound
+            : failure == FileLaunchFailureKind.AccessDenied
+                ? PaneStatus.LaunchAccessDenied
+                : failure == FileLaunchFailureKind.AssociationUnavailable
+                    ? PaneStatus.AssociationUnavailable
+                    : PaneStatus.LaunchUnavailable;
     }
 }

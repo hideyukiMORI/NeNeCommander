@@ -1,8 +1,8 @@
 namespace NeNeCommander.Application.Panes;
 
 /// <summary>
-/// Represents the closed read activity of one pane: idle, loading a target, or the typed
-/// result of the most recent read that did not replace the content.
+/// Represents the closed external activity of one pane: idle, reading or launching a target, or
+/// the typed result of the most recent read or launch that did not replace the content.
 /// </summary>
 public abstract record PaneActivity
 {
@@ -10,7 +10,7 @@ public abstract record PaneActivity
     {
     }
 
-    /// <summary>Gets the activity of a pane with no read in flight and no unreported result.</summary>
+    /// <summary>Gets the activity of a pane with no work in flight and no unreported result.</summary>
     public static PaneActivity Idle { get; } = new PaneIdle();
 
     private sealed record PaneIdle : PaneActivity;

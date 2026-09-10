@@ -6,6 +6,9 @@
     <TestingExtensionsProfile>Default</TestingExtensionsProfile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../src/NeNeCommander.Application/NeNeCommander.Application.csproj" />
     <ProjectReference Include="../../src/NeNeCommander.Domain/NeNeCommander.Domain.csproj" />
   </ItemGroup>

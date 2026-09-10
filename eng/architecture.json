@@ -36,25 +36,25 @@
       "name": "NeNeCommander.Domain.Tests",
       "path": "tests/NeNeCommander.Domain.Tests/NeNeCommander.Domain.Tests.csproj",
       "projectReferences": ["NeNeCommander.Domain"],
-      "packageReferences": []
+      "packageReferences": ["Microsoft.NET.Test.Sdk"]
     },
     {
       "name": "NeNeCommander.Application.Tests",
       "path": "tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj",
       "projectReferences": ["NeNeCommander.Application", "NeNeCommander.Domain"],
-      "packageReferences": []
+      "packageReferences": ["Microsoft.NET.Test.Sdk"]
     },
     {
       "name": "NeNeCommander.Infrastructure.Windows.Tests",
       "path": "tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj",
       "projectReferences": ["NeNeCommander.Application", "NeNeCommander.Domain", "NeNeCommander.Infrastructure.Windows"],
-      "packageReferences": []
+      "packageReferences": ["Microsoft.NET.Test.Sdk"]
     },
     {
       "name": "NeNeCommander.Presentation.WinUI.Tests",
       "path": "tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj",
       "projectReferences": ["NeNeCommander.Presentation.WinUI"],
-      "packageReferences": []
+      "packageReferences": ["Microsoft.NET.Test.Sdk"]
     },
     {
       "name": "NeNeCommander.Architecture.Tests",

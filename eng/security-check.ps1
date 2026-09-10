@@ -95,6 +95,18 @@ if ($null -ne $policy) {
             [int] $mutationProject.breakAt -ne [int] $expectedMutationProjects[$mutationPath]) {
             Add-SecurityViolation -Rule 'TST-008' -Message "Mutation threshold is missing or weakened for $mutationPath."
         }
+
+        # ADR-0048: the mutation tier runs through an isolating VSTest host, so every mutation
+        # test project must carry the VSTest adapter and test host alongside the canonical MTP runner.
+        $mutationProjectName = [System.IO.Path]::GetFileNameWithoutExtension($mutationPath)
+        $mutationTestProjectPath = "tests/$mutationProjectName.Tests/$mutationProjectName.Tests.csproj"
+        $mutationTestProjectFullPath = Join-Path $root $mutationTestProjectPath
+        if (-not (Test-Path -LiteralPath $mutationTestProjectFullPath -PathType Leaf)) {
+            Add-SecurityViolation -Rule 'TST-008' -Message "Mutation test project $mutationTestProjectPath is missing."
+        }
+        elseif ((Get-Content -LiteralPath $mutationTestProjectFullPath -Raw) -notmatch '<PackageReference\s+Include="Microsoft\.NET\.Test\.Sdk"\s*/>') {
+            Add-SecurityViolation -Rule 'TST-008' -Message "Mutation test project $mutationTestProjectPath must reference Microsoft.NET.Test.Sdk for the isolating VSTest host."
+        }
     }
 
     $allowedActionRepositories = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
@@ -351,7 +363,7 @@ $strykerConfigPath = Join-Path $root 'stryker-config.json'
 if (Test-Path -LiteralPath $strykerConfigPath -PathType Leaf) {
     $strykerConfig = (Get-Content -LiteralPath $strykerConfigPath -Raw | ConvertFrom-Json).'stryker-config'
     if ($strykerConfig.'mutation-level' -cne 'Complete' -or
-        $strykerConfig.'test-runner' -cne 'mtp' -or
+        $strykerConfig.'test-runner' -cne 'vstest' -or
         $strykerConfig.'break-on-initial-test-failure' -ne $true -or
         $strykerConfig.thresholds.high -ne 100 -or
         $strykerConfig.thresholds.low -ne 95 -or

@@ -80,6 +80,53 @@ public static class PaneReducer
     }
 
     /// <summary>
+    /// Commits one successful read to the pane's location history. An absent previous state seeds
+    /// history; refresh and same-location reads retain it; Back and Forward move its cursor; and a
+    /// normal distinct navigation truncates the forward suffix before appending.
+    /// </summary>
+    internal static PaneState CommitNavigation(
+        PaneState? previousState,
+        PaneState navigatedState,
+        PaneNavigationAction action)
+    {
+        ArgumentNullException.ThrowIfNull(navigatedState);
+        ArgumentNullException.ThrowIfNull(action);
+        if (previousState is null)
+        {
+            return navigatedState;
+        }
+        if (action == PaneNavigationAction.Preserve ||
+            FileSystemPathIdentityComparer.Instance.Equals(previousState.Location, navigatedState.Location))
+        {
+            return navigatedState.WithNavigationHistory(previousState.NavigationHistory);
+        }
+        if (action == PaneNavigationAction.Append)
+        {
+            return CommitAppendedNavigation(previousState, navigatedState);
+        }
+
+        int offset = action == PaneNavigationAction.Back ? -1 : 1;
+        PaneNavigationHistory previousHistory = previousState.NavigationHistory;
+        PaneNavigationHistory moved = PaneNavigationHistory.Create(
+            previousHistory.Locations,
+            previousHistory.CurrentIndex + offset);
+        return navigatedState.WithNavigationHistory(moved);
+    }
+
+    private static PaneState CommitAppendedNavigation(PaneState previousState, PaneState navigatedState)
+    {
+        PaneNavigationHistory previousHistory = previousState.NavigationHistory;
+        List<FileSystemPath> locations = [.. previousHistory.Locations.Take(previousHistory.CurrentIndex + 1)];
+        locations.Add(navigatedState.Location);
+        if (locations.Count > PaneNavigationHistory.LocationLimit)
+        {
+            locations.RemoveAt(0);
+        }
+        PaneNavigationHistory appended = PaneNavigationHistory.Create(locations, locations.Count - 1);
+        return navigatedState.WithNavigationHistory(appended);
+    }
+
+    /// <summary>
     /// Applies another hidden-item visibility to the same location. The focus item is kept when it
     /// stays visible and otherwise moves to the nearest visible entry, and every selected item that
     /// is no longer visible leaves the selection.
