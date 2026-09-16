@@ -8,6 +8,11 @@ States are `proposed`, `accepted`, `superseded`, or `rejected`. An accepted ADR 
 
 An ADR is required for project-graph changes, a new dependency, a canonical-mechanism change, a provider-policy change, a protected API exception, a coverage exclusion, or a gate change. An ADR cannot authorize suppressions, silent destructive behavior, or skipping the canonical gate.
 
+## Proposed decisions
+
+- [ADR-0051: Split transient scopes out of `CommanderSession` into scope owners](0051-commander-session-scope-owners.md) (proposed 2026-09-16; prerequisite of ADR-0050)
+- [ADR-0050: Adjust the window through one session-owned adjustment mode](0050-window-adjustment-mode.md) (proposed 2026-09-16 for Issue #100)
+
 ## Accepted decisions
 
 - [ADR-0049: Identify Windows-side WSL entries through one provider-scoped 9P identity](0049-wsl-9p-entry-identity.md)
