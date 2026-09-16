@@ -52,14 +52,16 @@ notification.
 - **Two scope owners, `CommandPaletteSession` and `AddressEditorSession`, take the state and
   validation of their scopes.** Each owns its closed state record (`CommandPaletteState`,
   `AddressEditorState`) under one lock, exposes its current state, and exposes the operations
-  its scope needs: `Open` with the pane snapshot the admission rule reads, `Validate` of an
-  expected-state-qualified intent against the current state, the current pane snapshot, and one
-  closed `InteractionOwnership` value (`ScopeOwnsInput` or `AnotherScopeOwnsInput`) that
-  `CommanderSession` derives from the settings and the other scope's state, and `Close`. Each
-  returns a closed result that tells the caller what happened and, for a qualified submission,
-  which intent or which parsed target the session must now route. No parameter list exceeds
-  four, no parameter is a boolean, and neither owner references `DualPaneSession`,
-  `SettingsSession`, or the other owner's types, and neither performs a pane effect.
+  its scope needs: `Open` with the current pane snapshot and one closed `InteractionOwnership` value
+  (`ScopeOwnsInput` or `AnotherScopeOwnsInput`), `Validate` of an expected-state-qualified intent
+  against the current state, the current pane snapshot, and the same `InteractionOwnership` value,
+  and `Close`. `CommanderSession` derives `InteractionOwnership` from its own freeze predicates, the
+  in-flight pane work, the settings editor state, and the other scope's state, so no owner
+  duplicates a freeze predicate; the address owner's `Open` also takes the requested `PaneSide`.
+  Each returns a closed result that tells the caller what happened and, for a qualified submission,
+  which intent or which parsed target the session must now route. No parameter list exceeds four, no
+  parameter is a boolean, and neither owner references `DualPaneSession`, `SettingsSession`, or the
+  other owner's types, and neither performs a pane effect.
 - **`CommanderSession` keeps dispatch, precedence, freeze, and every pane effect, and the
   owner's state is final before any effect.** It still decides which scope owns the next intent,
   still calls its one private dispatch path for a validated palette intent exactly once, still
