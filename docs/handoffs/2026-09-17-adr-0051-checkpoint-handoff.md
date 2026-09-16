@@ -9,7 +9,7 @@ Fable 5 セッションの NeNeリナが設計・判断・文書、Opus 5 のバ
 
 ## main の状態
 
-- baseline: 本 docs 閉塞 PR の squash commit（merge 後に確定）。その下に `634906f`（09-16 docs 閉塞）、`9c96f58`
+- baseline: 本 docs 閉塞 PR #137 の squash commit（merge 後に確定）。その下に `634906f`（09-16 docs 閉塞）、`9c96f58`
   （#130 Stryker 5.0.0）、`0867971`（#129 CodeQL action）、`e7c89d2`（#93）。
 - 真の score（main deep `35120031829`、Stryker 5.0.0 vstest）: Domain 95.52% / Application 95.87% /
   Infrastructure.Windows 90.86% / Presentation.WinUI 94.30%。Domain の余裕は 1 mutant。
