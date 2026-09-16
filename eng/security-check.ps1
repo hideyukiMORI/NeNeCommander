@@ -397,8 +397,8 @@ $toolManifestPath = Join-Path $root '.config/dotnet-tools.json'
 if (Test-Path -LiteralPath $toolManifestPath -PathType Leaf) {
     $toolManifest = Get-Content -LiteralPath $toolManifestPath -Raw | ConvertFrom-Json
     $strykerTool = $toolManifest.tools.'dotnet-stryker'
-    if ($strykerTool.version -cne '4.16.0' -or $strykerTool.rollForward -ne $false) {
-        Add-SecurityViolation -Rule 'TST-008' -Message 'dotnet-stryker must be pinned to 4.16.0 with roll-forward disabled.'
+    if ($strykerTool.version -cne '5.0.0' -or $strykerTool.rollForward -ne $false) {
+        Add-SecurityViolation -Rule 'TST-008' -Message 'dotnet-stryker must be pinned to 5.0.0 with roll-forward disabled.'
     }
 }
 
