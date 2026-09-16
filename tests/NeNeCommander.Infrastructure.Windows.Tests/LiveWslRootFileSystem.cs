@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -97,10 +98,9 @@ internal static class LiveWslRootFileSystem
         while (pending.Count > 0)
         {
             WslPath directory = pending.Pop();
-            foreach (string resolved in Directory.EnumerateFileSystemEntries(resolvePath(directory)))
+            foreach (WslPath child in Directory.EnumerateFileSystemEntries(resolvePath(directory))
+                .Select(resolved => LiveWslRootPath.Child(directory, System.IO.Path.GetFileName(resolved))))
             {
-                string name = System.IO.Path.GetFileName(resolved);
-                WslPath child = LiveWslRootPath.Child(directory, name);
                 LiveWslRootEntry childEntry = CaptureEntry(child, fileSystem, resolvePath);
                 entries.Add(childEntry);
                 if (childEntry.Kind == LiveWslRootEntryKind.Directory)
