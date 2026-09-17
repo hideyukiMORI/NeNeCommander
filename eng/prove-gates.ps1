@@ -155,7 +155,7 @@ try {
         param($caseRoot)
         $path = Join-Path $caseRoot 'global.json'
         $content = Get-Content -LiteralPath $path -Raw
-        $content = $content.Replace('"MSTest.Sdk": "4.4.0"', '"MSTest.Sdk": "4.3.3"')
+        $content = $content.Replace('"MSTest.Sdk": "4.4.1"', '"MSTest.Sdk": "4.4.0"')
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
