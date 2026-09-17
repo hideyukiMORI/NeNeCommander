@@ -384,7 +384,8 @@ public sealed class CommandPalettePresenterTests
             new SettingsSession(
                 new SuccessfulSettingsStore(),
                 SettingsReadOutcome.Absent(),
-                static _ => { }));
+                static _ => { }),
+            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         if (passiveListing is not null)
         {
@@ -394,7 +395,7 @@ public sealed class CommandPalettePresenterTests
             UserIntent.OpenCommandPalette,
             new SilentCommanderObserver(),
             CancellationToken.None);
-        return Assert.IsInstanceOfType<CommandPaletteOpen>(snapshot.CommandPalette);
+        return Assert.IsInstanceOfType<CommandPaletteOpen>(snapshot.Scopes.CommandPalette);
     }
 
     private static DirectoryListing Listing(string location, string name)

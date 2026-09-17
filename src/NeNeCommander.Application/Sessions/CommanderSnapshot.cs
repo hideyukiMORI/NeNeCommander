@@ -4,23 +4,20 @@ using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Sessions;
 
-/// <summary>Represents the complete immutable pane and settings state of the application session.</summary>
+/// <summary>Represents the complete immutable pane, settings, and transient scope state of the application session.</summary>
 public sealed record CommanderSnapshot
 {
     internal CommanderSnapshot(
         DualPaneSnapshot panes,
         SettingsSnapshot settings,
-        AddressEditorState addressEditor,
-        CommandPaletteState commandPalette)
+        TransientScopeSnapshot scopes)
     {
         ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(addressEditor);
-        ArgumentNullException.ThrowIfNull(commandPalette);
+        ArgumentNullException.ThrowIfNull(scopes);
         Panes = panes;
         Settings = settings;
-        AddressEditor = addressEditor;
-        CommandPalette = commandPalette;
+        Scopes = scopes;
     }
 
     /// <summary>Gets the dual-pane state and file-operation activity.</summary>
@@ -29,9 +26,6 @@ public sealed record CommanderSnapshot
     /// <summary>Gets the settings editor and persistence state.</summary>
     public SettingsSnapshot Settings { get; }
 
-    /// <summary>Gets the application-owned address editor state.</summary>
-    public AddressEditorState AddressEditor { get; }
-
-    /// <summary>Gets the application-owned command palette state.</summary>
-    public CommandPaletteState CommandPalette { get; }
+    /// <summary>Gets the state of every transient scope the session coordinates.</summary>
+    public TransientScopeSnapshot Scopes { get; }
 }

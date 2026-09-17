@@ -1,13 +1,14 @@
 # ADR-0051: Split transient scopes out of `CommanderSession` into scope owners
 
-Status: proposed
+Status: accepted
 
 Date: 2026-09-16
 
-Proposed by the NeNe Commander design owner under hide's delegated authority for its own Issue
-(number assigned at filing), as the prerequisite of ADR-0050 (Issue #100). The split was listed
-as a follow-up candidate awaiting hide's approval in the 2026-09-11 handoff; it is proposed now
-because the next change that grows `CommanderSession` cannot honour QLT-010 without it.
+Accepted for Issue #135 on 2026-09-17 by the NeNe Commander design owner under hide's delegated
+authority, after hide approved starting the split on 2026-09-17. It is the prerequisite of
+ADR-0050 (Issue #100). The split was listed as a follow-up candidate awaiting hide's approval in
+the 2026-09-11 handoff; it is accepted now because the next change that grows `CommanderSession`
+cannot honour QLT-010 without it.
 
 ## Context
 
@@ -54,10 +55,15 @@ notification.
   `AddressEditorState`) under one lock, exposes its current state, and exposes the operations
   its scope needs: `Open` with the current pane snapshot and one closed `InteractionOwnership` value
   (`ScopeOwnsInput` or `AnotherScopeOwnsInput`), `Validate` of an expected-state-qualified intent
-  against the current state, the current pane snapshot, and the same `InteractionOwnership` value,
-  and `Close`. `CommanderSession` derives `InteractionOwnership` from its own freeze predicates, the
+  against the current state, the current pane snapshot, and the same `InteractionOwnership` value;
+  every close transition of a scope happens inside one of those operations, so no separate `Close`
+  is exposed. `CommanderSession` derives `InteractionOwnership` from its own freeze predicates, the
   in-flight pane work, the settings editor state, and the other scope's state, so no owner
-  duplicates a freeze predicate; the address owner's `Open` also takes the requested `PaneSide`.
+  duplicates a freeze predicate; the address owner decides admission through `Admit`, which also
+  takes the requested `PaneSide` and changes no state, and opens the admitted capture through
+  `Open` afterwards, because the first ordering named in Context places the session's pane
+  activation between the two; its `Validate` needs no pane snapshot. Every owner operation is
+  total: on a state it does not expect it changes nothing and returns the nothing-to-route result.
   Each returns a closed result that tells the caller what happened and, for a qualified submission,
   which intent or which parsed target the session must now route. No parameter list exceeds four, no
   parameter is a boolean, and neither owner references `DualPaneSession`, `SettingsSession`, or the
@@ -75,8 +81,10 @@ notification.
   `SettingsSession`, and `TransientScopeOwners`, a sealed record holding the palette and address
   owners; `CommanderSnapshot` is constructed from `DualPaneSnapshot`, `SettingsSnapshot`, and
   `TransientScopeSnapshot`, a sealed record holding `AddressEditor` and `CommandPalette`. Both
-  records have an explicit `internal` constructor with `ArgumentNullException.ThrowIfNull`
-  guards and get-only properties, in the form `CommanderSnapshot` already uses; positional
+  records have an explicit constructor with `ArgumentNullException.ThrowIfNull` guards and get-only
+  properties, in the form `CommanderSnapshot` already uses: `internal` for
+  `TransientScopeSnapshot`, which only the session builds, and `public` for `TransientScopeOwners`,
+  which the composition root in App builds exactly as it builds `CommanderSession`; positional
   records and primary constructors stay prohibited (CS-014), and no factory is added because the
   records carry no invariant beyond non-null members (CS-008). Both records are the single place
   a later transient scope is added, so ADR-0050 adds its window-adjustment owner and state there
@@ -124,11 +132,14 @@ notification.
 
 ## Consequences
 
-`CommanderSession` drops to an estimated 220 to 230 logical lines. Two owners of roughly 40 and
-60 lines and two records appear under `Application/Sessions`. Five construction sites change
+`CommanderSession` drops to 261 logical lines as measured. Two owners of 66 logical lines each,
+the two records, `InteractionOwnership`, and the six files of the owners' closed results
+(`AddressEditAdmission` with `AddressEditAdmitted`, `AddressEditorValidation` with
+`AddressTargetAccepted`, and `CommandPaletteValidation` with `CommandPaletteIntentAccepted`)
+appear under `Application/Sessions`, one type per file. Five construction sites change
 (the composition root, the session test factory, two null-guard tests, and one Presentation test
 that builds a session), the null-guard reflection tests take the new constructor signatures, and
-two App reads of the moved snapshot properties follow the new path. Production Domain,
+the App reads of the moved snapshot properties follow the new path. Production Domain,
 Infrastructure.Windows, and Presentation code, and every filesystem, provider, settings,
 resource, and dependency boundary, are unchanged. No native or process boundary is touched, so
 no Issue-specific security deep review is required beyond the scheduled tier. `docs/GLOSSARY.md`

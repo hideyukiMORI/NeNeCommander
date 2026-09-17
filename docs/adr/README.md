@@ -10,11 +10,11 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Proposed decisions
 
-- [ADR-0051: Split transient scopes out of `CommanderSession` into scope owners](0051-commander-session-scope-owners.md) (proposed 2026-09-16; prerequisite of ADR-0050)
 - [ADR-0050: Adjust the window through one session-owned adjustment mode](0050-window-adjustment-mode.md) (proposed 2026-09-16 for Issue #100)
 
 ## Accepted decisions
 
+- [ADR-0051: Split transient scopes out of `CommanderSession` into scope owners](0051-commander-session-scope-owners.md)
 - [ADR-0049: Identify Windows-side WSL entries through one provider-scoped 9P identity](0049-wsl-9p-entry-identity.md)
 - [ADR-0048: Execute the mutation tier through an isolating VSTest host](0048-mutation-tier-test-execution.md)
 - [ADR-0047: Search and dispatch existing commands through one session-owned palette](0047-search-and-dispatch-existing-commands.md)

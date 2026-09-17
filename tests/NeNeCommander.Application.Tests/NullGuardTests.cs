@@ -251,11 +251,14 @@ public sealed class NullGuardTests
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Absent(),
             static _ => { });
+        TransientScopeOwners scopes = new(new AddressEditorSession(), new CommandPaletteSession());
+        TransientScopeSnapshot scopeStates = new(AddressEditorState.Closed, CommandPaletteState.Closed);
         ConstructorInfo commanderConstructor = typeof(CommanderSession).GetConstructor(
-            [typeof(DualPaneSession), typeof(SettingsSession)]) ??
+            [typeof(DualPaneSession), typeof(SettingsSession), typeof(TransientScopeOwners)]) ??
             throw new AssertFailedException("The public application-session constructor was not found.");
-        AssertConstructorNullGuard(commanderConstructor, [null, settings]);
-        AssertConstructorNullGuard(commanderConstructor, [panes, null]);
+        AssertConstructorNullGuard(commanderConstructor, [null, settings, scopes]);
+        AssertConstructorNullGuard(commanderConstructor, [panes, null, scopes]);
+        AssertConstructorNullGuard(commanderConstructor, [panes, settings, null]);
         CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available);
         IReadOnlyList<CommandCandidate> candidates = [candidate];
         CommandPaletteOpen open = new(
@@ -265,16 +268,13 @@ public sealed class NullGuardTests
             candidates);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [null, settings.Current, AddressEditorState.Closed, CommandPaletteState.Closed]);
+            [null, settings.Current, scopeStates]);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [panes.Current, null, AddressEditorState.Closed, CommandPaletteState.Closed]);
+            [panes.Current, null, scopeStates]);
         AssertInternalConstructorNullGuard(
             typeof(CommanderSnapshot),
-            [panes.Current, settings.Current, null, CommandPaletteState.Closed]);
-        AssertInternalConstructorNullGuard(
-            typeof(CommanderSnapshot),
-            [panes.Current, settings.Current, AddressEditorState.Closed, null]);
+            [panes.Current, settings.Current, null]);
         AssertInternalConstructorNullGuard(
             typeof(CommandCandidate),
             [null, CommandAvailability.Available]);
@@ -341,7 +341,8 @@ public sealed class NullGuardTests
             new SettingsSession(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
-                static _ => { }));
+                static _ => { }),
+            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
 
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
@@ -383,7 +384,8 @@ public sealed class NullGuardTests
             new SettingsSession(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
-                static _ => { }));
+                static _ => { }),
+            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
         CommanderSnapshot opened = await commander.HandleAsync(
             UserIntent.OpenSettings,
             new RecordingCommanderObserver(),
@@ -401,6 +403,73 @@ public sealed class NullGuardTests
         Assert.AreSame(SettingsEditorState.Open, opened.Settings.Editor);
         Assert.AreSame(SettingsEditorState.Open, commander.Current.Settings.Editor);
         Assert.IsEmpty(left.Requests);
+    }
+
+    /// <summary>
+    /// Proves both transient scope owners, the records that carry them, and every closed result
+    /// they return reject each absent intent, pane snapshot, and interaction ownership before the
+    /// owner changes its scope state.
+    /// </summary>
+    [TestMethod]
+    public void TransientScopesWhenRequiredArgumentIsNullThrowArgumentNullException()
+    {
+        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
+            VisiblePageCapacity.Create(2)).Capacity;
+        using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
+        DualPaneSession panes = new(
+            new PaneSession(
+                ScriptedDirectoryReadPort.Create(),
+                new ScriptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
+            new PaneSession(
+                ScriptedDirectoryReadPort.Create(),
+                new ScriptedFileLauncher(),
+                capacity,
+                DirectoryListing.EntryBoundaryLimit,
+                HiddenItemVisibility.Hidden),
+            gateway);
+        DualPaneSnapshot snapshot = panes.Current;
+        AddressEditorSession addressEditor = new();
+        CommandPaletteSession commandPalette = new();
+
+        AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(null!, CommandPaletteState.Closed));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(AddressEditorState.Closed, null!));
+        AssertNullGuard(() => _ = commandPalette.Open(null!, InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = commandPalette.Open(snapshot, null!));
+        AssertNullGuard(() => _ = commandPalette.Validate(
+            null!,
+            snapshot,
+            InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = commandPalette.Validate(
+            UserIntent.Escape,
+            null!,
+            InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = commandPalette.Validate(UserIntent.Escape, snapshot, null!));
+        AssertNullGuard(() => _ = addressEditor.Admit(
+            null!,
+            PaneSide.Left,
+            InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = addressEditor.Admit(
+            snapshot,
+            null!,
+            InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = addressEditor.Admit(snapshot, PaneSide.Left, null!));
+        AssertNullGuard(() => _ = addressEditor.Open(null!));
+        AssertNullGuard(() => _ = addressEditor.Validate(null!, InteractionOwnership.ScopeOwnsInput));
+        AssertNullGuard(() => _ = addressEditor.Validate(UserIntent.Escape, null!));
+        AssertInternalConstructorNullGuard(typeof(CommandPaletteIntentAccepted), [null]);
+        AssertInternalConstructorNullGuard(typeof(AddressEditAdmitted), [null]);
+        AssertInternalConstructorNullGuard(
+            typeof(AddressTargetAccepted),
+            [null, ParsePath("C:\\target")]);
+        AssertInternalConstructorNullGuard(typeof(AddressTargetAccepted), [PaneSide.Left, null]);
+
+        Assert.AreSame(AddressEditorState.Closed, addressEditor.Current);
+        Assert.AreSame(CommandPaletteState.Closed, commandPalette.Current);
     }
 
     /// <summary>Proves settings and application-session boundaries reject absent required values.</summary>

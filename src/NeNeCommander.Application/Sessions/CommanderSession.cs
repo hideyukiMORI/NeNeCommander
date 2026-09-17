@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
-using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -12,33 +10,40 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Application.Sessions;
 
 /// <summary>
-/// Coordinates the existing dual-pane session with the session-owned settings, bookmark, address,
-/// and command-palette interactions. Each inner session remains the sole owner of its state; this
-/// coordinator chooses which one receives an intent and freezes lower-precedence work.
+/// Coordinates the existing dual-pane session with the session-owned settings, bookmark, and
+/// transient scope interactions. Each owner remains the sole owner of its state; this coordinator
+/// chooses which one receives an intent, freezes lower-precedence work, and performs every effect.
 /// </summary>
 public sealed class CommanderSession
 {
     private readonly DualPaneSession _panes;
     private readonly SettingsSession _settings;
-    private AddressEditorState _addressEditor;
-    private CommandPaletteState _commandPalette;
+    private readonly TransientScopeOwners _scopes;
     private int _bookmarkNavigationInProgress;
 
-    /// <summary>Initializes the application session over its two declared state owners.</summary>
+    /// <summary>Initializes the application session over its declared state owners.</summary>
     /// <param name="panes">Sole dual-pane coordinator.</param>
     /// <param name="settings">Sole settings interaction owner.</param>
-    public CommanderSession(DualPaneSession panes, SettingsSession settings)
+    /// <param name="scopes">Sole owners of the transient scopes.</param>
+    public CommanderSession(DualPaneSession panes, SettingsSession settings, TransientScopeOwners scopes)
     {
         ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(scopes);
         _panes = panes;
         _settings = settings;
-        _addressEditor = AddressEditorState.Closed;
-        _commandPalette = CommandPaletteState.Closed;
+        _scopes = scopes;
     }
 
     /// <summary>Gets the current complete application-session snapshot.</summary>
-    public CommanderSnapshot Current => new(_panes.Current, _settings.Current, _addressEditor, _commandPalette);
+    public CommanderSnapshot Current
+    {
+        get
+        {
+            TransientScopeSnapshot scopes = new(_scopes.AddressEditor.Current, _scopes.CommandPalette.Current);
+            return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
+        }
+    }
 
     /// <summary>Reads one pane location unless another interaction owns modal input.</summary>
     public async Task<CommanderSnapshot> NavigateAsync(
@@ -50,8 +55,8 @@ public sealed class CommanderSession
         ArgumentNullException.ThrowIfNull(location);
         if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 ||
             _settings.Current.Editor != SettingsEditorState.Closed ||
-            _addressEditor is not AddressEditorClosed ||
-            _commandPalette is CommandPaletteOpen)
+            _scopes.AddressEditor.Current is not AddressEditorClosed ||
+            _scopes.CommandPalette.Current is CommandPaletteOpen)
         {
             return Current;
         }
@@ -67,9 +72,9 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
-        if (_commandPalette is CommandPaletteOpen openPalette)
+        if (_scopes.CommandPalette.Current is CommandPaletteOpen)
         {
-            return await HandlePaletteIntentAsync(openPalette, intent, observer, cancellationToken)
+            return await HandlePaletteIntentAsync(intent, observer, cancellationToken)
                 .ConfigureAwait(false);
         }
         SettingsEditorState editor = _settings.Current.Editor;
@@ -81,7 +86,7 @@ public sealed class CommanderSession
         return editor == SettingsEditorState.Bookmarks
             ? await HandleBookmarksModalIntentAsync(intent, observer, cancellationToken)
                 .ConfigureAwait(false)
-            : _addressEditor is not AddressEditorClosed
+            : _scopes.AddressEditor.Current is not AddressEditorClosed
                 ? await HandleAddressIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false)
                 : await DispatchIdleIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
     }
@@ -334,169 +339,10 @@ public sealed class CommanderSession
         return PaneInteractionIsFrozen() || AnyPaneExternalWorkIsRunning(_panes.Current);
     }
 
-    private void OpenCommandPalette()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        if (PaneInteractionIsFrozen() ||
-            AnyPaneExternalWorkIsRunning(panes) ||
-            panes.Of(panes.ActiveSide).Content is not PaneContentListed)
-        {
-            return;
-        }
-        _commandPalette = new CommandPaletteOpen(
-            panes.Left,
-            panes.Right,
-            panes.ActiveSide,
-            CommandCatalog.Capture(panes));
-    }
-
-    private async Task<CommanderSnapshot> HandlePaletteIntentAsync(
-        CommandPaletteOpen open,
-        UserIntent intent,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        DualPaneSnapshot current = _panes.Current;
-        if (intent is CommandPaletteCancellation cancellation)
-        {
-            if (!ReferenceEquals(open, cancellation.ExpectedState))
-            {
-                return Current;
-            }
-            _commandPalette = PaletteScopeOwnsInput(open, current)
-                ? CommandPaletteState.CloseFocusing(open.ActiveSide)
-                : CommandPaletteState.Closed;
-            return Current;
-        }
-        if (intent is not CommandPaletteSubmission submission ||
-            !ReferenceEquals(open, submission.ExpectedState) ||
-            !CommandCatalog.Contains(submission.SelectedIntent))
-        {
-            return Current;
-        }
-
-        if (!PaletteScopeOwnsInput(open, current))
-        {
-            _commandPalette = CommandPaletteState.Closed;
-            return Current;
-        }
-        CommandCandidate candidate = open.Candidates.First(candidate =>
-            candidate.Intent == submission.SelectedIntent);
-        if (candidate.Availability != CommandAvailability.Available)
-        {
-            return Current;
-        }
-
-        _commandPalette = CommandPaletteState.Closed;
-        return await DispatchIdleIntentAsync(submission.SelectedIntent, observer, cancellationToken)
-            .ConfigureAwait(false);
-    }
-
-    private static bool PaletteScopeIsCurrent(CommandPaletteOpen open, DualPaneSnapshot current)
-    {
-        return current.ActiveSide == open.ActiveSide &&
-            ReferenceEquals(current.Left, open.Left) &&
-            ReferenceEquals(current.Right, open.Right);
-    }
-
-    private bool PaletteScopeOwnsInput(CommandPaletteOpen open, DualPaneSnapshot current)
-    {
-        return PaletteScopeIsCurrent(open, current) &&
-            _settings.Current.Editor == SettingsEditorState.Closed &&
-            _addressEditor is AddressEditorClosed &&
-            !PaneInteractionIsFrozen() &&
-            !AnyPaneExternalWorkIsRunning(current);
-    }
-
     private static bool AnyPaneExternalWorkIsRunning(DualPaneSnapshot panes)
     {
         return panes.Left.Activity is PaneLoading or PaneLaunching ||
             panes.Right.Activity is PaneLoading or PaneLaunching;
-    }
-
-    private async Task<CommanderSnapshot> HandleAddressIntentAsync(
-        UserIntent intent,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        if (intent == UserIntent.FocusAddress)
-        {
-            return Current;
-        }
-        if (intent is AddressFocusSubmission focusedAddress)
-        {
-            return await BeginAddressEditAsync(focusedAddress.Side, observer, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        if (intent == UserIntent.Escape)
-        {
-            PaneSide side = EditorSide(_addressEditor);
-            _addressEditor = AddressEditorState.CloseFocusing(side);
-            return Current;
-        }
-        if (intent is AddressFocusDeparture departure)
-        {
-            if (ReferenceEquals(_addressEditor, departure.ExpectedState))
-            {
-                _addressEditor = AddressEditorState.Closed;
-            }
-            return Current;
-        }
-        return intent is AddressSubmission submission
-            ? await SubmitAddressAsync(submission, cancellationToken).ConfigureAwait(false)
-            : Current;
-    }
-
-    private async Task<CommanderSnapshot> BeginAddressEditAsync(
-        PaneSide side,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        if (AddressSide(_addressEditor) == side)
-        {
-            return Current;
-        }
-        if (PaneInteractionIsFrozen() || AnyPaneReadIsRunning())
-        {
-            return Current;
-        }
-        DualPaneSnapshot panes = _panes.Current;
-        PaneSnapshot requested = SnapshotOf(panes, side);
-        if (requested.Content is not PaneContentListed listed)
-        {
-            return Current;
-        }
-        if (panes.ActiveSide != side)
-        {
-            _ = await _panes.HandleAsync(UserIntent.ActivateOtherPane, observer, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        _addressEditor = new AddressEditing(side, listed.Listing.Location);
-        return Current;
-    }
-
-    private async Task<CommanderSnapshot> SubmitAddressAsync(
-        AddressSubmission submission,
-        CancellationToken cancellationToken)
-    {
-        if (!ReferenceEquals(_addressEditor, submission.ExpectedState) ||
-            PaneInteractionIsFrozen() ||
-            AnyPaneReadIsRunning())
-        {
-            return Current;
-        }
-        PaneSide side = EditorSide(_addressEditor);
-        FileSystemPath original = EditorOriginalLocation(_addressEditor);
-        PathParseOutcome outcome = FileSystemPath.Parse(submission.RawText);
-        if (outcome is PathParseFailure failure)
-        {
-            _addressEditor = new AddressInputRejected(side, original, submission.RawText, failure.Kind);
-            return Current;
-        }
-        FileSystemPath target = ((PathParseSuccess)outcome).Path;
-        _addressEditor = AddressEditorState.CloseFocusing(side);
-        _ = await _panes.NavigateAsync(side, target, cancellationToken).ConfigureAwait(false);
-        return Current;
     }
 
     private bool AnyPaneReadIsRunning()
@@ -505,30 +351,80 @@ public sealed class CommanderSession
         return panes.Left.Activity is PaneLoading || panes.Right.Activity is PaneLoading;
     }
 
-    private static PaneSnapshot SnapshotOf(DualPaneSnapshot panes, PaneSide side)
+    private void OpenCommandPalette()
     {
-        return side == PaneSide.Left ? panes.Left : panes.Right;
+        DualPaneSnapshot panes = _panes.Current;
+        _ = _scopes.CommandPalette.Open(panes, PaletteOwnership(panes));
     }
 
-    private static PaneSide? AddressSide(AddressEditorState state)
+    private async Task<CommanderSnapshot> HandlePaletteIntentAsync(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
     {
-        return state switch
+        DualPaneSnapshot panes = _panes.Current;
+        CommandPaletteValidation validation = _scopes.CommandPalette.Validate(
+            intent,
+            panes,
+            PaletteOwnership(panes));
+        return validation is CommandPaletteIntentAccepted accepted
+            ? await DispatchIdleIntentAsync(accepted.Intent, observer, cancellationToken)
+                .ConfigureAwait(false)
+            : Current;
+    }
+
+    private InteractionOwnership PaletteOwnership(DualPaneSnapshot panes)
+    {
+        return _settings.Current.Editor == SettingsEditorState.Closed &&
+            _scopes.AddressEditor.Current is AddressEditorClosed &&
+            !PaneInteractionIsFrozen() &&
+            !AnyPaneExternalWorkIsRunning(panes)
+                ? InteractionOwnership.ScopeOwnsInput
+                : InteractionOwnership.AnotherScopeOwnsInput;
+    }
+
+    private async Task<CommanderSnapshot> HandleAddressIntentAsync(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        if (intent is AddressFocusSubmission focusedAddress)
         {
-            AddressEditing editing => editing.Side,
-            AddressInputRejected rejected => rejected.Side,
-            _ => null,
-        };
+            return await BeginAddressEditAsync(focusedAddress.Side, observer, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        if (_scopes.AddressEditor.Validate(intent, AddressOwnership()) is not AddressTargetAccepted accepted)
+        {
+            return Current;
+        }
+        _ = await _panes.NavigateAsync(accepted.Side, accepted.Target, cancellationToken)
+            .ConfigureAwait(false);
+        return Current;
     }
 
-    private static PaneSide EditorSide(AddressEditorState state)
+    private async Task<CommanderSnapshot> BeginAddressEditAsync(
+        PaneSide side,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
     {
-        return state is AddressEditing editing ? editing.Side : ((AddressInputRejected)state).Side;
+        DualPaneSnapshot panes = _panes.Current;
+        if (_scopes.AddressEditor.Admit(panes, side, AddressOwnership()) is not AddressEditAdmitted admitted)
+        {
+            return Current;
+        }
+        if (panes.ActiveSide != side)
+        {
+            _ = await _panes.HandleAsync(UserIntent.ActivateOtherPane, observer, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        _ = _scopes.AddressEditor.Open(admitted);
+        return Current;
     }
 
-    private static FileSystemPath EditorOriginalLocation(AddressEditorState state)
+    private InteractionOwnership AddressOwnership()
     {
-        return state is AddressEditing editing
-            ? editing.OriginalLocation
-            : ((AddressInputRejected)state).OriginalLocation;
+        return PaneInteractionIsFrozen() || AnyPaneReadIsRunning()
+            ? InteractionOwnership.AnotherScopeOwnsInput
+            : InteractionOwnership.ScopeOwnsInput;
     }
 }
