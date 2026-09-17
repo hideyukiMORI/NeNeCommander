@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
@@ -40,7 +40,10 @@ public sealed class CommanderSession
     {
         get
         {
-            TransientScopeSnapshot scopes = new(_scopes.AddressEditor.Current, _scopes.CommandPalette.Current);
+            TransientScopeSnapshot scopes = new(
+                _scopes.AddressEditor.Current,
+                _scopes.CommandPalette.Current,
+                _scopes.WindowAdjustment.Current);
             return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
         }
     }
@@ -56,7 +59,8 @@ public sealed class CommanderSession
         if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 ||
             _settings.Current.Editor != SettingsEditorState.Closed ||
             _scopes.AddressEditor.Current is not AddressEditorClosed ||
-            _scopes.CommandPalette.Current is CommandPaletteOpen)
+            _scopes.CommandPalette.Current is CommandPaletteOpen ||
+            _scopes.WindowAdjustment.Current is WindowAdjustmentOpen)
         {
             return Current;
         }
@@ -72,6 +76,10 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
+        if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen)
+        {
+            return Current;
+        }
         if (_scopes.CommandPalette.Current is CommandPaletteOpen)
         {
             return await HandlePaletteIntentAsync(intent, observer, cancellationToken)
@@ -152,8 +160,39 @@ public sealed class CommanderSession
             OpenCommandPalette();
             return Current;
         }
+        if (intent == UserIntent.OpenWindowAdjustment)
+        {
+            OpenWindowAdjustment();
+            return Current;
+        }
         _ = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
         return Current;
+    }
+
+    /// <summary>
+    /// Decides one qualified window adjustment and returns the plan the host applies exactly once.
+    /// It is the mode's declared synchronous input route: it awaits nothing, allocates no
+    /// asynchronous work, and reads and writes only the window-adjustment scope, so it stays
+    /// correct on every key-repeat event while a pane read is pending.
+    /// </summary>
+    /// <param name="request">Action qualified by the expected open state and a fresh placement.</param>
+    /// <returns>The decided plan, or nothing to apply for a stale or closed mode.</returns>
+    public WindowAdjustmentDecision AdjustWindow(WindowAdjustmentRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _scopes.WindowAdjustment.Adjust(request);
+    }
+
+    /// <summary>
+    /// Leaves one qualified open window-adjustment mode and requests the one-time focus return. It
+    /// reads no placement and cannot be refused, so the mode never traps the user.
+    /// </summary>
+    /// <param name="expected">Exact open state the caller last rendered.</param>
+    /// <returns>The window-adjustment state current after this decision.</returns>
+    public WindowAdjustmentState LeaveWindowAdjustment(WindowAdjustmentOpen expected)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        return _scopes.WindowAdjustment.Leave(expected);
     }
 
     /// <summary>Awaits every settings write queued before application shutdown.</summary>
@@ -355,6 +394,24 @@ public sealed class CommanderSession
     {
         DualPaneSnapshot panes = _panes.Current;
         _ = _scopes.CommandPalette.Open(panes, PaletteOwnership(panes));
+    }
+
+    private void OpenWindowAdjustment()
+    {
+        DualPaneSnapshot panes = _panes.Current;
+        _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, WindowOwnership(panes));
+    }
+
+    /// <summary>
+    /// Derives window-mode ownership from the palette scope and the shared idle rule the palette
+    /// already uses. Listed pane content is not part of the rule: a pane whose last read failed
+    /// does not prevent moving the window.
+    /// </summary>
+    private InteractionOwnership WindowOwnership(DualPaneSnapshot panes)
+    {
+        return _scopes.CommandPalette.Current is CommandPaletteOpen
+            ? InteractionOwnership.AnotherScopeOwnsInput
+            : PaletteOwnership(panes);
     }
 
     private async Task<CommanderSnapshot> HandlePaletteIntentAsync(

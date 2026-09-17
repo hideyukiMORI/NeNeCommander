@@ -1,4 +1,4 @@
-namespace NeNeCommander.Presentation.WinUI.Input;
+﻿namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>Represents the explicit focus context that owns one keyboard event.</summary>
 public abstract record KeyboardContext
@@ -21,6 +21,9 @@ public abstract record KeyboardContext
     /// <summary>Gets the command-palette context that owns selection, execution, and cancellation.</summary>
     public static KeyboardContext CommandPalette { get; } = new CommandPaletteContext();
 
+    /// <summary>Gets the window-adjustment context that owns movement, sizing, and leaving the mode.</summary>
+    public static KeyboardContext WindowAdjustment { get; } = new WindowAdjustmentContext();
+
     private KeyboardContext()
     {
     }
@@ -31,4 +34,5 @@ public abstract record KeyboardContext
     private sealed record AddressEntryContext : KeyboardContext;
     private sealed record ModalContext : KeyboardContext;
     private sealed record CommandPaletteContext : KeyboardContext;
+    private sealed record WindowAdjustmentContext : KeyboardContext;
 }

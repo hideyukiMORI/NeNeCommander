@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.ExceptionServices;
@@ -134,7 +134,10 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
             CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
             _gateway);
-        TransientScopeOwners scopes = new(new AddressEditorSession(), new CommandPaletteSession());
+        TransientScopeOwners scopes = new(
+            new AddressEditorSession(),
+            new CommandPaletteSession(),
+            new WindowAdjustmentSession());
         CommanderSession session = new(panes, settingsSession, scopes);
         return new CommanderWindow(
             keyboardIntentMapper,

@@ -1,4 +1,4 @@
-using Windows.System;
+﻿using Windows.System;
 using Windows.UI.Core;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
@@ -30,6 +30,7 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.F7 => KeyboardKey.F7,
             (int)VirtualKey.F8 => KeyboardKey.F8,
             (int)VirtualKey.B when modifier == KeyboardModifier.Control => KeyboardKey.B,
+            (int)VirtualKey.W when modifier == KeyboardModifier.Control => KeyboardKey.W,
             (int)VirtualKey.Number1 when modifier == KeyboardModifier.Control => KeyboardKey.One,
             (int)VirtualKey.Number2 when modifier == KeyboardModifier.Control => KeyboardKey.Two,
             (int)VirtualKey.Number3 when modifier == KeyboardModifier.Control => KeyboardKey.Three,
@@ -61,6 +62,10 @@ internal static class KeyboardInputTranslator
             '\u0008' when modifier == KeyboardModifier.Control => KeyboardKey.H,
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
+            'm' => KeyboardKey.M,
+            'w' or '' => KeyboardKey.W,
+            '+' => KeyboardKey.Plus,
+            '-' => KeyboardKey.Minus,
             'l' or '\u000c' => KeyboardKey.L,
             'p' or '\u0010' => KeyboardKey.P,
             'r' or '\u0012' => KeyboardKey.R,

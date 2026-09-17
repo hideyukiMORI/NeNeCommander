@@ -1,6 +1,6 @@
-# ADR-0050: Adjust the window through one session-owned adjustment mode
+﻿# ADR-0050: Adjust the window through one session-owned adjustment mode
 
-Status: proposed
+Status: accepted
 
 Date: 2026-09-16
 
@@ -8,8 +8,14 @@ Proposed for Issue #100 on 2026-09-16 by the NeNe Commander design owner under h
 authority, after hide accepted visual direction A (a small helper at the upper centre of the
 window) on 2026-09-08. The visual acceptance approved no keyboard mode, shortcut, increment,
 restore rule, or implementation; this ADR decides those. It was revised three times after
-implementation review; it stays proposed until hide confirms the shortcut, the anchored resize,
-the idempotent maximize and restore commands, and the ADR-0051 prerequisite.
+implementation review. hide confirmed the shortcut, the anchored resize, the idempotent maximize
+and restore commands, and the ADR-0051 prerequisite on 2026-09-17. It was revised a fourth time on
+2026-09-17 after the runtime spike named under Executable proof: the undeclared preferred minimum
+reads as null instead of zero, a move across displays of different scale is followed by an
+operating-system resize, leaving must return focus before the overlay collapses, and the 100
+percent cell cannot run on the development machine. None of these changes a key, a step, a
+refusal, or what the helper shows. It is accepted with Issue #100's change, on top of ADR-0051
+(Issue #135), which left `CommanderSession` at 261 logical lines.
 
 ## Context
 
@@ -99,7 +105,10 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   Application publishes the closed data types `WindowPlacement` (physical-pixel `Bounds`,
   `WindowPresenterState` as the closed set `Restored`, `Maximized`, `Minimized`, `NotOverlapped`,
   or `Unavailable`, the window's current rasterization scale, the presenter's declared preferred
-  minimum size or zero when none is declared, the physical work area of the window's display, and
+  minimum width and height, each zero when the presenter declares none (the SDK reports an
+  undeclared dimension as a null `int?`, and the adapter translates null to zero; a minimum of
+  zero constrains nothing, so the value is not a sentinel and Application carries no nullable),
+  the physical work area of the window's display, and
   the physical work areas of every attached display), `WindowBounds`, `WindowAdjustmentAction`,
   `WindowAdjustmentPlan`, and `WindowAdjustmentRefusal`, plus the pure static
   `WindowAdjustmentPlanner`. It declares no port: Application never reads or writes the window,
@@ -146,14 +155,19 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
 
   Letter and symbol commands use the produced character with explicit modifier state (KBD-003).
   `=` is not an alias: on a JIS layout `+` and `=` are two shifted characters of two different
-  keys, so an alias would make one physical key enlarge with Shift and shrink without it. Adding
+  keys, so an alias would make one physical key enlarge with Shift and shrink without it. `+` and `-`
+  are matched as produced characters with Control and Alt absent; Shift is not part of the
+  translator's modifier state for characters, so `Shift+=` on a US layout, `Shift+;` on a JIS
+  layout, and the numeric keypad's `+` and `-` all reach the same two entries without further
+  declarations. Adding
   `m`, `+`, and `-` to `KeyboardKey` must not disturb a pending `g` chord in the file list, where
   they stay unmapped; `Map` therefore decides chord cancellation by whether the key is declared in
   the current context, which is what `KEYBOARD_MODEL.md` already states, instead of by
   `KeyboardKey.Other`, and the existing chord tests gain cases for the new keys. `Ctrl+W` is
   declared on the virtual-key route in `KeyboardInputTranslator`, which is the route that fires at
   runtime because a handled `PreviewKeyDown` suppresses `CharacterReceived`; the character route
-  declares it too so that the translator's own tests stay symmetric with the `Ctrl+B` precedent.
+  declares it too, as `w` and as the control character U+0017 that an unhandled `Ctrl+W`
+  produces, so that the translator's own tests stay symmetric with the `Ctrl+B` precedent.
   Auto-repeat is accepted for move, enlarge, and shrink through a context-aware repeat rule inside
   the mode's own mapping branch; a repeated `m`, `r`, `Escape`, or `Ctrl+W` is consumed without an
   action. The existing key-limited destructive-repeat rule is not changed. `Map` gains one
@@ -188,14 +202,23 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   same segment, so that at least one step of caption height stays visible across a seam. A move
   whose target fails the caption rule is refused with `CaptionWouldLeaveDesktop`; a move whose
   target passes is applied unchanged, so a window can cross onto another monitor and its caption
-  always keeps a pointer-reachable run of pixels. Both tests are rectangle comparisons. Enlarge adds one step to width and to height with
+  always keeps a pointer-reachable run of pixels. Both tests are rectangle comparisons. When a
+  move carries the window onto a display with another scale, Windows resizes the window by the
+  ratio of the two scales after the move while the position stays as requested (measured:
+  1200 × 800 became 1440 × 960 from 125 to 150 percent). The mode neither predicts nor counteracts
+  that resize, because doing so would mean holding or guessing geometry the operating system
+  owns: the caption rule is evaluated on the requested bounds, the planned outcome names only the
+  action, and the next action reads the fresh placement. A resize toward a smaller scale can in
+  principle leave less than one step of caption inside a work area that only the window's right
+  end reached; `m` is never refused for a `Restored` window and the operating system's own
+  commands stay available, so the window is always recoverable. Enlarge adds one step to width and to height with
   the top-left corner fixed, so it never changes the caption's position and needs no boundary
   check; it is refused with `AtMaximumSize` when the window is already at least as wide and as
   tall as the work area of its display. Shrink removes one step from width and from height with
   the top-left corner fixed and is refused with `AtMinimumSize` when either resulting dimension
-  would fall below the effective minimum: the presenter's declared preferred minimum when the
-  placement reports one greater than zero, otherwise one step, so that no dimension can reach
-  zero. The application declares no preferred minimum of its own in this change; the
+  would fall below that dimension's effective minimum: the presenter's declared preferred minimum
+  for the dimension when the placement reports one greater than zero, otherwise one step, so that
+  no dimension can reach zero. The application declares no preferred minimum of its own in this change; the
   `OverlappedPresenter` preferred-minimum properties remain the single mechanism for a window
   minimum if one is ever decided. The planner is deterministic, has no OS dependency, and is
   proven at 100, 125, 150, 175, 200, and 300 percent plus one non-standard scale that exercises
@@ -220,7 +243,14 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   one focus sink: a focusable control with no visible chrome that receives programmatic focus when
   the mode opens and is collapsed whenever the mode is closed, so it is never a tab stop then;
   while open it is the only reachable focus because the mode consumes `Tab`. No text control owns
-  focus, so no IME composition can start. The helper exposes one UIA element named by the mode
+  focus, so no IME composition can start. Leaving has a fixed host order: the host first moves
+  focus to the file list of the pane captured at entry and only then collapses the overlay,
+  because collapsing a focused sink lets the framework move focus to the first focusable control,
+  the left address box, whose focus handler begins an address edit. While the mode is open the
+  host's keyboard context is `WindowAdjustment`, derived from the session state ahead of any
+  focused-element test, so the existing idle return of focus to the active file list, which runs
+  only in the `FileList` context after window activation and after a pane render, does not take
+  focus from the sink; no second suppression predicate is added. The helper exposes one UIA element named by the mode
   title whose help text is the current outcome, raised as a live-region change on every outcome.
   It contains no buttons and uses only the existing semantic Surface, Text, Border, Focus,
   Selection, Status, Operation, Density, Spacing, Typography, Radius, Elevation, and Motion
@@ -329,7 +359,9 @@ staying rejected.
 Issue #100's own acceptance line for native evidence is met inside this Issue for the current
 environment: before merge, the mode is exercised on the real window at the current scale with
 `AppWindow` bounds read before and after each action, a screenshot, and the UIA name of the
-helper, recorded in the PR. The 100–300 percent, high-contrast, Narrator, and eight-scheme cells
+helper, recorded in the PR. The same record shows the focused element and the closed
+address-editor state immediately after leaving, and the focused element after a window
+deactivation and reactivation while the mode is open. The 100–300 percent, high-contrast, Narrator, and eight-scheme cells
 of the helper join the Issue #94 release matrix, which already owns those environments; #100 does
 not claim them.
 
@@ -345,7 +377,8 @@ Application on top of the ADR-0051 scope owners; add the `WindowAdjustment` keyb
 keys to Presentation input; add `WindowAdjustmentPresenter` and
 `WindowAdjustmentKeyHintPresenter` under Presentation; add `AppWindowPlacementAdapter` under
 `App/Windowing`, the helper overlay in `CommanderWindow.xaml`, and `Views/WindowAdjustmentView`;
-add the localized labels and key-label resources, the `KEYBOARD_MODEL.md` table, context rule,
+derive the host's `WindowAdjustment` keyboard context from the session state ahead of the
+focused-element test; add the localized labels and key-label resources, the `KEYBOARD_MODEL.md` table, context rule,
 chord sentence, and `Escape`-order sentence, the `COMMAND_MODEL.md` registry rows for window
 placement translation (`AppWindowPlacementAdapter`), window adjustment decisions
 (`WindowAdjustmentSession` with `WindowAdjustmentPlanner`), and the mode's synchronous input
@@ -355,15 +388,22 @@ behavior it had.
 
 ## Executable proof
 
-The first implementation step is a runtime spike, before any other code: a focusable control
-without text, focused programmatically inside the real `CommanderWindow`, must deliver
-`CharacterReceived` and `PreviewKeyDown` to the root input surface for `h`, `+`, and `Ctrl+W`,
-and one `AppWindow.MoveAndResize` by 32 pixels at 100 percent must move the window by exactly 32
-device pixels while `XamlRoot.RasterizationScale` reads 1.0; and `PreferredMinimumWidth` and
-`PreferredMinimumHeight` must read zero while nothing has declared them. If any of those fails,
-implementation stops and this ADR is revised; no fallback is pre-approved, because a virtual-key
-fallback for letters would contradict KBD-003 and a non-zero undeclared minimum would change
-what `AtMinimumSize` means.
+The first implementation step was a runtime spike, required before any other code with no
+fallback pre-approved, because a virtual-key fallback for letters would contradict KBD-003 and a
+non-zero undeclared minimum would change what `AtMinimumSize` means. It ran on 2026-09-17 on
+Windows 11 build 26200 with Windows App SDK 2.4.0, four displays at 125, 150, 175, and 150
+percent, and a US-101 layout under the Japanese input locale. Inside the real `CommanderWindow`,
+a `ContentControl` with `IsTabStop`, no content, and no system focus visual took programmatic
+focus and kept it; `PreviewKeyDown` reached the root input surface for `h`, `+`, `-`, `m`, `r`,
+`Tab`, `Escape`, and `Ctrl+W`; `CharacterReceived` delivered `h`, `+` (main block and keypad),
+and `-` when `PreviewKeyDown` was left unhandled and nothing when it was handled; auto-repeat
+showed only in `KeyStatus.WasKeyDown`; `AppWindow.MoveAndResize` moved the window by exactly the
+requested 32 physical pixels without changing its size at all three scales, independent of
+`XamlRoot.RasterizationScale`; and `PreferredMinimumWidth` and `PreferredMinimumHeight` read
+null, which led to the fourth revision's wording. No display at 100 percent is attached to the
+development machine, so the 100 percent cell joins the Issue #94 release matrix with the other
+scale cells. No virtual-key fallback for letters was needed and no undeclared non-zero minimum
+exists, so `AtMinimumSize` means what this ADR says.
 
 Application tests prove open admission and rejection for each blocking state, full freeze
 including `NavigateAsync` while open, stale expected-state no-ops for both synchronous members,

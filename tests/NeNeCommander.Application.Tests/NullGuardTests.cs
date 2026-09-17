@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -251,8 +251,14 @@ public sealed class NullGuardTests
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Absent(),
             static _ => { });
-        TransientScopeOwners scopes = new(new AddressEditorSession(), new CommandPaletteSession());
-        TransientScopeSnapshot scopeStates = new(AddressEditorState.Closed, CommandPaletteState.Closed);
+        TransientScopeOwners scopes = new(
+            new AddressEditorSession(),
+            new CommandPaletteSession(),
+            new WindowAdjustmentSession());
+        TransientScopeSnapshot scopeStates = new(
+            AddressEditorState.Closed,
+            CommandPaletteState.Closed,
+            WindowAdjustmentState.Closed);
         ConstructorInfo commanderConstructor = typeof(CommanderSession).GetConstructor(
             [typeof(DualPaneSession), typeof(SettingsSession), typeof(TransientScopeOwners)]) ??
             throw new AssertFailedException("The public application-session constructor was not found.");
@@ -342,7 +348,10 @@ public sealed class NullGuardTests
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
                 static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
+            new TransientScopeOwners(
+                new AddressEditorSession(),
+                new CommandPaletteSession(),
+                new WindowAdjustmentSession()));
 
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
@@ -385,7 +394,10 @@ public sealed class NullGuardTests
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
                 static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
+            new TransientScopeOwners(
+                new AddressEditorSession(),
+                new CommandPaletteSession(),
+                new WindowAdjustmentSession()));
         CommanderSnapshot opened = await commander.HandleAsync(
             UserIntent.OpenSettings,
             new RecordingCommanderObserver(),
@@ -433,11 +445,23 @@ public sealed class NullGuardTests
         DualPaneSnapshot snapshot = panes.Current;
         AddressEditorSession addressEditor = new();
         CommandPaletteSession commandPalette = new();
+        WindowAdjustmentSession windowAdjustment = new();
 
-        AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette));
-        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!));
-        AssertNullGuard(() => _ = new TransientScopeSnapshot(null!, CommandPaletteState.Closed));
-        AssertNullGuard(() => _ = new TransientScopeSnapshot(AddressEditorState.Closed, null!));
+        AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette, windowAdjustment));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!, windowAdjustment));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, null!));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(
+            null!,
+            CommandPaletteState.Closed,
+            WindowAdjustmentState.Closed));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(
+            AddressEditorState.Closed,
+            null!,
+            WindowAdjustmentState.Closed));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(
+            AddressEditorState.Closed,
+            CommandPaletteState.Closed,
+            null!));
         AssertNullGuard(() => _ = commandPalette.Open(null!, InteractionOwnership.ScopeOwnsInput));
         AssertNullGuard(() => _ = commandPalette.Open(snapshot, null!));
         AssertNullGuard(() => _ = commandPalette.Validate(

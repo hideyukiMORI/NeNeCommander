@@ -1,4 +1,4 @@
-# Window adjustment engineering handoff
+﻿# Window adjustment engineering handoff
 
 Status: engineering constraints for Issue #100 under ADR-0050
 
@@ -67,7 +67,8 @@ programmatic focus when the mode opens and is collapsed whenever the mode is clo
 a tab stop outside the mode. It exposes the helper as one UIA element whose Name is the localized
 mode title and whose HelpText is the current outcome text. `Tab` and `Shift+Tab` are consumed
 inside the mode and do not move focus. Leaving the mode returns focus once to the active pane
-captured at entry.
+captured at entry, and the host returns that focus before it collapses the overlay: collapsing a
+focused sink would let the framework focus the left address box and begin an address edit.
 
 Tapping the scrim calls the same qualified leave as `Escape`; pointer input on the helper surface
 does nothing and does not bubble into the scrim. The helper has no pointer targets.

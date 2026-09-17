@@ -1,4 +1,4 @@
-namespace NeNeCommander.Presentation.WinUI.Input;
+﻿namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
 /// Represents one closed, layout-translated key identity consumed by the canonical mapper. Each
@@ -39,6 +39,18 @@ public abstract record KeyboardKey
 
     /// <summary>Gets the produced b key.</summary>
     public static KeyboardKey B { get; } = new BKey();
+
+    /// <summary>Gets the produced m key.</summary>
+    public static KeyboardKey M { get; } = new MKey();
+
+    /// <summary>Gets the produced w key.</summary>
+    public static KeyboardKey W { get; } = new WKey();
+
+    /// <summary>Gets the produced plus character, whichever physical key produces it.</summary>
+    public static KeyboardKey Plus { get; } = new PlusKey();
+
+    /// <summary>Gets the produced minus character, whichever physical key produces it.</summary>
+    public static KeyboardKey Minus { get; } = new MinusKey();
 
     /// <summary>Gets the 1 key.</summary>
     public static KeyboardKey One { get; } = new NumberKey("KeyLabel1");
@@ -184,6 +196,26 @@ public abstract record KeyboardKey
     private sealed record BKey : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelB";
+    }
+
+    private sealed record MKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelM";
+    }
+
+    private sealed record WKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelW";
+    }
+
+    private sealed record PlusKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelPlus";
+    }
+
+    private sealed record MinusKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelMinus";
     }
 
     private sealed record NumberKey : KeyboardKey

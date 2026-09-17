@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace NeNeCommander.Application.Sessions;
 
@@ -8,12 +8,17 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public sealed record TransientScopeSnapshot
 {
-    internal TransientScopeSnapshot(AddressEditorState addressEditor, CommandPaletteState commandPalette)
+    internal TransientScopeSnapshot(
+        AddressEditorState addressEditor,
+        CommandPaletteState commandPalette,
+        WindowAdjustmentState windowAdjustment)
     {
         ArgumentNullException.ThrowIfNull(addressEditor);
         ArgumentNullException.ThrowIfNull(commandPalette);
+        ArgumentNullException.ThrowIfNull(windowAdjustment);
         AddressEditor = addressEditor;
         CommandPalette = commandPalette;
+        WindowAdjustment = windowAdjustment;
     }
 
     /// <summary>Gets the address editor scope state.</summary>
@@ -21,4 +26,7 @@ public sealed record TransientScopeSnapshot
 
     /// <summary>Gets the command palette scope state.</summary>
     public CommandPaletteState CommandPalette { get; }
+
+    /// <summary>Gets the window adjustment scope state.</summary>
+    public WindowAdjustmentState WindowAdjustment { get; }
 }

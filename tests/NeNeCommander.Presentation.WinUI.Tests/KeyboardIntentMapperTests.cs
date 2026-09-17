@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -583,8 +583,9 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(39, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(20, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(40, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(21, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
         Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));

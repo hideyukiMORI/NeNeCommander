@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.Input;
@@ -53,6 +53,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.FileList, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
+        new(KeyboardContext.FileList, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.FileList, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.FileList, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -73,6 +74,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.NavigationSurface, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.NavigationSurface, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -98,6 +100,30 @@ public sealed class KeyboardIntentMapper
         new(KeyboardKey.Enter, CommandPaletteKeyAction.Execute),
         new(KeyboardKey.Escape, CommandPaletteKeyAction.Cancel),
         new(KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus),
+    ]);
+
+    /// <summary>
+    /// The dedicated table of the window-adjustment mode. Fourteen entries declare nine actions:
+    /// each arrow is an alias of the Vim direction beside it and <c>Ctrl+W</c> is an alias of
+    /// <c>Escape</c>, so an alias declares no hint group and shows no cap (KBD-005).
+    /// </summary>
+    private static readonly IReadOnlyList<WindowAdjustmentKeyBinding> DeclaredWindowBindings =
+        Array.AsReadOnly<WindowAdjustmentKeyBinding>(
+    [
+        new(KeyboardKey.H, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, WindowAdjustmentHintGroup.Move),
+        new(KeyboardKey.Left, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, null),
+        new(KeyboardKey.J, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, WindowAdjustmentHintGroup.Move),
+        new(KeyboardKey.Down, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, null),
+        new(KeyboardKey.K, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, WindowAdjustmentHintGroup.Move),
+        new(KeyboardKey.Up, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, null),
+        new(KeyboardKey.L, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, WindowAdjustmentHintGroup.Move),
+        new(KeyboardKey.Right, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, null),
+        new(KeyboardKey.Plus, KeyboardModifier.None, WindowAdjustmentKeyAction.Enlarge, WindowAdjustmentHintGroup.Enlarge),
+        new(KeyboardKey.Minus, KeyboardModifier.None, WindowAdjustmentKeyAction.Shrink, WindowAdjustmentHintGroup.Shrink),
+        new(KeyboardKey.M, KeyboardModifier.None, WindowAdjustmentKeyAction.Maximize, WindowAdjustmentHintGroup.Maximize),
+        new(KeyboardKey.R, KeyboardModifier.None, WindowAdjustmentKeyAction.Restore, WindowAdjustmentHintGroup.Restore),
+        new(KeyboardKey.Escape, KeyboardModifier.None, WindowAdjustmentKeyAction.Leave, WindowAdjustmentHintGroup.Leave),
+        new(KeyboardKey.W, KeyboardModifier.Control, WindowAdjustmentKeyAction.Leave, null),
     ]);
 
     private readonly IClock _clock;
@@ -129,6 +155,10 @@ public sealed class KeyboardIntentMapper
     /// <summary>Gets the keys owned by the Presentation palette state in stable order.</summary>
     public static IReadOnlyList<CommandPaletteKeyBinding> CommandPaletteBindings { get; } =
         DeclaredPaletteBindings;
+
+    /// <summary>Gets the keys owned by the window-adjustment mode in declaration order.</summary>
+    public static IReadOnlyList<WindowAdjustmentKeyBinding> WindowAdjustmentBindings { get; } =
+        DeclaredWindowBindings;
 
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
@@ -167,6 +197,11 @@ public sealed class KeyboardIntentMapper
             }
             return outcome;
         }
+        if (input.Context == KeyboardContext.WindowAdjustment)
+        {
+            _pendingChordStartedAt = null;
+            return MapWindowAdjustmentKey(input);
+        }
         if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
             _pendingChordStartedAt = null;
@@ -202,9 +237,17 @@ public sealed class KeyboardIntentMapper
             : MapDeclaredKey(input);
     }
 
+    /// <summary>
+    /// Resolves one key against a pending chord. A key the current context does not declare leaves
+    /// the chord untouched, which is what <c>KEYBOARD_MODEL.md</c> states: only a mapped second key
+    /// cancels a pending prefix. Deciding by declaration rather than by <see cref="KeyboardKey.Other"/>
+    /// is what lets keys owned by another context, such as the window mode's <c>m</c>, <c>+</c>, and
+    /// <c>-</c>, exist without disturbing the file list's <c>gg</c>.
+    /// </summary>
     private MappedKeyboardIntent? TryCompleteChord(KeyboardInput input)
     {
-        if (_pendingChordStartedAt is not TimeSpan startedAt)
+        if (_pendingChordStartedAt is not TimeSpan startedAt ||
+            !(IsChordPrefix(input) || IsDeclaredInContext(input)))
         {
             return null;
         }
@@ -214,6 +257,14 @@ public sealed class KeyboardIntentMapper
         return elapsed <= ChordLifetime && IsChordPrefix(input)
             ? MapIntent(UserIntent.FocusFirst)
             : null;
+    }
+
+    private static bool IsDeclaredInContext(KeyboardInput input)
+    {
+        return DeclaredBindings.Any(binding =>
+            binding.Context == input.Context &&
+            binding.Key == input.Key &&
+            binding.Modifier == input.Modifier);
     }
 
     /// <summary>
@@ -243,6 +294,37 @@ public sealed class KeyboardIntentMapper
                 input.RepeatState == KeyRepeatState.Repeated
                     ? new KeyboardConsumed()
                     : new MappedCommandPaletteAction(binding.Action);
+    }
+
+    /// <summary>
+    /// Maps one key while the window-adjustment mode owns input. A declared key yields its action;
+    /// every other identified key is consumed, so no pane, editor, or native control sees it, and
+    /// auto-repeat is accepted only for the actions a user holds down. The raw virtual-key event
+    /// that precedes a produced character is passed through untouched, exactly as everywhere else
+    /// in <see cref="Map"/>, because the mode's letters and symbols are produced characters
+    /// (KBD-003) and a handled virtual-key event would suppress them.
+    /// </summary>
+    private static KeyboardMappingOutcome MapWindowAdjustmentKey(KeyboardInput input)
+    {
+        if (input.Key == KeyboardKey.Other)
+        {
+            return new KeyboardPassThrough();
+        }
+        WindowAdjustmentKeyBinding? binding = DeclaredWindowBindings.FirstOrDefault(binding =>
+            binding.Key == input.Key && binding.Modifier == input.Modifier);
+        return binding is null || IsIgnoredWindowRepeat(binding.Action, input.RepeatState)
+            ? new KeyboardConsumed()
+            : new MappedWindowAdjustmentAction(binding.Action);
+    }
+
+    private static bool IsIgnoredWindowRepeat(
+        WindowAdjustmentKeyAction action,
+        KeyRepeatState repeatState)
+    {
+        return repeatState == KeyRepeatState.Repeated &&
+            (action == WindowAdjustmentKeyAction.Maximize ||
+                action == WindowAdjustmentKeyAction.Restore ||
+                action == WindowAdjustmentKeyAction.Leave);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)
