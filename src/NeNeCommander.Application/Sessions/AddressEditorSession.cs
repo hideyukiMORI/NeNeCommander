@@ -76,6 +76,10 @@ public sealed class AddressEditorSession
         ArgumentNullException.ThrowIfNull(ownership);
         lock (_sync)
         {
+            if (_state is AddressEditorClosed)
+            {
+                return AddressEditorValidation.NothingToNavigate;
+            }
             if (intent == UserIntent.Escape)
             {
                 _state = AddressEditorState.CloseFocusing(CapturedSide(_state));
