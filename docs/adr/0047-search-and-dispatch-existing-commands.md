@@ -45,7 +45,10 @@ command route.
   contexts; all typed submissions require data the palette does not own. Fuzzy aliases, recent-use
   entries, persisted history, window commands, bookmark commands, and unimplemented commands are
   outside this Issue.
-- **`CommanderSession` is the sole palette interaction owner.** `Ctrl+P` produces one
+- **`CommandPaletteSession` owns palette state, admission, and qualified validation, and
+  `CommanderSession` remains the sole dispatcher of a validated palette intent.** This ownership
+  sentence is superseded by ADR-0051; every other sentence of this ADR stays in force.
+  `Ctrl+P` produces one
   `OpenCommandPalette` intent. It is declared only for `FileList` and `NavigationSurface`.
   `CommanderSession` opens the palette only when settings and address editing are closed, no file
   operation is running or awaiting confirmation, name, or conflict, neither pane is `PaneLoading`

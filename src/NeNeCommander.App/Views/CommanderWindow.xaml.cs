@@ -152,7 +152,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         AddressEditorPresentation? previousAddress = _addressPresentation;
         AddressEditorPresentation address = AddressEditorPresenter.Present(
-            snapshot.AddressEditor,
+            snapshot.Scopes.AddressEditor,
             previousAddress);
         bool addressChanged = !ReferenceEquals(address, previousAddress);
         _addressPresentation = address;
@@ -242,7 +242,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderCommandPalette(CommanderSnapshot snapshot)
     {
-        CommandPaletteState state = snapshot.CommandPalette;
+        CommandPaletteState state = snapshot.Scopes.CommandPalette;
         if (state is not CommandPaletteOpen open)
         {
             bool wasOpen = _commandPaletteView is not null;
@@ -281,7 +281,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private static bool PaletteExecutionLeavesFileListOwner(CommanderSnapshot snapshot)
     {
         return snapshot.Settings.Editor == SettingsEditorState.Closed &&
-            snapshot.AddressEditor is AddressEditorClosed &&
+            snapshot.Scopes.AddressEditor is AddressEditorClosed &&
             snapshot.Panes.Operation is not (
                 OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
     }
@@ -677,7 +677,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         return intent == UserIntent.Confirm && FocusedAddressSide() is PaneSide side &&
             AddressOwnerOf(side) is AddressEditorState owner &&
-            ReferenceEquals(owner, _session.Current.AddressEditor)
+            ReferenceEquals(owner, _session.Current.Scopes.AddressEditor)
                 ? UserIntent.SubmitAddress(owner, AddressOf(side).Text)
                 : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
                     ? UserIntent.SubmitName(NameEntry.Text)
@@ -691,7 +691,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        AddressEditorState current = _session.Current.AddressEditor;
+        AddressEditorState current = _session.Current.Scopes.AddressEditor;
         if (EditorOwnsSide(current, side))
         {
             SetAddressOwner(side, current);
@@ -714,7 +714,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         AddressEditorState? owner = AddressOwnerOf(side);
         SetAddressOwner(side, null);
-        if (owner is not null && ReferenceEquals(owner, _session.Current.AddressEditor))
+        if (owner is not null && ReferenceEquals(owner, _session.Current.Scopes.AddressEditor))
         {
             ForwardIntent(UserIntent.LeaveAddress(owner));
         }
@@ -729,7 +729,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderSession(_session.Current);
         CommanderSnapshot snapshot = await work;
         RenderSession(snapshot);
-        if (!EditorOwnsSide(snapshot.AddressEditor, side))
+        if (!EditorOwnsSide(snapshot.Scopes.AddressEditor, side))
         {
             FocusFileList(snapshot.Panes.ActiveSide);
         }

@@ -1,13 +1,14 @@
 # ADR-0051: Split transient scopes out of `CommanderSession` into scope owners
 
-Status: proposed
+Status: accepted
 
 Date: 2026-09-16
 
-Proposed by the NeNe Commander design owner under hide's delegated authority for its own Issue
-(number assigned at filing), as the prerequisite of ADR-0050 (Issue #100). The split was listed
-as a follow-up candidate awaiting hide's approval in the 2026-09-11 handoff; it is proposed now
-because the next change that grows `CommanderSession` cannot honour QLT-010 without it.
+Accepted for Issue #135 on 2026-09-17 by the NeNe Commander design owner under hide's delegated
+authority, after hide approved starting the split on 2026-09-17. It is the prerequisite of
+ADR-0050 (Issue #100). The split was listed as a follow-up candidate awaiting hide's approval in
+the 2026-09-11 handoff; it is accepted now because the next change that grows `CommanderSession`
+cannot honour QLT-010 without it.
 
 ## Context
 

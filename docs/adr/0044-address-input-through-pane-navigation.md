@@ -27,7 +27,10 @@ after their respective canonical changes are ready.
 
 ## Decision
 
-- **`CommanderSession` owns one address-editor state.** The state is closed with an optional
+- **`AddressEditorSession` owns address-editor state, admission, and submission validation, and
+  `CommanderSession` remains the sole owner of address navigation.** This ownership sentence is
+  superseded by ADR-0051; every other sentence of this ADR stays in force.
+  The state is closed with an optional
   captured side for a one-time file-list focus effect, editing one captured pane side and its
   original canonical location, or rejected with that same capture plus the submitted raw text and
   existing `PathParseFailureKind`. The native `TextBox` owns ordinary character composition while

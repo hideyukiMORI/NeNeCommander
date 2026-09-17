@@ -134,7 +134,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
             CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
             _gateway);
-        CommanderSession session = new(panes, settingsSession);
+        TransientScopeOwners scopes = new(new AddressEditorSession(), new CommandPaletteSession());
+        CommanderSession session = new(panes, settingsSession, scopes);
         return new CommanderWindow(
             keyboardIntentMapper,
             session,

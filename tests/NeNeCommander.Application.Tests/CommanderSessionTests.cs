@@ -537,13 +537,13 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        AddressEditing leftState = Assert.IsInstanceOfType<AddressEditing>(leftEditing.AddressEditor);
-        Assert.AreSame(leftState, repeatedShortcut.AddressEditor);
-        Assert.AreSame(leftState, repeatedFocus.AddressEditor);
-        Assert.AreSame(leftState, ignoredMovement.AddressEditor);
+        AddressEditing leftState = Assert.IsInstanceOfType<AddressEditing>(leftEditing.Scopes.AddressEditor);
+        Assert.AreSame(leftState, repeatedShortcut.Scopes.AddressEditor);
+        Assert.AreSame(leftState, repeatedFocus.Scopes.AddressEditor);
+        Assert.AreSame(leftState, ignoredMovement.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, leftState.Side);
         Assert.AreEqual("C:\\left", leftState.OriginalLocation.CanonicalText);
-        AddressEditing rightState = Assert.IsInstanceOfType<AddressEditing>(rightEditing.AddressEditor);
+        AddressEditing rightState = Assert.IsInstanceOfType<AddressEditing>(rightEditing.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Right, rightState.Side);
         Assert.AreEqual("C:\\right", rightState.OriginalLocation.CanonicalText);
         Assert.AreSame(PaneSide.Right, rightEditing.Panes.ActiveSide);
@@ -568,7 +568,7 @@ public sealed class CommanderSessionTests
         AddressEditorState editing = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
         PaneContentListed before = Assert.IsInstanceOfType<PaneContentListed>(session.Current.Panes.Left.Content);
         const string RawText = " C:\\invalid ";
 
@@ -577,7 +577,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        AddressInputRejected state = Assert.IsInstanceOfType<AddressInputRejected>(rejected.AddressEditor);
+        AddressInputRejected state = Assert.IsInstanceOfType<AddressInputRejected>(rejected.Scopes.AddressEditor);
         Assert.AreEqual(RawText, state.RawText);
         Assert.AreSame(PathParseFailureKind.Relative, state.Failure);
         Assert.HasCount(1, left.Requests);
@@ -605,14 +605,14 @@ public sealed class CommanderSessionTests
         AddressEditorState editing = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
 
         Task<CommanderSnapshot> navigating = session.HandleAsync(
             UserIntent.SubmitAddress(editing, "c:/target"),
             observer,
             CancellationToken.None);
 
-        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(session.Current.AddressEditor);
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(session.Current.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
         PaneLoading loading = Assert.IsInstanceOfType<PaneLoading>(session.Current.Panes.Left.Activity);
         Assert.AreEqual("C:\\target", loading.Target.CanonicalText);
@@ -647,7 +647,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(cancelled.AddressEditor);
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(cancelled.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
         PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(cancelled.Panes.Left.Content);
         Assert.AreEqual("C:\\left", content.Listing.Location.CanonicalText);
@@ -674,25 +674,25 @@ public sealed class CommanderSessionTests
         AddressEditorState oldState = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
         AddressEditorState newState = (await session.HandleAsync(
             UserIntent.BeginAddressEdit(PaneSide.Right),
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
 
         CommanderSnapshot afterDeparture = await session.HandleAsync(
             UserIntent.LeaveAddress(oldState),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(newState, afterDeparture.AddressEditor);
+        Assert.AreSame(newState, afterDeparture.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Right, Assert.IsInstanceOfType<AddressEditing>(newState).Side);
 
         CommanderSnapshot departed = await session.HandleAsync(
             UserIntent.LeaveAddress(newState),
             observer,
             CancellationToken.None);
-        Assert.AreSame(AddressEditorState.Closed, departed.AddressEditor);
+        Assert.AreSame(AddressEditorState.Closed, departed.Scopes.AddressEditor);
     }
 
     /// <summary>Proves provider failure and cancellation retain the listed content and selection.</summary>
@@ -721,7 +721,7 @@ public sealed class CommanderSessionTests
         AddressEditorState editing = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
 
         CommanderSnapshot completed = await session.HandleAsync(
             UserIntent.SubmitAddress(editing, "C:\\target"),
@@ -740,7 +740,7 @@ public sealed class CommanderSessionTests
             PaneReadFailed failure = Assert.IsInstanceOfType<PaneReadFailed>(completed.Panes.Left.Activity);
             Assert.AreSame(FileOperationFailureKind.AccessDenied, failure.Failure);
         }
-        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(completed.AddressEditor);
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(completed.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
     }
 
@@ -770,7 +770,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+        Assert.AreSame(AddressEditorState.Closed, refused.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, refused.Panes.ActiveSide);
         leftRead.SetResult(DirectoryReadOutcome.Cancelled());
         _ = await loading;
@@ -799,7 +799,7 @@ public sealed class CommanderSessionTests
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<OperationAwaitingName>(refused.Panes.Operation);
-        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+        Assert.AreSame(AddressEditorState.Closed, refused.Scopes.AddressEditor);
     }
 
     /// <summary>Proves a submission qualified by an old editor cannot navigate either pane.</summary>
@@ -822,18 +822,18 @@ public sealed class CommanderSessionTests
         AddressEditorState oldState = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
         AddressEditorState newState = (await session.HandleAsync(
             UserIntent.BeginAddressEdit(PaneSide.Right),
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
 
         CommanderSnapshot refused = await session.HandleAsync(
             UserIntent.SubmitAddress(oldState, "C:\\target"),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(newState, refused.AddressEditor);
+        Assert.AreSame(newState, refused.Scopes.AddressEditor);
         Assert.HasCount(1, left.Requests);
         Assert.HasCount(1, right.Requests);
     }
@@ -857,11 +857,11 @@ public sealed class CommanderSessionTests
         AddressEditorState editing = (await session.HandleAsync(
             UserIntent.FocusAddress,
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
         AddressEditorState rejected = (await session.HandleAsync(
             UserIntent.SubmitAddress(editing, "relative"),
             observer,
-            CancellationToken.None)).AddressEditor;
+            CancellationToken.None)).Scopes.AddressEditor;
         CommanderSnapshot repeated = await session.HandleAsync(
             UserIntent.BeginAddressEdit(PaneSide.Left),
             observer,
@@ -872,7 +872,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(rejected, repeated.AddressEditor);
+        Assert.AreSame(rejected, repeated.Scopes.AddressEditor);
         PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(corrected.Panes.Left.Content);
         Assert.AreEqual("C:\\corrected", content.Listing.Location.CanonicalText);
         Assert.HasCount(2, left.Requests);
@@ -896,7 +896,7 @@ public sealed class CommanderSessionTests
             new RecordingCommanderObserver(),
             CancellationToken.None);
 
-        Assert.AreSame(AddressEditorState.Closed, refused.AddressEditor);
+        Assert.AreSame(AddressEditorState.Closed, refused.Scopes.AddressEditor);
         Assert.IsEmpty(left.Requests);
         Assert.IsEmpty(right.Requests);
     }
@@ -1094,7 +1094,7 @@ public sealed class CommanderSessionTests
             new RecordingCommanderObserver(),
             CancellationToken.None);
 
-        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.CommandPalette);
+        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.Scopes.CommandPalette);
         CollectionAssert.AreEqual(
             new UserIntent[]
             {
@@ -1151,7 +1151,7 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             new RecordingCommanderObserver(),
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         AssertUnavailable(palette, UserIntent.OpenFocused, CommandUnavailableReason.FocusRequired);
         AssertUnavailable(palette, UserIntent.Rename, CommandUnavailableReason.FocusRequired);
@@ -1183,7 +1183,7 @@ public sealed class CommanderSessionTests
 
         _ = await session.HandleAsync(UserIntent.ActivateOtherPane, observer, CancellationToken.None);
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\blocked"), CancellationToken.None);
-        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>(session.Current.CommandPalette);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>(session.Current.Scopes.CommandPalette);
         CommanderSnapshot cancelled = await session.HandleAsync(
             UserIntent.CancelCommandPalette(open),
             observer,
@@ -1194,7 +1194,7 @@ public sealed class CommanderSessionTests
         Assert.HasCount(
             1,
             Assert.IsInstanceOfType<PaneContentListed>(cancelled.Panes.Left.Content).State.Selection);
-        CommandPaletteClosed closed = Assert.IsInstanceOfType<CommandPaletteClosed>(cancelled.CommandPalette);
+        CommandPaletteClosed closed = Assert.IsInstanceOfType<CommandPaletteClosed>(cancelled.Scopes.CommandPalette);
         Assert.AreSame(PaneSide.Left, closed.FileListFocusSide);
         Assert.HasCount(1, left.Requests);
     }
@@ -1217,7 +1217,7 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot unavailable = await session.HandleAsync(
             UserIntent.SubmitCommand(open, UserIntent.Copy),
@@ -1228,8 +1228,8 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(open, unavailable.CommandPalette);
-        Assert.AreSame(open, unknown.CommandPalette);
+        Assert.AreSame(open, unavailable.Scopes.CommandPalette);
+        Assert.AreSame(open, unknown.Scopes.CommandPalette);
         Assert.AreSame(OperationActivity.Idle, unknown.Panes.Operation);
     }
 
@@ -1251,14 +1251,14 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot dispatched = await session.HandleAsync(
             UserIntent.SubmitCommand(open, UserIntent.Rename),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, dispatched.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, dispatched.Scopes.CommandPalette);
         OperationAwaitingName awaiting = Assert.IsInstanceOfType<OperationAwaitingName>(dispatched.Panes.Operation);
         Assert.AreSame(OperationKind.Rename, awaiting.Kind);
         Assert.AreEqual("C:\\left\\item.txt", awaiting.Subject.CanonicalText);
@@ -1282,7 +1282,7 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen settingsPalette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot settings = await session.HandleAsync(
             UserIntent.SubmitCommand(settingsPalette, UserIntent.OpenSettings),
@@ -1292,16 +1292,16 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen addressPalette = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
         CommanderSnapshot address = await session.HandleAsync(
             UserIntent.SubmitCommand(addressPalette, UserIntent.FocusAddress),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, settings.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, settings.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Open, settings.Settings.Editor);
-        Assert.AreSame(CommandPaletteState.Closed, address.CommandPalette);
-        AddressEditing editing = Assert.IsInstanceOfType<AddressEditing>(address.AddressEditor);
+        Assert.AreSame(CommandPaletteState.Closed, address.Scopes.CommandPalette);
+        AddressEditing editing = Assert.IsInstanceOfType<AddressEditing>(address.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Left, editing.Side);
     }
 
@@ -1325,14 +1325,14 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot activated = await session.HandleAsync(
             UserIntent.SubmitCommand(open, UserIntent.ActivateOtherPane),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, activated.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, activated.Scopes.CommandPalette);
         Assert.AreSame(PaneSide.Right, activated.Panes.ActiveSide);
         Assert.AreSame(open.Left, activated.Panes.Left);
         Assert.AreSame(open.Right, activated.Panes.Right);
@@ -1361,14 +1361,14 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot dispatched = await session.HandleAsync(
             UserIntent.SubmitCommand(open, UserIntent.Delete),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, dispatched.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, dispatched.Scopes.CommandPalette);
         OperationAwaitingConfirmation awaiting =
             Assert.IsInstanceOfType<OperationAwaitingConfirmation>(dispatched.Panes.Operation);
         Assert.HasCount(1, awaiting.Request.Sources);
@@ -1395,12 +1395,12 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen old = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
         _ = await session.HandleAsync(UserIntent.CancelCommandPalette(old), observer, CancellationToken.None);
         CommandPaletteOpen current = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
 
         CommanderSnapshot staleCancel = await session.HandleAsync(
             UserIntent.CancelCommandPalette(old),
@@ -1411,8 +1411,8 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(current, staleCancel.CommandPalette);
-        Assert.AreSame(current, ignored.CommandPalette);
+        Assert.AreSame(current, staleCancel.Scopes.CommandPalette);
+        Assert.AreSame(current, ignored.Scopes.CommandPalette);
         Assert.AreSame(OperationActivity.Idle, ignored.Panes.Operation);
     }
 
@@ -1439,7 +1439,7 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
         _ = await panes.HandleAsync(UserIntent.ActivateOtherPane, observer, CancellationToken.None);
         if (changedPart == "passive")
         {
@@ -1452,7 +1452,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, rejected.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, rejected.Scopes.CommandPalette);
         Assert.AreSame(changedPart == "active" ? PaneSide.Right : PaneSide.Left, rejected.Panes.ActiveSide);
         Assert.AreSame(OperationActivity.Idle, rejected.Panes.Operation);
     }
@@ -1476,7 +1476,7 @@ public sealed class CommanderSessionTests
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
             UserIntent.OpenCommandPalette,
             observer,
-            CancellationToken.None)).CommandPalette);
+            CancellationToken.None)).Scopes.CommandPalette);
         _ = await panes.HandleAsync(UserIntent.Rename, observer, CancellationToken.None);
 
         CommanderSnapshot closed = await session.HandleAsync(
@@ -1484,7 +1484,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, closed.CommandPalette);
+        Assert.AreSame(CommandPaletteState.Closed, closed.Scopes.CommandPalette);
         _ = Assert.IsInstanceOfType<OperationAwaitingName>(closed.Panes.Operation);
     }
 
@@ -1516,7 +1516,7 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenCommandPalette,
                 observer,
                 CancellationToken.None);
-            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            Assert.AreSame(CommandPaletteState.Closed, refused.Scopes.CommandPalette);
             _ = Assert.IsInstanceOfType<PaneLoading>(refused.Panes.Left.Activity);
             completion.SetResult(DirectoryReadOutcome.Cancelled());
         }
@@ -1529,7 +1529,7 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenCommandPalette,
                 observer,
                 CancellationToken.None);
-            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            Assert.AreSame(CommandPaletteState.Closed, refused.Scopes.CommandPalette);
             _ = Assert.IsInstanceOfType<PaneLaunching>(refused.Panes.Left.Activity);
             completion.SetResult(NeNeCommander.Application.Launching.FileLaunchOutcome.Accepted());
         }
@@ -1570,7 +1570,7 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenCommandPalette,
                 observer,
                 CancellationToken.None);
-            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            Assert.AreSame(CommandPaletteState.Closed, refused.Scopes.CommandPalette);
             _ = Assert.IsInstanceOfType<PaneLoading>(refused.Panes.Right.Activity);
             completion.SetResult(DirectoryReadOutcome.Cancelled());
         }
@@ -1583,7 +1583,7 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenCommandPalette,
                 observer,
                 CancellationToken.None);
-            Assert.AreSame(CommandPaletteState.Closed, refused.CommandPalette);
+            Assert.AreSame(CommandPaletteState.Closed, refused.Scopes.CommandPalette);
             _ = Assert.IsInstanceOfType<PaneLaunching>(refused.Panes.Right.Activity);
             completion.SetResult(NeNeCommander.Application.Launching.FileLaunchOutcome.Accepted());
         }
@@ -1609,7 +1609,7 @@ public sealed class CommanderSessionTests
             UserIntent.OpenCommandPalette,
             observer,
             CancellationToken.None);
-        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.CommandPalette);
+        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.Scopes.CommandPalette);
 
         CommanderSnapshot managerIgnored = await session.HandleAsync(
             UserIntent.OpenBookmarks,
@@ -1620,8 +1620,8 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(palette, managerIgnored.CommandPalette);
-        Assert.AreSame(palette, slotIgnored.CommandPalette);
+        Assert.AreSame(palette, managerIgnored.Scopes.CommandPalette);
+        Assert.AreSame(palette, slotIgnored.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotIgnored.Settings.Editor);
         Assert.HasCount(1, left.Requests);
         Assert.IsEmpty(right.Requests);
@@ -1661,9 +1661,9 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(CommandPaletteState.Closed, paletteIgnored.CommandPalette);
-        Assert.AreSame(AddressEditorState.Closed, shortcutAddressIgnored.AddressEditor);
-        Assert.AreSame(AddressEditorState.Closed, nativeAddressIgnored.AddressEditor);
+        Assert.AreSame(CommandPaletteState.Closed, paletteIgnored.Scopes.CommandPalette);
+        Assert.AreSame(AddressEditorState.Closed, shortcutAddressIgnored.Scopes.AddressEditor);
+        Assert.AreSame(AddressEditorState.Closed, nativeAddressIgnored.Scopes.AddressEditor);
         Assert.AreSame(SettingsEditorState.Bookmarks, settingsIgnored.Settings.Editor);
         Assert.HasCount(1, left.Requests);
     }
@@ -1687,7 +1687,7 @@ public sealed class CommanderSessionTests
             UserIntent.FocusAddress,
             observer,
             CancellationToken.None);
-        AddressEditing editor = Assert.IsInstanceOfType<AddressEditing>(editing.AddressEditor);
+        AddressEditing editor = Assert.IsInstanceOfType<AddressEditing>(editing.Scopes.AddressEditor);
 
         CommanderSnapshot managerIgnored = await session.HandleAsync(
             UserIntent.OpenBookmarks,
@@ -1698,8 +1698,8 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(editor, managerIgnored.AddressEditor);
-        Assert.AreSame(editor, slotIgnored.AddressEditor);
+        Assert.AreSame(editor, managerIgnored.Scopes.AddressEditor);
+        Assert.AreSame(editor, slotIgnored.Scopes.AddressEditor);
         Assert.AreEqual("C:\\left", editor.OriginalLocation.CanonicalText);
         Assert.AreSame(SettingsEditorState.Closed, slotIgnored.Settings.Editor);
         Assert.HasCount(1, left.Requests);
@@ -1884,7 +1884,7 @@ public sealed class CommanderSessionTests
             UserIntent.OpenCommandPalette,
             observer,
             CancellationToken.None);
-        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.CommandPalette);
+        CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.Scopes.CommandPalette);
 
         CommanderSnapshot managerRejected = await session.HandleAsync(
             UserIntent.SubmitCommand(palette, UserIntent.OpenBookmarks),
@@ -1895,8 +1895,8 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(palette, managerRejected.CommandPalette);
-        Assert.AreSame(palette, slotRejected.CommandPalette);
+        Assert.AreSame(palette, managerRejected.Scopes.CommandPalette);
+        Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
         Assert.HasCount(15, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.OpenBookmarks));
@@ -2038,7 +2038,8 @@ public sealed class CommanderSessionTests
         panes = new DualPaneSession(leftPane, rightPane, gateway);
         return new CommanderSession(
             panes,
-            new SettingsSession(store, initialOutcome, static _ => { }));
+            new SettingsSession(store, initialOutcome, static _ => { }),
+            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
     }
 
     private static CommandCandidate Candidate(CommandPaletteOpen palette, UserIntent intent)
