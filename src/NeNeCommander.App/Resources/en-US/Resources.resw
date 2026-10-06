@@ -248,4 +248,33 @@
   <data name="CommandPaletteHintExecute" xml:space="preserve"><value>Run</value></data>
   <data name="CommandPaletteHintCancel" xml:space="preserve"><value>Close</value></data>
   <data name="CommandPaletteHintFocus" xml:space="preserve"><value>Focus</value></data>
+  <data name="KeyLabelW" xml:space="preserve"><value>w</value></data>
+  <data name="KeyLabelM" xml:space="preserve"><value>m</value></data>
+  <data name="KeyLabelPlus" xml:space="preserve"><value>+</value></data>
+  <data name="KeyLabelMinus" xml:space="preserve"><value>-</value></data>
+  <data name="KeyLabelCtrlW" xml:space="preserve"><value>Ctrl+W</value></data>
+  <data name="WindowAdjustmentTitle" xml:space="preserve"><value>Window adjustment</value></data>
+  <data name="WindowAdjustmentHintMove" xml:space="preserve"><value>Move</value></data>
+  <data name="WindowAdjustmentHintEnlarge" xml:space="preserve"><value>Enlarge</value></data>
+  <data name="WindowAdjustmentHintShrink" xml:space="preserve"><value>Shrink</value></data>
+  <data name="WindowAdjustmentHintMaximize" xml:space="preserve"><value>Maximize</value></data>
+  <data name="WindowAdjustmentHintRestore" xml:space="preserve"><value>Restore</value></data>
+  <data name="WindowAdjustmentHintLeave" xml:space="preserve"><value>Done</value></data>
+  <data name="WindowAdjustmentOutcomeIdle" xml:space="preserve"><value>Ready</value></data>
+  <data name="WindowAdjustmentPlannedMoveLeft" xml:space="preserve"><value>Move left</value></data>
+  <data name="WindowAdjustmentPlannedMoveDown" xml:space="preserve"><value>Move down</value></data>
+  <data name="WindowAdjustmentPlannedMoveUp" xml:space="preserve"><value>Move up</value></data>
+  <data name="WindowAdjustmentPlannedMoveRight" xml:space="preserve"><value>Move right</value></data>
+  <data name="WindowAdjustmentPlannedEnlarge" xml:space="preserve"><value>Enlarge</value></data>
+  <data name="WindowAdjustmentPlannedShrink" xml:space="preserve"><value>Shrink</value></data>
+  <data name="WindowAdjustmentPlannedMaximize" xml:space="preserve"><value>Maximize</value></data>
+  <data name="WindowAdjustmentPlannedRestore" xml:space="preserve"><value>Restore</value></data>
+  <data name="WindowAdjustmentRefusedCaption" xml:space="preserve"><value>Not moved: the title bar would leave the desktop</value></data>
+  <data name="WindowAdjustmentRefusedMaximumSize" xml:space="preserve"><value>Not enlarged: already as large as the work area</value></data>
+  <data name="WindowAdjustmentRefusedMinimumSize" xml:space="preserve"><value>Not shrunk: already at the minimum size</value></data>
+  <data name="WindowAdjustmentRefusedMaximized" xml:space="preserve"><value>Not applied: the window is maximized</value></data>
+  <data name="WindowAdjustmentRefusedMinimized" xml:space="preserve"><value>Not applied: the window is minimized</value></data>
+  <data name="WindowAdjustmentRefusedRestored" xml:space="preserve"><value>Not restored: the window is already restored</value></data>
+  <data name="WindowAdjustmentRefusedNotOverlapped" xml:space="preserve"><value>Not applied: this window mode cannot be adjusted</value></data>
+  <data name="WindowAdjustmentRefusedUnavailable" xml:space="preserve"><value>Not applied: the window placement could not be read</value></data>
 </root>
