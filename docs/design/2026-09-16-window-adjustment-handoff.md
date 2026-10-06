@@ -50,14 +50,18 @@ added.
 | outcome text | `TypographyMonospaceFamily`, `TypographyMonospaceSize` |
 | outcome tone | idle `TextSecondaryBrush`; planned `TextPrimaryBrush`; refused `StatusWarningBrush` |
 | icon | `DensityOperationIconSize`, `DensityIconStrokeThickness`, `FocusRingBrush` stroke |
-| key hints | the existing `KeyHintTemplate`: `BorderKeyCapThickness`, `RadiusKeyCap`, `SpacingKeyCap`, `TextKeyHintBrush`, `TextSecondaryBrush`, `SpacingKeyHintGap` between cap and label, `SpacingOperationDetailGap` between hints |
+| key hints | one `WindowAdjustmentKeyHintTemplate` declared beside the shared `KeyHintTemplate` and built from the same resources: `BorderSubtleBrush`, `BorderKeyCapThickness`, `RadiusKeyCap`, `SpacingKeyCap`, `TextKeyHintBrush`, `TextSecondaryBrush`, `SpacingKeyHintGap` between caps and between the last cap and the label, `SpacingOperationDetailGap` between hints |
 | placement | horizontally centred over the content grid; top edge two `SpacingWindowOuter` below the content top; width fits content and never exceeds the content width |
 | scrim | `SmokeFillColorDefaultBrush` over all three rows, identical to the command palette overlay |
 
 The key-hint row shows one hint per declared hint group, with the caps the table marks for
 display, in declaration order: `h j k l` for move, `+` for enlarge, `-` for shrink, `m` for
 maximize, `r` for restore, and `Esc` for leave. Arrow aliases and `Ctrl+W` are declared without a
-displayed cap. The cap text and the action labels come from localization resources. The refused
+displayed cap. A hint therefore carries one to four caps before its one label. The shared
+`KeyHintTemplate` renders exactly one cap, so every hint of the helper, including the one-cap
+ones, uses the multi-cap template; the helper never mixes the two templates in one row, and the
+bottom key-hint bar keeps the shared template unchanged. The cap text and the action labels come
+from localization resources. The refused
 tone is never the only carrier of a refusal: the outcome text names the reason.
 
 ## Focus, keyboard, and pointer
