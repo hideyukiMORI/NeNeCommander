@@ -53,6 +53,25 @@ public sealed class WindowPlacementTests
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => WindowSizeConstraint.Create(1d, 0, -1));
     }
 
+    /// <summary>
+    /// Proves a scale that is not a finite number is rejected by name, so the planner never derives
+    /// a step from NaN or an infinity, while the smallest and a large finite positive scale still pass.
+    /// </summary>
+    [TestMethod]
+    [DataRow(double.NaN)]
+    [DataRow(double.PositiveInfinity)]
+    [DataRow(double.NegativeInfinity)]
+    public void CreateSizeConstraintWhenScaleIsNotFiniteThrowsArgumentOutOfRangeException(double scale)
+    {
+        ArgumentOutOfRangeException failure = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => WindowSizeConstraint.Create(scale, 0, 0));
+
+        Assert.AreEqual("rasterizationScale", failure.ParamName);
+        Assert.StartsWith("The rasterization scale must be a finite number.", failure.Message);
+        Assert.AreEqual(double.Epsilon, WindowSizeConstraint.Create(double.Epsilon, 0, 0).RasterizationScale);
+        Assert.AreEqual(double.MaxValue, WindowSizeConstraint.Create(double.MaxValue, 0, 0).RasterizationScale);
+    }
+
     /// <summary>Proves the work areas own a copy of the attached set, so a later caller edit cannot change them.</summary>
     [TestMethod]
     public void CreateWorkAreasWhenCurrentIsAttachedOwnsACopy()

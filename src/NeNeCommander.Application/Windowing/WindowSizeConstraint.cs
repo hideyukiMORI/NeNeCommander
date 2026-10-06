@@ -32,7 +32,7 @@ public sealed record WindowSizeConstraint
     public int PreferredMinimumHeight { get; }
 
     /// <summary>Creates the sizing facts an adapter read from the window and its presenter.</summary>
-    /// <param name="rasterizationScale">Positive rasterization scale of the window.</param>
+    /// <param name="rasterizationScale">Positive, finite rasterization scale of the window.</param>
     /// <param name="preferredMinimumWidth">Declared preferred minimum width, or zero when none is declared.</param>
     /// <param name="preferredMinimumHeight">Declared preferred minimum height, or zero when none is declared.</param>
     /// <returns>A complete immutable sizing constraint.</returns>
@@ -42,6 +42,13 @@ public sealed record WindowSizeConstraint
         int preferredMinimumWidth,
         int preferredMinimumHeight)
     {
+        if (!double.IsFinite(rasterizationScale))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rasterizationScale),
+                rasterizationScale,
+                "The rasterization scale must be a finite number.");
+        }
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rasterizationScale);
         ArgumentOutOfRangeException.ThrowIfNegative(preferredMinimumWidth);
         ArgumentOutOfRangeException.ThrowIfNegative(preferredMinimumHeight);
