@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
@@ -22,18 +21,6 @@ namespace NeNeCommander.App.Views;
 /// </summary>
 internal sealed class WindowAdjustmentView
 {
-    private static readonly Dictionary<WindowAdjustmentKeyAction, WindowAdjustmentAction> Actions = new()
-    {
-        [WindowAdjustmentKeyAction.MoveLeft] = WindowAdjustmentAction.MoveLeft,
-        [WindowAdjustmentKeyAction.MoveDown] = WindowAdjustmentAction.MoveDown,
-        [WindowAdjustmentKeyAction.MoveUp] = WindowAdjustmentAction.MoveUp,
-        [WindowAdjustmentKeyAction.MoveRight] = WindowAdjustmentAction.MoveRight,
-        [WindowAdjustmentKeyAction.Enlarge] = WindowAdjustmentAction.Enlarge,
-        [WindowAdjustmentKeyAction.Shrink] = WindowAdjustmentAction.Shrink,
-        [WindowAdjustmentKeyAction.Maximize] = WindowAdjustmentAction.Maximize,
-        [WindowAdjustmentKeyAction.Restore] = WindowAdjustmentAction.Restore,
-    };
-
     private readonly Grid _overlay;
     private readonly ResourceLoader _resources;
     private readonly WindowAdjustmentRoute _route;
@@ -87,7 +74,7 @@ internal sealed class WindowAdjustmentView
         {
             return;
         }
-        if (Actions.TryGetValue(action, out WindowAdjustmentAction? windowAction))
+        if (action.WindowAction is WindowAdjustmentAction windowAction)
         {
             _route.Adjust(expected, windowAction);
         }
