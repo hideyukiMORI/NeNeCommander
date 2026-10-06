@@ -18,8 +18,9 @@ refusal, or what the helper shows. It was revised a fifth time on 2026-10-06 aft
 review of the checkpoint: `KeyboardKey.Other` passes through inside the mode instead of being
 consumed, because consuming it would suppress the produced characters the mode's own keys arrive
 as; `WindowPlacement` groups its facts into two closed records to stay within the CS-013 parameter
-ceiling; and the helper's hints use one multi-cap template. None of these changes a key, a step, a
-refusal, or what the helper shows either. It is accepted with Issue #100's change, on top of
+ceiling; the helper's hints use one multi-cap template; the wording for a failed apply and for a
+stale leave now says what the code does; and the consequence of the caption rule at a seam with a
+gap is stated. None of these changes a key, a step, a refusal, or what the helper shows either. It is accepted with Issue #100's change, on top of
 ADR-0051 (Issue #135), which left `CommanderSession` at 261 logical lines.
 
 ## Context
@@ -126,7 +127,8 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   `ResizeTo(WindowBounds)`, `Maximize`, `Restore`, or `Refused(reason)`) and updates the open
   state's last outcome, and `LeaveWindowAdjustment(WindowAdjustmentOpen expected)` closes the
   mode and requests the one-time focus return. Both validate the expected open instance and
-  return a no-op decision for a stale one. Neither awaits nor allocates work in `AsyncWorkOwner`,
+  change nothing for a stale one: `AdjustWindow` then returns a decision with nothing to apply,
+  and `LeaveWindowAdjustment` returns the unchanged state. Neither awaits nor allocates work in `AsyncWorkOwner`,
   and both read and write only `WindowAdjustmentSession` state and no mutable field of
   `CommanderSession` or of any pane; that invariant, proven by a test that runs them while a pane
   read is pending, is what makes them callable on every key-repeat event from the UI thread
@@ -138,7 +140,10 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   `XamlRoot.RasterizationScale`; it translates and never decides, and it maps any read failure
   into a placement whose state is `Unavailable`. On each window action the host reads a fresh
   placement, calls `AdjustWindow`, applies the returned plan through the adapter exactly once,
-  and renders `_session.Current`. Because the plan is a return value and not state, a later
+  and renders `_session.Current`; the read, decide, and apply sequence lives in one
+  `WindowAdjustmentRoute` beside the adapter. Presentation owns the correspondence between a mode
+  key action and its Application `WindowAdjustmentAction`, so the host translates framework types
+  and nothing else. Because the plan is a return value and not state, a later
   render, a background read, or a repeated snapshot cannot apply it again. Leaving never reads
   the placement and cannot be refused by any placement state.
 - **The mode owns one keyboard context, `WindowAdjustment`, through a dedicated binding table.**
@@ -215,7 +220,13 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   some attached work area `w` contains a horizontal segment of the window's top edge row at least
   `min(step, width)` pixels long, and either `w` extends at least `min(step, height)` pixels
   below that row or another attached work area whose top edge is `w`'s bottom edge covers the
-  same segment, so that at least one step of caption height stays visible across a seam. A move
+  same segment, so that at least one step of caption height stays visible across a seam. Two work
+  areas with a gap between them, such as a taskbar docked at the bottom of the upper display, are
+  not continuous: no placement whose caption row lies within one step above the gap is
+  acceptable, and one step cannot clear both that band and the gap, so the mode does not carry
+  the window across such a seam. hide accepted this on 2026-10-07; the refusal names the caption,
+  the operating system's own commands still move the window there, and a rule that jumps the gap
+  would be a separate decision. A move
   whose target fails the caption rule is refused with `CaptionWouldLeaveDesktop`; a move whose
   target passes is applied unchanged, so a window can cross onto another monitor and its caption
   always keeps a pointer-reachable run of pixels. Both tests are rectangle comparisons. When a
@@ -243,7 +254,8 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   `WindowAdjustmentOutcome`: `Planned` with the action, or `Refused` with one of the closed
   reasons above. The helper labels a planned outcome by the action's name, so it never claims
   more than the decision; if the adapter's apply call throws, the host reports it through the
-  existing defect observer, the mode stays open, and the next read shows the real placement.
+  existing defect observer, which treats it like every other host defect, and the session state
+  is not rolled back, because the outcome names the decision and not its effect.
   Nothing is persisted; window geometry is not written to the settings document and no schema
   changes.
 - **The helper is the accepted direction A rendered from state, inside the existing shell
@@ -254,7 +266,9 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   resources and stays inside the ARC-012 scheme-resource scan. A hint of the helper carries one to
   four caps before one label, which the shared one-cap `KeyHintTemplate` cannot render, so the
   window declares one `WindowAdjustmentKeyHintTemplate` beside it that every hint of the helper
-  uses and that is built from the same semantic resources; its wiring lives in a
+  uses and that is built from the same semantic resources, and the hint row wraps through one
+  `Views/KeyHintWrapPanel`, because the framework ships no wrapping panel for items of different
+  widths; its wiring lives in a
   `Views/WindowAdjustmentView` class in the form of `BookmarkManagerView`, so that
   `CommanderWindow.xaml.cs` does not grow. The host places the helper in the upper centre over the
   still-visible panes and reuses the palette's transparent scrim so that pointer input cannot reach
@@ -395,8 +409,9 @@ Extend `UserIntent` with `OpenWindowAdjustment`; add `WindowAdjustmentSession`,
 Application on top of the ADR-0051 scope owners; add the `WindowAdjustment` keyboard context, `WindowAdjustmentKeyBinding`,
 `WindowAdjustmentKeyAction`, the mode branch and context-aware chord rule in `Map`, and the new
 keys to Presentation input; add `WindowAdjustmentPresenter` and
-`WindowAdjustmentKeyHintPresenter` under Presentation; add `AppWindowPlacementAdapter` under
-`App/Windowing`, the helper overlay in `CommanderWindow.xaml`, and `Views/WindowAdjustmentView`;
+`WindowAdjustmentKeyHintPresenter` under Presentation; add `AppWindowPlacementAdapter` and
+`WindowAdjustmentRoute` under `App/Windowing`, the helper overlay and its hint template in
+`CommanderWindow.xaml`, `Views/WindowAdjustmentView`, and `Views/KeyHintWrapPanel`;
 derive the host's `WindowAdjustment` keyboard context from the session state ahead of the
 focused-element test; add the localized labels and key-label resources, the `KEYBOARD_MODEL.md` table, context rule,
 chord sentence, and `Escape`-order sentence, the `COMMAND_MODEL.md` registry rows for window

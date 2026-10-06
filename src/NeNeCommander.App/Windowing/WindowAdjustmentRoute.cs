@@ -57,8 +57,9 @@ internal sealed class WindowAdjustmentRoute
     }
 
     /// <summary>
-    /// Applies the plan; a platform failure is a defect, reported through the existing observer,
-    /// and the mode stays open so the next action reads the real placement.
+    /// Applies the plan; a platform failure is a defect, reported through the existing observer
+    /// like every other host defect. The session state is not rolled back, because the recorded
+    /// outcome names the decision and not its effect.
     /// </summary>
     private void Apply(WindowAdjustmentPlan plan)
     {
