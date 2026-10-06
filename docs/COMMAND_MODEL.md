@@ -104,6 +104,9 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | dispatch of a validated palette intent | `CommanderSession` |
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
 | localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
+| window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
+| window adjustment decisions | `WindowAdjustmentSession` with `WindowAdjustmentPlanner` |
+| window adjustment mode synchronous input route | `CommanderSession.AdjustWindow` and `CommanderSession.LeaveWindowAdjustment` |
 | color scheme | scheme resource dictionary merged by the composition root |
 | focused file launch | `PaneSession` provider decision through the `IFileLauncher` boundary |
 | time | `IClock` boundary |
