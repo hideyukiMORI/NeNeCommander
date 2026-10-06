@@ -396,22 +396,17 @@ public sealed class CommanderSession
         _ = _scopes.CommandPalette.Open(panes, PaletteOwnership(panes));
     }
 
+    /// <summary>
+    /// Opens the window mode under the shared idle rule the palette already uses. An open palette
+    /// never reaches this point: <see cref="HandleAsync"/> routes every intent to the palette while
+    /// it is open, and the palette closes before it dispatches an accepted command. Listed pane
+    /// content is not part of the rule: a pane whose last read failed does not prevent moving the
+    /// window.
+    /// </summary>
     private void OpenWindowAdjustment()
     {
         DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, WindowOwnership(panes));
-    }
-
-    /// <summary>
-    /// Derives window-mode ownership from the palette scope and the shared idle rule the palette
-    /// already uses. Listed pane content is not part of the rule: a pane whose last read failed
-    /// does not prevent moving the window.
-    /// </summary>
-    private InteractionOwnership WindowOwnership(DualPaneSnapshot panes)
-    {
-        return _scopes.CommandPalette.Current is CommandPaletteOpen
-            ? InteractionOwnership.AnotherScopeOwnsInput
-            : PaletteOwnership(panes);
+        _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, PaletteOwnership(panes));
     }
 
     private async Task<CommanderSnapshot> HandlePaletteIntentAsync(
