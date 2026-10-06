@@ -1,3 +1,5 @@
+using NeNeCommander.Application.Windowing;
+
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
@@ -38,13 +40,54 @@ public abstract record WindowAdjustmentKeyAction
     {
     }
 
-    private sealed record MoveLeftAction : WindowAdjustmentKeyAction;
-    private sealed record MoveDownAction : WindowAdjustmentKeyAction;
-    private sealed record MoveUpAction : WindowAdjustmentKeyAction;
-    private sealed record MoveRightAction : WindowAdjustmentKeyAction;
-    private sealed record EnlargeAction : WindowAdjustmentKeyAction;
-    private sealed record ShrinkAction : WindowAdjustmentKeyAction;
-    private sealed record MaximizeAction : WindowAdjustmentKeyAction;
-    private sealed record RestoreAction : WindowAdjustmentKeyAction;
-    private sealed record LeaveAction : WindowAdjustmentKeyAction;
+    /// <summary>
+    /// Gets the Application window action this key action requests, or <see langword="null"/> for
+    /// <see cref="Leave"/>, which is not a window action but the qualified leave of the scope.
+    /// </summary>
+    public abstract WindowAdjustmentAction? WindowAction { get; }
+
+    private sealed record MoveLeftAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveLeft;
+    }
+
+    private sealed record MoveDownAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveDown;
+    }
+
+    private sealed record MoveUpAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveUp;
+    }
+
+    private sealed record MoveRightAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveRight;
+    }
+
+    private sealed record EnlargeAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Enlarge;
+    }
+
+    private sealed record ShrinkAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Shrink;
+    }
+
+    private sealed record MaximizeAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Maximize;
+    }
+
+    private sealed record RestoreAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Restore;
+    }
+
+    private sealed record LeaveAction : WindowAdjustmentKeyAction
+    {
+        public override WindowAdjustmentAction? WindowAction => null;
+    }
 }

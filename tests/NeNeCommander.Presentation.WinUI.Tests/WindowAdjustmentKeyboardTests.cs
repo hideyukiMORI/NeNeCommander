@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Windowing;
 using NeNeCommander.Presentation.WinUI.Input;
 using Windows.System;
 
@@ -363,6 +364,36 @@ public sealed class WindowAdjustmentKeyboardTests
         Assert.AreEqual("KeyLabelCtrlW", bindings[13].KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelUnmapped", controlH.KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelUnmapped", altW.KeyLabelResourceKey);
+    }
+
+    /// <summary>
+    /// Proves each key action requests exactly its own Application window action, that leaving
+    /// requests none, and that the correspondence covers every key action.
+    /// </summary>
+    [TestMethod]
+    public void WindowActionWhenKeyActionIsReadNamesItsApplicationAction()
+    {
+        (WindowAdjustmentKeyAction Key, WindowAdjustmentAction? Window)[] expected =
+        [
+            (WindowAdjustmentKeyAction.MoveLeft, WindowAdjustmentAction.MoveLeft),
+            (WindowAdjustmentKeyAction.MoveDown, WindowAdjustmentAction.MoveDown),
+            (WindowAdjustmentKeyAction.MoveUp, WindowAdjustmentAction.MoveUp),
+            (WindowAdjustmentKeyAction.MoveRight, WindowAdjustmentAction.MoveRight),
+            (WindowAdjustmentKeyAction.Enlarge, WindowAdjustmentAction.Enlarge),
+            (WindowAdjustmentKeyAction.Shrink, WindowAdjustmentAction.Shrink),
+            (WindowAdjustmentKeyAction.Maximize, WindowAdjustmentAction.Maximize),
+            (WindowAdjustmentKeyAction.Restore, WindowAdjustmentAction.Restore),
+            (WindowAdjustmentKeyAction.Leave, null),
+        ];
+
+        foreach ((WindowAdjustmentKeyAction key, WindowAdjustmentAction? window) in expected)
+        {
+            Assert.AreSame(window, key.WindowAction);
+        }
+        CollectionAssert.AreEquivalent(AllKeyActions(), expected.Select(pair => pair.Key).ToArray());
+        Assert.HasCount(
+            8,
+            AllKeyActions().Select(action => action.WindowAction).OfType<WindowAdjustmentAction>().Distinct());
     }
 
     /// <summary>Proves the table values reject every absent part.</summary>
