@@ -219,8 +219,10 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   reading fresh. The one boundary rule is the **caption rule**: a placement is acceptable when
   some attached work area `w` contains a horizontal segment of the window's top edge row at least
   `min(step, width)` pixels long, and either `w` extends at least `min(step, height)` pixels
-  below that row or another attached work area whose top edge is `w`'s bottom edge covers the
-  same segment, so that at least one step of caption height stays visible across a seam. Two work
+  below that row or one other attached work area whose top edge is `w`'s bottom edge covers a
+  part of that segment at least as long and reaches at least as far below the row, so that at
+  least one step of caption height stays visible across a seam. Work areas below are judged one
+  at a time and never combined. Two work
   areas with a gap between them, such as a taskbar docked at the bottom of the upper display, are
   not continuous: no placement whose caption row lies within one step above the gap is
   acceptable, and one step cannot clear both that band and the gap, so the mode does not carry
