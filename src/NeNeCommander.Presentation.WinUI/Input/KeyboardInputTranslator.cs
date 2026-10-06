@@ -1,4 +1,4 @@
-﻿using Windows.System;
+using Windows.System;
 using Windows.UI.Core;
 
 namespace NeNeCommander.Presentation.WinUI.Input;

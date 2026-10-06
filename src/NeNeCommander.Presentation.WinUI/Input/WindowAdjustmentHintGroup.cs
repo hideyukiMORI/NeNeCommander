@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Presentation.WinUI.Input;
+namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
 /// Names one displayed hint of the window-adjustment helper. Several keys of the mode's table may

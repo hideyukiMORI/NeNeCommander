@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Presentation.WinUI.Input;
+namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
 /// Names the closed Presentation-owned action of one key the window-adjustment mode owns. Every

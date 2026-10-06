@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Sessions;
+namespace NeNeCommander.Application.Sessions;
 
 /// <summary>
 /// Represents the closed most recent result of the open window-adjustment mode. It is rendered,

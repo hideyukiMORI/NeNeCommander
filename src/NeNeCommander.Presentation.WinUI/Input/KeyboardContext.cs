@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Presentation.WinUI.Input;
+namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>Represents the explicit focus context that owns one keyboard event.</summary>
 public abstract record KeyboardContext

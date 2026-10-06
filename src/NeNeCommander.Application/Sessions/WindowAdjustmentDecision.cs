@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Sessions;
+namespace NeNeCommander.Application.Sessions;
 
 /// <summary>
 /// Represents the closed result of offering one window action to the mode. The mode state is

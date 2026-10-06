@@ -1,4 +1,4 @@
-﻿using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Sessions;
 

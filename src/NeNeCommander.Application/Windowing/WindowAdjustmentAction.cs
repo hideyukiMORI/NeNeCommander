@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Windowing;
+namespace NeNeCommander.Application.Windowing;
 
 /// <summary>
 /// Represents the closed set of window adjustments the mode can request. Leaving the mode is not an

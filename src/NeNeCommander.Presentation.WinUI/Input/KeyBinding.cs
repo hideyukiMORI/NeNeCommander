@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
