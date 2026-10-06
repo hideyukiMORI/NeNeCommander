@@ -160,6 +160,65 @@ public sealed class WindowAdjustmentPlannerTests
         AssertMovedTo(placement, WindowAdjustmentAction.MoveDown, 100, 1022);
     }
 
+    /// <summary>
+    /// Proves the display below only has to cover one segment of the caption run at least one step
+    /// long, not the whole run, so an offset lower display does not stop a downward move.
+    /// </summary>
+    [TestMethod]
+    public void PlanWhenDisplayBelowCoversOnlyPartOfTheRunAcceptsAStepLongSegment()
+    {
+        WindowBounds partial = WindowBounds.Create(1000, 1040, 1920, 1040);
+        WindowBounds edge = WindowBounds.Create(1668, 1040, 1920, 1040);
+        WindowPlacement wide = Restored(
+            WindowBounds.Create(900, 990, 800, 600), 1.0, Desktop, Desktop, partial);
+        WindowPlacement exact = Restored(
+            WindowBounds.Create(900, 990, 800, 600), 1.0, Desktop, Desktop, edge);
+
+        AssertMovedTo(wide, WindowAdjustmentAction.MoveDown, 900, 1022);
+        AssertMovedTo(exact, WindowAdjustmentAction.MoveDown, 900, 1022);
+    }
+
+    /// <summary>Proves an overlap with the display below shorter than one step is refused.</summary>
+    [TestMethod]
+    public void PlanWhenDisplayBelowOverlapsTheRunByLessThanOneStepRefusesTheMove()
+    {
+        WindowBounds narrow = WindowBounds.Create(1669, 1040, 1920, 1040);
+        WindowPlacement placement = Restored(
+            WindowBounds.Create(900, 990, 800, 600), 1.0, Desktop, Desktop, narrow);
+
+        AssertRefused(placement, WindowAdjustmentAction.MoveDown, WindowAdjustmentRefusal.CaptionWouldLeaveDesktop);
+    }
+
+    /// <summary>
+    /// Proves two displays below are judged one at a time: neither covers one step of the run even
+    /// though together they would.
+    /// </summary>
+    [TestMethod]
+    public void PlanWhenTwoDisplaysBelowEachCoverLessThanOneStepRefusesTheMove()
+    {
+        WindowBounds first = WindowBounds.Create(-1000, 1040, 1020, 1040);
+        WindowBounds second = WindowBounds.Create(20, 1040, 1900, 1040);
+        WindowPlacement placement = Restored(
+            WindowBounds.Create(-1000, 990, 1040, 600), 1.0, Desktop, Desktop, first, second);
+
+        AssertRefused(placement, WindowAdjustmentAction.MoveDown, WindowAdjustmentRefusal.CaptionWouldLeaveDesktop);
+    }
+
+    /// <summary>
+    /// Proves a seam is crossed only where the lower display's top edge is the upper work area's
+    /// bottom edge: a taskbar gap between the two leaves the band above it unreachable.
+    /// </summary>
+    [TestMethod]
+    public void PlanWhenWorkAreasAreSeparatedByAGapRefusesTheBandAboveIt()
+    {
+        WindowBounds upper = WindowBounds.Create(0, 0, 1920, 1000);
+        WindowBounds lower = WindowBounds.Create(0, 1040, 1920, 1040);
+        WindowPlacement placement = Restored(
+            WindowBounds.Create(100, 950, 800, 600), 1.0, upper, upper, lower);
+
+        AssertRefused(placement, WindowAdjustmentAction.MoveDown, WindowAdjustmentRefusal.CaptionWouldLeaveDesktop);
+    }
+
     /// <summary>Proves a display below shallower than the missing caption height cannot hold the caption.</summary>
     [TestMethod]
     public void PlanWhenDisplayBelowIsShallowerThanTheMissingHeightRefusesTheMove()

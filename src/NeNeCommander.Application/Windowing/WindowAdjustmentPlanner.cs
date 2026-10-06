@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace NeNeCommander.Application.Windowing;
 
@@ -149,8 +149,10 @@ public static class WindowAdjustmentPlanner
     /// <summary>
     /// Applies the caption rule to a requested rectangle. The rule holds when some attached work
     /// area contains a run of the window's top edge row at least one step long, and the desktop
-    /// stays continuous under that run for at least one step of caption height, whether inside that
-    /// work area alone or across a horizontal seam into the work area directly below it.
+    /// stays continuous for at least one step of caption height, either inside that work area alone
+    /// or across a horizontal seam into one work area whose top edge is that work area's bottom edge
+    /// and which covers its own segment of the run at least one step long. Neighbours are judged one
+    /// at a time and never combined.
     /// </summary>
     private static bool CaptionStaysReachable(
         WindowBounds target,
@@ -165,37 +167,16 @@ public static class WindowAdjustmentPlanner
             int runRight = Math.Min(area.Right, target.Right);
             if (area.Top <= target.Top && target.Top < area.Bottom &&
                 runRight - runLeft >= requiredWidth &&
-                ReachableBottom(area, workAreas.Attached, runLeft, runRight) >= requiredBottom)
+                (area.Bottom >= requiredBottom ||
+                    workAreas.Attached.Any(neighbour =>
+                        neighbour.Top == area.Bottom &&
+                        Math.Min(neighbour.Right, runRight) - Math.Max(neighbour.Left, runLeft) >= requiredWidth &&
+                        neighbour.Bottom >= requiredBottom)))
             {
                 return true;
             }
         }
         return false;
-    }
-
-    /// <summary>
-    /// Returns how far down the desktop stays continuous under one run of the caption row: the work
-    /// area's own bottom edge, extended by a work area whose top edge is exactly that bottom edge
-    /// and which covers the whole run.
-    /// </summary>
-    private static int ReachableBottom(
-        WindowBounds area,
-        IReadOnlyList<WindowBounds> attached,
-        int runLeft,
-        int runRight)
-    {
-        int bottom = area.Bottom;
-        foreach (WindowBounds neighbour in attached)
-        {
-            if (neighbour.Top == area.Bottom &&
-                neighbour.Left <= runLeft &&
-                neighbour.Right >= runRight &&
-                neighbour.Bottom > bottom)
-            {
-                bottom = neighbour.Bottom;
-            }
-        }
-        return bottom;
     }
 
     /// <summary>
