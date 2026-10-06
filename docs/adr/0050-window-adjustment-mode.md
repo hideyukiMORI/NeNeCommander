@@ -1,4 +1,4 @@
-﻿# ADR-0050: Adjust the window through one session-owned adjustment mode
+# ADR-0050: Adjust the window through one session-owned adjustment mode
 
 Status: accepted
 

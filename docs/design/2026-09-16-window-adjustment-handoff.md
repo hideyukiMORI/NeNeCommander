@@ -1,4 +1,4 @@
-﻿# Window adjustment engineering handoff
+# Window adjustment engineering handoff
 
 Status: engineering constraints for Issue #100 under ADR-0050
 
