@@ -37,13 +37,16 @@ opening or closing animation, timer, busy state, or transient error state.
 ## Layout and tokens
 
 Every value is an existing semantic resource; no new token, family, colour key, or fixed colour is
-added.
+added. The first draft of this table asked for 10 horizontally, 6 vertically, and a 6 row gap,
+which the existing tokens cannot express: `SpacingWindowOuter` is a uniform thickness and no
+6-unit scalar exists. The composition below was judged on the real window on 2026-10-07 and kept.
 
 | Part | Resource |
 |---|---|
 | helper surface | `SurfacePaneBrush`, `FocusRingBrush` border, `BorderOperationBarThickness`, `RadiusPane` |
-| helper padding | `SpacingOperationBar` horizontally, `SpacingWindowOuter` vertically |
-| row gap inside the helper | `SpacingWindowOuter` |
+| helper padding | `SpacingOperationBar` on the surface plus `SpacingWindowOuter` on its content, which gives 16 horizontally and 6 vertically |
+| row gap inside the helper | `SpacingOperationBarGap` |
+| gap between wrapped hint lines | `SpacingKeyHintGap` |
 | gap between title group and outcome text | `SpacingOperationDetailGap` |
 | gap between icon and title | `SpacingKeyHintGap` |
 | title | `TypographyBodySize`, bold, `TextPrimaryBrush` |
