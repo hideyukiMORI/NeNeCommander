@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
@@ -50,6 +50,8 @@ public sealed record WindowAdjustmentKeyBinding
     {
         return Modifier == KeyboardModifier.None
             ? Key.LabelResourceKey
-            : ControlKeyLabels.TryGetValue(Key, out string? label) ? label : "KeyLabelUnmapped";
+            : Modifier == KeyboardModifier.Control && ControlKeyLabels.TryGetValue(Key, out string? label)
+                ? label
+                : "KeyLabelUnmapped";
     }
 }

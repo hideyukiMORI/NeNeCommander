@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Windowing;

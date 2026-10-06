@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Presentation.WinUI.Input;
+namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
 /// Represents one closed, layout-translated key identity consumed by the canonical mapper. Each

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NeNeCommander.Application.Windowing;
 
 namespace NeNeCommander.Application.Sessions;

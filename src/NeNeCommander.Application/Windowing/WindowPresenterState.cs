@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Windowing;
+namespace NeNeCommander.Application.Windowing;
 
 /// <summary>
 /// Represents the closed presenter state of the application window as the host can observe it. A

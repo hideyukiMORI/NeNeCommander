@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Windowing;
+namespace NeNeCommander.Application.Windowing;
 
 /// <summary>
 /// Represents the closed result of planning one window adjustment. A plan is a return value and

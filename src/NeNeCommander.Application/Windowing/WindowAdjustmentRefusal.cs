@@ -1,4 +1,4 @@
-﻿namespace NeNeCommander.Application.Windowing;
+namespace NeNeCommander.Application.Windowing;
 
 /// <summary>
 /// Represents the closed set of reasons the planner refuses one window adjustment. A refusal is a

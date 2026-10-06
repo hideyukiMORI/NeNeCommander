@@ -1,4 +1,4 @@
-﻿using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
