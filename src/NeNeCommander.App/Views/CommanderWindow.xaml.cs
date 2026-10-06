@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Input;
+using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
@@ -33,6 +34,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly ResourceLoader _resources;
     private readonly AsyncWorkOwner _paneWork;
     private readonly BookmarkManagerView _bookmarkView;
+    private readonly WindowAdjustmentView _windowAdjustmentView;
     private AddressEditorPresentation? _addressPresentation;
     private AddressEditorState? _defaultFileListFocusSuppressedState;
     private AddressEditorState? _leftAddressOwner;
@@ -73,6 +75,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _resources = new ResourceLoader();
         InitializeComponent();
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
+        _windowAdjustmentView = new WindowAdjustmentView(
+            WindowAdjustmentOverlay,
+            _resources,
+            new WindowAdjustmentRoute(session, new AppWindowPlacementAdapter(AppWindow, InputSurface), defectObserver),
+            FocusFileList);
         Title = _resources.GetString("CommanderWindowTitle");
         CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
@@ -183,6 +190,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             RenderAddressTransition(address);
         }
         RenderCommandPalette(snapshot);
+        _windowAdjustmentView.Render();
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
@@ -601,6 +609,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private bool ForwardOutcome(KeyboardMappingOutcome outcome)
     {
+        if (outcome is MappedWindowAdjustmentAction windowAction)
+        {
+            _windowAdjustmentView.Forward(windowAction.Action);
+            return true;
+        }
         if (outcome is MappedCommandPaletteAction paletteAction)
         {
             return ForwardCommandPaletteAction(paletteAction.Action);
@@ -773,6 +786,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private KeyboardContext GetKeyboardContext()
     {
+        if (_session.Current.Scopes.WindowAdjustment is WindowAdjustmentOpen)
+        {
+            return KeyboardContext.WindowAdjustment;
+        }
         if (CommandPaletteOverlay.Visibility == Visibility.Visible)
         {
             return KeyboardContext.CommandPalette;

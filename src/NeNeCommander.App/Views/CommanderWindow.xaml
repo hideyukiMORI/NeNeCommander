@@ -158,6 +158,47 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate x:Key="WindowAdjustmentKeyHintTemplate">
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="{StaticResource SpacingKeyHintGap}"
+                    VerticalAlignment="Center">
+                    <ItemsControl
+                        IsTabStop="False"
+                        ItemsSource="{Binding KeyLabelResourceKeys}"
+                        VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="{StaticResource BorderKeyCapThickness}"
+                                    CornerRadius="{StaticResource RadiusKeyCap}"
+                                    Padding="{StaticResource SpacingKeyCap}">
+                                    <TextBlock
+                                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                        FontSize="{StaticResource TypographyMonospaceSize}"
+                                        Foreground="{StaticResource TextKeyHintBrush}"
+                                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+
             <DataTemplate
                 x:Key="CommandPaletteRowTemplate"
                 x:DataType="commands:CommandPaletteRow">
@@ -891,6 +932,88 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="WindowAdjustmentOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="WindowAdjustmentOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="21"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed">
+            <Border
+                x:Name="WindowAdjustmentSurface"
+                AutomationProperties.AutomationId="WindowAdjustmentSurface"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Center"
+                Margin="{StaticResource SpacingWindowOuter}"
+                Padding="{StaticResource SpacingOperationBar}"
+                VerticalAlignment="Top">
+                <StackPanel
+                    Padding="{StaticResource SpacingWindowOuter}"
+                    Spacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="{StaticResource SpacingKeyHintGap}"
+                            VerticalAlignment="Center">
+                            <Grid>
+                                <ContentControl
+                                    x:Name="WindowAdjustmentHelper"
+                                    AutomationProperties.AutomationId="WindowAdjustmentHelper"
+                                    AutomationProperties.LiveSetting="Polite"
+                                    IsTabStop="True"
+                                    UseSystemFocusVisuals="False"
+                                    Visibility="Collapsed" />
+                                <Path
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    Data="M2,3.5 L16,3.5 L16,14.5 L2,14.5 Z M2,6.5 L16,6.5"
+                                    Height="{StaticResource DensityOperationIconSize}"
+                                    Stroke="{StaticResource FocusRingBrush}"
+                                    StrokeLineJoin="Round"
+                                    StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                                    VerticalAlignment="Center"
+                                    Width="{StaticResource DensityOperationIconSize}" />
+                            </Grid>
+                            <TextBlock
+                                x:Name="WindowAdjustmentTitle"
+                                AutomationProperties.AccessibilityView="Raw"
+                                FontSize="{StaticResource TypographyBodySize}"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="WindowAdjustmentOutcome"
+                            Grid.Column="1"
+                            AutomationProperties.AccessibilityView="Raw"
+                            FontFamily="{StaticResource TypographyMonospaceFamily}"
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                    <ItemsControl
+                        x:Name="WindowAdjustmentKeyHints"
+                        AutomationProperties.AccessibilityView="Raw"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <views:KeyHintWrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>
