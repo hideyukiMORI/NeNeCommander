@@ -176,6 +176,21 @@ public sealed class WindowAdjustmentKeyboardTests
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
+    /// <summary>
+    /// Proves the chord rule asks the current context: a key the file list itself declares cancels
+    /// a pending <c>g</c>, so a following <c>g</c> starts a new chord instead of completing it.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenFileListDeclaredKeyFollowsGCancelsTheChord()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+
+        Assert.AreSame(UserIntent.MoveNext, MappedIntent(mapper.Map(Input(KeyboardKey.J))));
+
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+    }
+
     /// <summary>Proves a key the mode owns abandons a pending file-list chord.</summary>
     [TestMethod]
     public void MapWhenModeOwnsAKeyAfterGCancelsTheChord()

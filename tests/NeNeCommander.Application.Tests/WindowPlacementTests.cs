@@ -83,6 +83,21 @@ public sealed class WindowPlacementTests
             [WindowBounds.Create(1920, 0, 1920, 1040)]));
 
         Assert.AreEqual("attached", failure.ParamName);
+        Assert.StartsWith(
+            "The attached work areas must contain the work area of the window's display.",
+            failure.Message);
+    }
+
+    /// <summary>Proves an absent attached set is rejected by name before any copy is attempted.</summary>
+    [TestMethod]
+    public void CreateWorkAreasWhenAttachedIsNullNamesTheAttachedParameter()
+    {
+        WindowBounds current = WindowBounds.Create(0, 0, 1920, 1040);
+
+        ArgumentNullException failure = Assert.ThrowsExactly<ArgumentNullException>(
+            () => WindowWorkAreas.Create(current, null!));
+
+        Assert.AreEqual("attached", failure.ParamName);
     }
 
     /// <summary>Proves a placement keeps exactly the facts it was created from.</summary>
