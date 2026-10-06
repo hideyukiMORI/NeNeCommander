@@ -31,7 +31,7 @@ A pending focused-file handoff freezes every pane intent and direct navigation o
 point until its typed outcome arrives. The handoff never changes content, focus, selection, or
 history. Windows UNC and WSL files report an unavailable provider without reaching the Shell.
 
-The `gg` chord expires after 750 ms, measured through the injected monotonic clock. An unrelated mapped second key cancels the pending chord and is then processed normally. An unmapped event, including the raw virtual-key event that precedes a produced character, passes through without touching the chord. Auto-repeat is accepted for single-key movement and ignored for chord prefixes and destructive commands. When an initial Enter executes a palette candidate, the mapper consumes every repeated Enter from that physical press across later file-list, address-entry, and modal contexts. Other keys and context changes do not release that guard. The next initial Enter releases it and is mapped normally; an ordinary file-list Enter repeat remains unchanged when no palette guard is active.
+The `gg` chord expires after 750 ms, measured through the injected monotonic clock. Whether a second key cancels the pending chord is decided by whether the current context declares that key with that modifier state: a declared second key cancels the pending chord and is then processed normally. A key the current context does not declare passes through without touching the chord; that includes the raw virtual-key event that precedes a produced character and keys that only another context declares, such as the window adjustment mode's `m`, `+`, and `-` in the file list. Auto-repeat is accepted for single-key movement and ignored for chord prefixes and destructive commands. When an initial Enter executes a palette candidate, the mapper consumes every repeated Enter from that physical press across later file-list, address-entry, and modal contexts. Other keys and context changes do not release that guard. The next initial Enter releases it and is mapped normally; an ordinary file-list Enter repeat remains unchanged when no palette guard is active.
 
 ## File commands
 
@@ -47,9 +47,30 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `Ctrl+,` | open the session-owned settings editor from the file list or navigation surface |
 | `Ctrl+P` | open the session-owned command palette from the file list or navigation surface |
 | `Ctrl+B` | open the session-owned bookmark manager from the file list or navigation surface |
+| `Ctrl+W` | open the session-owned window adjustment mode from the file list or navigation surface |
 | `Ctrl+1` through `Ctrl+9` | navigate the active pane to the bookmark assigned to that fixed slot; an unassigned slot performs no read |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
+
+## Window adjustment mode
+
+`Ctrl+W` opens one persistent window adjustment mode (ADR-0050). It opens only when settings, bookmarks, address editing, and the command palette are closed, no file operation is running or awaiting confirmation, name, or conflict, and no pane read or launch is in flight. While it is open the host's keyboard context is `WindowAdjustment`, which the mode owns through its own dedicated table rather than through `KeyboardIntentMapper.BindingsFor`:
+
+| Input | Action |
+|---|---|
+| `h` or `Left` | move the window left by one adjustment step |
+| `j` or `Down` | move the window down by one adjustment step |
+| `k` or `Up` | move the window up by one adjustment step |
+| `l` or `Right` | move the window right by one adjustment step |
+| `+` | enlarge the window by one adjustment step in width and height, anchored at its top-left corner |
+| `-` | shrink the window by one adjustment step in width and height, anchored at its top-left corner |
+| `m` | maximize the window |
+| `r` | restore the window to its normal placement |
+| `Escape` or `Ctrl+W` | leave the mode and return focus to the file list of the pane active at entry |
+
+Letters and `+` and `-` are produced characters with Control and Alt absent (KBD-003); `=` is not an alias. Auto-repeat is accepted for move, enlarge, and shrink; a repeated `m`, `r`, `Escape`, or `Ctrl+W` is consumed without an action. In the `WindowAdjustment` context a declared key yields its action; an event the translator does not identify, which includes the raw virtual-key event that precedes a produced character, passes through to the mode's focus sink, which handles nothing; and every identified key the mode does not declare, and every declared key under an undeclared modifier, is consumed, so no pane, editor, or native control receives it. `Tab` is consumed, so focus cannot leave the mode. The helper's hints are generated from the same table, one hint per group with the arrow aliases and `Ctrl+W` shown under no cap of their own.
+
+`Escape` keeps its order. The mode cannot open while a file operation is running or awaiting a decision, so cancelling a running operation still comes first; inside the mode `Escape` and `Ctrl+W` have one meaning, leaving the mode, and leaving has no revert because every applied step already happened on the desktop.
 
 ## Context precedence
 

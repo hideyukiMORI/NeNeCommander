@@ -24,6 +24,7 @@ public sealed record KeyBinding
                 [KeyboardKey.P] = "KeyLabelCtrlP",
                 [KeyboardKey.R] = "KeyLabelCtrlR",
                 [KeyboardKey.U] = "KeyLabelCtrlU",
+                [KeyboardKey.W] = "KeyLabelCtrlW",
                 [KeyboardKey.One] = "KeyLabelCtrl1",
                 [KeyboardKey.Two] = "KeyLabelCtrl2",
                 [KeyboardKey.Three] = "KeyLabelCtrl3",

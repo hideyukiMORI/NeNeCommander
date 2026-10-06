@@ -385,7 +385,10 @@ public sealed class CommandPalettePresenterTests
                 new SuccessfulSettingsStore(),
                 SettingsReadOutcome.Absent(),
                 static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
+            new TransientScopeOwners(
+                new AddressEditorSession(),
+                new CommandPaletteSession(),
+                new WindowAdjustmentSession()));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         if (passiveListing is not null)
         {

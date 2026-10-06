@@ -248,4 +248,33 @@
   <data name="CommandPaletteHintExecute" xml:space="preserve"><value>実行</value></data>
   <data name="CommandPaletteHintCancel" xml:space="preserve"><value>閉じる</value></data>
   <data name="CommandPaletteHintFocus" xml:space="preserve"><value>フォーカス</value></data>
+  <data name="KeyLabelW" xml:space="preserve"><value>w</value></data>
+  <data name="KeyLabelM" xml:space="preserve"><value>m</value></data>
+  <data name="KeyLabelPlus" xml:space="preserve"><value>+</value></data>
+  <data name="KeyLabelMinus" xml:space="preserve"><value>-</value></data>
+  <data name="KeyLabelCtrlW" xml:space="preserve"><value>Ctrl+W</value></data>
+  <data name="WindowAdjustmentTitle" xml:space="preserve"><value>ウィンドウ調整</value></data>
+  <data name="WindowAdjustmentHintMove" xml:space="preserve"><value>移動</value></data>
+  <data name="WindowAdjustmentHintEnlarge" xml:space="preserve"><value>拡大</value></data>
+  <data name="WindowAdjustmentHintShrink" xml:space="preserve"><value>縮小</value></data>
+  <data name="WindowAdjustmentHintMaximize" xml:space="preserve"><value>最大化</value></data>
+  <data name="WindowAdjustmentHintRestore" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="WindowAdjustmentHintLeave" xml:space="preserve"><value>完了</value></data>
+  <data name="WindowAdjustmentOutcomeIdle" xml:space="preserve"><value>入力待ち</value></data>
+  <data name="WindowAdjustmentPlannedMoveLeft" xml:space="preserve"><value>左へ移動</value></data>
+  <data name="WindowAdjustmentPlannedMoveDown" xml:space="preserve"><value>下へ移動</value></data>
+  <data name="WindowAdjustmentPlannedMoveUp" xml:space="preserve"><value>上へ移動</value></data>
+  <data name="WindowAdjustmentPlannedMoveRight" xml:space="preserve"><value>右へ移動</value></data>
+  <data name="WindowAdjustmentPlannedEnlarge" xml:space="preserve"><value>拡大</value></data>
+  <data name="WindowAdjustmentPlannedShrink" xml:space="preserve"><value>縮小</value></data>
+  <data name="WindowAdjustmentPlannedMaximize" xml:space="preserve"><value>最大化</value></data>
+  <data name="WindowAdjustmentPlannedRestore" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="WindowAdjustmentRefusedCaption" xml:space="preserve"><value>移動しません: タイトルバーが画面の外に出ます</value></data>
+  <data name="WindowAdjustmentRefusedMaximumSize" xml:space="preserve"><value>拡大しません: 作業領域いっぱいです</value></data>
+  <data name="WindowAdjustmentRefusedMinimumSize" xml:space="preserve"><value>縮小しません: 最小サイズです</value></data>
+  <data name="WindowAdjustmentRefusedMaximized" xml:space="preserve"><value>適用しません: 最大化中です</value></data>
+  <data name="WindowAdjustmentRefusedMinimized" xml:space="preserve"><value>適用しません: 最小化中です</value></data>
+  <data name="WindowAdjustmentRefusedRestored" xml:space="preserve"><value>元に戻しません: すでに通常の状態です</value></data>
+  <data name="WindowAdjustmentRefusedNotOverlapped" xml:space="preserve"><value>適用しません: この表示モードでは調整できません</value></data>
+  <data name="WindowAdjustmentRefusedUnavailable" xml:space="preserve"><value>適用しません: ウィンドウの位置を読み取れません</value></data>
 </root>

@@ -37,27 +37,34 @@ opening or closing animation, timer, busy state, or transient error state.
 ## Layout and tokens
 
 Every value is an existing semantic resource; no new token, family, colour key, or fixed colour is
-added.
+added. The first draft of this table asked for 10 horizontally, 6 vertically, and a 6 row gap,
+which the existing tokens cannot express: `SpacingWindowOuter` is a uniform thickness and no
+6-unit scalar exists. The composition below was judged on the real window on 2026-10-07 and kept.
 
 | Part | Resource |
 |---|---|
 | helper surface | `SurfacePaneBrush`, `FocusRingBrush` border, `BorderOperationBarThickness`, `RadiusPane` |
-| helper padding | `SpacingOperationBar` horizontally, `SpacingWindowOuter` vertically |
-| row gap inside the helper | `SpacingWindowOuter` |
+| helper padding | `SpacingOperationBar` on the surface plus `SpacingWindowOuter` on its content, which gives 16 horizontally and 6 vertically |
+| row gap inside the helper | `SpacingOperationBarGap` |
+| gap between wrapped hint lines | `SpacingKeyHintGap` |
 | gap between title group and outcome text | `SpacingOperationDetailGap` |
 | gap between icon and title | `SpacingKeyHintGap` |
 | title | `TypographyBodySize`, bold, `TextPrimaryBrush` |
 | outcome text | `TypographyMonospaceFamily`, `TypographyMonospaceSize` |
 | outcome tone | idle `TextSecondaryBrush`; planned `TextPrimaryBrush`; refused `StatusWarningBrush` |
 | icon | `DensityOperationIconSize`, `DensityIconStrokeThickness`, `FocusRingBrush` stroke |
-| key hints | the existing `KeyHintTemplate`: `BorderKeyCapThickness`, `RadiusKeyCap`, `SpacingKeyCap`, `TextKeyHintBrush`, `TextSecondaryBrush`, `SpacingKeyHintGap` between cap and label, `SpacingOperationDetailGap` between hints |
+| key hints | one `WindowAdjustmentKeyHintTemplate` declared beside the shared `KeyHintTemplate` and built from the same resources: `BorderSubtleBrush`, `BorderKeyCapThickness`, `RadiusKeyCap`, `SpacingKeyCap`, `TextKeyHintBrush`, `TextSecondaryBrush`, `SpacingKeyHintGap` between caps and between the last cap and the label, `SpacingOperationDetailGap` between hints |
 | placement | horizontally centred over the content grid; top edge two `SpacingWindowOuter` below the content top; width fits content and never exceeds the content width |
 | scrim | `SmokeFillColorDefaultBrush` over all three rows, identical to the command palette overlay |
 
 The key-hint row shows one hint per declared hint group, with the caps the table marks for
 display, in declaration order: `h j k l` for move, `+` for enlarge, `-` for shrink, `m` for
 maximize, `r` for restore, and `Esc` for leave. Arrow aliases and `Ctrl+W` are declared without a
-displayed cap. The cap text and the action labels come from localization resources. The refused
+displayed cap. A hint therefore carries one to four caps before its one label. The shared
+`KeyHintTemplate` renders exactly one cap, so every hint of the helper, including the one-cap
+ones, uses the multi-cap template; the helper never mixes the two templates in one row, and the
+bottom key-hint bar keeps the shared template unchanged. The cap text and the action labels come
+from localization resources. The refused
 tone is never the only carrier of a refusal: the outcome text names the reason.
 
 ## Focus, keyboard, and pointer
@@ -67,7 +74,8 @@ programmatic focus when the mode opens and is collapsed whenever the mode is clo
 a tab stop outside the mode. It exposes the helper as one UIA element whose Name is the localized
 mode title and whose HelpText is the current outcome text. `Tab` and `Shift+Tab` are consumed
 inside the mode and do not move focus. Leaving the mode returns focus once to the active pane
-captured at entry.
+captured at entry, and the host returns that focus before it collapses the overlay: collapsing a
+focused sink would let the framework focus the left address box and begin an address edit.
 
 Tapping the scrim calls the same qualified leave as `Escape`; pointer input on the helper surface
 does nothing and does not bubble into the scrim. The helper has no pointer targets.

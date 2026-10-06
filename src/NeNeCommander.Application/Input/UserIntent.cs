@@ -86,6 +86,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned bookmark catalog editor.</summary>
     public static UserIntent OpenBookmarks { get; } = new OpenBookmarksIntent();
 
+    /// <summary>Gets the intent to open the session-owned window adjustment mode.</summary>
+    public static UserIntent OpenWindowAdjustment { get; } = new OpenWindowAdjustmentIntent();
+
     /// <summary>Gets direct bookmark-navigation slot 1.</summary>
     public static UserIntent BookmarkSlotOne { get; } =
         new BookmarkShortcutSelection(BookmarkShortcutSlot.One);
@@ -225,4 +228,5 @@ public abstract record UserIntent
     private sealed record OpenSettingsIntent : UserIntent;
     private sealed record OpenCommandPaletteIntent : UserIntent;
     private sealed record OpenBookmarksIntent : UserIntent;
+    private sealed record OpenWindowAdjustmentIntent : UserIntent;
 }

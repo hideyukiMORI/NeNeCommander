@@ -2039,7 +2039,10 @@ public sealed class CommanderSessionTests
         return new CommanderSession(
             panes,
             new SettingsSession(store, initialOutcome, static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession()));
+            new TransientScopeOwners(
+                new AddressEditorSession(),
+                new CommandPaletteSession(),
+                new WindowAdjustmentSession()));
     }
 
     private static CommandCandidate Candidate(CommandPaletteOpen palette, UserIntent intent)
