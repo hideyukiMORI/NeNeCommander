@@ -112,14 +112,15 @@ public sealed class WindowAdjustmentKeyboardTests
     [TestMethod]
     public void TranslateCharacterDataWhenControlWArrivesTranslatesBothForms()
     {
-        foreach (char character in new[] { 'w', '\u0017' })
-        {
-            KeyboardInput input = KeyboardInputTranslator.TranslateCharacterData(
+        char[] characters = ['w', '\u0017'];
+
+        foreach (KeyboardInput input in characters.Select(static character =>
+            KeyboardInputTranslator.TranslateCharacterData(
                 character,
                 KeyRepeatState.Initial,
                 KeyboardContext.FileList,
-                KeyboardModifier.Control);
-
+                KeyboardModifier.Control)))
+        {
             Assert.AreSame(KeyboardKey.W, input.Key);
             Assert.AreSame(UserIntent.OpenWindowAdjustment, MappedIntent(CreateMapper().Map(input)));
         }
