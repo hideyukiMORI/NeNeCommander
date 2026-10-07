@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
@@ -50,9 +51,8 @@ public sealed partial class KeyHintWrapPanel : Panel
         double left = 0d;
         double top = 0d;
         double lineHeight = 0d;
-        foreach (UIElement child in Children)
+        foreach (Size desired in Children.Select(static child => child.DesiredSize))
         {
-            Size desired = child.DesiredSize;
             if (left > 0d && left + desired.Width > availableWidth)
             {
                 left = 0d;
