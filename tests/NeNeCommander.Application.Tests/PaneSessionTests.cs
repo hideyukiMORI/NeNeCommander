@@ -680,7 +680,8 @@ public sealed class PaneSessionTests
                 ParsePath(parsedLocation.CanonicalText + "\\" + entries[index].Name),
                 entries[index].Name,
                 DirectoryEntryKind.File,
-                entries[index].Visibility);
+                entries[index].Visibility,
+                EntryMetadata.Unknown);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
@@ -744,7 +745,8 @@ public sealed class PaneSessionTests
                 ParsePath(parsedLocation.CanonicalText + separator + entries[index].Name),
                 entries[index].Name,
                 entries[index].Kind,
-                EntryVisibility.Normal);
+                EntryVisibility.Normal,
+                EntryMetadata.Unknown);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

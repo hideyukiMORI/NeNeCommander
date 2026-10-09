@@ -100,6 +100,41 @@ public sealed class WindowsLocalDirectoryReaderTests
         Assert.AreSame(EntryVisibility.Normal, VisibilityOf(listing, ".dotted.txt"));
     }
 
+    /// <summary>
+    /// Proves a file's length and last-write time reach the entry metadata, an empty file has a known
+    /// zero size, and a directory reports its time but no size.
+    /// </summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenEntriesHaveMetadataCarriesLengthAndLastWriteTime()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        DateTime fileTime = new(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc);
+        DateTime directoryTime = new(2023, 7, 1, 8, 0, 0, DateTimeKind.Utc);
+        _ = root.WriteFile("five.txt", "hello");
+        _ = root.CreateFile("empty.txt");
+        _ = root.CreateDirectory("folder");
+        root.SetLastWriteTimeUtc("five.txt", fileTime);
+        root.SetLastWriteTimeUtc("folder", directoryTime);
+        WindowsLocalDirectoryReader reader = new();
+
+        DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
+
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(outcome).Listing;
+        EntryMetadata file = MetadataOf(listing, "five.txt");
+        EntryMetadata empty = MetadataOf(listing, "empty.txt");
+        EntryMetadata directory = MetadataOf(listing, "folder");
+        Assert.AreEqual(5L, Assert.IsInstanceOfType<KnownEntrySize>(file.Size).Bytes);
+        Assert.AreEqual(
+            new DateTimeOffset(fileTime),
+            Assert.IsInstanceOfType<KnownEntryTimestamp>(file.Modified).Utc);
+        Assert.AreEqual(0L, Assert.IsInstanceOfType<KnownEntrySize>(empty.Size).Bytes);
+        _ = Assert.IsInstanceOfType<KnownEntryTimestamp>(empty.Modified);
+        Assert.AreSame(EntrySize.Unknown, directory.Size);
+        Assert.AreEqual(
+            new DateTimeOffset(directoryTime),
+            Assert.IsInstanceOfType<KnownEntryTimestamp>(directory.Modified).Utc);
+    }
+
     /// <summary>Proves enumeration stops at the requested boundary and reports it.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -288,12 +323,14 @@ public sealed class WindowsLocalDirectoryReaderTests
             ParsePath("C:\\same\\Same"),
             "Same",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal);
+            EntryVisibility.Normal,
+            EntryMetadata.Unknown);
         DirectoryEntry second = DirectoryEntry.Create(
             ParsePath("c:\\same\\same"),
             "same",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal);
+            EntryVisibility.Normal,
+            EntryMetadata.Unknown);
         DirectoryListingCreation rejected = DirectoryListing.Create(
             location,
             [first, second],
@@ -342,6 +379,12 @@ public sealed class WindowsLocalDirectoryReaderTests
     {
         DirectoryEntry entry = listing.Entries.Single(candidate => candidate.Name == name);
         return entry.Visibility;
+    }
+
+    private static EntryMetadata MetadataOf(DirectoryListing listing, string name)
+    {
+        DirectoryEntry entry = listing.Entries.Single(candidate => candidate.Name == name);
+        return entry.Metadata;
     }
 
     private static DirectoryReadRequest Request(FileSystemPath location, int entryBoundary)

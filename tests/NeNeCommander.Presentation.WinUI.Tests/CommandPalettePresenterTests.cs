@@ -408,7 +408,8 @@ public sealed class CommandPalettePresenterTests
             ParsePath(location + "\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal);
+            EntryVisibility.Normal,
+            EntryMetadata.Unknown);
         return Assert.IsInstanceOfType<DirectoryListingAccepted>(DirectoryListing.Create(
             parsedLocation,
             [entry],

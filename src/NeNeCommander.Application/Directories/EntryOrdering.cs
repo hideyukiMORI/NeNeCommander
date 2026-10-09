@@ -13,13 +13,19 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public static class EntryOrdering
 {
+    private const int KnownRank = 0;
+    private const int UnknownRank = 1;
+
     /// <summary>
     /// Projects entries into the order a pane shows them. The name comparison ignores case first
     /// and then compares ordinally, so providers with case-sensitive names stay deterministic. The
     /// extension is the text after the last dot of the name; a name without a dot, or whose only
     /// dot is its first character, has no extension and sorts first ascending. Extensions compare
-    /// ignoring case and ties fall back to the ascending name comparison. Descending reverses only
-    /// the key comparison, never the directory precedence.
+    /// ignoring case and ties fall back to the ascending name comparison. Size and modification
+    /// time compare the provider-reported metadata (ADR-0056): an unknown value sorts after every
+    /// known one ascending and before them descending, and ties, including two unknown values, fall
+    /// back to the ascending name comparison. Descending reverses only the key comparison, never
+    /// the directory precedence.
     /// </summary>
     /// <param name="entries">Entries of one listing in any order.</param>
     /// <param name="order">Pane sort order to apply.</param>
@@ -44,10 +50,41 @@ public static class EntryOrdering
         {
             return CompareNames(first, second);
         }
-        int byExtension = ExtensionOf(first.Name).CompareTo(
-            ExtensionOf(second.Name),
-            StringComparison.OrdinalIgnoreCase);
-        return byExtension != 0 ? byExtension : CompareNames(left, right);
+        int byKey = CompareKey(first, second, order.Key);
+        return byKey != 0 ? byKey : CompareNames(left, right);
+    }
+
+    private static int CompareKey(DirectoryEntry first, DirectoryEntry second, SortKey key)
+    {
+        return key == SortKey.Size
+            ? CompareSizes(first.Metadata.Size, second.Metadata.Size)
+            : key == SortKey.Modified
+                ? CompareTimestamps(first.Metadata.Modified, second.Metadata.Modified)
+                : ExtensionOf(first.Name).CompareTo(ExtensionOf(second.Name), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static int CompareSizes(EntrySize first, EntrySize second)
+    {
+        return first is KnownEntrySize knownFirst && second is KnownEntrySize knownSecond
+            ? knownFirst.Bytes.CompareTo(knownSecond.Bytes)
+            : RankOf(first).CompareTo(RankOf(second));
+    }
+
+    private static int CompareTimestamps(EntryTimestamp first, EntryTimestamp second)
+    {
+        return first is KnownEntryTimestamp knownFirst && second is KnownEntryTimestamp knownSecond
+            ? knownFirst.Utc.CompareTo(knownSecond.Utc)
+            : RankOf(first).CompareTo(RankOf(second));
+    }
+
+    private static int RankOf(EntrySize size)
+    {
+        return size is KnownEntrySize ? KnownRank : UnknownRank;
+    }
+
+    private static int RankOf(EntryTimestamp timestamp)
+    {
+        return timestamp is KnownEntryTimestamp ? KnownRank : UnknownRank;
     }
 
     private static int CompareNames(DirectoryEntry left, DirectoryEntry right)

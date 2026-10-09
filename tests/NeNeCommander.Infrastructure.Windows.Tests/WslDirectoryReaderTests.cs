@@ -47,6 +47,31 @@ public sealed class WslDirectoryReaderTests
         Assert.AreSame(DirectoryListingCompleteness.Complete, listing.Completeness);
     }
 
+    /// <summary>
+    /// Proves the WSL route carries the snapshot metadata into each entry unchanged, known or unknown,
+    /// because it travels the same shared read operation as the Windows local route.
+    /// </summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenSnapshotsCarryMetadataReturnsItOnEachEntry()
+    {
+        EntryMetadata known = EntryMetadata.Create(
+            EntrySize.Create(4096),
+            EntryTimestamp.Create(new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero)));
+        ScriptedEnumerator enumerator = new([
+            new WindowsDirectoryEntrySnapshot("data.bin", DirectoryEntryKind.File, FileAttributes.None, known),
+            Entry("src", DirectoryEntryKind.Directory),
+        ]);
+
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            await Reader(enumerator).ReadAsync(
+                Request("\\\\wsl.localhost\\Ubuntu\\home", 8),
+                CancellationToken.None)).Listing;
+
+        Assert.AreEqual("src", listing.Entries[0].Name);
+        Assert.AreSame(EntryMetadata.Unknown, listing.Entries[0].Metadata);
+        Assert.AreSame(known, listing.Entries[1].Metadata);
+    }
+
     /// <summary>Proves exactly the requested count is complete while one more entry is bounded.</summary>
     [TestMethod]
     public async Task ReadAsyncAtAndBeyondEntryBoundaryReportsExactCompleteness()
@@ -174,9 +199,11 @@ public sealed class WslDirectoryReaderTests
         }
 
         _ = Assert.ThrowsExactly<ArgumentException>(
-            () => new WindowsDirectoryEntrySnapshot("", DirectoryEntryKind.File, FileAttributes.None));
+            () => new WindowsDirectoryEntrySnapshot("", DirectoryEntryKind.File, FileAttributes.None, EntryMetadata.Unknown));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WindowsDirectoryEntrySnapshot("item", null!, FileAttributes.None));
+            () => new WindowsDirectoryEntrySnapshot("item", null!, FileAttributes.None, EntryMetadata.Unknown));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsDirectoryEntrySnapshot("item", DirectoryEntryKind.File, FileAttributes.None, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsDirectoryReadOperation.Read(null!, enumerator, Visibility, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
@@ -214,7 +241,7 @@ public sealed class WslDirectoryReaderTests
         DirectoryEntryKind kind,
         FileAttributes attributes)
     {
-        return new WindowsDirectoryEntrySnapshot(name, kind, attributes);
+        return new WindowsDirectoryEntrySnapshot(name, kind, attributes, EntryMetadata.Unknown);
     }
 
     private static DirectoryReadRequest Request(string text, int boundary)

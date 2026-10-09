@@ -1206,7 +1206,8 @@ public sealed class DualPanePresenterTests
                 ParsePath(parsedLocation.CanonicalText + separator + names[index]),
                 names[index],
                 DirectoryEntryKind.Directory,
-                EntryVisibility.Normal);
+                EntryVisibility.Normal,
+                EntryMetadata.Unknown);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

@@ -560,7 +560,8 @@ public sealed class PaneListingPresenterTests
                 ParsePath(parsedLocation.CanonicalText + "\\" + names[index]),
                 names[index],
                 DirectoryEntryKind.File,
-                EntryVisibility.Normal);
+                EntryVisibility.Normal,
+                EntryMetadata.Unknown);
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
@@ -578,12 +579,14 @@ public sealed class PaneListingPresenterTests
                 ParsePath(parsedLocation.CanonicalText + "\\a.txt"),
                 "a.txt",
                 DirectoryEntryKind.File,
-                EntryVisibility.Normal),
+                EntryVisibility.Normal,
+                EntryMetadata.Unknown),
             DirectoryEntry.Create(
                 ParsePath(parsedLocation.CanonicalText + "\\b.txt"),
                 "b.txt",
                 DirectoryEntryKind.File,
-                EntryVisibility.Hidden),
+                EntryVisibility.Hidden,
+                EntryMetadata.Unknown),
         ];
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,

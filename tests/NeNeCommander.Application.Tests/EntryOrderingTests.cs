@@ -112,6 +112,85 @@ public sealed class EntryOrderingTests
         AssertNames(["src.old", "bin", "a.zip", "b.cs", "plain"], ordered);
     }
 
+    /// <summary>
+    /// Proves ascending size places directories first in name order, known sizes smallest first,
+    /// and unknown sizes last.
+    /// </summary>
+    [TestMethod]
+    public void ApplyWhenSizeAscendingPlacesUnknownSizesLastAndKeepsDirectoriesFirst()
+    {
+        IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(MetadataEntries(), SizeAscending());
+
+        AssertNames(["alpha", "Zeta", "small", "middle", "large", "unread"], ordered);
+    }
+
+    /// <summary>
+    /// Proves descending size reverses only the key: directories stay first in name order and unknown
+    /// sizes come before every known size.
+    /// </summary>
+    [TestMethod]
+    public void ApplyWhenSizeDescendingPlacesUnknownSizesFirstAndKeepsDirectoriesFirst()
+    {
+        IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(MetadataEntries(), SizeDescending());
+
+        AssertNames(["alpha", "Zeta", "unread", "large", "middle", "small"], ordered);
+    }
+
+    /// <summary>Proves ascending modification time places older first and unknown times last.</summary>
+    [TestMethod]
+    public void ApplyWhenModifiedAscendingPlacesUnknownTimesLastAndKeepsDirectoriesFirst()
+    {
+        IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(MetadataEntries(), ModifiedAscending());
+
+        AssertNames(["Zeta", "alpha", "large", "small", "middle", "unread"], ordered);
+    }
+
+    /// <summary>Proves descending modification time places unknown times first and newer before older.</summary>
+    [TestMethod]
+    public void ApplyWhenModifiedDescendingPlacesUnknownTimesFirstAndKeepsDirectoriesFirst()
+    {
+        IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(MetadataEntries(), ModifiedDescending());
+
+        AssertNames(["alpha", "Zeta", "unread", "middle", "small", "large"], ordered);
+    }
+
+    /// <summary>Proves equal sizes, including two unknown sizes, fall back to the ascending name order.</summary>
+    [TestMethod]
+    public void ApplyWhenSizesTieOrdersByAscendingNameInBothDirections()
+    {
+        DirectoryEntry[] entries = [Sized("b", 5), Unsized("D"), Sized("A", 5), Unsized("c")];
+
+        IReadOnlyList<DirectoryEntry> ascending = EntryOrdering.Apply(entries, SizeAscending());
+        IReadOnlyList<DirectoryEntry> descending = EntryOrdering.Apply(entries, SizeDescending());
+
+        AssertNames(["A", "b", "c", "D"], ascending);
+        AssertNames(["c", "D", "A", "b"], descending);
+    }
+
+    /// <summary>Proves equal times, including two unknown times, fall back to the ascending name order.</summary>
+    [TestMethod]
+    public void ApplyWhenTimesTieOrdersByAscendingNameInBothDirections()
+    {
+        DirectoryEntry[] entries = [Dated("b", 1), Undated("D"), Dated("A", 1), Undated("c")];
+
+        IReadOnlyList<DirectoryEntry> ascending = EntryOrdering.Apply(entries, ModifiedAscending());
+        IReadOnlyList<DirectoryEntry> descending = EntryOrdering.Apply(entries, ModifiedDescending());
+
+        AssertNames(["A", "b", "c", "D"], ascending);
+        AssertNames(["c", "D", "A", "b"], descending);
+    }
+
+    /// <summary>Proves the size key compares byte counts numerically up to the largest count.</summary>
+    [TestMethod]
+    public void ApplyWhenSizesSpanTheRangeComparesNumerically()
+    {
+        DirectoryEntry[] entries = [Sized("max", long.MaxValue), Sized("ten", 10), Sized("zero", 0), Sized("nine", 9)];
+
+        IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(entries, SizeAscending());
+
+        AssertNames(["zero", "nine", "ten", "max"], ordered);
+    }
+
     /// <summary>Proves the projection owns a new sequence and never reorders its input.</summary>
     [TestMethod]
     public void ApplyWhenOrderingLeavesInputUnchangedAndReturnsEveryEntry()
@@ -161,6 +240,82 @@ public sealed class EntryOrderingTests
         return ExtensionAscending().Toggle(SortKey.Extension);
     }
 
+    private static PaneSortOrder SizeAscending()
+    {
+        return PaneSortOrder.Default.Toggle(SortKey.Size);
+    }
+
+    private static PaneSortOrder SizeDescending()
+    {
+        return SizeAscending().Toggle(SortKey.Size);
+    }
+
+    private static PaneSortOrder ModifiedAscending()
+    {
+        return PaneSortOrder.Default.Toggle(SortKey.Modified);
+    }
+
+    private static PaneSortOrder ModifiedDescending()
+    {
+        return ModifiedAscending().Toggle(SortKey.Modified);
+    }
+
+    /// <summary>
+    /// Builds entries whose size order and time order differ, so a test proves which key decided.
+    /// Directories report no size; one file reports neither fact.
+    /// </summary>
+    private static DirectoryEntry[] MetadataEntries()
+    {
+        return
+        [
+            WithMetadata("large", DirectoryEntryKind.File, EntrySize.Create(300), Day(1)),
+            WithMetadata("Zeta", DirectoryEntryKind.Directory, EntrySize.Unknown, Day(0)),
+            WithMetadata("unread", DirectoryEntryKind.File, EntrySize.Unknown, EntryTimestamp.Unknown),
+            WithMetadata("small", DirectoryEntryKind.File, EntrySize.Create(10), Day(2)),
+            WithMetadata("alpha", DirectoryEntryKind.Directory, EntrySize.Unknown, EntryTimestamp.Unknown),
+            WithMetadata("middle", DirectoryEntryKind.File, EntrySize.Create(20), Day(3)),
+        ];
+    }
+
+    private static DirectoryEntry Sized(string name, long bytes)
+    {
+        return WithMetadata(name, DirectoryEntryKind.File, EntrySize.Create(bytes), EntryTimestamp.Unknown);
+    }
+
+    private static DirectoryEntry Unsized(string name)
+    {
+        return WithMetadata(name, DirectoryEntryKind.File, EntrySize.Unknown, EntryTimestamp.Unknown);
+    }
+
+    private static DirectoryEntry Dated(string name, int day)
+    {
+        return WithMetadata(name, DirectoryEntryKind.File, EntrySize.Unknown, Day(day));
+    }
+
+    private static DirectoryEntry Undated(string name)
+    {
+        return WithMetadata(name, DirectoryEntryKind.File, EntrySize.Create(1), EntryTimestamp.Unknown);
+    }
+
+    private static EntryTimestamp Day(int day)
+    {
+        return EntryTimestamp.Create(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero).AddDays(day));
+    }
+
+    private static DirectoryEntry WithMetadata(
+        string name,
+        DirectoryEntryKind kind,
+        EntrySize size,
+        EntryTimestamp modified)
+    {
+        return DirectoryEntry.Create(
+            ParsePath("C:\\root\\" + name),
+            name,
+            kind,
+            EntryVisibility.Normal,
+            EntryMetadata.Create(size, modified));
+    }
+
     private static void AssertNames(string[] expected, IReadOnlyList<DirectoryEntry> actual)
     {
         CollectionAssert.AreEqual(expected, actual.Select(entry => entry.Name).ToArray());
@@ -178,7 +333,7 @@ public sealed class EntryOrderingTests
 
     private static DirectoryEntry Entry(string path, string name, DirectoryEntryKind kind)
     {
-        return DirectoryEntry.Create(ParsePath(path), name, kind, EntryVisibility.Normal);
+        return DirectoryEntry.Create(ParsePath(path), name, kind, EntryVisibility.Normal, EntryMetadata.Unknown);
     }
 
     private static FileSystemPath ParsePath(string input)

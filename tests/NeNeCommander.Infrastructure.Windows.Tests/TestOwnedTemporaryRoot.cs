@@ -105,6 +105,23 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         return childPath;
     }
 
+    /// <summary>
+    /// Sets the last-write time of one file or directory inside the root to a fixed UTC instant, so
+    /// metadata tests compare a value the test chose instead of the wall clock.
+    /// </summary>
+    internal void SetLastWriteTimeUtc(string childName, DateTime lastWriteTimeUtc)
+    {
+        string childPath = Resolve(childName);
+        if (Directory.Exists(childPath))
+        {
+            Directory.SetLastWriteTimeUtc(childPath, lastWriteTimeUtc);
+        }
+        else
+        {
+            File.SetLastWriteTimeUtc(childPath, lastWriteTimeUtc);
+        }
+    }
+
     /// <summary>Replaces one file while restoring the metadata fields used by the legacy identity tuple.</summary>
     internal void ReplaceFilePreservingMetadata(string childName, string replacementContent)
     {
