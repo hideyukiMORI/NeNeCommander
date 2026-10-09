@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -214,6 +215,21 @@ public sealed class PaneSortOrderTests
         Assert.AreEqual(ExtensionAscending(), committed.SortOrder);
         AssertVisible(["a.md", "b.txt"], committed);
         Assert.HasCount(2, committed.NavigationHistory.Locations);
+    }
+
+    /// <summary>Proves an absent state or order is rejected by its own name before any projection.</summary>
+    [TestMethod]
+    public void ApplySortOrderWhenArgumentIsNullNamesTheParameter()
+    {
+        PaneState state = CreateState([FileNamed("a")]);
+
+        ArgumentNullException absentState = Assert.ThrowsExactly<ArgumentNullException>(
+            () => PaneReducer.ApplySortOrder(null!, PaneSortOrder.Default, null));
+        ArgumentNullException absentOrder = Assert.ThrowsExactly<ArgumentNullException>(
+            () => PaneReducer.ApplySortOrder(state, null!, null));
+
+        Assert.AreEqual("state", absentState.ParamName);
+        Assert.AreEqual("sortOrder", absentOrder.ParamName);
     }
 
     private static PaneSortOrder ExtensionAscending()

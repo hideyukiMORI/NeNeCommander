@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -130,6 +131,19 @@ public sealed class EntryOrderingTests
         IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply([], ExtensionAscending());
 
         Assert.IsEmpty(ordered);
+    }
+
+    /// <summary>Proves each absent argument is rejected by its own name before any projection.</summary>
+    [TestMethod]
+    public void ApplyWhenArgumentIsNullNamesTheParameter()
+    {
+        ArgumentNullException entries = Assert.ThrowsExactly<ArgumentNullException>(
+            () => EntryOrdering.Apply(null!, PaneSortOrder.Default));
+        ArgumentNullException order = Assert.ThrowsExactly<ArgumentNullException>(
+            () => EntryOrdering.Apply([], null!));
+
+        Assert.AreEqual("entries", entries.ParamName);
+        Assert.AreEqual("order", order.ParamName);
     }
 
     private static PaneSortOrder NameDescending()
