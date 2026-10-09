@@ -39,6 +39,8 @@
     <x:Double x:Key="DensityRowHeight">28</x:Double>
     <x:Double x:Key="DensityRowMarkerWidth">2</x:Double>
     <x:Double x:Key="DensityKindIconSize">16</x:Double>
+    <x:Double x:Key="DensityRowSizeWidth">64</x:Double>
+    <x:Double x:Key="DensityRowModifiedWidth">112</x:Double>
     <x:Double x:Key="DensityOperationBarHeight">34</x:Double>
     <x:Double x:Key="DensityOperationIconSize">18</x:Double>
     <x:Double x:Key="DensityNameEntryWidth">320</x:Double>

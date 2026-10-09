@@ -31,7 +31,7 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         DualPaneSnapshot snapshot = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
 
         Assert.AreSame(PaneFrame.Active, presentation.LeftFrame);
         Assert.AreSame(PaneFrame.Passive, presentation.RightFrame);
@@ -52,7 +52,7 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
 
         Assert.AreSame(PaneFrame.Passive, presentation.LeftFrame);
         Assert.AreSame(PaneFrame.Active, presentation.RightFrame);
@@ -74,7 +74,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        DualPanePresentation rejected = DualPanePresenter.Present(snapshot);
+        DualPanePresentation rejected = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.MoveRequestRejected, rejected.OperationStatus);
         Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
@@ -136,7 +136,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot);
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
     }
     /// <summary>Proves each copy completion maps to one copy status and a rejected copy request is named.</summary>
     [TestMethod]
@@ -174,7 +174,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot).OperationStatus);
+        Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus);
     }
 
     /// <summary>Proves each running operation kind is projected as its own running status with zero progress while the gateway works.</summary>
@@ -225,7 +225,7 @@ public sealed class DualPanePresenterTests
         _ = await panes.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
 
         Assert.HasCount(1, observer.Snapshots);
-        DualPanePresentation presentation = DualPanePresenter.Present(observer.Snapshots[0]);
+        DualPanePresentation presentation = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc);
         Assert.AreSame(OperationStatus.Copying, presentation.OperationStatus);
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(presentation.Detail);
         Assert.AreEqual(1, detail.Completed);
@@ -253,7 +253,7 @@ public sealed class DualPanePresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
 
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
@@ -286,7 +286,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
     }
 
     /// <summary>Proves the name-entry state is projected as modal input with an active editor and no detail.</summary>
@@ -303,9 +303,9 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
         DualPanePresentation awaiting = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.CreateDirectoryAwaitingName, awaiting.OperationStatus);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
@@ -354,7 +354,7 @@ public sealed class DualPanePresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(UserIntent.SubmitName("new"), RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
 
@@ -390,7 +390,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.SubmitName(name), RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
     }
 
     /// <summary>Proves the rename name entry is projected as modal input with the focus item's current name.</summary>
@@ -407,9 +407,9 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
         DualPanePresentation awaiting = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.RenameAwaitingName, awaiting.OperationStatus);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
@@ -455,7 +455,7 @@ public sealed class DualPanePresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(UserIntent.SubmitName("b.txt"), RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
 
@@ -491,7 +491,17 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.SubmitName(name), RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
+    }
+
+    /// <summary>Proves the dual-pane projection rejects an absent metadata format.</summary>
+    [TestMethod]
+    public void PresentWhenFormatIsNullThrowsArgumentNullException()
+    {
+        DualPaneSession panes = CreatePanes(out _, out _, out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => DualPanePresenter.Present(panes.Current, null!));
     }
 
     /// <summary>Proves the active name entry rejects absent initial text.</summary>
@@ -537,9 +547,9 @@ public sealed class DualPanePresenterTests
         }
 
         DualPanePresentation pending = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.DeleteAwaitingConfirmation, pending.OperationStatus);
         Assert.AreEqual(2, Assert.IsInstanceOfType<OperationItemCountDetail>(pending.Detail).Count);
@@ -604,7 +614,7 @@ public sealed class DualPanePresenterTests
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
 
         DualPanePresentation presentation = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None));
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.DeletePartiallyCompleted, presentation.OperationStatus);
         Assert.AreSame(OperationBarTone.Failure, presentation.Tone);
@@ -635,7 +645,7 @@ public sealed class DualPanePresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
     }
     /// <summary>Proves a completed, cancelled, or idle operation keeps the idle bar tone.</summary>
     [TestMethod]
@@ -696,7 +706,7 @@ public sealed class DualPanePresenterTests
             UserIntent.Copy,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
 
         ActiveConflictModal modal = Assert.IsInstanceOfType<ActiveConflictModal>(presentation.ConflictModal);
         Assert.AreSame(TransferConflictDecision.Cancel, modal.InitialFocus);
@@ -760,13 +770,13 @@ public sealed class DualPanePresenterTests
             UserIntent.Copy,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation first = DualPanePresenter.Present(firstSnapshot);
-        DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, first);
+        DualPanePresentation first = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc);
+        DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, first);
         DualPaneSnapshot racedSnapshot = await panes.HandleAsync(
             UserIntent.ResolveConflict(TransferConflictDecision.KeepBoth, TransferConflictScope.All),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, repeated);
+        DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, TestMetadataFormats.Utc, repeated);
 
         Assert.AreSame(first.ConflictModal, repeated.ConflictModal);
         Assert.AreNotSame(repeated.ConflictModal, raced.ConflictModal);
@@ -805,11 +815,11 @@ public sealed class DualPanePresenterTests
         port.EnqueueStep(ProviderStepOutcome.Succeeded());
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
-        DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current);
+        DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
 
         _ = await panes.HandleAsync(UserIntent.Delete, observer, CancellationToken.None);
 
-        DualPanePresentation duringProgress = DualPanePresenter.Present(observer.Snapshots[0], beforeProgress);
+        DualPanePresentation duringProgress = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc, beforeProgress);
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(
             duringProgress.Detail);
         Assert.AreSame(beforeProgress.Left.Rows, duringProgress.Left.Rows);
@@ -977,16 +987,16 @@ public sealed class DualPanePresenterTests
             left.OwnedRows, left.FocusRow, left.Status, left.AddressText, left.SourceSnapshot, null!));
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
-            null!, row.Mark, row.Kind, row.Visibility));
+            null!, row.Mark, TestMetadataFormats.Utc));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
-            row.Entry, null!, row.Kind, row.Visibility));
+            row.Entry, null!, TestMetadataFormats.Utc));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
-            row.Entry, row.Mark, null!, row.Visibility));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRow(
-            row.Entry, row.Mark, row.Kind, null!));
+            row.Entry, row.Mark, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => row.WithMark(null!));
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRows(null!));
-        PaneRows rows = new([row]);
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRows(null!, TestMetadataFormats.Utc));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PaneRows([row], null!));
+        PaneRows rows = new([row], TestMetadataFormats.Utc);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => rows.Replace(0, null!));
 
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(-1, 0, 0, 0));
@@ -1017,7 +1027,7 @@ public sealed class DualPanePresenterTests
             PaneSide.Right,
             ParsePath("C:\\right"),
             CancellationToken.None);
-        DualPanePresentation complete = DualPanePresenter.Present(snapshot);
+        DualPanePresentation complete = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
 
         AssertPanePartsRejectNull(null, complete.LeftFrame, complete.Right, complete.RightFrame, complete);
         AssertPanePartsRejectNull(complete.Left, null, complete.Right, complete.RightFrame, complete);
@@ -1138,7 +1148,7 @@ public sealed class DualPanePresenterTests
             throw new AssertFailedException("The present method was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null]));
+            () => method.Invoke(null, [null, TestMetadataFormats.Utc]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }
@@ -1164,7 +1174,7 @@ public sealed class DualPanePresenterTests
         right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
-        return DualPanePresenter.Present(panes.Current);
+        return DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
     }
 
     private static DualPaneSession CreatePanes(

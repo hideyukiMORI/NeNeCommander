@@ -22,66 +22,73 @@ public static class PaneListingPresenter
     /// The pane's activation frame. The focus item is marked differently in the pane that receives
     /// intents than in the pane that only keeps its display, so the projection needs it.
     /// </param>
+    /// <param name="format">
+    /// Metadata format the host resolved once; the rows' size and modification texts come from it.
+    /// </param>
     /// <returns>A render-ready presentation.</returns>
-    public static PanePresentation Present(PaneSnapshot snapshot, PaneFrame frame)
+    public static PanePresentation Present(PaneSnapshot snapshot, PaneFrame frame, EntryMetadataFormat format)
     {
-        return PresentCore(snapshot, frame, null);
+        return PresentCore(snapshot, frame, format, null);
     }
 
     internal static PanePresentation Present(
         PaneSnapshot snapshot,
         PaneFrame frame,
+        EntryMetadataFormat format,
         PanePresentation previous)
     {
         ArgumentNullException.ThrowIfNull(previous);
-        return PresentCore(snapshot, frame, previous);
+        return PresentCore(snapshot, frame, format, previous);
     }
 
     private static PanePresentation PresentCore(
         PaneSnapshot snapshot,
         PaneFrame frame,
+        EntryMetadataFormat format,
         PanePresentation? previous)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(frame);
-        return previous is not null &&
-            ReferenceEquals(previous.SourceSnapshot, snapshot) &&
-            previous.SourceFrame == frame
-                ? previous
-                : snapshot.Content is PaneContentListed listed
-                    ? PresentListed(snapshot, listed, frame, previous)
-                    : new PanePresentation(
-                        ReuseEmptyRows(previous),
-                        null,
-                        PaneActivityStatusPresenter.Present(snapshot.Activity, PaneStatus.NoListing),
-                        TargetText(snapshot.Activity),
-                        snapshot,
-                        frame);
+        ArgumentNullException.ThrowIfNull(format);
+        PanePresentation? reusable = previous is not null && ReferenceEquals(previous.OwnedRows.Format, format)
+            ? previous
+            : null;
+        return reusable is not null &&
+            ReferenceEquals(reusable.SourceSnapshot, snapshot) &&
+            reusable.SourceFrame == frame
+                ? reusable
+                : snapshot.Content is not PaneContentListed listed
+                    ? PresentUnlisted(snapshot, frame, format, reusable)
+                    : reusable is not null && CanReuseRows(listed, reusable)
+                        ? UpdateListed(snapshot, listed, frame, reusable)
+                        : CreateListed(snapshot, listed, frame, format);
     }
 
-    private static PaneRows ReuseEmptyRows(PanePresentation? previous)
-    {
-        return previous is not null && previous.Rows.Count == 0
-            ? previous.OwnedRows
-            : new PaneRows(Array.Empty<PaneRow>());
-    }
-
-    private static PanePresentation PresentListed(
+    private static PanePresentation PresentUnlisted(
         PaneSnapshot snapshot,
-        PaneContentListed listed,
         PaneFrame frame,
+        EntryMetadataFormat format,
         PanePresentation? previous)
     {
-        return previous is not null && CanReuseRows(listed, previous)
-            ? UpdateListed(snapshot, listed, frame, previous)
-            : CreateListed(snapshot, listed, frame);
+        PaneRows rows = previous is not null && previous.Rows.Count == 0
+            ? previous.OwnedRows
+            : new PaneRows(Array.Empty<PaneRow>(), format);
+        return new PanePresentation(
+            rows,
+            null,
+            PaneActivityStatusPresenter.Present(snapshot.Activity, PaneStatus.NoListing),
+            TargetText(snapshot.Activity),
+            snapshot,
+            frame);
     }
 
     /// <summary>
     /// Decides whether the previous rows still hold the visible set in its order. The same
     /// listing with the same visible count holds the same entries, because every visible set is a
     /// subset of that listing; the same sort order then places them in the same order. A new
-    /// order rebuilds every row (ADR-0053).
+    /// order rebuilds every row (ADR-0053). The caller has already rejected rows projected with
+    /// another metadata format, so the same entries also still have the same size and
+    /// modification texts.
     /// </summary>
     private static bool CanReuseRows(PaneContentListed listed, PanePresentation previous)
     {
@@ -94,20 +101,16 @@ public static class PaneListingPresenter
     private static PanePresentation CreateListed(
         PaneSnapshot snapshot,
         PaneContentListed listed,
-        PaneFrame frame)
+        PaneFrame frame,
+        EntryMetadataFormat format)
     {
         HashSet<FileSystemPath> selection = new(listed.State.Selection, FileSystemPathIdentityComparer.Instance);
         List<PaneRow> rows = [];
         foreach (DirectoryEntry entry in listed.State.VisibleEntries)
         {
-            PaneRow row = new(
-                entry,
-                ResolveMark(entry, listed, selection, frame),
-                PaneRowKind.For(entry.Kind),
-                PaneRowVisibility.For(entry.Metadata.Visibility));
-            rows.Add(row);
+            rows.Add(new PaneRow(entry, ResolveMark(entry, listed, selection, frame), format));
         }
-        PaneRows ownedRows = new(rows);
+        PaneRows ownedRows = new(rows, format);
         return new PanePresentation(
             ownedRows,
             FindFocusRow(ownedRows, listed.State.FocusItem),
@@ -149,7 +152,7 @@ public static class PaneListingPresenter
             .Where(row => row.Current.Mark != row.Mark);
         foreach ((int index, PaneRow current, PaneRowMark mark) in changedRows)
         {
-            rows.Replace(index, new PaneRow(current.Entry, mark, current.Kind, current.Visibility));
+            rows.Replace(index, current.WithMark(mark));
         }
 
         return new PanePresentation(

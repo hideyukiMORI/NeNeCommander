@@ -147,7 +147,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             session,
             ParseInitialLocation(InitialLeftLocationText),
             ParseInitialLocation(InitialRightLocationText),
-            ReportDefect);
+            ReportDefect,
+            TimeZoneInfo.Local);
     }
 
     private void OnColorSchemeChanged(object? _, ColorSchemeChangedEventArgs args)
