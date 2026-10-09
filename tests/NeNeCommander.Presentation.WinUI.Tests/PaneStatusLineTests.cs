@@ -28,6 +28,25 @@ public sealed class PaneStatusLineTests
         Assert.AreEqual("PaneSortExtensionDescending", PaneSortStatus.ExtensionDescending.ResourceKey);
     }
 
+    /// <summary>Proves the size and modification-time keys name their own indications in both directions.</summary>
+    [TestMethod]
+    public void ForWhenOrderIsMetadataKeyNamesExactIndication()
+    {
+        PaneSortOrder sizeAscending = PaneSortOrder.Default.Toggle(SortKey.Size);
+        PaneSortOrder sizeDescending = sizeAscending.Toggle(SortKey.Size);
+        PaneSortOrder modifiedAscending = PaneSortOrder.Default.Toggle(SortKey.Modified);
+        PaneSortOrder modifiedDescending = modifiedAscending.Toggle(SortKey.Modified);
+
+        Assert.AreSame(PaneSortStatus.SizeAscending, PaneSortStatus.For(sizeAscending));
+        Assert.AreSame(PaneSortStatus.SizeDescending, PaneSortStatus.For(sizeDescending));
+        Assert.AreSame(PaneSortStatus.ModifiedAscending, PaneSortStatus.For(modifiedAscending));
+        Assert.AreSame(PaneSortStatus.ModifiedDescending, PaneSortStatus.For(modifiedDescending));
+        Assert.AreEqual("PaneSortSizeAscending", PaneSortStatus.SizeAscending.ResourceKey);
+        Assert.AreEqual("PaneSortSizeDescending", PaneSortStatus.SizeDescending.ResourceKey);
+        Assert.AreEqual("PaneSortModifiedAscending", PaneSortStatus.ModifiedAscending.ResourceKey);
+        Assert.AreEqual("PaneSortModifiedDescending", PaneSortStatus.ModifiedDescending.ResourceKey);
+    }
+
     /// <summary>Proves a listed pane shows its status and sort indication through the line format.</summary>
     [TestMethod]
     public void ComposeWhenSortStatusIsPresentFormatsStatusAndIndication()

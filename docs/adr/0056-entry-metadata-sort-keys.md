@@ -1,0 +1,108 @@
+# ADR-0056: Carry provider entry metadata and sort by size and modification time
+
+Status: accepted
+
+Date: 2026-10-09
+
+## Context
+
+ADR-0053 sorts a pane by name or extension through `EntryOrdering` over the `PaneSortOrder` held
+by `PaneState`, and defers size and modification-time keys until the read port carries that
+metadata. `DirectoryEntry` holds path, name, kind, and visibility only. The shared Windows
+enumeration already materializes a `FileSystemInfo` per entry, so length and last-write time are
+available without a second filesystem call for both the Windows local and the WSL adapter
+(ADR-0035). The charter forbids guessing provider facts, so a value the provider does not report
+must stay distinguishable from a real value.
+
+## Decision
+
+- **`EntryMetadata` is the bundle of provider-reported facts.** It holds the ADR-0024
+  `EntryVisibility`, an `EntrySize` (`KnownEntrySize` with a non-negative byte count from
+  `EntrySize.Create`, which rejects a negative count, or `EntrySize.Unknown`), and an
+  `EntryTimestamp` (`KnownEntryTimestamp` with a UTC `DateTimeOffset` from `EntryTimestamp.Create`,
+  which rejects a non-zero offset, or `EntryTimestamp.Unknown`), all closed records.
+  `EntryMetadata.Create(visibility, size, modified)` rejects null; `EntryMetadata.Unmeasured(visibility)`
+  is the same value with an unknown size and time. `DirectoryEntry.Create(path, name, kind,
+  metadata)` requires it, and `DirectoryEntry.Visibility` is removed: readers use
+  `entry.Metadata.Visibility`, and no delegating getter exists. `Kind` stays on the entry because it
+  decides the entry's structure, such as whether it can be entered. A directory's size is
+  `Unknown`; a value the adapter cannot read for one entry is `Unknown` and the entry stays in the
+  listing. No sentinel such as zero or the minimum time stands for absence.
+- **The adapters report, Application never infers.** `WindowsDirectoryEntrySnapshot` is
+  `(name, attributes, size, modified)`; its `Kind` is derived from the directory attribute, which
+  matches the enumerated `DirectoryInfo` for Windows local and WSL namespaces alike.
+  `WindowsDirectoryEnumerator` reads the size and time from the enumerated `FileSystemInfo`:
+  `FileInfo.Length` for a file and `LastWriteTimeUtc` for every entry. Visibility is still
+  classified by each adapter through the shared operation's `classifyVisibility(snapshot)`
+  (attributes for Windows local, the dot name for WSL), and the shared operation assembles
+  `EntryMetadata.Create(classified, snapshot.Size, snapshot.Modified)`. Only `IOException` and
+  `UnauthorizedAccessException` raised while reading one entry's fact become `Unknown` for that
+  fact; every other exception keeps travelling to the shared operation's existing failure path. The
+  FILETIME origin the platform reports for an absent time is `Unknown`, not a 1601 timestamp. The
+  WSL adapter travels the same shared operation and therefore the same snapshot. Application code
+  reads `Metadata` and performs no filesystem access. Time is carried in UTC; any local-time
+  rendering is a later Presentation decision.
+- **Two keys join the single ordering projection.** `SortKey.Size` and `SortKey.Modified` are
+  added to the closed key set and compared inside `EntryOrdering`. Directories still precede
+  files. `Unknown` sorts after every `Known` value in ascending order and before them in
+  descending order, and ties fall back to the ADR-0053 name comparison, so a directory group under
+  the size key is in name order. `UserIntent.SortBySize` and `UserIntent.SortByModified` toggle
+  exactly as the ADR-0053 intents do.
+- **Keys and catalog.** `Ctrl+F5` and `Ctrl+F6` map to the two intents in the file list and
+  navigation surface key maps, with the `Ctrl+F5`/`Ctrl+F6` key caps; every other context keeps
+  them. Plain `F5` and `F6` remain copy and move in the file list and `F5` remains refresh on the
+  navigation surface. The existing destructive-command repeat guard on `F5` and `F6` is unchanged
+  and therefore also ignores a held chord, so holding it does not keep reversing the order. Both
+  intents are appended to the ADR-0047 command catalog with their labels, so a palette query for
+  `F5` lists copy and then sort by size. `PaneSortStatus` gains one indication per key and
+  direction, shown through the `PaneSortSize*` and `PaneSortModified*` resources (`size`/`modified`,
+  ja `サイズ`/`更新`, with the direction arrow); the indication is chosen over the closed key set
+  with no fallback to another key's indication.
+- **No column rendering here.** Rows keep showing the name and kind label. Showing size and time
+  in the row changes the approved Direction C layout and goes through the design handoff first.
+
+## Rejected alternatives
+
+- Reading size and time lazily in the view: it adds filesystem access outside the port and
+  breaks the deterministic projection.
+- Representing absence with zero or `DateTimeOffset.MinValue`: it would sort fabricated values as
+  facts and contradict the charter.
+- A separate metadata port or a second enumeration pass: it doubles I/O and creates a second
+  source of truth for the same entry.
+- Adding columns in the same change: a visual change without a design pass.
+
+## Consequences
+
+- Every `DirectoryEntry.Create` call site, including tests and fixtures, supplies metadata; test
+  call sites pass `EntryMetadata.Unmeasured(...)` with the visibility they used before, so existing
+  behavior tests stay readable.
+- Entries become larger by two small values; the 10,000-entry boundary is unchanged.
+- `DirectoryEntry` value equality now includes the metadata, so the same path read again with a
+  changed size or time is a different entry value; identity, duplicate detection, and focus
+  recovery still compare paths and are unchanged.
+- The adapter must tolerate a per-entry metadata failure without dropping the entry; such a
+  failure becomes `Unknown` for that fact, the listing-level failure kinds are the existing ones,
+  and no new failure vocabulary is introduced.
+
+## Migration and removal
+
+No stored data changes. This ADR performs the regrouping that the ADR-0024 Consequences announced
+for the next value `DirectoryEntry.Create` needs: `DirectoryEntry.Create` returns to four
+parameters within CS-013, and `EntryVisibility` becomes part of `EntryMetadata`. ADR-0024 itself
+is unchanged; its visibility semantics are carried as they were. ADR-0010 describes the read port and listing without enumerating the
+fields of `DirectoryEntry`, so its text needs no change. Removing a key removes its `SortKey`
+member, comparison, intent, bindings, catalog entry, status resource, and tests together; removing
+the metadata reverts `DirectoryEntry` and the shared snapshot in one change.
+
+## Executable proof
+
+Application tests prove both keys in both directions, `Unknown` placement, directory precedence,
+name tie-break, toggle semantics, that `EntrySize.Create` rejects negative sizes, and that
+`EntryTimestamp.Create` rejects a non-zero offset. Infrastructure tests prove, on the owned
+temporary root, that a file's length and last-write time reach the snapshot and the entry, that a
+directory's size is `Unknown`, that the attribute-derived kind matches the enumerated type for a
+file, a directory, and a junction, that only the two expected per-entry exceptions and the FILETIME
+origin become `Unknown` while any other exception propagates, and that the WSL route carries the
+same snapshot shape.
+Mapper tests prove the `Ctrl+F5`/`Ctrl+F6` matrix and that plain `F5`/`F6` behavior, including the
+repeat guard, is unchanged. Thresholds are unchanged.

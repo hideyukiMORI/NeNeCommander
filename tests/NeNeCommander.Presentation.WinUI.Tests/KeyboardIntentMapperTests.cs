@@ -433,6 +433,103 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelCtrlF4", byExtension.KeyLabelResourceKey);
     }
 
+    /// <summary>
+    /// Proves Ctrl+F5 and Ctrl+F6 sort by size and modification time only from the file list and
+    /// the navigation surface, other modifiers pass through there, and every owning context keeps
+    /// them (ADR-0056).
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-013")]
+    public void MapWhenMetadataSortKeysArriveMapsControlChordOnlyOnPaneSurfaces()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardContext[] paneSurfaces = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
+        KeyboardContext[] owningContexts =
+        [
+            KeyboardContext.Modal,
+            KeyboardContext.TextEntry,
+            KeyboardContext.AddressEntry,
+            KeyboardContext.CommandPalette,
+        ];
+        KeyboardContext[] consumingContexts = [KeyboardContext.WindowAdjustment, KeyboardContext.Locations];
+
+        foreach (KeyboardContext context in paneSurfaces)
+        {
+            AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardModifier.Control, context), UserIntent.SortBySize);
+            AssertMaps(mapper, Input(KeyboardKey.F6, KeyboardModifier.Control, context), UserIntent.SortByModified);
+            foreach (KeyboardModifier modifier in new[] { KeyboardModifier.Alt, KeyboardModifier.Other })
+            {
+                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F5, modifier, context)));
+                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F6, modifier, context)));
+            }
+        }
+        foreach (KeyboardContext context in owningContexts)
+        {
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+                mapper.Map(Input(KeyboardKey.F5, KeyboardModifier.Control, context)));
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+                mapper.Map(Input(KeyboardKey.F6, KeyboardModifier.Control, context)));
+        }
+        foreach (KeyboardContext context in consumingContexts)
+        {
+            _ = Assert.IsInstanceOfType<KeyboardConsumed>(
+                mapper.Map(Input(KeyboardKey.F5, KeyboardModifier.Control, context)));
+            _ = Assert.IsInstanceOfType<KeyboardConsumed>(
+                mapper.Map(Input(KeyboardKey.F6, KeyboardModifier.Control, context)));
+        }
+    }
+
+    /// <summary>
+    /// Proves plain F5 and F6 keep their commands beside the new chords: copy and move in the file
+    /// list, refresh and pass-through on the navigation surface.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenPlainF5AndF6ArriveKeepsCopyMoveAndRefresh()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        AssertMaps(mapper, Input(KeyboardKey.F5), UserIntent.Copy);
+        AssertMaps(mapper, Input(KeyboardKey.F6), UserIntent.Move);
+        AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardContext.NavigationSurface), UserIntent.Refresh);
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+            mapper.Map(Input(KeyboardKey.F6, KeyboardContext.NavigationSurface)));
+    }
+
+    /// <summary>
+    /// Proves the repeat guard on F5 and F6 also holds the chords: a held Ctrl+F5 or Ctrl+F6 does
+    /// not keep reversing the order.
+    /// </summary>
+    [TestMethod]
+    public void MapWhenMetadataSortChordRepeatsPassesThroughWithoutIntent()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        foreach (KeyboardKey key in new[] { KeyboardKey.F5, KeyboardKey.F6 })
+        {
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardInput.Create(
+                key,
+                KeyboardModifier.Control,
+                KeyRepeatState.Repeated,
+                KeyboardContext.FileList)));
+        }
+    }
+
+    /// <summary>Proves the raw F5 and F6 virtual keys translate under Control and name their chord caps.</summary>
+    [TestMethod]
+    public void TranslateKeyDataWhenMetadataSortChordArrivesMapsToSortIntentAndChordCap()
+    {
+        AssertRawControlKey(VirtualKey.F5, KeyboardKey.F5, UserIntent.SortBySize);
+        AssertRawControlKey(VirtualKey.F6, KeyboardKey.F6, UserIntent.SortByModified);
+
+        KeyBinding bySize = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
+            .Single(binding => binding.Intent == UserIntent.SortBySize);
+        KeyBinding byModified = KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface)
+            .Single(binding => binding.Intent == UserIntent.SortByModified);
+        Assert.AreEqual("KeyLabelCtrlF5", bySize.KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlF6", byModified.KeyLabelResourceKey);
+    }
+
     /// <summary>Proves unmapped keys and modifier combinations pass through.</summary>
     [TestMethod]
     public void MapWhenKeyOrModifierIsUnmappedPassesThrough()
@@ -656,8 +753,8 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(43, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(24, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(45, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(26, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
         Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));

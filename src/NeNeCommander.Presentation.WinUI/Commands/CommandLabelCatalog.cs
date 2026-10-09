@@ -29,6 +29,8 @@ public static class CommandLabelCatalog
         new(UserIntent.SortByName, "IntentLabelSortByName"),
         new(UserIntent.SortByExtension, "IntentLabelSortByExtension"),
         new(UserIntent.OpenLocations, "IntentLabelOpenLocations"),
+        new(UserIntent.SortBySize, "IntentLabelSortBySize"),
+        new(UserIntent.SortByModified, "IntentLabelSortByModified"),
         new(UserIntent.MoveNext, "IntentLabelMoveNext"),
         new(UserIntent.MovePrevious, "IntentLabelMovePrevious"),
         new(UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),

@@ -72,7 +72,7 @@ public sealed class DirectoryListingTests
                 ParsePath("c:\\same\\same"),
                 "same",
                 DirectoryEntryKind.File,
-                EntryVisibility.Normal),
+                EntryMetadata.Unmeasured(EntryVisibility.Normal)),
         ];
 
         DirectoryListingCreation outcome = DirectoryListing.Create(
@@ -191,7 +191,7 @@ public sealed class DirectoryListingTests
             path,
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal));
+            EntryMetadata.Unmeasured(EntryVisibility.Normal)));
     }
 
     /// <summary>Proves closed read outcomes carry their exact payload.</summary>
@@ -242,7 +242,7 @@ public sealed class DirectoryListingTests
             ParsePath(location.CanonicalText + "\\" + name),
             name,
             kind,
-            EntryVisibility.Normal);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
     }
 
     private static FileSystemPath ParsePath(string input)

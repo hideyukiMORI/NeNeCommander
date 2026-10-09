@@ -15,10 +15,24 @@ public abstract record SortKey
     /// </summary>
     public static SortKey Extension { get; } = new ExtensionKey();
 
+    /// <summary>
+    /// Gets the key that orders entries by the provider-reported byte count, an unknown size after
+    /// every known one, with the name order deciding ties (ADR-0056).
+    /// </summary>
+    public static SortKey Size { get; } = new SizeKey();
+
+    /// <summary>
+    /// Gets the key that orders entries by the provider-reported last-modification time, an unknown
+    /// time after every known one, with the name order deciding ties (ADR-0056).
+    /// </summary>
+    public static SortKey Modified { get; } = new ModifiedKey();
+
     private SortKey()
     {
     }
 
     private sealed record NameKey : SortKey;
     private sealed record ExtensionKey : SortKey;
+    private sealed record SizeKey : SortKey;
+    private sealed record ModifiedKey : SortKey;
 }

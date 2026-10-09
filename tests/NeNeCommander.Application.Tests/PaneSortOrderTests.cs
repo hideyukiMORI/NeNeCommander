@@ -52,6 +52,37 @@ public sealed class PaneSortOrderTests
         Assert.AreEqual(PaneSortOrder.Default, name);
     }
 
+    /// <summary>Proves the metadata keys toggle exactly as the name and extension keys do.</summary>
+    [TestMethod]
+    public void ToggleWhenKeyIsMetadataKeyStartsAscendingAndThenReverses()
+    {
+        PaneSortOrder extensionDescending = PaneSortOrder.Default.Toggle(SortKey.Extension).Toggle(SortKey.Extension);
+
+        PaneSortOrder size = extensionDescending.Toggle(SortKey.Size);
+        PaneSortOrder sizeDescending = size.Toggle(SortKey.Size);
+        PaneSortOrder modified = sizeDescending.Toggle(SortKey.Modified);
+        PaneSortOrder modifiedDescending = modified.Toggle(SortKey.Modified);
+        PaneSortOrder sizeAgain = modifiedDescending.Toggle(SortKey.Size);
+
+        Assert.AreSame(SortKey.Size, size.Key);
+        Assert.AreSame(SortDirection.Ascending, size.Direction);
+        Assert.AreSame(SortKey.Size, sizeDescending.Key);
+        Assert.AreSame(SortDirection.Descending, sizeDescending.Direction);
+        Assert.AreSame(SortKey.Modified, modified.Key);
+        Assert.AreSame(SortDirection.Ascending, modified.Direction);
+        Assert.AreSame(SortDirection.Descending, modifiedDescending.Direction);
+        Assert.AreEqual(size, sizeAgain);
+    }
+
+    /// <summary>Proves the four keys are distinct closed values.</summary>
+    [TestMethod]
+    public void KeysWhenComparedAreDistinct()
+    {
+        SortKey[] keys = [SortKey.Name, SortKey.Extension, SortKey.Size, SortKey.Modified];
+
+        Assert.HasCount(4, keys.Distinct());
+    }
+
     /// <summary>Proves each direction names its opposite.</summary>
     [TestMethod]
     public void ReversedWhenReadNamesOppositeDirection()
@@ -106,6 +137,31 @@ public sealed class PaneSortOrderTests
         Assert.AreEqual("a", NameOf(descending.FocusItem));
         AssertVisible(["a", "b", "c"], ascending);
         Assert.AreEqual(PaneSortOrder.Default, ascending.SortOrder);
+    }
+
+    /// <summary>
+    /// Proves the size and modification-time intents toggle through the same reducer path: each
+    /// starts ascending from another key and reverses on a second request (ADR-0056).
+    /// </summary>
+    [TestMethod]
+    public void ApplyWhenSortingByMetadataKeysTogglesThroughTheReducer()
+    {
+        PaneState state = CreateState([FileNamed("a"), FileNamed("b")]);
+
+        PaneState size = PaneReducer.Apply(state, UserIntent.SortBySize);
+        PaneState sizeDescending = PaneReducer.Apply(size, UserIntent.SortBySize);
+        PaneState modified = PaneReducer.Apply(sizeDescending, UserIntent.SortByModified);
+        PaneState modifiedDescending = PaneReducer.Apply(modified, UserIntent.SortByModified);
+
+        Assert.AreSame(SortKey.Size, size.SortOrder.Key);
+        Assert.AreSame(SortDirection.Ascending, size.SortOrder.Direction);
+        Assert.AreSame(SortDirection.Descending, sizeDescending.SortOrder.Direction);
+        Assert.AreSame(SortKey.Modified, modified.SortOrder.Key);
+        Assert.AreSame(SortDirection.Ascending, modified.SortOrder.Direction);
+        Assert.AreSame(SortKey.Modified, modifiedDescending.SortOrder.Key);
+        Assert.AreSame(SortDirection.Descending, modifiedDescending.SortOrder.Direction);
+        Assert.AreEqual("a", NameOf(modifiedDescending.FocusItem));
+        AssertVisible(["a", "b"], modifiedDescending);
     }
 
     /// <summary>Proves movement, paging, first, and last address the projected order.</summary>
@@ -266,7 +322,7 @@ public sealed class PaneSortOrderTests
             ParsePath(parsed.CanonicalText + "\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal))];
+            EntryMetadata.Unmeasured(EntryVisibility.Normal)))];
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsed,
             entries,
@@ -277,12 +333,20 @@ public sealed class PaneSortOrderTests
 
     private static DirectoryEntry FileNamed(string name)
     {
-        return DirectoryEntry.Create(ParsePath("C:\\" + name), name, DirectoryEntryKind.File, EntryVisibility.Normal);
+        return DirectoryEntry.Create(
+            ParsePath("C:\\" + name),
+            name,
+            DirectoryEntryKind.File,
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
     }
 
     private static DirectoryEntry HiddenFileNamed(string name)
     {
-        return DirectoryEntry.Create(ParsePath("C:\\" + name), name, DirectoryEntryKind.File, EntryVisibility.Hidden);
+        return DirectoryEntry.Create(
+            ParsePath("C:\\" + name),
+            name,
+            DirectoryEntryKind.File,
+            EntryMetadata.Unmeasured(EntryVisibility.Hidden));
     }
 
     private static VisiblePageCapacity Capacity()

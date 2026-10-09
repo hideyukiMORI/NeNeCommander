@@ -104,7 +104,7 @@ public static class PaneListingPresenter
                 entry,
                 ResolveMark(entry, listed, selection, frame),
                 PaneRowKind.For(entry.Kind),
-                PaneRowVisibility.For(entry.Visibility));
+                PaneRowVisibility.For(entry.Metadata.Visibility));
             rows.Add(row);
         }
         PaneRows ownedRows = new(rows);

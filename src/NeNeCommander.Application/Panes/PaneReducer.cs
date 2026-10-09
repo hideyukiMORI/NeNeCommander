@@ -38,13 +38,9 @@ public static class PaneReducer
                 : HiddenItemVisibility.Hidden;
             return ApplyHiddenItemVisibility(state, next);
         }
-        if (intent == UserIntent.SortByName)
+        if (SortKeyRequestedBy(intent) is SortKey requested)
         {
-            return ApplySortOrder(state, state.SortOrder.Toggle(SortKey.Name), state.FocusItem);
-        }
-        if (intent == UserIntent.SortByExtension)
-        {
-            return ApplySortOrder(state, state.SortOrder.Toggle(SortKey.Extension), state.FocusItem);
+            return ApplySortOrder(state, state.SortOrder.Toggle(requested), state.FocusItem);
         }
         if (intent == UserIntent.Escape)
         {
@@ -241,6 +237,21 @@ public static class PaneReducer
             }
         }
         return -1;
+    }
+
+    /// <summary>
+    /// Names the key a sort intent requests, or returns null when the intent is not a sort request
+    /// (ADR-0053, ADR-0056). Every sort intent toggles through the same <see cref="PaneSortOrder"/>.
+    /// </summary>
+    private static SortKey? SortKeyRequestedBy(UserIntent intent)
+    {
+        return intent == UserIntent.SortByName
+            ? SortKey.Name
+            : intent == UserIntent.SortByExtension
+                ? SortKey.Extension
+                : intent == UserIntent.SortBySize
+                    ? SortKey.Size
+                    : intent == UserIntent.SortByModified ? SortKey.Modified : null;
     }
 
     private static int GetMovementOffset(PaneState state, UserIntent intent)
