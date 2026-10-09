@@ -11,14 +11,17 @@ public sealed record TransientScopeSnapshot
     internal TransientScopeSnapshot(
         AddressEditorState addressEditor,
         CommandPaletteState commandPalette,
-        WindowAdjustmentState windowAdjustment)
+        WindowAdjustmentState windowAdjustment,
+        LocationsState locations)
     {
         ArgumentNullException.ThrowIfNull(addressEditor);
         ArgumentNullException.ThrowIfNull(commandPalette);
         ArgumentNullException.ThrowIfNull(windowAdjustment);
+        ArgumentNullException.ThrowIfNull(locations);
         AddressEditor = addressEditor;
         CommandPalette = commandPalette;
         WindowAdjustment = windowAdjustment;
+        Locations = locations;
     }
 
     /// <summary>Gets the address editor scope state.</summary>
@@ -29,4 +32,7 @@ public sealed record TransientScopeSnapshot
 
     /// <summary>Gets the window adjustment scope state.</summary>
     public WindowAdjustmentState WindowAdjustment { get; }
+
+    /// <summary>Gets the Locations picker scope state.</summary>
+    public LocationsState Locations { get; }
 }

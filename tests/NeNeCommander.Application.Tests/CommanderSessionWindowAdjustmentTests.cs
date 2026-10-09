@@ -582,7 +582,8 @@ public sealed class CommanderSessionWindowAdjustmentTests
                 new TransientScopeOwners(
                     new AddressEditorSession(),
                     new CommandPaletteSession(),
-                    new WindowAdjustmentSession()));
+                    new WindowAdjustmentSession(),
+                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
         }
 
         internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();

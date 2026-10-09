@@ -19,6 +19,7 @@ using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
+using NeNeCommander.Presentation.WinUI.Locations;
 using NeNeCommander.Presentation.WinUI.Panes;
 using NeNeCommander.Presentation.WinUI.Settings;
 
@@ -35,6 +36,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly AsyncWorkOwner _paneWork;
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
+    private readonly LocationsView _locationsView;
     private AddressEditorPresentation? _addressPresentation;
     private AddressEditorState? _defaultFileListFocusSuppressedState;
     private AddressEditorState? _leftAddressOwner;
@@ -80,6 +82,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _resources,
             new WindowAdjustmentRoute(session, new AppWindowPlacementAdapter(AppWindow, InputSurface), defectObserver),
             FocusFileList);
+        _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
         Title = _resources.GetString("CommanderWindowTitle");
         CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _renderedScheme = session.Current.Settings.Settings.ColorScheme;
@@ -190,6 +193,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             RenderAddressTransition(address);
         }
         RenderCommandPalette(snapshot);
+        _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
@@ -620,7 +624,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         if (outcome is MappedKeyboardIntent mapped)
         {
-            ForwardIntent(mapped.Intent);
+            ForwardIntent(LocationsPresenter.Qualify(mapped.Intent, _locationsView.Rendered));
             return true;
         }
         return outcome is KeyboardAwaitingChord or KeyboardConsumed;
@@ -789,6 +793,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (_session.Current.Scopes.WindowAdjustment is WindowAdjustmentOpen)
         {
             return KeyboardContext.WindowAdjustment;
+        }
+        if (_session.Current.Scopes.Locations is not LocationsClosed)
+        {
+            return KeyboardContext.Locations;
         }
         if (CommandPaletteOverlay.Visibility == Visibility.Visible)
         {

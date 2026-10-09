@@ -13,11 +13,13 @@ using NeNeCommander.Application.Settings;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Launching;
 using NeNeCommander.Infrastructure.Windows.Settings;
 using NeNeCommander.Infrastructure.Windows.Time;
+using NeNeCommander.Infrastructure.Windows.Wsl;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 
@@ -137,7 +139,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         TransientScopeOwners scopes = new(
             new AddressEditorSession(),
             new CommandPaletteSession(),
-            new WindowAdjustmentSession());
+            new WindowAdjustmentSession(),
+            new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()));
         CommanderSession session = new(panes, settingsSession, scopes);
         return new CommanderWindow(
             keyboardIntentMapper,

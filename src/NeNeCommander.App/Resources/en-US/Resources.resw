@@ -288,4 +288,25 @@
   <data name="WindowAdjustmentRefusedRestored" xml:space="preserve"><value>Not restored: the window is already restored</value></data>
   <data name="WindowAdjustmentRefusedNotOverlapped" xml:space="preserve"><value>Not applied: this window mode cannot be adjusted</value></data>
   <data name="WindowAdjustmentRefusedUnavailable" xml:space="preserve"><value>Not applied: the window placement could not be read</value></data>
+  <data name="KeyLabelCtrlG" xml:space="preserve"><value>Ctrl+G</value></data>
+  <data name="IntentLabelOpenLocations" xml:space="preserve"><value>Open locations</value></data>
+  <data name="IntentLabelMoveNext" xml:space="preserve"><value>Next</value></data>
+  <data name="IntentLabelMovePrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="LocationsTitle.Text" xml:space="preserve"><value>Locations</value></data>
+  <data name="LocationsList.AutomationProperties.Name" xml:space="preserve"><value>Drives and WSL distributions</value></data>
+  <data name="LocationsLoading" xml:space="preserve"><value>Listing drives and WSL distributions…</value></data>
+  <data name="LocationsEmpty" xml:space="preserve"><value>No drives or WSL distributions were found.</value></data>
+  <data name="LocationsDrivesProviderUnavailable" xml:space="preserve"><value>Drives could not be listed.</value></data>
+  <data name="LocationsDrivesAccessDenied" xml:space="preserve"><value>Access to the drive list was denied.</value></data>
+  <data name="LocationsDrivesUnrepresentableFormat" xml:space="preserve"><value>{0} drives could not be shown.</value></data>
+  <data name="LocationsWslProviderUnavailable" xml:space="preserve"><value>WSL distributions could not be listed.</value></data>
+  <data name="LocationsWslMalformedOutput" xml:space="preserve"><value>WSL returned a distribution list that cannot be shown.</value></data>
+  <data name="LocationsDriveKindFixed" xml:space="preserve"><value>Fixed</value></data>
+  <data name="LocationsDriveKindRemovable" xml:space="preserve"><value>Removable</value></data>
+  <data name="LocationsDriveKindNetwork" xml:space="preserve"><value>Network</value></data>
+  <data name="LocationsDriveKindOptical" xml:space="preserve"><value>Optical</value></data>
+  <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="LocationsDriveDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
+  <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}, {1}</value></data>
 </root>

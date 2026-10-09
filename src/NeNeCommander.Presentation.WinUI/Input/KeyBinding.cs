@@ -18,6 +18,7 @@ public sealed record KeyBinding
             {
                 [KeyboardKey.D] = "KeyLabelCtrlD",
                 [KeyboardKey.B] = "KeyLabelCtrlB",
+                [KeyboardKey.LowerG] = "KeyLabelCtrlG",
                 [KeyboardKey.H] = "KeyLabelCtrlH",
                 [KeyboardKey.Comma] = "KeyLabelCtrlComma",
                 [KeyboardKey.L] = "KeyLabelCtrlL",
