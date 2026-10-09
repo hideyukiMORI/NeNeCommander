@@ -2,6 +2,8 @@
 
 Status: informational
 
+Updated through hide's session-closure request on 2026-10-08 JST (Issue #167).
+
 ## Resumption and completed documentation integration
 
 hide assigned NeNe Commanderサナ the design and decision role and explicitly delegated bounded investigation, implementation, and verification to Sol/Luna background agents. The latest report and handoff were in the Issue #162 worktree. Their read-back showed that Issue #160 and its main CodeQL analysis were already complete; none of those successful checks was repeated.
@@ -42,7 +44,15 @@ dotnet stryker --config-file ../../stryker-config.json --project NeNeCommander.D
 dotnet stryker --config-file ../../stryker-config.json --project NeNeCommander.Presentation.WinUI.csproj --break-at 90 --mutate **/Panes/OperationStatus.cs --output D:/NeNeCommander/outputs/resume-20261008/sdk-165/mutation-operation-status --skip-version-check --log-to-file
 ```
 
-The final required Ready CI and squash result belong in the PR closing Issue #165; a matching successful CI result is reused rather than rerun locally. No local full canonical gate or all-layer mutation was run for this update. The final CI covers all test projects, the shared test-platform/analyzer changes, coverage thresholds, package audit, and the complete existing gate proofs. The remaining mutation layers stay in the scheduled deep-review tier; no new deep-review success is claimed.
+No local full canonical gate or all-layer mutation was run for this update. The final CI below covered all test projects, the shared test-platform/analyzer changes, coverage thresholds, package audit, and the complete existing gate proofs. The remaining mutation layers stay in the scheduled deep-review tier; no new deep-review success is claimed.
+
+## Completed integration and cleanup
+
+[PR #166](https://github.com/hideyukiMORI/NeNeCommander/pull/166) passed [dependency review 37787074054](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/37787074054) and [canonical Ready gate 37787104257](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/37787104257) at final head `f3f6b0f13af3f8a04be35ea5fcb0dc2398cf58af`, base `ccf4423b2c883acb3ab82684d4e5f1022076cae3`. CI ran `pwsh -NoProfile -File ./eng/check.ps1` successfully: 1004 tests, 998 passed, zero failed, and six live-WSL `RootParameterAbsent` skips. Branch coverage was Domain 100.00%, Application 100.00%, Infrastructure.Windows 92.88%, and Presentation.WinUI 92.57%. These skips do not claim a new real-WSL run or invalidate the earlier unchanged live proof.
+
+After checking that head/base were unchanged and the protected merge state was clean, the design owner squash merged PR #166 as `55d911b7670164ca336f882312629136b2ce4dd1` on 2026-10-08 at 22:59:59 JST. `git pull --ff-only` synchronized the clean primary checkout; Issue #165 is closed, and replacement source PR #164 was closed. This closure re-read the PR and both matching successful runs without repeating their checks.
+
+The `D:/NeNeCommander/wt-165` worktree was removed by `git worktree remove` after absolute-path, identical integrated-tree, clean/untracked/ignored-file, unique-artifact, process-reference, and link checks. Its ignored files were ordinary build/restore output. Branch `build/165-mstest-sdk-4-5-1` and commit `f3f6b0f` remain. Automatic approval review rejected the operation containing recursive cleanup of `D:/NeNeCommander/outputs/resume-20261008/` with `blocked by policy`; no alternative deletion of that output was attempted. Its approximately 132 MB of diagnostics and downloadable packages remains, with the result summary preserved here and in PR #166. Earlier policy-rejected outputs were left unchanged.
 
 ## Remaining environmental proof
 
@@ -51,3 +61,11 @@ hide confirmed in this session that a dedicated Windows UI test environment is *
 The old Issue #100 driver still cannot be used as the #94 harness: its foreground guard checks HWND only, its default binary points to the removed worktree, and `Stop-Run` sends held-key releases even after losing foreground ownership. The new harness must verify process/session/root HWND, mode/modal, and focus before each input, including cleanup; focus loss stops further input. A dedicated profile must resolve the actual production settings location, preserve its bytes or absence, and restore only that owned profile. The existing 125-percent evidence is still valid for its unchanged implementation.
 
 The next product work is the dedicated environment and safe preflight for #94, followed by its real DPI, high-contrast, scheme, keyboard-modal, Narrator, cross-scale, and taskbar-seam cells. This test-platform update does not substitute for those results.
+
+## Shutdown checkpoint
+
+At hide's shutdown request, implementation main is clean and synchronized at `55d911b`. Issue #167 updates only this report, the paired handoff, and `docs/PROJECT_STATE.md`. The invariant is truthful separation of completed implementation/integration evidence and outstanding environmental proof; the state file remains the single current checkpoint. No behavior, dependency, gate, or ADR changes are part of this closure.
+
+The closure is committed and pushed on `docs/167-session-closure`, worktree `D:/NeNeCommander/wt-167`, and saved as a draft PR. Its own canonical Ready CI and squash merge are explicitly deferred to the next session; this documentation candidate is not described as merge-ready. Its worktree and body files in `D:/NeNeCommander/outputs/closure-20261008/` remain because the documentation change is not yet integrated. The draft PR records the exact final verification results: whitespace, relative links, UTF-8 without BOM, CRLF/final newline, and the normal `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit` hook. No new behavior test, local full gate, deep review, or desktop interaction is started for these Markdown files.
+
+All bounded background agents have completed. Read-only process inspection found no reference to the completed implementation worktree/output paths. No local build, test, or UI harness from this session remains running. Resume from the documentation PR, then prepare the dedicated environment for Issue #94; do not reopen completed Issue #165 verification or rerun the unchanged 125-percent UI evidence.
