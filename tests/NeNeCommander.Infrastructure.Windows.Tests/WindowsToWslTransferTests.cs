@@ -17,7 +17,7 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 /// a scripted WSL destination, so every destination failure is injected at its exact boundary.
 /// </summary>
 [TestClass]
-public sealed class WindowsToWslCopyTransferTests
+public sealed class WindowsToWslTransferTests
 {
     private static readonly WslPath Destination = Wsl("\\\\wsl.localhost\\Ubuntu\\dest");
 
@@ -152,7 +152,7 @@ public sealed class WindowsToWslCopyTransferTests
         string sourcePath = root.WriteFile("item.txt", "item");
         FileEntrySnapshot file = await SnapshotAsync(sourcePath);
         ScriptedWslFileSystem destination = UsableDestination();
-        WindowsToWslCopyTransfer transfer = Transfer(destination);
+        WindowsToWslTransfer transfer = Transfer(destination);
 
         ProviderStepOutcome copy = await transfer.CopyAsync(file, Destination, CancellationToken.None);
         ProviderStepOutcome verify = await transfer.VerifyCopyAsync(file, Destination, CancellationToken.None);
@@ -314,19 +314,20 @@ public sealed class WindowsToWslCopyTransferTests
     }
 
     /// <summary>
-    /// Proves the pair copies only: a move, its atomic capability, and every member that is not a
-    /// transfer fail closed without touching either side.
+    /// Proves the pair has no atomic move, so the gateway composes a move from copy, verification,
+    /// and the source provider's deletion, while a direct move and every member that is not a copy
+    /// or verification step fail closed without touching either side.
     /// </summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-022")]
-    public async Task NonCopyMembersWhenCalledFailClosedWithoutEffect()
+    public async Task NonCopyMembersWhenCalledReportNoAtomicMoveAndFailClosedWithoutEffect()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         string sourcePath = root.WriteFile("item.txt", "item");
         FileEntrySnapshot file = await SnapshotAsync(sourcePath);
         ScriptedWslFileSystem destination = UsableDestination();
-        WindowsToWslCopyTransfer transfer = Transfer(destination);
+        WindowsToWslTransfer transfer = Transfer(destination);
 
         FileInspectionOutcome inspection = await transfer.InspectAsync(file.Path, CancellationToken.None);
         AtomicMoveCapabilityOutcome capability = await transfer.GetAtomicMoveCapabilityAsync(
@@ -344,9 +345,7 @@ public sealed class WindowsToWslCopyTransferTests
         Assert.AreSame(
             FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<FileInspectionFailed>(inspection).Failure);
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(capability).Failure);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, capability);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, move.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, delete.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, create.Failure);
@@ -361,15 +360,15 @@ public sealed class WindowsToWslCopyTransferTests
     public void BoundariesWhenArgumentIsNullRejectDefect()
     {
         ScriptedWslFileSystem fileSystem = new();
-        WindowsToWslCopyTransfer transfer = Transfer(fileSystem);
+        WindowsToWslTransfer transfer = Transfer(fileSystem);
         FileEntrySnapshot source = FileEntrySnapshot.Create(
             Local("C:\\item"),
             Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("source")).Identity,
             DeletionCapability.PermanentOnly);
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsToWslCopyTransfer(null!, fileSystem));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsToWslTransfer(null!, fileSystem));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WindowsToWslCopyTransfer(new WindowsLocalIoExecutionBoundary(), null!));
+            () => new WindowsToWslTransfer(new WindowsLocalIoExecutionBoundary(), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => transfer.InspectAsync(null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => transfer.PreflightTransferAsync(null!, Destination, CancellationToken.None));
@@ -447,9 +446,9 @@ public sealed class WindowsToWslCopyTransferTests
         return destination;
     }
 
-    private static WindowsToWslCopyTransfer Transfer(ScriptedWslFileSystem destination)
+    private static WindowsToWslTransfer Transfer(ScriptedWslFileSystem destination)
     {
-        return new WindowsToWslCopyTransfer(new WindowsLocalIoExecutionBoundary(), destination);
+        return new WindowsToWslTransfer(new WindowsLocalIoExecutionBoundary(), destination);
     }
 
     private static async Task<FileEntrySnapshot> SnapshotAsync(string path)

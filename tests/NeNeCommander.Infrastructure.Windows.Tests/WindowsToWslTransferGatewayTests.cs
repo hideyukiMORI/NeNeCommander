@@ -173,7 +173,10 @@ public sealed class WindowsToWslTransferGatewayTests
         FileSystemPath second = ParsePath(root.WriteFile("windows\\second.txt", "second"));
         _ = root.CreateDirectory("wsl\\dest");
         using CancellationTokenSource cancellation = new();
-        CancellingAfterCopyPort port = new(CreateRouter(root), cancellation);
+        StepHookPort port = new(CreateRouter(root))
+        {
+            AfterCopy = _ => cancellation.CancelAsync(),
+        };
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -185,36 +188,213 @@ public sealed class WindowsToWslTransferGatewayTests
         AssertEffects(outcome, (first, FileOperationEffectKind.Copied));
         Assert.AreEqual("first", File.ReadAllText(root.Resolve("wsl\\dest\\first.txt")));
         Assert.IsFalse(File.Exists(root.Resolve("wsl\\dest\\second.txt")));
-        Assert.AreEqual(0, port.VerifyCount);
+        AssertCalls(port, "copy");
         Assert.AreEqual("first", File.ReadAllText(root.Resolve("windows\\first.txt")));
         Assert.AreEqual("second", File.ReadAllText(root.Resolve("windows\\second.txt")));
     }
 
-    /// <summary>Proves a move across the pair stops before its first step, so nothing is copied and the source stays.</summary>
+    /// <summary>
+    /// Proves a move across the pair is the gateway's composite: each item is copied with exact
+    /// bytes, verified, and only then permanently deleted from the Windows local side, with no
+    /// confirmation requested.
+    /// </summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenMovingNestedTreeAndFileToWslDeletesSourcesAfterVerifiedTargets()
+    {
+        using TestOwnedTemporaryRoot root = CreateRoot();
+        FileSystemPath tree = ParsePath(root.CreateDirectory("windows\\tree"));
+        _ = root.WriteFile("windows\\tree\\top.txt", "abcd");
+        _ = root.CreateDirectory("windows\\tree\\nested");
+        _ = root.WriteFile("windows\\tree\\nested\\payload.txt", "payload");
+        FileSystemPath file = ParsePath(root.WriteFile("windows\\single.txt", "one"));
+        _ = root.CreateDirectory("wsl\\dest");
+        StepHookPort port = new(CreateRouter(root));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            Move([tree, file], Wsl("/owned/dest")),
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.IsNull(outcome.Failure);
+        AssertEffects(
+            outcome,
+            (tree, FileOperationEffectKind.Copied),
+            (tree, FileOperationEffectKind.Verified),
+            (tree, FileOperationEffectKind.SourceDeleted),
+            (file, FileOperationEffectKind.Copied),
+            (file, FileOperationEffectKind.Verified),
+            (file, FileOperationEffectKind.SourceDeleted));
+        AssertCalls(port, "capability", "capability", "copy", "verify", "delete", "copy", "verify", "delete");
+        Assert.HasCount(2, port.DeletionModes);
+        Assert.IsTrue(port.DeletionModes.TrueForAll(mode => mode == DeletionExecutionMode.Permanent));
+        Assert.AreEqual("abcd", File.ReadAllText(root.Resolve("wsl\\dest\\tree\\top.txt")));
+        Assert.AreEqual("payload", File.ReadAllText(root.Resolve("wsl\\dest\\tree\\nested\\payload.txt")));
+        Assert.AreEqual("one", File.ReadAllText(root.Resolve("wsl\\dest\\single.txt")));
+        Assert.IsFalse(Directory.Exists(root.Resolve("windows\\tree")));
+        Assert.IsFalse(File.Exists(root.Resolve("windows\\single.txt")));
+    }
+
+    /// <summary>
+    /// Proves a target changed between copy and verification fails that item's verification on the
+    /// real bytes, so its source is never deleted, while the item already moved stays reported.
+    /// </summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-007")]
     [TestProperty("ThreatId", "ADV-022")]
-    public async Task ExecuteAsyncWhenMovingToWslRejectsBeforeAnyEffect()
+    public async Task ExecuteAsyncWhenMovedTargetFailsVerificationKeepsThatSource()
     {
         using TestOwnedTemporaryRoot root = CreateRoot();
-        FileSystemPath file = ParsePath(root.WriteFile("windows\\item.txt", "item"));
+        FileSystemPath first = ParsePath(root.WriteFile("windows\\first.txt", "first"));
+        FileSystemPath second = ParsePath(root.WriteFile("windows\\second.txt", "second"));
         _ = root.CreateDirectory("wsl\\dest");
-        using FileOperationGateway gateway = CreateGateway(root);
-        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
-            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
-                MoveRequest.Create([file], Wsl("/owned/dest"))).Request);
+        StepHookPort port = new(CreateRouter(root))
+        {
+            AfterCopy = snapshot =>
+            {
+                if (FileSystemPathIdentityComparer.Instance.Equals(snapshot.Path, second))
+                {
+                    File.AppendAllText(root.Resolve("wsl\\dest\\second.txt"), "-damaged");
+                }
+                return Task.CompletedTask;
+            },
+        };
+        using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
-            request,
+            Move([first, second], Wsl("/owned/dest")),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
-        Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.HasCount(0, outcome.Effects);
-        Assert.IsFalse(File.Exists(root.Resolve("wsl\\dest\\item.txt")));
-        Assert.AreEqual("item", File.ReadAllText(root.Resolve("windows\\item.txt")));
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Verification, outcome.Failure);
+        AssertEffects(
+            outcome,
+            (first, FileOperationEffectKind.Copied),
+            (first, FileOperationEffectKind.Verified),
+            (first, FileOperationEffectKind.SourceDeleted),
+            (second, FileOperationEffectKind.Copied));
+        AssertCalls(port, "capability", "capability", "copy", "verify", "delete", "copy", "verify");
+        Assert.IsFalse(File.Exists(root.Resolve("windows\\first.txt")));
+        Assert.AreEqual("first", File.ReadAllText(root.Resolve("wsl\\dest\\first.txt")));
+        Assert.AreEqual("second", File.ReadAllText(root.Resolve("windows\\second.txt")));
+        Assert.AreEqual("second-damaged", File.ReadAllText(root.Resolve("wsl\\dest\\second.txt")));
+    }
+
+    /// <summary>Proves a move whose tree copy fails after creating its WSL target reports that partial effect and keeps the source.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    [TestProperty("ThreatId", "ADV-007")]
+    [TestProperty("ThreatId", "ADV-022")]
+    public async Task ExecuteAsyncWhenMovedTreeCopyFailsAfterWslTargetCreationKeepsSource()
+    {
+        using TestOwnedTemporaryRoot root = CreateRoot();
+        FileSystemPath tree = ParsePath(root.CreateDirectory("windows\\tree"));
+        _ = root.WriteFile("windows\\tree\\plain.txt", "plain");
+        string lockedPath = root.WriteFile("windows\\tree\\locked.txt", "content");
+        _ = root.CreateDirectory("wsl\\dest");
+        StepHookPort port = new(CreateRouter(root));
+        using FileOperationGateway gateway = new(port);
+        FileOperationOutcome outcome;
+        using (FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            outcome = await gateway.ExecuteAsync(
+                Move([tree], Wsl("/owned/dest")),
+                IgnoredFileOperationProgress.Create(),
+                CancellationToken.None);
+        }
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
+        AssertEffects(outcome, (tree, FileOperationEffectKind.CopyTargetCreated));
+        AssertCalls(port, "capability", "copy");
+        Assert.IsTrue(Directory.Exists(root.Resolve("wsl\\dest\\tree")));
+        Assert.AreEqual("plain", File.ReadAllText(root.Resolve("windows\\tree\\plain.txt")));
+        Assert.AreEqual("content", File.ReadAllText(lockedPath));
+    }
+
+    /// <summary>
+    /// Proves cancellation observed after verification and before deletion stops the move at that
+    /// step boundary, so the verified target and its source both remain.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenMoveIsCancelledBetweenVerifyAndDeleteKeepsSource()
+    {
+        using TestOwnedTemporaryRoot root = CreateRoot();
+        FileSystemPath first = ParsePath(root.WriteFile("windows\\first.txt", "first"));
+        FileSystemPath second = ParsePath(root.WriteFile("windows\\second.txt", "second"));
+        _ = root.CreateDirectory("wsl\\dest");
+        using CancellationTokenSource cancellation = new();
+        StepHookPort port = new(CreateRouter(root))
+        {
+            AfterVerify = _ => cancellation.CancelAsync(),
+        };
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            Move([first, second], Wsl("/owned/dest")),
+            IgnoredFileOperationProgress.Create(),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        AssertEffects(
+            outcome,
+            (first, FileOperationEffectKind.Copied),
+            (first, FileOperationEffectKind.Verified));
+        AssertCalls(port, "capability", "capability", "copy", "verify");
+        Assert.AreEqual("first", File.ReadAllText(root.Resolve("wsl\\dest\\first.txt")));
+        Assert.IsFalse(File.Exists(root.Resolve("wsl\\dest\\second.txt")));
+        Assert.AreEqual("first", File.ReadAllText(root.Resolve("windows\\first.txt")));
+        Assert.AreEqual("second", File.ReadAllText(root.Resolve("windows\\second.txt")));
+    }
+
+    /// <summary>
+    /// Proves a move from WSL to Windows local, between distributions, or into UNC still stops
+    /// before any step with <c>ProviderUnavailable</c>, leaving every source and destination as it was.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-022")]
+    public async Task ExecuteAsyncWhenMovingAcrossAnyOtherPairRejectsBeforeAnyEffect()
+    {
+        using TestOwnedTemporaryRoot root = CreateRoot();
+        _ = root.WriteFile("wsl\\item.txt", "linux");
+        FileSystemPath windowsSource = ParsePath(root.WriteFile("windows\\item.txt", "windows"));
+        FileSystemPath windowsDestination = ParsePath(root.CreateDirectory("windows\\dest"));
+        _ = root.CreateDirectory("wsl\\dest");
+        StepHookPort port = new(CreateRouter(root));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome toWindows = await gateway.ExecuteAsync(
+            Move([Wsl("/owned/item.txt")], windowsDestination),
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+        FileOperationOutcome toDistribution = await gateway.ExecuteAsync(
+            Move([Wsl("/owned/item.txt")], Wsl("Debian", "/owned/dest")),
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+        FileOperationOutcome toUnc = await gateway.ExecuteAsync(
+            Move([windowsSource], ParsePath("\\\\server\\share\\dest")),
+            IgnoredFileOperationProgress.Create(),
+            CancellationToken.None);
+
+        foreach (FileOperationOutcome outcome in new[] { toWindows, toDistribution, toUnc })
+        {
+            Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
+            Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+            Assert.HasCount(0, outcome.Effects);
+        }
+        Assert.HasCount(0, port.Calls);
+        Assert.AreEqual("linux", File.ReadAllText(root.Resolve("wsl\\item.txt")));
+        Assert.AreEqual("windows", File.ReadAllText(root.Resolve("windows\\item.txt")));
+        Assert.IsEmpty(Directory.GetFileSystemEntries(root.Resolve("windows\\dest")));
+        Assert.IsEmpty(Directory.GetFileSystemEntries(root.Resolve("wsl\\dest")));
     }
 
     /// <summary>
@@ -236,7 +416,7 @@ public sealed class WindowsToWslTransferGatewayTests
             path => FileSystemPathIdentityComparer.Instance.Equals(path, alias) ? root.Resolve("tree") : throw new InvalidOperationException("Unmapped WSL path."),
             DenyHandle);
         WindowsLocalIoExecutionBoundary execution = new();
-        WindowsToWslCopyTransfer transfer = new(execution, drvfs);
+        WindowsToWslTransfer transfer = new(execution, drvfs);
         using FileOperationGateway gateway = new(new ProviderFileOperationPort(
             new WindowsLocalFileOperationAdapter(execution),
             new WslFileOperationAdapter(execution, drvfs),
@@ -289,7 +469,7 @@ public sealed class WindowsToWslTransferGatewayTests
         return new ProviderFileOperationPort(
             new WindowsLocalFileOperationAdapter(execution),
             new WslFileOperationAdapter(execution, fileSystem),
-            new WindowsToWslCopyTransfer(execution, fileSystem));
+            new WindowsToWslTransfer(execution, fileSystem));
     }
 
     private static string Resolve(TestOwnedTemporaryRoot root, WslPath path)
@@ -320,6 +500,13 @@ public sealed class WindowsToWslTransferGatewayTests
                 CopyRequest.Create(sources, destination)).Request);
     }
 
+    private static MoveRequest Move(IReadOnlyList<FileSystemPath> sources, FileSystemPath destination)
+    {
+        return Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+                MoveRequest.Create(sources, destination)).Request);
+    }
+
     private static void AssertEffects(
         FileOperationOutcome outcome,
         params (FileSystemPath Source, FileOperationEffectKind Kind)[] expected)
@@ -332,6 +519,11 @@ public sealed class WindowsToWslTransferGatewayTests
         }
     }
 
+    private static void AssertCalls(StepHookPort port, params string[] expected)
+    {
+        CollectionAssert.AreEqual(expected, port.Calls);
+    }
+
     private static FileSystemPath ParsePath(string input)
     {
         return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(input)).Path;
@@ -339,24 +531,36 @@ public sealed class WindowsToWslTransferGatewayTests
 
     private static WslPath Wsl(string linuxPath)
     {
-        string text = "\\\\wsl.localhost\\Ubuntu" + linuxPath.Replace('/', '\\');
+        return Wsl("Ubuntu", linuxPath);
+    }
+
+    private static WslPath Wsl(string distribution, string linuxPath)
+    {
+        string text = "\\\\wsl.localhost\\" + distribution + linuxPath.Replace('/', '\\');
         return Assert.IsInstanceOfType<WslPath>(
             Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path);
     }
 
-    /// <summary>Requests cancellation right after the first copy step, at the declared port boundary.</summary>
-    private sealed class CancellingAfterCopyPort : IFileOperationPort
+    /// <summary>
+    /// Records the transfer steps the gateway sends through the router and runs an optional hook
+    /// right after a copy or verification step returns, at the declared port boundary.
+    /// </summary>
+    private sealed class StepHookPort : IFileOperationPort
     {
         private readonly IFileOperationPort _inner;
-        private readonly CancellationTokenSource _cancellation;
 
-        internal CancellingAfterCopyPort(IFileOperationPort inner, CancellationTokenSource cancellation)
+        internal StepHookPort(IFileOperationPort inner)
         {
             _inner = inner;
-            _cancellation = cancellation;
         }
 
-        internal int VerifyCount { get; private set; }
+        internal Func<FileEntrySnapshot, Task> AfterCopy { get; init; } = _ => Task.CompletedTask;
+
+        internal Func<FileEntrySnapshot, Task> AfterVerify { get; init; } = _ => Task.CompletedTask;
+
+        internal List<string> Calls { get; } = [];
+
+        internal List<DeletionExecutionMode> DeletionModes { get; } = [];
 
         public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
         {
@@ -376,6 +580,7 @@ public sealed class WindowsToWslTransferGatewayTests
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
+            Calls.Add("capability");
             return _inner.GetAtomicMoveCapabilityAsync(source, destination, cancellationToken);
         }
 
@@ -384,6 +589,7 @@ public sealed class WindowsToWslTransferGatewayTests
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
+            Calls.Add("move");
             return _inner.MoveAsync(source, destination, cancellationToken);
         }
 
@@ -392,18 +598,21 @@ public sealed class WindowsToWslTransferGatewayTests
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
+            Calls.Add("copy");
             ProviderStepOutcome outcome = await _inner.CopyAsync(source, destination, cancellationToken);
-            await _cancellation.CancelAsync();
+            await AfterCopy(source);
             return outcome;
         }
 
-        public Task<ProviderStepOutcome> VerifyCopyAsync(
+        public async Task<ProviderStepOutcome> VerifyCopyAsync(
             FileEntrySnapshot source,
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
-            VerifyCount++;
-            return _inner.VerifyCopyAsync(source, destination, cancellationToken);
+            Calls.Add("verify");
+            ProviderStepOutcome outcome = await _inner.VerifyCopyAsync(source, destination, cancellationToken);
+            await AfterVerify(source);
+            return outcome;
         }
 
         public Task<ProviderStepOutcome> DeleteAsync(
@@ -411,6 +620,8 @@ public sealed class WindowsToWslTransferGatewayTests
             DeletionExecutionMode mode,
             CancellationToken cancellationToken)
         {
+            Calls.Add("delete");
+            DeletionModes.Add(mode);
             return _inner.DeleteAsync(source, mode, cancellationToken);
         }
 

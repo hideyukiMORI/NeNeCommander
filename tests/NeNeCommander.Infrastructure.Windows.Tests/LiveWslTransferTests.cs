@@ -12,7 +12,7 @@ using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Defines the required live same-distribution and Windows local to WSL transfer assertions.</summary>
+/// <summary>Defines the required live same-distribution and Windows local to WSL copy and move assertions.</summary>
 [TestClass]
 [DoNotParallelize]
 public sealed class LiveWslTransferTests
@@ -208,6 +208,53 @@ public sealed class LiveWslTransferTests
         LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
+    /// <summary>
+    /// Requires a Windows local tree to move into the distribution as the gateway's composite: exact
+    /// bytes and the declared tree shape arrive over 9P, and the Windows source is deleted only after
+    /// that target was verified (ADR-0059).
+    /// </summary>
+    /// <returns>The running assertion.</returns>
+    [TestMethod]
+    [TestCategory("LiveWsl")]
+    public async Task ExecuteAsyncWhenLiveWindowsTreeMovesIntoDistributionDeletesSourceAfterVerifiedTargetAsync()
+    {
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
+        try
+        {
+            using TestOwnedTemporaryRoot windows = TestOwnedTemporaryRoot.Create();
+            string sourceText = windows.CreateDirectory("Windows-Move");
+            WindowsLocalPath source = WindowsPath(sourceText);
+            byte[] top = File.ReadAllBytes(windows.WriteFile("Windows-Move\\Top.txt", "move-top"));
+            _ = windows.CreateDirectory("Windows-Move\\nested");
+            byte[] payload = File.ReadAllBytes(windows.WriteFile("Windows-Move\\nested\\payload.txt", "move\r\n"));
+            WslPath destination = root.CreateDirectory("cross-move-destination");
+            LiveWslRunFixture.RequireEffectBoundary(root);
+            using FileOperationGateway gateway = CreateGateway();
+
+            FileOperationOutcome outcome = await gateway.ExecuteAsync(
+                Move(source, destination),
+                IgnoredFileOperationProgress.Create(),
+                CancellationToken.None);
+            RecordOutcome(context, "cross-move", outcome);
+
+            root.AdoptCrossMovedTree(
+                "cross-move-destination/Windows-Move",
+                [string.Empty, "Top.txt", "nested", "nested/payload.txt"],
+                outcome,
+                source);
+            CollectionAssert.AreEqual(top, root.ReadFile("cross-move-destination/Windows-Move/Top.txt"));
+            CollectionAssert.AreEqual(payload, root.ReadFile("cross-move-destination/Windows-Move/nested/payload.txt"));
+            Assert.IsFalse(Directory.Exists(sourceText));
+        }
+        finally
+        {
+            cleanup = LiveWslRunFixture.Close(context, root);
+        }
+        LiveWslRunFixture.RequireCleanup(cleanup);
+    }
+
     private static WindowsLocalPath WindowsPath(string text)
     {
         return Assert.IsInstanceOfType<WindowsLocalPath>(
@@ -227,7 +274,7 @@ public sealed class LiveWslTransferTests
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(creation).Request);
     }
 
-    private static MoveRequest Move(WslPath source, WslPath destination)
+    private static MoveRequest Move(FileSystemPath source, WslPath destination)
     {
         FileOperationRequestCreation creation = MoveRequest.Create([source], destination);
         return Assert.IsInstanceOfType<MoveRequest>(

@@ -31,7 +31,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         : this(
             new WindowsLocalFileOperationAdapter(executionBoundary),
             new WslFileOperationAdapter(executionBoundary, wslFileSystem),
-            new WindowsToWslCopyTransfer(executionBoundary, wslFileSystem))
+            new WindowsToWslTransfer(executionBoundary, wslFileSystem))
     {
     }
 

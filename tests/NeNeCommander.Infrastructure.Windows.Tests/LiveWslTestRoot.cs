@@ -290,6 +290,19 @@ internal sealed class LiveWslTestRoot
         AdoptExpectedTree(relativePath, expectedEntries);
     }
 
+    internal void AdoptCrossMovedTree(
+        string relativePath,
+        IReadOnlyList<string> expectedEntries,
+        FileOperationOutcome outcome,
+        WindowsLocalPath source)
+    {
+        RequireTransferEffects(
+            outcome,
+            source,
+            [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
+        AdoptExpectedTree(relativePath, expectedEntries);
+    }
+
     internal void AdoptMovedTree(
         string sourceRelativePath,
         string targetRelativePath,

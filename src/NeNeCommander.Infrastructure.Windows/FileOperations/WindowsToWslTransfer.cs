@@ -14,15 +14,17 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// <see cref="TransferRoute.WindowsLocalToWsl"/> pair (ADR-0059). The source side reuses the Windows
 /// local adapter's revalidation and reparse rejection, the destination side reuses the WSL adapter's
 /// target derivation, collision, and non-link directory checks, and copying and verification are
-/// the shared <see cref="WindowsLocalTreeCopy"/>. A move across the pair and every member that is not
-/// a transfer fail closed.
+/// the shared <see cref="WindowsLocalTreeCopy"/>. A move across the pair has no atomic step: the
+/// gateway composes it from these copy and verification steps and the source provider's permanent
+/// deletion, which the router sends to the Windows local adapter. Every member that is not a copy
+/// or verification step fails closed.
 /// </summary>
-internal sealed class WindowsToWslCopyTransfer : IFileOperationPort
+internal sealed class WindowsToWslTransfer : IFileOperationPort
 {
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly IWslFileSystem _destination;
 
-    internal WindowsToWslCopyTransfer(
+    internal WindowsToWslTransfer(
         WindowsLocalIoExecutionBoundary executionBoundary,
         IWslFileSystem destination)
     {
@@ -52,9 +54,9 @@ internal sealed class WindowsToWslCopyTransfer : IFileOperationPort
     }
 
     /// <summary>
-    /// Fails closed because this decision copies only. The port receives no request kind at
-    /// preflight, and the gateway asks this question only for a move and before its first step, so
-    /// this answer is where a move across the pair stops with zero effects.
+    /// Answers that no atomic move exists across providers, so the gateway composes a move as copy,
+    /// verify, then permanent source deletion (ADR-0004, ADR-0032) and never calls
+    /// <see cref="MoveAsync"/> for this pair.
     /// </summary>
     public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
         FileEntrySnapshot source,
@@ -63,7 +65,7 @@ internal sealed class WindowsToWslCopyTransfer : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
     }
 
     public Task<ProviderStepOutcome> MoveAsync(
