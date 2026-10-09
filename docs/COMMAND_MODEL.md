@@ -57,7 +57,7 @@ Every command returns the canonical outcome model. Boolean success flags, magic 
 - Status: **active**
 - Enforcement: cancellation tests.
 
-Cancellation means no new unit of work starts after observation. Already completed filesystem effects are reported explicitly. Cancellation is an outcome, not an error dialog and not an unobserved exception.
+Cancellation means no new unit of work starts after observation. Already completed filesystem effects are reported explicitly. Cancellation is an outcome, not an error dialog and not an unobserved exception. Abandoning a pane read with `Escape` (ADR-0058) is a distinct pane state, not a cancellation outcome: the pane keeps its content, the read's token is cancelled, and whatever the provider step returns later is discarded.
 
 ### CMD-007 — Queries do not mutate
 

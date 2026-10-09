@@ -691,7 +691,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return;
         }
         UserIntent forwarded = CreateForwardedIntent(intent);
-        _ = _paneWork.TryStart(cancellationToken =>
+        _ = _paneWork.TryStartIntent(forwarded, cancellationToken =>
             RenderAfterAsync(_session.HandleAsync(forwarded, this, cancellationToken)));
     }
 

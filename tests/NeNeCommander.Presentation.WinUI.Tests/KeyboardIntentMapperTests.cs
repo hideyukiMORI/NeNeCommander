@@ -105,6 +105,22 @@ public sealed class KeyboardIntentMapperTests
         AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
     }
 
+    /// <summary>
+    /// Proves Escape after a pending g still emits the one Escape intent and cancels the chord, so a
+    /// loading panes read is abandoned and the chord is gone, in the keyboard models order (ADR-0058).
+    /// </summary>
+    [TestMethod]
+    public void MapWhenEscapeFollowsGEmitsEscapeAndCancelsChord()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+
+        KeyboardMappingOutcome escape = mapper.Map(Input(KeyboardKey.Escape));
+        KeyboardMappingOutcome next = mapper.Map(Input(KeyboardKey.LowerG));
+
+        Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(escape).Intent);
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(next);
+    }
     /// <summary>Proves the raw virtual-key event of a printable key neither completes nor cancels a chord.</summary>
     [TestMethod]
     public void MapWhenUnmappedKeyFollowsGKeepsChordPending()

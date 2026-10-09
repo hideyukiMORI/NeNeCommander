@@ -1,12 +1,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Lifecycle;
 
 /// <summary>
 /// Owns one replaceable asynchronous UI work item, observes defects as soon as work completes,
-/// and closes in-flight work in cancel, await, dispose order.
+/// and closes in-flight work in cancel, await, dispose order. While that work runs it admits one
+/// interrupt and only for <see cref="UserIntent.Escape"/>, so the user can cancel a running
+/// operation (ADR-0018) or abandon a loading pane read (ADR-0058); every other overlap is rejected.
 /// </summary>
 public sealed class AsyncWorkOwner
 {
@@ -15,6 +18,7 @@ public sealed class AsyncWorkOwner
     private readonly Func<CancellationTokenSource> _cancellationFactory;
     private readonly Lock _sync;
     private Exception? _fault;
+    private OwnedRun? _interrupt;
     private OwnedRun? _run;
 
     /// <summary>Initializes an owner that reports every observed defect through one host callback.</summary>
@@ -56,7 +60,7 @@ public sealed class AsyncWorkOwner
         {
             lock (_sync)
             {
-                return _run is not null;
+                return _run is not null || _interrupt is not null;
             }
         }
     }
@@ -72,7 +76,7 @@ public sealed class AsyncWorkOwner
         ArgumentNullException.ThrowIfNull(work);
         lock (_sync)
         {
-            if (_fault is not null || _run is { Work.IsCompleted: false })
+            if (_fault is not null || _run is { Work.IsCompleted: false } || _interrupt is { Work.IsCompleted: false })
             {
                 return false;
             }
@@ -84,14 +88,59 @@ public sealed class AsyncWorkOwner
             {
                 return false;
             }
-            CancellationTokenSource cancellation = _cancellationFactory();
-            ArgumentNullException.ThrowIfNull(cancellation);
-            Task startedWork = StartWork(work, cancellation);
-            OwnedRun run = new(cancellation, startedWork);
-            _run = run;
-            startedWork.GetAwaiter().OnCompleted(() => CompleteRun(run));
+            _run = CreateRun(work);
+            Observe(_run);
             return true;
         }
+    }
+
+    /// <summary>
+    /// Starts the work of one intent. With no work running it is an ordinary start. While work runs,
+    /// only <see cref="UserIntent.Escape"/> starts, as the single interrupt that runs beside it; a
+    /// second interrupt while the first runs, any other intent, and any work after an observed
+    /// defect are rejected.
+    /// </summary>
+    /// <param name="intent">Intent the work forwards; it decides whether the work may interrupt.</param>
+    /// <param name="work">Work factory receiving a token owned by this instance.</param>
+    /// <returns><see langword="true"/> when this call started the work.</returns>
+    public bool TryStartIntent(UserIntent intent, Func<CancellationToken, Task> work)
+    {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(work);
+        lock (_sync)
+        {
+            if (_run is not { Work.IsCompleted: false })
+            {
+                return TryStart(work);
+            }
+            if (intent != UserIntent.Escape || _interrupt is { Work.IsCompleted: false })
+            {
+                return false;
+            }
+            if (_interrupt is not null)
+            {
+                CompleteRun(_interrupt);
+            }
+            if (_fault is not null)
+            {
+                return false;
+            }
+            _interrupt = CreateRun(work);
+            Observe(_interrupt);
+            return true;
+        }
+    }
+
+    private OwnedRun CreateRun(Func<CancellationToken, Task> work)
+    {
+        CancellationTokenSource cancellation = _cancellationFactory();
+        ArgumentNullException.ThrowIfNull(cancellation);
+        return new OwnedRun(cancellation, StartWork(work, cancellation));
+    }
+
+    private void Observe(OwnedRun run)
+    {
+        run.Work.GetAwaiter().OnCompleted(() => CompleteRun(run));
     }
 
     private Task StartWork(Func<CancellationToken, Task> work, CancellationTokenSource cancellation)
@@ -110,23 +159,33 @@ public sealed class AsyncWorkOwner
         }
     }
 
-    /// <summary>Cancels running work, awaits its completion, then disposes its token owner.</summary>
+    /// <summary>Cancels running work and any interrupt, awaits their completion, then disposes their token owners.</summary>
     public async Task StopAsync()
     {
         OwnedRun? run;
+        OwnedRun? interrupt;
         lock (_sync)
         {
             run = _run;
-            if (run is null)
-            {
-                return;
-            }
-            if (!run.Work.IsCompleted)
-            {
-                run.Cancellation.Cancel();
-            }
+            interrupt = _interrupt;
+            CancelRunning(run);
+            CancelRunning(interrupt);
         }
-        await run.Completion.Task;
+        await AwaitCompletionAsync(run);
+        await AwaitCompletionAsync(interrupt);
+    }
+
+    private static void CancelRunning(OwnedRun? run)
+    {
+        if (run is { Work.IsCompleted: false })
+        {
+            run.Cancellation.Cancel();
+        }
+    }
+
+    private static Task AwaitCompletionAsync(OwnedRun? run)
+    {
+        return run is null ? Task.CompletedTask : run.Completion.Task;
     }
 
     private void CompleteRun(OwnedRun run)
@@ -139,7 +198,14 @@ public sealed class AsyncWorkOwner
                 return;
             }
             defect = RecordFault(run);
-            _run = null;
+            if (ReferenceEquals(run, _run))
+            {
+                _run = null;
+            }
+            else
+            {
+                _interrupt = null;
+            }
             run.IsDisposed = true;
             run.Cancellation.Dispose();
             _cancellationDisposed();
