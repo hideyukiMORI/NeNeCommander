@@ -9,7 +9,7 @@ using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Proves mutation routing uses validated provider identity exactly once.</summary>
+/// <summary>Proves mutation routing uses validated provider identity and the closed transfer route exactly once.</summary>
 [TestClass]
 public sealed class ProviderFileOperationPortTests
 {
@@ -19,7 +19,8 @@ public sealed class ProviderFileOperationPortTests
     {
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl);
+        RecordingPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
 
         _ = await router.InspectAsync(Path("C:\\item.txt"), CancellationToken.None);
         Assert.AreEqual(1, windowsLocal.InspectionCount);
@@ -31,69 +32,139 @@ public sealed class ProviderFileOperationPortTests
 
         Assert.AreEqual(1, windowsLocal.InspectionCount);
         Assert.AreEqual(1, wsl.InspectionCount);
+        Assert.AreEqual(0, windowsLocalToWsl.InspectionCount);
     }
 
-    /// <summary>Proves every source-owned mutation member follows the frozen source provider.</summary>
+    /// <summary>Proves every mutation member of a same-provider pair reaches that provider's adapter only.</summary>
     [TestMethod]
-    public async Task MutationMembersWhenProviderIsSupportedDelegateToSourceAdapter()
+    public async Task MutationMembersWhenPairIsSameProviderDelegateToThatAdapter()
     {
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl);
+        RecordingPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
         FileEntrySnapshot local = Snapshot("C:\\item.txt", "local");
         FileEntrySnapshot linux = Snapshot(
             "\\\\wsl.localhost\\Ubuntu\\home\\item.txt",
             "wsl");
         FileSystemPath localDestination = Path("C:\\destination");
-        FileSystemPath wslDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
+        FileSystemPath wslDestination = Path("\\\\wsl.localhost\\ubuntu\\destination");
 
-        _ = await router.PreflightTransferAsync([local], localDestination, CancellationToken.None);
-        _ = await router.GetAtomicMoveCapabilityAsync(local, localDestination, CancellationToken.None);
-        _ = await router.MoveAsync(local, localDestination, CancellationToken.None);
-        _ = await router.CopyAsync(local, localDestination, CancellationToken.None);
-        _ = await router.VerifyCopyAsync(local, localDestination, CancellationToken.None);
-        _ = await router.DeleteAsync(local, DeletionExecutionMode.Permanent, CancellationToken.None);
-        _ = await router.CreateDirectoryAsync(local, localDestination, CancellationToken.None);
-        _ = await router.RenameAsync(local, localDestination, CancellationToken.None);
-        _ = await router.PreflightTransferAsync([linux], wslDestination, CancellationToken.None);
-        _ = await router.GetAtomicMoveCapabilityAsync(linux, wslDestination, CancellationToken.None);
-        _ = await router.MoveAsync(linux, wslDestination, CancellationToken.None);
-        _ = await router.CopyAsync(linux, wslDestination, CancellationToken.None);
-        _ = await router.VerifyCopyAsync(linux, wslDestination, CancellationToken.None);
-        _ = await router.DeleteAsync(linux, DeletionExecutionMode.Permanent, CancellationToken.None);
-        _ = await router.CreateDirectoryAsync(linux, wslDestination, CancellationToken.None);
-        _ = await router.RenameAsync(linux, wslDestination, CancellationToken.None);
+        await InvokeEveryMemberAsync(router, local, localDestination);
+        await InvokeEveryMemberAsync(router, linux, wslDestination);
 
         CollectionAssert.AreEqual(ExpectedMutationCalls(), windowsLocal.Calls);
         CollectionAssert.AreEqual(ExpectedMutationCalls(), wsl.Calls);
+        Assert.HasCount(0, windowsLocalToWsl.Calls);
     }
 
-    /// <summary>Proves unsupported and mixed providers fail before any adapter invocation.</summary>
+    /// <summary>
+    /// Proves the Windows local to WSL pair sends every transfer member to the cross transfer while
+    /// deletion, directory creation, and rename still follow the source provider.
+    /// </summary>
     [TestMethod]
-    public async Task OperationsWhenProviderIsUnsupportedOrMixedFailClosedWithoutDelegation()
+    public async Task MutationMembersWhenPairIsWindowsLocalToWslRouteTransfersToCrossTransfer()
     {
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl);
+        RecordingPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        FileEntrySnapshot local = Snapshot("C:\\item.txt", "local");
+        FileEntrySnapshot secondLocal = Snapshot("D:\\other.txt", "other");
+        FileSystemPath wslDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
+
+        _ = await router.PreflightTransferAsync([local, secondLocal], wslDestination, CancellationToken.None);
+        await InvokeEveryMemberAsync(router, local, wslDestination);
+
+        CollectionAssert.AreEqual(ExpectedCrossTransferCalls(), windowsLocalToWsl.Calls);
+        CollectionAssert.AreEqual(ExpectedSourceOwnedCalls(), windowsLocal.Calls);
+        Assert.HasCount(0, wsl.Calls);
+    }
+
+    /// <summary>
+    /// Proves every pair without its own route, and every empty or mixed batch, fails closed at the
+    /// router before any adapter or the cross transfer runs.
+    /// </summary>
+    /// <param name="sourceText">Source path text.</param>
+    /// <param name="destinationText">Destination path text.</param>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-022")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "C:\\destination")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "\\\\wsl.localhost\\Debian\\destination")]
+    [DataRow("\\\\server\\share\\item", "C:\\destination")]
+    [DataRow("\\\\server\\share\\item", "\\\\wsl.localhost\\Ubuntu\\destination")]
+    [DataRow("\\\\server\\share\\item", "\\\\server\\share\\destination")]
+    [DataRow("C:\\item", "\\\\server\\share\\destination")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "\\\\server\\share\\destination")]
+    public async Task TransferMembersWhenPairHasNoRouteFailClosedWithoutDelegation(
+        string sourceText,
+        string destinationText)
+    {
+        RecordingPort windowsLocal = new();
+        RecordingPort wsl = new();
+        RecordingPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        FileEntrySnapshot source = Snapshot(sourceText, "source");
+        FileSystemPath destination = Path(destinationText);
+
+        TransferPreflightOutcome preflight = await router.PreflightTransferAsync(
+            [source],
+            destination,
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome capability = await router.GetAtomicMoveCapabilityAsync(
+            source,
+            destination,
+            CancellationToken.None);
+        ProviderStepOutcome move = await router.MoveAsync(source, destination, CancellationToken.None);
+        ProviderStepOutcome copy = await router.CopyAsync(source, destination, CancellationToken.None);
+        ProviderStepOutcome verify = await router.VerifyCopyAsync(source, destination, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, preflight.Failure);
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(capability).Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, move.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, copy.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, verify.Failure);
+        Assert.HasCount(0, windowsLocal.Calls);
+        Assert.HasCount(0, wsl.Calls);
+        Assert.HasCount(0, windowsLocalToWsl.Calls);
+    }
+
+    /// <summary>Proves unsupported sources, empty batches, and mixed batches fail before any adapter invocation.</summary>
+    [TestMethod]
+    public async Task OperationsWhenProviderIsUnsupportedOrBatchIsMixedFailClosedWithoutDelegation()
+    {
+        RecordingPort windowsLocal = new();
+        RecordingPort wsl = new();
+        RecordingPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
         FileSystemPath unc = Path("\\\\server\\share\\item");
+        FileSystemPath ubuntuDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
         FileEntrySnapshot local = Snapshot("C:\\item", "local");
         FileEntrySnapshot ubuntu = Snapshot("\\\\wsl.localhost\\Ubuntu\\item", "ubuntu");
         FileEntrySnapshot debian = Snapshot("\\\\wsl.localhost\\Debian\\item", "debian");
         FileEntrySnapshot uncSource = Snapshot("\\\\server\\share\\item", "unc");
 
         FileInspectionOutcome inspection = await router.InspectAsync(unc, CancellationToken.None);
-        TransferPreflightOutcome empty = await router.PreflightTransferAsync([], unc, CancellationToken.None);
-        TransferPreflightOutcome mixedProvider = await router.PreflightTransferAsync(
-            [local, ubuntu], unc, CancellationToken.None);
-        TransferPreflightOutcome mixedDistribution = await router.PreflightTransferAsync(
-            [ubuntu, debian], unc, CancellationToken.None);
-        AtomicMoveCapabilityOutcome unsupportedCapability = await router.GetAtomicMoveCapabilityAsync(
-            uncSource,
-            unc,
+        TransferPreflightOutcome empty = await router.PreflightTransferAsync(
+            [],
+            ubuntuDestination,
             CancellationToken.None);
+        TransferPreflightOutcome mixedProvider = await router.PreflightTransferAsync(
+            [local, ubuntu], ubuntuDestination, CancellationToken.None);
+        TransferPreflightOutcome mixedProviderReversed = await router.PreflightTransferAsync(
+            [ubuntu, local], ubuntuDestination, CancellationToken.None);
+        TransferPreflightOutcome mixedDistribution = await router.PreflightTransferAsync(
+            [ubuntu, debian], ubuntuDestination, CancellationToken.None);
         ProviderStepOutcome unsupportedDelete = await router.DeleteAsync(
             uncSource,
             DeletionExecutionMode.Permanent,
+            CancellationToken.None);
+        ProviderStepOutcome unsupportedCreate = await router.CreateDirectoryAsync(
+            uncSource,
+            unc,
             CancellationToken.None);
         ProviderStepOutcome unsupportedRename = await router.RenameAsync(
             uncSource,
@@ -105,14 +176,14 @@ public sealed class ProviderFileOperationPortTests
             Assert.IsInstanceOfType<FileInspectionFailed>(inspection).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, empty.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProvider.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProviderReversed.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedDistribution.Failure);
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(unsupportedCapability).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedDelete.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedCreate.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedRename.Failure);
         Assert.HasCount(0, windowsLocal.Calls);
         Assert.HasCount(0, wsl.Calls);
+        Assert.HasCount(0, windowsLocalToWsl.Calls);
     }
 
     /// <summary>Proves required router arguments reject defects synchronously.</summary>
@@ -120,12 +191,13 @@ public sealed class ProviderFileOperationPortTests
     public void BoundariesWhenArgumentIsNullRejectDefect()
     {
         RecordingPort port = new();
-        ProviderFileOperationPort router = new(port, port);
+        ProviderFileOperationPort router = new(port, port, port);
         FileEntrySnapshot source = Snapshot("C:\\item", "source");
         FileSystemPath target = Path("C:\\target");
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, port));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, port, port));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!, port));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.InspectAsync(null!, CancellationToken.None));
@@ -138,14 +210,47 @@ public sealed class ProviderFileOperationPortTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.GetAtomicMoveCapabilityAsync(source, null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.MoveAsync(null!, target, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.MoveAsync(source, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CopyAsync(null!, target, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CopyAsync(source, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.VerifyCopyAsync(null!, target, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.VerifyCopyAsync(source, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.DeleteAsync(null!, DeletionExecutionMode.Permanent, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.DeleteAsync(source, null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CreateDirectoryAsync(null!, target, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CreateDirectoryAsync(source, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.RenameAsync(null!, target, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.RenameAsync(source, null!, CancellationToken.None));
+        Assert.HasCount(0, port.Calls);
     }
+
+    private static async Task InvokeEveryMemberAsync(
+        ProviderFileOperationPort router,
+        FileEntrySnapshot source,
+        FileSystemPath destination)
+    {
+        _ = await router.PreflightTransferAsync([source], destination, CancellationToken.None);
+        _ = await router.GetAtomicMoveCapabilityAsync(source, destination, CancellationToken.None);
+        _ = await router.MoveAsync(source, destination, CancellationToken.None);
+        _ = await router.CopyAsync(source, destination, CancellationToken.None);
+        _ = await router.VerifyCopyAsync(source, destination, CancellationToken.None);
+        _ = await router.DeleteAsync(source, DeletionExecutionMode.Permanent, CancellationToken.None);
+        _ = await router.CreateDirectoryAsync(source, destination, CancellationToken.None);
+        _ = await router.RenameAsync(source, destination, CancellationToken.None);
+    }
+
 
     private static FileSystemPath Path(string text)
     {
@@ -161,6 +266,16 @@ public sealed class ProviderFileOperationPortTests
     private static string[] ExpectedMutationCalls()
     {
         return ["preflight", "capability", "move", "copy", "verify", "delete", "create", "rename"];
+    }
+
+    private static string[] ExpectedCrossTransferCalls()
+    {
+        return ["preflight", "preflight", "capability", "move", "copy", "verify"];
+    }
+
+    private static string[] ExpectedSourceOwnedCalls()
+    {
+        return ["delete", "create", "rename"];
     }
 
     private sealed class RecordingPort : IFileOperationPort

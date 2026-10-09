@@ -32,6 +32,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | pane history | The immutable sequence of at most 100 successful locations, including current, held independently by each `PaneState`; `PaneReducer` alone appends locations or moves its Back/Forward cursor after a successful read. |
 | file handoff | One user-requested transfer of a validated Windows local path to its current Windows Shell association through `IFileLauncher`; acceptance does not claim process creation, successful opening, or external application completion. |
 | pane side | `PaneSide.Left` or `PaneSide.Right`; the closed identity of one pane surface. |
+| transfer route | The closed `TransferRoute` the Infrastructure.Windows router derives from the frozen sources' provider and the destination's provider: same Windows local, same WSL distribution, Windows local to WSL, or unavailable. It alone selects the adapter for preflight, atomic-move capability, move, copy, and verification (ADR-0059). |
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |

@@ -181,14 +181,9 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         {
             return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
         }
-        WslFileSystemEntry? destinationEntry = _fileSystem.Find(wslDestination);
-        if (destinationEntry is null || destinationEntry.Kind != DirectoryEntryKind.Directory)
+        if (TransferDestinationFailure(_fileSystem, wslDestination) is FileOperationFailureKind destinationFailure)
         {
-            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.NotFound);
-        }
-        if (IsReparsePoint(destinationEntry))
-        {
-            return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
+            return TransferPreflightOutcome.Rejected(destinationFailure);
         }
 
         List<TransferPlanEntry> plan = [];
@@ -207,7 +202,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             {
                 return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
             }
-            WslPath? target = BuildTarget(entry, wslDestination);
+            WslPath? target = BuildTarget(entry.Name, wslDestination);
             if (target is null)
             {
                 return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
@@ -232,10 +227,10 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome Copy(WslFileSystemEntry source, WslPath destination)
     {
         if (!SharesDistribution(source.Path, destination) ||
-            !IsUsableDestination(destination) ||
+            !IsUsableDestination(_fileSystem, destination) ||
             IsReparsePoint(source) ||
             _fileSystem.ContainsReparsePoint(source) ||
-            BuildTarget(source, destination) is not WslPath target)
+            BuildTarget(source.Name, destination) is not WslPath target)
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
@@ -255,11 +250,11 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         }
         catch (UnauthorizedAccessException exception)
         {
-            return FailedCopy(target, Normalize(exception.HResult, FileOperationFailureKind.Copy));
+            return FailedCopy(_fileSystem, target, Normalize(exception.HResult, FileOperationFailureKind.Copy));
         }
         catch (IOException exception)
         {
-            return FailedCopy(target, Normalize(exception.HResult, FileOperationFailureKind.Copy));
+            return FailedCopy(_fileSystem, target, Normalize(exception.HResult, FileOperationFailureKind.Copy));
         }
     }
 
@@ -269,11 +264,11 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, entry =>
                 SharesDistribution(entry.Path, wslDestination) &&
-                IsUsableDestination(wslDestination) &&
+                IsUsableDestination(_fileSystem, wslDestination) &&
                 !IsReparsePoint(entry) &&
                 !_fileSystem.ContainsReparsePoint(entry) &&
                 ProviderPathContainment.Evaluate(entry.Path, wslDestination) is not ContainedPath &&
-                BuildTarget(entry, wslDestination) is WslPath target &&
+                BuildTarget(entry.Name, wslDestination) is WslPath target &&
                 _fileSystem.TargetExists(target) &&
                 !_fileSystem.ContainsReparsePoint(target) &&
                 _fileSystem.Matches(entry, target)
@@ -281,16 +276,21 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
                     : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
     }
 
-    private ProviderStepOutcome FailedCopy(WslPath target, FileOperationFailureKind failure)
+    /// <summary>Reports a failed copy step with the partial target it left, if any (ADR-0029).</summary>
+    internal static ProviderStepOutcome FailedCopy(
+        IWslFileSystem fileSystem,
+        WslPath target,
+        FileOperationFailureKind failure)
     {
-        return _fileSystem.TargetExists(target)
+        return fileSystem.TargetExists(target)
             ? ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated)
             : ProviderStepOutcome.Failed(failure);
     }
 
-    private bool IsUsableDestination(WslPath destination)
+    /// <summary>Reports whether a step destination is still an existing non-link directory.</summary>
+    internal static bool IsUsableDestination(IWslFileSystem fileSystem, WslPath destination)
     {
-        return _fileSystem.Find(destination) is WslFileSystemEntry entry &&
+        return fileSystem.Find(destination) is WslFileSystemEntry entry &&
             entry.Kind == DirectoryEntryKind.Directory &&
             !IsReparsePoint(entry);
     }
@@ -370,9 +370,24 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return (entry.Attributes & FileAttributes.ReparsePoint) != 0;
     }
 
-    private static WslPath? BuildTarget(WslFileSystemEntry source, WslPath destination)
+    /// <summary>
+    /// Reports why a transfer destination cannot receive entries: absent or not a directory is
+    /// <c>NotFound</c>, a link is <c>ProviderUnavailable</c>, and a usable directory has no failure.
+    /// </summary>
+    internal static FileOperationFailureKind? TransferDestinationFailure(IWslFileSystem fileSystem, WslPath destination)
     {
-        return (destination.Child(source.Name) as PathParseSuccess)?.Path as WslPath;
+        WslFileSystemEntry? entry = fileSystem.Find(destination);
+        return entry is null || entry.Kind != DirectoryEntryKind.Directory
+            ? FileOperationFailureKind.NotFound
+            : IsReparsePoint(entry)
+                ? FileOperationFailureKind.ProviderUnavailable
+                : null;
+    }
+
+    /// <summary>Derives one transfer target with the WSL segment rules of the destination.</summary>
+    internal static WslPath? BuildTarget(string name, WslPath destination)
+    {
+        return (destination.Child(name) as PathParseSuccess)?.Path as WslPath;
     }
 
     private static bool SharesDistribution(WslPath source, WslPath destination)
@@ -404,7 +419,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private static ProviderStepOutcome Guarded(
+    internal static ProviderStepOutcome Guarded(
         Func<ProviderStepOutcome> step,
         FileOperationFailureKind fallback)
     {
@@ -422,7 +437,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         }
     }
 
-    private static TransferPreflightOutcome GuardedPreflight(
+    internal static TransferPreflightOutcome GuardedPreflight(
         Func<TransferPreflightOutcome> step,
         FileOperationFailureKind fallback)
     {

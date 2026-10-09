@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
@@ -9,26 +8,44 @@ using NeNeCommander.Infrastructure.Windows.Execution;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
-/// <summary>Routes one canonical mutation port to Windows-side provider adapters.</summary>
+/// <summary>
+/// Routes one canonical mutation port to Windows-side provider adapters. Transfer members follow the
+/// closed <see cref="TransferRoute"/> of their source and destination pair (ADR-0059); inspection,
+/// deletion, directory creation, and rename follow the frozen source provider alone.
+/// </summary>
 public sealed class ProviderFileOperationPort : IFileOperationPort
 {
     private readonly IFileOperationPort _windowsLocal;
     private readonly IFileOperationPort _wsl;
+    private readonly IFileOperationPort _windowsLocalToWsl;
 
     /// <summary>Initializes the provider router over the shared Windows I/O execution boundary.</summary>
     public ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(
-            new WindowsLocalFileOperationAdapter(executionBoundary),
-            new WslFileOperationAdapter(executionBoundary))
+        : this(executionBoundary, new WindowsWslFileSystem())
     {
     }
 
-    internal ProviderFileOperationPort(IFileOperationPort windowsLocal, IFileOperationPort wsl)
+    private ProviderFileOperationPort(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsWslFileSystem wslFileSystem)
+        : this(
+            new WindowsLocalFileOperationAdapter(executionBoundary),
+            new WslFileOperationAdapter(executionBoundary, wslFileSystem),
+            new WindowsToWslCopyTransfer(executionBoundary, wslFileSystem))
+    {
+    }
+
+    internal ProviderFileOperationPort(
+        IFileOperationPort windowsLocal,
+        IFileOperationPort wsl,
+        IFileOperationPort windowsLocalToWsl)
     {
         ArgumentNullException.ThrowIfNull(windowsLocal);
         ArgumentNullException.ThrowIfNull(wsl);
+        ArgumentNullException.ThrowIfNull(windowsLocalToWsl);
         _windowsLocal = windowsLocal;
         _wsl = wsl;
+        _windowsLocalToWsl = windowsLocalToWsl;
     }
 
     /// <inheritdoc />
@@ -51,12 +68,9 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
-        return Select(sources) switch
-        {
-            WindowsLocalPath => _windowsLocal.PreflightTransferAsync(sources, destination, cancellationToken),
-            WslPath => _wsl.PreflightTransferAsync(sources, destination, cancellationToken),
-            _ => FailedPreflight(),
-        };
+        return Route(TransferRoute.Derive(sources, destination)) is IFileOperationPort port
+            ? port.PreflightTransferAsync(sources, destination, cancellationToken)
+            : Task.FromResult(TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable));
     }
 
     /// <inheritdoc />
@@ -67,13 +81,9 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return source.Path switch
-        {
-            WindowsLocalPath => _windowsLocal.GetAtomicMoveCapabilityAsync(source, destination, cancellationToken),
-            WslPath => _wsl.GetAtomicMoveCapabilityAsync(source, destination, cancellationToken),
-            _ => Task.FromResult(
-                AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)),
-        };
+        return Route(TransferRoute.Derive(source.Path, destination)) is IFileOperationPort port
+            ? port.GetAtomicMoveCapabilityAsync(source, destination, cancellationToken)
+            : Task.FromResult(AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
     /// <inheritdoc />
@@ -82,7 +92,11 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Select(source, destination, _windowsLocal.MoveAsync, _wsl.MoveAsync, cancellationToken);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        return Route(TransferRoute.Derive(source.Path, destination)) is IFileOperationPort port
+            ? port.MoveAsync(source, destination, cancellationToken)
+            : FailedStep();
     }
 
     /// <inheritdoc />
@@ -91,7 +105,11 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Select(source, destination, _windowsLocal.CopyAsync, _wsl.CopyAsync, cancellationToken);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        return Route(TransferRoute.Derive(source.Path, destination)) is IFileOperationPort port
+            ? port.CopyAsync(source, destination, cancellationToken)
+            : FailedStep();
     }
 
     /// <inheritdoc />
@@ -100,12 +118,11 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Select(
-            source,
-            destination,
-            _windowsLocal.VerifyCopyAsync,
-            _wsl.VerifyCopyAsync,
-            cancellationToken);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        return Route(TransferRoute.Derive(source.Path, destination)) is IFileOperationPort port
+            ? port.VerifyCopyAsync(source, destination, cancellationToken)
+            : FailedStep();
     }
 
     /// <inheritdoc />
@@ -116,12 +133,9 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
-        return source.Path switch
-        {
-            WindowsLocalPath => _windowsLocal.DeleteAsync(source, mode, cancellationToken),
-            WslPath => _wsl.DeleteAsync(source, mode, cancellationToken),
-            _ => FailedStep(),
-        };
+        return SourcePort(source.Path) is IFileOperationPort port
+            ? port.DeleteAsync(source, mode, cancellationToken)
+            : FailedStep();
     }
 
     /// <inheritdoc />
@@ -130,12 +144,11 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
-        return Select(
-            location,
-            target,
-            _windowsLocal.CreateDirectoryAsync,
-            _wsl.CreateDirectoryAsync,
-            cancellationToken);
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(target);
+        return SourcePort(location.Path) is IFileOperationPort port
+            ? port.CreateDirectoryAsync(location, target, cancellationToken)
+            : FailedStep();
     }
 
     /// <inheritdoc />
@@ -144,57 +157,36 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
-        return Select(source, target, _windowsLocal.RenameAsync, _wsl.RenameAsync, cancellationToken);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+        return SourcePort(source.Path) is IFileOperationPort port
+            ? port.RenameAsync(source, target, cancellationToken)
+            : FailedStep();
     }
 
-    private static FileSystemPath? Select(IReadOnlyList<FileEntrySnapshot> sources)
+    private IFileOperationPort? Route(TransferRoute route)
     {
-        if (sources.Count == 0)
+        return route switch
         {
-            return null;
-        }
-
-        FileSystemPath first = sources[0].Path;
-        return sources.All(source => HasSameProvider(first, source.Path)) ? first : null;
-    }
-
-    private static bool HasSameProvider(FileSystemPath first, FileSystemPath candidate)
-    {
-        return (first, candidate) switch
-        {
-            (WindowsLocalPath, WindowsLocalPath) => true,
-            (WslPath firstWsl, WslPath candidateWsl) => firstWsl.DistributionName.Equals(
-                candidateWsl.DistributionName,
-                StringComparison.OrdinalIgnoreCase),
-            _ => false,
+            TransferRoute.SameWindowsLocal => _windowsLocal,
+            TransferRoute.SameWslDistribution => _wsl,
+            TransferRoute.WindowsLocalToWsl => _windowsLocalToWsl,
+            _ => null,
         };
     }
 
-    private static Task<ProviderStepOutcome> Select(
-        FileEntrySnapshot source,
-        FileSystemPath target,
-        Func<FileEntrySnapshot, FileSystemPath, CancellationToken, Task<ProviderStepOutcome>> windowsLocal,
-        Func<FileEntrySnapshot, FileSystemPath, CancellationToken, Task<ProviderStepOutcome>> wsl,
-        CancellationToken cancellationToken)
+    private IFileOperationPort? SourcePort(FileSystemPath source)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(target);
-        return source.Path switch
+        return source switch
         {
-            WindowsLocalPath => windowsLocal(source, target, cancellationToken),
-            WslPath => wsl(source, target, cancellationToken),
-            _ => FailedStep(),
+            WindowsLocalPath => _windowsLocal,
+            WslPath => _wsl,
+            _ => null,
         };
     }
 
     private static Task<ProviderStepOutcome> FailedStep()
     {
         return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
-    }
-
-    private static Task<TransferPreflightOutcome> FailedPreflight()
-    {
-        return Task.FromResult(
-            TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable));
     }
 }

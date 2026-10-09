@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Defines the required live same-distribution WSL transfer assertions.</summary>
+/// <summary>Defines the required live same-distribution and Windows local to WSL transfer assertions.</summary>
 [TestClass]
 [DoNotParallelize]
 public sealed class LiveWslTransferTests
@@ -158,13 +159,68 @@ public sealed class LiveWslTransferTests
         LiveWslRunFixture.RequireCleanup(cleanup);
     }
 
+    /// <summary>
+    /// Requires a Windows local tree to copy into the distribution with exact bytes, the declared
+    /// tree shape, and an intact source (ADR-0059). Linux case sensitivity and 9P name visibility
+    /// are observable only here.
+    /// </summary>
+    /// <returns>The running assertion.</returns>
+    [TestMethod]
+    [TestCategory("LiveWsl")]
+    public async Task ExecuteAsyncWhenLiveWindowsTreeCopiesIntoDistributionPreservesBytesAndSourceAsync()
+    {
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
+        try
+        {
+            using TestOwnedTemporaryRoot windows = TestOwnedTemporaryRoot.Create();
+            FileSystemPath source = WindowsPath(windows.CreateDirectory("Windows-Source"));
+            string top = windows.WriteFile("Windows-Source\\Top.txt", "top-bytes");
+            _ = windows.CreateDirectory("Windows-Source\\nested");
+            string payload = windows.WriteFile("Windows-Source\\nested\\payload.txt", "payload\r\n");
+            WslPath destination = root.CreateDirectory("cross-destination");
+            LiveWslRunFixture.RequireEffectBoundary(root);
+            using FileOperationGateway gateway = CreateGateway();
+
+            FileOperationOutcome outcome = await gateway.ExecuteAsync(
+                Copy(source, destination),
+                IgnoredFileOperationProgress.Create(),
+                CancellationToken.None);
+            RecordOutcome(context, "cross-copy", outcome);
+
+            root.AdoptCopiedTree(
+                "cross-destination/Windows-Source",
+                [string.Empty, "Top.txt", "nested", "nested/payload.txt"],
+                outcome,
+                source);
+            CollectionAssert.AreEqual(File.ReadAllBytes(top), root.ReadFile("cross-destination/Windows-Source/Top.txt"));
+            CollectionAssert.AreEqual(
+                File.ReadAllBytes(payload),
+                root.ReadFile("cross-destination/Windows-Source/nested/payload.txt"));
+            Assert.AreEqual("top-bytes", File.ReadAllText(top));
+            Assert.AreEqual("payload\r\n", File.ReadAllText(payload));
+        }
+        finally
+        {
+            cleanup = LiveWslRunFixture.Close(context, root);
+        }
+        LiveWslRunFixture.RequireCleanup(cleanup);
+    }
+
+    private static WindowsLocalPath WindowsPath(string text)
+    {
+        return Assert.IsInstanceOfType<WindowsLocalPath>(
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path);
+    }
+
     private static FileOperationGateway CreateGateway()
     {
         WindowsLocalIoExecutionBoundary execution = new();
         return new FileOperationGateway(new ProviderFileOperationPort(execution));
     }
 
-    private static CopyRequest Copy(WslPath source, WslPath destination)
+    private static CopyRequest Copy(FileSystemPath source, WslPath destination)
     {
         FileOperationRequestCreation creation = CopyRequest.Create([source], destination);
         return Assert.IsInstanceOfType<CopyRequest>(
