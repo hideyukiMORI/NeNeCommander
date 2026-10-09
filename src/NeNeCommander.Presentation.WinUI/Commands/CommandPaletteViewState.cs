@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using NeNeCommander.Application.Sessions;
 
 namespace NeNeCommander.Presentation.WinUI.Commands;
@@ -9,6 +11,8 @@ namespace NeNeCommander.Presentation.WinUI.Commands;
 /// <summary>Owns one open palette's native query projection and selected filtered row.</summary>
 public sealed class CommandPaletteViewState
 {
+    private static readonly CompositeFormat ContextFormat = CompositeFormat.Parse("{0} · {1}");
+
     private readonly IReadOnlyList<CommandPaletteRow> _allRows;
     private int _selectedIndex;
 
@@ -39,6 +43,12 @@ public sealed class CommandPaletteViewState
 
     /// <summary>Gets the localized opposite-pane summary shared by every captured row.</summary>
     public string Opposite => _allRows[0].Opposite;
+
+    /// <summary>
+    /// Gets the one line that names the target and the opposite pane. The separator is palette
+    /// design rather than language, so only the two localized summaries come from resources.
+    /// </summary>
+    public string Context => string.Format(CultureInfo.InvariantCulture, ContextFormat, Target, Opposite);
 
     /// <summary>Gets the selected filtered row, or absence when the query has zero results.</summary>
     public CommandPaletteRow? SelectedRow => _selectedIndex < 0 ? null : Rows[_selectedIndex];

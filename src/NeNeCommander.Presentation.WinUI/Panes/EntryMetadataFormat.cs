@@ -22,8 +22,6 @@ public sealed class EntryMetadataFormat
             localize("PaneRowSizeUnitGigabytes"),
             localize("PaneRowSizeUnitTerabytes"),
         ];
-        SizeIntegerFormat = localize("PaneRowSizeFormatInteger");
-        SizeDecimalFormat = localize("PaneRowSizeFormatDecimal");
         ModifiedFormat = localize("PaneRowModifiedFormat");
         UnknownText = localize("PaneRowMetadataUnknown");
     }
@@ -33,12 +31,6 @@ public sealed class EntryMetadataFormat
 
     /// <summary>Gets the size unit labels from bytes to the top unit, each 1024 times the previous.</summary>
     internal IReadOnlyList<string> SizeUnits { get; }
-
-    /// <summary>Gets the composite format of a byte count below the first 1024 boundary.</summary>
-    internal string SizeIntegerFormat { get; }
-
-    /// <summary>Gets the composite format of a size shown with one decimal in a larger unit.</summary>
-    internal string SizeDecimalFormat { get; }
 
     /// <summary>Gets the custom date and time format of a known modification time.</summary>
     internal string ModifiedFormat { get; }

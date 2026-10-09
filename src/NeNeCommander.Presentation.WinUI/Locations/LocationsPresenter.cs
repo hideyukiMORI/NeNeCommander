@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Locations;
@@ -14,10 +15,14 @@ namespace NeNeCommander.Presentation.WinUI.Locations;
 /// <summary>
 /// Projects the Application-owned Locations picker state into localized rows and texts, and
 /// qualifies a mapped picker key with the exact state the host rendered. It owns no resources, no
-/// listing, and no navigation decision.
+/// listing, and no navigation decision. The separator between a volume label and its drive kind is
+/// picker design rather than language, so it is a literal format here; a format whose words or
+/// punctuation depend on the language stays a localized resource.
 /// </summary>
 public static class LocationsPresenter
 {
+    private static readonly CompositeFormat DriveDetailFormat = CompositeFormat.Parse("{0} · {1}");
+
     private static readonly Dictionary<DriveKind, string> KindLabels = new()
     {
         [DriveKind.Fixed] = "LocationsDriveKindFixed",
@@ -102,7 +107,7 @@ public static class LocationsPresenter
             name = drive.Drive.Root.Drive;
             string kind = localize(Declared(KindLabels, drive.Drive.Kind));
             detail = drive.Drive.VolumeLabel is string label
-                ? Format(localize("LocationsDriveDetailFormat"), label, kind)
+                ? string.Format(CultureInfo.InvariantCulture, DriveDetailFormat, label, kind)
                 : kind;
         }
         else
