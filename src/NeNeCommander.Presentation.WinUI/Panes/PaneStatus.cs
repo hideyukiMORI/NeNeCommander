@@ -33,6 +33,9 @@ public sealed record PaneStatus
     /// <summary>Gets the status for a read stopped by cancellation.</summary>
     public static PaneStatus Cancelled { get; } = new("PaneStatusCancelled");
 
+    /// <summary>Gets the status for a read the user abandoned while it was in flight.</summary>
+    public static PaneStatus ReadAbandoned { get; } = new("PaneStatusReadAbandoned");
+
     /// <summary>Gets the status for a file path being handed to the Windows Shell.</summary>
     public static PaneStatus Launching { get; } = new("PaneStatusLaunching");
 

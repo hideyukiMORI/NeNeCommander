@@ -25,7 +25,7 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Ctrl+F4` | sort the active pane by extension; again reverses the direction, from another key starts ascending |
 | `Ctrl+F5` | sort the active pane by size, unknown sizes last; again reverses the direction, from another key starts ascending |
 | `Ctrl+F6` | sort the active pane by modification time, unknown times last; again reverses the direction, from another key starts ascending |
-| `Escape` | cancel a running file operation, then cancel pending chord, then close transient UI, then clear selection |
+| `Escape` | cancel a running file operation, then abandon the active pane's loading read, then cancel pending chord, then close transient UI, then clear selection |
 
 `Ctrl+F3` and `Ctrl+F4` are declared for the file list and the navigation surface (ADR-0053). Plain
 `F3` and `F4` are unassigned and pass through. `Ctrl+F5` and `Ctrl+F6` are declared for the same two contexts

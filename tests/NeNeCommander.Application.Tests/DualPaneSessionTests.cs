@@ -1030,6 +1030,70 @@ public sealed class DualPaneSessionTests
         Assert.AreSame(OperationActivity.Idle, snapshot.Operation);
         Assert.IsEmpty(fixture.Port.Calls);
     }
+
+    /// <summary>Proves Escape abandons only the active pane's read; the passive pane's read continues until its own Escape.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBothPanesLoadEscapeAbandonsOnlyTheActivePane()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing rightListing = Listing("C:\\right", ("c.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+        TaskCompletionSource<DirectoryReadOutcome> leftRead = fixture.Left.EnqueuePending();
+        TaskCompletionSource<DirectoryReadOutcome> rightRead = fixture.Right.EnqueuePending();
+        Task<DualPaneSnapshot> leftNavigation = fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left-target"), CancellationToken.None);
+        Task<DualPaneSnapshot> rightNavigation = fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right-target"), CancellationToken.None);
+
+        DualPaneSnapshot leftAbandoned = await fixture.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
+
+        Assert.AreEqual("C:\\left-target", Assert.IsInstanceOfType<PaneReadAbandoned>(leftAbandoned.Left.Activity).Target.CanonicalText);
+        Assert.AreSame(leftListing, Assert.IsInstanceOfType<PaneContentListed>(leftAbandoned.Left.Content).Listing);
+        _ = Assert.IsInstanceOfType<PaneLoading>(leftAbandoned.Right.Activity);
+        Assert.IsTrue(fixture.Left.Tokens[1].IsCancellationRequested);
+        Assert.IsFalse(fixture.Right.Tokens[1].IsCancellationRequested);
+        Assert.AreSame(OperationActivity.Idle, leftAbandoned.Operation);
+        _ = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot rightAbandoned = await fixture.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        Assert.AreEqual("C:\\right-target", Assert.IsInstanceOfType<PaneReadAbandoned>(rightAbandoned.Right.Activity).Target.CanonicalText);
+        Assert.AreSame(rightListing, Assert.IsInstanceOfType<PaneContentListed>(rightAbandoned.Right.Content).Listing);
+        Assert.IsTrue(fixture.Right.Tokens[1].IsCancellationRequested);
+        leftRead.SetResult(DirectoryReadOutcome.Cancelled());
+        rightRead.SetResult(DirectoryReadOutcome.Cancelled());
+        _ = await leftNavigation;
+        _ = await rightNavigation;
+    }
+
+    /// <summary>Proves a running operation takes Escape before the active pane's read, which keeps loading.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task HandleAsyncWhenOperationRunsWhileActivePaneLoadsEscapeCancelsOperationFirst()
+    {
+        Fixture? running = null;
+        using Fixture fixture = Fixture.Create(
+            ScriptedCallbackPoint.AfterInspection,
+            () => _ = running?.Panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None));
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
+        TaskCompletionSource<DirectoryReadOutcome> leftRead = fixture.Left.EnqueuePending();
+        Task<DualPaneSnapshot> leftNavigation = fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left-target"), CancellationToken.None);
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        running = fixture;
+
+        DualPaneSnapshot cancelled = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
+
+        Assert.AreSame(
+            FileOperationCompletionKind.Cancelled,
+            Assert.IsInstanceOfType<OperationCompleted>(cancelled.Operation).Outcome.Completion);
+        _ = Assert.IsInstanceOfType<PaneLoading>(cancelled.Left.Activity);
+        Assert.IsFalse(fixture.Left.Tokens[1].IsCancellationRequested);
+        leftRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\left-target")));
+        DualPaneSnapshot completed = await leftNavigation;
+        Assert.AreEqual("C:\\left-target", Assert.IsInstanceOfType<PaneContentListed>(completed.Left.Content).Listing.Location.CanonicalText);
+    }
+
     /// <summary>Proves one session cannot serve both sides.</summary>
     [TestMethod]
     public void ConstructWhenBothSidesShareOneSessionThrowsArgumentException()

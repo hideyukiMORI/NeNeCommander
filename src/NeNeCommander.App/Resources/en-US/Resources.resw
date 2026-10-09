@@ -14,6 +14,7 @@
   <data name="PaneStatusNotFound" xml:space="preserve"><value>This location is not a directory</value></data>
   <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>This location is unavailable</value></data>
   <data name="PaneStatusCancelled" xml:space="preserve"><value>Listing was cancelled</value></data>
+  <data name="PaneStatusReadAbandoned" xml:space="preserve"><value>Reading was abandoned</value></data>
   <data name="PaneStatusLaunching" xml:space="preserve"><value>Opening file…</value></data>
   <data name="PaneStatusLaunchCancelled" xml:space="preserve"><value>File opening was cancelled</value></data>
   <data name="PaneStatusLaunchNotFound" xml:space="preserve"><value>The file is no longer available</value></data>

@@ -12,17 +12,22 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>
 /// Coordinates one pane: it owns the current <see cref="PaneSnapshot"/>, routes focus and
 /// selection intents through <see cref="PaneReducer"/>, performs location changes through the
-/// sole directory read port, and hands focused files to the sole launcher boundary. It is not
+/// sole directory read port, and hands focused files to the sole launcher boundary. Each read owns
+/// one token source linked to the caller's token; <see cref="UserIntent.Escape"/> abandons the
+/// read in flight through that source and the existing supersession check (ADR-0058). It is not
 /// thread-safe and is driven from one owner.
 /// </summary>
 public sealed class PaneSession
 {
+    private static readonly Action CancelNothingAction = CancelNothing;
+
     private readonly int _entryBoundary;
     private readonly HiddenItemVisibility _initialHiddenItemVisibility;
     private readonly IFileLauncher _fileLauncher;
     private readonly IDirectoryReadPort _port;
     private readonly VisiblePageCapacity _visiblePageCapacity;
     private object? _latestNavigation;
+    private Action _cancelLatestRead = CancelNothingAction;
 
     /// <summary>Initializes an empty session over one read port.</summary>
     /// <param name="port">Provider-neutral directory read port.</param>
@@ -123,7 +128,9 @@ public sealed class PaneSession
     /// <summary>
     /// Applies one intent. Movement and selection use the reducer; opening a directory starts a
     /// read, opening a file starts one provider handoff, and refresh re-reads the current location.
-    /// Intents are frozen while either external action is in flight.
+    /// Intents are frozen while either external action is in flight, except that
+    /// <see cref="UserIntent.Escape"/> abandons a read in flight: the read is superseded, its token
+    /// is cancelled, and the pane keeps its previous content under <see cref="PaneReadAbandoned"/>.
     /// </summary>
     /// <param name="intent">Typed user intent.</param>
     /// <param name="cancellationToken">Token observed by any read or file handoff the intent starts.</param>
@@ -131,7 +138,11 @@ public sealed class PaneSession
     public Task<PaneSnapshot> HandleAsync(UserIntent intent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(intent);
-        if (Current.Activity is PaneLoading or PaneLaunching ||
+        if (Current.Activity is PaneLoading loading)
+        {
+            return Task.FromResult(intent == UserIntent.Escape ? AbandonRead(loading) : Current);
+        }
+        if (Current.Activity is PaneLaunching ||
             Current.Content is not PaneContentListed listed)
         {
             return Task.FromResult(Current);
@@ -237,9 +248,7 @@ public sealed class PaneSession
         object navigation = new();
         _latestNavigation = navigation;
         Current = Current.WithActivity(new PaneLoading(location));
-        DirectoryReadOutcome outcome = await _port.ReadAsync(
-            new DirectoryReadRequest(location, _entryBoundary),
-            cancellationToken);
+        DirectoryReadOutcome outcome = await ReadOwnedAsync(navigation, location, cancellationToken);
         if (!ReferenceEquals(navigation, _latestNavigation))
         {
             return Current;
@@ -257,6 +266,50 @@ public sealed class PaneSession
             _ => throw new InvalidOperationException("The directory read outcome variant is not navigable."),
         };
         return Current;
+    }
+
+    /// <summary>
+    /// Reads through a token source this read owns, linked to the caller's token, so that
+    /// <see cref="AbandonRead"/> can cancel exactly this read. The source is disposed when the
+    /// provider returns. Only the latest navigation releases the cancel delegate, so a superseded
+    /// read that returns late never detaches the delegate of the read that replaced it.
+    /// </summary>
+    private async Task<DirectoryReadOutcome> ReadOwnedAsync(
+        object navigation,
+        FileSystemPath location,
+        CancellationToken cancellationToken)
+    {
+        using CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _cancelLatestRead = owned.Cancel;
+        try
+        {
+            return await _port.ReadAsync(new DirectoryReadRequest(location, _entryBoundary), owned.Token);
+        }
+        finally
+        {
+            if (ReferenceEquals(navigation, _latestNavigation))
+            {
+                _cancelLatestRead = CancelNothingAction;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Abandons the read in flight: a fresh navigation identity supersedes it so its late result is
+    /// discarded, the abandoned state is published over the unchanged content, and only then is
+    /// the read's own token cancelled, so a provider that completes synchronously on cancellation
+    /// still finds the read superseded.
+    /// </summary>
+    private PaneSnapshot AbandonRead(PaneLoading loading)
+    {
+        _latestNavigation = new object();
+        Current = Current.WithActivity(new PaneReadAbandoned(loading.Target));
+        _cancelLatestRead();
+        return Current;
+    }
+
+    private static void CancelNothing()
+    {
     }
 
     private PaneSnapshot CompleteNavigation(

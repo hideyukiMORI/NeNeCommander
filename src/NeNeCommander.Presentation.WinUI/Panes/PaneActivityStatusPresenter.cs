@@ -16,6 +16,7 @@ internal static class PaneActivityStatusPresenter
         {
             PaneLoading => PaneStatus.Loading,
             PaneReadCancelled => PaneStatus.Cancelled,
+            PaneReadAbandoned => PaneStatus.ReadAbandoned,
             PaneReadFailed failed => PresentFailure(failed.Failure),
             PaneLaunching => PaneStatus.Launching,
             PaneLaunchCancelled => PaneStatus.LaunchCancelled,

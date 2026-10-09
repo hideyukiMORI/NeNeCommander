@@ -212,6 +212,7 @@ public static class PaneListingPresenter
         {
             PaneLoading loading => loading.Target.CanonicalText,
             PaneReadCancelled cancelled => cancelled.Target.CanonicalText,
+            PaneReadAbandoned abandoned => abandoned.Target.CanonicalText,
             PaneReadFailed failed => failed.Target.CanonicalText,
             _ => string.Empty,
         };

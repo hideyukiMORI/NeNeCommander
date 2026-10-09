@@ -609,6 +609,7 @@ public sealed class NullGuardTests
         AssertInternalConstructorNullGuard(typeof(PaneContentListed), [state, null]);
         AssertInternalConstructorNullGuard(typeof(PaneLoading), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadCancelled), [null]);
+        AssertInternalConstructorNullGuard(typeof(PaneReadAbandoned), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [null, FileOperationFailureKind.NotFound]);
         AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [path, null]);
         AssertInternalConstructorNullGuard(typeof(PaneLaunching), [null]);

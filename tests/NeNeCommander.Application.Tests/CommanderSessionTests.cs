@@ -1614,6 +1614,59 @@ public sealed class CommanderSessionTests
         _ = await pending;
     }
 
+    /// <summary>Proves each scope a loading pane refuses admits again once Escape abandons the read, with no new predicate.</summary>
+    [TestMethod]
+    [DataRow("palette")]
+    [DataRow("bookmarks")]
+    [DataRow("address")]
+    [DataRow("window")]
+    public async Task HandleAsyncWhenLoadingReadIsAbandonedAdmitsScopeAgainAsync(string scope)
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        TaskCompletionSource<DirectoryReadOutcome> completion = left.EnqueuePending();
+        Task<CommanderSnapshot> pending = session.NavigateAsync(PaneSide.Left, ParsePath("C:\\unreachable"), CancellationToken.None);
+        UserIntent opening = scope switch
+        {
+            "palette" => UserIntent.OpenCommandPalette,
+            "bookmarks" => UserIntent.OpenBookmarks,
+            "address" => UserIntent.FocusAddress,
+            _ => UserIntent.OpenWindowAdjustment,
+        };
+        CommanderSnapshot refused = await session.HandleAsync(opening, observer, CancellationToken.None);
+
+        CommanderSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, observer, CancellationToken.None);
+        CommanderSnapshot admitted = await session.HandleAsync(opening, observer, CancellationToken.None);
+
+        Assert.IsFalse(ScopeIsOpen(refused, scope));
+        _ = Assert.IsInstanceOfType<PaneReadAbandoned>(abandoned.Panes.Left.Activity);
+        Assert.IsTrue(ScopeIsOpen(admitted, scope));
+        completion.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "late.txt")));
+        CommanderSnapshot late = await pending;
+        _ = Assert.IsInstanceOfType<PaneReadAbandoned>(late.Panes.Left.Activity);
+        Assert.AreEqual("C:\\left", Assert.IsInstanceOfType<PaneContentListed>(late.Panes.Left.Content).Listing.Location.CanonicalText);
+    }
+
+    private static bool ScopeIsOpen(CommanderSnapshot snapshot, string scope)
+    {
+        return scope switch
+        {
+            "palette" => snapshot.Scopes.CommandPalette is CommandPaletteOpen,
+            "bookmarks" => snapshot.Settings.Editor == SettingsEditorState.Bookmarks,
+            "address" => snapshot.Scopes.AddressEditor is AddressEditing,
+            _ => snapshot.Scopes.WindowAdjustment is WindowAdjustmentOpen,
+        };
+    }
+
     /// <summary>Proves external work in the right pane independently blocks palette capture.</summary>
     [TestMethod]
     [DataRow("loading")]

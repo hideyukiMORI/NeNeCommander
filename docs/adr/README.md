@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0058: Abandon a loading pane read from the keyboard](0058-abandon-loading-pane-read.md)
 - [ADR-0056: Carry provider entry metadata and sort by size and modification time](0056-entry-metadata-sort-keys.md)
 - [ADR-0055: Discover drives and WSL roots through one session-owned Locations picker](0055-locations-picker.md)
 - [ADR-0054: Right-size the Windows UI release confirmation](0054-right-size-ui-release-confirmation.md)
