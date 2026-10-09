@@ -22,7 +22,6 @@
   <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>No application is available for this file</value></data>
   <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>This file cannot be opened</value></data>
   <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>Enter a valid absolute location</value></data>
-  <data name="PaneStatusSortFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="PaneSortNameAscending" xml:space="preserve"><value>name ↑</value></data>
   <data name="PaneSortNameDescending" xml:space="preserve"><value>name ↓</value></data>
   <data name="PaneSortExtensionAscending" xml:space="preserve"><value>ext ↑</value></data>
@@ -86,8 +85,6 @@
   <data name="PaneRowSizeUnitMegabytes" xml:space="preserve"><value>MB</value></data>
   <data name="PaneRowSizeUnitGigabytes" xml:space="preserve"><value>GB</value></data>
   <data name="PaneRowSizeUnitTerabytes" xml:space="preserve"><value>TB</value></data>
-  <data name="PaneRowSizeFormatInteger" xml:space="preserve"><value>{0} {1}</value></data>
-  <data name="PaneRowSizeFormatDecimal" xml:space="preserve"><value>{0:0.0} {1}</value></data>
   <data name="PaneRowModifiedFormat" xml:space="preserve"><value>yyyy-MM-dd HH:mm</value></data>
   <data name="PaneRowMetadataUnknown" xml:space="preserve"><value>—</value></data>
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
@@ -256,14 +253,11 @@
   <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>Search commands</value></data>
   <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>Command candidates</value></data>
   <data name="CommandPaletteZeroResults.Text" xml:space="preserve"><value>No matching commands</value></data>
-  <data name="CommandPaletteContextFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CommandPaletteTargetLeft" xml:space="preserve"><value>Target: left pane</value></data>
   <data name="CommandPaletteTargetRight" xml:space="preserve"><value>Target: right pane</value></data>
   <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>Opposite: left pane</value></data>
   <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>Opposite: right pane</value></data>
-  <data name="CommandPaletteAvailableDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · Unavailable: {2}</value></data>
-  <data name="CommandPaletteAvailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}</value></data>
   <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; Unavailable; {4}</value></data>
   <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
   <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>Focus an item first</value></data>
@@ -324,7 +318,6 @@
   <data name="LocationsDriveKindNetwork" xml:space="preserve"><value>Network</value></data>
   <data name="LocationsDriveKindOptical" xml:space="preserve"><value>Optical</value></data>
   <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>Unknown</value></data>
-  <data name="LocationsDriveDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
   <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}, {1}</value></data>
 </root>

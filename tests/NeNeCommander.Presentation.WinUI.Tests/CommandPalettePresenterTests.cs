@@ -96,12 +96,15 @@ public sealed class CommandPalettePresenterTests
         Assert.AreEqual(string.Empty, available.Reason);
         Assert.AreEqual(string.Empty, available.StateMarker);
         Assert.AreEqual(
-            "<CommandPaletteTargetLeft>|<CommandPaletteOppositeRight>",
+            "<CommandPaletteTargetLeft> · <CommandPaletteOppositeRight>",
             available.Detail);
         Assert.AreEqual(
-            "<IntentLabelOpenFocused>;<KeyLabelL>;<CommandPaletteTargetLeft>;" +
+            "<IntentLabelOpenFocused>; <KeyLabelL>; <CommandPaletteTargetLeft>; " +
             "<CommandPaletteOppositeRight>",
             available.AutomationName);
+        Assert.AreEqual(
+            "<CommandPaletteTargetLeft> · <CommandPaletteOppositeRight>",
+            view.Context);
     }
 
     /// <summary>Proves all closed unavailable reasons project exact right-target detail and UIA text.</summary>
@@ -435,9 +438,7 @@ public sealed class CommandPalettePresenterTests
             ["CommandPaletteTargetRight"] = "Target: right pane",
             ["CommandPaletteOppositeLeft"] = "Opposite: left pane",
             ["CommandPaletteOppositeRight"] = "Opposite: right pane",
-            ["CommandPaletteAvailableDetailFormat"] = "{0}; {1}",
             ["CommandPaletteUnavailableDetailFormat"] = "{0}; {1}; Unavailable: {2}",
-            ["CommandPaletteAvailableAutomationNameFormat"] = "{0}; {1}; {2}; {3}",
             ["CommandPaletteUnavailableAutomationNameFormat"] =
                 "{0}; {1}; {2}; {3}; Unavailable; {4}",
             ["CommandPaletteUnavailableMarker"] = "!",
@@ -450,9 +451,7 @@ public sealed class CommandPalettePresenterTests
     {
         return key switch
         {
-            "CommandPaletteAvailableDetailFormat" => "{0}|{1}",
             "CommandPaletteUnavailableDetailFormat" => "{0}|{1}|{2}",
-            "CommandPaletteAvailableAutomationNameFormat" => "{0};{1};{2};{3}",
             "CommandPaletteUnavailableAutomationNameFormat" => "{0};{1};{2};{3};{4}",
             _ => $"<{key}>",
         };

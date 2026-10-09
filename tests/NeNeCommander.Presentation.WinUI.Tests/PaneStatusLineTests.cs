@@ -47,13 +47,13 @@ public sealed class PaneStatusLineTests
         Assert.AreEqual("PaneSortModifiedDescending", PaneSortStatus.ModifiedDescending.ResourceKey);
     }
 
-    /// <summary>Proves a listed pane shows its status and sort indication through the line format.</summary>
+    /// <summary>Proves a listed pane shows its status and sort indication joined by the fixed separator.</summary>
     [TestMethod]
     public void ComposeWhenSortStatusIsPresentFormatsStatusAndIndication()
     {
         string line = PaneStatusLine.Compose(PaneStatus.Complete, PaneSortStatus.ExtensionDescending, Localize);
 
-        Assert.AreEqual("Listing complete | ext desc", line);
+        Assert.AreEqual("Listing complete · ext desc", line);
     }
 
     /// <summary>Proves a pane without a listing shows its status alone without the line format.</summary>
@@ -82,7 +82,6 @@ public sealed class PaneStatusLineTests
         {
             ["PaneStatusComplete"] = "Listing complete",
             ["PaneStatusNoListing"] = "Nothing listed",
-            ["PaneStatusSortFormat"] = "{0} | {1}",
             ["PaneSortExtensionDescending"] = "ext desc",
         };
         return values[key];

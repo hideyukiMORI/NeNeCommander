@@ -22,8 +22,6 @@ public sealed class EntryMetadataFormatterTests
         "PaneRowSizeUnitMegabytes",
         "PaneRowSizeUnitGigabytes",
         "PaneRowSizeUnitTerabytes",
-        "PaneRowSizeFormatInteger",
-        "PaneRowSizeFormatDecimal",
         "PaneRowModifiedFormat",
         "PaneRowMetadataUnknown",
     ];
@@ -93,17 +91,20 @@ public sealed class EntryMetadataFormatterTests
         Assert.AreEqual("\u2014", text);
     }
 
-    /// <summary>Proves sizes use the localized unit labels and composite formats.</summary>
+    /// <summary>
+    /// Proves sizes take only the unit words from resources and keep the fixed number-and-unit
+    /// arrangement of the column design.
+    /// </summary>
     [TestMethod]
-    public void FormatSizeWhenResourcesDifferUsesLocalizedFormats()
+    public void FormatSizeWhenResourcesDifferUsesLocalizedUnitsInFixedArrangement()
     {
         EntryMetadataFormat format = EntryMetadataFormat.Create(TimeZoneInfo.Utc, LocalizeAlternative);
 
-        Assert.AreEqual("[5|b]", EntryMetadataFormatter.FormatSize(EntrySize.Create(5), format));
-        Assert.AreEqual("<1.5|k>", EntryMetadataFormatter.FormatSize(EntrySize.Create(1536), format));
-        Assert.AreEqual("<1.0|m>", EntryMetadataFormatter.FormatSize(EntrySize.Create(Mebibyte), format));
-        Assert.AreEqual("<1.0|g>", EntryMetadataFormatter.FormatSize(EntrySize.Create(Gibibyte), format));
-        Assert.AreEqual("<1.0|t>", EntryMetadataFormatter.FormatSize(EntrySize.Create(Tebibyte), format));
+        Assert.AreEqual("5 b", EntryMetadataFormatter.FormatSize(EntrySize.Create(5), format));
+        Assert.AreEqual("1.5 k", EntryMetadataFormatter.FormatSize(EntrySize.Create(1536), format));
+        Assert.AreEqual("1.0 m", EntryMetadataFormatter.FormatSize(EntrySize.Create(Mebibyte), format));
+        Assert.AreEqual("1.0 g", EntryMetadataFormatter.FormatSize(EntrySize.Create(Gibibyte), format));
+        Assert.AreEqual("1.0 t", EntryMetadataFormatter.FormatSize(EntrySize.Create(Tebibyte), format));
         Assert.AreEqual("?", EntryMetadataFormatter.FormatSize(EntrySize.Unknown, format));
         Assert.AreEqual("?", EntryMetadataFormatter.FormatModified(EntryTimestamp.Unknown, format));
     }
@@ -186,8 +187,6 @@ public sealed class EntryMetadataFormatterTests
             ["PaneRowSizeUnitMegabytes"] = "m",
             ["PaneRowSizeUnitGigabytes"] = "g",
             ["PaneRowSizeUnitTerabytes"] = "t",
-            ["PaneRowSizeFormatInteger"] = "[{0}|{1}]",
-            ["PaneRowSizeFormatDecimal"] = "<{0:0.0}|{1}>",
             ["PaneRowModifiedFormat"] = "HH:mm",
             ["PaneRowMetadataUnknown"] = "?",
         };

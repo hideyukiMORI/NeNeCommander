@@ -22,7 +22,6 @@
   <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>このファイルを開けるアプリがありません</value></data>
   <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>このファイルを開けません</value></data>
   <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>有効な絶対パスを入力してください</value></data>
-  <data name="PaneStatusSortFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="PaneSortNameAscending" xml:space="preserve"><value>名前 ↑</value></data>
   <data name="PaneSortNameDescending" xml:space="preserve"><value>名前 ↓</value></data>
   <data name="PaneSortExtensionAscending" xml:space="preserve"><value>拡張子 ↑</value></data>
@@ -86,8 +85,6 @@
   <data name="PaneRowSizeUnitMegabytes" xml:space="preserve"><value>MB</value></data>
   <data name="PaneRowSizeUnitGigabytes" xml:space="preserve"><value>GB</value></data>
   <data name="PaneRowSizeUnitTerabytes" xml:space="preserve"><value>TB</value></data>
-  <data name="PaneRowSizeFormatInteger" xml:space="preserve"><value>{0} {1}</value></data>
-  <data name="PaneRowSizeFormatDecimal" xml:space="preserve"><value>{0:0.0} {1}</value></data>
   <data name="PaneRowModifiedFormat" xml:space="preserve"><value>yyyy-MM-dd HH:mm</value></data>
   <data name="PaneRowMetadataUnknown" xml:space="preserve"><value>—</value></data>
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
@@ -256,14 +253,11 @@
   <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>コマンドを検索</value></data>
   <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>コマンド候補</value></data>
   <data name="CommandPaletteZeroResults.Text" xml:space="preserve"><value>一致するコマンドはありません</value></data>
-  <data name="CommandPaletteContextFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CommandPaletteTargetLeft" xml:space="preserve"><value>対象: 左ペイン</value></data>
   <data name="CommandPaletteTargetRight" xml:space="preserve"><value>対象: 右ペイン</value></data>
   <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>反対側: 左ペイン</value></data>
   <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>反対側: 右ペイン</value></data>
-  <data name="CommandPaletteAvailableDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · 利用不可: {2}</value></data>
-  <data name="CommandPaletteAvailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}</value></data>
   <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; 利用不可; {4}</value></data>
   <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
   <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>先に項目へフォーカスしてください</value></data>
@@ -324,7 +318,6 @@
   <data name="LocationsDriveKindNetwork" xml:space="preserve"><value>ネットワーク</value></data>
   <data name="LocationsDriveKindOptical" xml:space="preserve"><value>光学</value></data>
   <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>不明</value></data>
-  <data name="LocationsDriveDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
   <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}、{1}</value></data>
 </root>
