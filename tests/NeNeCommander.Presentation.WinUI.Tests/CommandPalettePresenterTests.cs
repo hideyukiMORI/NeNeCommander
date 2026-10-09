@@ -54,7 +54,7 @@ public sealed class CommandPalettePresenterTests
             Assert.AreEqual(resourceKey, label.ResourceKey);
         }
         _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
-            CommandLabelCatalog.LabelFor(UserIntent.MoveNext));
+            CommandLabelCatalog.LabelFor(UserIntent.FocusFirst));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
             CommandLabelCatalog.LabelFor(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
@@ -154,7 +154,7 @@ public sealed class CommandPalettePresenterTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, Localize);
 
-        Assert.HasCount(17, view.Rows);
+        Assert.HasCount(18, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -214,7 +214,7 @@ public sealed class CommandPalettePresenterTests
         {
             view.MoveNext();
         }
-        Assert.AreSame(UserIntent.SortByExtension, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.OpenLocations, view.SelectedRow!.Intent);
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);
@@ -388,7 +388,8 @@ public sealed class CommandPalettePresenterTests
             new TransientScopeOwners(
                 new AddressEditorSession(),
                 new CommandPaletteSession(),
-                new WindowAdjustmentSession()));
+                new WindowAdjustmentSession(),
+                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog())));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         if (passiveListing is not null)
         {
@@ -477,6 +478,9 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.OpenSettings, "IntentLabelOpenSettings"),
             (UserIntent.SortByName, "IntentLabelSortByName"),
             (UserIntent.SortByExtension, "IntentLabelSortByExtension"),
+            (UserIntent.OpenLocations, "IntentLabelOpenLocations"),
+            (UserIntent.MoveNext, "IntentLabelMoveNext"),
+            (UserIntent.MovePrevious, "IntentLabelMovePrevious"),
             (UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
             (UserIntent.Escape, "IntentLabelEscape"),
             (UserIntent.Confirm, "IntentLabelConfirm"),
@@ -505,6 +509,7 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.OpenSettings, "IntentLabelOpenSettings", "KeyLabelCtrlComma"),
             (UserIntent.SortByName, "IntentLabelSortByName", "KeyLabelCtrlF3"),
             (UserIntent.SortByExtension, "IntentLabelSortByExtension", "KeyLabelCtrlF4"),
+            (UserIntent.OpenLocations, "IntentLabelOpenLocations", "KeyLabelCtrlG"),
         ];
     }
 

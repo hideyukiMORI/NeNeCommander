@@ -288,4 +288,25 @@
   <data name="WindowAdjustmentRefusedRestored" xml:space="preserve"><value>元に戻しません: すでに通常の状態です</value></data>
   <data name="WindowAdjustmentRefusedNotOverlapped" xml:space="preserve"><value>適用しません: この表示モードでは調整できません</value></data>
   <data name="WindowAdjustmentRefusedUnavailable" xml:space="preserve"><value>適用しません: ウィンドウの位置を読み取れません</value></data>
+  <data name="KeyLabelCtrlG" xml:space="preserve"><value>Ctrl+G</value></data>
+  <data name="IntentLabelOpenLocations" xml:space="preserve"><value>場所を開く</value></data>
+  <data name="IntentLabelMoveNext" xml:space="preserve"><value>次へ</value></data>
+  <data name="IntentLabelMovePrevious" xml:space="preserve"><value>前へ</value></data>
+  <data name="LocationsTitle.Text" xml:space="preserve"><value>場所</value></data>
+  <data name="LocationsList.AutomationProperties.Name" xml:space="preserve"><value>ドライブと WSL ディストリビューション</value></data>
+  <data name="LocationsLoading" xml:space="preserve"><value>ドライブと WSL ディストリビューションを一覧しています…</value></data>
+  <data name="LocationsEmpty" xml:space="preserve"><value>ドライブも WSL ディストリビューションも見つかりませんでした。</value></data>
+  <data name="LocationsDrivesProviderUnavailable" xml:space="preserve"><value>ドライブを一覧できませんでした。</value></data>
+  <data name="LocationsDrivesAccessDenied" xml:space="preserve"><value>ドライブ一覧へのアクセスが拒否されました。</value></data>
+  <data name="LocationsDrivesUnrepresentableFormat" xml:space="preserve"><value>{0} 個のドライブを表示できませんでした。</value></data>
+  <data name="LocationsWslProviderUnavailable" xml:space="preserve"><value>WSL ディストリビューションを一覧できませんでした。</value></data>
+  <data name="LocationsWslMalformedOutput" xml:space="preserve"><value>WSL が表示できないディストリビューション一覧を返しました。</value></data>
+  <data name="LocationsDriveKindFixed" xml:space="preserve"><value>固定</value></data>
+  <data name="LocationsDriveKindRemovable" xml:space="preserve"><value>リムーバブル</value></data>
+  <data name="LocationsDriveKindNetwork" xml:space="preserve"><value>ネットワーク</value></data>
+  <data name="LocationsDriveKindOptical" xml:space="preserve"><value>光学</value></data>
+  <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="LocationsDriveDetailFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
+  <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}、{1}</value></data>
 </root>

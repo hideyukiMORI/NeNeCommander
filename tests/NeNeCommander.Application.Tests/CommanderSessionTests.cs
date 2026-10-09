@@ -1115,6 +1115,7 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenSettings,
                 UserIntent.SortByName,
                 UserIntent.SortByExtension,
+                UserIntent.OpenLocations,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
         Assert.AreSame(CommandAvailability.Available, Candidate(palette, UserIntent.OpenFocused).Availability);
@@ -1973,7 +1974,7 @@ public sealed class CommanderSessionTests
         Assert.AreSame(palette, managerRejected.Scopes.CommandPalette);
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(17, CommandCatalog.Commands);
+        Assert.HasCount(18, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.OpenBookmarks));
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);
@@ -2117,7 +2118,8 @@ public sealed class CommanderSessionTests
             new TransientScopeOwners(
                 new AddressEditorSession(),
                 new CommandPaletteSession(),
-                new WindowAdjustmentSession()));
+                new WindowAdjustmentSession(),
+                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
     }
 
     private static CommandCandidate Candidate(CommandPaletteOpen palette, UserIntent intent)

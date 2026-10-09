@@ -43,7 +43,8 @@ public sealed class CommanderSession
             TransientScopeSnapshot scopes = new(
                 _scopes.AddressEditor.Current,
                 _scopes.CommandPalette.Current,
-                _scopes.WindowAdjustment.Current);
+                _scopes.WindowAdjustment.Current,
+                _scopes.Locations.Current);
             return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
         }
     }
@@ -60,7 +61,8 @@ public sealed class CommanderSession
             _settings.Current.Editor != SettingsEditorState.Closed ||
             _scopes.AddressEditor.Current is not AddressEditorClosed ||
             _scopes.CommandPalette.Current is CommandPaletteOpen ||
-            _scopes.WindowAdjustment.Current is WindowAdjustmentOpen)
+            _scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
+            _scopes.Locations.Current is not LocationsClosed)
         {
             return Current;
         }
@@ -79,6 +81,10 @@ public sealed class CommanderSession
         if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen)
         {
             return Current;
+        }
+        if (_scopes.Locations.Current is not LocationsClosed)
+        {
+            return await HandleLocationsIntentAsync(intent, cancellationToken).ConfigureAwait(false);
         }
         if (_scopes.CommandPalette.Current is CommandPaletteOpen)
         {
@@ -163,6 +169,13 @@ public sealed class CommanderSession
         if (intent == UserIntent.OpenWindowAdjustment)
         {
             OpenWindowAdjustment();
+            return Current;
+        }
+        if (intent == UserIntent.OpenLocations)
+        {
+            DualPaneSnapshot panes = _panes.Current;
+            _ = await _scopes.Locations.OpenAsync(panes, PaletteOwnership(panes), cancellationToken)
+                .ConfigureAwait(false);
             return Current;
         }
         _ = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
@@ -407,6 +420,23 @@ public sealed class CommanderSession
     {
         DualPaneSnapshot panes = _panes.Current;
         _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, PaletteOwnership(panes));
+    }
+
+    /// <summary>
+    /// Routes one intent to the open or loading Locations picker and performs the one navigation an
+    /// accepted selection names, after the picker has already closed.
+    /// </summary>
+    private async Task<CommanderSnapshot> HandleLocationsIntentAsync(
+        UserIntent intent,
+        CancellationToken cancellationToken)
+    {
+        LocationsValidation validation = _scopes.Locations.Validate(intent, PaletteOwnership(_panes.Current));
+        if (validation is LocationTargetAccepted accepted)
+        {
+            _ = await _panes.NavigateAsync(accepted.Side, accepted.Target, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        return Current;
     }
 
     private async Task<CommanderSnapshot> HandlePaletteIntentAsync(
