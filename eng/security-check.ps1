@@ -213,7 +213,7 @@ if (Test-Path -LiteralPath $buildPropsPath -PathType Leaf) {
     }
 }
 
-$configurationExtensions = @('.config', '.cs', '.csproj', '.json', '.md', '.props', '.ps1', '.targets', '.txt', '.xaml', '.yaml', '.yml')
+$configurationExtensions = @('.config', '.cs', '.csproj', '.json', '.md', '.props', '.ps1', '.psm1', '.targets', '.txt', '.xaml', '.yaml', '.yml')
 $textFiles = Get-RepositoryTreeFile -RepositoryRoot $root | Where-Object {
     ($configurationExtensions -contains $_.Extension.ToLowerInvariant() -or $_.Name -in @('AGENT.md', 'AGENTS.md', 'CLAUDE.md', 'NuGet.Config', 'pre-commit', 'commit-msg'))
 }
@@ -244,7 +244,7 @@ foreach ($secretFile in $secretFiles) {
 }
 
 $scriptFiles = Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('eng') | Where-Object {
-    $_.Extension -ceq '.ps1'
+    $_.Extension -cin @('.ps1', '.psm1')
 }
 foreach ($scriptFile in $scriptFiles) {
     $tokens = $null

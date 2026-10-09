@@ -85,6 +85,8 @@ Initial implementation starts at 100% branch coverage for Domain and Application
 
 Live WSL, UNC, removable-drive, high-DPI, high-contrast, and packaged-app checks are explicit environment tests. A unit-test pass does not claim those behaviors were exercised. Release readiness requires recorded proof on the supported environment matrix.
 
+The Windows UI release matrix (Issue #94) is recorded with `eng/ui-evidence/Invoke-UiEvidence.ps1` on a named dedicated environment. The launcher is not part of `eng/check.ps1` or CI and never establishes merge readiness. It is a recorder: a PASS row is evidence only through the measurements it records (commit, binary hash, environment facts, physical and DIP bounds, owned process and window, UIA focus and bounds, screenshot hashes) together with visual review, and every skipped cell keeps its reason. Its `-Preflight` records the environment without starting a process; synthetic input requires `-Mode Input -AllowInput -EnvironmentId` and is admitted per key only while the owned window, process, session, focused control, and expected mode or modal match. `eng/ui-evidence/selftest.ps1` proves those admission decisions without Win32.
+
 ### QLT-010 — Greenfield means no baseline
 
 - Status: **active**

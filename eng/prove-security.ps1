@@ -65,6 +65,12 @@ try {
         Set-Content -LiteralPath (Join-Path $caseRoot 'eng/Unsafe.ps1') -Value "$unsafeCommand `$args[0]"
     }
 
+    Assert-SecurityFailure -Name 'unsafe-module' -ExpectedRule 'SEC-011' -Mutate {
+        param($caseRoot)
+        $unsafeCommand = 'Invoke' + '-Expression'
+        Set-Content -LiteralPath (Join-Path $caseRoot 'eng/Unsafe.psm1') -Value "$unsafeCommand `$args[0]"
+    }
+
     Assert-SecurityFailure -Name 'audit-disabled' -ExpectedRule 'SEC-007' -Mutate {
         param($caseRoot)
         $path = Join-Path $caseRoot 'Directory.Build.props'

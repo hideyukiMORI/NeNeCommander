@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "issue": 94,
+  "narrowWindowDip": { "width": 900, "height": 600 },
+  "schemes": [
+    "nene-dark",
+    "nene-light",
+    "nene-black",
+    "dracula",
+    "monokai",
+    "solarized-dark",
+    "solarized-light",
+    "ubuntu"
+  ],
+  "automationIds": {
+    "leftPane": "LeftPaneBorder",
+    "rightPane": "RightPaneBorder",
+    "leftAddress": "LeftAddress",
+    "rightAddress": "RightAddress",
+    "leftStatus": "LeftStatus",
+    "rightStatus": "RightStatus",
+    "leftFileList": "LeftFileList",
+    "rightFileList": "RightFileList",
+    "operationBar": "OperationBar",
+    "keyHints": "OperationKeyHints",
+    "windowAdjustmentHelper": "WindowAdjustmentHelper",
+    "windowAdjustmentSurface": "WindowAdjustmentSurface",
+    "nameEntry": "NameEntry",
+    "settingsModal": "SettingsModal",
+    "transferConflictModal": "TransferConflictModal",
+    "settingsEntry": { "automationId": null, "reason": "not-exposed", "note": "Ctrl+, is shown only as one OperationKeyHints item without its own AutomationId." },
+    "focusedRow": { "automationId": null, "reason": "not-exposed", "note": "Rows have no AutomationId; the harness reads the UIA focused element inside LeftFileList or RightFileList." },
+    "deletionConfirmation": { "automationId": null, "reason": "not-exposed", "note": "F8 is refused until its modal has a declared AutomationId." }
+  },
+  "layout": {
+    "elements": [
+      "LeftPaneBorder",
+      "RightPaneBorder",
+      "LeftAddress",
+      "RightAddress",
+      "LeftStatus",
+      "RightStatus",
+      "LeftFileList",
+      "RightFileList",
+      "OperationBar",
+      "OperationKeyHints"
+    ],
+    "disjointPairs": [
+      [ "LeftPaneBorder", "RightPaneBorder" ],
+      [ "LeftPaneBorder", "OperationBar" ],
+      [ "RightPaneBorder", "OperationBar" ],
+      [ "LeftAddress", "LeftStatus" ],
+      [ "RightAddress", "RightStatus" ],
+      [ "LeftAddress", "LeftFileList" ],
+      [ "RightAddress", "RightFileList" ]
+    ],
+    "containedIn": [
+      [ "LeftAddress", "LeftPaneBorder" ],
+      [ "LeftStatus", "LeftPaneBorder" ],
+      [ "LeftFileList", "LeftPaneBorder" ],
+      [ "RightAddress", "RightPaneBorder" ],
+      [ "RightStatus", "RightPaneBorder" ],
+      [ "RightFileList", "RightPaneBorder" ],
+      [ "OperationKeyHints", "OperationBar" ]
+    ],
+    "notExposed": [ "settingsEntry" ]
+  },
+  "cells": [
+    { "id": "observe-current-normal", "mode": "Observe", "status": "active", "scheme": "@current", "layout": "normal" },
+    { "id": "observe-current-narrow", "mode": "Observe", "status": "active", "scheme": "@current", "layout": "narrow" },
+    { "id": "observe-nene-dark-normal", "mode": "Observe", "status": "active", "scheme": "nene-dark", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-nene-dark-narrow", "mode": "Observe", "status": "active", "scheme": "nene-dark", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-nene-light-normal", "mode": "Observe", "status": "active", "scheme": "nene-light", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-nene-light-narrow", "mode": "Observe", "status": "active", "scheme": "nene-light", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-nene-black-normal", "mode": "Observe", "status": "active", "scheme": "nene-black", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-nene-black-narrow", "mode": "Observe", "status": "active", "scheme": "nene-black", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-dracula-normal", "mode": "Observe", "status": "active", "scheme": "dracula", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-dracula-narrow", "mode": "Observe", "status": "active", "scheme": "dracula", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-monokai-normal", "mode": "Observe", "status": "active", "scheme": "monokai", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-monokai-narrow", "mode": "Observe", "status": "active", "scheme": "monokai", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-solarized-dark-normal", "mode": "Observe", "status": "active", "scheme": "solarized-dark", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-solarized-dark-narrow", "mode": "Observe", "status": "active", "scheme": "solarized-dark", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-solarized-light-normal", "mode": "Observe", "status": "active", "scheme": "solarized-light", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-solarized-light-narrow", "mode": "Observe", "status": "active", "scheme": "solarized-light", "layout": "narrow", "requiresOwnedProfile": true },
+    { "id": "observe-ubuntu-normal", "mode": "Observe", "status": "active", "scheme": "ubuntu", "layout": "normal", "requiresOwnedProfile": true },
+    { "id": "observe-ubuntu-narrow", "mode": "Observe", "status": "active", "scheme": "ubuntu", "layout": "narrow", "requiresOwnedProfile": true },
+    {
+      "id": "ctrl-w-helper",
+      "mode": "Input",
+      "status": "active",
+      "steps": [
+        {
+          "id": "open-mode",
+          "key": "W",
+          "modifiers": [ "Control" ],
+          "expects": {
+            "before": { "focus": [ "LeftFileList", "RightFileList" ], "present": [], "absent": [ "WindowAdjustmentHelper", "NameEntry" ] },
+            "after": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] }
+          },
+          "screenshot": "helper-open"
+        },
+        {
+          "id": "move-right",
+          "key": "L",
+          "modifiers": [],
+          "expects": {
+            "before": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] },
+            "after": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] }
+          },
+          "measure": { "kind": "move", "dx": 1, "dy": 0 }
+        },
+        {
+          "id": "move-left",
+          "key": "H",
+          "modifiers": [],
+          "expects": {
+            "before": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] },
+            "after": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] }
+          },
+          "measure": { "kind": "move", "dx": -1, "dy": 0 }
+        },
+        {
+          "id": "leave-escape",
+          "key": "Escape",
+          "modifiers": [],
+          "expects": {
+            "before": { "focus": [ "WindowAdjustmentHelper" ], "present": [ "WindowAdjustmentHelper" ], "absent": [] },
+            "after": { "focus": [ "@entryFileList" ], "present": [], "absent": [ "WindowAdjustmentHelper" ] }
+          },
+          "measure": { "kind": "addressUnfocused" },
+          "screenshot": "helper-left"
+        }
+      ]
+    },
+    {
+      "id": "f7-name-entry",
+      "mode": "Input",
+      "status": "active",
+      "steps": [
+        {
+          "id": "open-name-entry",
+          "key": "F7",
+          "modifiers": [],
+          "expects": {
+            "opensModal": "NameEntry",
+            "before": { "focus": [ "LeftFileList", "RightFileList" ], "present": [], "absent": [ "NameEntry", "WindowAdjustmentHelper" ] },
+            "after": { "focus": [ "NameEntry" ], "present": [ "NameEntry" ], "absent": [] }
+          },
+          "screenshot": "name-entry-open"
+        },
+        {
+          "id": "cancel-escape",
+          "key": "Escape",
+          "modifiers": [],
+          "expects": {
+            "before": { "focus": [ "NameEntry" ], "present": [ "NameEntry" ], "absent": [] },
+            "after": { "focus": [ "@entryFileList" ], "present": [], "absent": [ "NameEntry" ] }
+          },
+          "measure": { "kind": "addressUnfocused" },
+          "screenshot": "name-entry-cancelled"
+        }
+      ]
+    },
+    { "id": "f2-rename-entry", "mode": "Input", "status": "skip", "reason": "not-implemented" },
+    { "id": "f8-delete-confirmation", "mode": "Input", "status": "skip", "reason": "not-implemented", "note": "The deletion confirmation has no declared AutomationId; F8 stays refused." },
+    { "id": "transfer-conflict", "mode": "Input", "status": "skip", "reason": "not-implemented" },
+    { "id": "settings-editor", "mode": "Input", "status": "skip", "reason": "not-implemented" },
+    { "id": "narrator-speech", "mode": "Input", "status": "skip", "reason": "environment-required", "note": "Speech evidence is out of scope for Issue #169." },
+    { "id": "cross-scale-move", "mode": "Input", "status": "skip", "reason": "environment-required" },
+    { "id": "taskbar-seam", "mode": "Input", "status": "skip", "reason": "environment-required" },
+    { "id": "dpi-100", "mode": "Observe", "status": "skip", "reason": "environment-required" },
+    { "id": "dpi-150", "mode": "Observe", "status": "skip", "reason": "environment-required" },
+    { "id": "dpi-200", "mode": "Observe", "status": "skip", "reason": "environment-required" },
+    { "id": "dpi-300", "mode": "Observe", "status": "skip", "reason": "environment-required" },
+    { "id": "high-contrast", "mode": "Observe", "status": "skip", "reason": "environment-required" }
+  ]
+}
