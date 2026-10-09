@@ -50,6 +50,18 @@ public abstract record UserIntent
     /// <summary>Gets the intent to toggle hidden and system entries in the active pane.</summary>
     public static UserIntent ToggleHiddenItems { get; } = new ToggleHiddenItemsIntent();
 
+    /// <summary>
+    /// Gets the intent to sort the active pane by name: again on a name order it reverses the
+    /// direction, and from another key it starts ascending.
+    /// </summary>
+    public static UserIntent SortByName { get; } = new SortByNameIntent();
+
+    /// <summary>
+    /// Gets the intent to sort the active pane by extension: again on an extension order it
+    /// reverses the direction, and from another key it starts ascending.
+    /// </summary>
+    public static UserIntent SortByExtension { get; } = new SortByExtensionIntent();
+
     /// <summary>Gets the intent to cancel transient state or clear selection.</summary>
     public static UserIntent Escape { get; } = new EscapeIntent();
 
@@ -216,6 +228,8 @@ public abstract record UserIntent
     private sealed record ActivateOtherPaneIntent : UserIntent;
     private sealed record ToggleSelectionIntent : UserIntent;
     private sealed record ToggleHiddenItemsIntent : UserIntent;
+    private sealed record SortByNameIntent : UserIntent;
+    private sealed record SortByExtensionIntent : UserIntent;
     private sealed record EscapeIntent : UserIntent;
     private sealed record RenameIntent : UserIntent;
     private sealed record CopyIntent : UserIntent;

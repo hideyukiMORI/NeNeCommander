@@ -9,9 +9,10 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Application.Panes;
 
 /// <summary>
-/// Applies every pane-local focus, selection, and hidden-item visibility transition through one
-/// deterministic reducer. It is the sole decider of which entries a pane shows: movement, paging,
-/// first and last, and selection all address the visible set alone (CMD-002).
+/// Applies every pane-local focus, selection, sort order, and hidden-item visibility transition
+/// through one deterministic reducer. It is the sole decider of which entries a pane shows and in
+/// which order: movement, paging, first and last, and selection all address the visible set alone
+/// (CMD-002).
 /// </summary>
 public static class PaneReducer
 {
@@ -36,6 +37,14 @@ public static class PaneReducer
                 ? HiddenItemVisibility.Shown
                 : HiddenItemVisibility.Hidden;
             return ApplyHiddenItemVisibility(state, next);
+        }
+        if (intent == UserIntent.SortByName)
+        {
+            return ApplySortOrder(state, state.SortOrder.Toggle(SortKey.Name), state.FocusItem);
+        }
+        if (intent == UserIntent.SortByExtension)
+        {
+            return ApplySortOrder(state, state.SortOrder.Toggle(SortKey.Extension), state.FocusItem);
         }
         if (intent == UserIntent.Escape)
         {
@@ -145,6 +154,30 @@ public static class PaneReducer
             RetainVisibleSelection(rebuilt, state.Selection));
     }
 
+    /// <summary>
+    /// Applies a sort order to the same entries. Focus lands on the focus target when it is
+    /// visible, on the nearest visible entry in the new order when it is hidden, and on the first
+    /// visible entry when the location does not hold it. Selection keeps its identities, because a
+    /// new order changes no entry's visibility. A sort intent passes the current focus item; a
+    /// completed read passes its preferred focus so a carried order places focus exactly as the
+    /// read would under the default order.
+    /// </summary>
+    /// <param name="state">Current or freshly read pane state.</param>
+    /// <param name="sortOrder">Closed order to apply.</param>
+    /// <param name="focusTarget">Item focus should stay on, or absence to focus the first visible entry.</param>
+    /// <returns>The state whose order, visible set, and focus obey the given order.</returns>
+    internal static PaneState ApplySortOrder(
+        PaneState state,
+        PaneSortOrder sortOrder,
+        FileSystemPath? focusTarget)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(sortOrder);
+
+        PaneState rebuilt = state.WithSortOrder(sortOrder);
+        return rebuilt.Transition(RecoverFocusOrFirst(rebuilt, focusTarget), state.Selection);
+    }
+
     private static FileSystemPath? RecoverFocusOrFirst(PaneState state, FileSystemPath? target)
     {
         FileSystemPath? recovered = RecoverFocus(state, target);
@@ -153,7 +186,7 @@ public static class PaneReducer
 
     /// <summary>
     /// Names the entry a pane focuses for a target that may be hidden or absent: the target itself
-    /// when it is visible, otherwise the next visible entry in listing order, otherwise the
+    /// when it is visible, otherwise the next visible entry in projected order, otherwise the
     /// previous visible entry, otherwise absence. A target the location does not hold at all is
     /// absence too, which leaves the caller's own default focus in place.
     /// </summary>

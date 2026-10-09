@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -590,6 +591,68 @@ public sealed class PaneSessionTests
         Assert.AreSame(other.Location, Assert.IsInstanceOfType<PaneContentListed>(forwarded.Content).State.Location);
     }
 
+    /// <summary>Proves the first read uses the default order and a sort intent keeps the focus item.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenSortIntentArrivesReordersListedPaneKeepingFocus()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing(
+            "C:\\root",
+            ("b.txt", DirectoryEntryKind.File),
+            ("a.md", DirectoryEntryKind.File),
+            ("c", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        PaneSession session = CreateSession(port);
+        PaneSnapshot initial = await session.NavigateAsync(root.Location, CancellationToken.None);
+
+        PaneSnapshot sorted = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
+
+        PaneContentListed before = Assert.IsInstanceOfType<PaneContentListed>(initial.Content);
+        PaneContentListed after = Assert.IsInstanceOfType<PaneContentListed>(sorted.Content);
+        Assert.AreEqual(PaneSortOrder.Default, before.State.SortOrder);
+        AssertVisibleNames(["c", "a.md", "b.txt"], after.State);
+        Assert.AreSame(before.State.FocusItem, after.State.FocusItem);
+        Assert.AreSame(root, after.Listing);
+        Assert.HasCount(1, port.Requests);
+    }
+
+    /// <summary>Proves the pane order survives refresh, a new location, and Back.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenSortedCarriesOrderThroughRefreshNavigationAndHistory()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing root = Listing(
+            "C:\\root",
+            ("b.txt", DirectoryEntryKind.File),
+            ("a.md", DirectoryEntryKind.File),
+            ("c", DirectoryEntryKind.File));
+        DirectoryListing next = Listing("C:\\next", ("y.txt", DirectoryEntryKind.File), ("z.md", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(next));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        PaneSession session = CreateSession(port);
+        _ = await session.NavigateAsync(root.Location, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
+
+        PaneSnapshot refreshed = await session.HandleAsync(UserIntent.Refresh, CancellationToken.None);
+        PaneSnapshot moved = await session.NavigateAsync(next.Location, CancellationToken.None);
+        PaneSnapshot back = await session.HandleAsync(UserIntent.NavigateBack, CancellationToken.None);
+
+        PaneState refreshedState = Assert.IsInstanceOfType<PaneContentListed>(refreshed.Content).State;
+        PaneState movedState = Assert.IsInstanceOfType<PaneContentListed>(moved.Content).State;
+        PaneState backState = Assert.IsInstanceOfType<PaneContentListed>(back.Content).State;
+        AssertVisibleNames(["b.txt", "a.md", "c"], refreshedState);
+        Assert.AreSame(root.Entries[0].Path, refreshedState.FocusItem);
+        AssertVisibleNames(["y.txt", "z.md"], movedState);
+        Assert.AreSame(movedState.VisibleEntries[0].Path, movedState.FocusItem);
+        AssertVisibleNames(["b.txt", "a.md", "c"], backState);
+        Assert.AreSame(backState.VisibleEntries[0].Path, backState.FocusItem);
+        Assert.AreSame(SortKey.Extension, backState.SortOrder.Key);
+        Assert.AreSame(SortDirection.Descending, backState.SortOrder.Direction);
+    }
+
     /// <summary>Proves the composition boundary rejects an entry boundary outside the fixed range.</summary>
     [TestMethod]
     [DataRow(0)]
@@ -653,6 +716,11 @@ public sealed class PaneSessionTests
             Capacity(4),
             DirectoryListing.EntryBoundaryLimit,
             visibility);
+    }
+
+    private static void AssertVisibleNames(string[] expected, PaneState state)
+    {
+        CollectionAssert.AreEqual(expected, state.VisibleEntries.Select(entry => entry.Name).ToArray());
     }
 
     private static PaneNavigationHistory HistoryOf(PaneSnapshot snapshot)

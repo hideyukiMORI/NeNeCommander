@@ -126,6 +126,15 @@ public sealed class NullGuardTests
             [null, HiddenItemVisibility.Hidden]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
+        AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
+            [null, PaneSortOrder.Default, null]);
+        AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
+            [state, null, null]);
+        AssertStaticNullGuard(typeof(EntryOrdering), nameof(EntryOrdering.Apply),
+            [null, PaneSortOrder.Default]);
+        AssertStaticNullGuard(typeof(EntryOrdering), nameof(EntryOrdering.Apply),
+            [new[] { entry }, null]);
+        AssertInstanceNullGuard(PaneSortOrder.Default, nameof(PaneSortOrder.Toggle), [null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
             [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),

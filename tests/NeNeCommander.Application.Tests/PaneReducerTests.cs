@@ -109,9 +109,9 @@ public sealed class PaneReducerTests
     [TestMethod]
     public void ApplyWhenMovingAndPagingClampsFocusAndPreservesSelection()
     {
-        DirectoryEntry first = Entry("one", EntryVisibility.Normal);
-        DirectoryEntry second = Entry("two", EntryVisibility.Normal);
-        DirectoryEntry third = Entry("three", EntryVisibility.Normal);
+        DirectoryEntry first = Entry("a-one", EntryVisibility.Normal);
+        DirectoryEntry second = Entry("b-two", EntryVisibility.Normal);
+        DirectoryEntry third = Entry("c-three", EntryVisibility.Normal);
         PaneState state = CreateState([first, second, third], 4);
         state = PaneReducer.Apply(state, UserIntent.ToggleSelection);
 
@@ -137,9 +137,9 @@ public sealed class PaneReducerTests
     [TestMethod]
     public void ApplyWhenHiddenEntriesAreOmittedMovesOverTheVisibleSetOnly()
     {
-        DirectoryEntry first = Entry("one", EntryVisibility.Normal);
-        DirectoryEntry skipped = Entry("two", EntryVisibility.Hidden);
-        DirectoryEntry last = Entry("three", EntryVisibility.Normal);
+        DirectoryEntry first = Entry("a-one", EntryVisibility.Normal);
+        DirectoryEntry skipped = Entry("b-two", EntryVisibility.Hidden);
+        DirectoryEntry last = Entry("c-three", EntryVisibility.Normal);
         PaneState state = CreateState([first, skipped, last], 4);
 
         PaneState next = PaneReducer.Apply(state, UserIntent.MoveNext);
@@ -196,12 +196,12 @@ public sealed class PaneReducerTests
     public void ApplyWhenHalfPageMovesUsesMeasuredHalfCapacity()
     {
         DirectoryEntry[] entries = [
-            Entry("one", EntryVisibility.Normal),
-            Entry("two", EntryVisibility.Normal),
-            Entry("three", EntryVisibility.Normal),
-            Entry("four", EntryVisibility.Normal),
-            Entry("five", EntryVisibility.Normal),
-            Entry("six", EntryVisibility.Normal),
+            Entry("a-one", EntryVisibility.Normal),
+            Entry("b-two", EntryVisibility.Normal),
+            Entry("c-three", EntryVisibility.Normal),
+            Entry("d-four", EntryVisibility.Normal),
+            Entry("e-five", EntryVisibility.Normal),
+            Entry("f-six", EntryVisibility.Normal),
         ];
         PaneState state = CreateState(entries, 4);
 
@@ -454,9 +454,9 @@ public sealed class PaneReducerTests
     [TestMethod]
     public void ApplyHiddenItemVisibilityWhenFocusBecomesHiddenFocusesNextVisibleEntry()
     {
-        DirectoryEntry first = Entry("one", EntryVisibility.Normal);
-        DirectoryEntry focused = Entry("two", EntryVisibility.Hidden);
-        DirectoryEntry last = Entry("three", EntryVisibility.Normal);
+        DirectoryEntry first = Entry("a-one", EntryVisibility.Normal);
+        DirectoryEntry focused = Entry("b-two", EntryVisibility.Hidden);
+        DirectoryEntry last = Entry("c-three", EntryVisibility.Normal);
         PaneState shown = CreateState([first, focused, last], 4, HiddenItemVisibility.Shown);
         PaneState onHidden = PaneReducer.Apply(shown, UserIntent.MoveNext);
 

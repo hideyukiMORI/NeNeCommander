@@ -270,7 +270,11 @@ public sealed class PaneSession
             _visiblePageCapacity,
             preferredFocus,
             ResolveHiddenItemVisibility());
-        PaneState committed = PaneReducer.CommitNavigation(previousState, navigated, action);
+        PaneState ordered = PaneReducer.ApplySortOrder(
+            navigated,
+            previousState?.SortOrder ?? PaneSortOrder.Default,
+            preferredFocus);
+        PaneState committed = PaneReducer.CommitNavigation(previousState, ordered, action);
         return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing));
     }
 
