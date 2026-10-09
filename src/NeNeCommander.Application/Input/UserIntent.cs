@@ -63,6 +63,19 @@ public abstract record UserIntent
     /// </summary>
     public static UserIntent SortByExtension { get; } = new SortByExtensionIntent();
 
+    /// <summary>
+    /// Gets the intent to sort the active pane by the provider-reported size (ADR-0056): again on a
+    /// size order it reverses the direction, and from another key it starts ascending.
+    /// </summary>
+    public static UserIntent SortBySize { get; } = new SortBySizeIntent();
+
+    /// <summary>
+    /// Gets the intent to sort the active pane by the provider-reported modification time
+    /// (ADR-0056): again on a modification-time order it reverses the direction, and from another
+    /// key it starts ascending.
+    /// </summary>
+    public static UserIntent SortByModified { get; } = new SortByModifiedIntent();
+
     /// <summary>Gets the intent to cancel transient state or clear selection.</summary>
     public static UserIntent Escape { get; } = new EscapeIntent();
 
@@ -246,6 +259,8 @@ public abstract record UserIntent
     private sealed record ToggleHiddenItemsIntent : UserIntent;
     private sealed record SortByNameIntent : UserIntent;
     private sealed record SortByExtensionIntent : UserIntent;
+    private sealed record SortBySizeIntent : UserIntent;
+    private sealed record SortByModifiedIntent : UserIntent;
     private sealed record EscapeIntent : UserIntent;
     private sealed record RenameIntent : UserIntent;
     private sealed record CopyIntent : UserIntent;

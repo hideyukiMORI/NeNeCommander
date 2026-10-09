@@ -1116,6 +1116,8 @@ public sealed class CommanderSessionTests
                 UserIntent.SortByName,
                 UserIntent.SortByExtension,
                 UserIntent.OpenLocations,
+                UserIntent.SortBySize,
+                UserIntent.SortByModified,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
         Assert.AreSame(CommandAvailability.Available, Candidate(palette, UserIntent.OpenFocused).Availability);
@@ -1974,7 +1976,7 @@ public sealed class CommanderSessionTests
         Assert.AreSame(palette, managerRejected.Scopes.CommandPalette);
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(18, CommandCatalog.Commands);
+        Assert.HasCount(20, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.OpenBookmarks));
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);

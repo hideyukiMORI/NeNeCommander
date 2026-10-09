@@ -26,6 +26,10 @@
   <data name="PaneSortNameDescending" xml:space="preserve"><value>名前 ↓</value></data>
   <data name="PaneSortExtensionAscending" xml:space="preserve"><value>拡張子 ↑</value></data>
   <data name="PaneSortExtensionDescending" xml:space="preserve"><value>拡張子 ↓</value></data>
+  <data name="PaneSortSizeAscending" xml:space="preserve"><value>サイズ ↑</value></data>
+  <data name="PaneSortSizeDescending" xml:space="preserve"><value>サイズ ↓</value></data>
+  <data name="PaneSortModifiedAscending" xml:space="preserve"><value>更新 ↑</value></data>
+  <data name="PaneSortModifiedDescending" xml:space="preserve"><value>更新 ↓</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>移動しています…</value></data>
@@ -97,6 +101,8 @@
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
   <data name="KeyLabelCtrlF3" xml:space="preserve"><value>Ctrl+F3</value></data>
   <data name="KeyLabelCtrlF4" xml:space="preserve"><value>Ctrl+F4</value></data>
+  <data name="KeyLabelCtrlF5" xml:space="preserve"><value>Ctrl+F5</value></data>
+  <data name="KeyLabelCtrlF6" xml:space="preserve"><value>Ctrl+F6</value></data>
   <data name="KeyLabelCtrlB" xml:space="preserve"><value>Ctrl+B</value></data>
   <data name="KeyLabelCtrl1" xml:space="preserve"><value>Ctrl+1</value></data>
   <data name="KeyLabelCtrl2" xml:space="preserve"><value>Ctrl+2</value></data>
@@ -234,6 +240,8 @@
   <data name="IntentLabelOpenCommandPalette" xml:space="preserve"><value>コマンド</value></data>
   <data name="IntentLabelSortByName" xml:space="preserve"><value>名前で並べ替え</value></data>
   <data name="IntentLabelSortByExtension" xml:space="preserve"><value>拡張子で並べ替え</value></data>
+  <data name="IntentLabelSortBySize" xml:space="preserve"><value>サイズで並べ替え</value></data>
+  <data name="IntentLabelSortByModified" xml:space="preserve"><value>更新日時で並べ替え</value></data>
   <data name="CommandPaletteSearch.AutomationProperties.Name" xml:space="preserve"><value>コマンドを検索</value></data>
   <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>コマンドを検索</value></data>
   <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>コマンド候補</value></data>

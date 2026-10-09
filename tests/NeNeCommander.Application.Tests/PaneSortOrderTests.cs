@@ -139,6 +139,31 @@ public sealed class PaneSortOrderTests
         Assert.AreEqual(PaneSortOrder.Default, ascending.SortOrder);
     }
 
+    /// <summary>
+    /// Proves the size and modification-time intents toggle through the same reducer path: each
+    /// starts ascending from another key and reverses on a second request (ADR-0056).
+    /// </summary>
+    [TestMethod]
+    public void ApplyWhenSortingByMetadataKeysTogglesThroughTheReducer()
+    {
+        PaneState state = CreateState([FileNamed("a"), FileNamed("b")]);
+
+        PaneState size = PaneReducer.Apply(state, UserIntent.SortBySize);
+        PaneState sizeDescending = PaneReducer.Apply(size, UserIntent.SortBySize);
+        PaneState modified = PaneReducer.Apply(sizeDescending, UserIntent.SortByModified);
+        PaneState modifiedDescending = PaneReducer.Apply(modified, UserIntent.SortByModified);
+
+        Assert.AreSame(SortKey.Size, size.SortOrder.Key);
+        Assert.AreSame(SortDirection.Ascending, size.SortOrder.Direction);
+        Assert.AreSame(SortDirection.Descending, sizeDescending.SortOrder.Direction);
+        Assert.AreSame(SortKey.Modified, modified.SortOrder.Key);
+        Assert.AreSame(SortDirection.Ascending, modified.SortOrder.Direction);
+        Assert.AreSame(SortKey.Modified, modifiedDescending.SortOrder.Key);
+        Assert.AreSame(SortDirection.Descending, modifiedDescending.SortOrder.Direction);
+        Assert.AreEqual("a", NameOf(modifiedDescending.FocusItem));
+        AssertVisible(["a", "b"], modifiedDescending);
+    }
+
     /// <summary>Proves movement, paging, first, and last address the projected order.</summary>
     [TestMethod]
     public void ApplyWhenSortedMovesOverProjectedOrder()

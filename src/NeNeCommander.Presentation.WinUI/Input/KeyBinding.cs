@@ -28,6 +28,8 @@ public sealed record KeyBinding
                 [KeyboardKey.W] = "KeyLabelCtrlW",
                 [KeyboardKey.F3] = "KeyLabelCtrlF3",
                 [KeyboardKey.F4] = "KeyLabelCtrlF4",
+                [KeyboardKey.F5] = "KeyLabelCtrlF5",
+                [KeyboardKey.F6] = "KeyLabelCtrlF6",
                 [KeyboardKey.One] = "KeyLabelCtrl1",
                 [KeyboardKey.Two] = "KeyLabelCtrl2",
                 [KeyboardKey.Three] = "KeyLabelCtrl3",

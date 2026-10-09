@@ -48,11 +48,16 @@ must stay distinguishable from a real value.
   descending order, and ties fall back to the ADR-0053 name comparison, so a directory group under
   the size key is in name order. `UserIntent.SortBySize` and `UserIntent.SortByModified` toggle
   exactly as the ADR-0053 intents do.
-- **Keys and catalog.** `Ctrl+F5` and `Ctrl+F6` map to the two intents from the file list and
-  navigation surface in commander-compatible positions; plain `F5` and `F6` remain copy and move,
-  and the existing repeat and context guards are unchanged. Both intents join the ADR-0047 command
-  catalog, and the pane status shows `size` and `modified` through the existing sort status
-  resources.
+- **Keys and catalog.** `Ctrl+F5` and `Ctrl+F6` map to the two intents in the file list and
+  navigation surface key maps, with the `Ctrl+F5`/`Ctrl+F6` key caps; every other context keeps
+  them. Plain `F5` and `F6` remain copy and move in the file list and `F5` remains refresh on the
+  navigation surface. The existing destructive-command repeat guard on `F5` and `F6` is unchanged
+  and therefore also ignores a held chord, so holding it does not keep reversing the order. Both
+  intents are appended to the ADR-0047 command catalog with their labels, so a palette query for
+  `F5` lists copy and then sort by size. `PaneSortStatus` gains one indication per key and
+  direction, shown through the `PaneSortSize*` and `PaneSortModified*` resources (`size`/`modified`,
+  ja `サイズ`/`更新`, with the direction arrow); the indication is chosen over the closed key set
+  with no fallback to another key's indication.
 - **No column rendering here.** Rows keep showing the name and kind label. Showing size and time
   in the row changes the approved Direction C layout and goes through the design handoff first.
 

@@ -17,10 +17,13 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
-| entry | One direct child of a read location with its validated path, provider-reported name, closed kind, and closed entry visibility. |
+| entry | One direct child of a read location with its validated path, provider-reported name, closed kind, and entry metadata. |
 | entry visibility | The closed `EntryVisibility` a provider reports for one entry: `Normal`, or `Hidden` when the provider marks it hidden or system. It is a reported attribute, never derived from the entry name. |
+| entry metadata | The `EntryMetadata` a provider reports for one entry: its entry visibility, entry size, and entry timestamp (ADR-0056). Application reads it and never infers it. |
+| entry size | The closed `EntrySize` of one entry: a known non-negative byte count, or `Unknown` for a directory or a size the adapter could not read. Zero never stands for absence. |
+| entry timestamp | The closed `EntryTimestamp` of one entry: its last-modification time carried in UTC, or `Unknown` when the provider reports none. |
 | visible set | The ordered entries of a pane that its `HiddenItemVisibility` admits, in the order its sort order projects, held by `PaneState` as `VisibleEntries`. `PaneReducer` alone decides it; movement, paging, focus, and selection address it and nothing else. |
-| sort order | The closed `PaneSortOrder` one pane holds: a `SortKey` (`Name` or `Extension`) and a `SortDirection` (`Ascending` or `Descending`), name ascending by default. `EntryOrdering` alone projects entries through it, directories first; it is carried through reads of the same pane and not persisted. |
+| sort order | The closed `PaneSortOrder` one pane holds: a `SortKey` (`Name`, `Extension`, `Size`, or `Modified`) and a `SortDirection` (`Ascending` or `Descending`), name ascending by default. `EntryOrdering` alone projects entries through it, directories first; it is carried through reads of the same pane and not persisted. |
 | listing | An immutable `DirectoryListing`: the deterministically ordered entries of one location plus its completeness and unrepresentable-entry count. |
 | entry boundary | The positive number of provider entries after which a read stops and reports a bounded listing. |
 | pane snapshot | An immutable `PaneSnapshot`: the pane's closed content (absent or listed) and closed external activity (idle, reading, launching, failed, or cancelled). |

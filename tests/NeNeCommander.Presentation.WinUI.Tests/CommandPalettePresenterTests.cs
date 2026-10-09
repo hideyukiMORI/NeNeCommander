@@ -154,7 +154,7 @@ public sealed class CommandPalettePresenterTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, Localize);
 
-        Assert.HasCount(18, view.Rows);
+        Assert.HasCount(20, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -167,8 +167,9 @@ public sealed class CommandPalettePresenterTests
         Assert.HasCount(1, view.Rows);
         Assert.AreSame(UserIntent.Copy, view.SelectedRow!.Intent);
         view.UpdateQuery("F5");
-        Assert.HasCount(1, view.Rows);
+        Assert.HasCount(2, view.Rows);
         Assert.AreSame(UserIntent.Copy, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.SortBySize, view.Rows[1].Intent);
         view.UpdateQuery("no-match");
         Assert.AreEqual("no-match", view.Query);
         Assert.IsEmpty(view.Rows);
@@ -214,7 +215,7 @@ public sealed class CommandPalettePresenterTests
         {
             view.MoveNext();
         }
-        Assert.AreSame(UserIntent.OpenLocations, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.SortByModified, view.SelectedRow!.Intent);
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);
@@ -479,6 +480,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.SortByName, "IntentLabelSortByName"),
             (UserIntent.SortByExtension, "IntentLabelSortByExtension"),
             (UserIntent.OpenLocations, "IntentLabelOpenLocations"),
+            (UserIntent.SortBySize, "IntentLabelSortBySize"),
+            (UserIntent.SortByModified, "IntentLabelSortByModified"),
             (UserIntent.MoveNext, "IntentLabelMoveNext"),
             (UserIntent.MovePrevious, "IntentLabelMovePrevious"),
             (UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
@@ -510,6 +513,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.SortByName, "IntentLabelSortByName", "KeyLabelCtrlF3"),
             (UserIntent.SortByExtension, "IntentLabelSortByExtension", "KeyLabelCtrlF4"),
             (UserIntent.OpenLocations, "IntentLabelOpenLocations", "KeyLabelCtrlG"),
+            (UserIntent.SortBySize, "IntentLabelSortBySize", "KeyLabelCtrlF5"),
+            (UserIntent.SortByModified, "IntentLabelSortByModified", "KeyLabelCtrlF6"),
         ];
     }
 
