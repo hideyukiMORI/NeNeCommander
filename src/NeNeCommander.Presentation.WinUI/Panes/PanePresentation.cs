@@ -30,6 +30,9 @@ public sealed record PanePresentation
         AddressText = addressText;
         SourceSnapshot = sourceSnapshot;
         SourceFrame = sourceFrame;
+        SortStatus = sourceSnapshot.Content is PaneContentListed listed
+            ? PaneSortStatus.For(listed.State.SortOrder)
+            : null;
     }
 
     internal PaneRows OwnedRows { get; }
@@ -49,4 +52,10 @@ public sealed record PanePresentation
 
     /// <summary>Gets the canonical text of the listed or targeted location, or empty text.</summary>
     public string AddressText { get; }
+
+    /// <summary>
+    /// Gets the sort order the listed rows follow, or absence when nothing is listed and therefore
+    /// nothing is ordered.
+    /// </summary>
+    public PaneSortStatus? SortStatus { get; }
 }

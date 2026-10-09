@@ -26,6 +26,8 @@ public static class CommandCatalog
         UserIntent.ToggleHiddenItems,
         UserIntent.ActivateOtherPane,
         UserIntent.OpenSettings,
+        UserIntent.SortByName,
+        UserIntent.SortByExtension,
     ]);
 
     /// <summary>Gets the searchable commands in stable empty-query order.</summary>

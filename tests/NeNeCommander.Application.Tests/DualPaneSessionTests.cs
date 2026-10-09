@@ -166,6 +166,36 @@ public sealed class DualPaneSessionTests
             Assert.IsInstanceOfType<PaneContentListed>(shown.Right.Content).State.VisibleEntries);
     }
 
+    /// <summary>Proves a sort intent reorders only the active pane and is frozen while a confirmation is pending.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenSortIntentArrivesReordersActivePaneUnlessConfirmationIsPending()
+    {
+        using Fixture fixture = Fixture.Create();
+        DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.md", DirectoryEntryKind.File));
+        DirectoryListing rightListing = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File), ("b.md", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+
+        DualPaneSnapshot sorted = await fixture.Panes.HandleAsync(
+            UserIntent.SortByExtension,
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+        fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
+        DualPaneSnapshot awaiting = await fixture.Panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPaneSnapshot frozen = await fixture.Panes.HandleAsync(UserIntent.SortByName, RecordingDualPaneObserver.Create(), CancellationToken.None);
+
+        string[] expectedLeft = ["b.md", "a.txt"];
+        CollectionAssert.AreEqual(
+            expectedLeft,
+            Assert.IsInstanceOfType<PaneContentListed>(sorted.Left.Content).State.VisibleEntries.Select(entry => entry.Name).ToArray());
+        Assert.AreEqual(
+            PaneSortOrder.Default,
+            Assert.IsInstanceOfType<PaneContentListed>(sorted.Right.Content).State.SortOrder);
+        Assert.AreSame(leftListing.Entries[0].Path, Focus(sorted.Left));
+        _ = Assert.IsInstanceOfType<OperationAwaitingConfirmation>(frozen.Operation);
+        Assert.AreSame(awaiting.Left, frozen.Left);
+        Assert.AreSame(awaiting.Right, frozen.Right);
+    }
+
     /// <summary>Proves a read in flight lands in the pane that started it even after activation changes.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

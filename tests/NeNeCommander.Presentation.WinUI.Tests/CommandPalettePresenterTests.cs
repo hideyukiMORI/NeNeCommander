@@ -154,7 +154,7 @@ public sealed class CommandPalettePresenterTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, Localize);
 
-        Assert.HasCount(15, view.Rows);
+        Assert.HasCount(17, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -214,7 +214,7 @@ public sealed class CommandPalettePresenterTests
         {
             view.MoveNext();
         }
-        Assert.AreSame(UserIntent.OpenSettings, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.SortByExtension, view.SelectedRow!.Intent);
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);
@@ -475,6 +475,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
             (UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
             (UserIntent.OpenSettings, "IntentLabelOpenSettings"),
+            (UserIntent.SortByName, "IntentLabelSortByName"),
+            (UserIntent.SortByExtension, "IntentLabelSortByExtension"),
             (UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
             (UserIntent.Escape, "IntentLabelEscape"),
             (UserIntent.Confirm, "IntentLabelConfirm"),
@@ -501,6 +503,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems", "KeyLabelCtrlH"),
             (UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane", "KeyLabelTab"),
             (UserIntent.OpenSettings, "IntentLabelOpenSettings", "KeyLabelCtrlComma"),
+            (UserIntent.SortByName, "IntentLabelSortByName", "KeyLabelCtrlF3"),
+            (UserIntent.SortByExtension, "IntentLabelSortByExtension", "KeyLabelCtrlF4"),
         ];
     }
 

@@ -21,7 +21,13 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Tab` | activate the other pane without changing either pane's focus item |
 | `Space` | toggle selection of the focus item without moving focus |
 | `Ctrl+H` | toggle hidden and system entries in the active pane |
+| `Ctrl+F3` | sort the active pane by name; again reverses the direction, from another key starts ascending |
+| `Ctrl+F4` | sort the active pane by extension; again reverses the direction, from another key starts ascending |
 | `Escape` | cancel a running file operation, then cancel pending chord, then close transient UI, then clear selection |
+
+`Ctrl+F3` and `Ctrl+F4` are declared for the file list and the navigation surface (ADR-0053). Plain
+`F3` and `F4` are unassigned and pass through. Directories always precede files; the order keeps the
+focus item and selection, and it is carried through refresh, reads, and history of the same pane.
 
 Back and Forward retain at most 100 successful locations per pane, including current. They restore
 location only and commit their cursor after the target read succeeds. Refresh, same-location,

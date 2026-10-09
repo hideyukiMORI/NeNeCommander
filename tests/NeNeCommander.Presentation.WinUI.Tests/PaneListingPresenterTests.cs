@@ -270,6 +270,52 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowMark.Unmarked, passive.Rows[1].Mark);
     }
 
+    /// <summary>
+    /// Proves a new sort order over the same listing rebuilds the rows in the projected order with
+    /// focus kept, and the next focus movement reuses those rebuilt rows again.
+    /// </summary>
+    [TestMethod]
+    public async Task PresentWhenSortOrderChangesRebuildsRowsInProjectedOrder()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = CreateListing(
+            "C:\\projects",
+            ["a.zip", "b.txt", "c.md"],
+            DirectoryListingCompleteness.Complete,
+            0);
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        PaneSession session = CreateSession(port);
+        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active);
+        PaneSnapshot sorted = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
+        PaneSnapshot moved = await session.HandleAsync(UserIntent.MovePrevious, CancellationToken.None);
+
+        PanePresentation reordered = PaneListingPresenter.Present(sorted, PaneFrame.Active, initial);
+        PaneRow[] reorderedRows = [.. reordered.Rows];
+        PanePresentation afterMove = PaneListingPresenter.Present(moved, PaneFrame.Active, reordered);
+
+        Assert.AreNotSame(initial.Rows, reordered.Rows);
+        Assert.AreSame(listing.Entries[2], reorderedRows[0].Entry);
+        Assert.AreSame(listing.Entries[1], reorderedRows[1].Entry);
+        Assert.AreSame(listing.Entries[0], reorderedRows[2].Entry);
+        Assert.AreSame(reorderedRows[2], reordered.FocusRow);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, reorderedRows[2].Mark);
+        Assert.AreSame(PaneSortStatus.ExtensionAscending, reordered.SortStatus);
+        Assert.AreSame(PaneSortStatus.NameAscending, initial.SortStatus);
+        Assert.AreSame(reordered.Rows, afterMove.Rows);
+        Assert.AreSame(reorderedRows[0], afterMove.Rows[0]);
+        Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
+    }
+
+    /// <summary>Proves a pane that lists nothing has no sort indication.</summary>
+    [TestMethod]
+    public void PresentWhenNothingIsListedHasNoSortStatus()
+    {
+        PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active);
+
+        Assert.IsNull(presentation.SortStatus);
+    }
+
     /// <summary>Proves an omitted entry produces no row at all while its listing still holds it.</summary>
     [TestMethod]
     public async Task PresentWhenHiddenEntriesAreOmittedProjectsOnlyTheVisibleRows()

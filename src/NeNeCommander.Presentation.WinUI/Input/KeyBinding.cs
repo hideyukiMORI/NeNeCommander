@@ -25,6 +25,8 @@ public sealed record KeyBinding
                 [KeyboardKey.R] = "KeyLabelCtrlR",
                 [KeyboardKey.U] = "KeyLabelCtrlU",
                 [KeyboardKey.W] = "KeyLabelCtrlW",
+                [KeyboardKey.F3] = "KeyLabelCtrlF3",
+                [KeyboardKey.F4] = "KeyLabelCtrlF4",
                 [KeyboardKey.One] = "KeyLabelCtrl1",
                 [KeyboardKey.Two] = "KeyLabelCtrl2",
                 [KeyboardKey.Three] = "KeyLabelCtrl3",
