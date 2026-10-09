@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
@@ -47,25 +46,17 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
         ArgumentNullException.ThrowIfNull(request);
         return request.Location is WindowsLocalPath
             ? _executionBoundary.ExecuteAsync(
-                () => WindowsDirectoryReadOperation.Read(request, _enumerator, ClassifyVisibility, cancellationToken))
+                () => WindowsDirectoryReadOperation.Read(
+                    request,
+                    _enumerator,
+                    WindowsDirectoryReadOperation.ClassifyByAttributes,
+                    cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
     internal static DirectoryReadOutcome TranslateListingCreation(DirectoryListingCreation creation)
     {
         return WindowsDirectoryReadOperation.TranslateListingCreation(creation);
-    }
-
-    /// <summary>
-    /// Reports the visibility Windows itself records for the entry. The attributes come from the
-    /// enumeration, so no second query touches the volume, and the entry name never takes part in
-    /// the decision: a name beginning with a dot is an ordinary Windows entry.
-    /// </summary>
-    private static EntryVisibility ClassifyVisibility(WindowsDirectoryEntrySnapshot snapshot)
-    {
-        return (snapshot.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0
-            ? EntryVisibility.Normal
-            : EntryVisibility.Hidden;
     }
 
     internal static FileOperationFailureKind NormalizeEnumerationFailure(int hResult)

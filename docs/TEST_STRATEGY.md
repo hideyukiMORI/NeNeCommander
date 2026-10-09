@@ -83,7 +83,7 @@ Every registered threat ID appears in at least one test using `TestProperty("Thr
 - Status: **active**
 - Enforcement: test harness and cleanup assertions.
 
-Mutation tests use a unique resolved OS temporary root. Live WSL and UNC tests require explicit dedicated roots. Setup and cleanup both reject roots, homes, repositories, mount roots, ancestors, links that escape the root, and ambiguous provider identity.
+Mutation tests use a unique resolved OS temporary root. Live WSL and UNC tests require explicit dedicated roots. No live UNC tier exists yet, so live UNC proof has not run; gate tests prove the UNC reader through an injected enumerator and never touch the network (TST-003). Setup and cleanup both reject roots, homes, repositories, mount roots, ancestors, links that escape the root, and ambiguous provider identity.
 
 ### TST-012 — Test output is complete evidence
 
