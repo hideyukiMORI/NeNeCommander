@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Text;
 using NeNeCommander.Application.Directories;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -10,13 +11,16 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// decimal rounded half away from zero, move to the next unit once rounding reaches 1024, and
 /// saturate at the top unit so the text never exceeds 9 glyphs. Times are shown in the supplied
 /// zone. Unknown values show the one unknown glyph. Every result is a pure function of its
-/// arguments.
+/// arguments. The arrangement of number and unit is part of the column design rather than of a
+/// language, so it is a literal format here and resources supply only the unit words.
 /// </summary>
 public static class EntryMetadataFormatter
 {
     private const decimal UnitStep = 1024m;
     private const decimal TopUnitCeiling = 1023.9m;
     private const int DecimalDigits = 1;
+    private static readonly CompositeFormat SizeIntegerFormat = CompositeFormat.Parse("{0} {1}");
+    private static readonly CompositeFormat SizeDecimalFormat = CompositeFormat.Parse("{0:0.0} {1}");
 
     /// <summary>Formats the size of a file entry.</summary>
     /// <param name="size">Closed size the provider reported.</param>
@@ -46,7 +50,7 @@ public static class EntryMetadataFormatter
     {
         if (bytes < UnitStep)
         {
-            return string.Format(CultureInfo.InvariantCulture, format.SizeIntegerFormat, bytes, format.SizeUnits[0]);
+            return string.Format(CultureInfo.InvariantCulture, SizeIntegerFormat, bytes, format.SizeUnits[0]);
         }
 
         int topUnit = format.SizeUnits.Count - 1;
@@ -59,7 +63,7 @@ public static class EntryMetadataFormatter
         }
         return string.Format(
             CultureInfo.InvariantCulture,
-            format.SizeDecimalFormat,
+            SizeDecimalFormat,
             Math.Min(Round(value), TopUnitCeiling),
             format.SizeUnits[unit]);
     }

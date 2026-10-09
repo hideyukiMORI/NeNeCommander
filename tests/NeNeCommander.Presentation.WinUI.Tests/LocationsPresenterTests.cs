@@ -217,7 +217,6 @@ public sealed class LocationsPresenterTests
             "LocationsDriveKindNetwork" => "Network",
             "LocationsDriveKindOptical" => "Optical",
             "LocationsDriveKindUnknown" => "Unknown",
-            "LocationsDriveDetailFormat" => "{0} · {1}",
             "LocationsWslDetail" => "WSL",
             "LocationsRowAutomationNameFormat" => "{0}, {1}",
             "LocationsLoading" => "Loading",

@@ -17,8 +17,6 @@ internal static class TestMetadataFormats
         ["PaneRowSizeUnitMegabytes"] = "MB",
         ["PaneRowSizeUnitGigabytes"] = "GB",
         ["PaneRowSizeUnitTerabytes"] = "TB",
-        ["PaneRowSizeFormatInteger"] = "{0} {1}",
-        ["PaneRowSizeFormatDecimal"] = "{0:0.0} {1}",
         ["PaneRowModifiedFormat"] = "yyyy-MM-dd HH:mm",
         ["PaneRowMetadataUnknown"] = "\u2014",
     };

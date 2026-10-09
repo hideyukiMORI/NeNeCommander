@@ -309,11 +309,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        CommandPaletteContext.Text = string.Format(
-            CultureInfo.CurrentCulture,
-            _resources.GetString("CommandPaletteContextFormat"),
-            view.Target,
-            view.Opposite);
+        CommandPaletteContext.Text = view.Context;
         _renderingCommandPalette = true;
         CommandPaletteCandidateList.ItemsSource = view.Rows;
         CommandPaletteCandidateList.SelectedItem = view.SelectedRow;

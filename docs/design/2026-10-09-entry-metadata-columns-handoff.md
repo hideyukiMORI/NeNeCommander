@@ -78,11 +78,13 @@ Modified (`EntryTimestamp`):
 | `Unknown` | `—` |
 
 Rationale: ISO-like fixed-width date beats locale short dates for column alignment and is the
-hacker-tool idiom hide approved. Seconds are omitted (28-DIP row, scan speed). The format strings
-are resources so ja-JP can reorder if it ever wants to; both locales ship the same strings
-initially: `PaneRowSizeUnitBytes` … `PaneRowSizeUnitTerabytes` (`B`, `KB`, `MB`, `GB`, `TB`),
-`PaneRowSizeFormatInteger` (`{0} {1}`), `PaneRowSizeFormatDecimal` (`{0:0.0} {1}`),
-`PaneRowModifiedFormat` (`yyyy-MM-dd HH:mm`), and `PaneRowMetadataUnknown` (`—`).
+hacker-tool idiom hide approved. Seconds are omitted (28-DIP row, scan speed). Resources supply
+the words; both locales ship the same strings initially: `PaneRowSizeUnitBytes` …
+`PaneRowSizeUnitTerabytes` (`B`, `KB`, `MB`, `GB`, `TB`), `PaneRowModifiedFormat`
+(`yyyy-MM-dd HH:mm`), and `PaneRowMetadataUnknown` (`—`). The arrangement of number and unit is
+column design, not language, so it is a literal format constant in `EntryMetadataFormatter`
+(`{0} {1}` for whole bytes, `{0:0.0} {1}` for one decimal; Issue #192). The status line joins
+status and sort indication with the literal separator ` · ` (U+00B7) in `PaneStatusLine`.
 
 ## Narrow window (900 × 600 DIP)
 
@@ -127,7 +129,7 @@ in the status line text.
   in Presentation (no `DateTime.Now`). The existing time boundary (`IClock`) carries only monotonic
   time, so the zone is not added to it: the composition root reads `TimeZoneInfo.Local` once and
   passes it to `CommanderWindow`, which resolves the metadata resources once into one
-  `EntryMetadataFormat` (zone plus localized formats) and supplies that instance to every
+  `EntryMetadataFormat` (zone, unit words, time format, unknown glyph) and supplies that instance to every
   `DualPanePresenter` projection, following the `Func<string, string>` localization precedent of
   `PaneStatusLine` and `LocationsPresenter`.
 - `PaneListingPresenter` reuses rows (ADR-0028) only while it receives the same listing and the
