@@ -189,7 +189,7 @@ public sealed record PaneState
     {
         List<DirectoryEntry> visible = [.. entries.Where(entry =>
             hiddenItemVisibility == HiddenItemVisibility.Shown ||
-            entry.Visibility == EntryVisibility.Normal)];
+            entry.Metadata.Visibility == EntryVisibility.Normal)];
         return visible.AsReadOnly();
     }
 }

@@ -21,11 +21,9 @@ internal sealed class WindowsDirectoryEnumerator : IWindowsDirectoryEnumerator
         {
             yield return new WindowsDirectoryEntrySnapshot(
                 info.Name,
-                info is DirectoryInfo ? DirectoryEntryKind.Directory : DirectoryEntryKind.File,
                 info.Attributes,
-                EntryMetadata.Create(
-                    info is FileInfo file ? ReadSize(() => file.Length) : EntrySize.Unknown,
-                    ReadModified(() => info.LastWriteTimeUtc)));
+                info is FileInfo file ? ReadSize(() => file.Length) : EntrySize.Unknown,
+                ReadModified(() => info.LastWriteTimeUtc));
         }
     }
 

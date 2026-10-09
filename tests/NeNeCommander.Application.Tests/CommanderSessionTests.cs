@@ -2152,8 +2152,7 @@ public sealed class CommanderSessionTests
             ParsePath(location + "\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
         return Assert.IsInstanceOfType<DirectoryListingAccepted>(
             DirectoryListing.Create(
                 parsedLocation,

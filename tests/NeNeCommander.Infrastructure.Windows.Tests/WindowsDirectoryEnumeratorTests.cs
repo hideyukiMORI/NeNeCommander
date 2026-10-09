@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Infrastructure.Windows.Directories;
@@ -13,6 +15,46 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsDirectoryEnumeratorTests
 {
+    /// <summary>Proves the snapshot kind is the directory attribute and nothing else.</summary>
+    [TestMethod]
+    public void KindWhenAttributesAreReadFollowsTheDirectoryAttributeAlone()
+    {
+        WindowsDirectoryEntrySnapshot directory = Snapshot(FileAttributes.Directory | FileAttributes.Hidden);
+        WindowsDirectoryEntrySnapshot link = Snapshot(FileAttributes.Directory | FileAttributes.ReparsePoint);
+        WindowsDirectoryEntrySnapshot file = Snapshot(FileAttributes.Archive | FileAttributes.ReparsePoint);
+        WindowsDirectoryEntrySnapshot plain = Snapshot(FileAttributes.None);
+
+        Assert.AreSame(DirectoryEntryKind.Directory, directory.Kind);
+        Assert.AreSame(DirectoryEntryKind.Directory, link.Kind);
+        Assert.AreSame(DirectoryEntryKind.File, file.Kind);
+        Assert.AreSame(DirectoryEntryKind.File, plain.Kind);
+    }
+
+    /// <summary>
+    /// Proves, on the owned temporary root, that the attribute-derived kind matches the enumerated
+    /// object type for a file, a directory, and a junction, and that only files carry a size.
+    /// </summary>
+    [TestMethod]
+    public void EnumerateWhenEntriesAreRealDerivesKindMatchingTheEnumeratedType()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteFile("file.txt", "abc");
+        _ = root.CreateDirectory("folder");
+        _ = root.CreateJunction("junction", "folder");
+
+        Dictionary<string, WindowsDirectoryEntrySnapshot> snapshots = new WindowsDirectoryEnumerator()
+            .Enumerate(root.Path.CanonicalText)
+            .ToDictionary(snapshot => snapshot.Name, StringComparer.Ordinal);
+
+        Assert.HasCount(3, snapshots);
+        Assert.AreSame(DirectoryEntryKind.File, snapshots["file.txt"].Kind);
+        Assert.AreEqual(3L, Assert.IsInstanceOfType<KnownEntrySize>(snapshots["file.txt"].Size).Bytes);
+        Assert.AreSame(DirectoryEntryKind.Directory, snapshots["folder"].Kind);
+        Assert.AreSame(EntrySize.Unknown, snapshots["folder"].Size);
+        Assert.AreSame(DirectoryEntryKind.Directory, snapshots["junction"].Kind);
+        Assert.AreSame(EntrySize.Unknown, snapshots["junction"].Size);
+    }
+
     /// <summary>Proves a readable length becomes a known size with the same byte count.</summary>
     [TestMethod]
     public void ReadSizeWhenLengthIsReadableReturnsKnownSize()
@@ -97,5 +139,10 @@ public sealed class WindowsDirectoryEnumeratorTests
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsDirectoryEnumerator.ReadSize(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsDirectoryEnumerator.ReadModified(null!));
+    }
+
+    private static WindowsDirectoryEntrySnapshot Snapshot(FileAttributes attributes)
+    {
+        return new WindowsDirectoryEntrySnapshot("entry", attributes, EntrySize.Unknown, EntryTimestamp.Unknown);
     }
 }

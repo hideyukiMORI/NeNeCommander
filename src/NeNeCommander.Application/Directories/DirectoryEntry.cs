@@ -12,13 +12,11 @@ public sealed record DirectoryEntry
         FileSystemPath path,
         string name,
         DirectoryEntryKind kind,
-        EntryVisibility visibility,
         EntryMetadata metadata)
     {
         Path = path;
         Name = name;
         Kind = kind;
-        Visibility = visibility;
         Metadata = metadata;
     }
 
@@ -32,14 +30,8 @@ public sealed record DirectoryEntry
     public DirectoryEntryKind Kind { get; }
 
     /// <summary>
-    /// Gets the closed visibility the provider reported for the entry. The listing carries the
-    /// entry either way; only the pane transition decides whether the entry is shown.
-    /// </summary>
-    public EntryVisibility Visibility { get; }
-
-    /// <summary>
-    /// Gets the size and last-modification time the provider reported for the entry (ADR-0056).
-    /// Either fact may be unknown; the ordering projection reads them and nothing infers them.
+    /// Gets the visibility, size, and last-modification time the provider reported for the entry
+    /// (ADR-0056). Size and time may be unknown; nothing infers them.
     /// </summary>
     public EntryMetadata Metadata { get; }
 
@@ -49,22 +41,19 @@ public sealed record DirectoryEntry
     /// <param name="path">Validated entry path.</param>
     /// <param name="name">Non-empty provider-reported entry name.</param>
     /// <param name="kind">Closed entry kind.</param>
-    /// <param name="visibility">Closed visibility the provider reported for the entry.</param>
-    /// <param name="metadata">Size and last-modification time the provider reported for the entry.</param>
+    /// <param name="metadata">Visibility, size, and time the provider reported for the entry.</param>
     /// <returns>A complete immutable entry.</returns>
     /// <exception cref="ArgumentException">The name is empty or whitespace, which is an adapter defect.</exception>
     public static DirectoryEntry Create(
         FileSystemPath path,
         string name,
         DirectoryEntryKind kind,
-        EntryVisibility visibility,
         EntryMetadata metadata)
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(kind);
-        ArgumentNullException.ThrowIfNull(visibility);
         ArgumentNullException.ThrowIfNull(metadata);
-        return new DirectoryEntry(path, name, kind, visibility, metadata);
+        return new DirectoryEntry(path, name, kind, metadata);
     }
 }

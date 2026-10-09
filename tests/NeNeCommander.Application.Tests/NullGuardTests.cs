@@ -36,8 +36,7 @@ public sealed class NullGuardTests
             path,
             "source",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
         PaneState state = Assert.IsInstanceOfType<PaneStateAccepted>(
             PaneState.Create(path, [entry], capacity, HiddenItemVisibility.Hidden)).State;
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(
@@ -100,17 +99,20 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [null, UserIntent.MoveNext]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Apply), [state, null]);
         AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
-            [null, "name", DirectoryEntryKind.File, EntryVisibility.Normal, EntryMetadata.Unknown]);
+            [null, "name", DirectoryEntryKind.File, entry.Metadata]);
         AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
-            [path, null, DirectoryEntryKind.File, EntryVisibility.Normal, EntryMetadata.Unknown]);
+            [path, null, DirectoryEntryKind.File, entry.Metadata]);
         AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
-            [path, "name", null, EntryVisibility.Normal, EntryMetadata.Unknown]);
+            [path, "name", null, entry.Metadata]);
         AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
-            [path, "name", DirectoryEntryKind.File, null, EntryMetadata.Unknown]);
-        AssertStaticNullGuard(typeof(DirectoryEntry), nameof(DirectoryEntry.Create),
-            [path, "name", DirectoryEntryKind.File, EntryVisibility.Normal, null]);
-        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Create), [null, EntryTimestamp.Unknown]);
-        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Create), [EntrySize.Unknown, null]);
+            [path, "name", DirectoryEntryKind.File, null]);
+        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Create),
+            [null, EntrySize.Unknown, EntryTimestamp.Unknown]);
+        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Create),
+            [EntryVisibility.Normal, null, EntryTimestamp.Unknown]);
+        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Create),
+            [EntryVisibility.Normal, EntrySize.Unknown, null]);
+        AssertStaticNullGuard(typeof(EntryMetadata), nameof(EntryMetadata.Unmeasured), [null]);
         AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
             [null, new[] { entry }, DirectoryListingCompleteness.Complete, 0]);
         AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),

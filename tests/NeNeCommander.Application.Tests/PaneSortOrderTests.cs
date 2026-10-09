@@ -297,8 +297,7 @@ public sealed class PaneSortOrderTests
             ParsePath(parsed.CanonicalText + "\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown))];
+            EntryMetadata.Unmeasured(EntryVisibility.Normal)))];
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsed,
             entries,
@@ -313,8 +312,7 @@ public sealed class PaneSortOrderTests
             ParsePath("C:\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
     }
 
     private static DirectoryEntry HiddenFileNamed(string name)
@@ -323,8 +321,7 @@ public sealed class PaneSortOrderTests
             ParsePath("C:\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Hidden,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Hidden));
     }
 
     private static VisiblePageCapacity Capacity()

@@ -73,7 +73,7 @@ public sealed class WindowsLocalDirectoryReaderTests
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(outcome).Listing;
         Assert.HasCount(1, listing.Entries);
         Assert.AreEqual("hidden.txt", listing.Entries[0].Name);
-        Assert.AreSame(EntryVisibility.Hidden, listing.Entries[0].Visibility);
+        Assert.AreSame(EntryVisibility.Hidden, listing.Entries[0].Metadata.Visibility);
     }
 
     /// <summary>Proves the reported visibility comes from the attributes of every entry class.</summary>
@@ -323,14 +323,12 @@ public sealed class WindowsLocalDirectoryReaderTests
             ParsePath("C:\\same\\Same"),
             "Same",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
         DirectoryEntry second = DirectoryEntry.Create(
             ParsePath("c:\\same\\same"),
             "same",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
         DirectoryListingCreation rejected = DirectoryListing.Create(
             location,
             [first, second],
@@ -378,7 +376,7 @@ public sealed class WindowsLocalDirectoryReaderTests
     private static EntryVisibility VisibilityOf(DirectoryListing listing, string name)
     {
         DirectoryEntry entry = listing.Entries.Single(candidate => candidate.Name == name);
-        return entry.Visibility;
+        return entry.Metadata.Visibility;
     }
 
     private static EntryMetadata MetadataOf(DirectoryListing listing, string name)

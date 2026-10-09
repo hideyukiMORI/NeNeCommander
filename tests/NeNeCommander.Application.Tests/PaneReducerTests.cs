@@ -49,8 +49,7 @@ public sealed class PaneReducerTests
             ParsePath("c:\\same"),
             "same",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
 
         PaneStateCreation outcome = PaneState.Create(
             ParsePath("C:\\"),
@@ -603,8 +602,7 @@ public sealed class PaneReducerTests
                 ParsePath(parsedLocation.CanonicalText + "\\" + entries[index].Name),
                 entries[index].Name,
                 DirectoryEntryKind.File,
-                entries[index].Visibility,
-                EntryMetadata.Unknown);
+                EntryMetadata.Unmeasured(entries[index].Visibility));
         }
         DirectoryListingCreation creation = DirectoryListing.Create(
             parsedLocation,
@@ -620,8 +618,7 @@ public sealed class PaneReducerTests
             ParsePath("C:\\" + name),
             name,
             DirectoryEntryKind.File,
-            visibility,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(visibility));
     }
 
     private static PaneState CreateState(IReadOnlyList<DirectoryEntry> entries, int capacity)

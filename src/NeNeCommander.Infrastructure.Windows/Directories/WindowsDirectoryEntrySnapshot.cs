@@ -9,28 +9,35 @@ internal sealed record WindowsDirectoryEntrySnapshot
 {
     internal WindowsDirectoryEntrySnapshot(
         string name,
-        DirectoryEntryKind kind,
         FileAttributes attributes,
-        EntryMetadata metadata)
+        EntrySize size,
+        EntryTimestamp modified)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentNullException.ThrowIfNull(kind);
-        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(size);
+        ArgumentNullException.ThrowIfNull(modified);
         Name = name;
-        Kind = kind;
         Attributes = attributes;
-        Metadata = metadata;
+        Size = size;
+        Modified = modified;
     }
 
     internal string Name { get; }
 
-    internal DirectoryEntryKind Kind { get; }
-
     internal FileAttributes Attributes { get; }
 
     /// <summary>
-    /// Gets the length and last-write time read from the enumerated entry (ADR-0056); a fact the
-    /// enumeration could not provide is unknown, never zero or a minimum time.
+    /// Gets the kind the attributes report. The enumeration returns a <see cref="DirectoryInfo"/>
+    /// exactly when the directory attribute is set, for Windows local and WSL namespaces alike, so
+    /// the kind is derived rather than carried twice.
     /// </summary>
-    internal EntryMetadata Metadata { get; }
+    internal DirectoryEntryKind Kind => Attributes.HasFlag(FileAttributes.Directory)
+        ? DirectoryEntryKind.Directory
+        : DirectoryEntryKind.File;
+
+    /// <summary>Gets the length read from the enumerated entry, or unknown (ADR-0056).</summary>
+    internal EntrySize Size { get; }
+
+    /// <summary>Gets the last-write time read from the enumerated entry, or unknown (ADR-0056).</summary>
+    internal EntryTimestamp Modified { get; }
 }

@@ -63,28 +63,33 @@ public sealed class EntryMetadataTests
         Assert.IsNotInstanceOfType<KnownEntryTimestamp>(EntryTimestamp.Unknown);
     }
 
-    /// <summary>Proves metadata keeps each fact it was created with, independently of the other.</summary>
+    /// <summary>Proves metadata keeps each fact it was created with, independently of the others.</summary>
     [TestMethod]
-    public void CreateWhenFactsAreGivenKeepsBoth()
+    public void CreateWhenFactsAreGivenKeepsEach()
     {
         EntrySize size = EntrySize.Create(42);
         EntryTimestamp modified = EntryTimestamp.Create(new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.Zero));
 
-        EntryMetadata sizeOnly = EntryMetadata.Create(size, EntryTimestamp.Unknown);
-        EntryMetadata timeOnly = EntryMetadata.Create(EntrySize.Unknown, modified);
+        EntryMetadata sizeOnly = EntryMetadata.Create(EntryVisibility.Hidden, size, EntryTimestamp.Unknown);
+        EntryMetadata timeOnly = EntryMetadata.Create(EntryVisibility.Normal, EntrySize.Unknown, modified);
 
+        Assert.AreSame(EntryVisibility.Hidden, sizeOnly.Visibility);
         Assert.AreSame(size, sizeOnly.Size);
         Assert.AreSame(EntryTimestamp.Unknown, sizeOnly.Modified);
+        Assert.AreSame(EntryVisibility.Normal, timeOnly.Visibility);
         Assert.AreSame(EntrySize.Unknown, timeOnly.Size);
         Assert.AreSame(modified, timeOnly.Modified);
     }
 
-    /// <summary>Proves the unknown metadata reports neither fact.</summary>
+    /// <summary>Proves unmeasured metadata keeps the visibility and reports neither size nor time.</summary>
     [TestMethod]
-    public void UnknownMetadataWhenReadHasUnknownSizeAndTime()
+    public void UnmeasuredWhenVisibilityIsGivenHasUnknownSizeAndTime()
     {
-        Assert.AreSame(EntrySize.Unknown, EntryMetadata.Unknown.Size);
-        Assert.AreSame(EntryTimestamp.Unknown, EntryMetadata.Unknown.Modified);
+        EntryMetadata hidden = EntryMetadata.Unmeasured(EntryVisibility.Hidden);
+
+        Assert.AreSame(EntryVisibility.Hidden, hidden.Visibility);
+        Assert.AreSame(EntrySize.Unknown, hidden.Size);
+        Assert.AreSame(EntryTimestamp.Unknown, hidden.Modified);
     }
 
     /// <summary>Proves a directory entry carries exactly the metadata its adapter supplied.</summary>
@@ -92,13 +97,12 @@ public sealed class EntryMetadataTests
     public void DirectoryEntryCreateWhenMetadataIsGivenCarriesIt()
     {
         FileSystemPath path = Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse("C:\\root\\a.txt")).Path;
-        EntryMetadata metadata = EntryMetadata.Create(EntrySize.Create(7), EntryTimestamp.Unknown);
+        EntryMetadata metadata = EntryMetadata.Create(EntryVisibility.Normal, EntrySize.Create(7), EntryTimestamp.Unknown);
 
         DirectoryEntry entry = DirectoryEntry.Create(
             path,
             "a.txt",
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
             metadata);
 
         Assert.AreSame(metadata, entry.Metadata);

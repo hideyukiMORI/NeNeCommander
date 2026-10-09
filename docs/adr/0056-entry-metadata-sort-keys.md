@@ -16,17 +16,26 @@ must stay distinguishable from a real value.
 
 ## Decision
 
-- **`DirectoryEntry` gains one `EntryMetadata` value.** `EntryMetadata` holds `EntrySize`
-  (`KnownEntrySize` with a non-negative byte count from `EntrySize.Create`, which rejects a
-  negative count, or `EntrySize.Unknown`) and `EntryTimestamp` (`KnownEntryTimestamp` with a UTC
-  `DateTimeOffset` from `EntryTimestamp.Create`, which rejects a non-zero offset, or
-  `EntryTimestamp.Unknown`), both closed records. `EntryMetadata.Create` is its one construction
-  path and `EntryMetadata.Unknown` reports neither fact. `DirectoryEntry.Create` requires it. A
-  directory's size is `Unknown`; a value the adapter cannot read for one entry is `Unknown` and the
-  entry stays in the listing. No sentinel such as zero or the minimum time stands for absence.
-- **The adapters report, Application never infers.** `WindowsDirectoryEntrySnapshot` carries one
-  `EntryMetadata` that `WindowsDirectoryEnumerator` builds from the enumerated `FileSystemInfo`:
-  `FileInfo.Length` for a file and `LastWriteTimeUtc` for every entry. Only `IOException` and
+- **`EntryMetadata` is the bundle of provider-reported facts.** It holds the ADR-0024
+  `EntryVisibility`, an `EntrySize` (`KnownEntrySize` with a non-negative byte count from
+  `EntrySize.Create`, which rejects a negative count, or `EntrySize.Unknown`), and an
+  `EntryTimestamp` (`KnownEntryTimestamp` with a UTC `DateTimeOffset` from `EntryTimestamp.Create`,
+  which rejects a non-zero offset, or `EntryTimestamp.Unknown`), all closed records.
+  `EntryMetadata.Create(visibility, size, modified)` rejects null; `EntryMetadata.Unmeasured(visibility)`
+  is the same value with an unknown size and time. `DirectoryEntry.Create(path, name, kind,
+  metadata)` requires it, and `DirectoryEntry.Visibility` is removed: readers use
+  `entry.Metadata.Visibility`, and no delegating getter exists. `Kind` stays on the entry because it
+  decides the entry's structure, such as whether it can be entered. A directory's size is
+  `Unknown`; a value the adapter cannot read for one entry is `Unknown` and the entry stays in the
+  listing. No sentinel such as zero or the minimum time stands for absence.
+- **The adapters report, Application never infers.** `WindowsDirectoryEntrySnapshot` is
+  `(name, attributes, size, modified)`; its `Kind` is derived from the directory attribute, which
+  matches the enumerated `DirectoryInfo` for Windows local and WSL namespaces alike.
+  `WindowsDirectoryEnumerator` reads the size and time from the enumerated `FileSystemInfo`:
+  `FileInfo.Length` for a file and `LastWriteTimeUtc` for every entry. Visibility is still
+  classified by each adapter through the shared operation's `classifyVisibility(snapshot)`
+  (attributes for Windows local, the dot name for WSL), and the shared operation assembles
+  `EntryMetadata.Create(classified, snapshot.Size, snapshot.Modified)`. Only `IOException` and
   `UnauthorizedAccessException` raised while reading one entry's fact become `Unknown` for that
   fact; every other exception keeps travelling to the shared operation's existing failure path. The
   FILETIME origin the platform reports for an absent time is `Unknown`, not a 1601 timestamp. The
@@ -60,7 +69,8 @@ must stay distinguishable from a real value.
 ## Consequences
 
 - Every `DirectoryEntry.Create` call site, including tests and fixtures, supplies metadata; test
-  call sites pass `EntryMetadata.Unknown` so existing behavior tests stay readable.
+  call sites pass `EntryMetadata.Unmeasured(...)` with the visibility they used before, so existing
+  behavior tests stay readable.
 - Entries become larger by two small values; the 10,000-entry boundary is unchanged.
 - `DirectoryEntry` value equality now includes the metadata, so the same path read again with a
   changed size or time is a different entry value; identity, duplicate detection, and focus
@@ -71,7 +81,10 @@ must stay distinguishable from a real value.
 
 ## Migration and removal
 
-No stored data changes. ADR-0010 describes the read port and listing without enumerating the
+No stored data changes. This ADR performs the regrouping that the ADR-0024 Consequences announced
+for the next value `DirectoryEntry.Create` needs: `DirectoryEntry.Create` returns to four
+parameters within CS-013, and `EntryVisibility` becomes part of `EntryMetadata`. ADR-0024 itself
+is unchanged; its visibility semantics are carried as they were. ADR-0010 describes the read port and listing without enumerating the
 fields of `DirectoryEntry`, so its text needs no change. Removing a key removes its `SortKey`
 member, comparison, intent, bindings, catalog entry, status resource, and tests together; removing
 the metadata reverts `DirectoryEntry` and the shared snapshot in one change.
@@ -82,7 +95,8 @@ Application tests prove both keys in both directions, `Unknown` placement, direc
 name tie-break, toggle semantics, that `EntrySize.Create` rejects negative sizes, and that
 `EntryTimestamp.Create` rejects a non-zero offset. Infrastructure tests prove, on the owned
 temporary root, that a file's length and last-write time reach the snapshot and the entry, that a
-directory's size is `Unknown`, that only the two expected per-entry exceptions and the FILETIME
+directory's size is `Unknown`, that the attribute-derived kind matches the enumerated type for a
+file, a directory, and a junction, that only the two expected per-entry exceptions and the FILETIME
 origin become `Unknown` while any other exception propagates, and that the WSL route carries the
 same snapshot shape.
 Mapper tests prove the `Ctrl+F5`/`Ctrl+F6` matrix and that plain `F5`/`F6` behavior, including the

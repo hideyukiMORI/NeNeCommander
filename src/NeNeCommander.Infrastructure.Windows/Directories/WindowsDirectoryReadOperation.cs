@@ -86,8 +86,7 @@ internal static class WindowsDirectoryReadOperation
                     child.Path,
                     snapshot.Name,
                     snapshot.Kind,
-                    classifyVisibility(snapshot),
-                    snapshot.Metadata));
+                    EntryMetadata.Create(classifyVisibility(snapshot), snapshot.Size, snapshot.Modified)));
             }
             else
             {

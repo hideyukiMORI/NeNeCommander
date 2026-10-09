@@ -516,8 +516,7 @@ public sealed class CommanderSessionWindowAdjustmentTests
             ParsePath(location + "\\" + name),
             name,
             DirectoryEntryKind.File,
-            EntryVisibility.Normal,
-            EntryMetadata.Unknown);
+            EntryMetadata.Unmeasured(EntryVisibility.Normal));
         return Assert.IsInstanceOfType<DirectoryListingAccepted>(DirectoryListing.Create(
             ParsePath(location),
             [entry],

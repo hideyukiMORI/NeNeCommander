@@ -312,8 +312,7 @@ public sealed class EntryOrderingTests
             ParsePath("C:\\root\\" + name),
             name,
             kind,
-            EntryVisibility.Normal,
-            EntryMetadata.Create(size, modified));
+            EntryMetadata.Create(EntryVisibility.Normal, size, modified));
     }
 
     private static void AssertNames(string[] expected, IReadOnlyList<DirectoryEntry> actual)
@@ -333,7 +332,7 @@ public sealed class EntryOrderingTests
 
     private static DirectoryEntry Entry(string path, string name, DirectoryEntryKind kind)
     {
-        return DirectoryEntry.Create(ParsePath(path), name, kind, EntryVisibility.Normal, EntryMetadata.Unknown);
+        return DirectoryEntry.Create(ParsePath(path), name, kind, EntryMetadata.Unmeasured(EntryVisibility.Normal));
     }
 
     private static FileSystemPath ParsePath(string input)
