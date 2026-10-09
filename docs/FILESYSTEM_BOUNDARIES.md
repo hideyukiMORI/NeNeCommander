@@ -8,7 +8,7 @@ Filesystem behavior is selected from a parsed provider boundary and an explicit 
 
 `FileSystemPath.Parse` is the only entry from text. It returns one of these closed variants:
 
-- `WindowsLocalPath`: drive-rooted or supported Windows device path.
+- `WindowsLocalPath`: drive-rooted path.
 - `WindowsUncPath`: server and share plus validated segments.
 - `WslPath`: distribution identity plus an absolute Linux path.
 
@@ -99,7 +99,7 @@ Disconnected shares, stopped WSL distributions, removed drives, permission chang
 - Status: **active**
 - Enforcement: `IDirectoryReadPort` adapter contract tests and listing tests.
 
-A read returns the direct entries of one validated location through `IDirectoryReadPort` and never recurses or follows links. One Infrastructure.Windows provider router delegates validated `WindowsLocalPath` and `WslPath` requests to their adapters; both use one shared direct-enumeration operation and the existing I/O execution boundary. Unsupported `WindowsUncPath` remains `ProviderUnavailable`. The adapter stops at the request's entry boundary and reports a bounded listing, observes cancellation before enumeration and before each entry, and reports denied, missing, or non-directory locations as typed failures instead of an empty listing. Windows hidden/system attributes and WSL dot-prefixed names are reported as provider facts; all entries remain in the listing and visibility is a later pane transition. Every name is derived with `FileSystemPath.Child`; a rejected name is counted as unrepresentable, not shown and not silently dropped. Ordering is decided by `DirectoryListing`, never by provider enumeration order.
+A read returns the direct entries of one validated location through `IDirectoryReadPort` and never recurses or follows links. One Infrastructure.Windows provider router delegates validated `WindowsLocalPath`, `WindowsUncPath`, and `WslPath` requests to their adapters; all three use one shared direct-enumeration operation and the existing I/O execution boundary (ADR-0057). UNC reads are supported; UNC mutation, launch, entry identity, recycle, and share enumeration in the Locations picker remain `ProviderUnavailable`. A UNC read authenticates with the current Windows logon session, never retries or falls back to another provider, and reports logon or credential-conflict failures as `AccessDenied` and unreachable, timed-out, or dropped network sessions as `ProviderUnavailable`. The first enumeration call on an unreachable host blocks until the operating system's SMB timeout; cancellation is observed only before enumeration and between entries. The adapter stops at the request's entry boundary and reports a bounded listing, observes cancellation before enumeration and before each entry, and reports denied, missing, or non-directory locations as typed failures instead of an empty listing. Windows hidden/system attributes and WSL dot-prefixed names are reported as provider facts; all entries remain in the listing and visibility is a later pane transition. Every name is derived with `FileSystemPath.Child`; a rejected name is counted as unrepresentable, not shown and not silently dropped. Ordering is decided by `DirectoryListing`, never by provider enumeration order.
 
 ### FS-012 — WSL mutations are provider-local and fail closed
 

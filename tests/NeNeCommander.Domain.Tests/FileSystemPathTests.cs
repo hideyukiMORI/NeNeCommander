@@ -140,6 +140,32 @@ public sealed class FileSystemPathTests
         _ = RequireSuccess(FileSystemPath.Parse(input));
     }
 
+    /// <summary>
+    /// Proves administrative and hidden share names, which end in <c>$</c>, are ordinary UNC shares
+    /// under the existing component rules, and that the server text is kept as typed rather than
+    /// resolved (ADR-0057).
+    /// </summary>
+    [TestMethod]
+    [DataRow("\\\\server\\C$", "server", "C$")]
+    [DataRow("\\\\server\\ADMIN$\\System32", "server", "ADMIN$")]
+    [DataRow("\\\\server\\IPC$", "server", "IPC$")]
+    [DataRow("\\\\server\\print$", "server", "print$")]
+    [DataRow("\\\\server\\hidden$\\docs", "server", "hidden$")]
+    [DataRow("\\\\localhost\\C$", "localhost", "C$")]
+    [DataRow("\\\\127.0.0.1\\share", "127.0.0.1", "share")]
+    [DataRow("\\\\server.example.test\\share", "server.example.test", "share")]
+    public void ParseWhenUncShareNameIsAdministrativeOrServerIsAliasAcceptsShare(
+        string input,
+        string expectedServer,
+        string expectedShare)
+    {
+        WindowsUncPath path = Assert.IsInstanceOfType<WindowsUncPath>(
+            RequireSuccess(FileSystemPath.Parse(input)).Path);
+
+        Assert.AreEqual(expectedServer, path.Server);
+        Assert.AreEqual(expectedShare, path.Share);
+    }
+
     /// <summary>Proves missing input is rejected.</summary>
     [TestMethod]
     [DataRow(null)]

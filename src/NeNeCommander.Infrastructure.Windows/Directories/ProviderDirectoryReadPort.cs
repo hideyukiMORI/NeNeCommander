@@ -12,19 +12,28 @@ namespace NeNeCommander.Infrastructure.Windows.Directories;
 public sealed class ProviderDirectoryReadPort : IDirectoryReadPort
 {
     private readonly IDirectoryReadPort _windowsLocal;
+    private readonly IDirectoryReadPort _windowsUnc;
     private readonly IDirectoryReadPort _wsl;
 
     /// <summary>Initializes the provider router over the shared Windows I/O execution boundary.</summary>
     public ProviderDirectoryReadPort(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(new WindowsLocalDirectoryReader(executionBoundary), new WslDirectoryReader(executionBoundary))
+        : this(
+            new WindowsLocalDirectoryReader(executionBoundary),
+            new WindowsUncDirectoryReader(executionBoundary),
+            new WslDirectoryReader(executionBoundary))
     {
     }
 
-    internal ProviderDirectoryReadPort(IDirectoryReadPort windowsLocal, IDirectoryReadPort wsl)
+    internal ProviderDirectoryReadPort(
+        IDirectoryReadPort windowsLocal,
+        IDirectoryReadPort windowsUnc,
+        IDirectoryReadPort wsl)
     {
         ArgumentNullException.ThrowIfNull(windowsLocal);
+        ArgumentNullException.ThrowIfNull(windowsUnc);
         ArgumentNullException.ThrowIfNull(wsl);
         _windowsLocal = windowsLocal;
+        _windowsUnc = windowsUnc;
         _wsl = wsl;
     }
 
@@ -37,6 +46,7 @@ public sealed class ProviderDirectoryReadPort : IDirectoryReadPort
         return request.Location switch
         {
             WindowsLocalPath => _windowsLocal.ReadAsync(request, cancellationToken),
+            WindowsUncPath => _windowsUnc.ReadAsync(request, cancellationToken),
             WslPath => _wsl.ReadAsync(request, cancellationToken),
             _ => Task.FromResult(
                 DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)),

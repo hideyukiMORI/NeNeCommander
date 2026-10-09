@@ -83,7 +83,7 @@ Initial implementation starts at 100% branch coverage for Domain and Application
 - Status: **active**
 - Enforcement: CI job separation and release checklist.
 
-Live WSL, UNC, removable-drive, high-DPI, high-contrast, and packaged-app checks are explicit environment tests. A unit-test pass does not claim those behaviors were exercised. A check that has not run is recorded as not run, never as passed.
+Live WSL, UNC, removable-drive, high-DPI, high-contrast, and packaged-app checks are explicit environment tests. A unit-test pass does not claim those behaviors were exercised. A check that has not run is recorded as not run, never as passed. Live UNC proof of the ADR-0057 directory reader has not run: no live UNC tier exists yet, and the gate proves that reader only through the injected enumerator.
 
 The Windows UI release confirmation is defined by ADR-0054: hide uses the product daily at the development scale and, before a release is declared, on a day hide is present, sets one monitor to 100 or 200 percent and switches high contrast on once, exercises the panes, address, status, key hints, the `Ctrl+W` helper, and the `F2`/`F7`/`F8` modals, and restores the settings. Issue #94 tracks that single confirmation. When evidence is recorded it is taken with `eng/ui-evidence/Invoke-UiEvidence.ps1` in `-Mode Observe`, which sends no input; the launcher is not part of `eng/check.ps1` or CI, never establishes merge readiness, and records every skipped cell with its reason (ADR-0052). Narrator speech evidence, 150 and 300 percent cells, the taskbar seam, the eight-scheme matrix at every scale, and a dedicated environment are not release requirements.
 

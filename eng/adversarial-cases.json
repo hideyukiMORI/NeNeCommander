@@ -11,15 +11,16 @@
     { "id": "ADV-008", "owner": "Application", "defense": "Reject permanent deletion without capability-bound explicit confirmation." },
     { "id": "ADV-009", "owner": "Infrastructure.Windows", "defense": "Use fixed non-shell WSL discovery arguments, validate distribution output, and prevent command injection through names and path text." },
     { "id": "ADV-010", "owner": "Infrastructure.Windows", "defense": "Prevent credentials and sensitive full paths from reaching diagnostics." },
-    { "id": "ADV-011", "owner": "Application", "defense": "Bound and cancel hostile large or recursively changing Windows local and WSL enumerations." },
+    { "id": "ADV-011", "owner": "Application", "defense": "Bound and cancel hostile large or recursively changing Windows local, UNC, and WSL enumerations." },
     { "id": "ADV-012", "owner": "Infrastructure.Windows", "defense": "Reject malformed, oversized, unknown-version, partially written, concurrently changed, or reparse-redirected settings; preserve the approved ancestor anchor, reject document reparse entries, freeze owned temporary identity from its open handle, revalidate exact destination and temporary bytes, and publish through the provider-atomic install." },
     { "id": "ADV-013", "owner": "Presentation.WinUI", "defense": "Never interpret IME or text-editor input as Vim or destructive commands." },
     { "id": "ADV-014", "owner": "Application", "defense": "Reject duplicate and reentrant operation dispatch deterministically." },
     { "id": "ADV-015", "owner": "Domain", "defense": "Reject Windows device names, ambiguous roots, invalid UNC shares, overlong canonical paths, and unrepresentable provider entry segments." },
     { "id": "ADV-016", "owner": "Application", "defense": "Freeze source and destination identities when pane activation changes mid-operation." },
-    { "id": "ADV-017", "owner": "Infrastructure.Windows", "defense": "Normalize Windows local and WSL permission or availability changes without widening access or retry scope." },
+    { "id": "ADV-017", "owner": "Infrastructure.Windows", "defense": "Normalize Windows local, UNC, and WSL permission or availability changes without widening access or retry scope." },
     { "id": "ADV-018", "owner": "Application", "defense": "Stop a batch before mutation when any source fails complete preflight or capability discovery." },
     { "id": "ADV-019", "owner": "Application", "defense": "Launch only a typed Windows local file path as one Shell filename; reject unsupported providers before the port and never reinterpret path text as command syntax." },
-    { "id": "ADV-020", "owner": "Infrastructure.Windows", "defense": "Reject a Windows-side WSL entry whose replacement restores inode, kind, length, and last-write time by way of change time or link count; never share one identity between a link and its target; and refuse the 9P identity form on any other file system." }
+    { "id": "ADV-020", "owner": "Infrastructure.Windows", "defense": "Reject a Windows-side WSL entry whose replacement restores inode, kind, length, and last-write time by way of change time or link count; never share one identity between a link and its target; and refuse the 9P identity form on any other file system." },
+    { "id": "ADV-021", "owner": "Infrastructure.Windows", "defense": "Fail an unreachable, timed-out, dropped, or unauthenticated UNC share read closed as AccessDenied or ProviderUnavailable with no listing, retry, credential prompt, or fallback to another provider." }
   ]
 }
