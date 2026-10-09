@@ -114,6 +114,14 @@ public sealed class WindowsWslFileSystemTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Copy(entry, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(entry, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => fileSystem.CopyFromWindowsLocal(null!, Wsl("/owned/new")));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => fileSystem.CopyFromWindowsLocal(new FileInfo(root.Resolve("item")), null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => fileSystem.MatchesWindowsLocal(null!, Wsl("/owned/new")));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => fileSystem.MatchesWindowsLocal(new FileInfo(root.Resolve("item")), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.CreateDirectory(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(entry, null!));

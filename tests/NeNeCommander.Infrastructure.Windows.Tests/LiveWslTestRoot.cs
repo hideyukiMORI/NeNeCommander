@@ -281,7 +281,7 @@ internal sealed class LiveWslTestRoot
         string relativePath,
         IReadOnlyList<string> expectedEntries,
         FileOperationOutcome outcome,
-        WslPath source)
+        FileSystemPath source)
     {
         RequireTransferEffects(
             outcome,
@@ -540,7 +540,7 @@ internal sealed class LiveWslTestRoot
 
     private static void RequireTransferEffects(
         FileOperationOutcome outcome,
-        WslPath source,
+        FileSystemPath source,
         IReadOnlyList<FileOperationEffectKind> expected)
     {
         ArgumentNullException.ThrowIfNull(outcome);

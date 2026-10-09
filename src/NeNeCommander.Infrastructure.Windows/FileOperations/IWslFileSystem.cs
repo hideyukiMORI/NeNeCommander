@@ -1,3 +1,4 @@
+using System.IO;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -16,6 +17,10 @@ internal interface IWslFileSystem
     internal void Copy(WslFileSystemEntry source, WslPath target);
 
     internal bool Matches(WslFileSystemEntry source, WslPath target);
+
+    internal void CopyFromWindowsLocal(FileSystemInfo source, WslPath target);
+
+    internal bool MatchesWindowsLocal(FileSystemInfo source, WslPath target);
 
     internal void CreateDirectory(WslPath target);
 

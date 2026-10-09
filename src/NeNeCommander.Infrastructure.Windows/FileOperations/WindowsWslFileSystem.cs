@@ -84,6 +84,19 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         return WindowsLocalTreeCopy.Matches(ResolveEntry(source), _resolvePath(target));
     }
 
+    // WindowsLocalTreeCopy rejects a null source itself; only the target needs a guard before resolution.
+    public void CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        WindowsLocalTreeCopy.Copy(source, _resolvePath(target));
+    }
+
+    public bool MatchesWindowsLocal(FileSystemInfo source, WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return WindowsLocalTreeCopy.Matches(source, _resolvePath(target));
+    }
+
     public void CreateDirectory(WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);

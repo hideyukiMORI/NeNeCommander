@@ -350,17 +350,12 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         List<TransferConflict> conflicts = [];
         foreach (FileEntrySnapshot source in sources)
         {
-            RevalidationOutcome revalidation = WindowsLocalEntryIdentity.Revalidate(source);
+            RevalidationOutcome revalidation = RevalidateTransferSource(source);
             if (revalidation is EntryRejected rejected)
             {
                 return TransferPreflightOutcome.Rejected(rejected.Failure);
             }
             FileSystemInfo entry = ((EntryMatched)revalidation).Entry;
-            if ((entry.Attributes & FileAttributes.ReparsePoint) != 0 ||
-                WindowsLocalTreeCopy.ContainsReparsePoint(entry))
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
-            }
             if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
             {
                 return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
@@ -420,6 +415,19 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return conflicts.Count > 0
             ? TransferPreflightOutcome.Conflicted(conflicts)
             : TransferPreflightOutcome.Succeeded(plan);
+    }
+
+    /// <summary>
+    /// Revalidates one transfer source and rejects it when the entry or any entry beneath it is a
+    /// reparse point. Every transfer preflight that reads a Windows local source uses this check,
+    /// whatever the destination provider (ADR-0059).
+    /// </summary>
+    internal static RevalidationOutcome RevalidateTransferSource(FileEntrySnapshot source)
+    {
+        RevalidationOutcome revalidation = WindowsLocalEntryIdentity.Revalidate(source);
+        return revalidation is EntryMatched matched && WindowsLocalTreeCopy.ContainsReparsePoint(matched.Entry)
+            ? new EntryRejected(FileOperationFailureKind.ProviderUnavailable)
+            : revalidation;
     }
 
     private static FileSystemPath? AllocateKeepBoth(
@@ -518,7 +526,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return ProviderStepOutcome.Succeeded();
     }
 
-    private static ProviderStepOutcome WithRevalidatedEntry(
+    internal static ProviderStepOutcome WithRevalidatedEntry(
         FileEntrySnapshot source,
         Func<FileSystemInfo, ProviderStepOutcome> step)
     {

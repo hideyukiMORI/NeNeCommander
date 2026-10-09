@@ -19,6 +19,7 @@ $requiredCases = @(
     'ExecuteAsyncWhenLiveNestedCopyCompletesPreservesSourceAndTargetAsync',
     'ExecuteAsyncWhenLiveCompositeMoveCompletesDeletesSourceAfterVerifiedTargetAsync',
     'ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync',
+    'ExecuteAsyncWhenLiveWindowsTreeCopiesIntoDistributionPreservesBytesAndSourceAsync',
     'FindWhenLiveOwnedFixtureIsInspectedMatchesDistributionStatAsync',
     'FindWhenLiveOwnedLinkIsInspectedDiffersFromItsTargetAsync',
     'FindWhenLiveOwnedFixtureIsReadAgainRepeatsTheSameIdentityAsync')
