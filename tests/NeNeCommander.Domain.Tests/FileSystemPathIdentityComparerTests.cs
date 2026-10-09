@@ -9,6 +9,23 @@ namespace NeNeCommander.Domain.Tests;
 [TestClass]
 public sealed class FileSystemPathIdentityComparerTests
 {
+    /// <summary>
+    /// Proves server aliases stay distinct UNC identities: the Domain never resolves a host name, so
+    /// <c>localhost</c>, a loopback address, and a fully qualified name are different locations.
+    /// </summary>
+    [TestMethod]
+    public void EqualsWhenUncServerAliasesNameOneHostKeepsThemDistinct()
+    {
+        FileSystemPath shortName = ParsePath("\\\\localhost\\C$\\Work");
+        FileSystemPath address = ParsePath("\\\\127.0.0.1\\C$\\Work");
+        FileSystemPath qualified = ParsePath("\\\\localhost.example.test\\C$\\Work");
+        FileSystemPathIdentityComparer comparer = FileSystemPathIdentityComparer.Instance;
+
+        Assert.IsFalse(comparer.Equals(shortName, address));
+        Assert.IsFalse(comparer.Equals(shortName, qualified));
+        Assert.IsFalse(comparer.Equals(address, qualified));
+    }
+
     /// <summary>Proves Windows local and UNC identities ignore casing without crossing providers.</summary>
     [TestMethod]
     public void EqualsWhenWindowsCasingVariesUsesCaseInsensitiveProviderIdentity()

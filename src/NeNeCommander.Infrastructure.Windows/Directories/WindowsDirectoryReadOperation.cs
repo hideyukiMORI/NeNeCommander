@@ -42,6 +42,20 @@ internal static class WindowsDirectoryReadOperation
         }
     }
 
+    /// <summary>
+    /// Reports the visibility Windows itself records for a Windows local or UNC entry. The
+    /// attributes come from the enumeration, so no second query touches the volume or share, and
+    /// the entry name never takes part in the decision: a name beginning with a dot is an ordinary
+    /// Windows entry.
+    /// </summary>
+    internal static EntryVisibility ClassifyByAttributes(WindowsDirectoryEntrySnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        return (snapshot.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0
+            ? EntryVisibility.Normal
+            : EntryVisibility.Hidden;
+    }
+
     internal static DirectoryReadOutcome TranslateListingCreation(DirectoryListingCreation creation)
     {
         ArgumentNullException.ThrowIfNull(creation);
