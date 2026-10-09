@@ -13,7 +13,7 @@ NeNe Commander is a Windows 11 dual-pane file manager optimized for fast, predic
 - File operations are asynchronous, cancellable where the platform permits, observable, and never silently destructive.
 - Every user command has one intent, one validation path, one execution path, and one typed outcome.
 - Windows and WSL locations are first-class, but platform behavior is never guessed from path text after parsing.
-- Accessibility, keyboard focus, high contrast, DPI scaling, and localization are structural requirements.
+- Keyboard focus, high-contrast resource use, DPI-independent layout, and localization are structural requirements of the implementation, proven by the gate's presentation and mapper tests; the on-screen release confirmation is the single hand check defined by ADR-0054.
 - Final visual design is supplied through Claude Design or ChatGPT design tooling and integrated through stable semantic design tokens.
 - The codebase is constrained so that different competent humans or AI models converge on substantially the same implementation.
 

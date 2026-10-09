@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0054: Right-size the Windows UI release confirmation](0054-right-size-ui-release-confirmation.md)
 - [ADR-0052: Record Windows UI release evidence through one admitted-input harness](0052-ui-release-evidence-harness.md)
 - [ADR-0050: Adjust the window through one session-owned adjustment mode](0050-window-adjustment-mode.md)
 - [ADR-0051: Split transient scopes out of `CommanderSession` into scope owners](0051-commander-session-scope-owners.md)
