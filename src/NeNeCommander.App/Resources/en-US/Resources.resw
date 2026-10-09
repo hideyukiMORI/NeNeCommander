@@ -80,6 +80,15 @@
   <data name="RightPaneNumber.Text" xml:space="preserve"><value>2</value></data>
   <data name="EntryKindDirectoryLabel" xml:space="preserve"><value>DIR</value></data>
   <data name="EntryKindFileLabel" xml:space="preserve"><value></value></data>
+  <data name="PaneRowSizeUnitBytes" xml:space="preserve"><value>B</value></data>
+  <data name="PaneRowSizeUnitKilobytes" xml:space="preserve"><value>KB</value></data>
+  <data name="PaneRowSizeUnitMegabytes" xml:space="preserve"><value>MB</value></data>
+  <data name="PaneRowSizeUnitGigabytes" xml:space="preserve"><value>GB</value></data>
+  <data name="PaneRowSizeUnitTerabytes" xml:space="preserve"><value>TB</value></data>
+  <data name="PaneRowSizeFormatInteger" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="PaneRowSizeFormatDecimal" xml:space="preserve"><value>{0:0.0} {1}</value></data>
+  <data name="PaneRowModifiedFormat" xml:space="preserve"><value>yyyy-MM-dd HH:mm</value></data>
+  <data name="PaneRowMetadataUnknown" xml:space="preserve"><value>—</value></data>
   <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
   <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
   <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>

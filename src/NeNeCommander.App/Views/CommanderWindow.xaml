@@ -93,6 +93,8 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Rectangle
                         Fill="{Binding Mark.MarkerBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
@@ -127,6 +129,28 @@
                         VerticalAlignment="Center" />
                     <TextBlock
                         Grid.Column="3"
+                        AutomationProperties.Name="{x:Bind SizeText}"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{x:Bind SizeText}"
+                        TextAlignment="Right"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityRowSizeWidth}" />
+                    <TextBlock
+                        Grid.Column="4"
+                        AutomationProperties.Name="{x:Bind ModifiedText}"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{x:Bind ModifiedText}"
+                        TextAlignment="Right"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityRowModifiedWidth}" />
+                    <TextBlock
+                        Grid.Column="5"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyKindLabelSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"

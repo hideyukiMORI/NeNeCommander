@@ -37,6 +37,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
     private readonly LocationsView _locationsView;
+    private readonly EntryMetadataFormat _metadataFormat;
     private AddressEditorPresentation? _addressPresentation;
     private AddressEditorState? _defaultFileListFocusSuppressedState;
     private AddressEditorState? _leftAddressOwner;
@@ -57,24 +58,28 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     /// <param name="initialLeftLocation">Validated location read into the left pane when the shell loads.</param>
     /// <param name="initialRightLocation">Validated location read into the right pane when the shell loads.</param>
     /// <param name="defectObserver">Application callback that publishes unexpected task defects.</param>
+    /// <param name="localZone">Time zone the composition root read once; rows show modification times in it.</param>
     public CommanderWindow(
         KeyboardIntentMapper keyboardIntentMapper,
         CommanderSession session,
         FileSystemPath initialLeftLocation,
         FileSystemPath initialRightLocation,
-        Action<Exception> defectObserver)
+        Action<Exception> defectObserver,
+        TimeZoneInfo localZone)
     {
         ArgumentNullException.ThrowIfNull(keyboardIntentMapper);
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(initialLeftLocation);
         ArgumentNullException.ThrowIfNull(initialRightLocation);
         ArgumentNullException.ThrowIfNull(defectObserver);
+        ArgumentNullException.ThrowIfNull(localZone);
         _keyboardIntentMapper = keyboardIntentMapper;
         _session = session;
         _initialLeftLocation = initialLeftLocation;
         _initialRightLocation = initialRightLocation;
         _paneWork = new AsyncWorkOwner(defectObserver);
         _resources = new ResourceLoader();
+        _metadataFormat = EntryMetadataFormat.Create(localZone, _resources.GetString);
         InitializeComponent();
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
         _windowAdjustmentView = new WindowAdjustmentView(
@@ -205,7 +210,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderPanes(DualPaneSnapshot snapshot)
     {
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _presentation);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation);
         _presentation = presentation;
         RenderPane(PaneSide.Left, presentation.Left, LeftAddress, LeftStatus, LeftFileList);
         RenderPane(PaneSide.Right, presentation.Right, RightAddress, RightStatus, RightFileList);

@@ -14,26 +14,29 @@ public static class DualPanePresenter
 {
     /// <summary>Translates both panes, the active side, and the operation activity without changing any state.</summary>
     /// <param name="snapshot">Current dual-pane snapshot.</param>
+    /// <param name="format">Metadata format the host resolved once for both panes' rows.</param>
     /// <returns>A render-ready presentation.</returns>
-    public static DualPanePresentation Present(DualPaneSnapshot snapshot)
+    public static DualPanePresentation Present(DualPaneSnapshot snapshot, EntryMetadataFormat format)
     {
-        return Present(snapshot, null);
+        return Present(snapshot, format, null);
     }
 
     internal static DualPanePresentation Present(
         DualPaneSnapshot snapshot,
+        EntryMetadataFormat format,
         DualPanePresentation? previous)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(format);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
         KeyboardContext inputContext = snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict
             ? KeyboardContext.Modal
             : KeyboardContext.FileList;
         return new DualPanePresentation(
-            PresentPane(snapshot.Left, leftFrame, previous?.Left),
+            PresentPane(snapshot.Left, leftFrame, format, previous?.Left),
             leftFrame,
-            PresentPane(snapshot.Right, rightFrame, previous?.Right),
+            PresentPane(snapshot.Right, rightFrame, format, previous?.Right),
             rightFrame,
             snapshot.ActiveSide,
             TranslateOperation(snapshot.Operation),
@@ -48,11 +51,12 @@ public static class DualPanePresenter
     private static PanePresentation PresentPane(
         PaneSnapshot snapshot,
         PaneFrame frame,
+        EntryMetadataFormat format,
         PanePresentation? previous)
     {
         return previous is null
-            ? PaneListingPresenter.Present(snapshot, frame)
-            : PaneListingPresenter.Present(snapshot, frame, previous);
+            ? PaneListingPresenter.Present(snapshot, frame, format)
+            : PaneListingPresenter.Present(snapshot, frame, format, previous);
     }
 
     /// <summary>
