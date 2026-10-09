@@ -107,6 +107,8 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
 | window adjustment decisions | `WindowAdjustmentSession` with `WindowAdjustmentPlanner` |
+| Windows drive enumeration | `IDriveCatalog` implemented only by `WindowsDriveCatalog` through the Windows local I/O execution boundary |
+| Locations picker state, admission, focus, and qualified validation | `LocationsSession` over `IDriveCatalog` and `IWslDistributionCatalog` |
 | window adjustment mode synchronous input route | `CommanderSession.AdjustWindow` and `CommanderSession.LeaveWindowAdjustment` |
 | color scheme | scheme resource dictionary merged by the composition root |
 | focused file launch | `PaneSession` provider decision through the `IFileLauncher` boundary |

@@ -43,7 +43,9 @@ public static class KeyHintPresenter
     {
         return context == KeyboardContext.FileList
             ? CreateFileListLabels()
-            : context == KeyboardContext.Modal ? CreateModalLabels() : [];
+            : context == KeyboardContext.Modal
+                ? CreateModalLabels()
+                : context == KeyboardContext.Locations ? CreateLocationsLabels() : [];
     }
 
     private static IReadOnlyList<UserIntent> CreateFileListLabels()
@@ -60,6 +62,17 @@ public static class KeyHintPresenter
             UserIntent.OpenCommandPalette,
             UserIntent.OpenBookmarks,
             UserIntent.OpenSettings,
+            UserIntent.Escape,
+        ];
+    }
+
+    private static IReadOnlyList<UserIntent> CreateLocationsLabels()
+    {
+        return
+        [
+            UserIntent.MoveNext,
+            UserIntent.MovePrevious,
+            UserIntent.Confirm,
             UserIntent.Escape,
         ];
     }

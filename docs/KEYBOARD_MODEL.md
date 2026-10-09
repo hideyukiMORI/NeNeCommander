@@ -54,13 +54,14 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `Ctrl+P` | open the session-owned command palette from the file list or navigation surface |
 | `Ctrl+B` | open the session-owned bookmark manager from the file list or navigation surface |
 | `Ctrl+W` | open the session-owned window adjustment mode from the file list or navigation surface |
+| `Ctrl+G` | open the session-owned Locations picker of drives and WSL distribution roots from the file list or navigation surface |
 | `Ctrl+1` through `Ctrl+9` | navigate the active pane to the bookmark assigned to that fixed slot; an unassigned slot performs no read |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
 ## Window adjustment mode
 
-`Ctrl+W` opens one persistent window adjustment mode (ADR-0050). It opens only when settings, bookmarks, address editing, and the command palette are closed, no file operation is running or awaiting confirmation, name, or conflict, and no pane read or launch is in flight. While it is open the host's keyboard context is `WindowAdjustment`, which the mode owns through its own dedicated table rather than through `KeyboardIntentMapper.BindingsFor`:
+`Ctrl+W` opens one persistent window adjustment mode (ADR-0050). It opens only when settings, bookmarks, the Locations picker, address editing, and the command palette are closed, no file operation is running or awaiting confirmation, name, or conflict, and no pane read or launch is in flight. While it is open the host's keyboard context is `WindowAdjustment`, which the mode owns through its own dedicated table rather than through `KeyboardIntentMapper.BindingsFor`:
 
 | Input | Action |
 |---|---|
@@ -77,6 +78,19 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 Letters and `+` and `-` are produced characters with Control and Alt absent (KBD-003); `=` is not an alias. Auto-repeat is accepted for move, enlarge, and shrink; a repeated `m`, `r`, `Escape`, or `Ctrl+W` is consumed without an action. In the `WindowAdjustment` context a declared key yields its action; an event the translator does not identify, which includes the raw virtual-key event that precedes a produced character, passes through to the mode's focus sink, which handles nothing; and every identified key the mode does not declare, and every declared key under an undeclared modifier, is consumed, so no pane, editor, or native control receives it. `Tab` is consumed, so focus cannot leave the mode. The helper's hints are generated from the same table, one hint per group with the arrow aliases and `Ctrl+W` shown under no cap of their own.
 
 `Escape` keeps its order. The mode cannot open while a file operation is running or awaiting a decision, so cancelling a running operation still comes first; inside the mode `Escape` and `Ctrl+W` have one meaning, leaving the mode, and leaving has no revert because every applied step already happened on the desktop.
+
+## Locations picker
+
+`Ctrl+G` opens one session-owned Locations picker (ADR-0055) under the same admission as the bookmark manager: settings, bookmarks, address editing, the command palette, and the window adjustment mode are closed, no file operation is running or awaiting confirmation, name, or conflict, and no pane read or launch is in flight. While it is loading or open the host's keyboard context is `Locations`, declared in the canonical table of `KeyboardIntentMapper`:
+
+| Input | Intent |
+|---|---|
+| `j` or `Down` | focus the next entry; the focus stops at the last entry |
+| `k` or `Up` | focus the previous entry; the focus stops at the first entry |
+| `Enter` | navigate the pane active at open to the focused root through the single pane navigation route, closing the picker first |
+| `Escape` | close the picker without navigating |
+
+Letters are produced characters with Control and Alt absent (KBD-003). The raw virtual-key event that precedes a produced character passes through; every other identified key, every declared key under an undeclared modifier, and a repeated `Enter` are consumed, so no pane, editor, or native control receives them and a held `Enter` selects at most once. While both sections are loading every intent is frozen and nothing is routed. Plain `g` and `G` keep their file-list meaning, and `Ctrl+G` cancels a pending `gg` chord like any other declared key.
 
 ## Context precedence
 

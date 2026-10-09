@@ -1,5 +1,6 @@
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Locations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
@@ -101,6 +102,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned window adjustment mode.</summary>
     public static UserIntent OpenWindowAdjustment { get; } = new OpenWindowAdjustmentIntent();
 
+    /// <summary>Gets the intent to open the session-owned Locations picker of drives and WSL roots.</summary>
+    public static UserIntent OpenLocations { get; } = new OpenLocationsIntent();
+
     /// <summary>Gets direct bookmark-navigation slot 1.</summary>
     public static UserIntent BookmarkSlotOne { get; } =
         new BookmarkShortcutSelection(BookmarkShortcutSlot.One);
@@ -179,6 +183,18 @@ public abstract record UserIntent
         return new CommandPaletteCancellation(expectedState);
     }
 
+    /// <summary>Creates a Locations entry selection qualified by the exact open state that showed it.</summary>
+    public static UserIntent SelectLocation(LocationsOpen expectedState, LocationItem item)
+    {
+        return new LocationSelection(expectedState, item);
+    }
+
+    /// <summary>Creates a Locations picker cancellation qualified by the exact open state that owns it.</summary>
+    public static UserIntent CancelLocations(LocationsOpen expectedState)
+    {
+        return new LocationsCancellation(expectedState);
+    }
+
     /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
     public static UserIntent ResolveConflict(
         TransferConflictDecision decision,
@@ -243,4 +259,5 @@ public abstract record UserIntent
     private sealed record OpenCommandPaletteIntent : UserIntent;
     private sealed record OpenBookmarksIntent : UserIntent;
     private sealed record OpenWindowAdjustmentIntent : UserIntent;
+    private sealed record OpenLocationsIntent : UserIntent;
 }

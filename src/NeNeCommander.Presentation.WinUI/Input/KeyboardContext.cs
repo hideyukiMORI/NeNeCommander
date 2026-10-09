@@ -24,6 +24,9 @@ public abstract record KeyboardContext
     /// <summary>Gets the window-adjustment context that owns movement, sizing, and leaving the mode.</summary>
     public static KeyboardContext WindowAdjustment { get; } = new WindowAdjustmentContext();
 
+    /// <summary>Gets the Locations picker context that owns focus movement, selection, and closing.</summary>
+    public static KeyboardContext Locations { get; } = new LocationsContext();
+
     private KeyboardContext()
     {
     }
@@ -35,4 +38,5 @@ public abstract record KeyboardContext
     private sealed record ModalContext : KeyboardContext;
     private sealed record CommandPaletteContext : KeyboardContext;
     private sealed record WindowAdjustmentContext : KeyboardContext;
+    private sealed record LocationsContext : KeyboardContext;
 }

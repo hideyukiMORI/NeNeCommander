@@ -56,6 +56,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.FileList, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.FileList, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
+        new(KeyboardContext.FileList, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.FileList, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.FileList, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -77,6 +78,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
         new(KeyboardContext.NavigationSurface, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.NavigationSurface, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F3, KeyboardModifier.Control, UserIntent.SortByName),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F4, KeyboardModifier.Control, UserIntent.SortByExtension),
         new(KeyboardContext.NavigationSurface, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
@@ -91,6 +93,12 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.Modal, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Modal, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.TextEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.Locations, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.Locations, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.Locations, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.Locations, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.Locations, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.Locations, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.AddressEntry, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.AddressEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.AddressEntry, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
@@ -206,6 +214,11 @@ public sealed class KeyboardIntentMapper
             _pendingChordStartedAt = null;
             return MapWindowAdjustmentKey(input);
         }
+        if (input.Context == KeyboardContext.Locations)
+        {
+            _pendingChordStartedAt = null;
+            return MapLocationsKey(input);
+        }
         if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
         {
             _pendingChordStartedAt = null;
@@ -319,6 +332,26 @@ public sealed class KeyboardIntentMapper
         return binding is null || IsIgnoredWindowRepeat(binding.Action, input.RepeatState)
             ? new KeyboardConsumed()
             : new MappedWindowAdjustmentAction(binding.Action);
+    }
+
+    /// <summary>
+    /// Maps one key while the Locations picker owns input (KBD-002). A declared key with its declared
+    /// modifier yields its intent and a repeated <c>Enter</c> is consumed, so a held key selects at
+    /// most once; every other identified key is consumed, so no pane or native control receives it.
+    /// The raw virtual-key event that precedes a produced character passes through, because
+    /// <c>j</c> and <c>k</c> are produced characters (KBD-003).
+    /// </summary>
+    private static KeyboardMappingOutcome MapLocationsKey(KeyboardInput input)
+    {
+        if (input.Key == KeyboardKey.Other)
+        {
+            return new KeyboardPassThrough();
+        }
+        KeyboardMappingOutcome declared = input.Key == KeyboardKey.Enter &&
+            input.RepeatState == KeyRepeatState.Repeated
+                ? new KeyboardConsumed()
+                : MapDeclaredKey(input);
+        return declared is KeyboardPassThrough ? new KeyboardConsumed() : declared;
     }
 
     private static bool IsIgnoredWindowRepeat(

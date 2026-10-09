@@ -263,11 +263,13 @@ public sealed class NullGuardTests
         TransientScopeOwners scopes = new(
             new AddressEditorSession(),
             new CommandPaletteSession(),
-            new WindowAdjustmentSession());
+            new WindowAdjustmentSession(),
+            new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()));
         TransientScopeSnapshot scopeStates = new(
             AddressEditorState.Closed,
             CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed);
+            WindowAdjustmentState.Closed,
+            LocationsState.Closed);
         ConstructorInfo commanderConstructor = typeof(CommanderSession).GetConstructor(
             [typeof(DualPaneSession), typeof(SettingsSession), typeof(TransientScopeOwners)]) ??
             throw new AssertFailedException("The public application-session constructor was not found.");
@@ -360,7 +362,8 @@ public sealed class NullGuardTests
             new TransientScopeOwners(
                 new AddressEditorSession(),
                 new CommandPaletteSession(),
-                new WindowAdjustmentSession()));
+                new WindowAdjustmentSession(),
+                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
 
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => commander.NavigateAsync(null!, ParsePath("C:\\source"), CancellationToken.None));
@@ -406,7 +409,8 @@ public sealed class NullGuardTests
             new TransientScopeOwners(
                 new AddressEditorSession(),
                 new CommandPaletteSession(),
-                new WindowAdjustmentSession()));
+                new WindowAdjustmentSession(),
+                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
         CommanderSnapshot opened = await commander.HandleAsync(
             UserIntent.OpenSettings,
             new RecordingCommanderObserver(),
@@ -455,21 +459,31 @@ public sealed class NullGuardTests
         AddressEditorSession addressEditor = new();
         CommandPaletteSession commandPalette = new();
         WindowAdjustmentSession windowAdjustment = new();
+        LocationsSession locations = new(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog());
 
-        AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette, windowAdjustment));
-        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!, windowAdjustment));
-        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, null!));
+        AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette, windowAdjustment, locations));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!, windowAdjustment, locations));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, null!, locations));
+        AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, windowAdjustment, null!));
         AssertNullGuard(() => _ = new TransientScopeSnapshot(
             null!,
             CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed));
+            WindowAdjustmentState.Closed,
+            LocationsState.Closed));
         AssertNullGuard(() => _ = new TransientScopeSnapshot(
             AddressEditorState.Closed,
             null!,
-            WindowAdjustmentState.Closed));
+            WindowAdjustmentState.Closed,
+            LocationsState.Closed));
         AssertNullGuard(() => _ = new TransientScopeSnapshot(
             AddressEditorState.Closed,
             CommandPaletteState.Closed,
+            null!,
+            LocationsState.Closed));
+        AssertNullGuard(() => _ = new TransientScopeSnapshot(
+            AddressEditorState.Closed,
+            CommandPaletteState.Closed,
+            WindowAdjustmentState.Closed,
             null!));
         AssertNullGuard(() => _ = commandPalette.Open(null!, InteractionOwnership.ScopeOwnsInput));
         AssertNullGuard(() => _ = commandPalette.Open(snapshot, null!));

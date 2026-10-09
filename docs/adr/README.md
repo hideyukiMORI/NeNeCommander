@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0055: Discover drives and WSL roots through one session-owned Locations picker](0055-locations-picker.md)
 - [ADR-0054: Right-size the Windows UI release confirmation](0054-right-size-ui-release-confirmation.md)
 - [ADR-0053: Sort each pane through one ordering projection](0053-pane-sort-order.md)
 - [ADR-0052: Record Windows UI release evidence through one admitted-input harness](0052-ui-release-evidence-harness.md)

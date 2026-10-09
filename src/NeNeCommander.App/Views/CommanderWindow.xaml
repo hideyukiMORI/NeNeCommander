@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bookmarks="using:NeNeCommander.Presentation.WinUI.Bookmarks"
     xmlns:commands="using:NeNeCommander.Presentation.WinUI.Commands"
+    xmlns:locations="using:NeNeCommander.Presentation.WinUI.Locations"
     xmlns:panes="using:NeNeCommander.Presentation.WinUI.Panes"
     xmlns:settings="using:NeNeCommander.Presentation.WinUI.Settings"
     xmlns:views="using:NeNeCommander.App.Views"
@@ -289,6 +290,21 @@
                     <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind PathText}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="2" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind CategoryText}" />
                     <TextBlock Grid.Column="3" FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{Binding ShortcutLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="LocationRowTemplate" x:DataType="locations:LocationRow">
+                <Grid
+                    AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                    AutomationProperties.Name="{x:Bind AutomationName}"
+                    ColumnSpacing="{StaticResource SpacingRowGap}"
+                    Padding="{StaticResource SpacingRowContent}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind DetailText}" TextTrimming="CharacterEllipsis" />
                 </Grid>
             </DataTemplate>
 
@@ -920,6 +936,81 @@
                     </Border>
                     <ItemsControl
                         x:Name="CommandPaletteKeyHints"
+                        Grid.Row="5"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="LocationsOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="LocationsOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="20"
+            Visibility="Collapsed">
+            <Border
+                x:Name="LocationsModal"
+                AutomationProperties.AutomationId="LocationsModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Stretch"
+                MaxHeight="{Binding ActualHeight, ElementName=LocationsOverlay}"
+                Padding="{StaticResource SpacingWindowOuter}"
+                VerticalAlignment="Top">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Uid="LocationsTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" />
+                    <TextBlock
+                        x:Name="LocationsStatus"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="LocationsStatus"
+                        AutomationProperties.LiveSetting="Polite"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="LocationsDrivesStatus"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="LocationsDrivesStatus"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="LocationsWslStatus"
+                        Grid.Row="3"
+                        AutomationProperties.AutomationId="LocationsWslStatus"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <ListView
+                        x:Name="LocationsList"
+                        x:Uid="LocationsList"
+                        Grid.Row="4"
+                        AutomationProperties.AutomationId="LocationsList"
+                        IsItemClickEnabled="True"
+                        ItemTemplate="{StaticResource LocationRowTemplate}"
+                        SelectionMode="Single" />
+                    <ItemsControl
+                        x:Name="LocationsKeyHints"
                         Grid.Row="5"
                         IsTabStop="False"
                         ItemTemplate="{StaticResource KeyHintTemplate}">
