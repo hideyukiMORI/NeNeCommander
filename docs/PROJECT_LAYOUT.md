@@ -22,6 +22,7 @@ eng/
   check.ps1
   conformance.ps1
   prove-gates.ps1
+  ui-evidence/
 docs/
   adr/
   quality/
@@ -39,6 +40,8 @@ docs/
 | executable startup, WinUI framework boundary, semantic XAML resources, dependency composition | `NeNeCommander.App` |
 | automated behavioral proof | matching project under `tests/` |
 | repository policy enforcement | `eng/` and `NeNeCommander.Architecture.Tests` |
+
+`eng/ui-evidence/` holds the Issue #94 UI release evidence harness: the `Invoke-UiEvidence.ps1` entry, its `UiEvidence.psm1` functions, the `cells.json` matrix, and the Win32-free `selftest.ps1`. Like `eng/run-live-wsl-tests.ps1` it is an environment-tier launcher outside `eng/check.ps1`; it is not a gate and adds no production hook.
 
 ## Folder law
 
