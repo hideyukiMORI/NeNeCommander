@@ -118,6 +118,12 @@ public abstract record KeyboardKey
     /// <summary>Gets the F2 virtual key.</summary>
     public static KeyboardKey F2 { get; } = new F2Key();
 
+    /// <summary>Gets the F3 virtual key.</summary>
+    public static KeyboardKey F3 { get; } = new F3Key();
+
+    /// <summary>Gets the F4 virtual key.</summary>
+    public static KeyboardKey F4 { get; } = new F4Key();
+
     /// <summary>Gets the F5 virtual key.</summary>
     public static KeyboardKey F5 { get; } = new F5Key();
 
@@ -291,6 +297,16 @@ public abstract record KeyboardKey
     private sealed record F2Key : KeyboardKey
     {
         public override string LabelResourceKey => "KeyLabelF2";
+    }
+
+    private sealed record F3Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF3";
+    }
+
+    private sealed record F4Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF4";
     }
 
     private sealed record F5Key : KeyboardKey

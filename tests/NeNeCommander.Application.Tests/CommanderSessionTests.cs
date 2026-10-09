@@ -1113,6 +1113,8 @@ public sealed class CommanderSessionTests
                 UserIntent.ToggleHiddenItems,
                 UserIntent.ActivateOtherPane,
                 UserIntent.OpenSettings,
+                UserIntent.SortByName,
+                UserIntent.SortByExtension,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
         Assert.AreSame(CommandAvailability.Available, Candidate(palette, UserIntent.OpenFocused).Availability);
@@ -1262,6 +1264,79 @@ public sealed class CommanderSessionTests
         OperationAwaitingName awaiting = Assert.IsInstanceOfType<OperationAwaitingName>(dispatched.Panes.Operation);
         Assert.AreSame(OperationKind.Rename, awaiting.Kind);
         Assert.AreEqual("C:\\left\\item.txt", awaiting.Subject.CanonicalText);
+    }
+
+    /// <summary>Proves both sort commands are available and a palette submission reaches the active pane once.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenPaletteSubmitsSortCommandReordersActivePaneAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).Scopes.CommandPalette);
+
+        CommanderSnapshot dispatched = await session.HandleAsync(
+            UserIntent.SubmitCommand(open, UserIntent.SortByExtension),
+            observer,
+            CancellationToken.None);
+
+        Assert.AreSame(CommandAvailability.Available, Candidate(open, UserIntent.SortByName).Availability);
+        Assert.AreSame(CommandAvailability.Available, Candidate(open, UserIntent.SortByExtension).Availability);
+        Assert.AreSame(CommandPaletteState.Closed, dispatched.Scopes.CommandPalette);
+        PaneSortOrder order = Assert.IsInstanceOfType<PaneContentListed>(dispatched.Panes.Left.Content).State.SortOrder;
+        Assert.AreSame(SortKey.Extension, order.Key);
+        Assert.AreSame(SortDirection.Ascending, order.Direction);
+        Assert.HasCount(1, left.Requests);
+    }
+
+    /// <summary>Proves settings, the palette, and the window mode keep a sort intent away from the panes.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenScopeOwnsInputIgnoresSortIntentAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            right,
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
+
+        _ = await session.HandleAsync(UserIntent.OpenSettings, observer, CancellationToken.None);
+        CommanderSnapshot inSettings = await session.HandleAsync(UserIntent.SortByName, observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.Escape, observer, CancellationToken.None);
+        CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
+            UserIntent.OpenCommandPalette,
+            observer,
+            CancellationToken.None)).Scopes.CommandPalette);
+        CommanderSnapshot inPalette = await session.HandleAsync(UserIntent.SortByName, observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.CancelCommandPalette(open), observer, CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenWindowAdjustment, observer, CancellationToken.None);
+        CommanderSnapshot inWindowMode = await session.HandleAsync(UserIntent.SortByExtension, observer, CancellationToken.None);
+
+        Assert.AreSame(SettingsEditorState.Open, inSettings.Settings.Editor);
+        Assert.AreSame(open, inPalette.Scopes.CommandPalette);
+        _ = Assert.IsInstanceOfType<WindowAdjustmentOpen>(inWindowMode.Scopes.WindowAdjustment);
+        foreach (CommanderSnapshot snapshot in new[] { inSettings, inPalette, inWindowMode })
+        {
+            Assert.AreEqual(
+                PaneSortOrder.Default,
+                Assert.IsInstanceOfType<PaneContentListed>(snapshot.Panes.Left.Content).State.SortOrder);
+        }
     }
 
     /// <summary>Proves settings and address commands transfer ownership to their existing editors.</summary>
@@ -1898,7 +1973,7 @@ public sealed class CommanderSessionTests
         Assert.AreSame(palette, managerRejected.Scopes.CommandPalette);
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(15, CommandCatalog.Commands);
+        Assert.HasCount(17, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.OpenBookmarks));
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);

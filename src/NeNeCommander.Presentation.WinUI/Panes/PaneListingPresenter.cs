@@ -77,10 +77,17 @@ public static class PaneListingPresenter
             : CreateListed(snapshot, listed, frame);
     }
 
+    /// <summary>
+    /// Decides whether the previous rows still hold the visible set in its order. The same
+    /// listing with the same visible count holds the same entries, because every visible set is a
+    /// subset of that listing; the same sort order then places them in the same order. A new
+    /// order rebuilds every row (ADR-0053).
+    /// </summary>
     private static bool CanReuseRows(PaneContentListed listed, PanePresentation previous)
     {
         return previous.SourceSnapshot.Content is PaneContentListed prior &&
             ReferenceEquals(prior.Listing, listed.Listing) &&
+            prior.State.SortOrder == listed.State.SortOrder &&
             previous.Rows.Count == listed.State.VisibleEntries.Count;
     }
 

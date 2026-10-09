@@ -21,6 +21,11 @@
   <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>このファイルを開けるアプリがありません</value></data>
   <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>このファイルを開けません</value></data>
   <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>有効な絶対パスを入力してください</value></data>
+  <data name="PaneStatusSortFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="PaneSortNameAscending" xml:space="preserve"><value>名前 ↑</value></data>
+  <data name="PaneSortNameDescending" xml:space="preserve"><value>名前 ↓</value></data>
+  <data name="PaneSortExtensionAscending" xml:space="preserve"><value>拡張子 ↑</value></data>
+  <data name="PaneSortExtensionDescending" xml:space="preserve"><value>拡張子 ↓</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>移動しています…</value></data>
@@ -90,6 +95,8 @@
   <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
   <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
   <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
+  <data name="KeyLabelCtrlF3" xml:space="preserve"><value>Ctrl+F3</value></data>
+  <data name="KeyLabelCtrlF4" xml:space="preserve"><value>Ctrl+F4</value></data>
   <data name="KeyLabelCtrlB" xml:space="preserve"><value>Ctrl+B</value></data>
   <data name="KeyLabelCtrl1" xml:space="preserve"><value>Ctrl+1</value></data>
   <data name="KeyLabelCtrl2" xml:space="preserve"><value>Ctrl+2</value></data>
@@ -121,6 +128,8 @@
   <data name="KeyLabelSpace" xml:space="preserve"><value>Space</value></data>
   <data name="KeyLabelEscape" xml:space="preserve"><value>Esc</value></data>
   <data name="KeyLabelF2" xml:space="preserve"><value>F2</value></data>
+  <data name="KeyLabelF3" xml:space="preserve"><value>F3</value></data>
+  <data name="KeyLabelF4" xml:space="preserve"><value>F4</value></data>
   <data name="KeyLabelF5" xml:space="preserve"><value>F5</value></data>
   <data name="KeyLabelF6" xml:space="preserve"><value>F6</value></data>
   <data name="KeyLabelF7" xml:space="preserve"><value>F7</value></data>
@@ -223,6 +232,8 @@
   <data name="IntentLabelFocusAddress" xml:space="preserve"><value>アドレスを編集</value></data>
   <data name="IntentLabelToggleSelection" xml:space="preserve"><value>選択を切り替え</value></data>
   <data name="IntentLabelOpenCommandPalette" xml:space="preserve"><value>コマンド</value></data>
+  <data name="IntentLabelSortByName" xml:space="preserve"><value>名前で並べ替え</value></data>
+  <data name="IntentLabelSortByExtension" xml:space="preserve"><value>拡張子で並べ替え</value></data>
   <data name="CommandPaletteSearch.AutomationProperties.Name" xml:space="preserve"><value>コマンドを検索</value></data>
   <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>コマンドを検索</value></data>
   <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>コマンド候補</value></data>

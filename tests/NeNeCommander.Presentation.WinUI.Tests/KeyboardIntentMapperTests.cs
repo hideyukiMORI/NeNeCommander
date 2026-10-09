@@ -362,6 +362,77 @@ public sealed class KeyboardIntentMapperTests
             mapper.Map(Input(KeyboardKey.J, KeyboardContext.NavigationSurface)));
     }
 
+    /// <summary>
+    /// Proves Ctrl+F3 and Ctrl+F4 sort only from the file list and the navigation surface, plain
+    /// and otherwise modified F3 and F4 pass through there, and every owning context keeps them.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-013")]
+    public void MapWhenSortKeysArriveMapsControlChordOnlyOnPaneSurfaces()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardContext[] paneSurfaces = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
+        KeyboardContext[] owningContexts =
+        [
+            KeyboardContext.Modal,
+            KeyboardContext.TextEntry,
+            KeyboardContext.AddressEntry,
+            KeyboardContext.CommandPalette,
+        ];
+
+        foreach (KeyboardContext context in paneSurfaces)
+        {
+            AssertMaps(mapper, Input(KeyboardKey.F3, KeyboardModifier.Control, context), UserIntent.SortByName);
+            AssertMaps(mapper, Input(KeyboardKey.F4, KeyboardModifier.Control, context), UserIntent.SortByExtension);
+            foreach (KeyboardModifier modifier in new[] { KeyboardModifier.None, KeyboardModifier.Alt, KeyboardModifier.Other })
+            {
+                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F3, modifier, context)));
+                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F4, modifier, context)));
+            }
+        }
+        foreach (KeyboardContext context in owningContexts)
+        {
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+                mapper.Map(Input(KeyboardKey.F3, KeyboardModifier.Control, context)));
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
+                mapper.Map(Input(KeyboardKey.F4, KeyboardModifier.Control, context)));
+        }
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
+            mapper.Map(Input(KeyboardKey.F3, KeyboardModifier.Control, KeyboardContext.WindowAdjustment)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
+            mapper.Map(Input(KeyboardKey.F4, KeyboardModifier.Control, KeyboardContext.WindowAdjustment)));
+    }
+
+    /// <summary>Proves plain F3 leaves a pending chord alone and Ctrl+F4 cancels it before sorting.</summary>
+    [TestMethod]
+    public void MapWhenSortKeyFollowsGKeepsOrCancelsChordByDeclaration()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F3)));
+        AssertMaps(mapper, Input(KeyboardKey.LowerG), UserIntent.FocusFirst);
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+        AssertMaps(mapper, Input(KeyboardKey.F4, KeyboardModifier.Control), UserIntent.SortByExtension);
+        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+    }
+
+    /// <summary>Proves the raw F3 and F4 virtual keys translate under Control and name their chord caps.</summary>
+    [TestMethod]
+    public void TranslateKeyDataWhenSortChordArrivesMapsToSortIntentAndChordCap()
+    {
+        AssertRawControlKey(VirtualKey.F3, KeyboardKey.F3, UserIntent.SortByName);
+        AssertRawControlKey(VirtualKey.F4, KeyboardKey.F4, UserIntent.SortByExtension);
+
+        KeyBinding byName = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
+            .Single(binding => binding.Intent == UserIntent.SortByName);
+        KeyBinding byExtension = KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface)
+            .Single(binding => binding.Intent == UserIntent.SortByExtension);
+        Assert.AreEqual("KeyLabelCtrlF3", byName.KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlF4", byExtension.KeyLabelResourceKey);
+    }
+
     /// <summary>Proves unmapped keys and modifier combinations pass through.</summary>
     [TestMethod]
     public void MapWhenKeyOrModifierIsUnmappedPassesThrough()
@@ -391,6 +462,8 @@ public sealed class KeyboardIntentMapperTests
         AssertTranslatedVirtualKey(VirtualKey.Tab, KeyboardKey.Tab);
         AssertTranslatedVirtualKey(VirtualKey.Escape, KeyboardKey.Escape);
         AssertTranslatedVirtualKey(VirtualKey.F2, KeyboardKey.F2);
+        AssertTranslatedVirtualKey(VirtualKey.F3, KeyboardKey.F3);
+        AssertTranslatedVirtualKey(VirtualKey.F4, KeyboardKey.F4);
         AssertTranslatedVirtualKey(VirtualKey.F5, KeyboardKey.F5);
         AssertTranslatedVirtualKey(VirtualKey.F6, KeyboardKey.F6);
         AssertTranslatedVirtualKey(VirtualKey.F7, KeyboardKey.F7);
@@ -583,8 +656,8 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(40, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(21, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(42, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(23, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
@@ -628,6 +701,8 @@ public sealed class KeyboardIntentMapperTests
         Assert.AreEqual("KeyLabelSpace", KeyboardKey.Space.LabelResourceKey);
         Assert.AreEqual("KeyLabelEscape", KeyboardKey.Escape.LabelResourceKey);
         Assert.AreEqual("KeyLabelF2", KeyboardKey.F2.LabelResourceKey);
+        Assert.AreEqual("KeyLabelF3", KeyboardKey.F3.LabelResourceKey);
+        Assert.AreEqual("KeyLabelF4", KeyboardKey.F4.LabelResourceKey);
         Assert.AreEqual("KeyLabelF5", KeyboardKey.F5.LabelResourceKey);
         Assert.AreEqual("KeyLabelF6", KeyboardKey.F6.LabelResourceKey);
         Assert.AreEqual("KeyLabelF7", KeyboardKey.F7.LabelResourceKey);
