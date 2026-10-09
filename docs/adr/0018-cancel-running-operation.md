@@ -26,6 +26,7 @@ Date: 2026-09-04
 - Cancellation takes effect between steps, so a large single entry finishes its current copy before the operation stops.
 - Effects completed before cancellation remain on disk; the status line names the cancelled outcome and the panes show the result.
 - Progress reporting and a visible cancel affordance remain later slices.
+- Until ADR-0058 the window's `AsyncWorkOwner` (ADR-0030) rejected the `Escape` while the operation's work was in flight, so this cancellation was reachable through the session only; ADR-0058's single `Escape` interrupt delivers it from the window.
 
 ## Migration and removal
 

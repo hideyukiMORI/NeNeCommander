@@ -192,6 +192,34 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowMark.FocusInActivePane, updated.Rows[1].Mark);
     }
 
+    /// <summary>Proves an abandoned read maps to its own closed status, not a failure or cancellation, with or without a listing.</summary>
+    [TestMethod]
+    public async Task PresentWhenReadIsAbandonedTranslatesActivity()
+    {
+        PaneSession unlisted = CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> unlistedRead);
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(
+            CreateListing("C:\\root", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0)));
+        TaskCompletionSource<DirectoryReadOutcome> listedRead = port.EnqueuePending();
+        PaneSession listed = CreateSession(port);
+        _ = await listed.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        _ = listed.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
+
+        PanePresentation absent = PaneListingPresenter.Present(
+            await unlisted.HandleAsync(UserIntent.Escape, CancellationToken.None),
+            PaneFrame.Active, TestMetadataFormats.Utc);
+        PanePresentation kept = PaneListingPresenter.Present(
+            await listed.HandleAsync(UserIntent.Escape, CancellationToken.None),
+            PaneFrame.Active, TestMetadataFormats.Utc);
+
+        Assert.AreSame(PaneStatus.ReadAbandoned, absent.Status);
+        Assert.AreEqual("C:\\pending", absent.AddressText);
+        Assert.IsEmpty(absent.Rows);
+        Assert.AreSame(PaneStatus.ReadAbandoned, kept.Status);
+        Assert.HasCount(2, kept.Rows);
+        unlistedRead.SetResult(DirectoryReadOutcome.Cancelled());
+        listedRead.SetResult(DirectoryReadOutcome.Cancelled());
+    }
     /// <summary>Proves cancellation and each failure map to one closed status with the target address.</summary>
     [TestMethod]
     public async Task PresentWhenReadIsCancelledOrFailsTranslatesActivity()
@@ -541,6 +569,7 @@ public sealed class PaneListingPresenterTests
         Assert.AreEqual("PaneStatusNotFound", PaneStatus.NotFound.ResourceKey);
         Assert.AreEqual("PaneStatusProviderUnavailable", PaneStatus.ProviderUnavailable.ResourceKey);
         Assert.AreEqual("PaneStatusCancelled", PaneStatus.Cancelled.ResourceKey);
+        Assert.AreEqual("PaneStatusReadAbandoned", PaneStatus.ReadAbandoned.ResourceKey);
         Assert.AreEqual("PaneStatusLaunching", PaneStatus.Launching.ResourceKey);
         Assert.AreEqual("PaneStatusLaunchCancelled", PaneStatus.LaunchCancelled.ResourceKey);
         Assert.AreEqual("PaneStatusLaunchNotFound", PaneStatus.LaunchNotFound.ResourceKey);

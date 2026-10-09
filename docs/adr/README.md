@@ -11,6 +11,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 ## Accepted decisions
 
 - [ADR-0059: Copy from Windows local to a WSL distribution through the routed transfer path](0059-windows-to-wsl-copy.md)
+- [ADR-0058: Abandon a loading pane read from the keyboard](0058-abandon-loading-pane-read.md)
 - [ADR-0057: Read UNC share directories through the shared enumeration operation](0057-unc-directory-read-provider.md)
 - [ADR-0056: Carry provider entry metadata and sort by size and modification time](0056-entry-metadata-sort-keys.md)
 - [ADR-0055: Discover drives and WSL roots through one session-owned Locations picker](0055-locations-picker.md)

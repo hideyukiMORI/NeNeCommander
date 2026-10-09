@@ -81,6 +81,8 @@ public sealed class DualPaneSession
     /// name entry that a name submission turns into a creation or a rename; confirm and escape
     /// resolve a pending confirmation; every other intent is handled by the active pane's session.
     /// While an operation runs, escape requests its cancellation and every other intent is frozen.
+    /// Otherwise escape reaches the active pane's session, which abandons that pane's read in
+    /// flight (ADR-0058); a read in the passive pane is never affected.
     /// </summary>
     /// <param name="intent">Typed user intent; absence is rejected by the pane session.</param>
     /// <param name="observer">Receives the snapshot each time a started operation reports progress.</param>

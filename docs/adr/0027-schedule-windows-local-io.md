@@ -30,6 +30,7 @@ The scheduler does not cancel a queued provider step. Cancellation remains a typ
 - Calls return an incomplete task before queued synchronous filesystem work executes, so the UI owner can yield instead of running that I/O inline.
 - The default thread pool may run independent directory reads concurrently. Existing pane supersession discards stale results; mutations remain serialized by `FileOperationGateway`.
 - One large provider step still occupies one worker until it completes and remains atomic for cancellation reporting.
+- A provider step whose read was abandoned (ADR-0058) runs to completion on its pool thread and its result is dropped; no thread, timeout, or `LongRunning` option is added for it.
 - Required argument validation remains synchronous before scheduling. Unexpected defects fault the returned task and must be observed by its existing owner; lifecycle cleanup is tracked separately by Issue #59.
 
 ## Migration and removal

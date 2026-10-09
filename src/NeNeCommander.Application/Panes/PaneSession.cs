@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
@@ -12,17 +13,24 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>
 /// Coordinates one pane: it owns the current <see cref="PaneSnapshot"/>, routes focus and
 /// selection intents through <see cref="PaneReducer"/>, performs location changes through the
-/// sole directory read port, and hands focused files to the sole launcher boundary. It is not
-/// thread-safe and is driven from one owner.
+/// sole directory read port, and hands focused files to the sole launcher boundary. Each read is
+/// one <see cref="PaneRead"/> with its own token source; <see cref="UserIntent.Escape"/> abandons
+/// the read in flight, completes its waiting caller at once, and leaves the provider task to run
+/// to completion with its result discarded (ADR-0058). A fault of such an orphaned read is rethrown
+/// at the next entry point. It is not thread-safe and is driven from one owner.
 /// </summary>
 public sealed class PaneSession
 {
+    private static readonly Action<PaneSnapshot> AbandonNothingAction = AbandonNothing;
+
     private readonly int _entryBoundary;
     private readonly HiddenItemVisibility _initialHiddenItemVisibility;
     private readonly IFileLauncher _fileLauncher;
     private readonly IDirectoryReadPort _port;
     private readonly VisiblePageCapacity _visiblePageCapacity;
     private object? _latestNavigation;
+    private Action<PaneSnapshot> _abandonLatestRead = AbandonNothingAction;
+    private ExceptionDispatchInfo? _orphanedReadFault;
 
     /// <summary>Initializes an empty session over one read port.</summary>
     /// <param name="port">Provider-neutral directory read port.</param>
@@ -71,6 +79,7 @@ public sealed class PaneSession
     public Task<PaneSnapshot> NavigateAsync(FileSystemPath location, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(location);
+        ThrowOrphanedReadFault();
         return Current.Activity is PaneLaunching
             ? Task.FromResult(Current)
             : NavigateAsync(location, null, PaneNavigationAction.Append, cancellationToken);
@@ -85,6 +94,7 @@ public sealed class PaneSession
     /// <returns>The snapshot current after the read completed or was superseded.</returns>
     public Task<PaneSnapshot> RefreshAsync(CancellationToken cancellationToken)
     {
+        ThrowOrphanedReadFault();
         return Current.Content is PaneContentListed listed
             ? RefreshListedAsync(listed, listed.State.FocusItem, cancellationToken)
             : Task.FromResult(Current);
@@ -101,6 +111,7 @@ public sealed class PaneSession
     public Task<PaneSnapshot> RefreshFocusingAsync(FileSystemPath preferredFocus, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(preferredFocus);
+        ThrowOrphanedReadFault();
         return Current.Content is PaneContentListed listed
             ? RefreshListedAsync(listed, preferredFocus, cancellationToken)
             : Task.FromResult(Current);
@@ -123,7 +134,9 @@ public sealed class PaneSession
     /// <summary>
     /// Applies one intent. Movement and selection use the reducer; opening a directory starts a
     /// read, opening a file starts one provider handoff, and refresh re-reads the current location.
-    /// Intents are frozen while either external action is in flight.
+    /// Intents are frozen while either external action is in flight, except that
+    /// <see cref="UserIntent.Escape"/> abandons a read in flight: the read is superseded, its token
+    /// is cancelled, and the pane keeps its previous content under <see cref="PaneReadAbandoned"/>.
     /// </summary>
     /// <param name="intent">Typed user intent.</param>
     /// <param name="cancellationToken">Token observed by any read or file handoff the intent starts.</param>
@@ -131,7 +144,12 @@ public sealed class PaneSession
     public Task<PaneSnapshot> HandleAsync(UserIntent intent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(intent);
-        if (Current.Activity is PaneLoading or PaneLaunching ||
+        ThrowOrphanedReadFault();
+        if (Current.Activity is PaneLoading loading)
+        {
+            return Task.FromResult(intent == UserIntent.Escape ? AbandonRead(loading) : Current);
+        }
+        if (Current.Activity is PaneLaunching ||
             Current.Content is not PaneContentListed listed)
         {
             return Task.FromResult(Current);
@@ -234,13 +252,21 @@ public sealed class PaneSession
         PaneState? previousState = Current.Content is PaneContentListed previous
             ? previous.State
             : null;
-        object navigation = new();
-        _latestNavigation = navigation;
-        Current = Current.WithActivity(new PaneLoading(location));
-        DirectoryReadOutcome outcome = await _port.ReadAsync(
+        PaneRead read = PaneRead.Start(
+            _port,
             new DirectoryReadRequest(location, _entryBoundary),
+            RecordOrphanedReadFault,
             cancellationToken);
-        if (!ReferenceEquals(navigation, _latestNavigation))
+        _latestNavigation = read;
+        _abandonLatestRead = read.Abandon;
+        Current = Current.WithActivity(new PaneLoading(location));
+        _ = await Task.WhenAny(read.Provider, read.Abandonment);
+        if (read.IsAbandoned)
+        {
+            return await read.Abandonment;
+        }
+        DirectoryReadOutcome outcome = await read.Provider;
+        if (!ReferenceEquals(read, _latestNavigation))
         {
             return Current;
         }
@@ -257,6 +283,40 @@ public sealed class PaneSession
             _ => throw new InvalidOperationException("The directory read outcome variant is not navigable."),
         };
         return Current;
+    }
+
+    /// <summary>
+    /// Abandons the read in flight: a fresh navigation identity supersedes it, the abandoned state
+    /// is published over the unchanged content, and only then is the read completed for its
+    /// waiting caller and its own token cancelled.
+    /// </summary>
+    private PaneSnapshot AbandonRead(PaneLoading loading)
+    {
+        _latestNavigation = new object();
+        Current = Current.WithActivity(new PaneReadAbandoned(loading.Target));
+        _abandonLatestRead(Current);
+        return Current;
+    }
+
+    /// <summary>
+    /// Keeps the fault of an abandoned read whose caller no longer waits, so the next entry
+    /// point rethrows it on the owner's existing defect path instead of losing it.
+    /// </summary>
+    private void RecordOrphanedReadFault(ExceptionDispatchInfo fault)
+    {
+        _orphanedReadFault = fault;
+    }
+
+    private void ThrowOrphanedReadFault()
+    {
+        ExceptionDispatchInfo? fault = _orphanedReadFault;
+        _orphanedReadFault = null;
+        fault?.Throw();
+    }
+
+    private static void AbandonNothing(PaneSnapshot abandoned)
+    {
+        _ = abandoned;
     }
 
     private PaneSnapshot CompleteNavigation(
