@@ -57,8 +57,13 @@ new abandonment.
   `UserIntent.Escape`, as a single interrupt that runs beside that work with its own token, and
   rejects any other intent, a second interrupt while the first runs, ordinary work while an
   interrupt runs, and every start after an observed defect. `StopAsync` cancels and awaits both.
-  The interrupt calls `CommanderSession.HandleAsync(Escape)` like any intent; both continue on the UI
-  context, so session state is not raced. `CommanderWindow` forwards every intent through
+  The interrupt calls `CommanderSession.HandleAsync(Escape)` like any intent and overlaps the running
+  work. `PaneSession` and `DualPaneSession` write their state only on the captured UI context, the
+  ADR-0051 scope owners each hold their own lock, and `CommanderSession` continuations after
+  `ConfigureAwait(false)` may run on pool threads; the interrupt relies on those existing guarantees
+  and adds no new shared state. A failure of that reasoning would surface as a defect, not as a
+  silent state change, because every session entry is total and the abandoned read is superseded
+  before its token is cancelled. `CommanderWindow` forwards every intent through
   `TryStartIntent`; the decision lives in `AsyncWorkOwner`, not in code-behind. The same route makes
   ADR-0018's `Escape` reach a running operation from the window.
 - **Reads started by a direct bookmark are abandonable.** While a `Ctrl+1` to `Ctrl+9` navigation
