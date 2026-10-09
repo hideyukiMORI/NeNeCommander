@@ -117,4 +117,4 @@ No context may map one keystroke to multiple intents, and no view may add a priv
 
 ## Accessibility
 
-Every Vim movement has a standard Windows keyboard alternative. Tab order, focus visuals, narrator names, high-contrast behavior, and keyboard-only dialog completion are release-gate requirements.
+Every Vim movement has a standard Windows keyboard alternative. Tab order, focus visuals, automation names, high-contrast resource use, and keyboard-only dialog completion are implementation requirements proven by mapper and presentation tests; their on-screen confirmation follows ADR-0054.
