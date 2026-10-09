@@ -31,6 +31,7 @@ The App composition root supplies one defect callback that rethrows the preserve
 - Closing a window waits for pane cleanup before the mutation gateway is disposed.
 - Input received while pane work is active is rejected by the owner, matching the session's existing freeze invariant without starting overlapping render continuations.
 - Framework event forwarding remains the only permitted `async void` boundary.
+- ADR-0058 adds one exception to the overlap rejection: while work runs, `TryStartIntent` admits a single `Escape` interrupt beside it, with its own token, and rejects every other overlap; `StopAsync` cancels and awaits both, and a defect in either blocks every later start.
 
 ## Rejected alternatives
 

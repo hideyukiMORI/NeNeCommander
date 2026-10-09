@@ -153,7 +153,8 @@ public sealed class PaneSessionAbandonmentTests
         Assert.HasCount(3, Assert.IsInstanceOfType<PaneContentListed>(refreshed.Content).Listing.Entries);
         Assert.AreEqual("b.txt", Focus(refreshed));
         Assert.AreEqual("C:\\next", Assert.IsInstanceOfType<PaneContentListed>(navigated.Content).Listing.Location.CanonicalText);
-        Assert.AreSame(navigated, afterLateResult);
+        _ = Assert.IsInstanceOfType<PaneReadAbandoned>(afterLateResult.Activity);
+        Assert.AreSame(navigated, session.Current);
         Assert.HasCount(4, port.Requests);
     }
 
@@ -245,6 +246,126 @@ public sealed class PaneSessionAbandonmentTests
 
         Assert.AreSame(defect, observed);
         Assert.AreEqual("C:\\root", Assert.IsInstanceOfType<PaneReadAbandoned>(abandoned.Activity).Target.CanonicalText);
+    }
+
+    /// <summary>Proves the waiting caller returns with the abandoned snapshot while the provider is still running.</summary>
+    [TestMethod]
+    public async Task NavigateAsyncWhenReadIsAbandonedReturnsBeforeProviderCompletes()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
+        PaneSession session = CreateSession(port);
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
+
+        PaneSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
+        PaneSnapshot returned = await navigation;
+
+        Assert.AreSame(abandoned, returned);
+        Assert.IsFalse(pending.Task.IsCompleted);
+        pending.SetResult(DirectoryReadOutcome.Cancelled());
+    }
+
+    /// <summary>Proves the fault of an abandoned read is rethrown once, at the next entry point, and then cleared.</summary>
+    [TestMethod]
+    [DataRow("handle")]
+    [DataRow("navigate")]
+    [DataRow("refresh")]
+    [DataRow("refreshFocusing")]
+    public async Task EntryPointWhenAbandonedReadFaultedRethrowsOrphanedFaultOnce(string entryPoint)
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePendingInline();
+        PaneSession session = CreateSession(port);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
+        PaneSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
+        _ = await navigation;
+        InvalidOperationException defect = new("orphaned provider defect");
+        pending.SetException(defect);
+
+        InvalidOperationException observed = Assert.ThrowsExactly<InvalidOperationException>(
+            () => _ = EnterSession(session, entryPoint, Assert.IsInstanceOfType<PaneContentListed>(listed.Content)));
+        PaneSnapshot afterFault = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+
+        Assert.AreSame(defect, observed);
+        _ = Assert.IsInstanceOfType<PaneReadAbandoned>(abandoned.Activity);
+        Assert.AreEqual("C:\\root", Assert.IsInstanceOfType<PaneContentListed>(afterFault.Content).Listing.Location.CanonicalText);
+    }
+
+    /// <summary>Proves an abandoned read that later succeeds or is cancelled writes nothing and raises nothing.</summary>
+    [TestMethod]
+    [DataRow("succeeded")]
+    [DataRow("canceled")]
+    public async Task HandleAsyncWhenAbandonedReadCompletesLaterDiscardsItSilently(string completion)
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePendingInline();
+        PaneSession session = CreateSession(port);
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
+        PaneSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
+        _ = await navigation;
+
+        if (completion == "succeeded")
+        {
+            pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "u.txt")));
+        }
+        else
+        {
+            pending.SetCanceled();
+        }
+        PaneSnapshot after = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+
+        Assert.AreSame(abandoned, after);
+        Assert.AreSame(abandoned, session.Current);
+    }
+
+    /// <summary>Proves the read's token source is disposed when the provider completes, abandoned or not.</summary>
+    [TestMethod]
+    [DataRow("abandoned")]
+    [DataRow("awaited")]
+    public async Task NavigateAsyncWhenProviderCompletesDisposesTheReadTokenSource(string caller)
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePendingInline();
+        PaneSession session = CreateSession(port);
+        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        if (caller == "abandoned")
+        {
+            _ = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
+        }
+        WaitHandle beforeCompletion = port.Tokens[0].WaitHandle;
+
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        _ = await navigation;
+
+        Assert.IsNotNull(beforeCompletion);
+        _ = Assert.ThrowsExactly<ObjectDisposedException>(() => _ = port.Tokens[0].WaitHandle);
+    }
+
+    /// <summary>Proves a provider that throws synchronously leaves the pane unchanged and disposes the read's token source.</summary>
+    [TestMethod]
+    public async Task NavigateAsyncWhenProviderThrowsSynchronouslyDisposesTokenSourceAndKeepsState()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        PaneSession session = CreateSession(port);
+
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None));
+
+        Assert.AreSame(PaneSnapshot.Initial, session.Current);
+        _ = Assert.ThrowsExactly<ObjectDisposedException>(() => _ = port.Tokens[0].WaitHandle);
+    }
+
+    private static Task<PaneSnapshot> EnterSession(PaneSession session, string entryPoint, PaneContentListed listed)
+    {
+        return entryPoint switch
+        {
+            "handle" => session.HandleAsync(UserIntent.MoveNext, CancellationToken.None),
+            "navigate" => session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None),
+            "refresh" => session.RefreshAsync(CancellationToken.None),
+            _ => session.RefreshFocusingAsync(listed.Listing.Entries[0].Path, CancellationToken.None),
+        };
     }
 
     private static UserIntent IntentNamed(string name)

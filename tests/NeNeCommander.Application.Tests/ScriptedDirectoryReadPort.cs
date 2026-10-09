@@ -42,6 +42,17 @@ internal sealed class ScriptedDirectoryReadPort : IDirectoryReadPort
         return pending;
     }
 
+    /// <summary>
+    /// Enqueues a read whose completion runs continuations inline, so a completion callback the
+    /// session registered has run when the completing call returns.
+    /// </summary>
+    internal TaskCompletionSource<DirectoryReadOutcome> EnqueuePendingInline()
+    {
+        TaskCompletionSource<DirectoryReadOutcome> pending = new();
+        _reads.Enqueue(pending);
+        return pending;
+    }
+
     public Task<DirectoryReadOutcome> ReadAsync(DirectoryReadRequest request, CancellationToken cancellationToken)
     {
         _requests.Add(request);

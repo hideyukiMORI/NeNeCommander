@@ -131,7 +131,7 @@ public sealed class CommanderSession
                 : await NavigateDirectBookmarkAsync(bookmark, observer, cancellationToken)
                     .ConfigureAwait(false);
         }
-        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0)
+        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 && intent != UserIntent.Escape)
         {
             return Current;
         }
