@@ -244,7 +244,7 @@ foreach ($secretFile in $secretFiles) {
 }
 
 $scriptFiles = Get-RepositoryTreeFile -RepositoryRoot $root -Roots @('eng') | Where-Object {
-    $_.Extension -ceq '.ps1'
+    $_.Extension -cin @('.ps1', '.psm1')
 }
 foreach ($scriptFile in $scriptFiles) {
     $tokens = $null
