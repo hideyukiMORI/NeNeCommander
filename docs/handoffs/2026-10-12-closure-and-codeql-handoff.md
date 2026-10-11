@@ -20,18 +20,19 @@ Status: informational
 - 統合 baseline は日報のとおり: #197 `88fcfad` → #200 `80c5b02` → #201 `31f6d21` → #203 `8028a2a` → 本 closure。
 - main deep review: `4ea8847`(`37966275802`)pass、95.52 / 96.10 / 91.04 / 95.02、CodeQL 2 件(#198 で修正済み)。
   `31f6d21`(`38161642734`)も pass、95.52 / 96.10 / 91.04 / 95.11、CodeQL analysis `1932351429` は 0 件、open alert 0。
-  #195 merge 後の main deep run `38165064625`(`8028a2a`)は dispatch 済みで、結果を次回の最初に読んで PROJECT_STATE に記録する。alert が 0 でなければ dismiss せず code で直す Issue を立てる。
+  #195 merge 後の main deep run `38165064625`(`8028a2a`)も pass(日報参照)。次の production 変更の merge 後に同じく dispatch して記録する。alert が 0 でなければ dismiss せず code で直す Issue を立てる。
 - open Issue: #94(配布前の確認、hide 在席の日)、#181(ネットワークドライブ、低優先)、#190(末尾ドットの診断、hide 在席時)、本 closure。
 
 ## 次の作業(この順で自走する)
 
-1. **main deep review `38165064625` の読み取り**と PROJECT_STATE への記録。
-2. **#190 の live 診断**(hide 在席時): 専用 root に `foo.` と `a:b` を作り、`\\wsl.localhost` 越しの列挙と `Path.GetFullPath` を観察。
-3. **第 3 段 WSL → Windows**(#190 の後): 木の事前走査、case 衝突、KeepBoth の判断。
-4. **#181**(低優先)、**sort の永続化**・**Locations の share 列挙**・**UNC の mutation/launch**(hide が欲しがれば)。
-5. hide 在席の日に: ADR-0054 の配布前確認(#94)、window での Escape interrupt と列表示の見た目、#190 の診断。実行前にチャットで合図。
+1. **#190 の live 診断**(hide 在席時): 専用 root に `foo.` と `a:b` を作り、`\\wsl.localhost` 越しの列挙と `Path.GetFullPath` を観察。
+2. **第 3 段 WSL → Windows**(#190 の後): 木の事前走査、case 衝突、KeepBoth の判断。
+3. **#181**(低優先)、**sort の永続化**・**Locations の share 列挙**・**UNC の mutation/launch**(hide が欲しがれば)。
+4. hide 在席の日に: ADR-0054 の配布前確認(#94)、window での Escape interrupt と列表示の見た目、#190 の診断。実行前にチャットで合図。
 
 ## live WSL tier の実行手順(12 日に判明した注意を含む)
+
+hide の決定(2026-10-12): distro は `Ubuntu`(live tier 専用に使っているもの)のまま。`Ubuntu-22.04` は hide の作業用で常時起動しているが、live root を向けない。
 
 1. `Start-Process wsl.exe -ArgumentList '--distribution','Ubuntu','--exec','sleep','3600' -WindowStyle Hidden` で Ubuntu を常駐させる
    (session が切れると distro が停止し、再起動で `/tmp` が消える)。
