@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -60,7 +61,8 @@ public sealed class ProviderFileOperationPortTests
 
     /// <summary>
     /// Proves the Windows local to WSL pair sends every transfer member to the cross transfer while
-    /// deletion, directory creation, and rename still follow the source provider.
+    /// deletion, directory creation, and rename still follow the source provider, so a composite
+    /// move's permanent source deletion reaches the Windows local adapter and never the WSL side.
     /// </summary>
     [TestMethod]
     public async Task MutationMembersWhenPairIsWindowsLocalToWslRouteTransfersToCrossTransfer()
@@ -79,6 +81,47 @@ public sealed class ProviderFileOperationPortTests
         CollectionAssert.AreEqual(ExpectedCrossTransferCalls(), windowsLocalToWsl.Calls);
         CollectionAssert.AreEqual(ExpectedSourceOwnedCalls(), windowsLocal.Calls);
         Assert.HasCount(0, wsl.Calls);
+    }
+
+    /// <summary>
+    /// Proves the composed router reports no atomic move for the Windows local to WSL pair, so the
+    /// gateway composes copy, verification, and source deletion, while every pair without a route
+    /// still answers <c>ProviderUnavailable</c> before any effect.
+    /// </summary>
+    [TestMethod]
+    public async Task GetAtomicMoveCapabilityAsyncWhenComposedLeavesOnlyWindowsLocalToWslComposite()
+    {
+        ProviderFileOperationPort router = new(new WindowsLocalIoExecutionBoundary());
+        FileEntrySnapshot local = Snapshot("C:\\item", "local");
+        FileEntrySnapshot ubuntu = Snapshot("\\\\wsl.localhost\\Ubuntu\\item", "ubuntu");
+
+        AtomicMoveCapabilityOutcome cross = await router.GetAtomicMoveCapabilityAsync(
+            local,
+            Path("\\\\wsl.localhost\\Ubuntu\\destination"),
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome reverse = await router.GetAtomicMoveCapabilityAsync(
+            ubuntu,
+            Path("C:\\destination"),
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome distributions = await router.GetAtomicMoveCapabilityAsync(
+            ubuntu,
+            Path("\\\\wsl.localhost\\Debian\\destination"),
+            CancellationToken.None);
+        AtomicMoveCapabilityOutcome unc = await router.GetAtomicMoveCapabilityAsync(
+            local,
+            Path("\\\\server\\share\\destination"),
+            CancellationToken.None);
+
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, cross);
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(reverse).Failure);
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(distributions).Failure);
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(unc).Failure);
     }
 
     /// <summary>

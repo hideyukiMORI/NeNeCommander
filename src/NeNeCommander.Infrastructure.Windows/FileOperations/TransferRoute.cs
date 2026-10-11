@@ -54,7 +54,7 @@ internal abstract record TransferRoute
     /// <summary>Both ends are in one WSL distribution; the WSL adapter owns the step.</summary>
     internal sealed record SameWslDistribution : TransferRoute;
 
-    /// <summary>A Windows local source copies into a WSL distribution through the cross transfer.</summary>
+    /// <summary>A Windows local source copies or moves into a WSL distribution through the cross transfer.</summary>
     internal sealed record WindowsLocalToWsl : TransferRoute;
 
     /// <summary>Every other pair, an empty batch, or a mixed batch; it fails closed before any adapter.</summary>
