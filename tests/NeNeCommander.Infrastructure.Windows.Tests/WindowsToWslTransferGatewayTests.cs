@@ -299,7 +299,7 @@ public sealed class WindowsToWslTransferGatewayTests
         StepHookPort port = new(CreateRouter(root));
         using FileOperationGateway gateway = new(port);
         FileOperationOutcome outcome;
-        using (FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None))
+        using (new FileStream(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None))
         {
             outcome = await gateway.ExecuteAsync(
                 Move([tree], Wsl("/owned/dest")),
