@@ -146,7 +146,7 @@ public sealed class WindowsToWslTransferGatewayTests
         _ = root.CreateDirectory("wsl\\dest");
         using FileOperationGateway gateway = CreateGateway(root);
         FileOperationOutcome outcome;
-        using (FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None))
+        using (new FileStream(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None))
         {
             outcome = await gateway.ExecuteAsync(
                 Copy([tree], Wsl("/owned/dest")),
