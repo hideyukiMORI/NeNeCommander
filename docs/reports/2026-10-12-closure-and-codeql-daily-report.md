@@ -68,6 +68,7 @@ script と ADR-0043 は変えていない(手順の注意として引き継ぎ�
 
 ## 残っている follow-up
 
+- Dependabot PR #206(github-actions group: codeql-action 4.38.3、upload-artifact 7.0.2)が closure 後に開いた。先例どおり Issue 起点の PR で置き換える(引き継ぎ書の 0 番)。
 - 前回までの承認待ち(4 つの資源 format、ネットワークドライブの事実の表示、`CommanderWindow` 6 引数、`CommanderSession` 295/300、
   GLOSSARY の可視性記述、AutomationId 未宣言、その他)は変更なし。
 - README の「Windows → WSL の copy」の一文は本 closure(#202)で「copy or move」に直した。

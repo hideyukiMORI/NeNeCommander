@@ -21,10 +21,12 @@ Status: informational
 - main deep review: `4ea8847`(`37966275802`)pass、95.52 / 96.10 / 91.04 / 95.02、CodeQL 2 件(#198 で修正済み)。
   `31f6d21`(`38161642734`)も pass、95.52 / 96.10 / 91.04 / 95.11、CodeQL analysis `1932351429` は 0 件、open alert 0。
   #195 merge 後の main deep run `38165064625`(`8028a2a`)も pass(日報参照)。次の production 変更の merge 後に同じく dispatch して記録する。alert が 0 でなければ dismiss せず code で直す Issue を立てる。
-- open Issue: #94(配布前の確認、hide 在席の日)、#181(ネットワークドライブ、低優先)、#190(末尾ドットの診断、hide 在席時)、本 closure。
+- open Issue: #94(配布前の確認、hide 在席の日)、#181(ネットワークドライブ、低優先)、#190(末尾ドットの診断、hide 在席時)、本 closure(#202/#205)。
+- open PR: **#206(Dependabot、github-actions group)**。`security-deep-review.yml` の `github/codeql-action/init`・`analyze` を 4.38.2 → 4.38.3(`24c54180a607b1449ed407dd24f251e4e9147c8d`)、`actions/upload-artifact` を 7.0.1 → 7.0.2(`cf430e030ddbb5b0abf93d22962f4752f3646cd9`)に上げる提案。12 日 19:27 UTC に開いた。未対応。
 
 ## 次の作業(この順で自走する)
 
+0. **Dependabot PR #206 の置き換え**: 先例(#148/#149、#155/#156)どおり Issue 起点の action-pin PR で同じ SHA と version comment に揃え、SEC-005 の supply-chain 走査と canonical を通して squash し、#206 を close する。実装リナに回せる定型作業。
 1. **#190 の live 診断**(hide 在席時): 専用 root に `foo.` と `a:b` を作り、`\\wsl.localhost` 越しの列挙と `Path.GetFullPath` を観察。
 2. **第 3 段 WSL → Windows**(#190 の後): 木の事前走査、case 衝突、KeepBoth の判断。
 3. **#181**(低優先)、**sort の永続化**・**Locations の share 列挙**・**UNC の mutation/launch**(hide が欲しがれば)。
