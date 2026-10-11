@@ -26,17 +26,17 @@ Status: informational
 ## 次の作業(この順で自走する)
 
 1. **main deep review `38165064625` の読み取り**と PROJECT_STATE への記録。
-3. **#190 の live 診断**(hide 在席時): 専用 root に `foo.` と `a:b` を作り、`\wsl.localhost` 越しの列挙と `Path.GetFullPath` を観察。
-4. **第 3 段 WSL → Windows**(#190 の後): 木の事前走査、case 衝突、KeepBoth の判断。
-5. **#181**(低優先)、**sort の永続化**・**Locations の share 列挙**・**UNC の mutation/launch**(hide が欲しがれば)。
-6. hide 在席の日に: ADR-0054 の配布前確認(#94)、window での Escape interrupt と列表示の見た目、#190 の診断。実行前にチャットで合図。
+2. **#190 の live 診断**(hide 在席時): 専用 root に `foo.` と `a:b` を作り、`\\wsl.localhost` 越しの列挙と `Path.GetFullPath` を観察。
+3. **第 3 段 WSL → Windows**(#190 の後): 木の事前走査、case 衝突、KeepBoth の判断。
+4. **#181**(低優先)、**sort の永続化**・**Locations の share 列挙**・**UNC の mutation/launch**(hide が欲しがれば)。
+5. hide 在席の日に: ADR-0054 の配布前確認(#94)、window での Escape interrupt と列表示の見た目、#190 の診断。実行前にチャットで合図。
 
 ## live WSL tier の実行手順(12 日に判明した注意を含む)
 
 1. `Start-Process wsl.exe -ArgumentList '--distribution','Ubuntu','--exec','sleep','3600' -WindowStyle Hidden` で Ubuntu を常駐させる
    (session が切れると distro が停止し、再起動で `/tmp` が消える)。
 2. `wsl.exe --distribution Ubuntu --exec mkdir -p /tmp/NeNeCommander-Live-<stamp>`(新しい stamp)。
-3. worktree で `$env:NENE_COMMANDER_WSL_TEST_ROOT='\wsl.localhost\Ubuntu\tmp\<leaf>'`、`TEMP/TMP` を
+3. worktree で `$env:NENE_COMMANDER_WSL_TEST_ROOT='\\wsl.localhost\Ubuntu\tmp\<leaf>'`、`TEMP/TMP` を
    `D:/NeNeCommander/outputs/wt-<issue>/live-<stamp>/` に向け、`pwsh -NoProfile -File ./eng/run-live-wsl-tests.ps1`。
 4. 宣言セル数と一致する Passed を Issue/PR にコメント。record は `live.trx`。root は保持(次の distro 再起動で消える)。
 
