@@ -176,9 +176,8 @@ public sealed class WindowsToWslTransferTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot file = await SnapshotAsync(root.WriteFile("item.txt", "item"));
-        FileEntrySnapshot tree = await SnapshotAsync(root.CreateDirectory("tree"));
         _ = root.CreateDirectory("tree\\sub");
-        tree = await SnapshotAsync(root.Resolve("tree"));
+        FileEntrySnapshot tree = await SnapshotAsync(root.Resolve("tree"));
         _ = root.CreateDirectory("outside");
         FileEntrySnapshot changed = await SnapshotAsync(root.WriteFile("changed.txt", "before"));
         _ = root.WriteFile("changed.txt", "after-rewrite");
