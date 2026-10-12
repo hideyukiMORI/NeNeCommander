@@ -101,7 +101,12 @@ must decide how WSL path text reaches Win32.
 `WindowsWslFileSystem`, `WslDirectoryReader` (through the enumerator it is given),
 `WindowsFileIdentifier.ReadWslFacts` call sites, and `WindowsToWslTransfer` switch to the resolver
 in one change; the parameterless constructor of `WindowsWslFileSystem` stops passing
-`CanonicalText`. Tests that build expected Win32 strings from `CanonicalText` are rewritten to
+`CanonicalText`. The shared `WindowsDirectoryReadOperation.Read` receives the location text from
+its provider reader (the canonical text for Windows local and UNC, the resolver's text for WSL)
+instead of reading `CanonicalText` itself. The identity query receives the full name of the entry
+opened through the resolver's text, which keeps the prefix, and `WindowsToWslTransfer` reaches
+every target through the `WindowsWslFileSystem` it is composed with, so neither needs a second
+call to the resolver. Tests that build expected Win32 strings from `CanonicalText` are rewritten to
 expect the resolver's output. ADV-015 gains the sentence that Infrastructure addresses WSL entries
 through extended-length text so that no segment is renamed by Win32 normalization; FS-001 and FS-012
 state the same fact for WSL transport. This decision is removed

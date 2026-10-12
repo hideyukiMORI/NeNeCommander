@@ -37,10 +37,11 @@ internal sealed class WindowsUncDirectoryReader : IDirectoryReadPort
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return request.Location is WindowsUncPath
+        return request.Location is WindowsUncPath location
             ? _executionBoundary.ExecuteAsync(
                 () => WindowsDirectoryReadOperation.Read(
                     request,
+                    location.CanonicalText,
                     _enumerator,
                     WindowsDirectoryReadOperation.ClassifyByAttributes,
                     cancellationToken))

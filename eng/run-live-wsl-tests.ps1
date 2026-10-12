@@ -21,6 +21,7 @@ $requiredCases = @(
     'ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync',
     'ExecuteAsyncWhenLiveWindowsTreeCopiesIntoDistributionPreservesBytesAndSourceAsync',
     'ExecuteAsyncWhenLiveWindowsTreeMovesIntoDistributionDeletesSourceAfterVerifiedTargetAsync',
+    'ExecuteAsyncWhenLiveTreeHasTrailingDotNamesKeepsExactNamesAsync',
     'FindWhenLiveOwnedFixtureIsInspectedMatchesDistributionStatAsync',
     'FindWhenLiveOwnedLinkIsInspectedDiffersFromItsTargetAsync',
     'FindWhenLiveOwnedFixtureIsReadAgainRepeatsTheSameIdentityAsync')

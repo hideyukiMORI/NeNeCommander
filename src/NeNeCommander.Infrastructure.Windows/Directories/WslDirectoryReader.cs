@@ -5,10 +5,15 @@ using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
+using NeNeCommander.Infrastructure.Windows.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.Directories;
 
-/// <summary>Reads direct entries from the canonical Windows-side WSL namespace.</summary>
+/// <summary>
+/// Reads direct entries from the Windows-side WSL namespace through the extended-length text of
+/// <see cref="WslWin32PathText"/> (ADR-0060), so an entry such as <c>foo.</c> is listed under the
+/// name a later existence check, copy, and verification address.
+/// </summary>
 internal sealed class WslDirectoryReader : IDirectoryReadPort
 {
     private readonly IWindowsDirectoryEnumerator _enumerator;
@@ -34,9 +39,14 @@ internal sealed class WslDirectoryReader : IDirectoryReadPort
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return request.Location is WslPath
+        return request.Location is WslPath location
             ? _executionBoundary.ExecuteAsync(
-                () => WindowsDirectoryReadOperation.Read(request, _enumerator, ClassifyVisibility, cancellationToken))
+                () => WindowsDirectoryReadOperation.Read(
+                    request,
+                    WslWin32PathText.Resolve(location),
+                    _enumerator,
+                    ClassifyVisibility,
+                    cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 

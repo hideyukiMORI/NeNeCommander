@@ -44,10 +44,11 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
     public Task<DirectoryReadOutcome> ReadAsync(DirectoryReadRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return request.Location is WindowsLocalPath
+        return request.Location is WindowsLocalPath location
             ? _executionBoundary.ExecuteAsync(
                 () => WindowsDirectoryReadOperation.Read(
                     request,
+                    location.CanonicalText,
                     _enumerator,
                     WindowsDirectoryReadOperation.ClassifyByAttributes,
                     cancellationToken))

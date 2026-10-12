@@ -5,14 +5,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Directories;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Defines the required live same-distribution and Windows local to WSL copy and move assertions.</summary>
+/// <summary>
+/// Defines the required live same-distribution and Windows local to WSL copy and move assertions,
+/// including the exact-name proof of ADR-0060 for trailing-dot entries.
+/// </summary>
 [TestClass]
 [DoNotParallelize]
 public sealed class LiveWslTransferTests
@@ -253,6 +258,76 @@ public sealed class LiveWslTransferTests
             cleanup = LiveWslRunFixture.Close(context, root);
         }
         LiveWslRunFixture.RequireCleanup(cleanup);
+    }
+
+    /// <summary>
+    /// Requires a tree with trailing-dot names, created inside the owned root through the ADR-0060
+    /// resolver, to keep every exact name through the listing, the same-distribution copy target,
+    /// and its verification.
+    /// </summary>
+    /// <returns>The running assertion.</returns>
+    [TestMethod]
+    [TestCategory("LiveWsl")]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    public async Task ExecuteAsyncWhenLiveTreeHasTrailingDotNamesKeepsExactNamesAsync()
+    {
+        TestContext context = RequireContext();
+        LiveWslTestRoot root = await LiveWslRunFixture.OpenAsync(context);
+        LiveWslRootCleanupOutcome cleanup;
+        try
+        {
+            WslPath source = root.CreateDirectory("dot-source");
+            _ = root.WriteFile("dot-source/foo.", [4, 2, 0]);
+            _ = root.WriteFile("dot-source/sub./inner", [7, 7]);
+            IReadOnlyList<LiveWslDeclaredEntry> declaredSource = root.ReadDeclaredTree("dot-source");
+            WslPath destination = root.CreateDirectory("dot-destination");
+            LiveWslRunFixture.RequireEffectBoundary(root);
+            string[] expectedNames = ["foo.", "sub."];
+            CollectionAssert.AreEqual(expectedNames, await ListNamesAsync(source));
+            using FileOperationGateway gateway = CreateGateway();
+
+            FileOperationOutcome outcome = await gateway.ExecuteAsync(
+                Copy(source, destination),
+                IgnoredFileOperationProgress.Create(),
+                CancellationToken.None);
+            RecordOutcome(context, "copy-trailing-dot", outcome);
+
+            root.AdoptCopiedTree(
+                "dot-destination/dot-source",
+                [string.Empty, "foo.", "sub.", "sub./inner"],
+                outcome,
+                source);
+            CollectionAssert.AreEqual(
+                declaredSource.ToArray(),
+                root.ReadDeclaredTree("dot-destination/dot-source").ToArray());
+            CollectionAssert.AreEqual(
+                expectedNames,
+                await ListNamesAsync(root.OwnedPath("dot-destination/dot-source")));
+            Assert.IsFalse(root.Exists("dot-destination/dot-source/foo"));
+            Assert.IsFalse(root.Exists("dot-destination/dot-source/sub"));
+            CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-destination/dot-source/foo."));
+            CollectionAssert.AreEqual(new byte[] { 7, 7 }, root.ReadFile("dot-destination/dot-source/sub./inner"));
+            CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-source/foo."));
+        }
+        finally
+        {
+            cleanup = LiveWslRunFixture.Close(context, root);
+        }
+        LiveWslRunFixture.RequireCleanup(cleanup);
+    }
+
+    private static async Task<string[]> ListNamesAsync(WslPath location)
+    {
+        DirectoryReadRequest request = Assert.IsInstanceOfType<DirectoryReadRequestAccepted>(
+            DirectoryReadRequest.Create(location, 16)).Request;
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            await new ProviderDirectoryReadPort(new WindowsLocalIoExecutionBoundary())
+                .ReadAsync(request, CancellationToken.None)).Listing;
+        Assert.AreEqual(0, listing.UnrepresentableEntryCount);
+        Assert.IsTrue(listing.Entries.All(entry => entry.Path.Parent is WslPath parent &&
+            FileSystemPathIdentityComparer.Instance.Equals(parent, location)));
+        return [.. listing.Entries.Select(entry => entry.Name).Order(StringComparer.Ordinal)];
     }
 
     private static WindowsLocalPath WindowsPath(string text)
