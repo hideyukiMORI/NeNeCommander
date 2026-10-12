@@ -27,9 +27,10 @@ ordinary text `...\written.` silently creates `written`, and verification throug
 normalizer compares the renamed target with itself and reports success. Collision detection asks
 `TargetExists` with the same text and never sees an existing `foo.`. The same text with the
 extended-length prefix (`\\?\UNC\wsl.localhost\...`) preserves the dot for existence, reading, and
-writing, because Win32 performs no normalization on that form. A name containing `:` is not
-affected: 9P exposes it as a private-use substitute (`U+F03A`) that round-trips through the
-ordinary API.
+writing, because Win32 performs no normalization on that form. In the diagnostic's `a:b` case,
+9P exposed the colon as a private-use substitute (`U+F03A`) that round-tripped through the
+ordinary API. That observation does not establish a policy for every substitute name or for
+transferring such names to Windows.
 
 This is a silent rename of user data on a path the gateway has already verified, which violates
 the charter's first priority and the unrepresentable-segment defense of ADV-015. One mechanism
@@ -55,10 +56,12 @@ must decide how WSL path text reaches Win32.
   comparison, and containment. The prefix is an Infrastructure fact that never leaves the layer:
   entries produced from a prefixed enumeration are projected back onto their `WslPath` by name, and
   every snapshot, outcome, and effect carries `WslPath` values, not strings.
-- **Windows local and UNC providers are unchanged.** Their segment rules already reject a trailing
-  dot or space before any effect (`IsValidSegment`), so no Windows local target can be renamed by
-  normalization, and the third cross-provider stage (WSL to Windows) will refuse such a source
-  name with a typed failure through those rules rather than through this resolver.
+- **Windows local and UNC transport text is unchanged.** Their typed path segment rules reject a
+  trailing dot or space (`IsValidSegment`). This does not prove that every descendant of a local
+  tree is representable by that path model: NTFS can contain such names through extended-length
+  APIs. The future WSL-to-Windows stage must validate all destination children before and during
+  copy and verification, and refuse unsupported names with a typed failure; this resolver does
+  not supply that reverse-transfer admission.
 - **Reads and writes agree.** Because the listing, the existence check, the collision check, the
   copy, and the verification all use the resolver, a name that a listing shows is the name a copy
   creates and a verification compares; there is no second resolution path that could disagree.
@@ -75,15 +78,16 @@ must decide how WSL path text reaches Win32.
 - Giving `WslPath` a public extended-length text: Domain would carry a Win32 transport detail, and
   the ordinary form would remain reachable by every caller, so the single mechanism could not be
   enforced by the dependency law.
-- Translating `U+F03A` and the other 9P substitutes back to their Linux characters for display: a
-  presentation question with no safety consequence, recorded as a follow-up for hide's decision.
+- Translating `U+F03A` and the other 9P substitutes back to their Linux characters: a separate
+  name-mapping decision. This repair preserves the API-visible names; reverse-transfer policy
+  for those names requires its own design and proof.
 
 ## Consequences
 
 - A WSL entry named `foo.`, `bar. `, or `sub.` is listed, opened, identified, copied, moved, and
   verified under its exact name; the silent rename of Issue #190 cannot occur on this provider.
-- Copying into a WSL directory a Windows local tree cannot contain such names, so the ADR-0059
-  transfer gains nothing visible; the resolver change applies to its target text for uniformity.
+- ADR-0059 obtains WSL target text from the same resolver. This repair makes no broader promise
+  that arbitrary Windows local trees contain only names representable by the local path model.
 - Error normalization is unchanged: the Win32 status codes behind `IOException` are the same for
   the extended-length form, and the existing normalizer rows of ADR-0035 and ADR-0057 keep their
   meaning. Any status observed to differ in the live tier is added as a row, not special-cased.
