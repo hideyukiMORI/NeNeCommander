@@ -6,15 +6,15 @@ This file is the mandatory entry point for every human or AI development session
 
 ## Non-negotiable operating rule
 
-The repository is governed as code, not as advice. Every change MUST follow the normative documents below. Run focused tests during implementation; the final integration candidate MUST pass the one full canonical gate immediately before its Issue/PR is merged:
+The repository is governed as code, not as advice. Every change MUST follow the normative documents below. Run focused tests during implementation; the integration candidate for `main` MUST pass the one full canonical gate immediately before it is merged into `main`:
 
 ```powershell
 pwsh -NoProfile -File ./eng/check.ps1
 ```
 
-There is one definition of merge readiness, not a requirement to run the full suite after each edit, commit, push, or PR update. Targeted tests and individual tools are permitted for development diagnosis. Commit hooks invoke `eng/check.ps1 -Mode Commit` for lightweight checks; that result never establishes merge readiness. The default mode remains the full gate. A change cannot merge while it fails or lacks current evidence. Rules and thresholds may not be suppressed or weakened to make a change pass.
+There is one definition of merge readiness, not a requirement to run the full suite after each edit, commit, push, or PR update. Since 2026-10-12 (hide, ADR-0025 revised) the required `canonical-gate` job chooses its depth from the merge itself: a PR into `main` that changes anything other than documents runs the full gate; a PR into the day's integration branch (`integrate/<yyyy-mm-dd>`) or a PR that changes only documents runs `Commit` mode. Issue PRs merge into the integration branch; one PR a day carries the integration branch into `main`. Targeted tests and individual tools are permitted for development diagnosis. Commit hooks invoke `eng/check.ps1 -Mode Commit` for lightweight checks; that result never establishes merge readiness. The default mode remains the full gate. A change cannot merge while it fails or lacks current evidence. Rules and thresholds may not be suppressed or weakened to make a change pass.
 
-Keep work in a draft PR. When the focused Issue is ready to merge, change the PR from Draft to Ready to request the full CI gate. Any later head change or integration-base update requires fresh evidence: return to Draft, finish targeted checks, and mark Ready again. Do not rerun the same full gate locally merely to duplicate successful CI evidence. Scheduled deep review, security-sensitive integration review, and release environmental proof remain mandatory separate tiers. See ADR-0025 and `docs/DEVELOPMENT_WORKFLOW.md`.
+Keep work in a draft PR. When the focused Issue is ready to merge, change the PR from Draft to Ready to request the CI gate at the depth its base and change set require. Any later head change or integration-base update requires fresh evidence: return to Draft, finish targeted checks, and mark Ready again. Do not rerun the same full gate locally merely to duplicate successful CI evidence. Scheduled deep review, security-sensitive integration review, and release environmental proof remain mandatory separate tiers. See ADR-0025 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 After a fresh clone, run `pwsh -NoProfile -File ./eng/bootstrap.ps1` once to verify the pinned SDK and enable the repository-owned Git hooks.
 
