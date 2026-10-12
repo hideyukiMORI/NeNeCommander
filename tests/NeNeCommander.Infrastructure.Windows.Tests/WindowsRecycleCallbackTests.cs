@@ -24,16 +24,17 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), CancellationToken.None);
+        using NativeWindowsRecycleProgress native = new(progress);
         int result = callback switch
         {
-            "PreRename" => progress.PreRenameItem(0, IntPtr.Zero, "unexpected"),
-            "PostRename" => progress.PostRenameItem(0, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
-            "PreMove" => progress.PreMoveItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected"),
-            "PostMove" => progress.PostMoveItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
-            "PreCopy" => progress.PreCopyItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected"),
-            "PostCopy" => progress.PostCopyItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
-            "PreNew" => progress.PreNewItem(0, IntPtr.Zero, "unexpected"),
-            "PostNew" => progress.PostNewItem(0, IntPtr.Zero, "unexpected", "", 0, 0, IntPtr.Zero),
+            "PreRename" => native.PreRenameItem(0, IntPtr.Zero, "unexpected"),
+            "PostRename" => native.PostRenameItem(0, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
+            "PreMove" => native.PreMoveItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected"),
+            "PostMove" => native.PostMoveItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
+            "PreCopy" => native.PreCopyItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected"),
+            "PostCopy" => native.PostCopyItem(0, IntPtr.Zero, IntPtr.Zero, "unexpected", 0, IntPtr.Zero),
+            "PreNew" => native.PreNewItem(0, IntPtr.Zero, "unexpected"),
+            "PostNew" => native.PostNewItem(0, IntPtr.Zero, "unexpected", "", 0, 0, IntPtr.Zero),
             _ => throw new AssertFailedException("Unknown callback fixture."),
         };
         Assert.AreEqual(WindowsRecycleProgress.Abort, result);
@@ -47,13 +48,14 @@ public sealed class WindowsRecycleCallbackTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         using CancellationTokenSource cancellation = new();
         WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), cancellation.Token);
-        Assert.AreEqual(0, progress.StartOperations());
-        Assert.AreEqual(0, progress.ResetTimer());
-        Assert.AreEqual(0, progress.PauseTimer());
-        Assert.AreEqual(0, progress.ResumeTimer());
-        Assert.AreEqual(0, progress.UpdateProgress(1, 0));
+        using NativeWindowsRecycleProgress native = new(progress);
+        Assert.AreEqual(0, native.StartOperations());
+        Assert.AreEqual(0, native.ResetTimer());
+        Assert.AreEqual(0, native.PauseTimer());
+        Assert.AreEqual(0, native.ResumeTimer());
+        Assert.AreEqual(0, native.UpdateProgress(1, 0));
         cancellation.Cancel();
-        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.UpdateProgress(1, 0));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, native.UpdateProgress(1, 0));
         Assert.IsNull(progress.Complete(0, 0, 0).Effect);
     }
 
@@ -85,7 +87,8 @@ public sealed class WindowsRecycleCallbackTests
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
         WindowsRecycleProgress progress = new(source, CancellationToken.None);
         Assert.AreEqual(0, ScriptedWindowsShellOperation.CompleteRecycle(progress, new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
-        Assert.AreEqual(finished < 0 ? WindowsRecycleProgress.Abort : 0, progress.FinishOperations(finished));
+        using NativeWindowsRecycleProgress native = new(progress);
+        Assert.AreEqual(finished < 0 ? WindowsRecycleProgress.Abort : 0, native.FinishOperations(finished));
         ProviderStepOutcome result = progress.Complete(performed, queried, 0);
         Assert.AreSame(finished < 0 ? FileOperationFailureKind.AccessDenied : FileOperationFailureKind.ProviderUnavailable, result.Failure);
         Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
