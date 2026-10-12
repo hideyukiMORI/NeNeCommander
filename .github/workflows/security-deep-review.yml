@@ -1,8 +1,6 @@
 name: security-deep-review
 
 on:
-  schedule:
-    - cron: '23 2 */3 * *'
   workflow_dispatch:
 
 permissions:

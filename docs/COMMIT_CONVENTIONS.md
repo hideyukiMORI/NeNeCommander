@@ -2,7 +2,7 @@
 
 Status: normative
 
-NeNe Commander follows the NENE2 Issue-driven lifecycle. Repository changes have one traceable path: Issue, focused branch, coherent commits, pull request, required checks, squash merge, and synchronized clean `main`.
+NeNe Commander follows the NENE2 Issue-driven lifecycle. Repository changes have one traceable path: Issue, focused branch, coherent commits, pull request, impact-scoped verification, squash merge, and synchronized clean `main`.
 
 ### GIT-001 — Every change starts from one Issue
 
@@ -38,6 +38,6 @@ Allowed types are `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, and 
 
 Each pull request contains purpose, change summary, canonical path, rule IDs, verification results, waivers, remaining risks, and `Closes #<issue-number>`. It contains one focused work unit. Squash is the only merge method. After merge, return local `main` to the clean synchronized remote state.
 
-Use draft PRs during implementation and review. Under QLT-015, Draft to Ready requests the integration gate; an Issue PR targets the day's `integrate/<yyyy-mm-dd>` branch and receives `Commit` mode, the daily integration PR into `main` receives the full gate, and a document-only PR receives `Commit` mode wherever it targets. Commits use lightweight checks; do not combine unrelated work or suppress commits to avoid full-suite cost. Changed head/base inputs require renewed validation before merge, as specified in `docs/DEVELOPMENT_WORKFLOW.md`.
+Use draft PRs during implementation and review. Under QLT-015 and ADR-0061, Ready means review-ready and does not request full CI. Issue PRs may target main directly; a daily integration branch is optional. Documentation-only PRs start no CI. Dependency inputs receive dependency review at readiness. Before merge, review the chosen scope, commands, results and any reuse justification. Request full/deep validation only for the impact that requires it; only changed relevant inputs invalidate successful evidence. Local commits keep lightweight checks.
 
 The initial direct `main` publication exists only because no remote default branch was available. It must use the Issue #1 commit form and pass the complete canonical gate before push.

@@ -1,7 +1,11 @@
 [CmdletBinding()]
 param(
     [Parameter()]
-    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+
+    [Parameter()]
+    [ValidateSet('All', 'SEC-009')]
+    [string] $Rule = 'All'
 )
 
 Set-StrictMode -Version Latest
@@ -42,8 +46,29 @@ function Assert-SecurityFailure {
     }
 }
 
+function Assert-DeepReviewCadenceProof {
+    Assert-SecurityFailure -Name 'automatic-deep-review' -ExpectedRule 'SEC-009' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/security-deep-review.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  workflow_dispatch:', "  schedule:`n    - cron: '23 2 */3 * *'`n  workflow_dispatch:") -NoNewline
+    }
+
+    Assert-SecurityFailure -Name 'deep-review-on-pull-request' -ExpectedRule 'SEC-009' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/security-deep-review.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  workflow_dispatch:', '  pull_request:') -NoNewline
+    }
+}
+
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    Assert-DeepReviewCadenceProof
+    if ($Rule -eq 'SEC-009') {
+        Write-Host 'Security proofs passed: two SEC-009 explicit-dispatch fixtures only.'
+        return
+    }
 
     Assert-SecurityFailure -Name 'mutable-action-tag' -ExpectedRule 'SEC-006' -Mutate {
         param($caseRoot)

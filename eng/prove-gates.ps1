@@ -1,7 +1,11 @@
 [CmdletBinding()]
 param(
     [Parameter()]
-    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+
+    [Parameter()]
+    [ValidateSet('All', 'QLT-015')]
+    [string] $Rule = 'All'
 )
 
 Set-StrictMode -Version Latest
@@ -129,8 +133,65 @@ function Assert-SourceConformanceFailure {
     }
 }
 
+function Assert-VerificationCadenceProof {
+    Assert-ConformanceFailure -Name 'full-gate-on-push' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  workflow_dispatch:', "  push:`n  workflow_dispatch:") -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'full-gate-on-commit' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.githooks/pre-commit'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace(' -Mode Commit', '') -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'skipped-full-gate-job' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  canonical-gate:', "  canonical-gate:`n    if: false") -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'lightweight-default-gate' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'eng/check.ps1'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('[string] $Mode = ''Merge''', '[string] $Mode = ''Commit''') -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'full-gate-on-readiness' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('  workflow_dispatch:', "  pull_request:`n    types: [ready_for_review]") -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'dependency-review-without-path-filter' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/dependency-review.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('    paths:', '    paths-ignore:') -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'dependency-review-on-documents' -ExpectedRule 'QLT-015' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot '.github/workflows/dependency-review.yml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace("      - 'global.json'", "      - 'docs/**'") -NoNewline
+    }
+
+}
+
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    if ($Rule -eq 'QLT-015') {
+        Assert-VerificationCadenceProof
+        Write-Host 'Gate proofs passed: seven QLT-015 verification-cadence fixtures only.'
+        return
+    }
     Assert-FoundationMaterialization
 
     Assert-ConformanceFailure -Name 'missing-document' -ExpectedRule 'DOC-001' -Mutate {
@@ -288,33 +349,7 @@ try {
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 
-    Assert-ConformanceFailure -Name 'full-gate-on-push' -ExpectedRule 'QLT-015' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
-        $content = Get-Content -LiteralPath $path -Raw
-        Set-Content -LiteralPath $path -Value $content.Replace('  pull_request:', "  push:`n  pull_request:") -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'full-gate-on-commit' -ExpectedRule 'QLT-015' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot '.githooks/pre-commit'
-        $content = Get-Content -LiteralPath $path -Raw
-        Set-Content -LiteralPath $path -Value $content.Replace(' -Mode Commit', '') -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'skipped-full-gate-job' -ExpectedRule 'QLT-015' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot '.github/workflows/quality.yml'
-        $content = Get-Content -LiteralPath $path -Raw
-        Set-Content -LiteralPath $path -Value $content.Replace('  canonical-gate:', "  canonical-gate:`n    if: false") -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'lightweight-default-gate' -ExpectedRule 'QLT-015' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot 'eng/check.ps1'
-        $content = Get-Content -LiteralPath $path -Raw
-        Set-Content -LiteralPath $path -Value $content.Replace('[string] $Mode = ''Merge''', '[string] $Mode = ''Commit''') -NoNewline
-    }
+    Assert-VerificationCadenceProof
 
     $invalidMessage = Join-Path $proofRoot 'invalid-commit-message.txt'
     Set-Content -LiteralPath $invalidMessage -Value 'Implement filesystem safety'

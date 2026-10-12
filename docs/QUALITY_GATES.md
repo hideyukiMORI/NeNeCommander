@@ -2,7 +2,7 @@
 
 Status: normative
 
-`eng/check.ps1` (default `Merge` mode) is the single full definition of merge readiness. Individual tools and targeted tests are used during implementation; their success never substitutes for the complete integration gate. `-Mode Commit` performs lightweight conformance, security scans without negative fixtures, and whitespace checks; it does not build, run behavior tests, collect coverage, or claim merge readiness.
+ADR-0061 selects verification by change impact. `eng/check.ps1` (default `Merge` mode) remains the single full validation definition, requested for substantial features/shared changes when focused proof is insufficient. It is not required for every PR. Documentation starts no CI; isolated changes use affected tests; tooling changes use the affected tool's proofs. `-Mode Commit` remains local conformance/security/whitespace validation and does not claim product-test coverage.
 
 ## Gate sequence
 
@@ -18,7 +18,7 @@ The canonical gate stops at the first failing stage:
 8. coverage threshold verification;
 9. clean generated-output and dependency-lock proof.
 
-Both modes run secret, script-safety, workflow-supply-chain, NuGet-audit-policy, and adversarial-registry checks. Full negative proofs, build, behavior tests and coverage run at merge readiness, not on every edit/commit/push/PR update. The heavier mutation and CodeQL work runs through `eng/deep-review.ps1` every three days; security-sensitive changes also require deep review at integration readiness.
+Both modes run secret, script-safety, workflow-supply-chain, NuGet-audit-policy and adversarial-registry checks. Full negative proofs/build/tests/coverage run only when the selected scope requires the full gate. Mutation and CodeQL run through explicitly requested `eng/deep-review.ps1` for justified security-sensitive integration or release proof. There is no periodic run. Deep review includes the full gate and satisfies it for unchanged inputs.
 
 In `policy-foundation`, stages 3–9 are not silently skipped: production code is prohibited and the conformance gate proves that no solution or implementation is being represented as complete. The atomic transition described in `docs/PROJECT_STATE.md` activates all implementation stages.
 
@@ -27,7 +27,7 @@ In `policy-foundation`, stages 3–9 are not silently skipped: production code i
 - Status: **active**
 - Enforcement: `eng/check.ps1` and CI workflow.
 
-Local verification and CI share one script and the same mode definitions. The full default mode is the sole merge gate. Commit mode and targeted development diagnostics are explicitly incomplete evidence, not a second definition of done. A successful required CI gate need not be duplicated locally.
+Local verification and CI share one full script and the same mode definitions. ADR-0061 determines when the full gate is required; targeted evidence is sufficient for a bounded change when its recorded scope establishes the impact. Commit mode alone does not prove behavior. Successful proof is reused while its relevant inputs remain unchanged.
 
 ### QLT-002 — Compiler and analyzer findings fail the build
 
@@ -108,12 +108,12 @@ Every UI change proves keyboard focus, selection, inactive-pane rendering, busy,
 
 Restore, generation, build, and test must not modify committed sources or lock files. Build output stays in ignored locations. Generated differences fail CI.
 
-### QLT-013 — Deep review is a separate mandatory tier
+### QLT-013 — Deep review is requested for the applicable risk
 
 - Status: **active**
-- Enforcement: `eng/deep-review.ps1` and scheduled CI.
+- Enforcement: `eng/deep-review.ps1` and manual CI.
 
-The default branch runs deep security, adversarial, dependency, and mutation analysis every third UTC calendar day. It does not replace the PR gate. A release requires a successful deep-review result no older than 96 hours.
+Request deep security, adversarial, dependency and mutation analysis only when the security impact or release requires it. It includes full canonical validation; do not request that again for the same inputs. A release retains the requirement for successful deep-review evidence no older than 96 hours. No schedule runs these tiers.
 
 ### QLT-014 — Restore and build evaluate the same configuration
 
@@ -122,12 +122,14 @@ The default branch runs deep security, adversarial, dependency, and mutation ana
 
 The canonical gate performs its single locked restore with `Configuration=Release` before the Release build. Configuration-conditional runtime and build packs must be resolved on a clean runner; a default-configuration restore followed by a Release `--no-restore` build is prohibited.
 
-### QLT-015 — Full validation is requested at integration readiness
+### QLT-015 — Verification follows the actual change impact
 
 - Status: **active**
-- Enforcement: `eng/conformance.ps1`, negative gate fixtures, `quality.yml`, and the main ruleset.
+- Enforcement: `eng/conformance.ps1`, focused negative fixtures, CI workflows, PR evidence and the main ruleset.
 
-Keep PRs draft during development. The sole normal CI trigger is `pull_request: ready_for_review`; Draft to Ready means the focused Issue is ready for its final integration check. Push, PR opened/synchronize, commit, and post-merge events must not start the full gate. A non-draft PR created directly must be converted to Draft then Ready to request validation. Further head changes require a fresh readiness transition; when main changes, update the branch and request fresh validation. The ruleset must retain required `canonical-gate` from GitHub Actions, strict up-to-date status checks, no bypass actors, and squash-only PR integration. Never use a skipped job or a success under the `canonical-gate` name that did not run a canonical mode. The job chooses its depth only from the PR base and the changed paths (ADR-0025, revised 2026-10-12): the complete default command for a PR into `main` whose change set is not document-only, and `Commit` mode for a PR into the day's integration branch or for a document-only change set; it runs that command against the PR merge candidate. Obsolete runs for the same PR may be cancelled. Separate scheduled/security/release deep-review obligations remain in force.
+Follow ADR-0061. Quality CI is `workflow_dispatch` only and always runs the unchanged full command when explicitly requested. Deep review is also manual-only. Dependency review runs at PR readiness only for the protected dependency-path set. Documentation-only changes start no CI. Do not substitute skipped jobs or synthetic success for actual evidence.
+
+Main retains required PRs, squash-only integration, resolved threads, no bypass actors and force-push/deletion protection. It has no unconditional required status check: review the selected evidence before merging. Record the chosen scope and justification in the PR. Only relevant input changes invalidate evidence; workflow stage, new commit identifiers or unchanged docs do not. No daily integration or Draft-to-Ready full run is mandatory.
 
 ## Test tiers
 
@@ -142,4 +144,4 @@ Keep PRs draft during development. The sole normal CI trigger is `pull_request: 
 
 ## Changing a gate
 
-A gate change requires an ADR, positive and negative proof, updated documentation, and a passing old gate followed by the passing new gate when technically possible. Disabling a check to merge unrelated work is prohibited.
+A gate change requires an ADR, updated documentation and positive/negative proof of the affected tooling. Under ADR-0061, use the bounded proof tools and local Commit checks; do not run unrelated product suites merely because a gate changed. Changing test expectations to conceal a failure in unrelated work is prohibited.

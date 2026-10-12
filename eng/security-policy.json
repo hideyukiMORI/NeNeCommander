@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "deepReviewCron": "23 2 */3 * *",
+  "deepReviewTrigger": "workflow_dispatch",
   "maximumReviewAgeHours": 96,
   "nuGetAuditLevel": "low",
   "adversarialRepeatCount": 3,

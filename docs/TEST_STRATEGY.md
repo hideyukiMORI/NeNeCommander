@@ -4,7 +4,7 @@ Status: normative
 
 Tests are executable specifications. Production code is not accepted because it appears correct; it is accepted only when positive, negative, boundary, failure, concurrency, and adversarial behavior are proved at the owning layer.
 
-Execution cadence follows QLT-015 and ADR-0025: run focused behavior and affected-consumer tests during implementation, lightweight checks on commit, and the full canonical suite once the final Issue/PR is ready to merge. Rerun full validation when that candidate changes. Full-layer mutation is a scheduled/security-integration/release obligation, not an automatic requirement for each small implementation attempt. This cadence changes neither test obligations nor protected thresholds.
+Execution cadence follows QLT-015 and ADR-0061: select only the affected behavior and boundary tests, retain local Commit checks, and request full validation for substantial/shared changes when focused evidence cannot establish the wider impact. Documentation starts no CI or product tests. Tooling changes use tool-specific proof. Full-layer mutation is explicitly requested for necessary security integration or release proof, with no periodic run. Reuse successful proof whose relevant inputs are unchanged. Protected thresholds remain unchanged.
 
 ### TST-001 — Every behavior has an owning test tier
 
@@ -58,7 +58,7 @@ Each port supports deterministic failure at preflight, first item, middle item, 
 ### TST-008 — Mutation testing measures assertion strength
 
 - Status: **active**
-- Enforcement: pinned Stryker.NET and three-day deep review.
+- Enforcement: pinned Stryker.NET in explicitly requested deep review.
 
 Stryker.NET runs at `Complete` mutation level with no baseline. Domain and Application must score at least 95%; Infrastructure and Presentation must score at least 90%. Surviving mutants are fixed with behavior tests or simpler code; they are not excluded to satisfy the threshold.
 
@@ -90,7 +90,7 @@ Mutation tests use a unique resolved OS temporary root. Live WSL and UNC tests r
 - Status: **active**
 - Enforcement: CI logs and deep-review report.
 
-A failed seed, threat ID, provider, capability set, operation step, and typed outcome are emitted without secrets. Scheduled reports record tool versions, commit, start time, conclusion, and every skipped environmental tier.
+A failed seed, threat ID, provider, capability set, operation step, and typed outcome are emitted without secrets. Deep-review reports record tool versions, commit, start time, conclusion, and every skipped environmental tier.
 
 ## Required test matrix for each command
 
@@ -98,4 +98,4 @@ Every application command proves: valid success; each validation failure; each p
 
 ## Deep-review cadence
 
-`.github/workflows/security-deep-review.yml` runs every third UTC calendar day and on manual dispatch. It runs the canonical gate, adversarial tests three consecutive times, vulnerability review, and mutation testing. Any single failure fails the workflow; there are no automatic retries that convert failure into success.
+`.github/workflows/security-deep-review.yml` runs only on explicit manual dispatch for a justified security-integration or release need. It includes the canonical gate, adversarial tests three consecutive times, vulnerability review and mutation testing, so the same full gate is not requested a second time. Any single failure fails the workflow; there are no automatic retries that convert failure into success.

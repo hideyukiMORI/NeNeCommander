@@ -34,9 +34,10 @@ Not yet on `main`: transfers from WSL to Windows or between distributions, UNC m
 ## Verification
 
 - One-time clone setup: `pwsh -NoProfile -File ./eng/bootstrap.ps1` verifies the pinned SDK and enables the repository-owned Git hooks.
-- During implementation: focused behavior and affected-consumer tests, plus `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit` (also run by the commit hook). This never establishes merge readiness.
-- Merge readiness: `pwsh -NoProfile -File ./eng/check.ps1`, requested in CI by changing the final draft PR to Ready immediately before merge. See the [development workflow](docs/DEVELOPMENT_WORKFLOW.md) and the [quality gates](docs/QUALITY_GATES.md).
-- Deep security and adversarial verification, including all-layer mutation: `pwsh -NoProfile -File ./eng/deep-review.ps1`, run at integration readiness for security-sensitive changes and on a schedule for `main`.
+- Documentation/comment-only changes: review text/links/diff; no automatic CI or product tests. Local commit checks remain.
+- Ordinary implementation: affected build/behavior and boundary tests, plus local `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`.
+- Substantial/shared changes: request `gh workflow run quality.yml --ref <candidate-branch>` when focused proof cannot establish the wider impact. It executes the full `pwsh -NoProfile -File ./eng/check.ps1`.
+- Necessary security integration/release: request `gh workflow run security-deep-review.yml --ref <candidate-branch>`. Deep review includes the full gate; do not also run quality for unchanged inputs. There is no periodic run. See [ADR-0061](docs/adr/0061-impact-scoped-verification.md).
 - Live WSL tier: `pwsh -NoProfile -File ./eng/run-live-wsl-tests.ps1` with `NENE_COMMANDER_WSL_TEST_ROOT` pointing at an empty, dedicated directory inside a distribution; it is opt-in and writes only under that root.
 - Windows UI release evidence: `eng/ui-evidence/Invoke-UiEvidence.ps1`, used for the hand-run confirmation of ADR-0054.
 

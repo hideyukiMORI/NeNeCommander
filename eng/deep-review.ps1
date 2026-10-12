@@ -142,7 +142,7 @@ try {
             }
         }
 
-        Add-ReviewCheck -Name 'codeql' -Status 'external-step' -Evidence 'The scheduled workflow runs CodeQL init/analyze around this script.'
+        Add-ReviewCheck -Name 'codeql' -Status 'external-step' -Evidence 'The explicitly dispatched workflow runs CodeQL init/analyze around this script.'
     }
     else {
         throw "Unsupported project stage '$stage'."

@@ -44,7 +44,7 @@ try {
             & git diff --cached --check
             if ($LASTEXITCODE -ne 0) { throw 'Staged whitespace check failed.' }
         }
-        Write-Host 'PASS: commit checks only; targeted behavior tests and merge-time canonical gate are still required.'
+        Write-Host 'PASS: commit checks only; select any additional verification from the actual change impact (ADR-0061).'
         return
     }
 
