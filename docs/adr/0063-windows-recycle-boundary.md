@@ -88,6 +88,26 @@ is justified by the new destructive Shell/COM trust boundary. Its included full
 gate is not repeated through quality CI. Unchanged transfer/live-WSL evidence is
 reused. Release screen confirmation #94 remains separate.
 
+The integration review uses ADR-0061's affected-proof retry: the full gate and
+passed deep-review tiers at `c94bc80` are retained, while test-only remediation
+at `242767c` brings Infrastructure mutation to 90.06 percent. The unreached
+Presentation tier passes separately at 95.02 percent. The original deep job
+remains failed; these results do not manufacture a successful workflow run.
+
+Canonical buildless CodeQL at product head `d264de6` has no findings across
+164 rules. Its local raw SARIF includes generated-code compilation diagnostics;
+a supplemental compiler-fed analysis at final test head `242767c` verifies
+634 of 634 files with no extraction errors or warnings. That supplemental
+analysis reports three note-level `cs/call-to-unmanaged-code` recommendations:
+the scheduler's `CoInitializeEx`/`CoUninitialize` pair and the existing
+`WindowsFileIdentifier` native identity call. These are the deliberate native
+boundaries accepted by SEC-014 and this decision, rather than an accidental
+escape into platform APIs: the former owns COM lifetime on the STA, and the
+latter supplies filesystem identity that a path-only managed lookup cannot
+provide. Their HRESULT handling, lifetime and owner tests remain mandatory.
+The raw results are retained without filtering or suppression. The canonical
+buildless workflow and its generated-path policy are unchanged.
+
 ## Alternatives
 
 `SHFileOperation` and Visual Basic wrappers hide per-item completion and do not
