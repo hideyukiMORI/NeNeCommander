@@ -36,7 +36,7 @@ public sealed class WindowsWslFileSystemTests
         StringAssert.Contains(fileEntry.Identity.Value, "|file|00000000|1|7|");
         Assert.IsTrue(fileSystem.TargetExists(file));
         Assert.IsFalse(fileSystem.ContainsReparsePoint(fileEntry));
-        fileSystem.Copy(fileEntry, copiedFile);
+        Assert.IsNull(fileSystem.Copy(fileEntry, copiedFile).Failure);
         Assert.IsFalse(fileSystem.ContainsReparsePoint(copiedFile));
         Assert.IsTrue(fileSystem.Matches(fileEntry, copiedFile));
         File.AppendAllText(root.Resolve("copied.txt"), "changed");
@@ -59,7 +59,7 @@ public sealed class WindowsWslFileSystemTests
         StringAssert.Contains(directoryEntry.Identity.Value, "|directory|00000000|1|0|");
         _ = root.WriteFile("created\\child.txt", "child");
         WslPath copiedDirectory = Wsl("/owned/copied-directory");
-        fileSystem.Copy(directoryEntry, copiedDirectory);
+        Assert.IsNull(fileSystem.Copy(directoryEntry, copiedDirectory).Failure);
         Assert.IsTrue(fileSystem.Matches(directoryEntry, copiedDirectory));
         _ = root.CreateDirectory("linked-tree");
         _ = root.CreateJunction("linked-tree\\nested-link", "link-target");
@@ -301,8 +301,8 @@ public sealed class WindowsWslFileSystemTests
         WslFileSystemEntry directory = RequireEntry(fileSystem.Find(Wsl("/owned/sub.")));
 
         fileSystem.CreateDirectory(Wsl("/owned/made."));
-        fileSystem.Copy(directory, Wsl("/owned/copy."));
-        fileSystem.Copy(file, Wsl("/owned/copy./foo."));
+        Assert.IsNull(fileSystem.Copy(directory, Wsl("/owned/copy.")).Failure);
+        Assert.IsNull(fileSystem.Copy(file, Wsl("/owned/copy./foo.")).Failure);
         Assert.IsTrue(Directory.Exists(root.ResolveVerbatim("made.")));
         Assert.IsTrue(Directory.Exists(root.ResolveVerbatim("copy.")));
         Assert.AreEqual("inner", File.ReadAllText(root.ResolveVerbatim("copy.\\inner")));
@@ -386,10 +386,10 @@ public sealed class WindowsWslFileSystemTests
             fullNames);
         Assert.AreEqual(
             root.ResolveVerbatim("sub.\\foo."),
-            WindowsLocalTreeCopy.ResolveDirectChild(parent, "foo."));
+            Resolve(root, Assert.IsInstanceOfType<WslPath>(WindowsLocalTreeCopy.DeriveChild(Wsl("/owned/sub."), "foo."))));
         Assert.AreEqual(
             root.ResolveVerbatim("sub.\\bar "),
-            WindowsLocalTreeCopy.ResolveDirectChild(parent + "\\", "bar "));
+            Resolve(root, Assert.IsInstanceOfType<WslPath>(WindowsLocalTreeCopy.DeriveChild(Wsl("/owned/sub."), "bar "))));
     }
 
     private static WindowsWslFileSystem FileSystem(TestOwnedTemporaryRoot root)

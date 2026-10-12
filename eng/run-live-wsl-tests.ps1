@@ -1,5 +1,7 @@
 [CmdletBinding()]
-param()
+param(
+    [string[]] $Case = @()
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -15,7 +17,7 @@ $mountFactAccepted = 'NativeWslFileSystem:v1'
 # ADR-0049 moved every identity into the C# owner, which captures the temporary root and the
 # configured root itself and compares them immediately before its first mutation. The launcher
 # therefore loads no assembly, reflects into no member, and passes no identity.
-$requiredCases = @(
+$declaredCases = @(
     'ExecuteAsyncWhenLiveNestedCopyCompletesPreservesSourceAndTargetAsync',
     'ExecuteAsyncWhenLiveCompositeMoveCompletesDeletesSourceAfterVerifiedTargetAsync',
     'ExecuteAsyncWhenLiveSourceContainsOwnedLinkRejectsWithoutEffectAsync',
@@ -24,7 +26,19 @@ $requiredCases = @(
     'ExecuteAsyncWhenLiveTreeHasTrailingDotNamesKeepsExactNamesAsync',
     'FindWhenLiveOwnedFixtureIsInspectedMatchesDistributionStatAsync',
     'FindWhenLiveOwnedLinkIsInspectedDiffersFromItsTargetAsync',
-    'FindWhenLiveOwnedFixtureIsReadAgainRepeatsTheSameIdentityAsync')
+    'FindWhenLiveOwnedFixtureIsReadAgainRepeatsTheSameIdentityAsync',
+    'ExecuteAsyncWhenLiveWslTreeCopiesToWindowsPreservesVisibleNamesAsync',
+    'ExecuteAsyncWhenLiveWslTreeMovesToWindowsDeletesVerifiedSourceAsync',
+    'ExecuteAsyncWhenLiveLinuxNamesCollideOnWindowsRejectsBeforeEffectsAsync',
+    'ExecuteAsyncWhenLiveLinuxNamesAreInvalidOnWindowsRejectsBeforeEffectsAsync')
+if (@($Case | Where-Object { $_ -cnotin $declaredCases }).Count -ne 0 -or
+    @($Case | Select-Object -Unique).Count -ne $Case.Count) {
+    throw 'Each requested live case must be a distinct declared cell.'
+}
+$requiredCases = if ($Case.Count -eq 0) { $declaredCases } else { $Case }
+$testFilter = 'TestCategory=LiveWsl&(' +
+    (($requiredCases | ForEach-Object { 'FullyQualifiedName~' + $_ }) -join '|') + ')'
+
 $settingsPath = $null
 $resultsDirectory = $null
 $resultsPath = $null
@@ -164,7 +178,9 @@ try {
     Write-Host ('Snapshot: ' + $snapshotState)
     Write-Host ('OS: ' + [System.Environment]::OSVersion.VersionString)
     Write-Host (Get-WslVersionText)
-    Write-Host ('Declared live cells: ' + $requiredCases.Count)
+    Write-Host ('Declared live cells: ' + $declaredCases.Count)
+    Write-Host ('Selected live cells: ' + $requiredCases.Count)
+    Write-Host ('Selected cases: ' + ($requiredCases -join ', '))
 
     & dotnet build $testProject --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) {
@@ -173,7 +189,7 @@ try {
 
     $configuredRoot = [System.Environment]::GetEnvironmentVariable($rootParameterName, 'Process')
     if ([string]::IsNullOrWhiteSpace($configuredRoot)) {
-        & dotnet test --project $testProject --configuration Release --no-build --no-restore --filter 'TestCategory=LiveWsl'
+        & dotnet test --project $testProject --configuration Release --no-build --no-restore --filter $testFilter
         throw 'LiveWsl:Unexecuted:RootParameterAbsent'
     }
 
@@ -238,7 +254,7 @@ try {
     # `--results-directory` is owned by the `dotnet test` driver and must precede the separator;
     # the report and settings options after it belong to Microsoft.Testing.Platform.
     & dotnet test --project $testProject --configuration Release --no-build --no-restore `
-        --filter 'TestCategory=LiveWsl' --results-directory $resultsDirectory `
+        --filter $testFilter --results-directory $resultsDirectory `
         -- --settings $settingsPath --report-trx --report-trx-filename live.trx
     if ($LASTEXITCODE -ne 0) {
         throw 'The live WSL proof failed.'

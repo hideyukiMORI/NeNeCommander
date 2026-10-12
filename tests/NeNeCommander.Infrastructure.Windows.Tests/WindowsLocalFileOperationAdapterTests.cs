@@ -749,26 +749,29 @@ public sealed class WindowsLocalFileOperationAdapterTests
 
     /// <summary>Proves the tree copier never overwrites an existing target file.</summary>
     [TestMethod]
-    public void CopyWhenTargetFileExistsThrowsIOException()
+    public void CopyWhenTargetFileExistsReturnsConflict()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileInfo source = new(root.WriteFile("a.txt", "abc"));
         string target = root.WriteFile("b.txt", "keep");
 
-        _ = Assert.ThrowsExactly<IOException>(() => WindowsLocalTreeCopy.Copy(source, target));
+        ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
+            source, ParsePath(target), path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+        Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
+        Assert.IsNull(outcome.Effect);
 
         Assert.AreEqual("keep", File.ReadAllText(target));
     }
 
     /// <summary>Proves the shared target resolver keeps a direct name beneath its exact parent.</summary>
     [TestMethod]
-    public void ResolveDirectChildWhenNameIsOneSegmentReturnsContainedPath()
+    public void DeriveChildWhenNameIsOneSegmentReturnsContainedPath()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
 
-        string resolved = WindowsLocalTreeCopy.ResolveDirectChild(root.Path.CanonicalText, "child.txt");
+        FileSystemPath resolved = Assert.IsInstanceOfType<WindowsLocalPath>(WindowsLocalTreeCopy.DeriveChild(root.Path, "child.txt"));
 
-        Assert.AreEqual(root.Resolve("child.txt"), resolved, ignoreCase: true);
+        Assert.AreEqual(root.Resolve("child.txt"), resolved.CanonicalText, ignoreCase: true);
     }
 
     /// <summary>Proves rooted and multi-segment names cannot replace or escape the target parent.</summary>
@@ -781,27 +784,24 @@ public sealed class WindowsLocalFileOperationAdapterTests
     [DataRow("..\\escape.txt")]
     [DataRow("nested\\escape.txt")]
     [DataRow("C:\\escape.txt")]
-    public void ResolveDirectChildWhenNameIsNotOneSegmentThrowsArgumentException(string childName)
+    public void DeriveChildWhenNameIsNotOneSegmentRejectsName(string childName)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
 
-        ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(
-            () => WindowsLocalTreeCopy.ResolveDirectChild(root.Path.CanonicalText, childName));
-        Assert.AreEqual("childName", failure.ParamName);
-        Assert.StartsWith("A direct child name must contain exactly one path segment.", failure.Message);
+        Assert.IsNull(WindowsLocalTreeCopy.DeriveChild(root.Path, childName));
     }
 
     /// <summary>Proves each required direct-child resolver argument is rejected at its own boundary.</summary>
     [TestMethod]
-    public void ResolveDirectChildWhenArgumentIsNullThrowsNamedArgumentNullException()
+    public void DeriveChildWhenArgumentIsNullThrowsNamedArgumentNullException()
     {
         MethodInfo method = typeof(WindowsLocalTreeCopy).GetMethod(
-            "ResolveDirectChild",
+            "DeriveChild",
             BindingFlags.Static | BindingFlags.NonPublic) ??
             throw new AssertFailedException("The direct-child resolver was not found.");
 
-        AssertResolverNullGuard(method, [null, "child.txt"], "parentText");
-        AssertResolverNullGuard(method, ["C:\\parent", null], "childName");
+        AssertResolverNullGuard(method, [null, "child.txt"], "parent");
+        AssertResolverNullGuard(method, [ParsePath("C:\\parent"), null], "name");
     }
 
     /// <summary>Proves every child must match, rather than only one child, when trees are compared.</summary>
@@ -816,7 +816,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.WriteFile("target\\a.txt", "same");
         _ = root.WriteFile("target\\b.txt", "different");
 
-        Assert.IsFalse(WindowsLocalTreeCopy.Matches(new DirectoryInfo(sourceText), targetText));
+        Assert.IsFalse(WindowsLocalTreeCopy.Matches(
+            new DirectoryInfo(sourceText), ParsePath(targetText), path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource));
     }
 
     /// <summary>Proves every port method rejects an absent argument before touching the filesystem.</summary>

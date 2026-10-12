@@ -18,6 +18,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     private readonly IFileOperationPort _windowsLocal;
     private readonly IFileOperationPort _wsl;
     private readonly IFileOperationPort _windowsLocalToWsl;
+    private readonly IFileOperationPort _wslToWindows;
 
     /// <summary>Initializes the provider router over the shared Windows I/O execution boundary.</summary>
     public ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary)
@@ -31,21 +32,25 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         : this(
             new WindowsLocalFileOperationAdapter(executionBoundary),
             new WslFileOperationAdapter(executionBoundary, wslFileSystem),
-            new WindowsToWslTransfer(executionBoundary, wslFileSystem))
+            new WindowsToWslTransfer(executionBoundary, wslFileSystem),
+            new WslToWindowsTransfer(executionBoundary, wslFileSystem))
     {
     }
 
     internal ProviderFileOperationPort(
         IFileOperationPort windowsLocal,
         IFileOperationPort wsl,
-        IFileOperationPort windowsLocalToWsl)
+        IFileOperationPort windowsLocalToWsl,
+        IFileOperationPort wslToWindows)
     {
         ArgumentNullException.ThrowIfNull(windowsLocal);
         ArgumentNullException.ThrowIfNull(wsl);
         ArgumentNullException.ThrowIfNull(windowsLocalToWsl);
+        ArgumentNullException.ThrowIfNull(wslToWindows);
         _windowsLocal = windowsLocal;
         _wsl = wsl;
         _windowsLocalToWsl = windowsLocalToWsl;
+        _wslToWindows = wslToWindows;
     }
 
     /// <inheritdoc />
@@ -171,6 +176,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
             TransferRoute.SameWindowsLocal => _windowsLocal,
             TransferRoute.SameWslDistribution => _wsl,
             TransferRoute.WindowsLocalToWsl => _windowsLocalToWsl,
+            TransferRoute.WslToWindows => _wslToWindows,
             _ => null,
         };
     }

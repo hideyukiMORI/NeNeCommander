@@ -9,9 +9,9 @@ The repository is in its implementation stage; production code is permitted. Mos
 - Dual-pane navigation with Vim-first keys, an address input, per-pane history, selection, hidden-item display, and sorting by name, extension, size, or modification time. See the [keyboard model](docs/KEYBOARD_MODEL.md).
 - Copy, move, rename, new folder, and delete through one fail-closed file-operation gateway with provider-declared policies, observable progress, cancellation between steps, and `Escape` to abandon a loading read.
 - Session-owned transient surfaces: settings editor, command palette, bookmarks with fixed slots, window adjustment mode, and a Locations picker for drives and WSL distribution roots.
-- Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, same-distribution mutations and transfers), UNC shares (directory reads only), and copy or move from a Windows local path into a WSL distribution.
+- Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, same-distribution mutations and transfers), UNC shares (directory reads only), and copy or move in both directions between a Windows local path and a WSL distribution.
 
-Not yet on `main`: transfers from WSL to Windows or between distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
+Not yet on `main`: Windows recycle-bin deletion, transfers between WSL distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
 
 ## Repository layout
 
@@ -38,7 +38,7 @@ Not yet on `main`: transfers from WSL to Windows or between distributions, UNC m
 - Ordinary implementation: affected build/behavior and boundary tests, plus local `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`.
 - Substantial/shared changes: request `gh workflow run quality.yml --ref <candidate-branch>` when focused proof cannot establish the wider impact. It executes the full `pwsh -NoProfile -File ./eng/check.ps1`.
 - Necessary security integration/release: request `gh workflow run security-deep-review.yml --ref <candidate-branch>`. Deep review includes the full gate; do not also run quality for unchanged inputs. There is no periodic run. See [ADR-0061](docs/adr/0061-impact-scoped-verification.md).
-- Live WSL tier: `pwsh -NoProfile -File ./eng/run-live-wsl-tests.ps1` with `NENE_COMMANDER_WSL_TEST_ROOT` pointing at an empty, dedicated directory inside a distribution; it is opt-in and writes only under that root.
+- Live WSL tier: `pwsh -NoProfile -File ./eng/run-live-wsl-tests.ps1` with `NENE_COMMANDER_WSL_TEST_ROOT` pointing at an empty, dedicated directory inside a distribution; it is opt-in and owns all fixtures in that root and a separate Windows temporary root. Use an explicit `-Case` array of declared method names for affected cells only; the log and result must pass every selected cell. Omit `-Case` for the complete tier.
 - Windows UI release evidence: `eng/ui-evidence/Invoke-UiEvidence.ps1`, used for the hand-run confirmation of ADR-0054.
 
 Technical documentation, identifiers, and comments are written in English. Commits use English Conventional Commit keywords with Japanese descriptions. User-facing text is stored in resources so localization remains possible.

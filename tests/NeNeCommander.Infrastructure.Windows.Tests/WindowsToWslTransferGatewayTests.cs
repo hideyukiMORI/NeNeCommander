@@ -355,7 +355,7 @@ public sealed class WindowsToWslTransferGatewayTests
     }
 
     /// <summary>
-    /// Proves a move from WSL to Windows local, between distributions, or into UNC still stops
+    /// Proves a move between distributions or into UNC still stops
     /// before any step with <c>ProviderUnavailable</c>, leaving every source and destination as it was.
     /// </summary>
     [TestMethod]
@@ -366,15 +366,11 @@ public sealed class WindowsToWslTransferGatewayTests
         using TestOwnedTemporaryRoot root = CreateRoot();
         _ = root.WriteFile("wsl\\item.txt", "linux");
         FileSystemPath windowsSource = ParsePath(root.WriteFile("windows\\item.txt", "windows"));
-        FileSystemPath windowsDestination = ParsePath(root.CreateDirectory("windows\\dest"));
+        _ = root.CreateDirectory("windows\\dest");
         _ = root.CreateDirectory("wsl\\dest");
         StepHookPort port = new(CreateRouter(root));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome toWindows = await gateway.ExecuteAsync(
-            Move([Wsl("/owned/item.txt")], windowsDestination),
-            IgnoredFileOperationProgress.Create(),
-            CancellationToken.None);
         FileOperationOutcome toDistribution = await gateway.ExecuteAsync(
             Move([Wsl("/owned/item.txt")], Wsl("Debian", "/owned/dest")),
             IgnoredFileOperationProgress.Create(),
@@ -384,7 +380,7 @@ public sealed class WindowsToWslTransferGatewayTests
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
-        foreach (FileOperationOutcome outcome in new[] { toWindows, toDistribution, toUnc })
+        foreach (FileOperationOutcome outcome in new[] { toDistribution, toUnc })
         {
             Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
             Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
@@ -420,7 +416,8 @@ public sealed class WindowsToWslTransferGatewayTests
         using FileOperationGateway gateway = new(new ProviderFileOperationPort(
             new WindowsLocalFileOperationAdapter(execution),
             new WslFileOperationAdapter(execution, drvfs),
-            transfer));
+            transfer,
+            new WslToWindowsTransfer(execution, drvfs)));
         FileEntrySnapshot snapshot = await InspectAsync(tree);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -469,7 +466,8 @@ public sealed class WindowsToWslTransferGatewayTests
         return new ProviderFileOperationPort(
             new WindowsLocalFileOperationAdapter(execution),
             new WslFileOperationAdapter(execution, fileSystem),
-            new WindowsToWslTransfer(execution, fileSystem));
+            new WindowsToWslTransfer(execution, fileSystem),
+            new WslToWindowsTransfer(execution, fileSystem));
     }
 
     private static string Resolve(TestOwnedTemporaryRoot root, WslPath path)

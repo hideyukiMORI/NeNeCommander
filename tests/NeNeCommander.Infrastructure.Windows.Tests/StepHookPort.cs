@@ -20,6 +20,8 @@ internal sealed class StepHookPort : IFileOperationPort
         _inner = inner;
     }
 
+    internal Func<Task> AfterPreflight { get; init; } = () => Task.CompletedTask;
+
     internal Func<FileEntrySnapshot, Task> AfterCopy { get; init; } = _ => Task.CompletedTask;
 
     internal Func<FileEntrySnapshot, Task> AfterVerify { get; init; } = _ => Task.CompletedTask;
@@ -33,12 +35,14 @@ internal sealed class StepHookPort : IFileOperationPort
         return _inner.InspectAsync(path, cancellationToken);
     }
 
-    public Task<TransferPreflightOutcome> PreflightTransferAsync(
+    public async Task<TransferPreflightOutcome> PreflightTransferAsync(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return _inner.PreflightTransferAsync(sources, destination, cancellationToken);
+        TransferPreflightOutcome outcome = await _inner.PreflightTransferAsync(sources, destination, cancellationToken);
+        await AfterPreflight();
+        return outcome;
     }
 
     public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(

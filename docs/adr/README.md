@@ -10,6 +10,7 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0062: Copy and move WSL trees into Windows without changing names](0062-wsl-to-windows-transfer.md)
 - [ADR-0061: Run only the verification justified by the change](0061-impact-scoped-verification.md)
 - [ADR-0060: Address WSL entries through extended-length Win32 paths](0060-wsl-extended-length-win32-paths.md)
 - [ADR-0059: Copy and move from Windows local to a WSL distribution through the routed transfer path](0059-windows-to-wsl-copy.md)

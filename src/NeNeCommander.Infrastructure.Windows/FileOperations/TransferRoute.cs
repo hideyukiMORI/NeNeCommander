@@ -23,7 +23,7 @@ internal abstract record TransferRoute
     /// <returns>The common route, or <see cref="Unavailable"/> for an empty or mixed batch.</returns>
     internal static TransferRoute Derive(IReadOnlyList<FileEntrySnapshot> sources, FileSystemPath destination)
     {
-        if (sources.Count == 0)
+        if (sources.Count == 0 || !SharesSourceDistribution(sources))
         {
             return new Unavailable();
         }
@@ -44,8 +44,16 @@ internal abstract record TransferRoute
                 destinationWsl.DistributionName,
                 StringComparison.OrdinalIgnoreCase) => new SameWslDistribution(),
             (WindowsLocalPath, WslPath) => new WindowsLocalToWsl(),
+            (WslPath, WindowsLocalPath) => new WslToWindows(),
             _ => new Unavailable(),
         };
+    }
+
+    private static bool SharesSourceDistribution(IReadOnlyList<FileEntrySnapshot> sources)
+    {
+        return sources[0].Path is not WslPath first || sources.All(source =>
+            source.Path is WslPath wsl && first.DistributionName.Equals(
+                wsl.DistributionName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>Both ends are Windows local paths; the Windows local adapter owns the step.</summary>
@@ -56,6 +64,9 @@ internal abstract record TransferRoute
 
     /// <summary>A Windows local source copies or moves into a WSL distribution through the cross transfer.</summary>
     internal sealed record WindowsLocalToWsl : TransferRoute;
+
+    /// <summary>A WSL source copies or moves into Windows through the reverse transfer.</summary>
+    internal sealed record WslToWindows : TransferRoute;
 
     /// <summary>Every other pair, an empty batch, or a mixed batch; it fails closed before any adapter.</summary>
     internal sealed record Unavailable : TransferRoute;
