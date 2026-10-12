@@ -4,6 +4,8 @@ Status: accepted
 
 Date: 2026-10-09
 
+ADR-0065 supersedes only the UNC-launch prohibition: file activation uses the existing path-based Shell contract and does not grant a filesystem mutation or identity capability. ADR-0061 governs verification cadence.
+
 ## Context
 
 The charter's mission names UNC shares beside local paths and WSL distributions. The Domain parses

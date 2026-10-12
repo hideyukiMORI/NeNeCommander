@@ -10,15 +10,24 @@ using NeNeCommander.Infrastructure.Windows.Execution;
 namespace NeNeCommander.Infrastructure.Windows.Launching;
 
 /// <summary>
-/// Hands an admitted Windows-local or WSL file path to its Windows Shell association without
+/// Hands an admitted Windows-local, UNC or WSL file path to its Windows Shell association without
 /// exposing shell verbs, arguments, or external process lifetime to callers.
 /// </summary>
 public sealed class WindowsShellFileLauncher : IFileLauncher
 {
     private const int ErrorAccessDenied = 5;
+    private const int ErrorBadNetworkPath = 53;
+    private const int ErrorBadNetworkName = 67;
     private const int ErrorFileNotFound = 2;
+    private const int ErrorHostUnreachable = 1232;
+    private const int ErrorLogonFailure = 1326;
+    private const int ErrorNetworkNameDeleted = 64;
+    private const int ErrorNetworkUnreachable = 1231;
     private const int ErrorNoAssociation = 1155;
     private const int ErrorPathNotFound = 3;
+    private const int ErrorSemaphoreTimeout = 121;
+    private const int ErrorSessionCredentialConflict = 1219;
+    private const int ErrorUnexpectedNetwork = 59;
     private const int ShellErrorNoAssociation = 31;
     private const int ShellPathLengthLimit = 260;
 
@@ -74,7 +83,9 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
         return nativeErrorCode switch
         {
             ErrorFileNotFound or ErrorPathNotFound => FileLaunchFailureKind.NotFound,
-            ErrorAccessDenied => FileLaunchFailureKind.AccessDenied,
+            ErrorAccessDenied or ErrorLogonFailure or ErrorSessionCredentialConflict => FileLaunchFailureKind.AccessDenied,
+            ErrorBadNetworkPath or ErrorBadNetworkName or ErrorHostUnreachable or ErrorNetworkNameDeleted or
+                ErrorNetworkUnreachable or ErrorSemaphoreTimeout or ErrorUnexpectedNetwork => FileLaunchFailureKind.ProviderUnavailable,
             ErrorNoAssociation or ShellErrorNoAssociation => FileLaunchFailureKind.AssociationUnavailable,
             _ => FileLaunchFailureKind.ShellRejected,
         };
@@ -106,6 +117,7 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
         return target switch
         {
             WindowsLocalPath => true,
+            WindowsUncPath unc => unc.CanonicalText.Length < ShellPathLengthLimit,
             WslPath wsl => wsl.CanonicalText.Length < ShellPathLengthLimit && wsl.HasWindowsCompatibleNames,
             _ => false,
         };

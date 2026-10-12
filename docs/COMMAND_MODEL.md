@@ -29,7 +29,7 @@ Every user-file mutation is represented by one typed operation request and execu
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while a Windows local or WSL file uses the sole `IFileLauncher` handoff (ADR-0064). The adapter refuses WSL names or lengths the ordinary Shell representation cannot preserve. An unsupported file provider fails before that port, and pane content remains unchanged by every launch outcome.
+Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
 ### CMD-003 — UI emits intents, not decisions
 
@@ -111,7 +111,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | Locations picker state, admission, focus, and qualified validation | `LocationsSession` over `IDriveCatalog` and `IWslDistributionCatalog` |
 | window adjustment mode synchronous input route | `CommanderSession.AdjustWindow` and `CommanderSession.LeaveWindowAdjustment` |
 | color scheme | scheme resource dictionary merged by the composition root |
-| focused file launch | `PaneSession` provider decision through the `IFileLauncher` boundary |
+| focused file launch | `PaneSession` file/directory decision through `IFileLauncher`, with path admission owned by `WindowsShellFileLauncher` |
 | time | `IClock` boundary |
 | identifiers | `IIdentifierSource` boundary |
 | object construction | `NeNeCommander.App` composition root |

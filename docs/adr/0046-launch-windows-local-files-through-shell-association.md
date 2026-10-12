@@ -6,7 +6,7 @@ Date: 2026-09-08
 
 Accepted for Issue #111 on 2026-09-08 by the NeNe Commander design owner under hide's delegated authority.
 
-ADR-0064 supersedes this decision's WSL rejection and Windows-local-only port type. Its existing handoff, lifecycle, cancellation and pane-state contracts remain active. ADR-0061 governs verification cadence.
+ADR-0064 supersedes this decision's WSL rejection and Windows-local-only port type. ADR-0065 adds UNC activation and moves all path admission to the existing Shell adapter. Its existing handoff, lifecycle, cancellation and pane-state contracts remain active. ADR-0061 governs verification cadence.
 
 ## Context
 

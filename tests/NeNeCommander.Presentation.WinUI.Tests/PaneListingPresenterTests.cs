@@ -583,6 +583,7 @@ public sealed class PaneListingPresenterTests
     [TestMethod]
     [DataRow("C:\\root")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    [DataRow("\\\\server\\share\\folder")]
     public async Task PresentWhenFileLaunchChangesActivityTranslatesStatus(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
