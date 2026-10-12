@@ -247,15 +247,14 @@ public sealed class WindowsWslFileSystemTests
     }
 
     /// <summary>
-    /// Proves entries whose names end with a dot are found, checked, inspected, created, copied,
-    /// verified, renamed, and deleted under their exact names, and that the dot-less sibling the
-    /// Win32 normalizer would have produced is never touched (ADR-0060).
+    /// Proves entries whose names end with a dot are found, checked, and inspected under their exact
+    /// names, while the dot-less sibling the Win32 normalizer would have produced stays absent.
     /// </summary>
     /// <returns>The running assertion.</returns>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-015")]
-    public async Task OperationsWhenNamesEndWithDotKeepEveryExactName()
+    public async Task InspectAsyncWhenNamesEndWithDotKeepsExactIdentityAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         _ = root.WriteVerbatimFile("foo.", "dot");
@@ -285,6 +284,21 @@ public sealed class WindowsWslFileSystemTests
             await adapter.InspectAsync(Wsl("/owned/foo."), CancellationToken.None)).Snapshot;
         Assert.AreEqual(Wsl("/owned/foo."), snapshot.Path);
         Assert.AreEqual(file.Identity, snapshot.Identity);
+    }
+
+    /// <summary>Proves trailing-dot names survive mutation and exact-name tree verification (ADR-0060).</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    public void MutationsWhenNamesEndWithDotKeepEveryExactName()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteVerbatimFile("foo.", "dot");
+        _ = root.CreateVerbatimDirectory("sub.");
+        _ = root.WriteVerbatimFile("sub.\\inner", "inner");
+        WindowsWslFileSystem fileSystem = FileSystem(root);
+        WslFileSystemEntry file = RequireEntry(fileSystem.Find(Wsl("/owned/foo.")));
+        WslFileSystemEntry directory = RequireEntry(fileSystem.Find(Wsl("/owned/sub.")));
 
         fileSystem.CreateDirectory(Wsl("/owned/made."));
         fileSystem.Copy(directory, Wsl("/owned/copy."));
