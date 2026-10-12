@@ -43,8 +43,7 @@ internal sealed class WslDirectoryReader : IDirectoryReadPort
             ? _executionBoundary.ExecuteAsync(
                 () => WindowsDirectoryReadOperation.Read(
                     request,
-                    WslWin32PathText.Resolve(location),
-                    _enumerator,
+                    () => _enumerator.Enumerate(WslWin32PathText.Resolve(location)),
                     ClassifyVisibility,
                     cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));

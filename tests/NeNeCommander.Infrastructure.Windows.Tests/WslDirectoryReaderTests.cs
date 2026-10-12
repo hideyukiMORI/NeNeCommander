@@ -204,13 +204,11 @@ public sealed class WslDirectoryReaderTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsDirectoryEntrySnapshot("item", FileAttributes.None, EntrySize.Unknown, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(null!, "location", enumerator, Visibility, CancellationToken.None));
+            () => WindowsDirectoryReadOperation.Read(null!, () => enumerator.Enumerate("location"), Visibility, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(request, null!, enumerator, Visibility, CancellationToken.None));
+            () => WindowsDirectoryReadOperation.Read(request, null!, Visibility, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(request, "location", null!, Visibility, CancellationToken.None));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(request, "location", enumerator, null!, CancellationToken.None));
+            () => WindowsDirectoryReadOperation.Read(request, () => enumerator.Enumerate("location"), null!, CancellationToken.None));
         Assert.AreEqual(0, enumerator.InvocationCount);
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsDirectoryReadOperation.TranslateListingCreation(null!));

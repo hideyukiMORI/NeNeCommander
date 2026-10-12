@@ -101,10 +101,11 @@ must decide how WSL path text reaches Win32.
 `WindowsWslFileSystem`, `WslDirectoryReader` (through the enumerator it is given),
 `WindowsFileIdentifier.ReadWslFacts` call sites, and `WindowsToWslTransfer` switch to the resolver
 in one change; the parameterless constructor of `WindowsWslFileSystem` stops passing
-`CanonicalText`. The shared `WindowsDirectoryReadOperation.Read` receives the location text from
-its provider reader (the canonical text for Windows local and UNC, the resolver's text for WSL)
-instead of reading `CanonicalText` itself. The identity query receives the full name of the entry
-opened through the resolver's text, which keeps the prefix, and `WindowsToWslTransfer` reaches
+`CanonicalText`. Each provider reader passes one deferred enumeration to the shared
+`WindowsDirectoryReadOperation.Read` (the canonical text for Windows local and UNC, the resolver's
+text for WSL). The shared operation invokes it only after observing cancellation and within its
+failure-normalization boundary; its four parameters remain within CS-013. The identity query receives
+the full name of the entry opened through the resolver's text, which keeps the prefix, and `WindowsToWslTransfer` reaches
 every target through the `WindowsWslFileSystem` it is composed with, so neither needs a second
 call to the resolver. Tests that build expected Win32 strings from `CanonicalText` are rewritten to
 expect the resolver's output. ADV-015 gains the sentence that Infrastructure addresses WSL entries

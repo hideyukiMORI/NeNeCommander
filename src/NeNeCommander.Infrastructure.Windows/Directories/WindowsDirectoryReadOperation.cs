@@ -15,20 +15,18 @@ internal static class WindowsDirectoryReadOperation
     private const int NotADirectoryHResult = unchecked((int)0x80070057);
 
     /// <summary>
-    /// Reads the direct entries of the request's location through the Win32 text its provider
-    /// resolved for it. The text only addresses the enumeration; every entry is projected back onto
-    /// the validated location by name, so the text never reaches a listing.
+    /// Reads direct entries through the provider's deferred enumeration. Enumeration starts only
+    /// after the cancellation check and inside failure normalization; every entry is projected
+    /// back onto the validated location by name, so transport text never reaches a listing.
     /// </summary>
     internal static DirectoryReadOutcome Read(
         DirectoryReadRequest request,
-        string locationText,
-        IWindowsDirectoryEnumerator enumerator,
+        Func<IEnumerable<WindowsDirectoryEntrySnapshot>> enumerate,
         Func<WindowsDirectoryEntrySnapshot, EntryVisibility> classifyVisibility,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(locationText);
-        ArgumentNullException.ThrowIfNull(enumerator);
+        ArgumentNullException.ThrowIfNull(enumerate);
         ArgumentNullException.ThrowIfNull(classifyVisibility);
         if (cancellationToken.IsCancellationRequested)
         {
@@ -37,7 +35,7 @@ internal static class WindowsDirectoryReadOperation
 
         try
         {
-            return Enumerate(request, locationText, enumerator, classifyVisibility, cancellationToken);
+            return Enumerate(request, enumerate, classifyVisibility, cancellationToken);
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -80,8 +78,7 @@ internal static class WindowsDirectoryReadOperation
 
     private static DirectoryReadOutcome Enumerate(
         DirectoryReadRequest request,
-        string locationText,
-        IWindowsDirectoryEnumerator enumerator,
+        Func<IEnumerable<WindowsDirectoryEntrySnapshot>> enumerate,
         Func<WindowsDirectoryEntrySnapshot, EntryVisibility> classifyVisibility,
         CancellationToken cancellationToken)
     {
@@ -89,7 +86,7 @@ internal static class WindowsDirectoryReadOperation
         int reportedEntryCount = 0;
         int unrepresentableEntryCount = 0;
         DirectoryListingCompleteness completeness = DirectoryListingCompleteness.Complete;
-        foreach (WindowsDirectoryEntrySnapshot snapshot in enumerator.Enumerate(locationText))
+        foreach (WindowsDirectoryEntrySnapshot snapshot in enumerate())
         {
             if (cancellationToken.IsCancellationRequested)
             {

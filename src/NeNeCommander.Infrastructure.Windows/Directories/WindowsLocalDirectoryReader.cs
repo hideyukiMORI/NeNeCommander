@@ -48,8 +48,7 @@ public sealed class WindowsLocalDirectoryReader : IDirectoryReadPort
             ? _executionBoundary.ExecuteAsync(
                 () => WindowsDirectoryReadOperation.Read(
                     request,
-                    location.CanonicalText,
-                    _enumerator,
+                    () => _enumerator.Enumerate(location.CanonicalText),
                     WindowsDirectoryReadOperation.ClassifyByAttributes,
                     cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));

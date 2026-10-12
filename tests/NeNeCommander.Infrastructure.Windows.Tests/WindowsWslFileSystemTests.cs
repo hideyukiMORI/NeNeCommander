@@ -314,16 +314,21 @@ public sealed class WindowsWslFileSystemTests
 
     /// <summary>
     /// Proves the identity query receives the exact extended-length text the resolver produced,
-    /// because the entry's full name keeps the prefix and the trailing dot.
+    /// because the entry's full name keeps the prefix and its trailing dot or space.
     /// </summary>
+    /// <param name="ending">A trailing character Win32 normalizes away from ordinary path text.</param>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-015")]
-    public void FindWhenNameEndsWithDotPassesTheResolvedTextToTheIdentityQuery()
+    [DataRow(".")]
+    [DataRow(" ")]
+    public void FindWhenNameEndsWithDotOrSpacePassesTheResolvedTextToTheIdentityQuery(string ending)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        _ = root.WriteVerbatimFile("foo.", "dot");
-        _ = root.CreateVerbatimDirectory("sub.");
+        string fileName = "foo" + ending;
+        string directoryName = "sub" + ending;
+        _ = root.WriteVerbatimFile(fileName, "dot");
+        _ = root.CreateVerbatimDirectory(directoryName);
         List<string> queried = [];
         WindowsWslFileSystem fileSystem = new(
             path => Resolve(root, path),
@@ -333,11 +338,11 @@ public sealed class WindowsWslFileSystemTests
                 return WindowsFileIdentifier.ReadHandleFacts(text);
             });
 
-        _ = RequireEntry(fileSystem.Find(Wsl("/owned/foo.")));
-        _ = RequireEntry(fileSystem.Find(Wsl("/owned/sub.")));
+        Assert.AreEqual(fileName, RequireEntry(fileSystem.Find(Wsl("/owned/" + fileName))).Name);
+        Assert.AreEqual(directoryName, RequireEntry(fileSystem.Find(Wsl("/owned/" + directoryName))).Name);
 
         CollectionAssert.AreEqual(
-            new[] { root.ResolveVerbatim("foo."), root.ResolveVerbatim("sub.") },
+            new[] { root.ResolveVerbatim(fileName), root.ResolveVerbatim(directoryName) },
             queried);
         StringAssert.StartsWith(queried[0], "\\\\?\\");
     }
