@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Directories;
@@ -12,7 +11,7 @@ using NeNeCommander.Infrastructure.Windows.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
-/// <summary>Executes same-distribution WSL mutations through the canonical Windows namespace.</summary>
+/// <summary>Executes WSL mutations and transfers through each path's canonical Windows namespace.</summary>
 internal sealed class WslFileOperationAdapter : IFileOperationPort
 {
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
@@ -59,9 +58,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return source.Path is WslPath sourceWsl &&
-            destination is WslPath destinationWsl &&
-            SharesDistribution(sourceWsl, destinationWsl)
+        return TransferRoute.Derive(source.Path, destination) is TransferRoute.WslToWsl
                 ? Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported)
                 : Task.FromResult(
                     AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
@@ -175,9 +172,8 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination)
     {
-        if (sources.Count == 0 ||
-            destination is not WslPath wslDestination ||
-            !SourcesMatchDistribution(sources, wslDestination))
+        if (destination is not WslPath wslDestination ||
+            TransferRoute.Derive(sources, destination) is not TransferRoute.WslToWsl)
         {
             return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
         }
@@ -187,6 +183,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         }
 
         List<TransferPlanEntry> plan = [];
+        HashSet<FileSystemPath> reserved = new(FileSystemPathIdentityComparer.Instance);
         foreach (FileEntrySnapshot source in sources)
         {
             WslFileSystemEntry? entry = _fileSystem.Find((WslPath)source.Path);
@@ -208,7 +205,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
                 return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
             }
             if (ProviderPathContainment.Evaluate(entry.Path, wslDestination) is ContainedPath ||
-                _fileSystem.TargetExists(target))
+                !reserved.Add(target) || _fileSystem.TargetExists(target))
             {
                 return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
             }
@@ -226,8 +223,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
 
     private ProviderStepOutcome Copy(WslFileSystemEntry source, WslPath destination)
     {
-        if (!SharesDistribution(source.Path, destination) ||
-            !IsUsableDestination(_fileSystem, destination) ||
+        if (!IsUsableDestination(_fileSystem, destination) ||
             IsReparsePoint(source) ||
             _fileSystem.ContainsReparsePoint(source) ||
             BuildTarget(source.Name, destination) is not WslPath target)
@@ -262,7 +258,6 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return destination is not WslPath wslDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(_fileSystem, source, entry =>
-                SharesDistribution(entry.Path, wslDestination) &&
                 IsUsableDestination(_fileSystem, wslDestination) &&
                 !IsReparsePoint(entry) &&
                 !_fileSystem.ContainsReparsePoint(entry) &&
@@ -388,21 +383,6 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     internal static WslPath? BuildTarget(string name, WslPath destination)
     {
         return (destination.Child(name) as PathParseSuccess)?.Path as WslPath;
-    }
-
-    private static bool SharesDistribution(WslPath source, WslPath destination)
-    {
-        return source.DistributionName.Equals(
-            destination.DistributionName,
-            StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool SourcesMatchDistribution(
-        IReadOnlyList<FileEntrySnapshot> sources,
-        WslPath destination)
-    {
-        return sources.All(source =>
-            source.Path is WslPath wsl && SharesDistribution(wsl, destination));
     }
 
     private static Task<ProviderStepOutcome> RejectTransfer(

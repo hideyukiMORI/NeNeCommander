@@ -38,7 +38,9 @@ public sealed class ProviderFileOperationPortTests
 
     /// <summary>Proves every mutation member of a same-provider pair reaches that provider's adapter only.</summary>
     [TestMethod]
-    public async Task MutationMembersWhenPairIsSameProviderDelegateToThatAdapter()
+    [DataRow("ubuntu")]
+    [DataRow("Debian")]
+    public async Task MutationMembersWhenPairIsSameProviderDelegateToThatAdapter(string destinationDistribution)
     {
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
@@ -49,7 +51,7 @@ public sealed class ProviderFileOperationPortTests
             "\\\\wsl.localhost\\Ubuntu\\home\\item.txt",
             "wsl");
         FileSystemPath localDestination = Path("C:\\destination");
-        FileSystemPath wslDestination = Path("\\\\wsl.localhost\\ubuntu\\destination");
+        FileSystemPath wslDestination = Path(@"\\wsl.localhost\" + destinationDistribution + @"\destination");
 
         await InvokeEveryMemberAsync(router, local, localDestination);
         await InvokeEveryMemberAsync(router, linux, wslDestination);
@@ -138,9 +140,7 @@ public sealed class ProviderFileOperationPortTests
 
         Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, cross);
         Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, reverse);
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(distributions).Failure);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, distributions);
         Assert.AreSame(
             FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(unc).Failure);
@@ -155,7 +155,6 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-022")]
-    [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "\\\\wsl.localhost\\Debian\\destination")]
     [DataRow("\\\\server\\share\\item", "C:\\destination")]
     [DataRow("\\\\server\\share\\item", "\\\\wsl.localhost\\Ubuntu\\destination")]
     [DataRow("\\\\server\\share\\item", "\\\\server\\share\\destination")]

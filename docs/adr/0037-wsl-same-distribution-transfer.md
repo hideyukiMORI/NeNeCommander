@@ -4,6 +4,8 @@ Status: accepted
 
 Date: 2026-09-06
 
+ADR-0066 supersedes the same-distribution-only transfer restriction; its WSL-to-WSL route reuses this adapter and gateway. The original decision below records the earlier scope.
+
 ## Context
 
 ADR-0036 routes WSL mutations through `FileOperationGateway` but deliberately leaves transfer operations unavailable. The gateway already owns one copy algorithm and one non-atomic move algorithm: complete batch preflight, copy, verify, and for move only, delete the source. The WSL provider needs to implement those existing port steps without adding shell commands, collision defaults, rollback deletion, or a second orchestrator.

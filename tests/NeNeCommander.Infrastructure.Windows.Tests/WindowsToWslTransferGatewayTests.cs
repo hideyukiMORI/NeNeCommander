@@ -355,13 +355,13 @@ public sealed class WindowsToWslTransferGatewayTests
     }
 
     /// <summary>
-    /// Proves a move between distributions or into UNC still stops
+    /// Proves a move from Windows or WSL into UNC still stops
     /// before any step with <c>ProviderUnavailable</c>, leaving every source and destination as it was.
     /// </summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-022")]
-    public async Task ExecuteAsyncWhenMovingAcrossAnyOtherPairRejectsBeforeAnyEffect()
+    public async Task ExecuteAsyncWhenMovingIntoUncRejectsBeforeAnyEffect()
     {
         using TestOwnedTemporaryRoot root = CreateRoot();
         _ = root.WriteFile("wsl\\item.txt", "linux");
@@ -371,8 +371,8 @@ public sealed class WindowsToWslTransferGatewayTests
         StepHookPort port = new(CreateRouter(root));
         using FileOperationGateway gateway = new(port);
 
-        FileOperationOutcome toDistribution = await gateway.ExecuteAsync(
-            Move([Wsl("/owned/item.txt")], Wsl("Debian", "/owned/dest")),
+        FileOperationOutcome wslToUnc = await gateway.ExecuteAsync(
+            Move([Wsl("/owned/item.txt")], ParsePath(@"\\server\share\dest")),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
         FileOperationOutcome toUnc = await gateway.ExecuteAsync(
@@ -380,7 +380,7 @@ public sealed class WindowsToWslTransferGatewayTests
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
-        foreach (FileOperationOutcome outcome in new[] { toDistribution, toUnc })
+        foreach (FileOperationOutcome outcome in new[] { wslToUnc, toUnc })
         {
             Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
             Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);

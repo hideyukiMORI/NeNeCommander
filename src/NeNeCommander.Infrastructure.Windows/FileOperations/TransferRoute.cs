@@ -40,9 +40,7 @@ internal abstract record TransferRoute
         return (source, destination) switch
         {
             (WindowsLocalPath, WindowsLocalPath) => new SameWindowsLocal(),
-            (WslPath sourceWsl, WslPath destinationWsl) when sourceWsl.DistributionName.Equals(
-                destinationWsl.DistributionName,
-                StringComparison.OrdinalIgnoreCase) => new SameWslDistribution(),
+            (WslPath, WslPath) => new WslToWsl(),
             (WindowsLocalPath, WslPath) => new WindowsLocalToWsl(),
             (WslPath, WindowsLocalPath) => new WslToWindows(),
             _ => new Unavailable(),
@@ -59,8 +57,8 @@ internal abstract record TransferRoute
     /// <summary>Both ends are Windows local paths; the Windows local adapter owns the step.</summary>
     internal sealed record SameWindowsLocal : TransferRoute;
 
-    /// <summary>Both ends are in one WSL distribution; the WSL adapter owns the step.</summary>
-    internal sealed record SameWslDistribution : TransferRoute;
+    /// <summary>Both ends are WSL paths; the WSL adapter owns same- and cross-distribution steps.</summary>
+    internal sealed record WslToWsl : TransferRoute;
 
     /// <summary>A Windows local source copies or moves into a WSL distribution through the cross transfer.</summary>
     internal sealed record WindowsLocalToWsl : TransferRoute;

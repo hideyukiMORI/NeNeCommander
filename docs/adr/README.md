@@ -2,6 +2,8 @@
 
 Status: normative
 
+- [ADR-0066: Reuse the WSL transfer for different distributions](0066-wsl-cross-distribution-transfer.md)
+
 - [ADR-0063: Recycle Windows entries through the existing deletion gateway](0063-windows-recycle-boundary.md)
 
 ADRs record a durable choice where more than one plausible mechanism exists. Accepted ADRs are constitutional input; they do not override a later contradictory ADR unless that ADR explicitly supersedes them.
