@@ -96,24 +96,15 @@ public static partial class WindowsLocalTreeCopy
         ArgumentNullException.ThrowIfNull(resolveTarget);
         ArgumentNullException.ThrowIfNull(inspectSource);
         inspectSource(source);
-        if (IsReparsePoint(source))
-        {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
-        }
-        if (TargetParentFailure(target, resolveTarget) is FileOperationFailureKind failure)
-        {
-            return ProviderStepOutcome.Failed(failure);
-        }
-        if (Exists(resolveTarget(target)))
-        {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
-        }
-        if (source is DirectoryInfo directory)
-        {
-            return CopyDirectory(directory, target, resolveTarget, inspectSource);
-        }
-        File.Copy(source.FullName, resolveTarget(target), overwrite: false);
-        return ProviderStepOutcome.Succeeded();
+        return IsReparsePoint(source)
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : TargetParentFailure(target, resolveTarget) is FileOperationFailureKind failure
+            ? ProviderStepOutcome.Failed(failure)
+            : Exists(resolveTarget(target))
+            ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
+            : source is DirectoryInfo directory
+            ? CopyDirectory(directory, target, resolveTarget, inspectSource)
+            : CopyFile(source, resolveTarget(target));
     }
 
     /// <summary>Compares kind, entry set and byte length under the same child admission as copying.</summary>
@@ -160,6 +151,21 @@ public static partial class WindowsLocalTreeCopy
     internal static void InspectLocalSource(FileSystemInfo source)
     {
         source.Refresh();
+    }
+
+    private static ProviderStepOutcome CopyFile(FileSystemInfo source, string target)
+    {
+        try
+        {
+            File.Copy(source.FullName, target, overwrite: false);
+            return ProviderStepOutcome.Succeeded();
+        }
+        catch (IOException exception) when (
+            exception.HResult is unchecked((int)0x80070050) or unchecked((int)0x800700B7) || Directory.Exists(target))
+        {
+            // Exclusive file creation cannot have created the competing file or directory.
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
     }
 
     private static ProviderStepOutcome CopyDirectory(

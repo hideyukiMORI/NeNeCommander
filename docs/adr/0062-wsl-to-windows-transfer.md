@@ -40,7 +40,10 @@ rename a descendant or merge two different source directories into one target.
   and reports an existing entry as failure, including one appearing after the
   initial existence check. That native call receives an extended-length Windows
   local target (or the owning WSL resolver's transport), preserving long paths
-  without changing canonical paths. File creation keeps `overwrite: false`.
+  without changing canonical paths. File creation keeps `overwrite: false`;
+  exclusive-create collisions report `Conflict` without claiming the competing
+  entry as a target created by this operation. A containing directory already
+  created by this copy still reports its partial effect.
 - The tree engine receives the target transport resolver and source inspection
   from its owning adapter. WSL transport still uses ADR-0060 exclusively. Every
   WSL source descendant is checked with the existing no-follow 9P handle query

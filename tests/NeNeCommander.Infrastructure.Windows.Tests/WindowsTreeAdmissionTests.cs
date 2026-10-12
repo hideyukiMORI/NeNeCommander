@@ -77,6 +77,44 @@ public sealed class WindowsTreeAdmissionTests
         Assert.AreEqual("original", File.ReadAllText(root.Resolve("source\\payload.txt")));
     }
 
+    /// <summary>Proves a competing file or directory is not reported as a target created by this copy.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-022")]
+    [DataRow("file")]
+    [DataRow("directory")]
+    public void CopyFileWhenTargetAppearsBeforeExclusiveCreateReportsNoOwnedEffect(string kind)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileInfo source = new(root.WriteFile("source", "original"));
+        _ = root.CreateDirectory("dest");
+        FileSystemPath target = Parse(root.Resolve("dest\\source"));
+        int resolutions = 0;
+        string Resolve(FileSystemPath path)
+        {
+            if (FileSystemPathIdentityComparer.Instance.Equals(path, target) && ++resolutions == 2)
+            {
+                ChangeDestination(root, kind);
+            }
+            return path.CanonicalText;
+        }
+
+        ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
+            source, target, Resolve, WindowsLocalTreeCopy.InspectLocalSource);
+
+        Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
+        Assert.IsNull(outcome.Effect);
+        Assert.AreEqual("original", File.ReadAllText(source.FullName));
+        if (kind == "file")
+        {
+            Assert.AreEqual("existing", File.ReadAllText(target.CanonicalText));
+        }
+        else
+        {
+            Assert.HasCount(0, Directory.GetFileSystemEntries(target.CanonicalText));
+        }
+    }
+
     /// <summary>Proves exclusive native directory creation preserves support for long Windows paths.</summary>
     [TestMethod]
     public void CopyWhenLocalTargetExceedsLegacyPathLimitCreatesEveryDirectory()
