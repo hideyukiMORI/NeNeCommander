@@ -32,7 +32,7 @@ public sealed class NullGuardTests
             [null, path]);
         AssertStaticNullGuard(typeof(ProviderPathContainment), nameof(ProviderPathContainment.Evaluate),
             [path, null]);
-        WindowsLocalPath local = Assert.IsInstanceOfType<WindowsLocalPath>(path);
+        _ = Assert.IsInstanceOfType<WindowsLocalPath>(path);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Find), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Describe), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Revalidate), [null]);
