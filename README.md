@@ -11,7 +11,7 @@ The repository is in its implementation stage; production code is permitted. Mos
 - Session-owned transient surfaces: settings editor, command palette, bookmarks with fixed slots, window adjustment mode, and a Locations picker for drives and WSL distribution roots.
 - Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, same-distribution mutations and transfers), UNC shares (directory reads only), and copy or move in both directions between a Windows local path and a WSL distribution.
 
-Not yet on `main`: transfers between WSL distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
+Not yet on `main`: Windows recycle-bin deletion, transfers between WSL distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
 
 ## Repository layout
 
