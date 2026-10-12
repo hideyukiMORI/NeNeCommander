@@ -40,6 +40,7 @@ public sealed class WindowsShellIoSchedulerTests
 
     private static Thread ReadThread()
     {
+        Assert.IsTrue(Thread.CurrentThread.IsBackground);
         return Thread.CurrentThread;
     }
 }

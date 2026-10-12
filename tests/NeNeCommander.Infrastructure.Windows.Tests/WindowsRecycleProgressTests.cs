@@ -99,10 +99,10 @@ public sealed class WindowsRecycleProgressTests
 
     /// <summary>A missing receipt never becomes a Recycled effect.</summary>
     [TestMethod]
-    [DataRow(0)]
-    [DataRow(1)]
-    [DataRow(unchecked((int)0x80070005))]
-    public void PostDeleteItemWhenNoRecycleReceiptRejectsSuccess(int result)
+    [DataRow(0, "Delete")]
+    [DataRow(1, "Delete")]
+    [DataRow(unchecked((int)0x80070005), "AccessDenied")]
+    public void PostDeleteItemWhenNoRecycleReceiptRejectsSuccess(int result, string expected)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
@@ -111,7 +111,36 @@ public sealed class WindowsRecycleProgressTests
         Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, result, null));
         Assert.IsNull(progress.Complete(0, 0, 0).Effect);
-        Assert.IsNotNull(progress.Complete(0, 0, 0).Failure);
+        Assert.AreSame(expected == "Delete" ? FileOperationFailureKind.Delete : FileOperationFailureKind.AccessDenied,
+            progress.Complete(0, 0, 0).Failure);
+    }
+
+    /// <summary>A completion without the recycle flag is not evidence of recoverability.</summary>
+    [TestMethod]
+    public void PostDeleteItemWhenRecycleFlagIsMissingRejectsReceipt()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
+        ScriptedWindowsShellEntry receipt = new("unconfirmed receipt");
+        Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0, entry, 0, receipt));
+        Assert.IsNull(progress.RecycledEntry);
+        Assert.AreSame(FileOperationFailureKind.Delete, progress.Complete(0, 0, 0).Failure);
+    }
+
+    /// <summary>The first causal refusal remains visible after a later generic callback failure.</summary>
+    [TestMethod]
+    public void FinishOperationsWhenAlreadyRejectedRetainsFirstFailure()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0, entry));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.FinishOperations(unchecked((int)0x80070005)));
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Failure);
     }
 
     /// <summary>Neither an unadmitted completion nor an additional callback is authorized.</summary>

@@ -32,6 +32,25 @@ public sealed class WindowsRecycleOwnershipTests
             Assert.AreEqual(0, operation.SetOperationFlags(WindowsRecycleSession.OperationFlags));
             WindowsRecycleShell.Release(operation);
             _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.SetOperationFlags(WindowsRecycleSession.OperationFlags));
+            _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.PerformOperations());
+            _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.GetAnyOperationsAborted(out _));
+            return 0;
+        });
+    }
+
+    /// <summary>A disposed native operation cannot accept a queued deletion.</summary>
+    [TestMethod]
+    public async Task DeleteItemWhenNativeOperationWasDisposedRejectsQueueAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        _ = await new WindowsShellIoScheduler().ScheduleAsync(() =>
+        {
+            WindowsRecycleShell shell = new();
+            using WindowsShellEntry entry = (WindowsShellEntry)shell.OpenEntry(WindowsRecycleBinTests.Path(source.Path.CanonicalText));
+            using WindowsShellOperation operation = (WindowsShellOperation)shell.OpenOperation();
+            operation.Dispose();
+            _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.DeleteItem(entry, new WindowsRecycleProgress(source, CancellationToken.None)));
             return 0;
         });
     }
