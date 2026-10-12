@@ -204,17 +204,79 @@ public sealed class WslDirectoryReaderTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsDirectoryEntrySnapshot("item", FileAttributes.None, EntrySize.Unknown, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(null!, enumerator, Visibility, CancellationToken.None));
+            () => WindowsDirectoryReadOperation.Read(null!, () => enumerator.Enumerate("location"), Visibility, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsDirectoryReadOperation.Read(request, null!, Visibility, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowsDirectoryReadOperation.Read(request, enumerator, null!, CancellationToken.None));
+            () => WindowsDirectoryReadOperation.Read(request, () => enumerator.Enumerate("location"), null!, CancellationToken.None));
+        Assert.AreEqual(0, enumerator.InvocationCount);
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsDirectoryReadOperation.TranslateListingCreation(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsLocalDirectoryReader(null!, enumerator));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsLocalDirectoryReader(boundary, null!));
+    }
+
+    /// <summary>
+    /// Proves the reader addresses the enumeration through the resolver's extended-length text,
+    /// never through the ordinary UNC form, while the listing keeps the validated location.
+    /// </summary>
+    /// <returns>The running assertion.</returns>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    public async Task ReadAsyncAddressesTheEnumerationThroughExtendedLengthText()
+    {
+        ScriptedEnumerator enumerator = new([Entry("foo.", DirectoryEntryKind.File)]);
+
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            await Reader(enumerator).ReadAsync(
+                Request("\\\\wsl.localhost\\Ubuntu\\home\\sub.", 8),
+                CancellationToken.None)).Listing;
+
+        string[] expectedLocations = ["\\\\?\\UNC\\wsl.localhost\\Ubuntu\\home\\sub."];
+        CollectionAssert.AreEqual(expectedLocations, enumerator.Locations);
+        Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\home\\sub.", listing.Location.CanonicalText);
+        Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\home\\sub.\\foo.", listing.Entries[0].Path.CanonicalText);
+    }
+
+    /// <summary>
+    /// Proves a real listing that contains trailing-dot names projects every entry onto its
+    /// validated WSL path by its exact name, and no extended-length text reaches the listing.
+    /// </summary>
+    /// <returns>The running assertion.</returns>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    public async Task ReadAsyncWhenNamesEndWithDotProjectsExactNamesOntoWslPaths()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteVerbatimFile("foo.", "dot");
+        _ = root.CreateVerbatimDirectory("sub.");
+        _ = root.WriteVerbatimFile("plain", "plain");
+        WslDirectoryReader reader = new(
+            new WindowsLocalIoExecutionBoundary(),
+            new OwnedEnumerator(root.ResolveVerbatim(string.Empty)));
+
+        DirectoryListing listing = Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            await reader.ReadAsync(Request("\\\\wsl.localhost\\Ubuntu\\owned", 8), CancellationToken.None)).Listing;
+
+        string[] expectedNames = ["sub.", "foo.", "plain"];
+        CollectionAssert.AreEqual(expectedNames, listing.Entries.Select(entry => entry.Name).ToArray());
+        string[] expectedPaths =
+        [
+            "\\\\wsl.localhost\\Ubuntu\\owned\\sub.",
+            "\\\\wsl.localhost\\Ubuntu\\owned\\foo.",
+            "\\\\wsl.localhost\\Ubuntu\\owned\\plain",
+        ];
+        CollectionAssert.AreEqual(
+            expectedPaths,
+            listing.Entries.Select(entry => entry.Path.CanonicalText).ToArray());
+        Assert.AreSame(DirectoryEntryKind.Directory, listing.Entries[0].Kind);
+        Assert.AreSame(DirectoryEntryKind.File, listing.Entries[1].Kind);
+        Assert.AreEqual(0, listing.UnrepresentableEntryCount);
+        Assert.AreEqual(EntrySize.Create(3), listing.Entries[1].Metadata.Size);
     }
 
     private static async Task<DirectoryReadFailed> FailureAsync(Exception failure)
@@ -281,9 +343,12 @@ public sealed class WslDirectoryReaderTests
 
         internal int YieldCount { get; private set; }
 
-        public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string canonicalLocation)
+        internal List<string> Locations { get; } = [];
+
+        public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string locationText)
         {
             InvocationCount++;
+            Locations.Add(locationText);
             if (_failure is not null)
             {
                 throw _failure;
@@ -294,6 +359,29 @@ public sealed class WslDirectoryReaderTests
                 YieldCount++;
                 yield return _entries[index];
             }
+        }
+    }
+
+    /// <summary>
+    /// Rebases the resolver's text for <c>\\wsl.localhost\Ubuntu\owned</c> onto an extended-length
+    /// test-owned root and enumerates it with the production enumerator.
+    /// </summary>
+    private sealed class OwnedEnumerator : IWindowsDirectoryEnumerator
+    {
+        private const string OwnedLocation = "\\\\?\\UNC\\wsl.localhost\\Ubuntu\\owned";
+
+        private readonly string _verbatimRoot;
+
+        internal OwnedEnumerator(string verbatimRoot)
+        {
+            _verbatimRoot = verbatimRoot;
+        }
+
+        public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string locationText)
+        {
+            return locationText.Equals(OwnedLocation, StringComparison.Ordinal)
+                ? new WindowsDirectoryEnumerator().Enumerate(_verbatimRoot)
+                : throw new InvalidOperationException("The reader addressed text other than the resolver's.");
         }
     }
 }

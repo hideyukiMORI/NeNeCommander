@@ -207,6 +207,44 @@ internal sealed class TestOwnedTemporaryRoot : IDisposable
         File.WriteAllBytes("\\\\?\\" + _fullPath + "\\" + childName, []);
     }
 
+    /// <summary>
+    /// Resolves a relative path beneath the root to its extended-length text without full-path
+    /// resolution, so a segment that ends with a dot or a space keeps that ending (ADR-0060). An
+    /// empty relative path resolves the root itself.
+    /// </summary>
+    internal string ResolveVerbatim(string relativePath)
+    {
+        if (relativePath.Length == 0)
+        {
+            return "\\\\?\\" + _fullPath;
+        }
+        string[] segments = relativePath.Split('\\');
+        foreach (string segment in segments)
+        {
+            if (segment.Length == 0 || segment is "." or ".." || segment.Contains('/', StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("The verbatim path must contain only direct child names.");
+            }
+        }
+        return "\\\\?\\" + _fullPath + "\\" + relativePath;
+    }
+
+    /// <summary>Creates a directory through its extended-length text so trailing dots are kept.</summary>
+    internal string CreateVerbatimDirectory(string relativePath)
+    {
+        string childPath = ResolveVerbatim(relativePath);
+        _ = Directory.CreateDirectory(childPath);
+        return childPath;
+    }
+
+    /// <summary>Writes a file through its extended-length text so trailing dots are kept.</summary>
+    internal string WriteVerbatimFile(string relativePath, string content)
+    {
+        string childPath = ResolveVerbatim(relativePath);
+        File.WriteAllText(childPath, content);
+        return childPath;
+    }
+
     /// <summary>Denies the current user the right to list a child directory until disposal.</summary>
     internal string DenyDirectoryListing(string childName)
     {

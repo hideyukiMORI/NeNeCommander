@@ -15,7 +15,7 @@
     { "id": "ADV-012", "owner": "Infrastructure.Windows", "defense": "Reject malformed, oversized, unknown-version, partially written, concurrently changed, or reparse-redirected settings; preserve the approved ancestor anchor, reject document reparse entries, freeze owned temporary identity from its open handle, revalidate exact destination and temporary bytes, and publish through the provider-atomic install." },
     { "id": "ADV-013", "owner": "Presentation.WinUI", "defense": "Never interpret IME or text-editor input as Vim or destructive commands." },
     { "id": "ADV-014", "owner": "Application", "defense": "Reject duplicate and reentrant operation dispatch deterministically." },
-    { "id": "ADV-015", "owner": "Domain", "defense": "Reject Windows device names, ambiguous roots, invalid UNC shares, overlong canonical paths, and unrepresentable provider entry segments." },
+    { "id": "ADV-015", "owner": "Domain", "defense": "Reject Windows device names, ambiguous roots, invalid UNC shares, overlong canonical paths, and unrepresentable provider entry segments; Infrastructure addresses WSL entries through extended-length text so that no segment is renamed by Win32 normalization." },
     { "id": "ADV-016", "owner": "Application", "defense": "Freeze source and destination identities when pane activation changes mid-operation." },
     { "id": "ADV-017", "owner": "Infrastructure.Windows", "defense": "Normalize Windows local, UNC, and WSL permission or availability changes without widening access or retry scope." },
     { "id": "ADV-018", "owner": "Application", "defense": "Stop a batch before mutation when any source fails complete preflight or capability discovery." },
