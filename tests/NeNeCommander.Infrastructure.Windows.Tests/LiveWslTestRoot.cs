@@ -72,13 +72,14 @@ internal sealed class LiveWslTestRoot
         WslDistributionCatalogOutcome discovery = await new WslDistributionCatalog().DiscoverAsync(cancellationToken);
 
         // The live run uses the production WSL file system exactly as the composition root does:
-        // the canonical namespace mapping and the ADR-0049 9P-guarded handle-facts reader.
+        // the extended-length namespace mapping of ADR-0060 and the ADR-0049 9P-guarded
+        // handle-facts reader.
         return discovery is WslDistributionCatalogSucceeded succeeded
             ? Open(
                 admission,
                 succeeded.Roots,
                 new WindowsWslFileSystem(),
-                static path => path.CanonicalText,
+                WslWin32PathText.Resolve,
                 LiveWslLinkFixture.Create,
                 LiveWslLinkFixture.Unlink)
             : new LiveWslRootOpenRejected(LiveWslRootFailureKind.DistributionUnavailable);
