@@ -20,7 +20,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath file = ParsePath(root.WriteFile("a.txt", "abc"));
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
 
         FileEntrySnapshot first = await InspectAsync(adapter, file);
         FileEntrySnapshot again = await InspectAsync(adapter, file);
@@ -38,7 +38,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath directory = ParsePath(root.CreateDirectory("docs"));
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
 
         FileEntrySnapshot snapshot = await InspectAsync(adapter, directory);
 
@@ -53,7 +53,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         string path = root.WriteFile("a.txt", "abc");
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot before = await InspectAsync(adapter, ParsePath(path));
 
         _ = root.WriteFile("a.txt", "abcdef");
@@ -71,7 +71,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         string path = root.WriteFile("a.txt", "first");
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot before = await InspectAsync(adapter, ParsePath(path));
 
         root.ReplaceFilePreservingMetadata("a.txt", "other");
@@ -90,7 +90,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task InspectAsyncWhenEntryIsMissingOrNotWindowsLocalFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
 
         FileInspectionOutcome missing = await adapter.InspectAsync(ParsePath(root.Resolve("missing")), CancellationToken.None);
         FileInspectionOutcome wsl = await adapter.InspectAsync(ParsePath("\\\\wsl.localhost\\Ubuntu\\home"), CancellationToken.None);
@@ -104,7 +104,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task PreflightTransferAsyncWhenDestinationIsMissingOrForeignFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
 
         TransferPreflightOutcome missing = await adapter.PreflightTransferAsync([source], ParsePath(root.Resolve("missing")), CancellationToken.None);
@@ -121,7 +121,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task PreflightTransferAsyncWhenTargetCollidesOrDestinationIsInsideSourceReturnsConflict()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.CreateDirectory("tree");
@@ -149,7 +149,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task PreflightTransferAsyncWhenSourceChangedAfterInspectionReturnsIdentityChanged()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("a.txt", "abcdef");
@@ -164,7 +164,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CreateDirectoryAsyncWhenLocationIsDirectoryCreatesOnceThenConflicts()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot location = await InspectAsync(adapter, ParsePath(root.CreateDirectory("parent")));
         FileSystemPath target = ParsePath(root.Resolve("parent\\child"));
 
@@ -184,7 +184,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CreateDirectoryAsyncWhenLocationOrTargetIsUnsafeFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("file.txt", "x")));
         _ = root.CreateDirectory("real");
         FileEntrySnapshot junction = await InspectAsync(adapter, ParsePath(root.CreateJunction("link", "real")));
@@ -208,7 +208,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task RenameAsyncWhenEntryIsFileOrDirectoryRenamesInsideTheParent()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("before.txt", "abc")));
         FileEntrySnapshot directory = await InspectAsync(adapter, ParsePath(root.CreateDirectory("docs")));
 
@@ -228,7 +228,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task RenameAsyncWhenOnlyCaseChangesRenamesToTheNewCase()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("notes.txt", "abc")));
 
         ProviderStepOutcome outcome = await adapter.RenameAsync(file, ParsePath(root.Resolve("Notes.TXT")), CancellationToken.None);
@@ -244,7 +244,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task RenameAsyncWhenTargetIsTakenOrSourceChangedFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot taken = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("b.txt", "keep");
         FileEntrySnapshot rewritten = await InspectAsync(adapter, ParsePath(root.WriteFile("c.txt", "abc")));
@@ -271,7 +271,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task RenameAsyncWhenTargetLeavesTheParentFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         _ = root.CreateDirectory("parent");
         _ = root.CreateDirectory("other");
         FileEntrySnapshot child = await InspectAsync(adapter, ParsePath(root.WriteFile("parent\\a.txt", "abc")));
@@ -292,7 +292,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenSourceIsFileOrTreeCopiesAndVerifies()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("tree");
         _ = root.CreateDirectory("tree\\inner");
@@ -323,7 +323,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenTreeContainsJunctionFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("outside");
         _ = root.WriteFile("outside\\secret.txt", "secret");
@@ -348,7 +348,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenTargetExistsOrSourceChangedOrDestinationIsForeignFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("dest\\a.txt", "existing");
@@ -372,7 +372,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task VerifyCopyAsyncWhenCopyIsDamagedOrSourceChangedFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         FileEntrySnapshot never = await InspectAsync(adapter, ParsePath(root.WriteFile("never.txt", "abc")));
@@ -403,7 +403,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task VerifyCopyAsyncWhenTargetKindOrEntrySetDiffersReturnsVerification()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("tree");
         FileEntrySnapshot tree = await InspectAsync(adapter, ParsePath(root.Resolve("tree")));
@@ -430,7 +430,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task DeleteAsyncWhenModeIsPermanentDeletesAndRecycleIsRefused()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.CreateDirectory("tree");
         _ = root.WriteFile("tree\\top.txt", "top");
@@ -456,7 +456,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task DeleteAsyncWhenSourceChangedAfterInspectionKeepsEntry()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("a.txt", "rewritten");
 
@@ -473,7 +473,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenSourceListingIsDeniedReturnsAccessDenied()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot denied = await InspectAsync(adapter, ParsePath(root.DenyDirectoryListing("denied")));
 
@@ -494,7 +494,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         FileSystemPath source = ParsePath(root.CreateDirectory("tree"));
         string lockedPath = root.WriteFile("tree\\locked.txt", "content");
         using FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None);
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
         CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(CopyRequest.Create([source], destination)).Request);
 
@@ -519,7 +519,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenLockedFileFailsBeforeTargetCreationReportsNoEffect()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         string sourcePath = root.WriteFile("locked.txt", "content");
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(sourcePath));
@@ -539,7 +539,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileSystemPath source = ParsePath(root.WriteFile("a.txt", "abc"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(MoveRequest.Create([source], destination)).Request);
 
@@ -560,7 +560,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task MoveAsyncWhenSourceAndDestinationShareVolumeMovesEntryAtomically()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileSystemPath filePath = ParsePath(root.WriteFile("a.txt", "abc"));
         FileSystemPath directoryPath = ParsePath(root.CreateDirectory("tree"));
@@ -595,7 +595,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task MoveAsyncWhenIdentityOrTargetChangesMovesNothing()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath destination = ParsePath(root.CreateDirectory("dest"));
         FileSystemPath changedPath = ParsePath(root.WriteFile("changed.txt", "before"));
         FileEntrySnapshot changed = await InspectAsync(adapter, changedPath);
@@ -621,7 +621,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task GetAtomicMoveCapabilityAsyncWhenPathIsReparsePointReportsUnsupported()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath sourceTarget = ParsePath(root.CreateDirectory("source-target"));
         FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
         FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
@@ -649,7 +649,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task GetAtomicMoveCapabilityAsyncWhenDestinationIsMissingReportsNotFound()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot source = await InspectAsync(adapter, ParsePath(root.WriteFile("source.txt", "source")));
         FileSystemPath missingDestination = ParsePath(root.Resolve("missing"));
 
@@ -670,7 +670,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task MoveAsyncWhenPathIsReparsePointReportsProviderUnavailable()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         _ = root.CreateDirectory("source-target");
         FileSystemPath sourceLink = ParsePath(root.CreateJunction("source-link", "source-target"));
         FileSystemPath destinationTarget = ParsePath(root.CreateDirectory("destination-target"));
@@ -702,7 +702,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath source = ParsePath(root.WriteFile("a.txt", "abc"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
         DeleteRequest unconfirmed = Assert.IsInstanceOfType<DeleteRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(DeleteRequest.Create([source], null)).Request);
         DeleteRequest confirmed = Assert.IsInstanceOfType<DeleteRequest>(
@@ -723,7 +723,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     public async Task CopyAsyncWhenDestinationIsFileReturnsNotFound()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileEntrySnapshot file = await InspectAsync(adapter, ParsePath(root.WriteFile("a.txt", "abc")));
         FileSystemPath destinationFile = ParsePath(root.WriteFile("destfile", "x"));
 
@@ -826,7 +826,7 @@ public sealed class WindowsLocalFileOperationAdapterTests
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsLocalFileOperationAdapter(null!));
-        WindowsLocalFileOperationAdapter adapter = new();
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
         FileSystemPath path = ParsePath("C:\\source");
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("file|0|0|0")).Identity;
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.PermanentOnly);

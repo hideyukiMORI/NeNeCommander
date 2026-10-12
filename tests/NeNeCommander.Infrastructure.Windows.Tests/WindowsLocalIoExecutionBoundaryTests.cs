@@ -23,9 +23,9 @@ public sealed class WindowsLocalIoExecutionBoundaryTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath file = ParsePath(root.WriteFile("item.txt", "content"));
         ManualIoScheduler scheduler = new();
-        WindowsLocalIoExecutionBoundary boundary = new(scheduler);
+        WindowsLocalIoExecutionBoundary boundary = new(scheduler, scheduler);
         WindowsLocalDirectoryReader reader = new(boundary);
-        WindowsLocalFileOperationAdapter adapter = new(boundary);
+        WindowsLocalFileOperationAdapter adapter = new(boundary, new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
 
         Task<DirectoryReadOutcome> read = reader.ReadAsync(
             Request(root.Path),

@@ -7,11 +7,11 @@ NeNe Commander is a keyboard-first, dual-pane file manager for Windows 11 built 
 The repository is in its implementation stage; production code is permitted. Most of the MVP scope named in the [project charter](docs/PROJECT_CHARTER.md) is on `main`:
 
 - Dual-pane navigation with Vim-first keys, an address input, per-pane history, selection, hidden-item display, and sorting by name, extension, size, or modification time. See the [keyboard model](docs/KEYBOARD_MODEL.md).
-- Copy, move, rename, new folder, and delete through one fail-closed file-operation gateway with provider-declared policies, observable progress, cancellation between steps, and `Escape` to abandon a loading read.
+- Copy, move, rename, new folder, and delete through one fail-closed file-operation gateway with provider-declared policies, observable progress, cancellation between steps, and `Escape` to abandon a loading read. Eligible Windows entries use guarded recycle-bin deletion; unsupported entries retain explicit permanent confirmation.
 - Session-owned transient surfaces: settings editor, command palette, bookmarks with fixed slots, window adjustment mode, and a Locations picker for drives and WSL distribution roots.
 - Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, same-distribution mutations and transfers), UNC shares (directory reads only), and copy or move in both directions between a Windows local path and a WSL distribution.
 
-Not yet on `main`: Windows recycle-bin deletion, transfers between WSL distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
+Not yet on `main`: transfers between WSL distributions, UNC mutations and launch, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
 
 ## Repository layout
 
@@ -40,5 +40,6 @@ Not yet on `main`: Windows recycle-bin deletion, transfers between WSL distribut
 - Necessary security integration/release: request `gh workflow run security-deep-review.yml --ref <candidate-branch>`. Deep review includes the full gate; do not also run quality for unchanged inputs. There is no periodic run. See [ADR-0061](docs/adr/0061-impact-scoped-verification.md).
 - Live WSL tier: `pwsh -NoProfile -File ./eng/run-live-wsl-tests.ps1` with `NENE_COMMANDER_WSL_TEST_ROOT` pointing at an empty, dedicated directory inside a distribution; it is opt-in and owns all fixtures in that root and a separate Windows temporary root. Use an explicit `-Case` array of declared method names for affected cells only; the log and result must pass every selected cell. Omit `-Case` for the complete tier.
 - Windows UI release evidence: `eng/ui-evidence/Invoke-UiEvidence.ps1`, used for the hand-run confirmation of ADR-0054.
+- Live Windows recycle tier: `pwsh -NoProfile -File ./eng/run-live-recycle-tests.ps1 -Root D:/NeNeCommander/outputs/<task>/tmp`, using an existing dedicated non-link directory. It recycles and restores only owned fixtures through their exact callback receipts, checks the permanent-delete veto, and never enumerates or purges the user's recycle bin. An optional `-Case` array selects affected declared cells; omitted means all three.
 
 Technical documentation, identifiers, and comments are written in English. Commits use English Conventional Commit keywords with Japanese descriptions. User-facing text is stored in resources so localization remains possible.

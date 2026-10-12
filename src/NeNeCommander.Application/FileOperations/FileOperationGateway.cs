@@ -411,7 +411,13 @@ public sealed class FileOperationGateway : IDisposable
             ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, mode, cancellationToken);
             if (deletion.Failure is not null)
             {
-                return FileOperationOutcome.Failed(effects, deletion.Failure);
+                if (deletion.Effect == ProviderStepEffectKind.Recycled)
+                {
+                    effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Recycled));
+                }
+                return cancellationToken.IsCancellationRequested
+                    ? FileOperationOutcome.Cancelled(effects)
+                    : FileOperationOutcome.Failed(effects, deletion.Failure);
             }
             FileOperationEffectKind effect = mode == DeletionExecutionMode.Recycle
                 ? FileOperationEffectKind.Recycled
@@ -539,7 +545,7 @@ public sealed class FileOperationGateway : IDisposable
         ProviderStepOutcome copy,
         List<FileOperationEffect> effects)
     {
-        if (copy.Effect is not null)
+        if (copy.Effect == ProviderStepEffectKind.CopyTargetCreated)
         {
             effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.CopyTargetCreated));
         }

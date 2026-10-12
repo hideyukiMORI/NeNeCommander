@@ -16,6 +16,8 @@ Add `WindowsLocalIoExecutionBoundary` in Infrastructure.Windows as the single sc
 
 The App composition root creates one boundary and gives the same instance to the read and mutation provider routers. Application ports remain unchanged. `PaneSession`, `DualPaneSession`, and `FileOperationGateway` continue to await the returned tasks; therefore the caller owns completion and fault observation, the captured UI context owns presentation callbacks, and the gateway semaphore remains the only mutation serialization mechanism.
 
+ADR-0063 extends this same boundary with `ExecuteShellAsync` for Windows recycle capability inspection and execution. Its scheduler owns one STA thread and awaited task per call, including COM initialization and release. Ordinary filesystem methods keep the existing pool scheduler. This specific apartment requirement supersedes the dedicated-thread rejection below only for Shell work; it adds no serialization owner or long-lived worker.
+
 The scheduler does not cancel a queued provider step. Cancellation remains a typed provider/application concern: a directory read observes its token before and during enumeration, and the gateway observes cancellation before starting each atomic mutation step and immediately after relevant steps. This preserves ADR-0014 and ADR-0018 rather than introducing a new partially executed provider outcome.
 
 ## Rejected alternatives

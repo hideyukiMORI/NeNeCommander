@@ -45,6 +45,12 @@ recycling is a new destructive external boundary, not a new command.
   recycle item or an abort is not success. If a confirmed recycle precedes a
   later failure, retain that completed effect through the canonical provider
   and gateway outcome; do not describe it as rolled back.
+  The admitted completion codes are `S_OK` and the SDK's
+  `COPYENGINE_S_DONT_PROCESS_CHILDREN` (`0x00270008`), which the live Windows
+  recycle path returns after moving the entire entry. Pending, ignored and
+  other informational codes do not confirm completion. A native receipt is
+  retained until operation disposal even when policy rejects its status, so
+  the live owner can verify and restore its own fixture after a failed proof.
 - Extend the existing Windows I/O execution boundary with an explicitly named
   Shell execution method. It owns one STA thread and one awaited task for each
   Shell operation, including capability inspection. Other filesystem work keeps
@@ -99,3 +105,4 @@ undocumented storage protocol. None is introduced.
 - [Abort status](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ifileoperation-getanyoperationsaborted)
 - [Source-generated COM](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/comwrappers-source-generation)
 - [Unique wrapper release](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.marshalling.comobject.finalrelease)
+- [Windows SDK copy-engine result codes](https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/sherrors.h)
