@@ -9,7 +9,7 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 internal sealed class AcceptedFileLauncher : IFileLauncher
 {
     public Task<FileLaunchOutcome> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken)
     {
         _ = target;

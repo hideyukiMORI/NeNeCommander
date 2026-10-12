@@ -6,6 +6,8 @@ Date: 2026-09-08
 
 Accepted for Issue #111 on 2026-09-08 by the NeNe Commander design owner under hide's delegated authority.
 
+ADR-0064 supersedes this decision's WSL rejection and Windows-local-only port type. Its existing handoff, lifecycle, cancellation and pane-state contracts remain active. ADR-0061 governs verification cadence.
+
 ## Context
 
 The first usable release requires `l` and `Enter` to open the focus item. `PaneSession` already

@@ -10,7 +10,7 @@ using NeNeCommander.Infrastructure.Windows.Execution;
 namespace NeNeCommander.Infrastructure.Windows.Launching;
 
 /// <summary>
-/// Hands a validated Windows-local file path to its default Windows Shell association without
+/// Hands an admitted Windows-local or WSL file path to its Windows Shell association without
 /// exposing shell verbs, arguments, or external process lifetime to callers.
 /// </summary>
 public sealed class WindowsShellFileLauncher : IFileLauncher
@@ -20,6 +20,7 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
     private const int ErrorNoAssociation = 1155;
     private const int ErrorPathNotFound = 3;
     private const int ShellErrorNoAssociation = 31;
+    private const int ShellPathLengthLimit = 260;
 
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly Func<ProcessStartInfo, IDisposable?> _start;
@@ -43,20 +44,20 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
 
     /// <inheritdoc />
     public Task<FileLaunchOutcome> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(target);
         return cancellationToken.IsCancellationRequested
             ? Task.FromResult(FileLaunchOutcome.Cancelled())
-            : target.Parent is WindowsLocalPath parent
+            : IsSupportedTarget(target) && target.Parent is FileSystemPath parent
                 ? _executionBoundary.ExecuteAsync(() => Launch(target, parent, cancellationToken))
                 : Task.FromResult(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
     }
 
     internal static ProcessStartInfo CreateStartInfo(
-        WindowsLocalPath target,
-        WindowsLocalPath workingDirectory)
+        FileSystemPath target,
+        FileSystemPath workingDirectory)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(workingDirectory);
@@ -80,8 +81,8 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
     }
 
     private FileLaunchOutcome Launch(
-        WindowsLocalPath target,
-        WindowsLocalPath workingDirectory,
+        FileSystemPath target,
+        FileSystemPath workingDirectory,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -98,5 +99,15 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
         {
             return FileLaunchOutcome.Failed(NormalizeFailure(exception.NativeErrorCode));
         }
+    }
+
+    private static bool IsSupportedTarget(FileSystemPath target)
+    {
+        return target switch
+        {
+            WindowsLocalPath => true,
+            WslPath wsl => wsl.CanonicalText.Length < ShellPathLengthLimit && wsl.HasWindowsCompatibleNames,
+            _ => false,
+        };
     }
 }

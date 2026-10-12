@@ -581,11 +581,13 @@ public sealed class PaneListingPresenterTests
 
     /// <summary>Proves every file handoff activity projects to its closed localized status.</summary>
     [TestMethod]
-    public async Task PresentWhenFileLaunchChangesActivityTranslatesStatus()
+    [DataRow("C:\\root")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    public async Task PresentWhenFileLaunchChangesActivityTranslatesStatus(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            CreateListing("C:\\root", ["a.txt"], DirectoryListingCompleteness.Complete, 0)));
+            CreateListing(location, ["a.txt"], DirectoryListingCompleteness.Complete, 0)));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
         launcher.Enqueue(FileLaunchOutcome.Cancelled());
@@ -593,8 +595,9 @@ public sealed class PaneListingPresenterTests
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AssociationUnavailable));
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ShellRejected));
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
         PaneSession session = CreateSession(port, launcher);
-        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        _ = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
 
         Task<PaneSnapshot> pending = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
         Assert.AreSame(PaneStatus.Launching, Present(session.Current).Status);
@@ -607,6 +610,8 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneStatus.LaunchAccessDenied, Present(
             await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
         Assert.AreSame(PaneStatus.AssociationUnavailable, Present(
+            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
+        Assert.AreSame(PaneStatus.LaunchUnavailable, Present(
             await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
         Assert.AreSame(PaneStatus.LaunchUnavailable, Present(
             await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);

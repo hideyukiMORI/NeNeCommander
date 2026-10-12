@@ -87,26 +87,27 @@ public sealed class PaneSessionTests
         Assert.AreEqual("The directory read outcome variant is not navigable.", failure.Message);
     }
 
-    /// <summary>Proves opening a focused Windows file performs one handoff without another read.</summary>
+    /// <summary>Proves opening a focused Windows or WSL file performs one handoff without another read.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenOpenFocusedOnWindowsFileLaunchesOnceWithoutRead()
+    [DataRow("C:\\root")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    public async Task HandleAsyncWhenOpenFocusedOnSupportedFileLaunchesOnceWithoutRead(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing("C:\\root", ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File))));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(FileLaunchOutcome.Accepted());
         PaneSession session = CreateSession(port, launcher);
         using CancellationTokenSource cancellation = new();
-        _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        _ = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
         PaneSnapshot onFile = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
 
         PaneSnapshot afterOpen = await session.HandleAsync(UserIntent.OpenFocused, cancellation.Token);
 
         Assert.HasCount(1, launcher.Targets);
         Assert.AreSame(
-            Assert.IsInstanceOfType<WindowsLocalPath>(
-                Assert.IsInstanceOfType<PaneContentListed>(onFile.Content).State.FocusItem),
+            Assert.IsInstanceOfType<PaneContentListed>(onFile.Content).State.FocusItem,
             launcher.Targets[0]);
         Assert.AreEqual(cancellation.Token, launcher.CancellationTokens[0]);
         Assert.AreSame(onFile.Content, afterOpen.Content);
@@ -116,15 +117,17 @@ public sealed class PaneSessionTests
 
     /// <summary>Proves launch activity freezes repeat dispatch until the handoff outcome arrives.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenFileLaunchIsPendingFreezesRepeatedIntent()
+    [DataRow("C:\\root")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    public async Task HandleAsyncWhenFileLaunchIsPendingFreezesRepeatedIntent(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("a.txt", DirectoryEntryKind.File))));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
         PaneSession session = CreateSession(port, launcher);
-        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
 
         Task<PaneSnapshot> opening = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
         PaneSnapshot repeated = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
@@ -141,10 +144,12 @@ public sealed class PaneSessionTests
 
     /// <summary>Proves every direct pane-read entry point is frozen while a file handoff is pending.</summary>
     [TestMethod]
-    public async Task PaneReadEntryPointsWhenFileLaunchIsPendingDoNotStartReadOrChangeState()
+    [DataRow("C:\\root")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    public async Task PaneReadEntryPointsWhenFileLaunchIsPendingDoNotStartReadOrChangeState(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing listing = Listing(location, ("a.txt", DirectoryEntryKind.File));
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
@@ -173,16 +178,18 @@ public sealed class PaneSessionTests
 
     /// <summary>Proves normalized launch failure and cancellation preserve all listed pane state.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenFileLaunchDoesNotHandoffReportsTypedActivity()
+    [DataRow("C:\\root")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    public async Task HandleAsyncWhenFileLaunchDoesNotHandoffReportsTypedActivity(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("a.txt", DirectoryEntryKind.File))));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
         launcher.Enqueue(FileLaunchOutcome.Cancelled());
         PaneSession session = CreateSession(port, launcher);
-        PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
 
         PaneSnapshot failed = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
         PaneSnapshot cancelled = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
@@ -195,13 +202,13 @@ public sealed class PaneSessionTests
         Assert.HasCount(2, launcher.Targets);
     }
 
-    /// <summary>Proves unsupported provider files fail before the Windows-local launch port.</summary>
+    /// <summary>Proves unsupported provider files fail before the launch port.</summary>
     [TestMethod]
     [TestProperty("ThreatId", "ADV-019")]
     [TestCategory("Adversarial")]
     public async Task HandleAsyncWhenFocusedFileProviderIsUnsupportedDoesNotCallLauncher()
     {
-        string[] locations = ["\\\\wsl.localhost\\Ubuntu\\home", "\\\\server\\share\\folder"];
+        string[] locations = ["\\\\server\\share\\folder"];
         foreach (string location in locations)
         {
             ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();

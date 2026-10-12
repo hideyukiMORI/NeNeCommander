@@ -12,7 +12,7 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
 {
     private readonly Queue<Task<FileLaunchOutcome>> _outcomes = new();
 
-    internal List<WindowsLocalPath> Targets { get; } = [];
+    internal List<FileSystemPath> Targets { get; } = [];
 
     internal List<CancellationToken> CancellationTokens { get; } = [];
 
@@ -31,7 +31,7 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
     }
 
     public Task<FileLaunchOutcome> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(target);

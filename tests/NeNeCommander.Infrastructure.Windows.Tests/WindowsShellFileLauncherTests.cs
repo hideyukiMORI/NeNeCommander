@@ -44,13 +44,15 @@ public sealed class WindowsShellFileLauncherTests
 
     /// <summary>Proves an accepted handoff disposes only the returned process wrapper.</summary>
     [TestMethod]
-    public async Task LaunchAsyncWhenStartReturnsWrapperDisposesWrapperAndAccepts()
+    [DataRow("C:\\root\\a.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    public async Task LaunchAsyncWhenStartReturnsWrapperDisposesWrapperAndAccepts(string path)
     {
         using RecordingDisposable wrapper = new();
         WindowsShellFileLauncher launcher = CreateLauncher(_ => wrapper);
 
         FileLaunchOutcome outcome = await launcher.LaunchAsync(
-            ParseLocal("C:\\root\\a.txt"),
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<FileLaunchAccepted>(outcome);
@@ -80,7 +82,9 @@ public sealed class WindowsShellFileLauncherTests
 
     /// <summary>Proves cancellation before scheduling starts neither queued work nor a handoff.</summary>
     [TestMethod]
-    public async Task LaunchAsyncWhenAlreadyCancelledDoesNotScheduleOrStart()
+    [DataRow("C:\\root\\a.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    public async Task LaunchAsyncWhenAlreadyCancelledDoesNotScheduleOrStart(string path)
     {
         using CancellationTokenSource cancellation = new();
         await cancellation.CancelAsync();
@@ -95,7 +99,7 @@ public sealed class WindowsShellFileLauncherTests
             });
 
         FileLaunchOutcome outcome = await launcher.LaunchAsync(
-            ParseLocal("C:\\root\\a.txt"),
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
             cancellation.Token);
 
         _ = Assert.IsInstanceOfType<FileLaunchCancelled>(outcome);
@@ -105,7 +109,9 @@ public sealed class WindowsShellFileLauncherTests
 
     /// <summary>Proves cancellation observed after scheduling but before handoff prevents start.</summary>
     [TestMethod]
-    public async Task LaunchAsyncWhenCancelledWhileQueuedDoesNotStart()
+    [DataRow("C:\\root\\a.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    public async Task LaunchAsyncWhenCancelledWhileQueuedDoesNotStart(string path)
     {
         using CancellationTokenSource cancellation = new();
         ManualIoScheduler scheduler = new();
@@ -118,7 +124,7 @@ public sealed class WindowsShellFileLauncherTests
                 return null;
             });
         Task<FileLaunchOutcome> launch = launcher.LaunchAsync(
-            ParseLocal("C:\\root\\a.txt"),
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
             cancellation.Token);
 
         await cancellation.CancelAsync();
@@ -131,7 +137,9 @@ public sealed class WindowsShellFileLauncherTests
 
     /// <summary>Proves cancellation after the handoff starts does not relabel acceptance.</summary>
     [TestMethod]
-    public async Task LaunchAsyncWhenCancellationArrivesDuringStartReportsAcceptedHandoff()
+    [DataRow("C:\\root\\a.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    public async Task LaunchAsyncWhenCancellationArrivesDuringStartReportsAcceptedHandoff(string path)
     {
         using CancellationTokenSource cancellation = new();
         WindowsShellFileLauncher launcher = CreateLauncher(_ =>
@@ -141,7 +149,7 @@ public sealed class WindowsShellFileLauncherTests
         });
 
         FileLaunchOutcome outcome = await launcher.LaunchAsync(
-            ParseLocal("C:\\root\\a.txt"),
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
             cancellation.Token);
 
         _ = Assert.IsInstanceOfType<FileLaunchAccepted>(outcome);
@@ -184,6 +192,101 @@ public sealed class WindowsShellFileLauncherTests
             () => WindowsShellFileLauncher.CreateStartInfo(null!, ParseLocal("C:\\")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsShellFileLauncher.CreateStartInfo(ParseLocal("C:\\a.txt"), null!));
+    }
+
+    /// <summary>Proves a WSL alias is handed off once as the exact canonical namespace and parent.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    public async Task LaunchAsyncWhenWslFileHasShellMetacharactersPreservesOneFilenameAsync()
+    {
+        ProcessStartInfo? observed = null;
+        int starts = 0;
+        WindowsShellFileLauncher launcher = CreateLauncher(startInfo =>
+        {
+            starts++;
+            observed = startInfo;
+            return null;
+        });
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(
+            FileSystemPath.Parse("\\\\wsl$\\Ubuntu\\home\\Mixed Case&$(name);文.txt")).Path;
+
+        FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<FileLaunchAccepted>(outcome);
+        Assert.AreEqual(1, starts);
+        Assert.IsNotNull(observed);
+        Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\home\\Mixed Case&$(name);文.txt", observed.FileName);
+        Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\home", observed.WorkingDirectory);
+        Assert.IsTrue(observed.UseShellExecute);
+        Assert.AreEqual(string.Empty, observed.Verb);
+        Assert.AreEqual(string.Empty, observed.Arguments);
+        Assert.IsEmpty(observed.ArgumentList);
+    }
+
+    /// <summary>Proves lexical and provider refusals schedule no work and never reach the Shell.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\")]
+    [DataRow("\\\\server\\share\\file.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\file.")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\file ")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home.\\file.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home \\file.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a:b.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a\"b.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\NUL.txt")]
+    public async Task LaunchAsyncWhenPathCannotUseShellRefusesBeforeSchedulingAsync(string path)
+    {
+        ManualIoScheduler scheduler = new();
+        int starts = 0;
+        WindowsShellFileLauncher launcher = new(new WindowsLocalIoExecutionBoundary(scheduler), _ =>
+        {
+            starts++;
+            return null;
+        });
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path;
+
+        FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
+
+        FileLaunchFailed failed = Assert.IsInstanceOfType<FileLaunchFailed>(outcome);
+        Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
+        Assert.AreEqual(0, scheduler.PendingCount);
+        Assert.AreEqual(0, starts);
+    }
+
+    /// <summary>Proves the ordinary WSL Shell path boundary includes its terminating null.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    [DataRow(259)]
+    [DataRow(260)]
+    public async Task LaunchAsyncWhenWslPathReachesLengthBoundaryAdmitsOnlyShorterPathAsync(int length)
+    {
+        const string Prefix = "\\\\wsl.localhost\\Ubuntu\\";
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(
+            FileSystemPath.Parse(Prefix + new string('a', length - Prefix.Length))).Path;
+        int starts = 0;
+        WindowsShellFileLauncher launcher = CreateLauncher(_ =>
+        {
+            starts++;
+            return null;
+        });
+
+        FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
+
+        if (length == 259)
+        {
+            _ = Assert.IsInstanceOfType<FileLaunchAccepted>(outcome);
+            Assert.AreEqual(1, starts);
+        }
+        else
+        {
+            FileLaunchFailed failed = Assert.IsInstanceOfType<FileLaunchFailed>(outcome);
+            Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
+            Assert.AreEqual(0, starts);
+        }
     }
 
     private static WindowsShellFileLauncher CreateLauncher(Func<ProcessStartInfo, IDisposable?> start)

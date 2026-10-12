@@ -13,11 +13,12 @@ public interface IFileLauncher
     /// <summary>
     /// Attempts one user-requested path handoff. Cancellation can prevent a handoff only when it
     /// is observed before the provider starts it; accepted work does not own the launched process.
+    /// Unsupported providers or paths are rejected without a handoff; admission belongs to the adapter.
     /// </summary>
     /// <param name="target">Validated path selected by the user.</param>
     /// <param name="cancellationToken">Token observed before the external handoff starts.</param>
     /// <returns>A closed outcome describing handoff acceptance, cancellation, or failure.</returns>
     public Task<FileLaunchOutcome> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken);
 }

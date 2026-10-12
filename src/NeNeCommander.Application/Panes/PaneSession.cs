@@ -201,13 +201,13 @@ public sealed class PaneSession
             ? Task.FromResult(Current)
             : focused.Kind == DirectoryEntryKind.Directory
                 ? NavigateAsync(focused.Path, null, PaneNavigationAction.Append, cancellationToken)
-                : focused.Path is WindowsLocalPath local
-                    ? LaunchAsync(local, cancellationToken)
+                : focused.Path is WindowsLocalPath or WslPath
+                    ? LaunchAsync(focused.Path, cancellationToken)
                     : Task.FromResult(RejectUnsupportedLaunch(focused.Path));
     }
 
     private async Task<PaneSnapshot> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken)
     {
         PaneContent content = Current.Content;

@@ -201,11 +201,11 @@ public abstract record FileSystemPath
 
     private static bool IsValidSegment(string segment, SegmentRules rules)
     {
-        if (rules == SegmentRules.Wsl)
-        {
-            return true;
-        }
+        return rules == SegmentRules.Wsl || IsValidWindowsSegment(segment);
+    }
 
+    private protected static bool IsValidWindowsSegment(string segment)
+    {
         if (segment.EndsWith(' ') || segment.EndsWith('.') || segment.AsSpan().ContainsAny(WindowsInvalidCharacters))
         {
             return false;
