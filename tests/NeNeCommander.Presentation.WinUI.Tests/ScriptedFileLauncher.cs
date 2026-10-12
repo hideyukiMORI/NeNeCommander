@@ -27,7 +27,7 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
     }
 
     public Task<FileLaunchOutcome> LaunchAsync(
-        WindowsLocalPath target,
+        FileSystemPath target,
         CancellationToken cancellationToken)
     {
         _ = target;

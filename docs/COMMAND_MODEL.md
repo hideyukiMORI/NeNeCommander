@@ -29,7 +29,7 @@ Every user-file mutation is represented by one typed operation request and execu
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while a Windows local file uses the sole `IFileLauncher` handoff. An unsupported file provider fails before that port, and pane content remains unchanged by every launch outcome.
+Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while a Windows local or WSL file uses the sole `IFileLauncher` handoff (ADR-0064). The adapter refuses WSL names or lengths the ordinary Shell representation cannot preserve. An unsupported file provider fails before that port, and pane content remains unchanged by every launch outcome.
 
 ### CMD-003 — UI emits intents, not decisions
 

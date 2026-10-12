@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace NeNeCommander.Domain.Paths;
 
@@ -19,6 +20,13 @@ public sealed record WslPath : FileSystemPath
 
     /// <summary>Gets the normalized absolute Linux path.</summary>
     public string LinuxPath { get; }
+
+    /// <summary>
+    /// Gets whether every path segment satisfies the canonical Windows name rules without
+    /// changing this path's WSL identity. This lexical fact does not promise provider access.
+    /// </summary>
+    public bool HasWindowsCompatibleNames =>
+        LinuxPath.Split('/', StringSplitOptions.RemoveEmptyEntries).All(IsValidWindowsSegment);
 
     /// <inheritdoc />
     public override FileSystemPath? Parent =>
