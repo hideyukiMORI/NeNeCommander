@@ -37,7 +37,8 @@ commit・push 済み(head `0a0314c`)で deep review が途中、Draft PR 未作�
   canonical 1289 件中 1281 成功(live 8 skip)、mutation 95.52 / 96.10 / 91.14 / 95.02、coverage 100 / 100 / 93.21 / 94.06、dependency audit 脆弱性なし。
   production は live tier 実行時の `0a0314c` から不変(`git diff -- src` 空)なので live tier の取り直しは不要と判断。
 - 設計リナが ADR-0059 第 2 段の改訂と production 差分(capability の戻り値 1 行と改名)をレビューし、Issue の不変条件と一致を確認して Ready。
-  **PR #203、canonical run `38164204300`、squash `8028a2a`**。merge 後に main deep run `38165064625` を dispatch(結果は次回記録)。
+  **PR #203、canonical run `38164204300`、squash `8028a2a`**。merge 後に main deep run `38165064625` を dispatch。
+- `8028a2a`(run `38165064625`): pass。mutation 95.52 / 96.10 / 91.04 / 95.02、CodeQL analysis `1932464155` は 0 件、open alert 0。
 
 ## live tier の手順上の発見(再現・原因・対処)
 
@@ -48,6 +49,11 @@ login shell に command line を再解釈させるため引用が崩れていた
 `/dev/null` へ向けると wsl.exe 自体が失敗するため、exit code の計測は `sh -c` の中で `echo $?` させる。
 対処: 実行前に `wsl.exe --distribution Ubuntu --exec sleep 3600` を detached で常駐させ、その後 root を作って script を回す。
 script と ADR-0043 は変えていない(手順の注意として引き継ぎ書に記す)。
+
+## hide の決定(2026-10-12、closure 後)
+
+- hide から「WSL は立ち上がっている」と指摘があり、確認すると起動していたのは hide の作業用 distro `Ubuntu-22.04` で、live tier が使う `Ubuntu` は呼び出しごとに冷間起動していた(root `…-20261012b` も再起動で消えていた)。
+- hide の決定: live tier は `Ubuntu` のまま、実行時だけ常駐させる手順でよい。`Ubuntu-22.04` には live root を向けない。
 
 ## 判断の記録
 
@@ -62,6 +68,7 @@ script と ADR-0043 は変えていない(手順の注意として引き継ぎ�
 
 ## 残っている follow-up
 
+- Dependabot PR #206(github-actions group: codeql-action 4.38.3、upload-artifact 7.0.2)が closure 後に開いた。先例どおり Issue 起点の PR で置き換える(引き継ぎ書の 0 番)。
 - 前回までの承認待ち(4 つの資源 format、ネットワークドライブの事実の表示、`CommanderWindow` 6 引数、`CommanderSession` 295/300、
   GLOSSARY の可視性記述、AutomationId 未宣言、その他)は変更なし。
 - README の「Windows → WSL の copy」の一文は本 closure(#202)で「copy or move」に直した。
