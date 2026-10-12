@@ -1,8 +1,7 @@
 name: quality
 
 on:
-  pull_request:
-    types: [ready_for_review]
+  workflow_dispatch:
 
 concurrency:
   group: quality-${{ github.ref }}
@@ -27,17 +26,6 @@ jobs:
         with:
           dotnet-version: 10.0.401
 
-      - name: Run canonical gate at the depth the merge requires
+      - name: Run the explicitly requested full canonical gate
         shell: pwsh
-        run: |
-          $changed = @(git diff --name-only "origin/$env:GITHUB_BASE_REF...HEAD")
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $documentOnly = $changed.Count -gt 0 -and -not ($changed | Where-Object { $_ -notmatch '^(docs/|AGENTS\.md$|AGENT\.md$|CLAUDE\.md$|README\.md$|\.github/copilot-instructions\.md$)' })
-          if ($env:GITHUB_BASE_REF -eq 'main' -and -not $documentOnly) {
-            Write-Host 'Gate depth: full Merge mode (integration into main with code changes).'
-            pwsh -NoProfile -File ./eng/check.ps1
-          } else {
-            Write-Host "Gate depth: Commit mode (base=$env:GITHUB_BASE_REF, documentOnly=$documentOnly)."
-            pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit
-          }
-          exit $LASTEXITCODE
+        run: pwsh -NoProfile -File ./eng/check.ps1

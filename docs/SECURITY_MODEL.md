@@ -65,19 +65,19 @@ Every external GitHub Action is allowlisted and pinned to a full 40-character co
 
 NuGet audit is enabled for direct and transitive dependencies at `low` severity. `NU1901` through `NU1904` are errors. Advisory suppressions are prohibited. Pull requests adding any known vulnerable dependency fail dependency review.
 
-### SEC-008 — Static security analysis is periodic
+### SEC-008 — Static security analysis is explicitly requested
 
 - Status: **active**
-- Enforcement: CodeQL scheduled workflow at implementation stage.
+- Enforcement: CodeQL manual workflow at implementation stage.
 
-CodeQL uses the extended security-and-quality query suite on every three-day deep review and can also be manually dispatched. C# is analyzed without a build, and the canonical CodeQL configuration excludes only generated `obj` trees; it does not define a positive `paths` allowlist that could omit modified, untracked, or newly added owned source. Repository conformance protects the query suite, build mode, configuration reference, and exact generated-path exclusion with negative proofs. Results are uploaded as code-scanning findings. CodeQL findings are not converted into a baseline, and workflow success is not evidence that the open-alert count is zero; alert state is read back from the code-scanning API after analysis.
+CodeQL uses the extended security-and-quality query suite in explicitly requested deep review for applicable security-integration or release proof (ADR-0061); it has no periodic or PR trigger. C# is analyzed without a build, and the canonical CodeQL configuration excludes only generated `obj` trees; it does not define a positive `paths` allowlist that could omit modified, untracked, or newly added owned source. Repository conformance protects the query suite, build mode, configuration reference, and exact generated-path exclusion with negative proofs. Results are uploaded as code-scanning findings. CodeQL findings are not converted into a baseline, and workflow success is not evidence that the open-alert count is zero; alert state is read back from the code-scanning API after analysis.
 
-### SEC-009 — Hostile behavior is reviewed every three days
+### SEC-009 — Deep review follows security and release impact
 
 - Status: **active**
-- Enforcement: scheduled deep-review workflow and report.
+- Enforcement: explicitly dispatched deep-review workflow and report.
 
-The default branch runs the canonical gate, secret and workflow scan, adversarial case suite, dependency audit, and mutation analysis every third UTC calendar day. Schedule delay by the hosting platform is recorded; a release requires a successful deep review no older than 96 hours.
+When justified by security-sensitive integration or release, explicitly request the canonical gate, secret/workflow scan, adversarial cases, dependency audit and mutation analysis through the single deep-review workflow. Its full canonical result is reusable; do not duplicate quality for unchanged inputs. There is no schedule. A release retains the requirement for a successful deep review no older than 96 hours.
 
 ### SEC-010 — Logs minimize sensitive data
 
@@ -116,4 +116,4 @@ Native Windows imports live only in Infrastructure.Windows and use source-genera
 
 ## Hosting controls required before first push
 
-Enable branch rulesets requiring `quality`, `dependency-review`, and scheduled-security health; require review; block force pushes and deletion; enable dependency graph, Dependabot alerts and updates, CodeQL code scanning, secret scanning, and push protection. These server settings cannot be established until a remote repository and visibility/license tier exist.
+Under ADR-0061, retain required PRs, squash-only merging, resolved review threads, no bypass actors, and force-push/deletion protection. Remove unconditional required CI statuses so document-only PRs can merge without starting CI; the reviewer must inspect the evidence selected for the actual change. Retain dependency graph, Dependabot alerts/updates, CodeQL findings, secret scanning and push protection. Scheduled-security health is not a merge requirement because periodic execution is disabled.

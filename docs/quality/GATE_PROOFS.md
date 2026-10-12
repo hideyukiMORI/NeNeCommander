@@ -5,7 +5,8 @@ Status: normative
 | Gate | Positive proof | Negative proof | Current stage |
 |---|---|---|---|
 | required policy files | repository foundation passes | missing required document is rejected | active |
-| merge-time full validation | readiness-only full workflow and lightweight hook/bootstrap are accepted | push-triggered full workflow, full pre-commit, skipped full job, and lightweight default are rejected | active |
+| impact-scoped validation | manual-only full workflow, dependency-path filtering and lightweight hook/bootstrap are accepted | automatic full triggers, full pre-commit, skipped full job, lightweight default and document CI are rejected | active |
+| explicit deep-review cadence | manual-only security workflow is accepted | schedule and pull-request deep-review triggers are rejected | active |
 | proof fixture materialization | current-tree inspection inputs, including an untracked-style source, are copied | nested generated output and reparse-point content are not traversed or copied | active |
 | unique normative rule IDs | all declarations are unique and active | duplicate rule declaration is rejected | active |
 | protected build settings | root settings match pinned values | warnings-as-errors removal is rejected | active |

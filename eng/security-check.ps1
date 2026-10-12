@@ -72,7 +72,7 @@ if ($violations.Count -eq 0) {
 
 if ($null -ne $policy) {
     if ($policy.schemaVersion -ne 1 -or
-        $policy.deepReviewCron -cne '23 2 */3 * *' -or
+        $policy.deepReviewTrigger -cne 'workflow_dispatch' -or
         $policy.maximumReviewAgeHours -ne 96 -or
         $policy.nuGetAuditLevel -cne 'low' -or
         $policy.adversarialRepeatCount -ne 3 -or
@@ -164,15 +164,16 @@ if ($null -ne $policy) {
         }
     }
 
-    $scheduledWorkflowPath = Join-Path $root '.github/workflows/security-deep-review.yml'
-    if (Test-Path -LiteralPath $scheduledWorkflowPath -PathType Leaf) {
-        $scheduledWorkflow = Get-Content -LiteralPath $scheduledWorkflowPath -Raw
-        if ($scheduledWorkflow -notmatch "(?m)^\s*- cron: '$([regex]::Escape([string] $policy.deepReviewCron))'\s*$") {
-            Add-SecurityViolation -Rule 'SEC-009' -Message 'Scheduled workflow does not use the protected three-day cron expression.'
+    $deepWorkflowPath = Join-Path $root '.github/workflows/security-deep-review.yml'
+    if (Test-Path -LiteralPath $deepWorkflowPath -PathType Leaf) {
+        $deepWorkflow = Get-Content -LiteralPath $deepWorkflowPath -Raw
+        $events = [regex]::Match($deepWorkflow.Replace("`r`n", "`n"), '(?ms)^on:\n(?<events>.*?)\npermissions:')
+        if (-not $events.Success -or $events.Groups['events'].Value.Trim() -cne 'workflow_dispatch:') {
+            Add-SecurityViolation -Rule 'SEC-009' -Message 'Deep review must be requested explicitly through workflow_dispatch, without automatic triggers.'
         }
-        if ($scheduledWorkflow -notmatch '(?m)^\s*queries:\s*security-and-quality\s*$' -or
-            $scheduledWorkflow -notmatch '(?m)^\s*build-mode:\s*none\s*$' -or
-            $scheduledWorkflow -notmatch '(?m)^\s*config-file:\s*\./\.github/codeql/codeql-config\.yml\s*$') {
+        if ($deepWorkflow -notmatch '(?m)^\s*queries:\s*security-and-quality\s*$' -or
+            $deepWorkflow -notmatch '(?m)^\s*build-mode:\s*none\s*$' -or
+            $deepWorkflow -notmatch '(?m)^\s*config-file:\s*\./\.github/codeql/codeql-config\.yml\s*$') {
             Add-SecurityViolation -Rule 'SEC-008' -Message 'CodeQL must use build mode none, the security-and-quality suite, and the canonical configuration file.'
         }
     }

@@ -42,19 +42,22 @@ Do not create parallel `V2`, `Legacy`, `New`, `Alternative`, or temporary implem
 
 ## Verification
 
-During implementation, test the changed behavior first, then its owning layer and affected consumers. Use project selection and test filters for diagnostic runs; build/restore the changed code before testing it, rather than trusting stale `--no-build` output. Record the scope and outcome. Changes to shared contracts, dependencies, test infrastructure, or policy need wider impact checks. Unknown impact must be investigated, not called covered. Do not postpone all testing until merge.
+Select the scope from ADR-0061 before running tests. Documentation/comment-only work receives text/link/diff review and no automatic CI, build, product test, coverage or mutation. For a behavior change, build and test its owning code and directly affected consumers; use selected projects and filters. A substantial feature or shared contract requires the full gate only when focused evidence cannot establish the wider impact. Explain that impact in the PR. Tool/CI/policy changes use the affected tool's positive/negative proof rather than unrelated product suites.
 
-Commits run `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`; this is a lightweight policy/security/whitespace check. Keep commits small and coherent, and keep the PR draft while implementing or reviewing. Do not run the full suite merely because a commit, push, handoff, or draft PR was created.
+Commits keep `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`, a local policy/security/whitespace check. Draft/Ready controls review state, not full-test execution. Dependency-review CI runs at readiness only for dependency inputs. A relevant dependency change after readiness needs a fresh Draft-to-Ready transition; documentation-only updates do not. Keep work coherent and use squash PR integration; a daily integration branch is optional.
 
-At merge readiness, transition the final draft PR to Ready (`gh pr ready <number>`). This is the explicit request for the required CI `canonical-gate`, which runs from the repository root:
+When wider validation is necessary, include the intended base in the candidate and explicitly request one existing workflow:
 
 ```powershell
-pwsh -NoProfile -File ./eng/check.ps1
+gh workflow run quality.yml --ref <candidate-branch>
+gh workflow run security-deep-review.yml --ref <candidate-branch>
 ```
 
-The job runs this full command for a PR into `main` whose change set is not document-only, and `Commit` mode for a PR into the day's `integrate/<yyyy-mm-dd>` branch or for a document-only change (ADR-0025, revised 2026-10-12). Wait for that check on the final PR merge candidate, then squash merge through the protected PR path. Do not repeat it locally just to reproduce the same successful evidence. If the head changes, or main changes and the branch must be updated, return to Draft (`gh pr ready <number> --undo`), finish the work, then mark Ready again. A directly opened non-draft PR also needs this Draft to Ready transition. Never bypass a missing check or substitute a success for a skipped full job. Preserve strict main ruleset checks.
+Choose quality for full validation, or deep review when security/mutation proof is necessary. Deep review already executes `pwsh -NoProfile -File ./eng/check.ps1`; do not run both for the same inputs. Both workflows are manual-only, with no schedule. The default full gate and protected thresholds remain unchanged. Release/environmental proof remains separately applicable.
 
-Do not invoke a subset as final evidence. If an environmental tier cannot run, report it precisely and do not claim it passed. Scheduled deep review, security-sensitive integration review, and release proof remain separate mandatory tiers. They are not required after every intermediate edit. Interrupted work may be handed off with scoped evidence and explicitly pending integration checks; it must not be described as merge-ready.
+Before merge, inspect the final diff, the selected evidence and all applicable check failures. Main keeps PR/squash and force-push/deletion protections but does not require an always-present CI status, because documents intentionally have none. A relevant code, test, dependency or tooling input change invalidates the affected proof; a new commit hash, docs-only update, push or merge does not invalidate unchanged proof. Do not rerun a successful suite merely to reproduce it on another machine or at another workflow stage. Record unrelated existing failures separately instead of starting broad retries or unrelated fixes. Never claim skipped/unexecuted tiers passed.
+
+For verification-policy diagnostics, `eng/prove-gates.ps1 -Rule QLT-015` and `eng/prove-security.ps1 -Rule SEC-009` execute only those changed rules' negative fixtures. The default `All` still executes every fixture when the full gate is requested.
 
 ## Review evidence
 

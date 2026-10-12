@@ -185,8 +185,7 @@ if (Test-Path -LiteralPath $qualityWorkflowPath -PathType Leaf) {
 name: quality
 
 on:
-  pull_request:
-    types: [ready_for_review]
+  workflow_dispatch:
 
 concurrency:
   group: quality-${{ github.ref }}
@@ -211,24 +210,36 @@ jobs:
         with:
           dotnet-version: 10.0.401
 
-      - name: Run canonical gate at the depth the merge requires
+      - name: Run the explicitly requested full canonical gate
         shell: pwsh
-        run: |
-          $changed = @(git diff --name-only "origin/$env:GITHUB_BASE_REF...HEAD")
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $documentOnly = $changed.Count -gt 0 -and -not ($changed | Where-Object { $_ -notmatch '^(docs/|AGENTS\.md$|AGENT\.md$|CLAUDE\.md$|README\.md$|\.github/copilot-instructions\.md$)' })
-          if ($env:GITHUB_BASE_REF -eq 'main' -and -not $documentOnly) {
-            Write-Host 'Gate depth: full Merge mode (integration into main with code changes).'
-            pwsh -NoProfile -File ./eng/check.ps1
-          } else {
-            Write-Host "Gate depth: Commit mode (base=$env:GITHUB_BASE_REF, documentOnly=$documentOnly)."
-            pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit
-          }
-          exit $LASTEXITCODE
+        run: pwsh -NoProfile -File ./eng/check.ps1
 '@
     $actualQualityWorkflow = Get-Content -LiteralPath $qualityWorkflowPath -Raw
     if ($actualQualityWorkflow.Replace("`r`n", "`n").Trim() -cne $expectedQualityWorkflow.Replace("`r`n", "`n").Trim()) {
-        Add-Violation -Rule 'QLT-015' -Message 'quality.yml must run the canonical gate only on readiness, choose its depth only from the base branch and the changed paths, and never skip the job or report success without running the chosen mode.'
+        Add-Violation -Rule 'QLT-015' -Message 'quality.yml must request the unchanged full canonical gate only through workflow_dispatch, without automatic or skipped jobs.'
+    }
+}
+$dependencyWorkflowPath = Join-Path $root '.github/workflows/dependency-review.yml'
+if (Test-Path -LiteralPath $dependencyWorkflowPath -PathType Leaf) {
+    $expectedDependencyEvents = @'
+pull_request:
+    types: [ready_for_review]
+    paths:
+      - '**/*.csproj'
+      - '**/*.props'
+      - '**/*.targets'
+      - '**/packages.lock.json'
+      - '**/NuGet.Config'
+      - 'global.json'
+      - '.config/dotnet-tools.json'
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
+      - '.github/dependabot.yml'
+'@
+    $dependencyWorkflow = (Get-Content -LiteralPath $dependencyWorkflowPath -Raw).Replace("`r`n", "`n")
+    $dependencyEvents = [regex]::Match($dependencyWorkflow, '(?ms)^on:\n(?<events>.*?)\npermissions:')
+    if (-not $dependencyEvents.Success -or $dependencyEvents.Groups['events'].Value.Trim() -cne $expectedDependencyEvents.Replace("`r`n", "`n").Trim()) {
+        Add-Violation -Rule 'QLT-015' -Message 'Dependency review must run only at readiness for dependency inputs; document-only changes must not start CI.'
     }
 }
 $commitHookPath = Join-Path $root '.githooks/pre-commit'

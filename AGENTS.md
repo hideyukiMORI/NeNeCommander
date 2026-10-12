@@ -6,15 +6,15 @@ This file is the mandatory entry point for every human or AI development session
 
 ## Non-negotiable operating rule
 
-The repository is governed as code, not as advice. Every change MUST follow the normative documents below. Run focused tests during implementation; the integration candidate for `main` MUST pass the one full canonical gate immediately before it is merged into `main`:
+The repository is governed as code. Follow the normative documents and select verification from the actual change impact before running it (hide, 2026-10-12; ADR-0061). Documentation/comment-only work starts no CI and needs no build, product tests, coverage or mutation. Ordinary behavior changes need the affected build/tests and directly impacted boundaries. A substantial feature or shared-contract change needs the full canonical gate when focused proof cannot establish its wider impact:
 
 ```powershell
 pwsh -NoProfile -File ./eng/check.ps1
 ```
 
-There is one definition of merge readiness, not a requirement to run the full suite after each edit, commit, push, or PR update. Since 2026-10-12 (hide, ADR-0025 revised) the required `canonical-gate` job chooses its depth from the merge itself: a PR into `main` that changes anything other than documents runs the full gate; a PR into the day's integration branch (`integrate/<yyyy-mm-dd>`) or a PR that changes only documents runs `Commit` mode. Issue PRs merge into the integration branch; one PR a day carries the integration branch into `main`. Targeted tests and individual tools are permitted for development diagnosis. Commit hooks invoke `eng/check.ps1 -Mode Commit` for lightweight checks; that result never establishes merge readiness. The default mode remains the full gate. A change cannot merge while it fails or lacks current evidence. Rules and thresholds may not be suppressed or weakened to make a change pass.
+Full quality and deep-review CI run only through explicit `workflow_dispatch`; no push, PR readiness or schedule starts them. Dependency review runs at readiness only when dependency inputs change. Record the selected scope and why it is necessary in the PR. A security-sensitive trust-boundary change may require deep review; release proof retains its own environmental and freshness requirements. A successful deep review already includes the full gate, so do not repeat quality for the same inputs.
 
-Keep work in a draft PR. When the focused Issue is ready to merge, change the PR from Draft to Ready to request the CI gate at the depth its base and change set require. Any later head change or integration-base update requires fresh evidence: return to Draft, finish targeted checks, and mark Ready again. Do not rerun the same full gate locally merely to duplicate successful CI evidence. Scheduled deep review, security-sensitive integration review, and release environmental proof remain mandatory separate tiers. See ADR-0025 and `docs/DEVELOPMENT_WORKFLOW.md`.
+Keep work in a draft PR until review-ready; Ready does not request full testing. Issue PRs may target main directly, with integration branches optional. Main still requires a PR and squash merge and blocks force pushes/deletion, but has no unconditional required CI check. Verify the applicable evidence before merging. Reuse successful evidence when its relevant code/tests/dependencies/tooling inputs are unchanged; commit, push, base movement or merge alone is not a reason to repeat it. Do not lower thresholds or suppress failures. Local commit hooks retain `eng/check.ps1 -Mode Commit`. See ADR-0061 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 After a fresh clone, run `pwsh -NoProfile -File ./eng/bootstrap.ps1` once to verify the pinned SDK and enable the repository-owned Git hooks.
 
@@ -30,7 +30,7 @@ Read these documents before editing the corresponding area:
 6. [C# coding rules](docs/CODING_RULES.md) — mandatory language subset and design rules.
 7. [Quality gates](docs/QUALITY_GATES.md) — executable definition of done.
 8. [Test strategy](docs/TEST_STRATEGY.md) — mandatory behavioral, adversarial, coverage, and mutation proof.
-9. [Security model](docs/SECURITY_MODEL.md) — threats, scheduled diagnostics, and response law.
+9. [Security model](docs/SECURITY_MODEL.md) — threats, explicitly requested diagnostics, and response law.
 10. [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) — change procedure and evidence.
 11. [Commit conventions](docs/COMMIT_CONVENTIONS.md) — Issue, branch, commit, and PR law.
 12. [Keyboard model](docs/KEYBOARD_MODEL.md) — Vim-first navigation contract.
@@ -47,8 +47,8 @@ Architectural decisions live under [docs/adr](docs/adr/README.md). Temporary exc
 3. Inspect the current tree and existing changes before editing; preserve unrelated work.
 4. State the invariant and the single canonical mechanism affected by the change.
 5. Add or update tests and conformance proof in the same change.
-6. During implementation, run affected behavior tests and dependency-impact tests. Immediately before merge, obtain a successful `./eng/check.ps1` result for the final integration candidate through the required CI check.
-7. For security-sensitive behavior, run `./eng/deep-review.ps1` at integration readiness and update the applicable threat cases. Do not run all-layer mutation for every intermediate edit.
+6. Run affected behavior and dependency-impact tests. Before merge, verify the evidence required by the selected ADR-0061 scope; request the full canonical gate only when the wider impact requires it.
+7. For security-sensitive behavior, update and run the affected threat cases; request `./eng/deep-review.ps1` when the trust-boundary impact requires it. Do not run all-layer mutation for minor changes or tooling-only edits.
 8. Report the exact commands run, their result, and any remaining environmental proof that cannot run locally.
 
 ## Absolute prohibitions

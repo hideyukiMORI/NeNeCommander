@@ -6,10 +6,11 @@ ADRs record a durable choice where more than one plausible mechanism exists. Acc
 
 States are `proposed`, `accepted`, `superseded`, or `rejected`. An accepted ADR contains context, the single chosen mechanism, alternatives rejected, consequences, migration/removal work, and executable proof. Copy `0000-template.md` and allocate the next number.
 
-An ADR is required for project-graph changes, a new dependency, a canonical-mechanism change, a provider-policy change, a protected API exception, a coverage exclusion, or a gate change. An ADR cannot authorize suppressions, silent destructive behavior, or skipping the canonical gate.
+An ADR is required for project-graph changes, a new dependency, a canonical-mechanism change, a provider-policy change, a protected API exception, a coverage exclusion, or a gate change. An ADR cannot authorize suppressions, silent destructive behavior, or bypassing the verification required for the selected change impact (ADR-0061).
 
 ## Accepted decisions
 
+- [ADR-0061: Run only the verification justified by the change](0061-impact-scoped-verification.md)
 - [ADR-0060: Address WSL entries through extended-length Win32 paths](0060-wsl-extended-length-win32-paths.md)
 - [ADR-0059: Copy and move from Windows local to a WSL distribution through the routed transfer path](0059-windows-to-wsl-copy.md)
 - [ADR-0058: Abandon a loading pane read from the keyboard](0058-abandon-loading-pane-read.md)

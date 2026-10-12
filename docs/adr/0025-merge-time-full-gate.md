@@ -1,6 +1,6 @@
 # ADR-0025: Run the full gate at merge readiness
 
-Status: accepted
+Status: superseded by [ADR-0061](0061-impact-scoped-verification.md) on 2026-10-12; retained below as historical rationale.
 
 Revised: 2026-10-12 (hide: the full gate runs only when an integration candidate enters `main`, and a document-only change never runs it)
 
