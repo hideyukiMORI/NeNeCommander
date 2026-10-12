@@ -38,7 +38,9 @@ rename a descendant or merge two different source directories into one target.
   copy rejects observed source or target links and does not merge directories.
   A Win32 `CreateDirectoryW` call creates exactly one missing target directory
   and reports an existing entry as failure, including one appearing after the
-  initial existence check. File creation keeps `overwrite: false`.
+  initial existence check. That native call receives an extended-length Windows
+  local target (or the owning WSL resolver's transport), preserving long paths
+  without changing canonical paths. File creation keeps `overwrite: false`.
 - The tree engine receives the target transport resolver and source inspection
   from its owning adapter. WSL transport still uses ADR-0060 exclusively. Every
   WSL source descendant is checked with the existing no-follow 9P handle query

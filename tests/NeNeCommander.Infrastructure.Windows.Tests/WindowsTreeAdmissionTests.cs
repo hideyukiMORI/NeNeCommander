@@ -77,6 +77,26 @@ public sealed class WindowsTreeAdmissionTests
         Assert.AreEqual("original", File.ReadAllText(root.Resolve("source\\payload.txt")));
     }
 
+    /// <summary>Proves exclusive native directory creation preserves support for long Windows paths.</summary>
+    [TestMethod]
+    public void CopyWhenLocalTargetExceedsLegacyPathLimitCreatesEveryDirectory()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string nested = new string('a', 150) + "\\" + new string('b', 150);
+        DirectoryInfo source = new(root.CreateDirectory("source"));
+        _ = root.CreateDirectory("source\\" + nested);
+        _ = root.WriteFile("source\\" + nested + "\\payload.txt", "original");
+        FileSystemPath target = Parse(root.Resolve("copied"));
+
+        ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
+            source, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+
+        Assert.IsNull(outcome.Failure);
+        Assert.IsTrue(WindowsLocalTreeCopy.Matches(
+            source, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource));
+        Assert.AreEqual("original", File.ReadAllText(root.Resolve("copied\\" + nested + "\\payload.txt")));
+    }
+
     /// <summary>Proves the exact Windows component boundary and canonical total path boundary.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

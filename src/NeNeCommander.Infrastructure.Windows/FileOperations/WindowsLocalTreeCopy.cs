@@ -168,7 +168,9 @@ public static partial class WindowsLocalTreeCopy
         Func<FileSystemPath, string> resolveTarget,
         Action<FileSystemInfo> inspectSource)
     {
-        if (!CreateDirectory(resolveTarget(target), IntPtr.Zero))
+        string targetText = resolveTarget(target);
+        string nativeText = target is WindowsLocalPath ? @"\\?\" + targetText : targetText;
+        if (!CreateDirectory(nativeText, IntPtr.Zero))
         {
             int error = Marshal.GetLastWin32Error();
             return ProviderStepOutcome.Failed(error is 80 or 183
