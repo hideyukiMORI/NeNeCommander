@@ -40,7 +40,8 @@ internal sealed class WindowsShellOperation : IWindowsShellOperation, IDisposabl
 
     public void Dispose()
     {
-        ((ComObject)(object)Native).FinalRelease();
+        object native = Native;
+        ((ComObject)native).FinalRelease();
         _progress?.Dispose();
     }
 }

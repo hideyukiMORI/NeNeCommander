@@ -26,6 +26,7 @@ internal sealed class WindowsShellEntry : IWindowsShellEntry, IDisposable
 
     public void Dispose()
     {
-        ((ComObject)(object)Native).FinalRelease();
+        object native = Native;
+        ((ComObject)native).FinalRelease();
     }
 }

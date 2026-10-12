@@ -21,14 +21,14 @@ public sealed class WindowsRecycleOwnershipTests
         _ = await new WindowsShellIoScheduler().ScheduleAsync(() =>
         {
             WindowsRecycleShell shell = new();
-            WindowsShellEntry entry = (WindowsShellEntry)shell.OpenEntry(WindowsRecycleBinTests.Path(source.Path.CanonicalText));
+            using WindowsShellEntry entry = (WindowsShellEntry)shell.OpenEntry(WindowsRecycleBinTests.Path(source.Path.CanonicalText));
             Assert.AreEqual(0, entry.GetDisplayName(0x80058000, out string name));
             Assert.AreEqual(source.Path.CanonicalText, name);
             Assert.AreEqual(0, entry.GetAttributes(0x40000020, out uint attributes));
             Assert.AreEqual(0x40000020u, attributes);
             WindowsRecycleShell.Release(entry);
             _ = Assert.ThrowsExactly<ObjectDisposedException>(() => entry.GetAttributes(0, out _));
-            WindowsShellOperation operation = (WindowsShellOperation)shell.OpenOperation();
+            using WindowsShellOperation operation = (WindowsShellOperation)shell.OpenOperation();
             Assert.AreEqual(0, operation.SetOperationFlags(WindowsRecycleSession.OperationFlags));
             WindowsRecycleShell.Release(operation);
             _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.SetOperationFlags(WindowsRecycleSession.OperationFlags));
@@ -67,7 +67,7 @@ public sealed class WindowsRecycleOwnershipTests
         _ = await new WindowsShellIoScheduler().ScheduleAsync(() =>
         {
             WindowsRecycleProgress policy = new(source, CancellationToken.None);
-            NativeWindowsRecycleProgress callback = new(policy);
+            using NativeWindowsRecycleProgress callback = new(policy);
             Assert.AreEqual(0, callback.PreDeleteItem(0x80, OpenNative(source.Path.CanonicalText)));
             INativeWindowsShellEntry first = OpenNative(receiptPath);
             Assert.AreEqual(0, callback.PostDeleteItem(0x80, OpenNative(source.Path.CanonicalText), 0, first));
