@@ -12,6 +12,40 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsRecycleFailureTests
 {
+    /// <summary>A source disappearing between capability and native activation remains a typed failure.</summary>
+    [TestMethod]
+    public void RecycleWhenSourceDisappearsAtShellOpenReturnsNotFound()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        ScriptedWindowsRecycleShell shell = new() { OperationFailure = new FileNotFoundException("owned missing source") };
+        ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(source, CancellationToken.None);
+        Assert.AreSame(FileOperationFailureKind.NotFound, result.Failure);
+        Assert.IsNull(result.Effect);
+        Assert.AreEqual(0, shell.Operation.PerformCount);
+    }
+
+    /// <summary>Expected filesystem exceptions cannot hide a confirmed callback effect.</summary>
+    [TestMethod]
+    public void RecycleWhenFilesystemFailsAfterReceiptPreservesCompletedEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        ScriptedWindowsRecycleShell shell = new()
+        {
+            Operation = new ScriptedWindowsShellOperation
+            {
+                Perform = (sink, entry) =>
+                {
+                    Assert.AreEqual(0, ScriptedWindowsShellOperation.CompleteRecycle(sink, entry));
+                    throw new FileNotFoundException("owned missing source");
+                },
+            },
+        };
+        ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(WindowsRecycleBinTests.Source(root), CancellationToken.None);
+        Assert.AreSame(FileOperationFailureKind.NotFound, result.Failure);
+        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+    }
+
     /// <summary>Copy-engine permission, missing-path and recycle-policy failures stay distinct.</summary>
     [TestMethod]
     [DataRow(0x80270021u, "Denied")]

@@ -67,6 +67,10 @@ internal sealed class WindowsRecycleBin
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied);
         }
+        catch (IOException exception)
+        {
+            return ProviderStepOutcome.Failed(WindowsFileFailureNormalizer.Normalize(exception.HResult));
+        }
     }
 
     internal WindowsRecycleSession OpenSession(FileEntrySnapshot source, CancellationToken cancellationToken)

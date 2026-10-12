@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NeNeCommander.Application.FileOperations;
@@ -61,6 +62,10 @@ internal sealed class WindowsRecycleSession : IDisposable
             return _progress.Complete(exception.HResult, 0, 0);
         }
         catch (UnauthorizedAccessException exception)
+        {
+            return _progress.Complete(exception.HResult, 0, 0);
+        }
+        catch (IOException exception)
         {
             return _progress.Complete(exception.HResult, 0, 0);
         }
