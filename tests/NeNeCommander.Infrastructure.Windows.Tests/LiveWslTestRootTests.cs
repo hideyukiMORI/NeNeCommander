@@ -593,9 +593,9 @@ public sealed class LiveWslTestRootTests
 
     private static string Resolve(TestOwnedTemporaryRoot host, WslPath path)
     {
-        return path.LinuxPath.Equals("/", StringComparison.Ordinal)
-            ? host.Resolve("distribution")
-            : host.Resolve("distribution" + path.LinuxPath.Replace('/', '\\'));
+        // The harness addresses the host exactly as the live run addresses the distribution: through
+        // the production resolver's extended-length text (ADR-0060).
+        return OwnedWslNamespace.ResolveDistribution(host.ResolveVerbatim("distribution"), path);
     }
 
     private static void RejectLinkCreation(WslPath target, WslPath link)

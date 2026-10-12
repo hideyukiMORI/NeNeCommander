@@ -357,10 +357,10 @@ public sealed class WindowsUncDirectoryReaderTests
 
         internal string? RequestedLocation { get; private set; }
 
-        public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string canonicalLocation)
+        public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string locationText)
         {
             InvocationCount++;
-            RequestedLocation = canonicalLocation;
+            RequestedLocation = locationText;
             if (_failure is not null)
             {
                 throw _failure;

@@ -14,9 +14,9 @@ internal sealed class WindowsDirectoryEnumerator : IWindowsDirectoryEnumerator
     /// </summary>
     private static readonly DateTime AbsentFileTimeUtc = DateTime.FromFileTimeUtc(0);
 
-    public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string canonicalLocation)
+    public IEnumerable<WindowsDirectoryEntrySnapshot> Enumerate(string locationText)
     {
-        DirectoryInfo directory = new(canonicalLocation);
+        DirectoryInfo directory = new(locationText);
         foreach (FileSystemInfo info in directory.EnumerateFileSystemInfos("*", CreateDirectEntryOptions()))
         {
             yield return new WindowsDirectoryEntrySnapshot(

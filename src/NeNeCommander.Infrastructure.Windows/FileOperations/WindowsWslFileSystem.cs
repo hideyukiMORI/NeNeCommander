@@ -3,17 +3,22 @@ using System.IO;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
-/// <summary>Uses the canonical Windows WSL namespace without invoking a process or shell.</summary>
+/// <summary>
+/// Uses the Windows WSL namespace without invoking a process or shell. Every entry is addressed
+/// through the extended-length text of <see cref="WslWin32PathText"/> (ADR-0060), so no segment is
+/// renamed by Win32 normalization.
+/// </summary>
 internal sealed class WindowsWslFileSystem : IWslFileSystem
 {
     private readonly Func<WslPath, string> _resolvePath;
     private readonly Func<string, WslHandleFacts> _readFacts;
 
     internal WindowsWslFileSystem()
-        : this(path => path.CanonicalText)
+        : this(WslWin32PathText.Resolve)
     {
     }
 
