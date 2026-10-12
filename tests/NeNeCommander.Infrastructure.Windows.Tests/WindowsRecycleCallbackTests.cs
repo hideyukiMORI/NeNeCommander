@@ -10,6 +10,49 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsRecycleCallbackTests
 {
+    /// <summary>Cancellation after admission cannot hide a receipt for work already completed.</summary>
+    [TestMethod]
+    public void PostDeleteItemWhenCancellationPrecedesReceiptRetainsCompletedEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        using CancellationTokenSource cancellation = new();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, cancellation.Token);
+        ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
+        Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
+        cancellation.Cancel();
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.UpdateProgress(1, 0));
+        Assert.AreEqual(0, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("completed owned receipt")));
+        ProviderStepOutcome result = progress.Complete(0, 0, 1);
+        Assert.AreSame(FileOperationFailureKind.Delete, result.Failure);
+        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+    }
+
+    /// <summary>A vetoed pre-delete cannot authorize a later receipt.</summary>
+    [TestMethod]
+    public void PostDeleteItemWhenPreDeleteWasVetoedDoesNotConfirmRecycle()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, new CancellationToken(true));
+        ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, entry));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("unadmitted receipt")));
+        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+    }
+
+    /// <summary>An earlier rejected mutation prevents later admission in the same operation.</summary>
+    [TestMethod]
+    public void PreDeleteItemWhenOperationAlreadyFailedDoesNotAdmitSource()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreNewItem(0, IntPtr.Zero, "unexpected"));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Failure);
+    }
+
     /// <summary>Unexpected mutation callbacks cannot authorize a second kind of effect.</summary>
     [TestMethod]
     [DataRow("PreRename")]

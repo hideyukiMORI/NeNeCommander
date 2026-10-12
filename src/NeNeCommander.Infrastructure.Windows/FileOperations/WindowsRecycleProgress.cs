@@ -15,6 +15,7 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
     private readonly CancellationToken _cancellationToken;
     private int _preCount;
     private int _postCount;
+    private bool _admitted;
 
     internal WindowsRecycleProgress(FileEntrySnapshot source, CancellationToken cancellationToken)
     {
@@ -32,7 +33,7 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
     public int PreDeleteItem(uint flags, IWindowsShellEntry entry)
     {
         _preCount++;
-        if (_preCount != 1 || (flags & RecycleFlag) == 0 || !MatchesSource(entry))
+        if (_preCount != 1 || Failure is not null || (flags & RecycleFlag) == 0 || !MatchesSource(entry))
         {
             return Reject(FileOperationFailureKind.ProviderUnavailable);
         }
@@ -41,7 +42,12 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
             return Reject(FileOperationFailureKind.Delete);
         }
         FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(_source);
-        return refusal is null ? 0 : Reject(refusal);
+        if (refusal is not null)
+        {
+            return Reject(refusal);
+        }
+        _admitted = true;
+        return 0;
     }
 
     public int PostDeleteItem(uint flags, IWindowsShellEntry entry, int result, IWindowsShellEntry? created)
@@ -53,7 +59,7 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
         {
             ObservedEntry = created;
         }
-        if (_preCount != 1 || _postCount != 1 || Failure is not null ||
+        if (_preCount != 1 || _postCount != 1 || !_admitted ||
             (flags & RecycleFlag) == 0 || !MatchesSource(entry) ||
             result is not 0 and not CompletedWithoutChildTraversal || created is null)
         {
