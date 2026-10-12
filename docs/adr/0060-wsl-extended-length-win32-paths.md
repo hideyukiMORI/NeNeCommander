@@ -103,8 +103,8 @@ must decide how WSL path text reaches Win32.
 in one change; the parameterless constructor of `WindowsWslFileSystem` stops passing
 `CanonicalText`. Tests that build expected Win32 strings from `CanonicalText` are rewritten to
 expect the resolver's output. ADV-015 gains the sentence that Infrastructure addresses WSL entries
-through extended-length text so that no segment is renamed by Win32 normalization; FS-004 or the
-filesystem-boundary rule that owns WSL transport states the same fact. This decision is removed
+through extended-length text so that no segment is renamed by Win32 normalization; FS-001 and FS-012
+state the same fact for WSL transport. This decision is removed
 only by an ADR that gives the WSL provider a transport other than the Windows file API.
 
 ## Executable proof
