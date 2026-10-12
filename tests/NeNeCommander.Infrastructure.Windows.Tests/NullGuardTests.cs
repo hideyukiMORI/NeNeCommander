@@ -33,16 +33,33 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(ProviderPathContainment), nameof(ProviderPathContainment.Evaluate),
             [path, null]);
         WindowsLocalPath local = Assert.IsInstanceOfType<WindowsLocalPath>(path);
-        FileSystemInfo entry = new DirectoryInfo(local.CanonicalText);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Find), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Describe), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalEntryIdentity), nameof(WindowsLocalEntryIdentity.Revalidate), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.IsReparsePoint), [null]);
         AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.ContainsReparsePoint), [null]);
-        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Copy), [null, "target"]);
-        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Copy), [entry, null]);
-        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Matches), [null, "target"]);
-        AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), nameof(WindowsLocalTreeCopy.Matches), [entry, null]);
+    }
+
+    /// <summary>Proves each tree entry boundary rejects an absent source, target or adapter callback.</summary>
+    [TestMethod]
+    [DataRow(nameof(WindowsLocalTreeCopy.Copy))]
+    [DataRow(nameof(WindowsLocalTreeCopy.Matches))]
+    [DataRow(nameof(WindowsLocalTreeCopy.Preflight))]
+    public void TreeMethodsWhenRequiredArgumentIsNullRejectBeforeIo(string methodName)
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        object?[] arguments =
+        [
+            new DirectoryInfo(path.CanonicalText), path,
+            (Func<FileSystemPath, string>)(target => target.CanonicalText),
+            (Action<FileSystemInfo>)WindowsLocalTreeCopy.InspectLocalSource,
+        ];
+        for (int index = 0; index < arguments.Length; index++)
+        {
+            object?[] supplied = (object?[])arguments.Clone();
+            supplied[index] = null;
+            AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), methodName, supplied);
+        }
     }
 
     /// <summary>Proves closed result constructors preserve their internal null invariants.</summary>

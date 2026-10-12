@@ -75,31 +75,60 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         return WindowsLocalTreeCopy.ContainsReparsePoint(entry);
     }
 
-    public void Copy(WslFileSystemEntry source, WslPath target)
+    public ProviderStepOutcome Copy(WslFileSystemEntry source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        WindowsLocalTreeCopy.Copy(ResolveEntry(source), _resolvePath(target));
+        return WindowsLocalTreeCopy.Copy(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
     }
 
     public bool Matches(WslFileSystemEntry source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), _resolvePath(target));
+        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
     }
 
     // WindowsLocalTreeCopy rejects a null source itself; only the target needs a guard before resolution.
-    public void CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
+    public ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        WindowsLocalTreeCopy.Copy(source, _resolvePath(target));
+        return WindowsLocalTreeCopy.Copy(source, target, ResolveTarget, WindowsLocalTreeCopy.InspectLocalSource);
     }
 
     public bool MatchesWindowsLocal(FileSystemInfo source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        return WindowsLocalTreeCopy.Matches(source, _resolvePath(target));
+        return WindowsLocalTreeCopy.Matches(source, target, ResolveTarget, WindowsLocalTreeCopy.InspectLocalSource);
+    }
+
+    public FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return WindowsLocalTreeCopy.Preflight(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
+    }
+
+    public ProviderStepOutcome CopyToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return WindowsLocalTreeCopy.Copy(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
+    }
+
+    public bool MatchesWindowsLocalTarget(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
+    }
+
+    private string ResolveTarget(FileSystemPath target)
+    {
+        return target is WslPath wsl ? _resolvePath(wsl) : target.CanonicalText;
+    }
+
+    private void InspectWslSource(FileSystemInfo source)
+    {
+        _ = _readFacts(source.FullName);
+        source.Refresh();
     }
 
     public void CreateDirectory(WslPath target)

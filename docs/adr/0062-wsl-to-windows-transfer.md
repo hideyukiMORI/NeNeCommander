@@ -76,6 +76,13 @@ Live Ubuntu proof covers a real case collision, invalid Windows name, the
 observed private-use substitute and successful copy/move. Keep all fixtures in
 the owned local and dedicated WSL roots; never use the working Ubuntu-22.04.
 
+The live launcher accepts an explicit list of distinct declared `-Case` names,
+records declared and selected counts, and requires each selected cell to pass.
+The default still runs every declared cell. For this change, run the six affected
+existing transfer cells and four new reverse-transfer cells; reuse the unchanged
+identity-query evidence from Issue #190. The owned live root may retire a moved-out
+source only after the gateway reports copy, verification and source deletion.
+
 Under ADR-0061, use the affected Infrastructure and gateway tests during
 implementation. Request one deep review when the candidate is ready because the
 change opens a destructive cross-provider boundary and replaces shared recursive

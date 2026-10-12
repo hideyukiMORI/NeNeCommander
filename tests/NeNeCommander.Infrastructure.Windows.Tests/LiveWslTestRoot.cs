@@ -315,6 +315,19 @@ internal sealed class LiveWslTestRoot
             outcome,
             source,
             [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
+        RetireMovedSource(sourceRelativePath);
+        AdoptExpectedTree(targetRelativePath, expectedEntries);
+    }
+
+    internal void AdoptMovedOutTree(string sourceRelativePath, FileOperationOutcome outcome, WslPath source)
+    {
+        RequireTransferEffects(outcome, source,
+            [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
+        RetireMovedSource(sourceRelativePath);
+    }
+
+    private void RetireMovedSource(string sourceRelativePath)
+    {
         WslPath path = ResolveExisting(sourceRelativePath);
         string resolved = _resolvePath(path);
         if (File.Exists(resolved) || Directory.Exists(resolved))
@@ -336,7 +349,6 @@ internal sealed class LiveWslTestRoot
         // ADR-0049: the deleted source's parent changed its direct children, so its own token
         // changed with them and is re-captured immediately after that mutation.
         RecaptureOwnedDirectory(Parent(path));
-        AdoptExpectedTree(targetRelativePath, expectedEntries);
     }
 
     internal LiveWslRootCheckOutcome VerifyForEffect()

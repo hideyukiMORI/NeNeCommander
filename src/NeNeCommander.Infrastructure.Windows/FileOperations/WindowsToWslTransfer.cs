@@ -195,8 +195,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
 
         try
         {
-            _destination.CopyFromWindowsLocal(source, target);
-            return ProviderStepOutcome.Succeeded();
+            return _destination.CopyFromWindowsLocal(source, target);
         }
         catch (UnauthorizedAccessException exception)
         {

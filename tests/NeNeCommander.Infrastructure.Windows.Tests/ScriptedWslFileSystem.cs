@@ -79,7 +79,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         return TargetContainsReparsePoint;
     }
 
-    public void Copy(WslFileSystemEntry source, WslPath target)
+    public ProviderStepOutcome Copy(WslFileSystemEntry source, WslPath target)
     {
         if (FailCopyBeforeTarget)
         {
@@ -91,10 +91,9 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         {
             Set(Entry(source.Path, "replacement", source.Kind, source.Attributes));
         }
-        if (FailCopyAfterTarget)
-        {
-            throw new IOException("Synthetic copy failure after target creation.");
-        }
+        return FailCopyAfterTarget
+            ? throw new IOException("Synthetic copy failure after target creation.")
+            : ProviderStepOutcome.Succeeded();
     }
 
     public bool Matches(WslFileSystemEntry source, WslPath target)
@@ -103,7 +102,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         return MatchResult && _entries.ContainsKey(target.CanonicalText);
     }
 
-    public void CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
+    public ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
     {
         if (FailCopyBeforeTarget)
         {
@@ -112,16 +111,30 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         CopiedFromWindowsLocal.Add((source, target));
         DirectoryEntryKind kind = source is DirectoryInfo ? DirectoryEntryKind.Directory : DirectoryEntryKind.File;
         Set(Entry(target, "copied", kind));
-        if (FailCopyAfterTarget)
-        {
-            throw CopyFailure ?? new IOException("Synthetic copy failure after target creation.");
-        }
+        return FailCopyAfterTarget
+            ? throw CopyFailure ?? new IOException("Synthetic copy failure after target creation.")
+            : ProviderStepOutcome.Succeeded();
     }
 
     public bool MatchesWindowsLocal(FileSystemInfo source, WslPath target)
     {
         ThrowWhenConfigured();
         return MatchResult && _entries.ContainsKey(target.CanonicalText);
+    }
+
+    public FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        return FileOperationFailureKind.ProviderUnavailable;
+    }
+
+    public ProviderStepOutcome CopyToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+    }
+
+    public bool MatchesWindowsLocalTarget(WslFileSystemEntry source, WindowsLocalPath target)
+    {
+        return false;
     }
 
     public void CreateDirectory(WslPath target)

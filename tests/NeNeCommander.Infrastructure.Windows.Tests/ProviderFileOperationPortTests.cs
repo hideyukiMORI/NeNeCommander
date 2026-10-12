@@ -21,7 +21,7 @@ public sealed class ProviderFileOperationPortTests
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
         RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
 
         _ = await router.InspectAsync(Path("C:\\item.txt"), CancellationToken.None);
         Assert.AreEqual(1, windowsLocal.InspectionCount);
@@ -43,7 +43,7 @@ public sealed class ProviderFileOperationPortTests
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
         RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
         FileEntrySnapshot local = Snapshot("C:\\item.txt", "local");
         FileEntrySnapshot linux = Snapshot(
             "\\\\wsl.localhost\\Ubuntu\\home\\item.txt",
@@ -70,17 +70,41 @@ public sealed class ProviderFileOperationPortTests
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
         RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
-        FileEntrySnapshot local = Snapshot("C:\\item.txt", "local");
-        FileEntrySnapshot secondLocal = Snapshot("D:\\other.txt", "other");
-        FileSystemPath wslDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
+        RecordingPort wslToWindows = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, wslToWindows);
+        FileEntrySnapshot source = Snapshot("C:\\item.txt", "first");
+        FileEntrySnapshot second = Snapshot("D:\\other.txt", "other");
+        FileSystemPath destination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
 
-        _ = await router.PreflightTransferAsync([local, secondLocal], wslDestination, CancellationToken.None);
-        await InvokeEveryMemberAsync(router, local, wslDestination);
+        _ = await router.PreflightTransferAsync([source, second], destination, CancellationToken.None);
+        await InvokeEveryMemberAsync(router, source, destination);
 
         CollectionAssert.AreEqual(ExpectedCrossTransferCalls(), windowsLocalToWsl.Calls);
         CollectionAssert.AreEqual(ExpectedSourceOwnedCalls(), windowsLocal.Calls);
+        Assert.HasCount(0, wslToWindows.Calls);
         Assert.HasCount(0, wsl.Calls);
+    }
+
+    /// <summary>Proves the reverse route keeps source-owned mutations on the WSL adapter.</summary>
+    [TestMethod]
+    public async Task MutationMembersWhenPairIsWslToWindowsRouteTransfersToCrossTransfer()
+    {
+        RecordingPort windowsLocal = new();
+        RecordingPort wsl = new();
+        RecordingPort windowsLocalToWsl = new();
+        RecordingPort wslToWindows = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, wslToWindows);
+        FileEntrySnapshot source = Snapshot("\\\\wsl.localhost\\Ubuntu\\item.txt", "first");
+        FileEntrySnapshot second = Snapshot("\\\\wsl.localhost\\ubuntu\\other.txt", "other");
+        FileSystemPath destination = Path("C:\\destination");
+
+        _ = await router.PreflightTransferAsync([source, second], destination, CancellationToken.None);
+        await InvokeEveryMemberAsync(router, source, destination);
+
+        CollectionAssert.AreEqual(ExpectedCrossTransferCalls(), wslToWindows.Calls);
+        CollectionAssert.AreEqual(ExpectedSourceOwnedCalls(), wsl.Calls);
+        Assert.HasCount(0, windowsLocalToWsl.Calls);
+        Assert.HasCount(0, windowsLocal.Calls);
     }
 
     /// <summary>
@@ -89,7 +113,7 @@ public sealed class ProviderFileOperationPortTests
     /// still answers <c>ProviderUnavailable</c> before any effect.
     /// </summary>
     [TestMethod]
-    public async Task GetAtomicMoveCapabilityAsyncWhenComposedLeavesOnlyWindowsLocalToWslComposite()
+    public async Task GetAtomicMoveCapabilityAsyncWhenComposedAllowsBothWindowsWslCompositeDirections()
     {
         ProviderFileOperationPort router = new(new WindowsLocalIoExecutionBoundary());
         FileEntrySnapshot local = Snapshot("C:\\item", "local");
@@ -113,9 +137,7 @@ public sealed class ProviderFileOperationPortTests
             CancellationToken.None);
 
         Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, cross);
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(reverse).Failure);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, reverse);
         Assert.AreSame(
             FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(distributions).Failure);
@@ -133,7 +155,6 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-022")]
-    [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "C:\\destination")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\item", "\\\\wsl.localhost\\Debian\\destination")]
     [DataRow("\\\\server\\share\\item", "C:\\destination")]
     [DataRow("\\\\server\\share\\item", "\\\\wsl.localhost\\Ubuntu\\destination")]
@@ -147,7 +168,7 @@ public sealed class ProviderFileOperationPortTests
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
         RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
         FileEntrySnapshot source = Snapshot(sourceText, "source");
         FileSystemPath destination = Path(destinationText);
 
@@ -182,7 +203,7 @@ public sealed class ProviderFileOperationPortTests
         RecordingPort windowsLocal = new();
         RecordingPort wsl = new();
         RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl);
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
         FileSystemPath unc = Path("\\\\server\\share\\item");
         FileSystemPath ubuntuDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
         FileEntrySnapshot local = Snapshot("C:\\item", "local");
@@ -201,6 +222,8 @@ public sealed class ProviderFileOperationPortTests
             [ubuntu, local], ubuntuDestination, CancellationToken.None);
         TransferPreflightOutcome mixedDistribution = await router.PreflightTransferAsync(
             [ubuntu, debian], ubuntuDestination, CancellationToken.None);
+        TransferPreflightOutcome mixedReverseDistribution = await router.PreflightTransferAsync(
+            [ubuntu, debian], Path("C:\\destination"), CancellationToken.None);
         ProviderStepOutcome unsupportedDelete = await router.DeleteAsync(
             uncSource,
             DeletionExecutionMode.Permanent,
@@ -221,6 +244,7 @@ public sealed class ProviderFileOperationPortTests
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProvider.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProviderReversed.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedDistribution.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedReverseDistribution.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedDelete.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedCreate.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedRename.Failure);
@@ -234,13 +258,14 @@ public sealed class ProviderFileOperationPortTests
     public void BoundariesWhenArgumentIsNullRejectDefect()
     {
         RecordingPort port = new();
-        ProviderFileOperationPort router = new(port, port, port);
+        ProviderFileOperationPort router = new(port, port, port, port);
         FileEntrySnapshot source = Snapshot("C:\\item", "source");
         FileSystemPath target = Path("C:\\target");
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, port, port));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!, port));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, port, port, port));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!, port, port));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, null!, port));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, port, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.InspectAsync(null!, CancellationToken.None));

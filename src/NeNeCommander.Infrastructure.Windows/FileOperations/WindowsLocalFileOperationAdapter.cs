@@ -216,7 +216,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
         }
-        string targetText = BuildTargetText(source, destination, entry);
+        if (BuildTarget(source, destination, entry) is not WindowsLocalPath target)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        string targetText = target.CanonicalText;
         if (TargetExists(targetText))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
@@ -461,11 +465,15 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return destination is not WindowsLocalPath localDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry => CopyEntry(entry, BuildTargetText(source, localDestination, entry)));
+            : WithRevalidatedEntry(source, entry =>
+                BuildTarget(source, localDestination, entry) is WindowsLocalPath target
+                    ? CopyEntry(entry, target)
+                    : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private static ProviderStepOutcome CopyEntry(FileSystemInfo entry, string targetText)
+    private static ProviderStepOutcome CopyEntry(FileSystemInfo entry, WindowsLocalPath target)
     {
+        string targetText = target.CanonicalText;
         if (TargetExists(targetText))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
@@ -476,8 +484,8 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
         try
         {
-            WindowsLocalTreeCopy.Copy(entry, targetText);
-            return ProviderStepOutcome.Succeeded();
+            return WindowsLocalTreeCopy.Copy(
+                entry, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -501,7 +509,9 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return destination is not WindowsLocalPath localDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, entry =>
-                WindowsLocalTreeCopy.Matches(entry, BuildTargetText(source, localDestination, entry))
+                BuildTarget(source, localDestination, entry) is WindowsLocalPath target &&
+                WindowsLocalTreeCopy.Matches(
+                    entry, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource)
                     ? ProviderStepOutcome.Succeeded()
                     : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
     }
@@ -560,13 +570,13 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return normalized == FileOperationFailureKind.ProviderUnavailable ? fallback : normalized;
     }
 
-    private static string BuildTargetText(
+    private static WindowsLocalPath? BuildTarget(
         FileEntrySnapshot source,
         WindowsLocalPath destination,
         FileSystemInfo entry)
     {
-        return source.TransferTarget?.CanonicalText ??
-            WindowsLocalTreeCopy.ResolveDirectChild(destination.CanonicalText, entry.Name);
+        return source.TransferTarget as WindowsLocalPath ??
+            WindowsLocalTreeCopy.DeriveChild(destination, entry.Name) as WindowsLocalPath;
     }
 
     private static TransferPreflightOutcome GuardedPreflight(Func<TransferPreflightOutcome> step)

@@ -1,4 +1,5 @@
 using System.IO;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -14,13 +15,19 @@ internal interface IWslFileSystem
 
     internal bool ContainsReparsePoint(WslPath target);
 
-    internal void Copy(WslFileSystemEntry source, WslPath target);
+    internal ProviderStepOutcome Copy(WslFileSystemEntry source, WslPath target);
 
     internal bool Matches(WslFileSystemEntry source, WslPath target);
 
-    internal void CopyFromWindowsLocal(FileSystemInfo source, WslPath target);
+    internal ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target);
 
     internal bool MatchesWindowsLocal(FileSystemInfo source, WslPath target);
+
+    internal FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target);
+
+    internal ProviderStepOutcome CopyToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target);
+
+    internal bool MatchesWindowsLocalTarget(WslFileSystemEntry source, WindowsLocalPath target);
 
     internal void CreateDirectory(WslPath target);
 
