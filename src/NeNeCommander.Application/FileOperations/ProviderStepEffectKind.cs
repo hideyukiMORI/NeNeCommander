@@ -11,9 +11,13 @@ public abstract record ProviderStepEffectKind
     /// </summary>
     public static ProviderStepEffectKind CopyTargetCreated { get; } = new CopyTargetCreatedEffect();
 
+    /// <summary>Gets a confirmed recycle completed before a later provider failure.</summary>
+    public static ProviderStepEffectKind Recycled { get; } = new RecycledEffect();
+
     private ProviderStepEffectKind()
     {
     }
 
     private sealed record CopyTargetCreatedEffect : ProviderStepEffectKind;
+    private sealed record RecycledEffect : ProviderStepEffectKind;
 }

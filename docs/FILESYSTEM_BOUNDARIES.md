@@ -36,6 +36,8 @@ For operation snapshots, a Windows local entry uses the operating system's volum
 
 Recycle support, atomic move, replace behavior, case sensitivity, link support, timestamp precision, free-space reporting, and permission behavior are capabilities returned by the provider adapter. They are not fixed assumptions derived from a broad provider label.
 
+Windows recycle capability (ADR-0063) requires an existing non-root entry on a fixed drive, non-link ancestors and source tree, Shell filesystem/delete attributes, and an available volume recycle namespace. This admits a recycle-only attempt; it does not promise unchanged quota or permissions. Removable and network drives are not admitted by this capability.
+
 ### FS-003 — WSL discovery has one adapter
 
 - Status: **active**
@@ -63,6 +65,8 @@ A same-provider move may use an atomic provider operation only when the capabili
 - Enforcement: policy tests and confirmation tests.
 
 When a provider explicitly supports recycle semantics, ordinary delete requests use recycle. Otherwise deletion is permanent and requires a confirmation that names the provider, permanence, and item count. UNC and WSL paths are never assumed to support a recycle bin. Bypassing confirmation is prohibited.
+
+Windows recycle runs only through `IFileOperation` on an owned STA (ADR-0063). Mandatory recycle-only flags and the pre-delete callback veto any permanent or unexpected effect; source identity and ancestor/tree admission are repeated there. Success requires the exact source's completed post-delete receipt and successful perform/abort status. A later failure or cancellation retains any confirmed recycle effect. A lost capability, quota failure, permission denial, skipped item or missing receipt never triggers permanent fallback. Explicit permanent deletion, including the source deletion after a verified composite move, retains its existing provider path.
 
 ### FS-007 — Conflicts use one resolver
 

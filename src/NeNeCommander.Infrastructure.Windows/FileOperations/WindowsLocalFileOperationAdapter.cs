@@ -14,13 +14,14 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
 /// <summary>
 /// Implements the sole file-operation port for Windows local paths. Every mutation revalidates
-/// the preflighted identity first, never follows reparse points, reports only permanent deletion
-/// because no recycle mechanism exists yet, and normalizes platform failures to the canonical vocabulary.
+/// the preflighted identity first, never follows reparse points, queries guarded recycle capability,
+/// and normalizes platform failures to the canonical vocabulary.
 /// An absent snapshot is rejected by <see cref="WindowsLocalEntryIdentity.Revalidate"/> before any step runs.
 /// </summary>
 public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 {
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
+    private readonly WindowsRecycleBin _recycleBin;
 
     /// <summary>Initializes an adapter with the default Windows local I/O execution boundary.</summary>
     public WindowsLocalFileOperationAdapter()
@@ -31,16 +32,25 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     /// <summary>Initializes an adapter with the composed Windows local I/O execution boundary.</summary>
     /// <param name="executionBoundary">Shared boundary for synchronous Windows filesystem work.</param>
     public WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary)
+        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell()))
+    {
+    }
+
+    internal WindowsLocalFileOperationAdapter(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsRecycleBin recycleBin)
     {
         ArgumentNullException.ThrowIfNull(executionBoundary);
+        ArgumentNullException.ThrowIfNull(recycleBin);
         _executionBoundary = executionBoundary;
+        _recycleBin = recycleBin;
     }
 
     /// <inheritdoc />
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        return _executionBoundary.ExecuteAsync(() => Inspect(path));
+        return _executionBoundary.ExecuteShellAsync(() => Inspect(path));
     }
 
     /// <inheritdoc />
@@ -110,8 +120,10 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
-        return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
+        return mode == DeletionExecutionMode.Recycle
+            ? _executionBoundary.ExecuteShellAsync(() => _recycleBin.Recycle(source, cancellationToken))
+            : _executionBoundary.ExecuteAsync(
+                () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
 
     /// <inheritdoc />
@@ -305,7 +317,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return ProviderStepOutcome.Succeeded();
     }
 
-    private static FileInspectionOutcome Inspect(FileSystemPath path)
+    private FileInspectionOutcome Inspect(FileSystemPath path)
     {
         if (path is not WindowsLocalPath local)
         {
@@ -319,7 +331,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
                 : FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(
                     path,
                     WindowsLocalEntryIdentity.Describe(entry),
-                    DeletionCapability.PermanentOnly));
+                    _recycleBin.GetCapability(local)));
         }
         catch (UnauthorizedAccessException exception)
         {

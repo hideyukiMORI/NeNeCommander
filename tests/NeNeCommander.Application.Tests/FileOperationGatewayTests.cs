@@ -702,6 +702,51 @@ public sealed class FileOperationGatewayTests
         Assert.AreEqual("Recycle:" + path.CanonicalText, port.Calls[1]);
     }
 
+    /// <summary>Reports a completed recycle even when the provider subsequently fails.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenRecycleCompletesBeforeFailureRetainsEffect()
+    {
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueueDeletion(ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.Recycled));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateDelete([path], null), RecordingFileOperationProgress.Create(), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, outcome.Completion);
+        Assert.AreSame(FileOperationFailureKind.Delete, outcome.Failure);
+        Assert.HasCount(1, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.Recycled, outcome.Effects[0].Kind);
+        Assert.HasCount(2, port.Calls);
+    }
+
+    /// <summary>Normalizes cancellation observed by the provider before a recycle effect.</summary>
+    [TestMethod]
+    [DataRow("None")]
+    [DataRow("Confirmed")]
+    public async Task ExecuteAsyncWhenRecycleIsCancelledReportsOnlyConfirmedEffects(string receipt)
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath path = ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(ScriptedCallbackPoint.AfterDeletion, cancellation.Cancel);
+        port.EnqueueInspection(Inspection(path, DeletionCapability.Recycle));
+        port.EnqueueDeletion(receipt == "Confirmed"
+            ? ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.Recycled)
+            : ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(CreateDelete([path], null), RecordingFileOperationProgress.Create(), cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.HasCount(receipt == "Confirmed" ? 1 : 0, outcome.Effects);
+        if (receipt == "Confirmed")
+        {
+            Assert.AreSame(FileOperationEffectKind.Recycled, outcome.Effects[0].Kind);
+        }
+        Assert.IsNull(outcome.Failure);
+    }
+
     /// <summary>Proves concurrent dispatch is rejected deterministically.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

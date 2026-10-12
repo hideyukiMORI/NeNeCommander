@@ -2,6 +2,8 @@
 
 Status: normative
 
+- [ADR-0063: Recycle Windows entries through the existing deletion gateway](0063-windows-recycle-boundary.md)
+
 ADRs record a durable choice where more than one plausible mechanism exists. Accepted ADRs are constitutional input; they do not override a later contradictory ADR unless that ADR explicitly supersedes them.
 
 States are `proposed`, `accepted`, `superseded`, or `rejected`. An accepted ADR contains context, the single chosen mechanism, alternatives rejected, consequences, migration/removal work, and executable proof. Copy `0000-template.md` and allocate the next number.
