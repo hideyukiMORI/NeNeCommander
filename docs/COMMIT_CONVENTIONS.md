@@ -38,6 +38,6 @@ Allowed types are `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, and 
 
 Each pull request contains purpose, change summary, canonical path, rule IDs, verification results, waivers, remaining risks, and `Closes #<issue-number>`. It contains one focused work unit. Squash is the only merge method. After merge, return local `main` to the clean synchronized remote state.
 
-Use draft PRs during implementation and review. Under QLT-015, Draft to Ready requests the single full integration gate. Commits use lightweight checks; do not combine unrelated work or suppress commits to avoid full-suite cost. Changed head/base inputs require renewed validation before merge, as specified in `docs/DEVELOPMENT_WORKFLOW.md`.
+Use draft PRs during implementation and review. Under QLT-015, Draft to Ready requests the integration gate; an Issue PR targets the day's `integrate/<yyyy-mm-dd>` branch and receives `Commit` mode, the daily integration PR into `main` receives the full gate, and a document-only PR receives `Commit` mode wherever it targets. Commits use lightweight checks; do not combine unrelated work or suppress commits to avoid full-suite cost. Changed head/base inputs require renewed validation before merge, as specified in `docs/DEVELOPMENT_WORKFLOW.md`.
 
 The initial direct `main` publication exists only because no remote default branch was available. It must use the Issue #1 commit form and pass the complete canonical gate before push.

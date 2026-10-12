@@ -204,19 +204,31 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Install pinned .NET SDK
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.401
 
-      - name: Run canonical gate
+      - name: Run canonical gate at the depth the merge requires
         shell: pwsh
-        run: pwsh -NoProfile -File ./eng/check.ps1
+        run: |
+          $changed = @(git diff --name-only "origin/$env:GITHUB_BASE_REF...HEAD")
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $documentOnly = $changed.Count -gt 0 -and -not ($changed | Where-Object { $_ -notmatch '^(docs/|AGENTS\.md$|AGENT\.md$|CLAUDE\.md$|README\.md$|\.github/copilot-instructions\.md$)' })
+          if ($env:GITHUB_BASE_REF -eq 'main' -and -not $documentOnly) {
+            Write-Host 'Gate depth: full Merge mode (integration into main with code changes).'
+            pwsh -NoProfile -File ./eng/check.ps1
+          } else {
+            Write-Host "Gate depth: Commit mode (base=$env:GITHUB_BASE_REF, documentOnly=$documentOnly)."
+            pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit
+          }
+          exit $LASTEXITCODE
 '@
     $actualQualityWorkflow = Get-Content -LiteralPath $qualityWorkflowPath -Raw
     if ($actualQualityWorkflow.Replace("`r`n", "`n").Trim() -cne $expectedQualityWorkflow.Replace("`r`n", "`n").Trim()) {
-        Add-Violation -Rule 'QLT-015' -Message 'quality.yml must run the full required gate only on readiness, without conditional success or skip paths.'
+        Add-Violation -Rule 'QLT-015' -Message 'quality.yml must run the canonical gate only on readiness, choose its depth only from the base branch and the changed paths, and never skip the job or report success without running the chosen mode.'
     }
 }
 $commitHookPath = Join-Path $root '.githooks/pre-commit'
