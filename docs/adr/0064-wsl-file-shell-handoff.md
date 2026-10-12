@@ -7,6 +7,8 @@ Date: 2026-10-12
 Issue #224. This implements hide's instruction to continue the remaining product
 work through the existing design and implementation authority.
 
+ADR-0065 supersedes this decision's UNC-launch rejection and Application provider allowlist. Its WSL path admission and remaining handoff contract stay active.
+
 ## Context
 
 `OpenFocused` already owns file activation, and Windows can access WSL files

@@ -87,10 +87,11 @@ public sealed class PaneSessionTests
         Assert.AreEqual("The directory read outcome variant is not navigable.", failure.Message);
     }
 
-    /// <summary>Proves opening a focused Windows or WSL file performs one handoff without another read.</summary>
+    /// <summary>Proves opening a focused local, UNC or WSL file performs one handoff without another read.</summary>
     [TestMethod]
     [DataRow("C:\\root")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    [DataRow("\\\\server\\share\\folder")]
     public async Task HandleAsyncWhenOpenFocusedOnSupportedFileLaunchesOnceWithoutRead(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
@@ -119,6 +120,7 @@ public sealed class PaneSessionTests
     [TestMethod]
     [DataRow("C:\\root")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    [DataRow("\\\\server\\share\\folder")]
     public async Task HandleAsyncWhenFileLaunchIsPendingFreezesRepeatedIntent(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
@@ -146,6 +148,7 @@ public sealed class PaneSessionTests
     [TestMethod]
     [DataRow("C:\\root")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    [DataRow("\\\\server\\share\\folder")]
     public async Task PaneReadEntryPointsWhenFileLaunchIsPendingDoNotStartReadOrChangeState(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
@@ -180,6 +183,7 @@ public sealed class PaneSessionTests
     [TestMethod]
     [DataRow("C:\\root")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
+    [DataRow("\\\\server\\share\\folder")]
     public async Task HandleAsyncWhenFileLaunchDoesNotHandoffReportsTypedActivity(string location)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
@@ -202,29 +206,30 @@ public sealed class PaneSessionTests
         Assert.HasCount(2, launcher.Targets);
     }
 
-    /// <summary>Proves unsupported provider files fail before the launch port.</summary>
+    /// <summary>Proves UNC admission failures remain owned by the launcher and preserve pane content.</summary>
     [TestMethod]
     [TestProperty("ThreatId", "ADV-019")]
     [TestCategory("Adversarial")]
-    public async Task HandleAsyncWhenFocusedFileProviderIsUnsupportedDoesNotCallLauncher()
+    public async Task HandleAsyncWhenUncLauncherRefusesPreservesPaneContentAsync()
     {
-        string[] locations = ["\\\\server\\share\\folder"];
-        foreach (string location in locations)
-        {
-            ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-            port.Enqueue(DirectoryReadOutcome.Succeeded(
-                Listing(location, ("a.txt", DirectoryEntryKind.File))));
-            ScriptedFileLauncher launcher = new();
-            PaneSession session = CreateSession(port, launcher);
-            PaneSnapshot listed = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
+        const string Location = "\\\\server\\share\\folder";
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = Listing(Location, ("a.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        ScriptedFileLauncher launcher = new();
+        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
+        PaneSession session = CreateSession(port, launcher);
+        PaneSnapshot listed = await session.NavigateAsync(ParsePath(Location), CancellationToken.None);
 
-            PaneSnapshot snapshot = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
+        PaneSnapshot snapshot = await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
 
-            PaneLaunchFailed failed = Assert.IsInstanceOfType<PaneLaunchFailed>(snapshot.Activity);
-            Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
-            Assert.AreSame(listed.Content, snapshot.Content);
-            Assert.IsEmpty(launcher.Targets);
-        }
+        PaneLaunchFailed failed = Assert.IsInstanceOfType<PaneLaunchFailed>(snapshot.Activity);
+        Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
+        Assert.AreSame(listed.Content, snapshot.Content);
+        Assert.HasCount(1, launcher.Targets);
+        Assert.AreSame(listing.Entries[0].Path, launcher.Targets[0]);
+        Assert.AreSame(launcher.Targets[0], failed.Target);
+        Assert.HasCount(1, port.Requests);
     }
 
     /// <summary>Proves an unregistered launch outcome variant is a defect instead of implicit success.</summary>

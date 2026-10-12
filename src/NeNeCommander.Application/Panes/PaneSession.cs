@@ -201,9 +201,7 @@ public sealed class PaneSession
             ? Task.FromResult(Current)
             : focused.Kind == DirectoryEntryKind.Directory
                 ? NavigateAsync(focused.Path, null, PaneNavigationAction.Append, cancellationToken)
-                : focused.Path is WindowsLocalPath or WslPath
-                    ? LaunchAsync(focused.Path, cancellationToken)
-                    : Task.FromResult(RejectUnsupportedLaunch(focused.Path));
+                : LaunchAsync(focused.Path, cancellationToken);
     }
 
     private async Task<PaneSnapshot> LaunchAsync(
@@ -220,13 +218,6 @@ public sealed class PaneSession
             FileLaunchFailed failed => Current.WithActivity(new PaneLaunchFailed(target, failed.Failure)),
             _ => throw new InvalidOperationException("The file launch outcome variant is not supported."),
         };
-        return Current;
-    }
-
-    private PaneSnapshot RejectUnsupportedLaunch(FileSystemPath target)
-    {
-        Current = Current.WithActivity(
-            new PaneLaunchFailed(target, FileLaunchFailureKind.ProviderUnavailable));
         return Current;
     }
 

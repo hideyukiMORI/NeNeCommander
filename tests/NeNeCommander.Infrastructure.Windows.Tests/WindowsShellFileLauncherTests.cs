@@ -46,6 +46,7 @@ public sealed class WindowsShellFileLauncherTests
     [TestMethod]
     [DataRow("C:\\root\\a.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    [DataRow("\\\\server\\share\\a.txt")]
     public async Task LaunchAsyncWhenStartReturnsWrapperDisposesWrapperAndAccepts(string path)
     {
         using RecordingDisposable wrapper = new();
@@ -84,6 +85,7 @@ public sealed class WindowsShellFileLauncherTests
     [TestMethod]
     [DataRow("C:\\root\\a.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    [DataRow("\\\\server\\share\\a.txt")]
     public async Task LaunchAsyncWhenAlreadyCancelledDoesNotScheduleOrStart(string path)
     {
         using CancellationTokenSource cancellation = new();
@@ -111,6 +113,7 @@ public sealed class WindowsShellFileLauncherTests
     [TestMethod]
     [DataRow("C:\\root\\a.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    [DataRow("\\\\server\\share\\a.txt")]
     public async Task LaunchAsyncWhenCancelledWhileQueuedDoesNotStart(string path)
     {
         using CancellationTokenSource cancellation = new();
@@ -139,6 +142,7 @@ public sealed class WindowsShellFileLauncherTests
     [TestMethod]
     [DataRow("C:\\root\\a.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a.txt")]
+    [DataRow("\\\\server\\share\\a.txt")]
     public async Task LaunchAsyncWhenCancellationArrivesDuringStartReportsAcceptedHandoff(string path)
     {
         using CancellationTokenSource cancellation = new();
@@ -229,7 +233,7 @@ public sealed class WindowsShellFileLauncherTests
     [TestProperty("ThreatId", "ADV-019")]
     [TestCategory("Adversarial")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\")]
-    [DataRow("\\\\server\\share\\file.txt")]
+    [DataRow("\\\\server\\share\\")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\file.")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\file ")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home.\\file.txt")]
@@ -256,17 +260,19 @@ public sealed class WindowsShellFileLauncherTests
         Assert.AreEqual(0, starts);
     }
 
-    /// <summary>Proves the ordinary WSL Shell path boundary includes its terminating null.</summary>
+    /// <summary>Proves the ordinary UNC/WSL Shell path boundary includes its terminating null.</summary>
     [TestMethod]
     [TestProperty("ThreatId", "ADV-019")]
     [TestCategory("Adversarial")]
-    [DataRow(259)]
-    [DataRow(260)]
-    public async Task LaunchAsyncWhenWslPathReachesLengthBoundaryAdmitsOnlyShorterPathAsync(int length)
+    [DataRow(259, "\\\\wsl.localhost\\Ubuntu\\")]
+    [DataRow(260, "\\\\wsl.localhost\\Ubuntu\\")]
+    [DataRow(259, "\\\\server\\share\\")]
+    [DataRow(260, "\\\\server\\share\\")]
+    public async Task LaunchAsyncWhenNamespacePathReachesLengthBoundaryAdmitsOnlyShorterPathAsync(int length, string prefix)
     {
-        const string Prefix = "\\\\wsl.localhost\\Ubuntu\\";
+        ArgumentNullException.ThrowIfNull(prefix);
         FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(
-            FileSystemPath.Parse(Prefix + new string('a', length - Prefix.Length))).Path;
+            FileSystemPath.Parse(prefix + new string('a', length - prefix.Length))).Path;
         int starts = 0;
         WindowsShellFileLauncher launcher = CreateLauncher(_ =>
         {
@@ -287,6 +293,76 @@ public sealed class WindowsShellFileLauncherTests
             Assert.AreSame(FileLaunchFailureKind.ProviderUnavailable, failed.Failure);
             Assert.AreEqual(0, starts);
         }
+    }
+
+    /// <summary>Proves UNC shares and aliases are handed off once without remapping or credential input.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    [DataRow("\\\\Server\\Share Name\\Folder\\a&$(name);文.txt", "\\\\Server\\Share Name\\Folder")]
+    [DataRow("\\\\Server\\C$\\a.txt", "\\\\Server\\C$\\")]
+    [DataRow("\\\\127.0.0.1\\Share\\a.txt", "\\\\127.0.0.1\\Share\\")]
+    public async Task LaunchAsyncWhenUncFileIsRequestedPreservesExactHandoffAsync(string path, string parent)
+    {
+        ProcessStartInfo? observed = null;
+        int starts = 0;
+        WindowsShellFileLauncher launcher = CreateLauncher(startInfo =>
+        {
+            observed = startInfo;
+            starts++;
+            return null;
+        });
+        WindowsUncPath target = Assert.IsInstanceOfType<WindowsUncPath>(
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path);
+
+        FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<FileLaunchAccepted>(outcome);
+        Assert.AreEqual(1, starts);
+        Assert.IsNotNull(observed);
+        Assert.AreEqual(path, observed.FileName);
+        Assert.AreEqual(parent, observed.WorkingDirectory);
+        Assert.IsTrue(observed.UseShellExecute);
+        Assert.AreEqual(string.Empty, observed.Verb);
+        Assert.AreEqual(string.Empty, observed.Arguments);
+        Assert.IsEmpty(observed.ArgumentList);
+        Assert.AreEqual(string.Empty, observed.UserName);
+        Assert.AreEqual(string.Empty, observed.Domain);
+        Assert.IsFalse(observed.ErrorDialog);
+    }
+
+    /// <summary>Proves network and credential failures stay typed without another Shell attempt.</summary>
+    [TestMethod]
+    [TestProperty("ThreatId", "ADV-019")]
+    [TestCategory("Adversarial")]
+    [DataRow(53, "ProviderUnavailable")]
+    [DataRow(67, "ProviderUnavailable")]
+    [DataRow(59, "ProviderUnavailable")]
+    [DataRow(64, "ProviderUnavailable")]
+    [DataRow(121, "ProviderUnavailable")]
+    [DataRow(1231, "ProviderUnavailable")]
+    [DataRow(1232, "ProviderUnavailable")]
+    [DataRow(1326, "AccessDenied")]
+    [DataRow(1219, "AccessDenied")]
+    public async Task LaunchAsyncWhenUncSessionFailsNormalizesWithoutRetryAsync(int nativeErrorCode, string expected)
+    {
+        const string Path = "\\\\server\\share\\a.txt";
+        int starts = 0;
+        WindowsShellFileLauncher launcher = CreateLauncher(startInfo =>
+        {
+            starts++;
+            Assert.AreEqual(Path, startInfo.FileName);
+            throw new Win32Exception(nativeErrorCode);
+        });
+        FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(Path)).Path;
+
+        FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
+
+        FileLaunchFailed failed = Assert.IsInstanceOfType<FileLaunchFailed>(outcome);
+        Assert.AreSame(
+            expected == "AccessDenied" ? FileLaunchFailureKind.AccessDenied : FileLaunchFailureKind.ProviderUnavailable,
+            failed.Failure);
+        Assert.AreEqual(1, starts);
     }
 
     private static WindowsShellFileLauncher CreateLauncher(Func<ProcessStartInfo, IDisposable?> start)

@@ -12,6 +12,8 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0065: Open UNC files through the existing Windows Shell handoff](0065-unc-file-shell-handoff.md)
+
 - [ADR-0064: Open WSL files through the existing Windows Shell handoff](0064-wsl-file-shell-handoff.md)
 
 - [ADR-0062: Copy and move WSL trees into Windows without changing names](0062-wsl-to-windows-transfer.md)
