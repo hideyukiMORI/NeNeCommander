@@ -2,6 +2,8 @@
 
 Status: accepted
 
+ADR-0066 supersedes the restriction that WSL-to-WSL transfers must share a distribution. Its route reuses the WSL adapter; the Windows-to-WSL mechanism here is unchanged.
+
 Date: 2026-10-10
 
 Revised: 2026-10-10 (Issue #195, second stage: the move across the pair becomes the gateway's composite move)

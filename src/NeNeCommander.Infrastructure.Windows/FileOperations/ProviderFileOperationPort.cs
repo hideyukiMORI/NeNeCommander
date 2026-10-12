@@ -174,7 +174,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         return route switch
         {
             TransferRoute.SameWindowsLocal => _windowsLocal,
-            TransferRoute.SameWslDistribution => _wsl,
+            TransferRoute.WslToWsl => _wsl,
             TransferRoute.WindowsLocalToWsl => _windowsLocalToWsl,
             TransferRoute.WslToWindows => _wslToWindows,
             _ => null,

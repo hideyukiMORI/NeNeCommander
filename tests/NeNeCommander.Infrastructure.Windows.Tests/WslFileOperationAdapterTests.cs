@@ -93,13 +93,15 @@ public sealed class WslFileOperationAdapterTests
         Assert.AreEqual(1, fileSystem.Deleted.Count);
     }
 
-    /// <summary>Proves same-distribution copy uses the gateway's existing copy and verify effects.</summary>
+    /// <summary>Proves same- and cross-distribution copy use the gateway's existing copy and verify effects.</summary>
     [TestMethod]
-    public async Task ExecuteAsyncWhenSameDistributionCopySucceedsReportsCopyAndVerification()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenSameDistributionCopySucceedsReportsCopyAndVerification(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new();
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));
@@ -118,13 +120,15 @@ public sealed class WslFileOperationAdapterTests
         Assert.AreSame(FileOperationEffectKind.Verified, outcome.Effects[1].Kind);
     }
 
-    /// <summary>Proves same-distribution move uses copy, verify, then source deletion.</summary>
+    /// <summary>Proves same- and cross-distribution move use copy, verify, then source deletion.</summary>
     [TestMethod]
-    public async Task ExecuteAsyncWhenSameDistributionMoveSucceedsDeletesOnlyAfterVerification()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenSameDistributionMoveSucceedsDeletesOnlyAfterVerification(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new();
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));
@@ -307,9 +311,7 @@ public sealed class WslFileOperationAdapterTests
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, move.Failure);
         Assert.IsNull(copy.Failure);
         Assert.IsNull(verify.Failure);
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(foreignCapability).Failure);
+        Assert.AreSame(AtomicMoveCapabilityOutcome.Unsupported, foreignCapability);
     }
 
     /// <summary>Proves preflight builds its immutable plan from the one revalidated source entry.</summary>
@@ -356,11 +358,13 @@ public sealed class WslFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-004")]
-    public async Task ExecuteAsyncWhenSourceChangesAfterPreflightRejectsWithoutEffect()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenSourceChangesAfterPreflightRejectsWithoutEffect(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new();
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         fileSystem.ReplaceSourceWhenTargetChecked = Entry(source, "replacement", DirectoryEntryKind.File);
@@ -384,11 +388,13 @@ public sealed class WslFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-007")]
-    public async Task ExecuteAsyncWhenCopyFailsAfterTargetCreationReportsPartialEffectAndKeepsSource()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenCopyFailsAfterTargetCreationReportsPartialEffectAndKeepsSource(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new() { FailCopyAfterTarget = true };
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));
@@ -480,7 +486,7 @@ public sealed class WslFileOperationAdapterTests
         TransferPreflightOutcome linkedTarget = await adapter.PreflightTransferAsync(
             [Snapshot(source)], linkedDestination, CancellationToken.None);
 
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
+        Assert.AreSame(FileOperationFailureKind.NotFound, foreign.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedSources.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, recursive.Failure);
         Assert.AreSame(FileOperationFailureKind.Conflict, existing.Failure);
@@ -544,10 +550,10 @@ public sealed class WslFileOperationAdapterTests
         ProviderStepOutcome nestedLinkCopy = await adapter.CopyAsync(
             source, destination, CancellationToken.None);
 
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreignCopy.Failure);
+        Assert.AreSame(FileOperationFailureKind.Conflict, foreignCopy.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, missingCopy.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linkedCopy.Failure);
-        Assert.AreSame(FileOperationFailureKind.Verification, foreignVerify.Failure);
+        Assert.IsNull(foreignVerify.Failure);
         Assert.AreSame(FileOperationFailureKind.Verification, missingVerify.Failure);
         Assert.AreSame(FileOperationFailureKind.Verification, linkedTargetVerify.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, nestedLinkPreflight.Failure);
@@ -584,15 +590,17 @@ public sealed class WslFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-003")]
-    public async Task VerifyCopyAsyncWhenSourceOrTargetTreeGainsLinkReturnsVerificationFailure()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task VerifyCopyAsyncWhenSourceOrTargetTreeGainsLinkReturnsVerificationFailure(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new();
         WslFileSystemEntry sourceEntry = Entry(
             Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source"),
             "source",
             DirectoryEntryKind.Directory);
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
-        WslPath target = Wsl("\\\\wsl.localhost\\Ubuntu\\target\\source");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
+        WslPath target = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target\source");
         fileSystem.Set(sourceEntry);
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         fileSystem.Set(Entry(target, "target", DirectoryEntryKind.Directory));
@@ -634,11 +642,13 @@ public sealed class WslFileOperationAdapterTests
 
     /// <summary>Proves a copy failure before target creation remains effect-free.</summary>
     [TestMethod]
-    public async Task ExecuteAsyncWhenCopyFailsBeforeTargetCreationReportsNoEffect()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenCopyFailsBeforeTargetCreationReportsNoEffect(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new() { FailCopyBeforeTarget = true };
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));
@@ -660,11 +670,13 @@ public sealed class WslFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-007")]
-    public async Task ExecuteAsyncWhenVerificationFailsKeepsSource()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenVerificationFailsKeepsSource(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new() { MatchResult = false };
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));
@@ -687,11 +699,13 @@ public sealed class WslFileOperationAdapterTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-004")]
-    public async Task ExecuteAsyncWhenSourceChangesAfterCopyStopsBeforeDelete()
+    [DataRow("Ubuntu")]
+    [DataRow("Debian")]
+    public async Task ExecuteAsyncWhenSourceChangesAfterCopyStopsBeforeDelete(string destinationDistribution)
     {
         ScriptedWslFileSystem fileSystem = new() { ReplaceSourceAfterCopy = true };
         WslPath source = Wsl("\\\\wsl.localhost\\Ubuntu\\home\\source.txt");
-        WslPath destination = Wsl("\\\\wsl.localhost\\Ubuntu\\target");
+        WslPath destination = Wsl(@"\\wsl.localhost\" + destinationDistribution + @"\target");
         fileSystem.Set(Entry(source, "source", DirectoryEntryKind.File));
         fileSystem.Set(Entry(destination, "destination", DirectoryEntryKind.Directory));
         using FileOperationGateway gateway = new(Adapter(fileSystem));

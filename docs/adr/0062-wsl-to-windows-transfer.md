@@ -2,6 +2,8 @@
 
 Status: accepted
 
+ADR-0066 additionally admits transfers between WSL distributions through the existing WSL adapter; the WSL-to-Windows mechanism here is unchanged.
+
 Date: 2026-10-12
 
 Issue #216. Accepted by the design owner while implementing hide's 2026-10-12
