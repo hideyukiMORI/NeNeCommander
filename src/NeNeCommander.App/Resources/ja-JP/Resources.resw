@@ -156,6 +156,7 @@
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>ペイン</value></data>
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>隠し項目</value></data>
   <data name="IntentLabelOpenBookmarks" xml:space="preserve"><value>ブックマーク</value></data>
+  <data name="IntentLabelOpenWindowAdjustment" xml:space="preserve"><value>ウィンドウ調整</value></data>
   <data name="IntentLabelOpenSettings" xml:space="preserve"><value>設定</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>中止</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>実行</value></data>

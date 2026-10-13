@@ -4,6 +4,10 @@ Status: accepted
 
 Date: 2026-09-09
 
+ADR-0068 extends the catalog with the existing bookmark-manager and window-adjustment entry
+commands. It supersedes their exclusion below; the first catalog and its initial proof remain
+historical. Later sorting and Locations additions retain their established order.
+
 Accepted for Issue #101 on 2026-09-09 by the NeNe Commander design owner under hide's delegated
 authority, after hide accepted visual direction B on 2026-09-08.
 

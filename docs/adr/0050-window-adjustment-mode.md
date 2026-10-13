@@ -4,6 +4,9 @@ Status: accepted
 
 Date: 2026-09-16
 
+ADR-0068 completes the deferred catalog addition of `OpenWindowAdjustment`; individual window
+actions remain outside the palette. The mode, geometry and direct-input admission below are unchanged.
+
 Proposed for Issue #100 on 2026-09-16 by the NeNe Commander design owner under hide's delegated
 authority, after hide accepted visual direction A (a small helper at the upper centre of the
 window) on 2026-09-08. The visual acceptance approved no keyboard mode, shortcut, increment,

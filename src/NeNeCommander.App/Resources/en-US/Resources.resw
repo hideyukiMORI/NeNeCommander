@@ -156,6 +156,7 @@
   <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>Pane</value></data>
   <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>Hidden</value></data>
   <data name="IntentLabelOpenBookmarks" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="IntentLabelOpenWindowAdjustment" xml:space="preserve"><value>Window adjustment</value></data>
   <data name="IntentLabelOpenSettings" xml:space="preserve"><value>Settings</value></data>
   <data name="IntentLabelEscape" xml:space="preserve"><value>Cancel</value></data>
   <data name="IntentLabelConfirm" xml:space="preserve"><value>Confirm</value></data>

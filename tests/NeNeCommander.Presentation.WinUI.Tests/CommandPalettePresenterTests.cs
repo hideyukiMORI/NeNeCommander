@@ -157,7 +157,7 @@ public sealed class CommandPalettePresenterTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, Localize);
 
-        Assert.HasCount(20, view.Rows);
+        Assert.HasCount(22, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -182,6 +182,46 @@ public sealed class CommandPalettePresenterTests
         Assert.IsNull(view.SelectedRow);
         view.UpdateQuery(string.Empty);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
+    }
+
+    /// <summary>Proves both new scope rows are searchable by their localized title and canonical shortcut.</summary>
+    [TestMethod]
+    [DataRow("en-US", 0, "Bookmarks", "Ctrl+B")]
+    [DataRow("en-US", 1, "Window adjustment", "Ctrl+W")]
+    [DataRow("ja-JP", 0, "ブックマーク", "Ctrl+B")]
+    [DataRow("ja-JP", 1, "ウィンドウ調整", "Ctrl+W")]
+    public async Task PresentWhenScopeEntryIsSearchedUsesLocalizedTitleShortcutAndAutomationAsync(
+        string language,
+        int command,
+        string title,
+        string shortcut)
+    {
+        Dictionary<string, string> labels = new()
+        {
+            ["IntentLabelOpenBookmarks"] = language == "en-US" ? "Bookmarks" : "ブックマーク",
+            ["IntentLabelOpenWindowAdjustment"] = language == "en-US" ? "Window adjustment" : "ウィンドウ調整",
+            ["KeyLabelCtrlB"] = "Ctrl+B",
+            ["KeyLabelCtrlW"] = "Ctrl+W",
+        };
+        CommandPaletteViewState view = CommandPalettePresenter.Present(await OpenPaletteAsync(null),
+            key => labels.TryGetValue(key, out string? value) ? value : Localize(key));
+        UserIntent expected = command == 0 ? UserIntent.OpenBookmarks : UserIntent.OpenWindowAdjustment;
+        string labelKey = command == 0 ? "IntentLabelOpenBookmarks" : "IntentLabelOpenWindowAdjustment";
+
+        view.UpdateQuery(title);
+
+        Assert.HasCount(1, view.Rows);
+        CommandPaletteRow row = view.Rows[0];
+        Assert.AreSame(expected, row.Intent);
+        Assert.AreEqual(title, row.Title);
+        Assert.AreEqual(shortcut, row.Shortcut);
+        Assert.IsTrue(row.IsAvailable);
+        Assert.AreEqual("CommandPaletteCandidate_" + labelKey, row.AutomationId);
+        StringAssert.Contains(row.AutomationName, title);
+        StringAssert.Contains(row.AutomationName, shortcut);
+        view.UpdateQuery(shortcut);
+        Assert.HasCount(1, view.Rows);
+        Assert.AreSame(expected, view.Rows[0].Intent);
     }
 
     /// <summary>Proves unavailable rows remain selected and expose complete localized detail and UIA text.</summary>
@@ -214,11 +254,11 @@ public sealed class CommandPalettePresenterTests
 
         view.MovePrevious();
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
-        for (int index = 0; index < 20; index++)
+        for (int index = 0; index < 22; index++)
         {
             view.MoveNext();
         }
-        Assert.AreSame(UserIntent.SortByModified, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.OpenWindowAdjustment, view.SelectedRow!.Intent);
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);
@@ -478,6 +518,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.MoveNext, "IntentLabelMoveNext"),
             (UserIntent.MovePrevious, "IntentLabelMovePrevious"),
             (UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
+            (UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks"),
+            (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment"),
             (UserIntent.Escape, "IntentLabelEscape"),
             (UserIntent.Confirm, "IntentLabelConfirm"),
         ];
@@ -508,6 +550,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.OpenLocations, "IntentLabelOpenLocations", "KeyLabelCtrlG"),
             (UserIntent.SortBySize, "IntentLabelSortBySize", "KeyLabelCtrlF5"),
             (UserIntent.SortByModified, "IntentLabelSortByModified", "KeyLabelCtrlF6"),
+            (UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks", "KeyLabelCtrlB"),
+            (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment", "KeyLabelCtrlW"),
         ];
     }
 
