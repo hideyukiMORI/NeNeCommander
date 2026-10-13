@@ -25,6 +25,7 @@ public sealed class PaneSession
 
     private readonly int _entryBoundary;
     private readonly HiddenItemVisibility _initialHiddenItemVisibility;
+    private readonly PaneSortOrder _initialSortOrder;
     private readonly IFileLauncher _fileLauncher;
     private readonly IDirectoryReadPort _port;
     private readonly VisiblePageCapacity _visiblePageCapacity;
@@ -35,33 +36,21 @@ public sealed class PaneSession
     /// <summary>Initializes an empty session over one read port.</summary>
     /// <param name="port">Provider-neutral directory read port.</param>
     /// <param name="fileLauncher">Sole provider boundary for a focused file handoff.</param>
-    /// <param name="visiblePageCapacity">Validated visible-row capacity used for paging.</param>
-    /// <param name="entryBoundary">Entry boundary applied to every read, within the fixed range.</param>
-    /// <param name="hiddenItemVisibility">
-    /// Visibility the first listing uses. It is a starting value, not an owner: once a location is
-    /// listed the pane state owns the visibility and every later read carries the state's value.
-    /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">The boundary is outside the fixed range, which is a composition defect.</exception>
+    /// <param name="configuration">Validated limits and preferences used before the first listing.</param>
     public PaneSession(
         IDirectoryReadPort port,
         IFileLauncher fileLauncher,
-        VisiblePageCapacity visiblePageCapacity,
-        int entryBoundary,
-        HiddenItemVisibility hiddenItemVisibility)
+        PaneSessionConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(fileLauncher);
-        ArgumentNullException.ThrowIfNull(visiblePageCapacity);
-        ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
-        if (!DirectoryReadRequest.IsValidEntryBoundary(entryBoundary))
-        {
-            throw new ArgumentOutOfRangeException(nameof(entryBoundary));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
         _port = port;
         _fileLauncher = fileLauncher;
-        _visiblePageCapacity = visiblePageCapacity;
-        _entryBoundary = entryBoundary;
-        _initialHiddenItemVisibility = hiddenItemVisibility;
+        _visiblePageCapacity = configuration.VisiblePageCapacity;
+        _entryBoundary = configuration.EntryBoundary;
+        _initialHiddenItemVisibility = configuration.HiddenItemVisibility;
+        _initialSortOrder = configuration.SortOrder;
         Current = PaneSnapshot.Initial;
     }
 
@@ -323,7 +312,7 @@ public sealed class PaneSession
             ResolveHiddenItemVisibility());
         PaneState ordered = PaneReducer.ApplySortOrder(
             navigated,
-            previousState?.SortOrder ?? PaneSortOrder.Default,
+            previousState?.SortOrder ?? _initialSortOrder,
             preferredFocus);
         PaneState committed = PaneReducer.CommitNavigation(previousState, ordered, action);
         return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing));

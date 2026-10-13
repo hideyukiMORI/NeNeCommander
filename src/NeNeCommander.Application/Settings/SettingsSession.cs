@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -91,6 +92,50 @@ public sealed class SettingsSession
         }
     }
 
+    internal Task HandleEditorIntentAsync(
+        UserIntent intent,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(observer);
+        if (intent == UserIntent.Escape)
+        {
+            _ = Close();
+            return Task.CompletedTask;
+        }
+        return intent switch
+        {
+            ColorSchemeSelection selection =>
+                SelectColorSchemeAsync(selection.Scheme, observer, cancellationToken),
+            LaunchHiddenItemVisibilitySelection selection =>
+                SelectLaunchHiddenItemVisibilityAsync(selection.Visibility, observer, cancellationToken),
+            _ => Task.CompletedTask,
+        };
+    }
+
+    internal Task SavePaneSortOrderAsync(
+        PaneSide side,
+        PaneSortOrder order,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(side);
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            PaneSortPreferences previous = _settings.PaneSortOrders;
+            PaneSortPreferences preferences = side == PaneSide.Left
+                ? PaneSortPreferences.Create(order, previous.Right)
+                : PaneSortPreferences.Create(previous.Left, order);
+            return QueueWrite(
+                UserSettings.Create(_settings.ColorScheme, _settings.HiddenItemVisibility, _settings.Bookmarks, preferences),
+                observer,
+                cancellationToken);
+        }
+    }
+
     /// <summary>Selects and queues one approved color scheme.</summary>
     /// <param name="scheme">Approved scheme.</param>
     /// <param name="observer">Receives the state current after this write completes.</param>
@@ -107,7 +152,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(scheme, _settings.HiddenItemVisibility, _settings.Bookmarks),
+                UserSettings.Create(scheme, _settings.HiddenItemVisibility, _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -129,7 +174,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(_settings.ColorScheme, visibility, _settings.Bookmarks),
+                UserSettings.Create(_settings.ColorScheme, visibility, _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -154,7 +199,7 @@ public sealed class SettingsSession
                 UserSettings.Create(
                     _settings.ColorScheme,
                     _settings.HiddenItemVisibility,
-                    catalog),
+                    catalog, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -191,7 +236,7 @@ public sealed class SettingsSession
                     UserSettings.Create(
                         _settings.ColorScheme,
                         _settings.HiddenItemVisibility,
-                        changed.Catalog),
+                        changed.Catalog, _settings.PaneSortOrders),
                     observer,
                     cancellationToken)
                 : Task.CompletedTask;

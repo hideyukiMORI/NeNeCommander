@@ -680,12 +680,9 @@ public sealed class PaneListingPresenterTests
     {
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
-        return new PaneSession(
-            port,
+        return new PaneSession(port,
             fileLauncher,
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            visibility);
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, visibility, PaneSortOrder.Default));
     }
 
     private static DirectoryListing CreateListing(

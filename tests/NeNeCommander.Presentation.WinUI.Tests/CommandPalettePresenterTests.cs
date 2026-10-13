@@ -370,18 +370,12 @@ public sealed class CommandPalettePresenterTests
         }
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(4)).Capacity;
-        PaneSession leftPane = new(
-            left,
+        PaneSession leftPane = new(left,
             new AcceptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
-        PaneSession rightPane = new(
-            right,
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+        PaneSession rightPane = new(right,
             new AcceptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(QueuedFileOperationPort.Create());
         CommanderSession session = new(
             new DualPaneSession(leftPane, rightPane, gateway),

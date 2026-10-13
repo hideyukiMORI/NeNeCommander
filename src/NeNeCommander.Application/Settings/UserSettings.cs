@@ -12,11 +12,13 @@ public sealed record UserSettings
     private UserSettings(
         ColorScheme colorScheme,
         HiddenItemVisibility hiddenItemVisibility,
-        BookmarkCatalog bookmarks)
+        BookmarkCatalog bookmarks,
+        PaneSortPreferences paneSortOrders)
     {
         ColorScheme = colorScheme;
         HiddenItemVisibility = hiddenItemVisibility;
         Bookmarks = bookmarks;
+        PaneSortOrders = paneSortOrders;
     }
 
     /// <summary>Gets the settings used when no valid persisted document exists.</summary>
@@ -24,7 +26,8 @@ public sealed record UserSettings
         new(
             Settings.ColorScheme.NeNeDark,
             Settings.HiddenItemVisibility.Hidden,
-            BookmarkCatalog.Empty);
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
 
     /// <summary>Gets the approved color scheme the host renders.</summary>
     public ColorScheme ColorScheme { get; }
@@ -35,17 +38,22 @@ public sealed record UserSettings
     /// <summary>Gets the complete immutable bookmark catalog.</summary>
     public BookmarkCatalog Bookmarks { get; }
 
+    /// <summary>Gets both panes' independently persisted next-launch sort orders.</summary>
+    public PaneSortPreferences PaneSortOrders { get; }
+
     /// <summary>
     /// Creates settings from preferences and a catalog already validated at their boundaries.
     /// </summary>
     public static UserSettings Create(
         ColorScheme colorScheme,
         HiddenItemVisibility hiddenItemVisibility,
-        BookmarkCatalog bookmarks)
+        BookmarkCatalog bookmarks,
+        PaneSortPreferences paneSortOrders)
     {
         ArgumentNullException.ThrowIfNull(colorScheme);
         ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
         ArgumentNullException.ThrowIfNull(bookmarks);
-        return new UserSettings(colorScheme, hiddenItemVisibility, bookmarks);
+        ArgumentNullException.ThrowIfNull(paneSortOrders);
+        return new UserSettings(colorScheme, hiddenItemVisibility, bookmarks, paneSortOrders);
     }
 }

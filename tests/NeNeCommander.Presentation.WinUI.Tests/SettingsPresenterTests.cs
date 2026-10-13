@@ -18,7 +18,7 @@ public sealed class SettingsPresenterTests
             UserSettings.Create(
                 ColorScheme.Dracula,
                 HiddenItemVisibility.Shown,
-                BookmarkCatalog.Empty),
+                BookmarkCatalog.Empty, PaneSortPreferences.Default),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
 

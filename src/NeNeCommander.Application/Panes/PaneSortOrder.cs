@@ -5,9 +5,8 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>
 /// Represents the order one pane projects its listing in: one closed <see cref="SortKey"/> and one
 /// closed <see cref="SortDirection"/>. It is pane state owned by <see cref="PaneReducer"/>, carried
-/// unchanged through reads, refresh, and history navigation of the same pane, and not persisted.
-/// Every value is reached from <see cref="Default"/> through <see cref="Toggle"/>, so no other
-/// construction path exists.
+/// unchanged through reads, refresh, and history navigation of the same pane. Settings retain
+/// accepted choices for the next launch through the same typed construction path.
 /// </summary>
 public sealed record PaneSortOrder
 {
@@ -18,7 +17,15 @@ public sealed record PaneSortOrder
     }
 
     /// <summary>Gets the order every pane starts with: name ascending.</summary>
-    public static PaneSortOrder Default { get; } = new(SortKey.Name, SortDirection.Ascending);
+    public static PaneSortOrder Default { get; } = Create(SortKey.Name, SortDirection.Ascending);
+
+    /// <summary>Creates an order from one validated closed key and direction.</summary>
+    public static PaneSortOrder Create(SortKey key, SortDirection direction)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(direction);
+        return new PaneSortOrder(key, direction);
+    }
 
     /// <summary>Gets the key that orders entries inside each kind group.</summary>
     public SortKey Key { get; }
@@ -36,7 +43,7 @@ public sealed record PaneSortOrder
     {
         ArgumentNullException.ThrowIfNull(requested);
         return requested == Key
-            ? new PaneSortOrder(Key, Direction.Reversed)
-            : new PaneSortOrder(requested, SortDirection.Ascending);
+            ? Create(Key, Direction.Reversed)
+            : Create(requested, SortDirection.Ascending);
     }
 }

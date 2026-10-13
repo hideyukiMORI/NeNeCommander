@@ -550,18 +550,12 @@ public sealed class CommanderSessionWindowAdjustmentTests
         {
             Port = scripted;
             _gateway = new FileOperationGateway(port);
-            PaneSession left = new(
-                Left,
-                Launcher,
-                Capacity(),
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden);
-            PaneSession right = new(
-                Right,
-                RightLauncher,
-                Capacity(),
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden);
+            PaneSession left = new(Left,
+            Launcher,
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+            PaneSession right = new(Right,
+            RightLauncher,
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
             Panes = new DualPaneSession(left, right, _gateway);
             BookmarkDisplayName name = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
                 BookmarkDisplayName.Parse("Target")).Name;
@@ -577,7 +571,7 @@ public sealed class CommanderSessionWindowAdjustmentTests
                     SettingsReadOutcome.Read(UserSettings.Create(
                         ColorScheme.NeNeDark,
                         HiddenItemVisibility.Hidden,
-                        catalog)),
+                        catalog, PaneSortPreferences.Default)),
                     static _ => { }),
                 new TransientScopeOwners(
                     new AddressEditorSession(),

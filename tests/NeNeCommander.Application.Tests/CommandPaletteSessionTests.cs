@@ -67,18 +67,12 @@ public sealed class CommandPaletteSessionTests
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
         return new DualPaneSession(
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
             gateway);
     }
 }

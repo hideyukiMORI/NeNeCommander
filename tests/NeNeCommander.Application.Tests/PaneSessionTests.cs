@@ -674,12 +674,9 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         VisiblePageCapacity capacity = Capacity(4);
 
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new PaneSession(
-            port,
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new PaneSession(port,
             new ScriptedFileLauncher(),
-            capacity,
-            entryBoundary,
-            HiddenItemVisibility.Hidden));
+            PaneSessionConfiguration.Create(capacity, entryBoundary, HiddenItemVisibility.Hidden, PaneSortOrder.Default)));
     }
 
     private static DirectoryListing HiddenListing(string location, params (string Name, EntryVisibility Visibility)[] entries)
@@ -722,12 +719,9 @@ public sealed class PaneSessionTests
         IFileLauncher fileLauncher,
         HiddenItemVisibility visibility)
     {
-        return new PaneSession(
-            port,
+        return new PaneSession(port,
             fileLauncher,
-            Capacity(4),
-            DirectoryListing.EntryBoundaryLimit,
-            visibility);
+            PaneSessionConfiguration.Create(Capacity(4), DirectoryListing.EntryBoundaryLimit, visibility, PaneSortOrder.Default));
     }
 
     private static void AssertVisibleNames(string[] expected, PaneState state)

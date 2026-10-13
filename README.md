@@ -6,7 +6,7 @@ NeNe Commander is a keyboard-first, dual-pane file manager for Windows 11 built 
 
 The repository is in its implementation stage; production code is permitted. Most of the MVP scope named in the [project charter](docs/PROJECT_CHARTER.md) is on `main`:
 
-- Dual-pane navigation with Vim-first keys, an address input, per-pane history, selection, hidden-item display, and sorting by name, extension, size, or modification time. See the [keyboard model](docs/KEYBOARD_MODEL.md).
+- Dual-pane navigation with Vim-first keys, an address input, per-pane history, selection, hidden-item display, and sorting by name, extension, size, or modification time, with each pane's order saved for the next launch. See the [keyboard model](docs/KEYBOARD_MODEL.md).
 - Copy, move, rename, new folder, and delete through one fail-closed file-operation gateway with provider-declared policies, observable progress, cancellation between steps, and `Escape` to abandon a loading read. Eligible Windows entries use guarded recycle-bin deletion; unsupported entries retain explicit permanent confirmation.
 - Session-owned transient surfaces: settings editor, command palette, bookmarks with fixed slots, window adjustment mode, and a Locations picker for drives and WSL distribution roots.
 - Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, mutations and same- or cross-distribution transfers, Windows association launch for compatible names below 260 characters), UNC shares (directory reads and association launch for paths below 260 characters), and copy or move in both directions between a Windows local path and a WSL distribution.

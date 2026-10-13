@@ -39,9 +39,9 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(documentPath + ".tmp"));
     }
 
-    /// <summary>Proves the next write after a valid version-one read publishes complete version two.</summary>
+    /// <summary>Proves the next write after a valid version-one read publishes complete version three.</summary>
     [TestMethod]
-    public async Task WriteAsyncAfterVersionOneReadPublishesExplicitEmptyVersionTwoCatalogAsync()
+    public async Task WriteAsyncAfterVersionOneReadPublishesExplicitEmptyVersionThreeCatalogAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         _ = root.WriteFile(DocumentName, VersionOne);
@@ -53,8 +53,8 @@ public sealed class BookmarkSettingsPersistenceTests
             await store.WriteAsync(settings, CancellationToken.None));
 
         Assert.AreEqual(
-            "{\"schemaVersion\":2,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[]}",
+            "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -201,7 +201,7 @@ public sealed class BookmarkSettingsPersistenceTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         const string Document =
-            "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "{\"schemaVersion\":4,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
             "\"bookmarkCategories\":[],\"bookmarks\":[]}";
         string documentPath = root.WriteFile(DocumentName, Document);
 
@@ -517,7 +517,7 @@ public sealed class BookmarkSettingsPersistenceTests
 
     /// <summary>Proves an oversized complete value is rejected before any filesystem mutation.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenVersionTwoSerializationIsOversizedRejectsBeforeMutationAsync()
+    public async Task WriteAsyncWhenVersionThreeSerializationIsOversizedRejectsBeforeMutationAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         bool mutationBoundaryReached = false;
@@ -544,13 +544,13 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
     }
 
-    /// <summary>Proves a complete schema-two document exactly at the byte boundary is accepted.</summary>
+    /// <summary>Proves a complete schema-three document exactly at the byte boundary is accepted.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenVersionTwoSerializationIsExactlyAtBoundarySucceedsAsync()
+    public async Task WriteAsyncWhenVersionThreeSerializationIsExactlyAtBoundarySucceedsAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
-        UserSettings settings = CreateLargeSettings(32750, 32553);
+        UserSettings settings = CreateLargeSettings(32750, 32441);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
             await store.WriteAsync(settings, CancellationToken.None));
@@ -561,9 +561,9 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
     }
 
-    /// <summary>Proves the serializer writes schema two in deterministic preserved catalog order.</summary>
+    /// <summary>Proves the serializer writes schema three in deterministic preserved catalog order.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenBookmarksAreValidInstallsDeterministicSchemaTwoAsync()
+    public async Task WriteAsyncWhenBookmarksAreValidInstallsDeterministicSchemaThreeAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
@@ -585,12 +585,12 @@ public sealed class BookmarkSettingsPersistenceTests
             await store.WriteAsync(settings, CancellationToken.None));
 
         Assert.AreEqual(
-            "{\"schemaVersion\":2,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
             "\"bookmarkCategories\":[\"Personal\",\"Work\"],\"bookmarks\":[{" +
             "\"name\":\"Notes\",\"path\":\"C:\\\\\\u8CC7\\u6599\\\\\\uD83D\\uDE00\"," +
             "\"category\":\"Personal\",\"shortcutSlot\":null},{" +
             "\"name\":\"Repository\\uD83D\\uDE00\",\"path\":\"C:\\\\work\\\\NeNeCommander\"," +
-            "\"category\":\"Work\",\"shortcutSlot\":1}]}",
+            "\"category\":\"Work\",\"shortcutSlot\":1}],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
             File.ReadAllText(root.Resolve(DocumentName)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
 
@@ -666,7 +666,7 @@ public sealed class BookmarkSettingsPersistenceTests
     {
         BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
             BookmarkCatalog.Create(categories, bookmarks)).Catalog;
-        return UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog);
+        return UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog, PaneSortPreferences.Default);
     }
 
     private static BookmarkCategoryName ParseCategory(string text)
