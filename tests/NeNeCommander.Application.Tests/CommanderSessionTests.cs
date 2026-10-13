@@ -1149,6 +1149,8 @@ public sealed class CommanderSessionTests
                 UserIntent.OpenLocations,
                 UserIntent.SortBySize,
                 UserIntent.SortByModified,
+                UserIntent.OpenBookmarks,
+                UserIntent.OpenWindowAdjustment,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
         Assert.AreSame(CommandAvailability.Available, Candidate(palette, UserIntent.OpenFocused).Availability);
@@ -2033,9 +2035,9 @@ public sealed class CommanderSessionTests
         Assert.AreEqual("C:\\bookmark", history.Locations[1].CanonicalText);
     }
 
-    /// <summary>Proves a palette submission naming a bookmark command is rejected without dispatch.</summary>
+    /// <summary>Proves a palette submission naming a bookmark slot is rejected without dispatch.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenPaletteSubmissionNamesBookmarkCommandRejectsWithoutDispatchAsync()
+    public async Task HandleAsyncWhenPaletteSubmissionNamesBookmarkSlotRejectsWithoutDispatchAsync()
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
@@ -2054,20 +2056,14 @@ public sealed class CommanderSessionTests
             CancellationToken.None);
         CommandPaletteOpen palette = Assert.IsInstanceOfType<CommandPaletteOpen>(opened.Scopes.CommandPalette);
 
-        CommanderSnapshot managerRejected = await session.HandleAsync(
-            UserIntent.SubmitCommand(palette, UserIntent.OpenBookmarks),
-            observer,
-            CancellationToken.None);
         CommanderSnapshot slotRejected = await session.HandleAsync(
             UserIntent.SubmitCommand(palette, UserIntent.BookmarkSlotOne),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(palette, managerRejected.Scopes.CommandPalette);
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(20, CommandCatalog.Commands);
-        Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.OpenBookmarks));
+        Assert.HasCount(22, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);
     }

@@ -75,9 +75,9 @@ public sealed class CommanderSessionWindowAdjustmentTests
         Assert.AreSame(WindowAdjustmentState.Closed, bookmarksRefused.Scopes.WindowAdjustment);
     }
 
-    /// <summary>Proves an address edit and an open palette keep input and refuse the mode, even as a palette submission.</summary>
+    /// <summary>Proves direct input is refused by an address edit or palette, while a qualified palette submission opens the mode.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenAddressOrPaletteOwnsInputRefusesTheModeAsync()
+    public async Task HandleAsyncWhenAddressOrPaletteOwnsInputRefusesDirectModeAndAcceptsPaletteSubmissionAsync()
     {
         using Fixture address = await Fixture.ListedAsync();
         using Fixture palette = await Fixture.ListedAsync();
@@ -87,15 +87,15 @@ public sealed class CommanderSessionWindowAdjustmentTests
 
         CommanderSnapshot addressRefused = await address.HandleAsync(UserIntent.OpenWindowAdjustment);
         CommanderSnapshot paletteRefused = await palette.HandleAsync(UserIntent.OpenWindowAdjustment);
-        CommanderSnapshot submissionRefused = await palette.HandleAsync(
+        CommanderSnapshot submissionAccepted = await palette.HandleAsync(
             UserIntent.SubmitCommand(open, UserIntent.OpenWindowAdjustment));
 
         _ = Assert.IsInstanceOfType<AddressEditing>(editor);
         Assert.AreSame(editor, addressRefused.Scopes.AddressEditor);
         Assert.AreSame(WindowAdjustmentState.Closed, addressRefused.Scopes.WindowAdjustment);
         Assert.AreSame(open, paletteRefused.Scopes.CommandPalette);
-        Assert.AreSame(open, submissionRefused.Scopes.CommandPalette);
-        Assert.AreSame(WindowAdjustmentState.Closed, submissionRefused.Scopes.WindowAdjustment);
+        Assert.AreSame(CommandPaletteState.Closed, submissionAccepted.Scopes.CommandPalette);
+        _ = Assert.IsInstanceOfType<WindowAdjustmentOpen>(submissionAccepted.Scopes.WindowAdjustment);
     }
 
     /// <summary>Proves a file operation awaiting a name, a confirmation, or a conflict decision refuses the mode.</summary>

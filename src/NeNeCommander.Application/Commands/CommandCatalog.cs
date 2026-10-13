@@ -31,6 +31,8 @@ public static class CommandCatalog
         UserIntent.OpenLocations,
         UserIntent.SortBySize,
         UserIntent.SortByModified,
+        UserIntent.OpenBookmarks,
+        UserIntent.OpenWindowAdjustment,
     ]);
 
     /// <summary>Gets the searchable commands in stable empty-query order.</summary>

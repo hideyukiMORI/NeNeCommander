@@ -35,6 +35,7 @@ public static class CommandLabelCatalog
         new(UserIntent.MovePrevious, "IntentLabelMovePrevious"),
         new(UserIntent.OpenCommandPalette, "IntentLabelOpenCommandPalette"),
         new(UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks"),
+        new(UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment"),
         new(UserIntent.Escape, "IntentLabelEscape"),
         new(UserIntent.Confirm, "IntentLabelConfirm"),
     ]);

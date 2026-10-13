@@ -4,6 +4,9 @@ Status: accepted
 
 Date: 2026-09-06
 
+ADR-0068 supersedes the integration section's catalog exclusion and qualified-submission rejection
+for `OpenBookmarks`. Direct input freeze and exclusion of the nine bookmark slots remain in force.
+
 Accepted for Issue #99 on 2026-09-06 by the NeNe Commander design owner under hide's delegated
 authority. This acceptance covers the behavior, storage, command, and navigation contracts. The
 functional UI structure was reconciled with the Claude Design handoff and accepted by the design

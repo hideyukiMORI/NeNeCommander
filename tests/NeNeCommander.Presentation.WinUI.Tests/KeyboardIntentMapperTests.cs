@@ -243,6 +243,11 @@ public sealed class KeyboardIntentMapperTests
             KeyboardModifier.None,
             KeyRepeatState.Repeated,
             KeyboardContext.Modal)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
+            KeyboardKey.Enter,
+            KeyboardModifier.None,
+            KeyRepeatState.Repeated,
+            KeyboardContext.WindowAdjustment)));
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
 
         AssertMaps(mapper, Input(KeyboardKey.Enter, KeyboardContext.AddressEntry), UserIntent.Confirm);
@@ -254,6 +259,21 @@ public sealed class KeyboardIntentMapperTests
                 KeyRepeatState.Repeated,
                 KeyboardContext.FileList),
             UserIntent.OpenFocused);
+    }
+
+    /// <summary>Proves bookmark and window entry chords retain their existing pane-surface bindings.</summary>
+    [TestMethod]
+    public void MapWhenScopeEntryChordsArriveUsesCanonicalPaneBindings()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardContext[] contexts = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
+        foreach (KeyboardContext context in contexts)
+        {
+            AssertMaps(mapper, Input(KeyboardKey.B, KeyboardModifier.Control, context), UserIntent.OpenBookmarks);
+            AssertMaps(mapper, Input(KeyboardKey.W, KeyboardModifier.Control, context), UserIntent.OpenWindowAdjustment);
+        }
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.W, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
     }
 
     /// <summary>Proves address editing owns only confirm, cancel, and focus-address bindings.</summary>

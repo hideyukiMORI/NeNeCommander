@@ -68,6 +68,11 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
+The command palette also opens Bookmarks and window adjustment (ADR-0068), using the same owners
+as `Ctrl+B` and `Ctrl+W`. Its existing twenty entries keep their order; Bookmarks and Window
+adjustment follow them. A qualified selection closes the palette before opening the chosen scope.
+Direct shortcuts remain frozen while the palette owns input, and bookmark slots are not candidates.
+
 ## Window adjustment mode
 
 `Ctrl+W` opens one persistent window adjustment mode (ADR-0050). It opens only when settings, bookmarks, the Locations picker, address editing, and the command palette are closed, no file operation is running or awaiting confirmation, name, or conflict, and no pane read or launch is in flight. While it is open the host's keyboard context is `WindowAdjustment`, which the mode owns through its own dedicated table rather than through `KeyboardIntentMapper.BindingsFor`:
