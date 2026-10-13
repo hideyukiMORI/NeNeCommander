@@ -19,7 +19,8 @@ create a second ordering or let the view decide.
 - `PaneSortOrder` is pane state. It holds one closed `SortKey` (`Name`, `Extension`) and one
   `SortDirection` (`Ascending`, `Descending`), defaults to name ascending, and is carried
   unchanged through reads, refresh, and history navigation of the same pane. It is not persisted
-  in the settings document by this decision.
+  in the settings document by this decision. ADR-0067 later extends the lifetime through the
+  existing settings document, independently for each pane; ordering ownership stays here.
 - `EntryOrdering.Apply` is the sole projection from a listing and a sort order to the visible
   sequence. Directories always precede files; within each group the key and direction decide;
   the extension is the text after the last dot, a name without a dot or with only a leading dot
@@ -47,7 +48,9 @@ create a second ordering or let the view decide.
 - Sorting in the view or XAML code-behind: it would make focus movement and the visible order
   disagree and violate the single reducer path.
 - Persisting the order in settings now: it adds a schema change before the size and date keys
-  exist; a later Issue may add it through the ADR-0040 document.
+  exist; a later Issue may add it through the ADR-0040 document. This was the
+  sequencing decision on 2026-10-09; ADR-0056 supplied those keys and ADR-0067
+  subsequently accepted persistence through that document.
 - Natural numeric ordering and column-header clicks: out of this Issue's scope.
 
 ## Consequences

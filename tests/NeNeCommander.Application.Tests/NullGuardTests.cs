@@ -143,11 +143,21 @@ public sealed class NullGuardTests
             [new[] { entry }, null]);
         AssertInstanceNullGuard(PaneSortOrder.Default, nameof(PaneSortOrder.Toggle), [null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty]);
+            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty]);
+            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null]);
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null, PaneSortPreferences.Default]);
+        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
+            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, null]);
+        AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),
+            [null, PaneSortOrder.Default]);
+        AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),
+            [PaneSortOrder.Default, null]);
+        AssertStaticNullGuard(typeof(PaneSortOrder), nameof(PaneSortOrder.Create),
+            [null, SortDirection.Ascending]);
+        AssertStaticNullGuard(typeof(PaneSortOrder), nameof(PaneSortOrder.Create),
+            [SortKey.Name, null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Read), [null]);
         AssertStaticNullGuard(typeof(SettingsReadOutcome), nameof(SettingsReadOutcome.Rejected), [null]);
         AssertStaticNullGuard(typeof(SettingsWriteOutcome), nameof(SettingsWriteOutcome.Rejected),
@@ -183,28 +193,27 @@ public sealed class NullGuardTests
             [
                 typeof(IDirectoryReadPort),
                 typeof(IFileLauncher),
-                typeof(VisiblePageCapacity),
-                typeof(int),
-                typeof(HiddenItemVisibility),
+                typeof(PaneSessionConfiguration),
             ]) ??
             throw new AssertFailedException("The public session constructor was not found.");
-        PaneSession session = new(
-            port,
+        PaneSession session = new(port,
             new ScriptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+
+        AssertStaticNullGuard(typeof(PaneSessionConfiguration), nameof(PaneSessionConfiguration.Create),
+            [null, 1, HiddenItemVisibility.Hidden, PaneSortOrder.Default]);
+        AssertStaticNullGuard(typeof(PaneSessionConfiguration), nameof(PaneSessionConfiguration.Create),
+            [capacity, 1, null, PaneSortOrder.Default]);
+        AssertStaticNullGuard(typeof(PaneSessionConfiguration), nameof(PaneSessionConfiguration.Create),
+            [capacity, 1, HiddenItemVisibility.Hidden, null]);
 
         AssertConstructorNullGuard(
             constructor,
-            [null, new ScriptedFileLauncher(), capacity, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(constructor, [port, null, capacity, 1, HiddenItemVisibility.Hidden]);
+            [null, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, 1, HiddenItemVisibility.Hidden, PaneSortOrder.Default)]);
+        AssertConstructorNullGuard(constructor, [port, null, PaneSessionConfiguration.Create(capacity, 1, HiddenItemVisibility.Hidden, PaneSortOrder.Default)]);
         AssertConstructorNullGuard(
             constructor,
-            [port, new ScriptedFileLauncher(), null, 1, HiddenItemVisibility.Hidden]);
-        AssertConstructorNullGuard(
-            constructor,
-            [port, new ScriptedFileLauncher(), capacity, 1, null]);
+            [port, new ScriptedFileLauncher(), null]);
         AssertInstanceNullGuard(session, nameof(PaneSession.NavigateAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.HandleAsync), [null, CancellationToken.None]);
         AssertInstanceNullGuard(session, nameof(PaneSession.RefreshFocusingAsync), [null, CancellationToken.None]);
@@ -221,18 +230,12 @@ public sealed class NullGuardTests
             DeleteRequest.Create([ParsePath("C:\\source")], null)).Request;
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
-        PaneSession left = new(
-            ScriptedDirectoryReadPort.Create(),
+        PaneSession left = new(ScriptedDirectoryReadPort.Create(),
             new ScriptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
-        PaneSession right = new(
-            ScriptedDirectoryReadPort.Create(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+        PaneSession right = new(ScriptedDirectoryReadPort.Create(),
             new ScriptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         FileOperationOutcome outcome = await gateway.ExecuteAsync(cancelledRequest, RecordingFileOperationProgress.Create(), cancellation.Token);
         ConstructorInfo constructor = typeof(DualPaneSession).GetConstructor(
@@ -347,18 +350,12 @@ public sealed class NullGuardTests
     {
         VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
             VisiblePageCapacity.Create(2)).Capacity;
-        PaneSession left = new(
-            ScriptedDirectoryReadPort.Create(),
+        PaneSession left = new(ScriptedDirectoryReadPort.Create(),
             new ScriptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
-        PaneSession right = new(
-            ScriptedDirectoryReadPort.Create(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+        PaneSession right = new(ScriptedDirectoryReadPort.Create(),
             new ScriptedFileLauncher(),
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         CommanderSession commander = new(
             new DualPaneSession(left, right, gateway),
@@ -396,18 +393,12 @@ public sealed class NullGuardTests
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         CommanderSession commander = new(
             new DualPaneSession(
-                new PaneSession(
-                    left,
-                    new ScriptedFileLauncher(),
-                    capacity,
-                    DirectoryListing.EntryBoundaryLimit,
-                    HiddenItemVisibility.Hidden),
-                new PaneSession(
-                    ScriptedDirectoryReadPort.Create(),
-                    new ScriptedFileLauncher(),
-                    capacity,
-                    DirectoryListing.EntryBoundaryLimit,
-                    HiddenItemVisibility.Hidden),
+                new PaneSession(left,
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
+                new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
                 gateway),
             new SettingsSession(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
@@ -449,18 +440,12 @@ public sealed class NullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         DualPaneSession panes = new(
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
             gateway);
         DualPaneSnapshot snapshot = panes.Current;
         AddressEditorSession addressEditor = new();

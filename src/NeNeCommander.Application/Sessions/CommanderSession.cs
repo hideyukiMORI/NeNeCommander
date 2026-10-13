@@ -94,7 +94,7 @@ public sealed class CommanderSession
         SettingsEditorState editor = _settings.Current.Editor;
         if (editor == SettingsEditorState.Open)
         {
-            HandleSettingsIntent(intent, observer);
+            _ = _settings.HandleEditorIntentAsync(intent, observer, CancellationToken.None);
             return Current;
         }
         return editor == SettingsEditorState.Bookmarks
@@ -178,7 +178,24 @@ public sealed class CommanderSession
                 .ConfigureAwait(false);
             return Current;
         }
-        _ = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+        return await DispatchPaneIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<CommanderSnapshot> DispatchPaneIntentAsync(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        DualPaneSnapshot before = _panes.Current;
+        PaneSide side = before.ActiveSide;
+        DualPaneSnapshot after = await _panes.HandleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+        if (PaneReducer.SortKeyRequestedBy(intent) is not null &&
+            before.Of(side).Content is PaneContentListed previous &&
+            after.Of(side).Content is PaneContentListed current &&
+            previous.State.SortOrder != current.State.SortOrder)
+        {
+            _ = _settings.SavePaneSortOrderAsync(side, current.State.SortOrder, observer, CancellationToken.None);
+        }
         return Current;
     }
 
@@ -212,33 +229,6 @@ public sealed class CommanderSession
     public Task StopAsync()
     {
         return _settings.StopAsync();
-    }
-
-    private void HandleSettingsIntent(
-        UserIntent intent,
-        ICommanderProgressObserver observer)
-    {
-        if (intent == UserIntent.Escape)
-        {
-            _ = _settings.Close();
-            return;
-        }
-        _ = QueueSettingsSelection(intent, observer, CancellationToken.None);
-    }
-
-    private Task QueueSettingsSelection(
-        UserIntent intent,
-        ISettingsProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        return intent switch
-        {
-            ColorSchemeSelection selection =>
-                _settings.SelectColorSchemeAsync(selection.Scheme, observer, cancellationToken),
-            LaunchHiddenItemVisibilitySelection selection =>
-                _settings.SelectLaunchHiddenItemVisibilityAsync(selection.Visibility, observer, cancellationToken),
-            _ => Task.CompletedTask,
-        };
     }
 
     private CommanderSnapshot HandleBookmarkIntent(

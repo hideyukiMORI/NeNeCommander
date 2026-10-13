@@ -545,7 +545,7 @@ public sealed class BookmarkManagerPresenterTests
                 typeof(SettingsPersistenceState),
             ],
             [
-                UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog),
+                UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog, PaneSortPreferences.Default),
                 SettingsEditorState.Bookmarks,
                 state,
                 SettingsPersistenceState.Succeeded,

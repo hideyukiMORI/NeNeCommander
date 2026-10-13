@@ -428,18 +428,12 @@ public sealed class LocationsSessionTests
             VisiblePageCapacity.Create(4)).Capacity;
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         DualPaneSession panes = new(
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
-            new PaneSession(
-                ScriptedDirectoryReadPort.Create(),
-                new ScriptedFileLauncher(),
-                capacity,
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
+            new PaneSession(ScriptedDirectoryReadPort.Create(),
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
             gateway);
         return active == PaneSide.Left
             ? panes.Current

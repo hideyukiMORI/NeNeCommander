@@ -1099,12 +1099,9 @@ public sealed class DualPaneSessionTests
     public void ConstructWhenBothSidesShareOneSessionThrowsArgumentException()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        PaneSession shared = new(
-            port,
+        PaneSession shared = new(port,
             new ScriptedFileLauncher(),
-            Capacity(4),
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(Capacity(4), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
 
         ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(() => new DualPaneSession(shared, shared, gateway));
@@ -1196,18 +1193,12 @@ public sealed class DualPaneSessionTests
             Right = right;
             Port = port;
             Gateway = gateway;
-            LeftSession = new PaneSession(
-                left,
-                new ScriptedFileLauncher(),
-                Capacity(4),
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden);
-            RightSession = new PaneSession(
-                right,
-                new ScriptedFileLauncher(),
-                Capacity(4),
-                DirectoryListing.EntryBoundaryLimit,
-                HiddenItemVisibility.Hidden);
+            LeftSession = new PaneSession(left,
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(Capacity(4), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+            RightSession = new PaneSession(right,
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(Capacity(4), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
             Panes = new DualPaneSession(LeftSession, RightSession, gateway);
         }
 

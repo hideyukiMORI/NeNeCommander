@@ -69,7 +69,7 @@ public sealed class SettingsSessionTests
         UserSettings initial = UserSettings.Create(
             ColorScheme.Monokai,
             HiddenItemVisibility.Hidden,
-            BookmarkCatalog.Empty);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         SettingsSession session = new(store, SettingsReadOutcome.Read(initial), static _ => { });
@@ -322,7 +322,7 @@ public sealed class SettingsSessionTests
         UserSettings initial = UserSettings.Create(
             ColorScheme.Ubuntu,
             HiddenItemVisibility.Shown,
-            initialCatalog);
+            initialCatalog, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();
         TaskCompletionSource<SettingsWriteOutcome> preferenceWrite = store.PlanWrite();

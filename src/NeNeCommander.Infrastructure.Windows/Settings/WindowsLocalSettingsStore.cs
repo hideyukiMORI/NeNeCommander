@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
@@ -21,7 +19,6 @@ namespace NeNeCommander.Infrastructure.Windows.Settings;
 public sealed class WindowsLocalSettingsStore : ISettingsStore
 {
     private const int StreamBufferSize = 4096;
-    private const int SupportedSchemaVersion = 2;
     private const string TemporarySuffix = ".tmp";
 
     private readonly WindowsLocalPath _documentPath;
@@ -164,7 +161,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        byte[] serialized = Serialize(settings);
+        byte[] serialized = SettingsDocumentSerializer.Serialize(settings);
         if (serialized.Length > SettingsDocumentValidator.MaximumDocumentLength)
         {
             return RejectedBeforeTemporary(
@@ -660,58 +657,6 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         {
             RememberExpectedLocation(new BlockedLocation(SettingsWriteFailureKind.IoFailure));
         }
-    }
-
-    private static byte[] Serialize(UserSettings settings)
-    {
-        using MemoryStream output = new();
-        using (Utf8JsonWriter writer = new(output))
-        {
-            writer.WriteStartObject();
-            writer.WriteNumber("schemaVersion", SupportedSchemaVersion);
-            writer.WriteBoolean(
-                "showHiddenItems",
-                settings.HiddenItemVisibility == HiddenItemVisibility.Shown);
-            writer.WriteString("colorScheme", settings.ColorScheme.Identifier);
-            writer.WriteStartArray("bookmarkCategories");
-            foreach (BookmarkCategoryName category in settings.Bookmarks.Categories)
-            {
-                writer.WriteStringValue(category.Value);
-            }
-            writer.WriteEndArray();
-            writer.WriteStartArray("bookmarks");
-            foreach (BookmarkEntry bookmark in settings.Bookmarks.Bookmarks)
-            {
-                WriteBookmark(writer, bookmark);
-            }
-            writer.WriteEndArray();
-            writer.WriteEndObject();
-        }
-        return output.ToArray();
-    }
-
-    private static void WriteBookmark(Utf8JsonWriter writer, BookmarkEntry bookmark)
-    {
-        writer.WriteStartObject();
-        writer.WriteString("name", bookmark.Name.Value);
-        writer.WriteString("path", bookmark.Path.Value.CanonicalText);
-        if (bookmark.Category is null)
-        {
-            writer.WriteNull("category");
-        }
-        else
-        {
-            writer.WriteString("category", bookmark.Category.Value);
-        }
-        if (bookmark.ShortcutSlot is null)
-        {
-            writer.WriteNull("shortcutSlot");
-        }
-        else
-        {
-            writer.WriteNumber("shortcutSlot", bookmark.ShortcutSlot.Number);
-        }
-        writer.WriteEndObject();
     }
 
     private static SettingsWriteOutcome Reject(

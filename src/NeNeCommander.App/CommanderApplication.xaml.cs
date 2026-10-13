@@ -85,7 +85,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
         ApplyColorScheme(settings.ColorScheme);
         SettingsSession settingsSession = new(settingsStore, settingsOutcome, ReportDefect);
-        _window = CreateWindow(settings.HiddenItemVisibility, ioExecutionBoundary, settingsSession);
+        _window = CreateWindow(settings, ioExecutionBoundary, settingsSession);
         _window.ColorSchemeChanged += OnColorSchemeChanged;
         ApplyElementTheme(_window, settings.ColorScheme.Appearance);
         _window.Closed += OnWindowClosed;
@@ -118,11 +118,11 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// visibility is passed to each pane session because it is part of pane state, not an observer:
     /// the pane needs it before its first read, and after that the state itself owns it.
     /// </summary>
-    /// <param name="hiddenItemVisibility">Visibility both panes start from.</param>
+    /// <param name="settings">Complete preferences composed into the two initial pane configurations.</param>
     /// <param name="ioExecutionBoundary">Shared scheduler for synchronous Windows filesystem work.</param>
     /// <param name="settingsSession">Sole settings state and write owner.</param>
     private CommanderWindow CreateWindow(
-        HiddenItemVisibility hiddenItemVisibility,
+        UserSettings settings,
         WindowsLocalIoExecutionBoundary ioExecutionBoundary,
         SettingsSession settingsSession)
     {
@@ -133,8 +133,10 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
         _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
         DualPaneSession panes = new(
-            CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
-            CreatePaneSession(directoryReader, fileLauncher, capacity, hiddenItemVisibility),
+            CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
+                capacity, DirectoryListing.EntryBoundaryLimit, settings.HiddenItemVisibility, settings.PaneSortOrders.Left)),
+            CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
+                capacity, DirectoryListing.EntryBoundaryLimit, settings.HiddenItemVisibility, settings.PaneSortOrders.Right)),
             _gateway);
         TransientScopeOwners scopes = new(
             new AddressEditorSession(),
@@ -163,15 +165,11 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     private static PaneSession CreatePaneSession(
         IDirectoryReadPort directoryReader,
         IFileLauncher fileLauncher,
-        VisiblePageCapacity capacity,
-        HiddenItemVisibility hiddenItemVisibility)
+        PaneSessionConfiguration configuration)
     {
-        return new PaneSession(
-            directoryReader,
+        return new PaneSession(directoryReader,
             fileLauncher,
-            capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            hiddenItemVisibility);
+            configuration);
     }
 
     private void OnWindowClosed(object _, WindowEventArgs args)

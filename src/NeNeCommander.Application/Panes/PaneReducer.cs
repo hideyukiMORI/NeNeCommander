@@ -243,7 +243,7 @@ public static class PaneReducer
     /// Names the key a sort intent requests, or returns null when the intent is not a sort request
     /// (ADR-0053, ADR-0056). Every sort intent toggles through the same <see cref="PaneSortOrder"/>.
     /// </summary>
-    private static SortKey? SortKeyRequestedBy(UserIntent intent)
+    internal static SortKey? SortKeyRequestedBy(UserIntent intent)
     {
         return intent == UserIntent.SortByName
             ? SortKey.Name

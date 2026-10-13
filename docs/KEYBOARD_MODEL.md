@@ -33,6 +33,10 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 navigation surface, and the destructive-command repeat guard on `F5` and `F6` also ignores a held
 `Ctrl+F5` or `Ctrl+F6`. Directories always precede files; the order keeps the
 focus item and selection, and it is carried through refresh, reads, and history of the same pane.
+Each accepted sort change also saves that pane's key and direction through the existing settings
+queue for the next launch (ADR-0067); a refused intent or navigation does not write settings.
+Save failure keeps the current order and uses the existing settings warning. `Ctrl+H` remains
+session-only.
 
 Back and Forward retain at most 100 successful locations per pane, including current. They restore
 location only and commit their cursor after the target read succeeds. Refresh, same-location,

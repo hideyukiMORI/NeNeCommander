@@ -26,7 +26,7 @@ public sealed class UserSettingsTests
         UserSettings settings = UserSettings.Create(
             ColorScheme.Dracula,
             HiddenItemVisibility.Shown,
-            BookmarkCatalog.Empty);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         Assert.AreSame(ColorScheme.Dracula, settings.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
@@ -41,7 +41,7 @@ public sealed class UserSettingsTests
         UserSettings settings = UserSettings.Create(
             ColorScheme.NeNeLight,
             HiddenItemVisibility.Hidden,
-            BookmarkCatalog.Empty);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         Assert.AreSame(
             settings,

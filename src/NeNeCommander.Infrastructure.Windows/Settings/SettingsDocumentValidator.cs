@@ -18,7 +18,8 @@ public static class SettingsDocumentValidator
     public const int MaximumDocumentLength = 65536;
 
     private const int LegacySchemaVersion = 1;
-    private const int SupportedSchemaVersion = 2;
+    private const int BookmarkSchemaVersion = 2;
+    private const int SupportedSchemaVersion = 3;
     private const string SchemaVersionName = "schemaVersion";
     private const string HiddenItemsName = "showHiddenItems";
     private const string ColorSchemeName = "colorScheme";
@@ -91,7 +92,7 @@ public static class SettingsDocumentValidator
         SettingsReadFailureKind? versionFailure = ReadVersion(root, out int version);
         return versionFailure is not null
             ? SettingsReadOutcome.Rejected(versionFailure)
-            : version == LegacySchemaVersion ? ReadVersionOne(root) : ReadVersionTwo(root);
+            : version == LegacySchemaVersion ? ReadVersionOne(root) : ReadCatalogVersion(root, version);
     }
 
     private static SettingsReadFailureKind? ReadVersion(JsonElement root, out int version)
@@ -120,7 +121,7 @@ public static class SettingsDocumentValidator
                 : versionElement.ValueKind != JsonValueKind.Number
                     ? SettingsReadFailureKind.Malformed
                     : !versionElement.TryGetInt32(out version) ||
-                        version is not LegacySchemaVersion and not SupportedSchemaVersion
+                        version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SupportedSchemaVersion
                         ? SettingsReadFailureKind.UnknownVersion
                         : null;
     }
@@ -144,11 +145,13 @@ public static class SettingsDocumentValidator
             : SettingsReadOutcome.Rejected(failure);
     }
 
-    private static SettingsReadOutcome ReadVersionTwo(JsonElement root)
+    private static SettingsReadOutcome ReadCatalogVersion(JsonElement root, int version)
     {
         SettingsReadFailureKind? shapeFailure = ValidateExactProperties(
             root,
-            [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName]);
+            version == BookmarkSchemaVersion
+                ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName]
+                : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"]);
         if (shapeFailure is not null)
         {
             return SettingsReadOutcome.Rejected(shapeFailure);
@@ -317,6 +320,16 @@ public static class SettingsDocumentValidator
 
     private static SettingsReadOutcome ReadPreferences(JsonElement root, BookmarkCatalog catalog)
     {
+        PaneSortPreferences preferences = PaneSortPreferences.Default;
+        if (root.GetProperty(SchemaVersionName).GetInt32() == SupportedSchemaVersion)
+        {
+            SettingsReadFailureKind? failure = SettingsSortOrderCodec.Read(root.GetProperty("paneSortOrders"), out PaneSortPreferences? parsed);
+            if (failure is not null || parsed is null)
+            {
+                return SettingsReadOutcome.Rejected(failure ?? SettingsReadFailureKind.Malformed);
+            }
+            preferences = parsed;
+        }
         JsonElement hiddenItems = root.GetProperty(HiddenItemsName);
         JsonElement colorScheme = root.GetProperty(ColorSchemeName);
         HiddenItemVisibility? visibility = hiddenItems.ValueKind == JsonValueKind.True
@@ -327,11 +340,11 @@ public static class SettingsDocumentValidator
         return visibility is null || colorScheme.ValueKind != JsonValueKind.String
             ? SettingsReadOutcome.Rejected(SettingsReadFailureKind.Malformed)
             : ColorScheme.Parse(colorScheme.GetString()) is ColorSchemeAccepted accepted
-                ? SettingsReadOutcome.Read(UserSettings.Create(accepted.Scheme, visibility, catalog))
+                ? SettingsReadOutcome.Read(UserSettings.Create(accepted.Scheme, visibility, catalog, preferences))
                 : SettingsReadOutcome.Rejected(SettingsReadFailureKind.UnknownColorScheme);
     }
 
-    private static SettingsReadFailureKind? ValidateExactProperties(
+    internal static SettingsReadFailureKind? ValidateExactProperties(
         JsonElement element,
         IReadOnlyList<string> requiredNames)
     {

@@ -393,12 +393,9 @@ public sealed class PaneSessionAbandonmentTests
 
     private static PaneSession CreateSession(IDirectoryReadPort port, IFileLauncher launcher)
     {
-        return new PaneSession(
-            port,
+        return new PaneSession(port,
             launcher,
-            Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity,
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
     }
 
     private static DirectoryListing Listing(string location, params string[] files)

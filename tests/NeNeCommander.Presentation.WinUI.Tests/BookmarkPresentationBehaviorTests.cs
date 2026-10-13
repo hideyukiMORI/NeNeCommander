@@ -112,7 +112,7 @@ public sealed class BookmarkPresentationBehaviorTests
     {
         SettingsSnapshot snapshot = Construct<SettingsSnapshot>(
             [typeof(UserSettings), typeof(SettingsEditorState), typeof(BookmarksEditorState), typeof(SettingsPersistenceState)],
-            [UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog), SettingsEditorState.Bookmarks, state, SettingsPersistenceState.Succeeded]);
+            [UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog, PaneSortPreferences.Default), SettingsEditorState.Bookmarks, state, SettingsPersistenceState.Succeeded]);
         return BookmarkManagerPresenter.Present(snapshot, "All bookmarks", "Uncategorized");
     }
 

@@ -37,7 +37,7 @@ public sealed class CommanderSessionTests
             SettingsReadOutcome.Read(UserSettings.Create(
                 ColorScheme.NeNeDark,
                 HiddenItemVisibility.Hidden,
-                catalog)));
+                catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
 
@@ -70,7 +70,7 @@ public sealed class CommanderSessionTests
             SettingsReadOutcome.Read(UserSettings.Create(
                 ColorScheme.NeNeDark,
                 HiddenItemVisibility.Hidden,
-                catalog)));
+                catalog, PaneSortPreferences.Default)));
 
         CommanderSnapshot unchanged = await session.HandleAsync(
             UserIntent.BookmarkSlotNine,
@@ -308,7 +308,7 @@ public sealed class CommanderSessionTests
             SettingsReadOutcome.Read(UserSettings.Create(
                 ColorScheme.NeNeDark,
                 HiddenItemVisibility.Hidden,
-                catalog)));
+                catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
@@ -1308,11 +1308,13 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
         using FileOperationGateway gateway = CreateGateway();
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         CommanderSession session = CreateSession(
             left,
             right,
             gateway,
-            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+            store);
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         CommandPaletteOpen open = Assert.IsInstanceOfType<CommandPaletteOpen>((await session.HandleAsync(
@@ -1332,6 +1334,10 @@ public sealed class CommanderSessionTests
         Assert.AreSame(SortKey.Extension, order.Key);
         Assert.AreSame(SortDirection.Ascending, order.Direction);
         Assert.HasCount(1, left.Requests);
+        Assert.HasCount(1, store.Writes);
+        Assert.AreEqual(order, store.Writes[0].PaneSortOrders.Left);
+        write.SetResult(SettingsWriteOutcome.Succeeded());
+        await session.StopAsync();
     }
 
     /// <summary>Proves settings, the palette, and the window mode keep a sort intent away from the panes.</summary>
@@ -1923,7 +1929,7 @@ public sealed class CommanderSessionTests
             SettingsReadOutcome.Read(UserSettings.Create(
                 ColorScheme.NeNeDark,
                 HiddenItemVisibility.Hidden,
-                Catalog(Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)))),
+                Catalog(Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default)),
             out _);
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
@@ -2172,7 +2178,7 @@ public sealed class CommanderSessionTests
             SettingsReadOutcome.Read(UserSettings.Create(
                 ColorScheme.NeNeDark,
                 HiddenItemVisibility.Hidden,
-                catalog)));
+                catalog, PaneSortPreferences.Default)));
     }
 
     private static CommanderSession CreateSession(
@@ -2185,18 +2191,12 @@ public sealed class CommanderSessionTests
         SettingsReadOutcome initialOutcome,
         out DualPaneSession panes)
     {
-        PaneSession leftPane = new(
-            left,
+        PaneSession leftPane = new(left,
             leftLauncher,
-            Capacity(),
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
-        PaneSession rightPane = new(
-            right,
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+        PaneSession rightPane = new(right,
             rightLauncher,
-            Capacity(),
-            DirectoryListing.EntryBoundaryLimit,
-            HiddenItemVisibility.Hidden);
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         panes = new DualPaneSession(leftPane, rightPane, gateway);
         return new CommanderSession(
             panes,

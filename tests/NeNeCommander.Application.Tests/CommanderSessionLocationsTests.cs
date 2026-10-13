@@ -313,8 +313,12 @@ public sealed class CommanderSessionLocationsTests
         {
             Port = scripted;
             _gateway = new FileOperationGateway(port);
-            PaneSession left = new(Left, new ScriptedFileLauncher(), Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden);
-            PaneSession right = new(Right, new ScriptedFileLauncher(), Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden);
+            PaneSession left = new(Left,
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
+            PaneSession right = new(Right,
+            new ScriptedFileLauncher(),
+            PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
             BookmarkDisplayName name = Assert.IsInstanceOfType<BookmarkDisplayNameAccepted>(
                 BookmarkDisplayName.Parse("Target")).Name;
             BookmarkPath path = Assert.IsInstanceOfType<BookmarkPathAccepted>(
@@ -329,7 +333,7 @@ public sealed class CommanderSessionLocationsTests
                     SettingsReadOutcome.Read(UserSettings.Create(
                         ColorScheme.NeNeDark,
                         HiddenItemVisibility.Hidden,
-                        catalog)),
+                        catalog, PaneSortPreferences.Default)),
                     static _ => { }),
                 new TransientScopeOwners(
                     new AddressEditorSession(),
