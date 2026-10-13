@@ -50,6 +50,7 @@ Architectural decisions live under [docs/adr](docs/adr/README.md). Temporary exc
 6. Run affected behavior and dependency-impact tests. Before merge, verify the evidence required by the selected ADR-0061 scope; request the full canonical gate only when the wider impact requires it.
 7. For security-sensitive behavior, update and run the affected threat cases; request `./eng/deep-review.ps1` when the trust-boundary impact requires it. Do not run all-layer mutation for minor changes or tooling-only edits.
 8. Report the exact commands run, their result, and any remaining environmental proof that cannot run locally.
+9. When automatic approval blocks cleanup of completed work, follow [the cleanup handoff procedure](docs/DEVELOPMENT_WORKFLOW.md#blocked-cleanup-and-daily-reports): end the daily report and its delivery summary with `! hide実行待ち：後片付け`, exact targets and one ready-to-run command for hide. Carry the pending record into the handoff until deletion is confirmed; do not retry a rejected action through another mechanism.
 
 ## Absolute prohibitions
 

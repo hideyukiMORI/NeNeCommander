@@ -73,3 +73,15 @@ Every handoff states:
 ## Git lifecycle and generated output
 
 Issue, branch, commit, and pull-request rules are defined only in `docs/COMMIT_CONVENTIONS.md`. Do not commit build output, secrets, local paths, signing material, generated intermediates, or editor state. Regeneration must be deterministic and leave a clean working tree.
+
+## Blocked cleanup and daily reports
+
+hide's decision on 2026-10-13: completed work must not accumulate disposable output silently when automatic approval blocks its cleanup. The existing daily report and handoff own the pending record; this is a session procedure, not a new executable gate or deletion service.
+
+- Before proposing deletion, confirm the exact absolute targets, main integration, saved and untracked/ignored files, permanent evidence, unique artifacts, active references and links. Retain branches, commits, permanent evidence, unfinished work and unrelated data. Put any needed evidence in its permanent location first.
+- If automatic approval rejects cleanup, record the rejected action and the returned reason. Do not retry the rejection with another deletion mechanism. At daily-report delivery, explicitly ask hide to execute the prepared command under the literal marker `! hide実行待ち：後片付け`, at the end of both the report and its user-facing summary. Include the absolute target list, the evidence retained, the rejection reason and one copyable PowerShell line. The same pending record belongs in the handoff.
+- Make the command concrete before requesting execution. It may call an inspectable script stored outside its deletion targets. Limit it to the verified targets, handle known links without following them, and tolerate already-deleted targets. Prefer one native directory-level removal per target after bounded preflight; do not add a custom per-file validation/deletion loop or rehash unchanged archived evidence without a specific unresolved reason. Directory-level removal still deletes individual filesystem entries internally and makes no promise of instantaneous completion.
+- An unidentified item is pending identification, not permission to widen deletion to its parent, an unrestricted wildcard or the whole recycle bin. State the unresolved identity separately and omit it from the executable targets until it can be identified safely.
+- Keep cleanup marked pending until hide reports execution and a completion result or read-only absence check confirms the targets are gone. After interruption or failure, record the remaining exact targets; carry them into the next report/handoff and refresh the command as needed. Do not send a duplicate execution request while the known cleanup command is still running. Product integration and cleanup completion are separate facts.
+
+When no cleanup remains, state that briefly; do not emit an empty `!` request. This procedure does not make the agent execute a deletion on hide's behalf after an automatic rejection.
