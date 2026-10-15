@@ -96,6 +96,9 @@ TemporaryClosedへのテスト専用例外→新storeでread/writeを先にred�
 | license | `git ls-files '*LICENSE*' '*LICENCE*' '*COPYING*'`で該当tracked fileなし。public repoは`docs/PROJECT_STATE.md:22` | 再利用を許諾する方針なら配布前に明示licenseを選ぶことを推す。許諾範囲と条件はhideが決め、publicであるだけで暗黙許諾としない。 | licenseを選択・追加しない。 |
 | 自然順ソート | `src/NeNeCommander.Application/Directories/EntryOrdering.cs:90-94`、`docs/adr/0053-pane-sort-order.md:24-30` | 現行を維持し[#246](https://github.com/hideyukiMORI/NeNeCommander/issues/246)で保留。変更希望があれば数字・ゼロ埋め・Unicodeとtie-breakの仕様を独立して決める。 | 実装しない。 |
 
+licenseの一般説明はGitHub公式の[Licensing a repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)を参照する。
+GitHub上のview/forkと一般的な再利用許諾は区別し、具体的なlicenseは選択していない。
+
 ## 称賛された点の適用範囲
 
 - WSLのfilesystem read/mutationはtyped pathと9P/no-follow境界を使い、shell mutationへfallbackしない。
