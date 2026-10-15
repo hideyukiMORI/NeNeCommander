@@ -127,17 +127,15 @@ P0-1の2redは別Issueの新しい失敗証拠であり、以前の正常系成�
 正確なcommands/resultsとPRは`D:/NeNeCommander/evidence/issue-242/`へ保存し、mergeは設計担当が行う。
 共通指示§5の索引・active/planned実態の全量監査や文書再編は今回行わず、PROJECT_STATEの現在参照と次作業欄の現在地だけを更新した。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-現在の削除待ちは`D:/NeNeCommander/outputs/issue-240`のみ。残りはSDK zipと中間テキストで、
-固有成果物・ログ・hash・TRX・reviewは`D:/NeNeCommander/evidence/issue-240/`へ収載済み。
-過去の他のcleanupは完了している。固定SDK `D:/NeNeCommander/tools/dotnet-10.0.401`、
-branch、commit、恒久evidence、進行中#242/#243のworktreeはこの削除対象に含まない。
+hideの実行報告を受け、2026-10-15 22:50:56 JSTに読み取り専用の`Test-Path`で
+`D:/NeNeCommander/outputs/issue-240`の不在を確認した。親のoutputs、恒久証拠
+`D:/NeNeCommander/evidence/issue-240/`、固定SDK、未完了#243のworktreeは存在する。
+完了した作業の削除待ちはない。#242のworktree/outputもPR #252統合後に整理済みで、
+#243のworktree/outputは再現Draftが未完了のため保持する。branchとcommitも保持している。
 
-自動承認レビューがこのディレクトリのrecursive削除を`blocked by policy`で拒否し、詳細理由は返していない。
-削除は未実行で、別方式の再試行もしない。hideの実行結果または読み取り専用の不在確認まで保留を引き継ぐ。
-今回はこの対象を削除していない。hide用の実行一行は次のとおり。
-
-```powershell
-if (Test-Path -LiteralPath 'D:\NeNeCommander\outputs\issue-240') { Remove-Item -LiteralPath 'D:\NeNeCommander\outputs\issue-240' -Recurse -Force }
-```
+以前のrecursive削除は自動承認レビューに`blocked by policy`で拒否されたが、サナは再試行せず、
+今回hideの実行後に不在だけを確認した。確認証拠は
+`D:/NeNeCommander/evidence/cleanup-confirmation-20261015/completion-confirmed.json`、
+文書更新は[Issue #253](https://github.com/hideyukiMORI/NeNeCommander/issues/253)で追跡する。
