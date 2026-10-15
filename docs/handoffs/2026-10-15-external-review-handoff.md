@@ -15,7 +15,7 @@ NeNe Commanderサナから次回担当への引き継ぎ。[日報](../reports/2
 2. `git status --short --branch`、worktree一覧、#242/#243とopen PRを確認する。古い未完了記述を現在へ引き継がない。
 3. 日報の詳細なサブ主張表を読んで、下表の誤検知に新しいguardやrollbackを追加しない。
 4. #243の最新test・設計・製品修正・検証状態を確認する。本書のredは修正成功の証拠ではない。
-5. 末尾の`outputs/issue-240`は読み取り専用で状態を確認し、拒否された削除を再試行しない。
+5. 末尾の完了記録を確認する。`outputs/issue-240`はhide実行後に不在確認済みで、削除を再要求しない。
 
 今回hideが明示した役割分担の範囲で調査と文書化を担当した。次回の既定は現在のサナの単体実行であり、
 過去のAstra/Sol/Luna分担を無条件に継承しない。追加作業はDドライブのproject領域へ置く。
@@ -99,16 +99,15 @@ coverage/mutationの基準と現mainの実行済み結果を分け、UIA宣言�
 
 #94はhideがいる日の配布前手動確認、#181は低優先度mapped drivesの別件である。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-保留対象は`D:/NeNeCommander/outputs/issue-240`だけ。残りはSDK zipと中間テキストで、
-固有成果物は`D:/NeNeCommander/evidence/issue-240/`へ保存済み。他の過去cleanupは完了。
-固定SDK・branch・commit・恒久evidenceと進行中#242/#243のworktreeは対象外。
+hideの実行報告を受け、2026-10-15 22:50:56 JSTに読み取り専用の`Test-Path`で
+`D:/NeNeCommander/outputs/issue-240`の不在を確認した。親outputs、恒久証拠、固定SDK、
+未完了#243のworktreeは存在し、完了した作業の削除待ちはない。
+#242のworktree/outputも統合後に整理済み。#243のworktree/outputは未完了のため保持し、
+branch・commit・恒久evidenceも削除しない。
 
-自動承認レビューがrecursive削除を`blocked by policy`で拒否し、詳細理由は返していない。
-拒否された削除は未実行で、別方式で再試行しない。今回は削除していない。
-hideの実行結果または読み取り専用の不在確認までこの保留を引き継ぐ。実行一行は次のとおり。
-
-```powershell
-if (Test-Path -LiteralPath 'D:\NeNeCommander\outputs\issue-240') { Remove-Item -LiteralPath 'D:\NeNeCommander\outputs\issue-240' -Recurse -Force }
-```
+以前の自動承認拒否は経緯として残すが、サナは削除を再試行していない。確認証拠は
+`D:/NeNeCommander/evidence/cleanup-confirmation-20261015/completion-confirmed.json`。
+[Issue #253](https://github.com/hideyukiMORI/NeNeCommander/issues/253)で完了記録を反映し、
+次回へ削除依頼を持ち越さない。
