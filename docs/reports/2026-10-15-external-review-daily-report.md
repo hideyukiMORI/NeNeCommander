@@ -9,7 +9,7 @@ NeNe Commanderサナが、hideの「まず事実確認の表から」という�
 指定指示書の共通指示§1〜3を先に適用した。外部サービスへrepo内容を送っていない。
 
 この[Issue #242](https://github.com/hideyukiMORI/NeNeCommander/issues/242)は、日報・
-[引き継ぎ書](../handoffs/2026-10-15-external-review-handoff.md)とPROJECT_STATEの現在参照だけを扱う。
+[引き継ぎ書](../handoffs/2026-10-15-external-review-handoff.md)とPROJECT_STATEの現在参照・次作業欄だけを扱う。
 製品修正とは別PRである。既に統合済みのUIA対応は[前の日報](2026-10-15-ui-automation-daily-report.md)と
 [PR #241](https://github.com/hideyukiMORI/NeNeCommander/pull/241)を参照する。
 
@@ -122,7 +122,7 @@ P0-1の2redは別Issueの新しい失敗証拠であり、以前の正常系成�
 この文書PRはADR-0061のdocumentation-only scope。CI、build、製品test、coverage、mutationを開始しない。
 文書の静的リンク・参照パス/行・BOMなしUTF-8/CRLF・diffと、既存hookのCommit modeだけを確認する。
 正確なcommands/resultsとPRは`D:/NeNeCommander/evidence/issue-242/`へ保存し、mergeは設計担当が行う。
-共通指示§5の索引・active/planned実態の全量監査や文書再編は今回行わず、PROJECT_STATEの現在参照だけを更新した。
+共通指示§5の索引・active/planned実態の全量監査や文書再編は今回行わず、PROJECT_STATEの現在参照と次作業欄の現在地だけを更新した。
 
 ## ! hide実行待ち：後片付け
 

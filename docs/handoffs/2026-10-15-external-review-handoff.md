@@ -95,7 +95,7 @@ coverage/mutationの基準と現mainの実行済み結果を分け、UIA宣言�
 固定SDKは`D:/NeNeCommander/tools/dotnet-10.0.401`で、当該processだけPATH先頭へ追加する。
 結果・PR本文は`D:/NeNeCommander/evidence/issue-242/`。merge後は取り込み・unique/untracked/ignored成果物・
 稼働参照・linksを監査して追加worktreeと不要outputを整理する。branch/commit/恒久evidence/SDKは保持する。
-共通指示§5の索引・active/planned実態の全量監査や文書再編は未実施で、PROJECT_STATEの現在参照だけを更新した。
+共通指示§5の索引・active/planned実態の全量監査や文書再編は未実施で、PROJECT_STATEの現在参照と次作業欄の現在地だけを更新した。
 
 #94はhideがいる日の配布前手動確認、#181は低優先度mapped drivesの別件である。
 
