@@ -8,10 +8,38 @@ NeNe Commanderサナが、hideの「まず事実確認の表から」という�
 講評の【確認】を実証済みと読み替えず、事実・誤り・一部事実・未確認を分けた。
 指定指示書の共通指示§1〜3を先に適用した。外部サービスへrepo内容を送っていない。
 
-この[Issue #242](https://github.com/hideyukiMORI/NeNeCommander/issues/242)は、日報・
+初回事実確認の[Issue #242](https://github.com/hideyukiMORI/NeNeCommander/issues/242)は、日報・
 [引き継ぎ書](../handoffs/2026-10-15-external-review-handoff.md)とPROJECT_STATEの現在参照・次作業欄だけを扱う。
 製品修正とは別PRである。既に統合済みのUIA対応は[前の日報](2026-10-15-ui-automation-daily-report.md)と
 [PR #241](https://github.com/hideyukiMORI/NeNeCommander/pull/241)を参照する。
+
+## 今回の区切りと終了時点
+
+2026-10-15、hideの「区切っていい」「日報と引き継ぎ書を書いて」という指定により、
+今回は事実確認とP0-1の再現テストまでを区切りとした。外部講評への製品修正全体が完了した意味ではない。
+この区切りの記録は[Issue #255](https://github.com/hideyukiMORI/NeNeCommander/issues/255)で扱う。
+
+| 対象 | 終了時点の状態 |
+|---|---|
+| UIA識別子 #240 / PR #241 | 統合済み。対象の23 distinct casesとbuild等の結果は前の日報に保持。 |
+| 初回事実確認 #242 / PR #252 | 統合済み。下表に事実・誤り・一部事実・未確認と根拠を保存。 |
+| 後片付け記録 #253 / PR #254 | 統合済み。hide実行後の不在確認済みで、完了作業の削除待ちはない。 |
+| P0-1 #243 / PR #249 | Draftのまま。2件の期待する失敗を再現済み。製品修正・修正受理・main統合は未完了。 |
+| P0-2 #250 / 終了契約 #251 | 追跡Issueのみ。設定回復、終了契約ADR、追加の故障注入は未実装。 |
+| P4 #244〜#248 | Issue登録のみ。実装しないという指示を維持。P2は未計測。 |
+
+本更新前のmainは`0675cdcb167a2842bb191a11af5ec0c8f971c095`でcleanかつremoteと同期していた。
+open PRは再現用Draft #249のみ。最新の製品入力は`ff528176e49884acf8b74dab43b3e1903aa225e4`から
+変わっておらず、その後のmain変更は文書のみである。本更新の最終mergeは#255のPRに記録する。
+
+次回は#243を最優先に、子孫の内容・identity確認を削除境界までどう維持するか、
+再照合中の更新と部分的な元削除をどう扱うかを既存ownerで設計する。
+既存の2 redを修正前の証拠として使い、再現だけのDraftをmergeしない。
+続いて#250の安全な一時ファイル回復と#251の終了契約を、それぞれ独立した修正として進める。
+CI、Shell起動確認、自然順ソート、ライセンスの判断事項は下表の推しを保持し、今回変更しない。
+
+今回の文書更新では静的確認と通常のCommit checksだけを行い、build・製品test・CIを開始しない。
+コマンド・結果・最終統合記録は`D:/NeNeCommander/evidence/session-close-20261015/`に保存する。
 
 ## 事実確認表
 
