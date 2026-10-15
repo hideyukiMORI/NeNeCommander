@@ -48,6 +48,8 @@
             </Style>
 
             <Style x:Key="PaneRowContainerStyle" TargetType="ListViewItem">
+                <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
+                <Setter Property="AutomationProperties.Name" Value="{Binding Entry.Name}" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="UseSystemFocusVisuals" Value="False" />
                 <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -176,6 +178,7 @@
                             Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
                     </Border>
                     <TextBlock
+                        AutomationProperties.AutomationId="{Binding AutomationId}"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
@@ -749,7 +752,10 @@
             CornerRadius="{StaticResource RadiusOperationBar}"
             Height="{StaticResource DensityOperationBarHeight}"
             Padding="{StaticResource SpacingOperationBar}">
-            <Grid ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
+            <Grid
+                x:Name="OperationContent"
+                AutomationProperties.LabeledBy="{Binding ElementName=OperationStatus}"
+                ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

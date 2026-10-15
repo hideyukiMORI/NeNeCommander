@@ -16,7 +16,7 @@ $script:RefusedKeys = @('F5', 'F6', 'Delete', 'Enter', 'Space')
 $script:GuardedKeys = @{
     F2 = 'NameEntry'
     F7 = 'NameEntry'
-    F8 = $null
+    F8 = $null # Product UIA identifiers do not enable this unimplemented guarded input route.
 }
 
 $script:VirtualKeys = @{

@@ -69,6 +69,9 @@ public sealed record DualPanePresentation
     /// <summary>Gets the status of the file-operation activity.</summary>
     public OperationStatus OperationStatus { get; }
 
+    /// <summary>Gets the deletion-confirmation attached identifier while pending, otherwise an empty value that permits the framework's element-name fallback.</summary>
+    public string DeletionConfirmationAutomationId => OperationStatus == OperationStatus.DeleteAwaitingConfirmation ? "DeletionConfirmation" : string.Empty;
+
     /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
     public OperationDetail Detail { get; }
 

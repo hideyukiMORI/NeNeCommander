@@ -7,10 +7,11 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public sealed record KeyHint
 {
-    internal KeyHint(string keyLabelResourceKey, string intentLabelResourceKey)
+    internal KeyHint(string keyLabelResourceKey, string intentLabelResourceKey, string automationId)
     {
         KeyLabelResourceKey = keyLabelResourceKey;
         IntentLabelResourceKey = intentLabelResourceKey;
+        AutomationId = automationId;
     }
 
     /// <summary>Gets the localization resource key of the key-cap label.</summary>
@@ -18,4 +19,7 @@ public sealed record KeyHint
 
     /// <summary>Gets the localization resource key that names the intent.</summary>
     public string IntentLabelResourceKey { get; }
+
+    /// <summary>Gets the stable identifier of a declared hint target, or empty when it declares none.</summary>
+    public string AutomationId { get; }
 }

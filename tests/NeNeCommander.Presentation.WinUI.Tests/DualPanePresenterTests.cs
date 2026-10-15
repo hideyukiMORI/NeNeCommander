@@ -40,6 +40,7 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(PaneStatus.Cancelled, presentation.Right.Status);
         Assert.AreEqual("C:\\right", presentation.Right.AddressText);
         Assert.AreSame(OperationStatus.Idle, presentation.OperationStatus);
+        Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationDetail.None, presentation.Detail);
         Assert.AreSame(KeyboardContext.FileList, presentation.InputContext);
     }
@@ -412,6 +413,7 @@ public sealed class DualPanePresenterTests
             await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.RenameAwaitingName, awaiting.OperationStatus);
+        Assert.AreEqual(string.Empty, awaiting.DeletionConfirmationAutomationId);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
         Assert.AreEqual("a.txt", Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText);
         Assert.AreSame(OperationDetail.None, awaiting.Detail);
@@ -552,6 +554,8 @@ public sealed class DualPanePresenterTests
             await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.DeleteAwaitingConfirmation, pending.OperationStatus);
+        Assert.AreEqual("DeletionConfirmation", pending.DeletionConfirmationAutomationId);
+        Assert.AreEqual(string.Empty, escaped.DeletionConfirmationAutomationId);
         Assert.AreEqual(2, Assert.IsInstanceOfType<OperationItemCountDetail>(pending.Detail).Count);
         Assert.AreSame(KeyboardContext.Modal, pending.InputContext);
         Assert.AreSame(OperationBarTone.AwaitingConfirmation, pending.Tone);
@@ -617,6 +621,7 @@ public sealed class DualPanePresenterTests
             await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
 
         Assert.AreSame(OperationStatus.DeletePartiallyCompleted, presentation.OperationStatus);
+        Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationBarTone.Failure, presentation.Tone);
     }
 
@@ -716,6 +721,7 @@ public sealed class DualPanePresenterTests
         Assert.AreEqual(1, modal.ConflictCount);
         Assert.AreSame(KeyboardContext.Modal, presentation.InputContext);
         Assert.AreSame(OperationStatus.CopyAwaitingConflict, presentation.OperationStatus);
+        Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationBarTone.AwaitingConfirmation, presentation.Tone);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
             null!,

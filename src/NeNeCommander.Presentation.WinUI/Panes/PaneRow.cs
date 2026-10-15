@@ -40,6 +40,9 @@ public sealed record PaneRow
     /// <summary>Gets the entry shown by the row.</summary>
     public DirectoryEntry Entry { get; }
 
+    /// <summary>Gets the exact-name identifier scoped to the owning file list, independent of row order or mark.</summary>
+    public string AutomationId => "FileListRow_" + Entry.Name;
+
     /// <summary>Gets the closed focus and selection mark.</summary>
     public PaneRowMark Mark { get; }
 
