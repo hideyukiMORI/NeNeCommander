@@ -112,7 +112,7 @@ foreach ($key in @('F5', 'F6', 'Delete', 'Enter', 'Space')) {
 $verdict = Test-KeyAdmission -Key 'F8'
 Assert-Case 'key: F8 without expected modal refused' (-not $verdict.Admit -and $verdict.Reason -ceq 'guarded-key-without-expected-modal:F8') $verdict.Reason
 $verdict = Test-KeyAdmission -Key 'F8' -OpensModal 'DeletionConfirmation'
-Assert-Case 'key: F8 refused while its modal is not exposed' (-not $verdict.Admit -and $verdict.Reason -ceq 'guarded-key-modal-not-exposed:F8') $verdict.Reason
+Assert-Case 'key: F8 remains refused despite a declared product confirmation identifier' (-not $verdict.Admit -and $verdict.Reason -ceq 'guarded-key-modal-not-exposed:F8') $verdict.Reason
 $verdict = Test-KeyAdmission -Key 'F7'
 Assert-Case 'key: F7 without expected modal refused' (-not $verdict.Admit) $verdict.Reason
 $verdict = Test-KeyAdmission -Key 'F7' -OpensModal 'SettingsModal'

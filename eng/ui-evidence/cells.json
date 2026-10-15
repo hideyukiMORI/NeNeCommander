@@ -28,9 +28,9 @@
     "nameEntry": "NameEntry",
     "settingsModal": "SettingsModal",
     "transferConflictModal": "TransferConflictModal",
-    "settingsEntry": { "automationId": null, "reason": "not-exposed", "note": "Ctrl+, is shown only as one OperationKeyHints item without its own AutomationId." },
-    "focusedRow": { "automationId": null, "reason": "not-exposed", "note": "Rows have no AutomationId; the harness reads the UIA focused element inside LeftFileList or RightFileList." },
-    "deletionConfirmation": { "automationId": null, "reason": "not-exposed", "note": "F8 is refused until its modal has a declared AutomationId." }
+    "settingsEntry": "SettingsEntryHint",
+    "focusedRow": { "automationIdPrefix": "FileListRow_", "scope": [ "LeftFileList", "RightFileList" ], "note": "Append the exact entry name and match within its owning file list. The identifier is on the row container, is independent of focus and order, and is not a persistent filesystem identity. Live UIA exposure is not yet verified." },
+    "deletionConfirmation": { "automationId": "DeletionConfirmation", "scope": "OperationBar", "note": "Declared on the existing operation content grid only while permanent deletion awaits confirmation. This declaration does not enable F8 input; live UIA exposure is not yet verified." }
   },
   "layout": {
     "elements": [
@@ -63,7 +63,7 @@
       [ "RightFileList", "RightPaneBorder" ],
       [ "OperationKeyHints", "OperationBar" ]
     ],
-    "notExposed": [ "settingsEntry" ]
+    "notExposed": []
   },
   "cells": [
     { "id": "observe-current-normal", "mode": "Observe", "status": "active", "scheme": "@current", "layout": "normal" },
@@ -162,7 +162,7 @@
       ]
     },
     { "id": "f2-rename-entry", "mode": "Input", "status": "skip", "reason": "not-implemented" },
-    { "id": "f8-delete-confirmation", "mode": "Input", "status": "skip", "reason": "not-implemented", "note": "The deletion confirmation has no declared AutomationId; F8 stays refused." },
+    { "id": "f8-delete-confirmation", "mode": "Input", "status": "skip", "reason": "not-implemented", "note": "DeletionConfirmation is declared by the product, but the guarded F8 route and this Input cell remain unimplemented. F8 stays refused." },
     { "id": "transfer-conflict", "mode": "Input", "status": "skip", "reason": "not-implemented" },
     { "id": "settings-editor", "mode": "Input", "status": "skip", "reason": "not-implemented" },
     { "id": "narrator-speech", "mode": "Input", "status": "skip", "reason": "environment-required", "note": "Speech evidence is out of scope for Issue #169." },

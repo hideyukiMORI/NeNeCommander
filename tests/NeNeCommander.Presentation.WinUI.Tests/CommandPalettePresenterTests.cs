@@ -38,6 +38,7 @@ public sealed class CommandPalettePresenterTests
         Assert.AreEqual("CommandPaletteHintCancel", hints[3].IntentLabelResourceKey);
         Assert.AreEqual("KeyLabelTab", hints[4].KeyLabelResourceKey);
         Assert.AreEqual("CommandPaletteHintFocus", hints[4].IntentLabelResourceKey);
+        Assert.IsTrue(hints.All(hint => hint.AutomationId == string.Empty));
     }
 
     /// <summary>Proves every searchable command and shared hint intent has one stable localized label.</summary>

@@ -18,4 +18,7 @@ public sealed record CommandPaletteKeyHint
 
     /// <summary>Gets the localized Presentation action label resource.</summary>
     public string IntentLabelResourceKey { get; }
+
+    /// <summary>Gets an empty identifier because palette hints declare no individual automation target.</summary>
+    public string AutomationId { get; } = string.Empty;
 }

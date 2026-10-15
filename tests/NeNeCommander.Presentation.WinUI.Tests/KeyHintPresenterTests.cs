@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
@@ -30,6 +31,8 @@ public sealed class KeyHintPresenterTests
         AssertHint(hints[8], "KeyLabelCtrlB", "IntentLabelOpenBookmarks");
         AssertHint(hints[9], "KeyLabelCtrlComma", "IntentLabelOpenSettings");
         AssertHint(hints[10], "KeyLabelEscape", "IntentLabelEscape");
+        Assert.AreEqual("SettingsEntryHint", hints[9].AutomationId);
+        Assert.AreEqual(1, hints.Count(hint => hint.AutomationId.Length > 0));
     }
 
     /// <summary>Proves a pending modal shows only its two declared keys.</summary>
@@ -41,6 +44,7 @@ public sealed class KeyHintPresenterTests
         Assert.HasCount(2, hints);
         AssertHint(hints[0], "KeyLabelEnter", "IntentLabelConfirm");
         AssertHint(hints[1], "KeyLabelEscape", "IntentLabelEscape");
+        Assert.IsTrue(hints.All(hint => hint.AutomationId == string.Empty));
     }
 
     /// <summary>Proves a context with no declared projection shows nothing.</summary>
@@ -50,6 +54,16 @@ public sealed class KeyHintPresenterTests
         Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.TextEntry));
         Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.NavigationSurface));
         Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.CommandPalette));
+    }
+
+    /// <summary>Proves the Locations hint set never exposes the settings entry target.</summary>
+    [TestMethod]
+    public void PresentWhenContextIsLocationsHasNoSettingsEntryIdentifier()
+    {
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations);
+
+        Assert.HasCount(4, hints);
+        Assert.IsTrue(hints.All(hint => hint.AutomationId == string.Empty));
     }
 
     /// <summary>Proves the presenter rejects an absent context.</summary>

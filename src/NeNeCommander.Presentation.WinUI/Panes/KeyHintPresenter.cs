@@ -35,7 +35,8 @@ public static class KeyHintPresenter
         {
             hints.Add(new KeyHint(
                 binding.KeyLabelResourceKey,
-                CommandLabelCatalog.LabelFor(intent).ResourceKey));
+                CommandLabelCatalog.LabelFor(intent).ResourceKey,
+                intent == UserIntent.OpenSettings ? "SettingsEntryHint" : string.Empty));
         }
     }
 

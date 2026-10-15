@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -219,6 +220,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderFrame(presentation.RightFrame, RightPaneBorder, RightPaneHeader);
         RenderNumber(presentation.RightFrame, RightPaneNumberSurface, RightPaneNumber);
         OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
+        AutomationProperties.SetAutomationId(OperationContent, presentation.DeletionConfirmationAutomationId);
         RenderTone(presentation.Tone);
         RenderDetail(presentation.Detail);
         OperationKeyHints.ItemsSource = presentation.KeyHints;
