@@ -3,19 +3,38 @@
 Status: informational
 
 NeNe Commanderサナから次回担当への引き継ぎ。[日報](../reports/2026-10-15-external-review-daily-report.md)に
-初回事実表、P0のred proof、P4の各Issue、hide判断4点、cleanup保留を収載した。
-文書Issueは[#242](https://github.com/hideyukiMORI/NeNeCommander/issues/242)、branchは
-`docs/242-external-review-facts`、worktreeは`D:/NeNeCommander/worktrees/issue-242`。
-開始時mainは`ff528176e49884acf8b74dab43b3e1903aa225e4`でclean。PR #241 / Issue #240は統合済み。
-今回の文書PRは製品修正・P0修正PRと分離し、最終PR状態とmerge結果は#242のPRで確認する。
+初回事実表、P0のred proof、P4の各Issue、hide判断4点、cleanup完了を収載した。
+2026-10-15にhideが「区切っていい」と指定し、今回は事実確認と再現テストまでで区切った。
+製品修正全体の完了ではなく、次回は未修正のP0-1から再開する。
+
+UIAのPR #241、初回事実表のPR #252、cleanup完了記録のPR #254は統合済み。
+この更新前のmainは`0675cdcb167a2842bb191a11af5ec0c8f971c095`でclean・同期済み。
+この終了記録は[Issue #255](https://github.com/hideyukiMORI/NeNeCommander/issues/255)で扱い、
+最終mergeはそのPRで確認する。#242の追加worktree/outputは既に整理済みで、復元する必要はない。
 
 ## 再開手順
 
 1. `AGENTS.md`、`docs/PROJECT_STATE.md`、ADR-0061と現在のhide指示を読む。
-2. `git status --short --branch`、worktree一覧、#242/#243とopen PRを確認する。古い未完了記述を現在へ引き継がない。
+2. `git status --short --branch`、worktree一覧、#243/#250/#251とopen PRを確認する。記録時open PRはDraft #249だけ。古い未完了記述を現在へ引き継がない。
 3. 日報の詳細なサブ主張表を読んで、下表の誤検知に新しいguardやrollbackを追加しない。
 4. #243の最新test・設計・製品修正・検証状態を確認する。本書のredは修正成功の証拠ではない。
 5. 末尾の完了記録を確認する。`outputs/issue-240`はhide実行後に不在確認済みで、削除を再要求しない。
+
+## 次回の着手順と保持物
+
+1. **#243の移動データ消失を最優先にする。** 既存gateway・tree engine・source providerをownerとし、
+   子孫の内容とidentity、再照合中の変更、削除直前の確認、部分的な元削除の結果を設計する。
+   再verifyだけでtree全体が凍結されるとは主張せず、修正に直接関係するADRと検証範囲を決める。
+2. **#250の設定回復を独立して進める。** 先に残留後の新storeで保存する再現を作る。
+   旧`.tmp`の名前だけで所有権を推定して削除せず、unique候補と回収条件を既存の安全境界で決める。
+3. **#251の終了契約を別の変更として進める。** 通常close、OS終了、kill/crash、描画喪失、取消、
+   書込失敗について既存shutdown ownerの保証・非保証と故障注入を定める。
+
+#243のbranchは`fix/243-verified-move-source`、headは`4bd47d245d70b8d0d1210e6baa6758736ed911d1`。
+`D:/NeNeCommander/worktrees/issue-243`と`D:/NeNeCommander/outputs/issue-243`は未完了のため保持する。
+新しい実装はまだなく、2 redは再現成功・製品検証失敗として区別する。
+同じ入力の成功済み証拠は再利用し、工程変更だけで全件testを繰り返さない。
+P4は#244〜#248への登録だけ、P2は未計測、方針4項目は下表の判断事項のままとする。
 
 今回hideが明示した役割分担の範囲で調査と文書化を担当した。次回の既定は現在のサナの単体実行であり、
 過去のAstra/Sol/Luna分担を無条件に継承しない。追加作業はDドライブのproject領域へ置く。
