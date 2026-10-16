@@ -19,6 +19,7 @@ public sealed class VerifiedCopyContractTests
     [DataRow("00")]
     [DataRow("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
     [DataRow("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")]
+    [DataRow("000000000000000000000000000000000000000000000000000000000000000G")]
     public void CreateWhenHashIsNotCanonicalRejects(string value)
     {
         _ = Assert.ThrowsExactly<ArgumentException>(() => FileContentHash.Create(value));

@@ -13,8 +13,14 @@ CodeQL `1968236380`のalert #115は新規テストの条件式1件で、述語�
 テストとbuild/format/Commit checkが成功した。再解析は未実行。
 coverage以降を成功扱いせず、成功済みのsuiteを工程変更だけで再実行しない。
 その後の補完ではApplication coverageが657成功・100.00%、Presentationが242成功・
-94.10%で基準を満たした。Domain coverage、dependency audit、Domain/Application/
-Presentationのadversarial/mutationは続行中。Infrastructureは既存失敗の扱いが未決定。
+94.10%で基準を満たした。Domainも100件・branch100%で成功、dependency auditは脆弱性なし。
+Domain/Application/Presentationのadversarialは3反復すべて成功し、mutationも
+95.54/95.64/95.17%で基準を満たした。Infrastructure coverageは626成功・既知の1失敗・
+live16skip、branch92.07%を出力したがexit2で失敗のまま。既存失敗の修正可否が未決定のため、
+Infrastructureのadversarial反復とmutationは未実行。0件だけを選んだhash guard診断は
+証拠に使わない。文字位置635..718へ直した補完は4変異すべてKilled、局所score100%で成功し、
+全体scoreを置き換えていない。directory専用helperの未使用file分岐は
+削除し、関連build/7ケース成功。hashの不正1文字ケースを足した5行も成功。
 
 ## 再開時に確認すること
 

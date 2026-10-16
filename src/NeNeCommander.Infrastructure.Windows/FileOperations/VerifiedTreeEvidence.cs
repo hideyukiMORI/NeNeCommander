@@ -38,16 +38,10 @@ internal static class VerifiedTreeEvidence
         return names.SetEquals(access.Children(path));
     }
 
-    internal static bool TargetMatches(VerifiedCopyEntry entry, VerifiedTreeAccess access)
+    internal static bool TargetMatches(VerifiedCopyEntry.VerifiedDirectory directory, VerifiedTreeAccess access)
     {
-        return access.Capture(entry.Target.Path) == entry.Target &&
-            (entry switch
-            {
-                VerifiedCopyEntry.VerifiedFile file => access.Find(file.Target.Path) is FileInfo &&
-                    VerifiedFileContent.Read(access.Resolve(file.Target.Path)) == file.Content,
-                VerifiedCopyEntry.VerifiedDirectory directory => Membership(directory.Target.Path,
-                    directory.Children.Select(child => child.Target.Path), access),
-                _ => false,
-            }) && access.Capture(entry.Target.Path) == entry.Target;
+        return access.Capture(directory.Target.Path) == directory.Target &&
+            Membership(directory.Target.Path, directory.Children.Select(child => child.Target.Path), access) &&
+            access.Capture(directory.Target.Path) == directory.Target;
     }
 }

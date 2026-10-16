@@ -70,6 +70,30 @@ branch 100.00%、Presentationは242成功・branch 94.10%で、ともに失敗�
 変更コードの未通過branchなし。必要基準100%/90%を満たす。raw Coberturaと実行commandは
 恒久evidenceの`coverage/`に保持し、以後入力が変わらなければ再利用する。
 
+Domainは前回のdeep成功後に#224の変更があるため、古い結果をそのまま使わず確認した。
+100件成功・branch/lineとも100%。Domain/Application/Presentationの異常系は各回
+60/88/12件、3反復すべて成功（計480実行、失敗・skipとも0）。直接・推移的依存の監査は
+脆弱性なし。固定Stryker 5.0.0、既存Complete/vstest/concurrency4の設定で、mutationは
+同順95.54/95.64/95.17%となり、基準95/95/90を満たした。元の全体結果とtoolが自動分類した
+compile-error/ignored/timeoutもraw reportに残す。閾値変更や新しい除外はない。
+
+Infrastructureの未実行coverageは除外なしで一度だけ取得した。626成功・既知の#257が1失敗・
+live 16skip、exit 2のまま。Coberturaのbranchは92.07%で基準90%を超えるが、stage成功とは
+扱わない。変更コードには未通過の防御分岐があり、全分岐の通過を主張しない。
+削除owner `VerifiedSourceDeletion`には未通過branch entryはなかった。
+Infrastructureの異常系反復とmutationは、初期テストの既存失敗が未解決のため開始していない。
+
+内訳レビューで、directory専用callerしか持たない`TargetMatches`に残っていたfile用分岐を
+削除し、引数を`VerifiedDirectory`へ絞った。実行されるcapture/membership/captureは不変で、
+関連buildと既存7ケースが成功した。Applicationには64文字中1文字だけが不正なhashの
+拒否ケースを追加し、対象methodの5行が成功。mutationの部分範囲指定を行番号と誤認した
+最初の実行は選択0件だったため、exit 0でも成功証拠に含めない。公式仕様の文字位置
+`635..718`でguardの83文字を選び直した補完は、対象4変異すべてKilled、局所score100%で成功。
+`Any`→`All`も検出した。元のApplication全体score95.64%を局所scoreで置き換えず、
+例外message変更のsurvivorも元のraw reportに保持する。CodeQL再解析はまだ未完了。
+正確なcommands、raw reportと
+選択0件の履歴は`D:/NeNeCommander/evidence/issue-243/20261016/supplemental-deep/`へ保持する。
+
 ## 次の独立作業と保持物
 
 設定一時ファイル残留の[#250](https://github.com/hideyukiMORI/NeNeCommander/issues/250)と
