@@ -2,6 +2,9 @@
 
 Status: informational
 
+最終更新: 2026-10-17 03:46 JST。hideの指示で本日の開発作業を終了し、続きは次回へ引き継ぐ。
+Issue #257の検体1行修正は許可済み。今日はその修正や追加検証を開始せず、この記録だけを保存する。
+
 NeNe Commanderサナはhideの2026-10-16の委譲を受け、設計・判断を担当し、
 実装と関連検証をSol、次Issueの読み取り調査をLunaへ依頼した。
 [前回の引き継ぎ](../handoffs/2026-10-15-external-review-handoff.md)に従い、
@@ -110,11 +113,17 @@ SEC-014/ADR-0063で受理済みのowner境界であり、raw結果を抑制・fi
 path filterがC#では効かないというtoolのnoteも保持する。補足結果でcanonical uploadを
 上書きせず、両方のSARIF、commands、抽出診断、GitHub読戻しを恒久evidenceの`codeql/`へ保存した。
 
-現在の残件は#257の別件1行修正の可否と、Infrastructureのcoverage完了・異常系反復・
-mutationである。hideの「無関係な既存テストの失敗は記録して分離し、現在の修正を止めて
-全件再試行や別件修正を始めない」という指定に従い、schemaVersion 3→4の別Issue修正を
-確認中。元のdeep runの失敗は変わらず、全体合格・技術受理・mergeは主張しない。
-この最終記録は文書のみの更新で、成功済み検証やCIを追加実行しない。
+現在の残件は#257の別件1行修正と、Infrastructureのcoverage完了・異常系反復・mutationである。
+無関係な既存失敗を分離するhideの指定に従って修正可否を確認したところ、2026-10-17の
+終了指示でschemaVersion 3→4の1行修正が許可された。製品コード・期待値は変えない。
+同時に「今日はこの辺で止めて明日以降続きをやろう」と指示されたため、実施は次回に残した。
+再開時に同じ修正許可を取り直す必要はない。元のdeep runの失敗は変わらず、
+全体合格・技術受理・mergeは主張しない。
+
+終了時点の製品/test commitは`30e6bc0`、この終了記録前のbranch headは`2ce58ff`。
+mainは`66fc30d`のまま、PR #249はopen/draftである。両作業treeに未保存変更がないことを
+確認してから、この文書更新を行った。文書・link・diffの確認と通常の
+`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`を通して保存し、製品build/testやCIは追加しない。
 
 ## 次の独立作業と保持物
 
