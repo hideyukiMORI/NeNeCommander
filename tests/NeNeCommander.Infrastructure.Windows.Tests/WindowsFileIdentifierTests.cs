@@ -16,6 +16,25 @@ public sealed class WindowsFileIdentifierTests
     private const uint ReparsePointAttribute = 0x00000400;
     private const int NotSupported = unchecked((int)0x80070032);
 
+    /// <summary>Proves stable WSL object components ignore owned metadata changes while full identities retain them.</summary>
+    [TestMethod]
+    public void ComposeWslObjectTokenWhenDirectoryMetadataChangesKeepsOnlyOriginalObjectComponents()
+    {
+        WslHandleFacts original = new(42, DirectoryAttribute, 0, 0, 2, 10, 20);
+        WslHandleFacts modified = new(42, DirectoryAttribute, 0, 0, 3, 11, 21);
+
+        Assert.AreEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
+            WindowsFileIdentifier.ComposeWslObjectToken("ubuntu", modified));
+        Assert.AreNotEqual(WindowsFileIdentifier.ComposeWslToken("Ubuntu", original),
+            WindowsFileIdentifier.ComposeWslToken("Ubuntu", modified));
+        Assert.AreNotEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
+            WindowsFileIdentifier.ComposeWslObjectToken("Debian", original));
+        Assert.AreNotEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
+            WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", new WslHandleFacts(43, DirectoryAttribute, 0, 0, 2, 10, 20)));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsFileIdentifier.ComposeWslObjectToken(null!, original));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", null!));
+    }
+
     /// <summary>Proves the native query boundary rejects a missing path argument.</summary>
     [TestMethod]
     public void DescribeWhenPathIsNullThrowsArgumentNullException()

@@ -680,6 +680,30 @@ public sealed class DualPanePresenterTests
         Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
     }
 
+    /// <summary>Proves partial source removal is visible separately from an entirely deleted source.</summary>
+    [TestMethod]
+    public async Task PresentWhenMoveSourceIsPartiallyDeletedShowsDistinctRemovalCountAndFailure()
+    {
+        DualPanePresentation presentation = await MovePresentationAsync(port =>
+        {
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.Succeeded());
+            port.EnqueueStep(ProviderStepOutcome.FailedAfterEffect(
+                FileOperationFailureKind.Delete, ProviderStepEffectKind.SourcePartiallyDeleted));
+        }, CancellationToken.None);
+
+        TransferResultDetail result = Assert.IsInstanceOfType<TransferResultDetail>(presentation.Detail);
+        Assert.AreEqual(0, result.SourceDeleted);
+        Assert.AreEqual(1, result.SourcePartiallyDeleted);
+        Assert.AreEqual(1, result.Copied);
+        Assert.AreEqual(1, result.Verified);
+        Assert.AreSame(OperationStatus.MovePartiallyCompleted, presentation.OperationStatus);
+        Assert.AreSame(OperationBarTone.Failure, presentation.Tone);
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SourceDeletionCounts.Create(0, -1));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new TransferResultDetail(0, 0, 0, null!));
+    }
+
     /// <summary>Proves conflict presentation keeps the existing modal context and exposes the safe candidate.</summary>
     [TestMethod]
     public async Task PresentWhenCopyAwaitsConflictShowsCandidateWithCancelAsInitialFocus()
@@ -1005,10 +1029,10 @@ public sealed class DualPanePresenterTests
         PaneRows rows = new([row], TestMetadataFormats.Utc);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => rows.Replace(0, null!));
 
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(-1, 0, 0, 0));
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, -1, 0, 0));
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, -1, 0));
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, 0, -1));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(-1, 0, 0, SourceDeletionCounts.Create(0, 0)));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, -1, 0, SourceDeletionCounts.Create(0, 0)));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, -1, SourceDeletionCounts.Create(0, 0)));
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SourceDeletionCounts.Create(-1, 0));
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new OperationItemCountDetail(0));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new OperationProgressDetail(null!));
     }

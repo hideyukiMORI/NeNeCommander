@@ -55,6 +55,7 @@
   <data name="TransferResultCopied.Text" xml:space="preserve"><value>Copied</value></data>
   <data name="TransferResultVerified.Text" xml:space="preserve"><value>Verified</value></data>
   <data name="TransferResultSourceDeleted.Text" xml:space="preserve"><value>Source deleted</value></data>
+  <data name="TransferResultSourcePartiallyDeleted.Text" xml:space="preserve"><value>Source partly deleted</value></data>
   <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>Creating directory…</value></data>
   <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>Enter a name for the new directory</value></data>
   <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>Directory created</value></data>

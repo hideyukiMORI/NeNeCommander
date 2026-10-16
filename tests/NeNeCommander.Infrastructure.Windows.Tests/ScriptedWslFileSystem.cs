@@ -47,6 +47,37 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
 
     internal WslFileSystemEntry? ReplaceSourceWhenTargetChecked { get; set; }
 
+    public string ResolveVerificationPath(WslPath path)
+    {
+        throw new InvalidOperationException("The scripted namespace has no physical transport.");
+    }
+
+    public VerifiedEntrySnapshot CaptureVerificationEntry(WslPath path)
+    {
+        WslFileSystemEntry entry = Find(path) ?? throw new IOException("The scripted entry is absent.");
+        return VerifiedEntrySnapshot.Create(path, entry.Identity, FileObjectIdentity.Create(entry.Identity.Value));
+    }
+
+    public CopyVerificationOutcome VerifyCopy(FileEntrySnapshot source, FileSystemPath target)
+    {
+        ThrowWhenConfigured();
+        return MatchResult && _entries.ContainsKey(target.CanonicalText)
+            ? VerificationTestEvidence.ForTarget(source, target)
+            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
+    }
+
+    public ProviderStepOutcome DeleteVerifiedSource(FileEntrySnapshot source, VerifiedCopyReceipt receipt)
+    {
+        ThrowWhenConfigured();
+        WslFileSystemEntry? entry = source.Path is WslPath wsl ? Find(wsl) : null;
+        if (entry is null || entry.Identity != source.Identity)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged);
+        }
+        Delete(entry);
+        return ProviderStepOutcome.Succeeded();
+    }
+
     public WslFileSystemEntry? Find(WslPath path)
     {
         ThrowWhenConfigured();
@@ -96,12 +127,6 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
             : ProviderStepOutcome.Succeeded();
     }
 
-    public bool Matches(WslFileSystemEntry source, WslPath target)
-    {
-        ThrowWhenConfigured();
-        return MatchResult && _entries.ContainsKey(target.CanonicalText);
-    }
-
     public ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
     {
         if (FailCopyBeforeTarget)
@@ -116,12 +141,6 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
             : ProviderStepOutcome.Succeeded();
     }
 
-    public bool MatchesWindowsLocal(FileSystemInfo source, WslPath target)
-    {
-        ThrowWhenConfigured();
-        return MatchResult && _entries.ContainsKey(target.CanonicalText);
-    }
-
     public FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
     {
         return FileOperationFailureKind.ProviderUnavailable;
@@ -130,11 +149,6 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
     public ProviderStepOutcome CopyToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
     {
         return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
-    }
-
-    public bool MatchesWindowsLocalTarget(WslFileSystemEntry source, WindowsLocalPath target)
-    {
-        return false;
     }
 
     public void CreateDirectory(WslPath target)

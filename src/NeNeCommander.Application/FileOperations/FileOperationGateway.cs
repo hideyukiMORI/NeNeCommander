@@ -236,7 +236,7 @@ public sealed class FileOperationGateway : IDisposable
             FileEntrySnapshot snapshot = entry.Source.WithTransferTarget(entry.Target);
             FileOperationOutcome? stopped = request is MoveRequest
                 ? await MoveOneAsync(snapshot, destination, capabilities[index], effects, cancellationToken)
-                : await CopyOneAsync(snapshot, destination, effects, cancellationToken);
+                : (await CopyOneAsync(snapshot, destination, effects, cancellationToken)).Stopped;
             if (stopped is not null)
             {
                 return MergeNotTransferred(stopped, notTransferred);
@@ -508,7 +508,7 @@ public sealed class FileOperationGateway : IDisposable
         return InspectionBatch.Succeeded(snapshots);
     }
 
-    private async Task<FileOperationOutcome?> CopyOneAsync(
+    private async Task<CopyExecution> CopyOneAsync(
         FileEntrySnapshot snapshot,
         FileSystemPath destination,
         List<FileOperationEffect> effects,
@@ -516,28 +516,35 @@ public sealed class FileOperationGateway : IDisposable
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(effects);
+            return CopyExecution.Stop(FileOperationOutcome.Cancelled(effects));
         }
         ProviderStepOutcome copy = await _port.CopyAsync(snapshot, destination, cancellationToken);
         AddCopyProviderEffect(snapshot, copy, effects);
         if (copy.Failure is not null)
         {
-            return FileOperationOutcome.Failed(effects, copy.Failure);
+            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, copy.Failure));
         }
         effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Copied));
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(effects);
+            return CopyExecution.Stop(FileOperationOutcome.Cancelled(effects));
         }
 
-        ProviderStepOutcome verification = await _port.VerifyCopyAsync(snapshot, destination, cancellationToken);
+        CopyVerificationOutcome verification = await _port.VerifyCopyAsync(snapshot, destination, cancellationToken);
         if (verification.Failure is not null)
         {
-            return FileOperationOutcome.Failed(effects, verification.Failure);
+            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, verification.Failure));
+        }
+        VerifiedCopyReceipt receipt = ((CopyVerified)verification).Receipt;
+        if (receipt.Source.Identity != snapshot.Identity ||
+            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Source.Path, snapshot.Path) ||
+            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Root.Target.Path, snapshot.TransferTarget))
+        {
+            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, FileOperationFailureKind.Verification));
         }
         effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Verified));
-        return null;
+        return CopyExecution.Complete(receipt);
     }
 
     private static void AddCopyProviderEffect(
@@ -562,17 +569,24 @@ public sealed class FileOperationGateway : IDisposable
         {
             return await MoveAtomicallyAsync(snapshot, destination, effects, cancellationToken);
         }
-        FileOperationOutcome? stopped = await CopyOneAsync(snapshot, destination, effects, cancellationToken);
-        if (stopped is not null)
+        CopyExecution copy = await CopyOneAsync(snapshot, destination, effects, cancellationToken);
+        if (copy.Stopped is not null)
         {
-            return stopped;
+            return copy.Stopped;
         }
         if (cancellationToken.IsCancellationRequested)
         {
             return FileOperationOutcome.Cancelled(effects);
         }
 
-        ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, DeletionExecutionMode.Permanent, cancellationToken);
+        ProviderStepOutcome deletion = await _port.DeleteAsync(
+            snapshot,
+            DeletionExecutionMode.VerifiedCopy(((CopyCompleted)copy).Receipt),
+            cancellationToken);
+        if (deletion.Effect == ProviderStepEffectKind.SourcePartiallyDeleted)
+        {
+            effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.SourcePartiallyDeleted));
+        }
         if (deletion.Failure is not null)
         {
             return FileOperationOutcome.Failed(effects, deletion.Failure);
@@ -603,6 +617,46 @@ public sealed class FileOperationGateway : IDisposable
     private static bool NeedsConfirmation(IReadOnlyList<FileEntrySnapshot> snapshots)
     {
         return snapshots.Any(snapshot => snapshot.DeletionCapability == DeletionCapability.PermanentOnly);
+    }
+
+    private abstract record CopyExecution
+    {
+        private protected CopyExecution()
+        {
+        }
+
+        internal abstract FileOperationOutcome? Stopped { get; }
+
+        internal static CopyStopped Stop(FileOperationOutcome outcome)
+        {
+            return new CopyStopped(outcome);
+        }
+
+        internal static CopyCompleted Complete(VerifiedCopyReceipt receipt)
+        {
+            return new CopyCompleted(receipt);
+        }
+    }
+
+    private sealed record CopyStopped : CopyExecution
+    {
+        internal CopyStopped(FileOperationOutcome stopped)
+        {
+            Stopped = stopped;
+        }
+
+        internal override FileOperationOutcome Stopped { get; }
+    }
+
+    private sealed record CopyCompleted : CopyExecution
+    {
+        internal CopyCompleted(VerifiedCopyReceipt receipt)
+        {
+            Receipt = receipt;
+        }
+
+        internal VerifiedCopyReceipt Receipt { get; }
+        internal override FileOperationOutcome? Stopped => null;
     }
 
     private sealed class InspectionBatch

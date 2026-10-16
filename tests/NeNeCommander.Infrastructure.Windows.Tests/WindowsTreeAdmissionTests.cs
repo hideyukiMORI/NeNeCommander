@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
@@ -10,6 +11,20 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsTreeAdmissionTests
 {
+    /// <summary>Proves required verification evidence arguments are rejected before any I/O.</summary>
+    [TestMethod]
+    public void VerifyWhenRequiredArgumentIsNullRejectsBeforeIo()
+    {
+        FileSystemPath path = Parse("C:\\source");
+        FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;
+        FileEntrySnapshot source = FileEntrySnapshot.Create(path, identity, DeletionCapability.PermanentOnly);
+        VerifiedTreeAccess access = new(new WindowsWslFileSystem());
+
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsLocalTreeCopy.Verify(null!, path, access));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsLocalTreeCopy.Verify(source, null!, access));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsLocalTreeCopy.Verify(source, path, null!));
+    }
+
     /// <summary>Proves a provider enumeration with distinct case-sensitive names cannot merge on Windows.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -31,13 +46,12 @@ public sealed class WindowsTreeAdmissionTests
             enumeration, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
         ProviderStepOutcome copy = WindowsLocalTreeCopy.CopyChildren(
             enumeration, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
-        bool matches = WindowsLocalTreeCopy.MatchesChildren(
-            enumeration, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+        _ = Assert.ThrowsExactly<IOException>(() => WindowsLocalTreeCopy.VerifyChildren(
+            [Parse(first.FullName), Parse(second.FullName)], target, new VerifiedTreeAccess(new WindowsWslFileSystem())));
 
         Assert.AreSame(FileOperationFailureKind.Conflict, preflight);
         Assert.AreSame(FileOperationFailureKind.Conflict, copy.Failure);
         Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, copy.Effect);
-        Assert.IsFalse(matches);
         Assert.HasCount(1, Directory.GetFileSystemEntries(root.Resolve("target")));
         Assert.IsTrue(first.Exists);
         Assert.IsTrue(second.Exists);
@@ -130,8 +144,9 @@ public sealed class WindowsTreeAdmissionTests
             source, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
 
         Assert.IsNull(outcome.Failure);
-        Assert.IsTrue(WindowsLocalTreeCopy.Matches(
-            source, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource));
+        Assert.IsNull(new WindowsWslFileSystem().VerifyCopy(
+            FileEntrySnapshot.Create(Parse(source.FullName), WindowsLocalEntryIdentity.Describe(source),
+                DeletionCapability.PermanentOnly), target).Failure);
         Assert.AreEqual("original", File.ReadAllText(root.Resolve("copied\\" + nested + "\\payload.txt")));
     }
 

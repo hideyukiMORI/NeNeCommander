@@ -22,6 +22,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 {
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly WindowsRecycleBin _recycleBin;
+    private readonly IWslFileSystem _wslFileSystem;
 
     /// <summary>Initializes an adapter with the default Windows local I/O execution boundary.</summary>
     public WindowsLocalFileOperationAdapter()
@@ -44,6 +45,13 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(recycleBin);
         _executionBoundary = executionBoundary;
         _recycleBin = recycleBin;
+        _wslFileSystem = new WindowsWslFileSystem();
+    }
+
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary, IWslFileSystem wslFileSystem)
+        : this(executionBoundary)
+    {
+        _wslFileSystem = wslFileSystem;
     }
 
     /// <inheritdoc />
@@ -101,7 +109,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -109,7 +117,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Verify(source, destination), FileOperationFailureKind.Verification));
+            () => WslFileOperationAdapter.GuardedVerification(() => Verify(source, destination)));
     }
 
     /// <inheritdoc />
@@ -516,21 +524,30 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             : ProviderStepOutcome.Failed(failure);
     }
 
-    private static ProviderStepOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
+    private CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WindowsLocalPath localDestination
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry =>
-                BuildTarget(source, localDestination, entry) is WindowsLocalPath target &&
-                WindowsLocalTreeCopy.Matches(
-                    entry, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource)
-                    ? ProviderStepOutcome.Succeeded()
-                    : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        if (destination is not WindowsLocalPath local || WindowsLocalTransferDestination.Failure(local) is not null)
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        RevalidationOutcome revalidation = RevalidateTransferSource(source);
+        if (revalidation is EntryRejected rejected)
+        {
+            return CopyVerificationOutcome.Failed(rejected.Failure);
+        }
+        FileSystemInfo entry = ((EntryMatched)revalidation).Entry;
+        return BuildTarget(source, local, entry) is WindowsLocalPath target && TargetExists(target.CanonicalText)
+            ? _wslFileSystem.VerifyCopy(source, target)
+            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
     }
 
-    private static ProviderStepOutcome Delete(FileEntrySnapshot source, DeletionExecutionMode mode)
+    private ProviderStepOutcome Delete(FileEntrySnapshot source, DeletionExecutionMode mode)
     {
-        return mode != DeletionExecutionMode.Permanent
+        return mode is DeletionExecutionMode.VerifiedCopyMode verified
+            ? source.Path is WindowsLocalPath
+                ? _wslFileSystem.DeleteVerifiedSource(source, verified.Receipt)
+                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : mode != DeletionExecutionMode.Permanent
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(source, DeleteEntry);
     }

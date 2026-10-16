@@ -17,7 +17,7 @@ internal sealed class WslToWindowsTransferFixture : IDisposable
         WindowsLocalIoExecutionBoundary execution = new();
         Transfer = new WslToWindowsTransfer(execution, fileSystem);
         Router = new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution),
+            new WindowsLocalFileOperationAdapter(execution, fileSystem),
             new WslFileOperationAdapter(execution, fileSystem),
             new WindowsToWslTransfer(execution, fileSystem),
             Transfer);
@@ -38,7 +38,7 @@ internal sealed class WslToWindowsTransferFixture : IDisposable
         _ = root.CreateDirectory("windows");
         WindowsWslFileSystem fileSystem = new(
             path => OwnedWslNamespace.Resolve(root.ResolveVerbatim("wsl"), path),
-            readFacts ?? WindowsFileIdentifier.ReadHandleFacts);
+            readFacts ?? OwnedWslNamespace.ReadFacts);
         return new WslToWindowsTransferFixture(root, fileSystem);
     }
 

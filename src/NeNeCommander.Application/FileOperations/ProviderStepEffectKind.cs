@@ -14,10 +14,14 @@ public abstract record ProviderStepEffectKind
     /// <summary>Gets a confirmed recycle completed before a later provider failure.</summary>
     public static ProviderStepEffectKind Recycled { get; } = new RecycledEffect();
 
+    /// <summary>Gets confirmed descendant removal before verified source deletion stopped.</summary>
+    public static ProviderStepEffectKind SourcePartiallyDeleted { get; } = new SourcePartiallyDeletedEffect();
+
     private ProviderStepEffectKind()
     {
     }
 
     private sealed record CopyTargetCreatedEffect : ProviderStepEffectKind;
     private sealed record RecycledEffect : ProviderStepEffectKind;
+    private sealed record SourcePartiallyDeletedEffect : ProviderStepEffectKind;
 }

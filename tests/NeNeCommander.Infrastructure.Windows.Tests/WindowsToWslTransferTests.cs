@@ -132,7 +132,7 @@ public sealed class WindowsToWslTransferTests
             file,
             deep,
             CancellationToken.None);
-        ProviderStepOutcome unnamedVerify = await Transfer(deepDestination).VerifyCopyAsync(
+        CopyVerificationOutcome unnamedVerify = await Transfer(deepDestination).VerifyCopyAsync(
             file,
             deep,
             CancellationToken.None);
@@ -155,7 +155,7 @@ public sealed class WindowsToWslTransferTests
         WindowsToWslTransfer transfer = Transfer(destination);
 
         ProviderStepOutcome copy = await transfer.CopyAsync(file, Destination, CancellationToken.None);
-        ProviderStepOutcome verify = await transfer.VerifyCopyAsync(file, Destination, CancellationToken.None);
+        CopyVerificationOutcome verify = await transfer.VerifyCopyAsync(file, Destination, CancellationToken.None);
 
         Assert.IsNull(copy.Failure);
         Assert.IsNull(copy.Effect);
@@ -281,25 +281,25 @@ public sealed class WindowsToWslTransferTests
         ScriptedWslFileSystem lost = CopiedDestination("item.txt");
         lost.Failure = new IOException("Synthetic provider loss.");
 
-        ProviderStepOutcome absent = await Transfer(absentTarget).VerifyCopyAsync(file, Destination, CancellationToken.None);
-        ProviderStepOutcome mismatch = await Transfer(damaged).VerifyCopyAsync(file, Destination, CancellationToken.None);
-        ProviderStepOutcome link = await Transfer(linkedTarget).VerifyCopyAsync(file, Destination, CancellationToken.None);
-        ProviderStepOutcome unusable = await Transfer(missingDestination).VerifyCopyAsync(
+        CopyVerificationOutcome absent = await Transfer(absentTarget).VerifyCopyAsync(file, Destination, CancellationToken.None);
+        CopyVerificationOutcome mismatch = await Transfer(damaged).VerifyCopyAsync(file, Destination, CancellationToken.None);
+        CopyVerificationOutcome link = await Transfer(linkedTarget).VerifyCopyAsync(file, Destination, CancellationToken.None);
+        CopyVerificationOutcome unusable = await Transfer(missingDestination).VerifyCopyAsync(
             file,
             Destination,
             CancellationToken.None);
-        ProviderStepOutcome identity = await Transfer(matching).VerifyCopyAsync(changed, Destination, CancellationToken.None);
-        ProviderStepOutcome foreign = await Transfer(matching).VerifyCopyAsync(
+        CopyVerificationOutcome identity = await Transfer(matching).VerifyCopyAsync(changed, Destination, CancellationToken.None);
+        CopyVerificationOutcome foreign = await Transfer(matching).VerifyCopyAsync(
             file,
             Local(root.Resolve("outside")),
             CancellationToken.None);
-        ProviderStepOutcome guarded = await Transfer(lost).VerifyCopyAsync(file, Destination, CancellationToken.None);
-        ProviderStepOutcome treeBeforeLink = await Transfer(treeCopied).VerifyCopyAsync(
+        CopyVerificationOutcome guarded = await Transfer(lost).VerifyCopyAsync(file, Destination, CancellationToken.None);
+        CopyVerificationOutcome treeBeforeLink = await Transfer(treeCopied).VerifyCopyAsync(
             tree,
             Destination,
             CancellationToken.None);
         _ = root.CreateJunction("tree\\sub\\link", "outside");
-        ProviderStepOutcome sourceLink = await Transfer(treeCopied).VerifyCopyAsync(tree, Destination, CancellationToken.None);
+        CopyVerificationOutcome sourceLink = await Transfer(treeCopied).VerifyCopyAsync(tree, Destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Verification, absent.Failure);
         Assert.AreSame(FileOperationFailureKind.Verification, mismatch.Failure);

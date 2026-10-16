@@ -63,15 +63,15 @@ internal sealed class WslToWindowsTransfer : IFileOperationPort
             () => WithSource(source, destination, CopyEntry), FileOperationFailureKind.Copy));
     }
 
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return _executionBoundary.ExecuteAsync(() => WslFileOperationAdapter.Guarded(
-            () => WithSource(source, destination, VerifyEntry), FileOperationFailureKind.Verification));
+        return _executionBoundary.ExecuteAsync(() => WslFileOperationAdapter.GuardedVerification(
+            () => Verify(source, destination)));
     }
 
     public Task<ProviderStepOutcome> MoveAsync(
@@ -180,11 +180,18 @@ internal sealed class WslToWindowsTransfer : IFileOperationPort
         }
     }
 
-    private ProviderStepOutcome VerifyEntry(WslFileSystemEntry source, WindowsLocalPath destination)
+    private CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return WindowsLocalTreeCopy.DeriveChild(destination, source.Name) is WindowsLocalPath target && _source.MatchesWindowsLocalTarget(source, target)
-                ? ProviderStepOutcome.Succeeded()
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification);
+        ProviderStepOutcome admission = WithSource(source, destination, (_, _) => ProviderStepOutcome.Succeeded());
+        if (admission.Failure is FileOperationFailureKind failure)
+        {
+            return CopyVerificationOutcome.Failed(failure);
+        }
+        WslFileSystemEntry current = _source.Find((WslPath)source.Path) ??
+            throw new IOException("The verified source disappeared.");
+        return WindowsLocalTreeCopy.DeriveChild(destination, current.Name) is WindowsLocalPath target
+            ? _source.VerifyCopy(source, target)
+            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
     }
 
     private static ProviderStepOutcome FailedCopy(WindowsLocalPath target, int hResult)

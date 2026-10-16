@@ -91,7 +91,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
                 FileOperationFailureKind.Copy));
     }
 
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -99,9 +99,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => WslFileOperationAdapter.Guarded(
-                () => Verify(source, destination),
-                FileOperationFailureKind.Verification));
+            () => WslFileOperationAdapter.GuardedVerification(() => Verify(source, destination)));
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -213,19 +211,27 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         }
     }
 
-    private ProviderStepOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
+    private CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WslPath wslDestination
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, entry =>
-                WslFileOperationAdapter.IsUsableDestination(_destination, wslDestination) &&
-                !WindowsLocalTreeCopy.ContainsReparsePoint(entry) &&
-                WslFileOperationAdapter.BuildTarget(entry.Name, wslDestination) is WslPath target &&
-                _destination.TargetExists(target) &&
-                !_destination.ContainsReparsePoint(target) &&
-                _destination.MatchesWindowsLocal(entry, target)
-                    ? ProviderStepOutcome.Succeeded()
-                    : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        if (destination is not WslPath wslDestination)
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        ProviderStepOutcome admission = WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, entry =>
+            WslFileOperationAdapter.IsUsableDestination(_destination, wslDestination) &&
+            !WindowsLocalTreeCopy.ContainsReparsePoint(entry) &&
+            WslFileOperationAdapter.BuildTarget(entry.Name, wslDestination) is WslPath target &&
+            _destination.TargetExists(target) && !_destination.ContainsReparsePoint(target)
+                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        if (admission.Failure is FileOperationFailureKind failure)
+        {
+            return CopyVerificationOutcome.Failed(failure);
+        }
+        FileSystemInfo current = WindowsLocalEntryIdentity.Find((WindowsLocalPath)source.Path) ??
+            throw new IOException("The verified source disappeared.");
+        return WslFileOperationAdapter.BuildTarget(current.Name, wslDestination) is WslPath copiedTarget
+            ? _destination.VerifyCopy(source, copiedTarget)
+            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
     }
 
     private static Task<ProviderStepOutcome> FailedStep()

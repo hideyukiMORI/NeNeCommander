@@ -136,6 +136,16 @@ internal static partial class WindowsFileIdentifier
                 facts.ChangeFileTimeUtc.ToString(CultureInfo.InvariantCulture));
     }
 
+    /// <summary>Composes the stable object component without parsing the rewrite-sensitive token.</summary>
+    internal static string ComposeWslObjectToken(string distribution, WslHandleFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(distribution);
+        ArgumentNullException.ThrowIfNull(facts);
+        return string.Join('|', "wsl-object-v1", distribution.ToUpperInvariant(),
+            facts.Inode.ToString(CultureInfo.InvariantCulture), DescribeKind(facts),
+            facts.ReparseTag.ToString("X8", CultureInfo.InvariantCulture));
+    }
+
     private static string DescribeKind(WslHandleFacts facts)
     {
         return (facts.Attributes & FileAttributeReparsePoint) != 0 && facts.ReparseTag != 0

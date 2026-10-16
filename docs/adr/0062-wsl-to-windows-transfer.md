@@ -2,6 +2,11 @@
 
 Status: accepted
 
+ADR-0069 supersedes the byte-count-only verification and root-only recursive
+source deletion below with verified descendant evidence and conditional,
+nonrecursive source deletion. Provider admission and explicit residual races
+retain their existing scope.
+
 ADR-0066 additionally admits transfers between WSL distributions through the existing WSL adapter; the WSL-to-Windows mechanism here is unchanged.
 
 Date: 2026-10-12

@@ -51,7 +51,10 @@ public sealed class WslToWindowsTransferGatewayTests
         WslToWindowsTransferFixture.AssertEffects(outcome, FileOperationEffectKind.Copied,
             FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted);
         Assert.AreEqual("capability,copy,verify,delete", string.Join(',', port.Calls));
-        CollectionAssert.AreEqual(new[] { DeletionExecutionMode.Permanent }, port.DeletionModes);
+        Assert.HasCount(1, port.DeletionModes);
+        VerifiedCopyReceipt receipt = Assert.IsInstanceOfType<DeletionExecutionMode.VerifiedCopyMode>(port.DeletionModes[0]).Receipt;
+        Assert.AreEqual(WslToWindowsTransferFixture.Source("tree"), receipt.Source.Path);
+        Assert.AreEqual(fixture.Destination, receipt.Root.Target.Path.Parent);
         Assert.IsFalse(Directory.Exists(fixture.Root.Resolve("wsl\\tree")));
         Assert.AreEqual("payload", File.ReadAllText(fixture.Root.Resolve("windows\\tree\\nested\\payload.txt")));
     }

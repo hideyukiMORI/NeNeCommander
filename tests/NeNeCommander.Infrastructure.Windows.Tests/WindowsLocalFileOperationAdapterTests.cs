@@ -303,8 +303,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
 
         ProviderStepOutcome fileCopy = await adapter.CopyAsync(file, destination, CancellationToken.None);
         ProviderStepOutcome treeCopy = await adapter.CopyAsync(tree, destination, CancellationToken.None);
-        ProviderStepOutcome fileVerify = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
-        ProviderStepOutcome treeVerify = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
+        CopyVerificationOutcome fileVerify = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
+        CopyVerificationOutcome treeVerify = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
 
         Assert.IsNull(fileCopy.Failure);
         Assert.IsNull(treeCopy.Failure);
@@ -384,12 +384,12 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.WriteFile("dest\\a.txt", "ab");
         File.Delete(root.Resolve("dest\\tree\\top.txt"));
 
-        ProviderStepOutcome truncated = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
-        ProviderStepOutcome missingTarget = await adapter.VerifyCopyAsync(never, destination, CancellationToken.None);
-        ProviderStepOutcome missingChild = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
+        CopyVerificationOutcome truncated = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
+        CopyVerificationOutcome missingTarget = await adapter.VerifyCopyAsync(never, destination, CancellationToken.None);
+        CopyVerificationOutcome missingChild = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
         _ = root.WriteFile("a.txt", "changed source");
-        ProviderStepOutcome changed = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
-        ProviderStepOutcome foreign = await adapter.VerifyCopyAsync(file, ParsePath("\\\\server\\share"), CancellationToken.None);
+        CopyVerificationOutcome changed = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
+        CopyVerificationOutcome foreign = await adapter.VerifyCopyAsync(file, ParsePath("\\\\server\\share"), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Verification, truncated.Failure);
         Assert.AreSame(FileOperationFailureKind.Verification, missingTarget.Failure);
@@ -411,12 +411,12 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.CreateDirectory("dest\\same");
         _ = root.WriteFile("dest\\tree", "not a directory");
 
-        ProviderStepOutcome fileAgainstDirectory = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
-        ProviderStepOutcome directoryAgainstFile = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
+        CopyVerificationOutcome fileAgainstDirectory = await adapter.VerifyCopyAsync(file, destination, CancellationToken.None);
+        CopyVerificationOutcome directoryAgainstFile = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
         File.Delete(root.Resolve("dest\\tree"));
         _ = root.CreateDirectory("dest\\tree");
         _ = root.WriteFile("dest\\tree\\extra.txt", "extra");
-        ProviderStepOutcome extraEntry = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
+        CopyVerificationOutcome extraEntry = await adapter.VerifyCopyAsync(tree, destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Verification, fileAgainstDirectory.Failure);
         Assert.AreSame(FileOperationFailureKind.Verification, directoryAgainstFile.Failure);
@@ -816,8 +816,9 @@ public sealed class WindowsLocalFileOperationAdapterTests
         _ = root.WriteFile("target\\a.txt", "same");
         _ = root.WriteFile("target\\b.txt", "different");
 
-        Assert.IsFalse(WindowsLocalTreeCopy.Matches(
-            new DirectoryInfo(sourceText), ParsePath(targetText), path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource));
+        Assert.IsNotNull(new WindowsWslFileSystem().VerifyCopy(
+            FileEntrySnapshot.Create(ParsePath(sourceText), WindowsLocalEntryIdentity.Describe(new DirectoryInfo(sourceText)),
+                DeletionCapability.PermanentOnly), ParsePath(targetText)).Failure);
     }
 
     /// <summary>Proves every port method rejects an absent argument before touching the filesystem.</summary>

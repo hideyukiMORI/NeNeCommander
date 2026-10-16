@@ -181,7 +181,7 @@ public sealed class ProviderFileOperationPortTests
             CancellationToken.None);
         ProviderStepOutcome move = await router.MoveAsync(source, destination, CancellationToken.None);
         ProviderStepOutcome copy = await router.CopyAsync(source, destination, CancellationToken.None);
-        ProviderStepOutcome verify = await router.VerifyCopyAsync(source, destination, CancellationToken.None);
+        CopyVerificationOutcome verify = await router.VerifyCopyAsync(source, destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, preflight.Failure);
         Assert.AreSame(
@@ -391,12 +391,13 @@ public sealed class ProviderFileOperationPortTests
             return Step("copy");
         }
 
-        public Task<ProviderStepOutcome> VerifyCopyAsync(
+        public Task<CopyVerificationOutcome> VerifyCopyAsync(
             FileEntrySnapshot source,
             FileSystemPath destination,
             CancellationToken cancellationToken)
         {
-            return Step("verify");
+            Calls.Add("verify");
+            return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Succeeded(), source, destination));
         }
 
         public Task<ProviderStepOutcome> DeleteAsync(

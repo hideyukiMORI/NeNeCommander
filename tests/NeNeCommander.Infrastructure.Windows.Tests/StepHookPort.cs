@@ -26,6 +26,8 @@ internal sealed class StepHookPort : IFileOperationPort
 
     internal Func<FileEntrySnapshot, Task> AfterVerify { get; init; } = _ => Task.CompletedTask;
 
+    internal Func<FileEntrySnapshot, DeletionExecutionMode, DeletionExecutionMode> TransformDeletion { get; init; } = (_, mode) => mode;
+
     internal List<string> Calls { get; } = [];
 
     internal List<DeletionExecutionMode> DeletionModes { get; } = [];
@@ -74,13 +76,13 @@ internal sealed class StepHookPort : IFileOperationPort
         return outcome;
     }
 
-    public async Task<ProviderStepOutcome> VerifyCopyAsync(
+    public async Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
         Calls.Add("verify");
-        ProviderStepOutcome outcome = await _inner.VerifyCopyAsync(source, destination, cancellationToken);
+        CopyVerificationOutcome outcome = await _inner.VerifyCopyAsync(source, destination, cancellationToken);
         await AfterVerify(source);
         return outcome;
     }
@@ -91,8 +93,9 @@ internal sealed class StepHookPort : IFileOperationPort
         CancellationToken cancellationToken)
     {
         Calls.Add("delete");
-        DeletionModes.Add(mode);
-        return _inner.DeleteAsync(source, mode, cancellationToken);
+        DeletionExecutionMode instruction = TransformDeletion(source, mode);
+        DeletionModes.Add(instruction);
+        return _inner.DeleteAsync(source, instruction, cancellationToken);
     }
 
     public Task<ProviderStepOutcome> CreateDirectoryAsync(

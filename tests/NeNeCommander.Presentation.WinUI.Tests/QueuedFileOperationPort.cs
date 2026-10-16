@@ -109,12 +109,12 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         return Task.FromResult(_steps.Dequeue());
     }
 
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(_steps.Dequeue());
+        return Task.FromResult(VerificationTestEvidence.FromStep(_steps.Dequeue(), source, destination));
     }
 
     public Task<ProviderStepOutcome> CreateDirectoryAsync(

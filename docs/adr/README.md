@@ -14,6 +14,8 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0069: Carry verified descendant evidence to composite-move source deletion](0069-verified-move-source-deletion.md)
+
 - [ADR-0068: Open existing interaction scopes from the command palette](0068-palette-scope-entry-commands.md)
 
 - [ADR-0067: Persist each pane's accepted sort order through settings](0067-persist-pane-sort-order.md)

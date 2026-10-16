@@ -30,7 +30,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         WindowsLocalIoExecutionBoundary executionBoundary,
         WindowsWslFileSystem wslFileSystem)
         : this(
-            new WindowsLocalFileOperationAdapter(executionBoundary),
+            new WindowsLocalFileOperationAdapter(executionBoundary, wslFileSystem),
             new WslFileOperationAdapter(executionBoundary, wslFileSystem),
             new WindowsToWslTransfer(executionBoundary, wslFileSystem),
             new WslToWindowsTransfer(executionBoundary, wslFileSystem))
@@ -118,7 +118,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -127,7 +127,7 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
         ArgumentNullException.ThrowIfNull(destination);
         return Route(TransferRoute.Derive(source.Path, destination)) is IFileOperationPort port
             ? port.VerifyCopyAsync(source, destination, cancellationToken)
-            : FailedStep();
+            : Task.FromResult(CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
     /// <inheritdoc />

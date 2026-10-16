@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Paths;
 
@@ -14,12 +16,23 @@ internal static class OwnedWslNamespace
 {
     private const string OperationRoot = "\\owned";
 
+    /// <summary>Models the 9P zero directory length while retaining the real owned NTFS object's other facts.</summary>
+    internal static WslHandleFacts ReadFacts(string path)
+    {
+        WslHandleFacts facts = WindowsFileIdentifier.ReadHandleFacts(path);
+        return (facts.Attributes & (uint)FileAttributes.Directory) == 0 ? facts :
+            new WslHandleFacts(facts.Inode, facts.Attributes, facts.ReparseTag, 0,
+                facts.NumberOfLinks, facts.LastWriteFileTimeUtc, facts.ChangeFileTimeUtc);
+    }
+
     /// <summary>Maps the WSL tree <c>/owned</c> onto <paramref name="verbatimRoot"/>.</summary>
     internal static string Resolve(string verbatimRoot, WslPath path)
     {
         ArgumentNullException.ThrowIfNull(verbatimRoot);
         string remainder = Remainder(path);
-        return remainder.Equals(OperationRoot, StringComparison.Ordinal)
+        return remainder.Equals("\\", StringComparison.Ordinal)
+            ? verbatimRoot
+            : remainder.Equals(OperationRoot, StringComparison.Ordinal)
             ? verbatimRoot
             : remainder.StartsWith(OperationRoot + "\\", StringComparison.Ordinal)
                 ? verbatimRoot + remainder[OperationRoot.Length..]

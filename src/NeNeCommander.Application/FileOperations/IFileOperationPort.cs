@@ -44,7 +44,7 @@ public interface IFileOperationPort
         CancellationToken cancellationToken);
 
     /// <summary>Verifies a copied entry against the frozen source identity and content contract.</summary>
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken);
