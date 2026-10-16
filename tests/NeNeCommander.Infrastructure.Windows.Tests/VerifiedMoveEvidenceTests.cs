@@ -183,8 +183,7 @@ public sealed class VerifiedMoveEvidenceTests
         {
             inspect(path);
             WslHandleFacts facts = OwnedWslNamespace.ReadFacts(path);
-            return changed && ((change == "untouched-root" && path.EndsWith("\\directory", StringComparison.Ordinal)) ||
-                (change == "untouched-sibling" && path.EndsWith("\\sibling", StringComparison.Ordinal)))
+            return changed && IsUntouchedDirectoryTarget(change, path)
                 ? ChangedTime(facts) : facts;
         });
         if (change == "untouched-sibling")
@@ -386,6 +385,16 @@ public sealed class VerifiedMoveEvidenceTests
                 root.Children[0].Source, root.Target, [])]),
         };
         return DeletionExecutionMode.VerifiedCopy(VerifiedCopyReceipt.Create(receipt.Source, changed, receipt.Boundary));
+    }
+
+    private static bool IsUntouchedDirectoryTarget(string change, string path)
+    {
+        return change switch
+        {
+            "untouched-root" => path.EndsWith("\\directory", StringComparison.Ordinal),
+            "untouched-sibling" => path.EndsWith("\\sibling", StringComparison.Ordinal),
+            _ => false,
+        };
     }
 
     private static WslHandleFacts ChangedTime(WslHandleFacts facts)

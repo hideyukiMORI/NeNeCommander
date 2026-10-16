@@ -4,8 +4,17 @@ Status: informational
 
 [日報](../reports/2026-10-16-verified-move-daily-report.md)と
 [ADR-0069](../adr/0069-verified-move-source-deletion.md)が今回の契約・証拠の正本。
-Issue #243 / PR #249は実装と対象検証が完了し、最終deep-reviewと統合が残る。
+Issue #243 / PR #249は実装と対象検証が完了し、deep-reviewの未完了項目と統合が残る。
 古い引き継ぎの「再現のみ」はこの実装開始で更新するが、最終受理を先取りしない。
+
+deep run `38920109653` (`e13330d`)は1630成功・既存設定テスト1失敗・live 16skipで終了。
+設定schema 3の古い未知バージョン検体は別Issue #257に記録し、修正許可をhideへ確認中。
+CodeQL `1968236380`のalert #115は新規テストの条件式1件で、述語を整理して対象2行の
+テストとbuild/format/Commit checkが成功した。再解析は未実行。
+coverage以降を成功扱いせず、成功済みのsuiteを工程変更だけで再実行しない。
+その後の補完ではApplication coverageが657成功・100.00%、Presentationが242成功・
+94.10%で基準を満たした。Domain coverage、dependency audit、Domain/Application/
+Presentationのadversarial/mutationは続行中。Infrastructureは既存失敗の扱いが未決定。
 
 ## 再開時に確認すること
 
@@ -19,6 +28,7 @@ Issue #243 / PR #249は実装と対象検証が完了し、最終deep-reviewと�
 ## 続く別Issue
 
 - #250: 新storeが既存の残留tmpに阻害されるredを先に作る。foreign tmpの無条件削除は禁止。
+- #257: 未知バージョン検体3→4という1行の修正案。製品コード・期待値は変えない。今回の既存失敗の別件記録。
 - #251: 通常close、OS終了、kill/crash、取消、書込失敗の保証・非保証を既存shutdown ownerで定める。
 - #244〜#248: 前回登録したP4。#94の手動表示確認、#181のmapped-drive調査も別作業。
 

@@ -47,9 +47,28 @@ Commit checkのCS-012 filename違反は、verifierを既存tree engineの一つ�
 閾値変更は追加していない。失敗を再試行で隠さず、変更された入力に関係する証拠だけを取り直した。
 
 この変更は全composite moveの共有された破壊的操作境界に関わるため、ADR-0061に従い
-最終候補でdeep-reviewを明示dispatchする。deepはfull canonical gateを含むので、
-同じ入力に対するquality CIは重ねない。現時点ではdeep完了、技術受理、merge、cleanupを主張しない。
+最終候補`e13330d`でdeep-reviewを一度明示dispatchした。deepはfull canonical gateを含むので、
+同じ入力に対するquality CIは重ねていない。
 正確なcommands、失敗履歴、TRX、最終結果は`D:/NeNeCommander/evidence/issue-243/20261016/`へ保持する。
+
+2026-10-17 00:16 JST、[run 38920109653](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/38920109653)は
+失敗で終了した。canonicalのtestは1630成功・1失敗・live環境16skip。
+唯一の失敗はmainにも存在する設定テストで、対応済みschemaVersion 3を未知バージョンと
+期待する古い検体だった。[Issue #257](https://github.com/hideyukiMORI/NeNeCommander/issues/257)へ
+分離し、今回の移動処理へ混ぜて修正していない。coverage以降のdeep項目は未実行であり、
+成功を主張しない。
+
+CodeQL analysis `1968236380`の結果は1件、branchのopen alert #115
+(`cs/complex-condition`)も1件だった。新規テストのmetadata注入条件を小さなswitch述語へ
+整理し、root/siblingの対象2行が成功、Release buildは警告・errorとも0、formatとCommit
+checkも成功した。製品コードには変更がない。CodeQL再解析は未実行。
+成功済みの証拠を保持し、未実行項目と変更した入力に関係する検証だけを進めている。
+技術受理、merge、cleanupは未完了。
+
+続けて元のcoverage collector/settingsで未実行項目を確認した。Applicationは657成功・
+branch 100.00%、Presentationは242成功・branch 94.10%で、ともに失敗・skipとも0、
+変更コードの未通過branchなし。必要基準100%/90%を満たす。raw Coberturaと実行commandは
+恒久evidenceの`coverage/`に保持し、以後入力が変わらなければ再利用する。
 
 ## 次の独立作業と保持物
 
