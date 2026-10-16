@@ -61,7 +61,7 @@ Commit checkのCS-012 filename違反は、verifierを既存tree engineの一つ�
 CodeQL analysis `1968236380`の結果は1件、branchのopen alert #115
 (`cs/complex-condition`)も1件だった。新規テストのmetadata注入条件を小さなswitch述語へ
 整理し、root/siblingの対象2行が成功、Release buildは警告・errorとも0、formatとCommit
-checkも成功した。製品コードには変更がない。CodeQL再解析は未実行。
+checkも成功した。この修正による製品コードの変更はない。再解析の結果は後述する。
 成功済みの証拠を保持し、未実行項目と変更した入力に関係する検証だけを進めている。
 技術受理、merge、cleanupは未完了。
 
@@ -90,9 +90,31 @@ Infrastructureの異常系反復とmutationは、初期テストの既存失敗�
 最初の実行は選択0件だったため、exit 0でも成功証拠に含めない。公式仕様の文字位置
 `635..718`でguardの83文字を選び直した補完は、対象4変異すべてKilled、局所score100%で成功。
 `Any`→`All`も検出した。元のApplication全体score95.64%を局所scoreで置き換えず、
-例外message変更のsurvivorも元のraw reportに保持する。CodeQL再解析はまだ未完了。
+例外message変更のsurvivorも元のraw reportに保持する。
 正確なcommands、raw reportと
 選択0件の履歴は`D:/NeNeCommander/evidence/issue-243/20261016/supplemental-deep/`へ保持する。
+
+製品・test commit `30e6bc0`でCodeQL 2.27.2のcanonical buildless解析を補完した。
+既存configurationとsecurity-and-quality suiteの164規則で666/666 C# fileを解析し、
+結果0件。SARIFを同branch/categoryへuploadしたanalysis `1968566448`はexact commitと一致し、
+APIのerror/warningは空、branchのopen alertは0件、#115のinstanceはfixedと確認した。
+ただしraw SARIFには生成interop/XAMLに関係する抽出error診断8群があり、
+APIの空欄を根拠にこれを消去・無視していない。#222の既知8群と一致し、増えた2つの
+compiler messageはXAML宣言済みmemberへの参照だった。
+
+ADR-0063の先例に従い、同じcommit/configuration/suiteで実Release compilerを使う補足解析も
+行った。solution buildは警告・errorとも0、解析もexit 0。666/666 C# fileを対象とし、
+抽出error/warning診断は0。結果は既存の`cs/call-to-unmanaged-code`のnote 3件で、
+STA schedulerのCOM初期化・解放と`WindowsFileIdentifier`のnative query失敗時のstatus変換だった。
+SEC-014/ADR-0063で受理済みのowner境界であり、raw結果を抑制・filterしていない。
+path filterがC#では効かないというtoolのnoteも保持する。補足結果でcanonical uploadを
+上書きせず、両方のSARIF、commands、抽出診断、GitHub読戻しを恒久evidenceの`codeql/`へ保存した。
+
+現在の残件は#257の別件1行修正の可否と、Infrastructureのcoverage完了・異常系反復・
+mutationである。hideの「無関係な既存テストの失敗は記録して分離し、現在の修正を止めて
+全件再試行や別件修正を始めない」という指定に従い、schemaVersion 3→4の別Issue修正を
+確認中。元のdeep runの失敗は変わらず、全体合格・技術受理・mergeは主張しない。
+この最終記録は文書のみの更新で、成功済み検証やCIを追加実行しない。
 
 ## 次の独立作業と保持物
 

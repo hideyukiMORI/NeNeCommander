@@ -10,7 +10,7 @@ Issue #243 / PR #249は実装と対象検証が完了し、deep-reviewの未完�
 deep run `38920109653` (`e13330d`)は1630成功・既存設定テスト1失敗・live 16skipで終了。
 設定schema 3の古い未知バージョン検体は別Issue #257に記録し、修正許可をhideへ確認中。
 CodeQL `1968236380`のalert #115は新規テストの条件式1件で、述語を整理して対象2行の
-テストとbuild/format/Commit checkが成功した。再解析は未実行。
+テストとbuild/format/Commit checkが成功した。後続の再解析結果は下記に記録する。
 coverage以降を成功扱いせず、成功済みのsuiteを工程変更だけで再実行しない。
 その後の補完ではApplication coverageが657成功・100.00%、Presentationが242成功・
 94.10%で基準を満たした。Domainも100件・branch100%で成功、dependency auditは脆弱性なし。
@@ -22,10 +22,21 @@ Infrastructureのadversarial反復とmutationは未実行。0件だけを選ん�
 全体scoreを置き換えていない。directory専用helperの未使用file分岐は
 削除し、関連build/7ケース成功。hashの不正1文字ケースを足した5行も成功。
 
+製品/testの最新commitは`30e6bc0`。CodeQL 2.27.2のcanonical解析は666/666 C# file・
+164規則・結果0件。upload後のanalysis `1968566448`のexact commitを確認し、branch open alertは
+0件、#115はfixed。rawには生成interop/XAML関連の既知抽出error 8群が残るため、
+同commit/configuration/suiteのcompiler-fed補完も行った。実Release buildは警告/error 0、
+666/666 fileの補完解析は抽出error/warning 0。結果は既存のnative ownerに対するnote 3件で、
+SEC-014/ADR-0063に照合済み。canonicalと補完のraw SARIF、正確なcommand、API読戻しは
+`D:/NeNeCommander/evidence/issue-243/20261016/codeql/`へ保持し、filter/dismissはしていない。
+
 ## 再開時に確認すること
 
 1. 現在のhide指示、`AGENTS.md`、`PROJECT_STATE.md`とGitHubのPR実態を確認する。
-2. `fix/243-verified-move-source`の最新treeと恒久evidenceを読み、未完了の検証だけ進める。
+2. `fix/243-verified-move-source`の最新treeと恒久evidenceを読み、#257についてhideの回答を確認する。
+   許可があれば別Issueで未知schemaの検体を3→4へ1行修正し、製品コードと期待値は維持する。
+   影響するそのテストを確認して取り込み、Infrastructureの失敗したcoverageと未実行の
+   adversarial 3反復・mutationを完了する。成功した他layerの証拠を再実行しない。
 3. 外側ancestorと全surviving directoryのfull identityを維持する。object成分だけへの弱体化や
    任意のbaseline更新を行わず、ADR-0069の直接parent再取得条件を守る。
 4. 選択したdeep-reviewの実行結果、CodeQL解析とopen alertsを照合してから技術受理する。
