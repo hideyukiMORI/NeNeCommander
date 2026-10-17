@@ -81,7 +81,21 @@ P4 Issues #244–#248は今回に混ぜず、記録のみのまま維持する�
 branch `fix/181-mapped-network-boundary`、worktree `D:/NeNeCommander/worktrees/issue-181`、
 一時出力 `D:/NeNeCommander/outputs/issue-181` は統合・整理の対象。
 恒久証拠は `D:/NeNeCommander/evidence/issue-181`、SDKは共有tool領域に保持する。
-PR #273と`D:/NeNeCommander/evidence/issue-181/completion.json`で実際のmerge・main同期・削除結果を読む。
-各実行後に更新されるため、この検証時点の文書から完了や未完を推定しない。
-main取込と成果物・未保存状態・稼働参照・linkを確認して作業copyと不要出力を整理し、branch・commitは保持する。
-現時点で新しい後片付けの承認拒否や実行依頼はない。
+PR #273は2026-10-18 00:01:38 JSTに`5d817de8e91b68155148fe50ca14db7abaf76a2b`へsquash merge済み。
+main同期・clean・task tree一致を確認し、Issue #181の追加worktreeは削除した。branch・commitは保持する。
+出力削除は自動承認レビューが`blocked by policy`で拒否し、コマンドは開始されなかった。
+別手段で再試行しない。37 raw log・51補完artifact・4 TRX・CodeQL証拠は恒久保存済み。
+出力内のjunction 10個は所有一時領域内だけを指し、稼働参照なし。`cleanup-pending.json`と
+`completion.json`を読み、hide実行と完了結果または不在確認が揃うまで保留を引き継ぐ。
+Issue #274はこの文書記録だけを扱い、製品検証・CIは追加しない。
+
+! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-181`のみ。自動承認レビューの拒否理由は`blocked by policy`。
+`D:/NeNeCommander/evidence/issue-181`、branch・commit・共有SDKは保持する。
+構文・対象・link処理を確認済みのscriptをhideで実行する。サナは実行していない。
+対象directory単位のnative削除で、削除済みの再実行にも対応する。証拠の再hashや独自file削除loopはない。
+
+```powershell
+pwsh -NoProfile -File "D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1"
+```
