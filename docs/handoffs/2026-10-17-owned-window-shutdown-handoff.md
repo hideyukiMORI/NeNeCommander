@@ -56,21 +56,21 @@ task/mainの同一tree `3a78fef9c47cf6cca72b7623cce7d3e9d6491204`を確認済み
 `D:/NeNeCommander/worktrees/issue-251`は削除済み。
 `D:/NeNeCommander/outputs/issue-251`の唯一の39 fileは恒久証拠`cleanup-archive/`へSHA一致で収載済み。
 未保存・未追跡file、ignored output、link、稼働参照と専用host両PIDの終了も確認した。
-自動承認による削除拒否のため、この出力だけ下記の実行待ちとして保持する。
+一度自動承認に削除を拒否された出力も、下記のとおりhideの実行と不在確認で整理を完了した。
 branch、commit、evidenceと共通SDKは保持済み。
 正確な記録は`D:/NeNeCommander/evidence/issue-251/completion.json`と`cleanup-inspection.json`。
-[Issue #269](https://github.com/hideyukiMORI/NeNeCommander/issues/269)は記録更新だけを扱う。
+[Issue #269](https://github.com/hideyukiMORI/NeNeCommander/issues/269) / PR #270は統合と削除待ちを記録済み。
+[Issue #271](https://github.com/hideyukiMORI/NeNeCommander/issues/271)は今回の後片付け完了記録だけを扱う。
 文書更新・push・mergeのために成功済みの製品試験を繰り返さない。
 
 次は未着手P4 Issues #244–#248などの別件選定。通常closeの今回scopeに新機能を混ぜない。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-251`のみ。恒久証拠、branch、commitと共通SDKは対象外。
-自動承認レビューがdirectory削除を`blocked by policy`として拒否したため、別手段で再試行していない。
-対象・link・稼働参照を確認するscriptは構文検査済みで、既に不在の対象にも対応する。
-hideの実行報告と完了記録または読み取り専用の不在確認まで、この待ちを次の引き継ぎにも残す。
-
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-251/cleanup-pending.ps1
-```
+hideが用意済みscriptを実行し、2026-10-17 21:30:27 JSTに正常完了した。
+21:31:33 JSTの読み取り専用確認で`D:/NeNeCommander/outputs/issue-251`は不在。
+Issue #251と#269のworktreeも不在で、恒久証拠39 file、branch、commitと共通SDKは保持されている。
+`D:/NeNeCommander/evidence/issue-251/cleanup-pending-completed.json`、`cleanup-confirmation.json`、
+`completion.json`に実行・確認・最終状態を保持する。
+自動承認の`blocked by policy`は履歴として残し、サナによる別手段の削除再試行はない。
+後片付け待ちは完了した。同じ実行依頼を次の引き継ぎへ持ち越さない。
