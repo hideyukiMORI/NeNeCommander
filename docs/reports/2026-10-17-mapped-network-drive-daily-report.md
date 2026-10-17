@@ -2,6 +2,10 @@
 
 Status: informational
 
+更新: 2026-10-18。Issue #181の実装・技術受理・main統合・後片付けは完了した。
+hideの実行記録と00:47:08 JSTの不在確認に基づき、[Issue #276](https://github.com/hideyukiMORI/NeNeCommander/issues/276)で
+本書・引き継ぎ・PROJECT_STATEを更新する。現在の後片付け実行待ちはない。
+
 hideの「対応を続けて」を受け、[直前の日報](2026-10-17-owned-window-shutdown-daily-report.md)と
 [引き継ぎ](../handoffs/2026-10-17-owned-window-shutdown-handoff.md)、実際のIssue/PR状態を照合し、
 [Issue #181](https://github.com/hideyukiMORI/NeNeCommander/issues/181)を再開した。
@@ -136,17 +140,31 @@ Issue #181はclosed、追加worktreeは削除済み。branch・commit・恒久�
 4 TRXとCodeQL証拠を恒久領域へ保存した。出力内のjunction 10個は全て同じ所有一時領域内を指し、
 稼働参照はなかった。しかし出力削除は自動承認レビューが`blocked by policy`で拒否した。
 コマンドは開始されず、別手段での削除再試行もしていない。読み取り確認で出力の残存を確かめた。
-この実績と保留は`completion.json`、`cleanup-preflight.json`、`cleanup-pending.json`へ保存し、
-Issue #274で本書・引き継ぎ・PROJECT_STATEへ反映する。文書だけのため製品検証やCIは追加しない。
+当時の実績と保留を`cleanup-preflight.json`、`cleanup-pending.json`に保持し、
+Issue #274 / [PR #275](https://github.com/hideyukiMORI/NeNeCommander/pull/275)で文書へ記録した。
+PR #275は00:10:18 JSTに`fc709c895ae9b311a2d4468ccd515bbe1c6a75ae`へ統合済み。
 
-! hide実行待ち：後片付け
+## 後片付け完了と日報更新（2026-10-18）
 
-対象は`D:/NeNeCommander/outputs/issue-181`のみ。理由は自動承認レビューの`blocked by policy`。
-保持するものは`D:/NeNeCommander/evidence/issue-181`、branch・commit、共有SDK。
-下記をhideで実行する。対象外に置いたscriptは構文と範囲を確認済みで、サナは実行していない。
-既知linkを追跡せず外し、対象directoryを1回のnative呼出しで削除する。削除済みでも実行できる。
-個々のfile再検証・削除loopや恒久証拠の再hashは行わず、完了時間の保証はしない。
+hideは次の準備済みcommandを実行し、00:44:44 JSTに
+`Completed cleanup: D:\NeNeCommander\outputs\issue-181`を得た。
 
 ```powershell
-pwsh -NoProfile -File "D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1"
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1
 ```
+
+`cleanup-executed-by-hide.json`は対象不在、link entry 10個の解除、実行者hideを記録した。
+サナはscriptを再実行せず、00:47:08 JSTの読み取り専用確認で対象出力と#181・#274のworktreeの不在を確認した。
+37 raw log・4 TRXの実体、51補完artifactのmanifest、最終CodeQL記録、branch・commit、共有SDKは保持されている。
+変更のない恒久証拠を再hashせず、確認結果を`cleanup-confirmation.json`へ保存し、`completion.json`も完了へ更新した。
+元の自動承認拒否は履歴であり、現在の実行依頼ではない。
+
+本更新は日報・引き継ぎ・PROJECT_STATEだけを対象とする。記録の不変条件は、製品の受理・統合と
+後片付けの事実を分け、未実行の環境証明を成功扱いしないこと。既存の文書と恒久証拠が唯一の記録経路である。
+ADR-0061に従い文面・リンク・`git diff --check`と通常commit hookの
+`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`を確認し、build・製品test・coverage・mutation・CIは追加しない。
+正確な検査結果、文書PRの統合と作業用worktreeの整理はIssue #276のPRと
+`D:/NeNeCommander/evidence/issue-181/report-closure/`に記録する。
+
+実share・network mapping・removableの環境確認と#94の手動release確認は未実施。
+P4 #244–#248は記録のみで、追加実装は開始していない。後片付けの実行待ちはない。
