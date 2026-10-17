@@ -1,23 +1,57 @@
-# 引き継ぎ書 2026年10月17日 検証済み移動元削除
+# 引き継ぎ書 2026年10月17日 検証済み移動完了と次回の再開点
 
 Status: informational
 
-最終更新: 2026-10-17 18:21:49 JST。
+最終更新: 2026-10-17 18:45:28 JST。
 
 [日報](../reports/2026-10-17-verified-move-daily-report.md)と
 [ADR-0069](../adr/0069-verified-move-source-deletion.md)を参照する。
 設計担当が最終test候補`0b9f5ba4d906f3ba63ea747cf5aa2cbc4950076e`と選択した証拠を技術受理した。PR #249は文書head`18e30d9`を含め、2026-10-17 17:52:18 JSTにmain `a6587bfb16f1d804148d12e7f9d91d2945b573ad`へsquash統合済み。Issue #243 CLOSED、main同期・clean、taskとmainのtree一致を確認した。
 
+## 引き継ぐ開始点
+
+#243、設定検体修正#257、後片付け記録#259は完了した。PR #249/#258/#260はすべて統合済みで、後片付け待ちはない。
+本書仕上げの開始時点はmain `a26e29a3ce513eba38fc1337dae548e95664e77b`、GitHubと同期・clean、open PRは0だった。
+本書の最終文書PR（[Issue #261](https://github.com/hideyukiMORI/NeNeCommander/issues/261)）を統合したmainから再開する。
+その最終SHAと同期結果は`D:/NeNeCommander/evidence/issue-243/20261017/session-report-completion.json`とPRを参照する。
+製品の次の対象は#250。#251とP4のIssueは未実装のまま独立している。
+
 ## 再開時の確認
 
 1. 現在のhide指示、`AGENTS.md`、`PROJECT_STATE.md`、mainとGitHubの実態を確認する。
-   PR #249の最終統合・整理は恒久evidenceの`20261017/completion.json`とPR読戻しに記録する。
+   PR #249の最終統合・整理は恒久evidenceの`20261017/completion.json`とPR読戻しに記録済み。
    完了した検証・修正・整理を古い日報の保留記述から復活させない。
 2. #257はPR #258でmain `5b6ac92`へ統合済み。未知schema検体3→4の1行だけを修正し、
    対象1件・build・format・Commit check成功。worktree/outputも削除済み。
 3. #243の初回検証候補は`d2d3dba`で、その後mutation未達を受けて同境界のテストを補強した。
    最終test候補は`0b9f5ba4d906f3ba63ea747cf5aa2cbc4950076e`。追加テストと証拠は日報に記録する。
    文書更新やmergeだけで検証を繰り返さない。
+4. PR #260 / Issue #259で後片付けの保留も解消済み。古い実行依頼や削除scriptを再実行しない。
+
+## 次回の最初の作業：設定の残留tmp問題 #250
+
+[Issue #250](https://github.com/hideyukiMORI/NeNeCommander/issues/250)の現行記述は追跡・未実装である。
+次回のhide指示とIssue状態を確認し、次の順序で再現と設計から進める。
+
+1. `WindowsLocalSettingsStore`、`ISettingsWriteTestHook`、`ScriptedSettingsWriteTestHook`と
+   `WindowsLocalSettingsStoreTests`を読み、固定sibling `<settings>.tmp`のcollision判定と
+   `OnTemporaryClosed`の既存seamを確認する。参照元は`src/NeNeCommander.Infrastructure.Windows/Settings/`と
+   `tests/NeNeCommander.Infrastructure.Windows.Tests/`。
+2. テスト専用の`TemporaryClosed`例外で残留tmpを作り、新しいstoreのread→writeで期待する保存成功を
+   まずredとして再現する。通常のユーザー設定や稼働中アプリへ故障を注入しない。
+3. ADR-0040 / SEC-011のone-attempt ownership、CreateNew、Flush、identity・exact bytes、
+   ancestor guard、publish前のdocument baseline照合を維持する。旧tmpは前processのownership proofがないため、
+   起動時の無条件削除は採らない。unique候補は未決定の設計案として扱い、identifierのnamed ownerが必要なら
+   CS-010の境界とpositive/negative conformance proofを先に定義する。直接の`Guid.NewGuid`追加で済ませない。
+4. 既存store・complete settings queue・atomic publish・persistent warningを唯一の経路として、
+   同時writer、foreign/linked/replaced artifactの保持、元document保護、owned cleanup、取消境界を確認する。
+   検証は変更の影響に応じて選び、不変caseの成功を再利用する。#243の全検証を既定でやり直さない。
+
+追加worktreeが必要なら`D:/NeNeCommander/worktrees/issue-250`、一時出力は
+`D:/NeNeCommander/outputs/issue-250`、恒久証拠は`D:/NeNeCommander/evidence/issue-250`を使う。
+これらは本報告では未作成。削除済みのissue-243作業パスやTEMPを再利用しない。
+固定SDK `D:/NeNeCommander/tools/dotnet-10.0.401`は残っているので必要なprocessのPATHにだけ指定する。
+#243で使用したCLIの`--concurrency 1`は同実行の判断であり、次の検証の既定設定へ広げない。
 
 ## 保持する契約と証拠
 
