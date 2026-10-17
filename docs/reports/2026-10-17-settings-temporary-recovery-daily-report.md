@@ -66,14 +66,33 @@ CS-010初回10 fixtureのlogは最終11 fixtureのrunで上書きされ、初回
 
 ## 統合と次の作業
 
-最終PR、squash commit、main同期・task/main tree一致、作業物整理の確定結果は
-Issue #250のPRと恒久証拠の`completion.json`に記録する。
-通常のcommitはrepository hookの`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`と
-commit-message validatorを通す。結果は`commit.log`と完了記録を参照する。
+[PR #263](https://github.com/hideyukiMORI/NeNeCommander/pull/263)は19:21:25 JSTにsquash mergeされ、
+#250はclosed。main `477310ed80b77a915039e708070782057cab75db`の同期・cleanと、
+task/mainのtree `5ece25edc391b3326f0377fc391b2de314973ba0`の一致を確認した。
+通常のrepository hook `pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`と
+commit-message validatorは成功。結果は`commit.log`と`completion.json`を参照する。
 恒久証拠は`D:/NeNeCommander/evidence/issue-250/`、作業用コピーは
 `D:/NeNeCommander/worktrees/issue-250`、一時出力は`D:/NeNeCommander/outputs/issue-250`。
-branch、commit、恒久証拠、固定SDKを保持し、取込・未保存物・唯一の成果物・稼働参照・linkを確認して整理する。
+取込・未保存物・唯一の成果物・稼働参照・linkを確認し、追加worktreeは削除済み。
+branch、commit、恒久証拠、固定SDKを保持する。一時出力は次の理由で削除待ちである。
+この記録更新は[Issue #264](https://github.com/hideyukiMORI/NeNeCommander/issues/264)で扱い、
+製品入力を変えず、product build/test/CIを再実行しない。
 
 次の独立作業は#251の終了契約である。通常close、OS終了、kill/crash、取消、書込失敗の保証を分け、
 既存shutdown ownerと実WinUIの最終window寿命を別々に確認する。
 P4 #244〜#248、低優先度#181、手動release確認#94は別Issueのまま維持する。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-250`のみ。
+自動承認レビューが`Remove-Item -LiteralPath ... -Recurse -Force`を`blocked by policy`で拒否した。
+開発手順に従い別手段で再試行していない。対象には退避済みの文書3件とcompiler cacheだけが残る。
+文書コピーのhash一致、linkと稼働参照がないことを確認済み。
+恒久証拠は`D:/NeNeCommander/evidence/issue-250/`、branch/commitと固定SDKも保持している。
+
+hideに次の1行の実行をお願いする。scriptは削除対象外に置き、文法解析だけを実施した。
+実行報告と完了記録または読み取り専用の不存在確認まで、cleanupはpendingのまま引き継ぐ。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-250/cleanup-pending.ps1
+```
