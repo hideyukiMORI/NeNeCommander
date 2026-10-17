@@ -228,7 +228,7 @@ public sealed class WindowsToWslTransferGatewayTests
             (file, FileOperationEffectKind.SourceDeleted));
         AssertCalls(port, "capability", "capability", "copy", "verify", "delete", "copy", "verify", "delete");
         Assert.HasCount(2, port.DeletionModes);
-        Assert.IsTrue(port.DeletionModes.TrueForAll(mode => mode == DeletionExecutionMode.Permanent));
+        Assert.IsTrue(port.DeletionModes.TrueForAll(mode => mode is DeletionExecutionMode.VerifiedCopyMode));
         Assert.AreEqual("abcd", File.ReadAllText(root.Resolve("wsl\\dest\\tree\\top.txt")));
         Assert.AreEqual("payload", File.ReadAllText(root.Resolve("wsl\\dest\\tree\\nested\\payload.txt")));
         Assert.AreEqual("one", File.ReadAllText(root.Resolve("wsl\\dest\\single.txt")));
@@ -414,7 +414,7 @@ public sealed class WindowsToWslTransferGatewayTests
         WindowsLocalIoExecutionBoundary execution = new();
         WindowsToWslTransfer transfer = new(execution, drvfs);
         using FileOperationGateway gateway = new(new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution),
+            new WindowsLocalFileOperationAdapter(execution, drvfs),
             new WslFileOperationAdapter(execution, drvfs),
             transfer,
             new WslToWindowsTransfer(execution, drvfs)));
@@ -425,7 +425,7 @@ public sealed class WindowsToWslTransferGatewayTests
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
         ProviderStepOutcome copy = await transfer.CopyAsync(snapshot, alias, CancellationToken.None);
-        ProviderStepOutcome verify = await transfer.VerifyCopyAsync(snapshot, alias, CancellationToken.None);
+        CopyVerificationOutcome verify = await transfer.VerifyCopyAsync(snapshot, alias, CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Rejected, outcome.Completion);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
@@ -461,10 +461,10 @@ public sealed class WindowsToWslTransferGatewayTests
     {
         // The unguarded reader is the only way to obtain real handle facts from an NTFS test root;
         // production composes the same file system with the 9P-guarded reader by default.
-        WindowsWslFileSystem fileSystem = new(path => Resolve(root, path), WindowsFileIdentifier.ReadHandleFacts);
+        WindowsWslFileSystem fileSystem = new(path => Resolve(root, path), OwnedWslNamespace.ReadFacts);
         WindowsLocalIoExecutionBoundary execution = new();
         return new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution),
+            new WindowsLocalFileOperationAdapter(execution, fileSystem),
             new WslFileOperationAdapter(execution, fileSystem),
             new WindowsToWslTransfer(execution, fileSystem),
             new WslToWindowsTransfer(execution, fileSystem));

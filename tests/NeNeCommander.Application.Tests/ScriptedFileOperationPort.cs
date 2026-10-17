@@ -23,6 +23,8 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<TransferPreflightOutcome> _transferPreflights;
     private readonly Queue<ProviderStepOutcome> _renames;
     private readonly Queue<ProviderStepOutcome> _verifications;
+    private readonly Queue<CopyVerificationOutcome> _verificationEvidence = [];
+    private readonly List<DeletionExecutionMode> _deletionModes = [];
 
     private ScriptedFileOperationPort(ScriptedCallbackPoint? callbackPoint, Action? callback)
     {
@@ -42,6 +44,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     }
 
     internal IReadOnlyList<string> Calls => new ReadOnlyCollection<string>(_calls);
+    internal IReadOnlyList<DeletionExecutionMode> DeletionModes => _deletionModes.AsReadOnly();
 
     internal static ScriptedFileOperationPort Create(
         ScriptedCallbackPoint? callbackPoint,
@@ -83,6 +86,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueueVerification(ProviderStepOutcome outcome)
     {
         _verifications.Enqueue(outcome);
+    }
+
+    internal void EnqueueVerification(CopyVerificationOutcome outcome)
+    {
+        _verificationEvidence.Enqueue(outcome);
     }
 
     internal void EnqueueDeletion(ProviderStepOutcome outcome)
@@ -183,15 +191,19 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         return Task.FromResult(outcome);
     }
 
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
         _calls.Add("Verify:" + source.Path.CanonicalText);
+        if (_verificationEvidence.Count != 0)
+        {
+            return Task.FromResult(_verificationEvidence.Dequeue());
+        }
         ProviderStepOutcome outcome = _verifications.Dequeue();
         InvokeCallback(ScriptedCallbackPoint.AfterVerification);
-        return Task.FromResult(outcome);
+        return Task.FromResult(VerificationTestEvidence.FromStep(outcome, source, destination));
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -200,6 +212,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         CancellationToken cancellationToken)
     {
         string operation = mode == DeletionExecutionMode.Recycle ? "Recycle:" : "Delete:";
+        _deletionModes.Add(mode);
         _calls.Add(operation + source.Path.CanonicalText);
         ProviderStepOutcome outcome = _deletions.Dequeue();
         InvokeCallback(ScriptedCallbackPoint.AfterDeletion);

@@ -83,7 +83,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             () => Guarded(() => Copy(source, destination), FileOperationFailureKind.Copy));
     }
 
-    public Task<ProviderStepOutcome> VerifyCopyAsync(
+    public Task<CopyVerificationOutcome> VerifyCopyAsync(
         FileEntrySnapshot source,
         FileSystemPath destination,
         CancellationToken cancellationToken)
@@ -91,7 +91,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
         return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Verify(source, destination), FileOperationFailureKind.Verification));
+            () => GuardedVerification(() => Verify(source, destination)));
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -253,21 +253,28 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         }
     }
 
-    private ProviderStepOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
+    private CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WslPath wslDestination
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(_fileSystem, source, entry =>
-                IsUsableDestination(_fileSystem, wslDestination) &&
-                !IsReparsePoint(entry) &&
-                !_fileSystem.ContainsReparsePoint(entry) &&
-                ProviderPathContainment.Evaluate(entry.Path, wslDestination) is not ContainedPath &&
-                BuildTarget(entry.Name, wslDestination) is WslPath target &&
-                _fileSystem.TargetExists(target) &&
-                !_fileSystem.ContainsReparsePoint(target) &&
-                _fileSystem.Matches(entry, target)
-                    ? ProviderStepOutcome.Succeeded()
-                    : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        if (destination is not WslPath wslDestination)
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        ProviderStepOutcome admission = WithRevalidatedEntry(_fileSystem, source, entry =>
+            IsUsableDestination(_fileSystem, wslDestination) && !IsReparsePoint(entry) &&
+            !_fileSystem.ContainsReparsePoint(entry) &&
+            ProviderPathContainment.Evaluate(entry.Path, wslDestination) is not ContainedPath &&
+            BuildTarget(entry.Name, wslDestination) is WslPath target &&
+            _fileSystem.TargetExists(target) && !_fileSystem.ContainsReparsePoint(target)
+                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+        if (admission.Failure is FileOperationFailureKind failure)
+        {
+            return CopyVerificationOutcome.Failed(failure);
+        }
+        WslFileSystemEntry current = _fileSystem.Find((WslPath)source.Path) ??
+            throw new IOException("The verified source disappeared.");
+        return BuildTarget(current.Name, wslDestination) is WslPath copiedTarget
+            ? _fileSystem.VerifyCopy(source, copiedTarget)
+            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
     }
 
     /// <summary>Reports a failed copy step with the partial target it left, if any (ADR-0029).</summary>
@@ -315,7 +322,11 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
 
     private ProviderStepOutcome Delete(FileEntrySnapshot source, DeletionExecutionMode mode)
     {
-        return mode != DeletionExecutionMode.Permanent
+        return mode is DeletionExecutionMode.VerifiedCopyMode verified
+            ? source.Path is WslPath
+                ? _fileSystem.DeleteVerifiedSource(source, verified.Receipt)
+                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : mode != DeletionExecutionMode.Permanent
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WithRevalidatedEntry(_fileSystem, source, entry =>
                 IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry)
@@ -397,6 +408,22 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private static Task<ProviderStepOutcome> FailedStep()
     {
         return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+    }
+
+    internal static CopyVerificationOutcome GuardedVerification(Func<CopyVerificationOutcome> step)
+    {
+        try
+        {
+            return step();
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return CopyVerificationOutcome.Failed(Normalize(exception.HResult, FileOperationFailureKind.Verification));
+        }
+        catch (IOException exception)
+        {
+            return CopyVerificationOutcome.Failed(Normalize(exception.HResult, FileOperationFailureKind.Verification));
+        }
     }
 
     internal static ProviderStepOutcome Guarded(

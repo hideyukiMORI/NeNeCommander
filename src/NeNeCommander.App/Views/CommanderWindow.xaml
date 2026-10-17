@@ -827,6 +827,8 @@
                         <TextBlock x:Name="TransferResultVerifiedCount" />
                         <TextBlock x:Uid="TransferResultSourceDeleted" />
                         <TextBlock x:Name="TransferResultSourceDeletedCount" />
+                        <TextBlock x:Uid="TransferResultSourcePartiallyDeleted" />
+                        <TextBlock x:Name="TransferResultSourcePartiallyDeletedCount" />
                     </StackPanel>
                     <ItemsControl
                         x:Name="OperationProgressSegments"

@@ -459,6 +459,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
                 TransferResultCopiedCount.Text = result.Copied.ToString(CultureInfo.CurrentCulture);
                 TransferResultVerifiedCount.Text = result.Verified.ToString(CultureInfo.CurrentCulture);
                 TransferResultSourceDeletedCount.Text = result.SourceDeleted.ToString(CultureInfo.CurrentCulture);
+                TransferResultSourcePartiallyDeletedCount.Text = result.SourcePartiallyDeleted.ToString(CultureInfo.CurrentCulture);
                 break;
             default:
                 OperationProgressSegments.ItemsSource = null;

@@ -58,6 +58,33 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         return File.Exists(resolvedPath) || Directory.Exists(resolvedPath);
     }
 
+    public string ResolveVerificationPath(WslPath path)
+    {
+        return _resolvePath(path);
+    }
+
+    public VerifiedEntrySnapshot CaptureVerificationEntry(WslPath path)
+    {
+        WslHandleFacts facts = _readFacts(_resolvePath(path));
+        string identity = WindowsFileIdentifier.ComposeWslToken(path.DistributionName, facts);
+        FileIdentity full = FileIdentity.Parse(identity) is FileIdentityAccepted accepted
+            ? accepted.Identity : throw new IOException("The WSL identity exceeds its boundary.");
+        return VerifiedEntrySnapshot.Create(path, full,
+            FileObjectIdentity.Create(WindowsFileIdentifier.ComposeWslObjectToken(path.DistributionName, facts)));
+    }
+
+    public CopyVerificationOutcome VerifyCopy(FileEntrySnapshot source, FileSystemPath target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+        return WindowsLocalTreeCopy.Verify(source, target, new VerifiedTreeAccess(this));
+    }
+
+    public ProviderStepOutcome DeleteVerifiedSource(FileEntrySnapshot source, VerifiedCopyReceipt receipt)
+    {
+        return VerifiedSourceDeletion.Execute(source, receipt, new VerifiedTreeAccess(this));
+    }
+
     public bool ContainsReparsePoint(WslFileSystemEntry source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -82,24 +109,11 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         return WindowsLocalTreeCopy.Copy(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
     }
 
-    public bool Matches(WslFileSystemEntry source, WslPath target)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(target);
-        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
-    }
-
     // WindowsLocalTreeCopy rejects a null source itself; only the target needs a guard before resolution.
     public ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
         return WindowsLocalTreeCopy.Copy(source, target, ResolveTarget, WindowsLocalTreeCopy.InspectLocalSource);
-    }
-
-    public bool MatchesWindowsLocal(FileSystemInfo source, WslPath target)
-    {
-        ArgumentNullException.ThrowIfNull(target);
-        return WindowsLocalTreeCopy.Matches(source, target, ResolveTarget, WindowsLocalTreeCopy.InspectLocalSource);
     }
 
     public FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
@@ -112,12 +126,6 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
     {
         ArgumentNullException.ThrowIfNull(source);
         return WindowsLocalTreeCopy.Copy(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
-    }
-
-    public bool MatchesWindowsLocalTarget(WslFileSystemEntry source, WindowsLocalPath target)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        return WindowsLocalTreeCopy.Matches(ResolveEntry(source), target, ResolveTarget, InspectWslSource);
     }
 
     private string ResolveTarget(FileSystemPath target)

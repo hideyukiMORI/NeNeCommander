@@ -55,6 +55,7 @@
   <data name="TransferResultCopied.Text" xml:space="preserve"><value>コピー済み</value></data>
   <data name="TransferResultVerified.Text" xml:space="preserve"><value>検証済み</value></data>
   <data name="TransferResultSourceDeleted.Text" xml:space="preserve"><value>転送元削除済み</value></data>
+  <data name="TransferResultSourcePartiallyDeleted.Text" xml:space="preserve"><value>転送元の一部を削除</value></data>
   <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>ディレクトリを作成中…</value></data>
   <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>新しいディレクトリの名前を入力してください</value></data>
   <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>ディレクトリを作成しました</value></data>

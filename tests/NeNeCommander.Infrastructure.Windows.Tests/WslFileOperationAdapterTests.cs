@@ -300,7 +300,7 @@ public sealed class WslFileOperationAdapterTests
             source, destination, CancellationToken.None);
         ProviderStepOutcome move = await adapter.MoveAsync(source, destination, CancellationToken.None);
         ProviderStepOutcome copy = await adapter.CopyAsync(source, destination, CancellationToken.None);
-        ProviderStepOutcome verify = await adapter.VerifyCopyAsync(source, destination, CancellationToken.None);
+        CopyVerificationOutcome verify = await adapter.VerifyCopyAsync(source, destination, CancellationToken.None);
         AtomicMoveCapabilityOutcome foreignCapability = await adapter.GetAtomicMoveCapabilityAsync(
             source,
             Wsl("\\\\wsl.localhost\\Debian\\dest"),
@@ -534,14 +534,14 @@ public sealed class WslFileOperationAdapterTests
             CancellationToken.None);
         ProviderStepOutcome linkedCopy = await adapter.CopyAsync(
             source, linkedDestination, CancellationToken.None);
-        ProviderStepOutcome foreignVerify = await adapter.VerifyCopyAsync(
+        CopyVerificationOutcome foreignVerify = await adapter.VerifyCopyAsync(
             source, foreign, CancellationToken.None);
-        ProviderStepOutcome missingVerify = await adapter.VerifyCopyAsync(
+        CopyVerificationOutcome missingVerify = await adapter.VerifyCopyAsync(
             source,
             Wsl("\\\\wsl.localhost\\Ubuntu\\missing"),
             CancellationToken.None);
         fileSystem.TargetContainsReparsePoint = true;
-        ProviderStepOutcome linkedTargetVerify = await adapter.VerifyCopyAsync(
+        CopyVerificationOutcome linkedTargetVerify = await adapter.VerifyCopyAsync(
             source, destination, CancellationToken.None);
         fileSystem.TargetContainsReparsePoint = false;
         fileSystem.ContainsNestedReparsePoint = true;
@@ -607,11 +607,11 @@ public sealed class WslFileOperationAdapterTests
         WslFileOperationAdapter adapter = Adapter(fileSystem);
 
         fileSystem.ContainsNestedReparsePoint = true;
-        ProviderStepOutcome linkedSource = await adapter.VerifyCopyAsync(
+        CopyVerificationOutcome linkedSource = await adapter.VerifyCopyAsync(
             Snapshot(sourceEntry), destination, CancellationToken.None);
         fileSystem.ContainsNestedReparsePoint = false;
         fileSystem.TargetContainsReparsePoint = true;
-        ProviderStepOutcome linkedTarget = await adapter.VerifyCopyAsync(
+        CopyVerificationOutcome linkedTarget = await adapter.VerifyCopyAsync(
             Snapshot(sourceEntry), destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Verification, linkedSource.Failure);

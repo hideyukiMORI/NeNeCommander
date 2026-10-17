@@ -43,7 +43,7 @@ public sealed class WslCrossDistributionTransferTests
                         ? destinationRoot.ResolveVerbatim(string.Empty)
                         : throw new InvalidOperationException("Unowned test distribution."),
                 path),
-            WindowsFileIdentifier.ReadHandleFacts);
+            OwnedWslNamespace.ReadFacts);
         StepHookPort port = new(Router(fileSystem));
         using FileOperationGateway gateway = new(port);
         WslPath source = Path(sourceDistribution, "tree.");

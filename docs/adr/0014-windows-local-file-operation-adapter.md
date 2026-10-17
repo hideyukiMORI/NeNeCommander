@@ -2,6 +2,11 @@
 
 Status: accepted
 
+ADR-0069 supersedes the byte-count-only verification and root-only recursive
+source deletion below with verified descendant evidence and conditional,
+nonrecursive source deletion. Provider admission and explicit residual races
+retain their existing scope.
+
 Date: 2026-09-04
 
 ## Context

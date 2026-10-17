@@ -33,12 +33,25 @@ public static class WindowsLocalEntryIdentity
     public static FileIdentity Describe(FileSystemInfo entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
+        return Compose(entry, WindowsFileIdentifier.Describe(entry.FullName));
+    }
+
+    /// <summary>Captures full and stable identities using the same native object observation.</summary>
+    internal static VerifiedEntrySnapshot Capture(WindowsLocalPath path, FileSystemInfo entry)
+    {
+        entry.Refresh();
+        string objectIdentity = WindowsFileIdentifier.Describe(@"\\?\" + path.CanonicalText);
+        return VerifiedEntrySnapshot.Create(path, Compose(entry, objectIdentity), FileObjectIdentity.Create(objectIdentity));
+    }
+
+    private static FileIdentity Compose(FileSystemInfo entry, string objectIdentity)
+    {
         string kind = entry is DirectoryInfo ? "directory" : "file";
         long length = entry is FileInfo file ? file.Length : 0;
         string value = string.Join(
             '|',
             "windows-v2",
-            WindowsFileIdentifier.Describe(entry.FullName),
+            objectIdentity,
             kind,
             length.ToString(CultureInfo.InvariantCulture),
             entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),

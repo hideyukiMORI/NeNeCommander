@@ -141,7 +141,9 @@ public static class DualPanePresenter
             outcome.NotTransferred.Count,
             outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Copied),
             outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Verified),
-            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourceDeleted));
+            SourceDeletionCounts.Create(
+                outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourceDeleted),
+                outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourcePartiallyDeleted)));
     }
 
     private static OperationStatus TranslateAwaitingName(OperationKind kind)

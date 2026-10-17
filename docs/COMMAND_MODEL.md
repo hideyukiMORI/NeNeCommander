@@ -89,6 +89,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | Windows-side file-operation provider routing | `ProviderFileOperationPort` |
 | Windows local file-operation provider | `WindowsLocalFileOperationAdapter` behind the provider router |
 | WSL mutation and transfer provider | `WslFileOperationAdapter` behind the provider router |
+| composite-move verification and conditional source deletion | the existing `FileOperationGateway` pipeline carrying immutable descendant evidence from the shared tree verifier to the source provider (ADR-0069) |
 | Windows local atomic-move capability | provider query using mounted-volume identity, consumed by `FileOperationGateway` |
 | directory reads | `IDirectoryReadPort` boundary with `DirectoryListing` ordering |
 | visible entry order of a pane | `EntryOrdering` over the `PaneSortOrder` held by `PaneState`; accepted changes are persisted by the existing settings queue for that pane's next launch (ADR-0067) |

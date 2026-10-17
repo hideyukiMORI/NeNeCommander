@@ -107,36 +107,6 @@ public static partial class WindowsLocalTreeCopy
             : CopyFile(source, resolveTarget(target));
     }
 
-    /// <summary>Compares kind, entry set and byte length under the same child admission as copying.</summary>
-    /// <param name="source">Existing source.</param>
-    /// <param name="target">Typed target path.</param>
-    /// <param name="resolveTarget">Owning provider's transport resolver.</param>
-    /// <param name="inspectSource">Owning provider's current entry inspection.</param>
-    /// <returns>True when the target has the same declared structure and lengths.</returns>
-    public static bool Matches(
-        FileSystemInfo source,
-        FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(target);
-        ArgumentNullException.ThrowIfNull(resolveTarget);
-        ArgumentNullException.ThrowIfNull(inspectSource);
-        inspectSource(source);
-        if (IsReparsePoint(source) || TargetParentFailure(target, resolveTarget) is not null)
-        {
-            return false;
-        }
-        if (source is DirectoryInfo directory)
-        {
-            return MatchesDirectory(directory, target, resolveTarget, inspectSource);
-        }
-        FileInfo destination = new(resolveTarget(target));
-        return destination.Exists && !IsReparsePoint(destination) &&
-            source is FileInfo file && destination.Length == file.Length;
-    }
-
     /// <summary>Derives exactly one provider-valid child, including the Windows component limit.</summary>
     internal static FileSystemPath? DeriveChild(FileSystemPath parent, string name)
     {
@@ -213,42 +183,6 @@ public static partial class WindowsLocalTreeCopy
         return ProviderStepOutcome.Succeeded();
     }
 
-    private static bool MatchesDirectory(
-        DirectoryInfo source,
-        FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
-    {
-        DirectoryInfo destination = new(resolveTarget(target));
-        if (!destination.Exists || IsReparsePoint(destination))
-        {
-            return false;
-        }
-        List<FileSystemInfo> children = [.. Children(source)];
-        return Children(destination).Count() == children.Count &&
-            MatchesChildren(children, target, resolveTarget, inspectSource);
-    }
-
-    /// <summary>Checks that every enumerated child has one distinct, matching target identity.</summary>
-    internal static bool MatchesChildren(
-        IEnumerable<FileSystemInfo> children,
-        FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
-    {
-        HashSet<FileSystemPath> reserved = new(FileSystemPathIdentityComparer.Instance);
-        foreach (FileSystemInfo child in children)
-        {
-            if (DeriveChild(target, child.Name) is not FileSystemPath childTarget ||
-                !reserved.Add(childTarget) ||
-                !Matches(child, childTarget, resolveTarget, inspectSource))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private static FileOperationFailureKind? TargetParentFailure(
         FileSystemPath target,
         Func<FileSystemPath, string> resolveTarget)
@@ -287,4 +221,86 @@ public static partial class WindowsLocalTreeCopy
         StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CreateDirectory(string path, IntPtr securityAttributes);
+
+    /// <summary>Compares bounded file streams and captures provider-owned descendant evidence.</summary>
+    internal static CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath target, VerifiedTreeAccess access)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(access);
+        if (source.TransferTarget is FileSystemPath expected &&
+            !FileSystemPathIdentityComparer.Instance.Equals(expected, target))
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
+        }
+        try
+        {
+            IReadOnlyList<VerifiedEntrySnapshot> sourceAncestors = access.Ancestors(source.Path);
+            IReadOnlyList<VerifiedEntrySnapshot> targetAncestors = access.Ancestors(target);
+            VerifiedCopyEntry root = VerifyEntry(source.Path, target, access);
+            return source.Identity == root.Source.Identity &&
+                access.MatchesAncestors(sourceAncestors) && access.MatchesAncestors(targetAncestors) &&
+                VerifiedTreeEvidence.Matches(root, access)
+                ? CopyVerificationOutcome.Succeeded(VerifiedCopyReceipt.Create(source, root,
+                    VerifiedTreeBoundary.Create(sourceAncestors, targetAncestors)))
+                : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return CopyVerificationOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(
+                exception.HResult, FileOperationFailureKind.Verification));
+        }
+        catch (IOException exception)
+        {
+            return CopyVerificationOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(
+                exception.HResult, FileOperationFailureKind.Verification));
+        }
+    }
+
+    private static VerifiedCopyEntry VerifyEntry(FileSystemPath source, FileSystemPath target, VerifiedTreeAccess access)
+    {
+        VerifiedEntrySnapshot sourceBefore = access.Capture(source);
+        VerifiedEntrySnapshot targetBefore = access.Capture(target);
+        FileSystemInfo entry = access.Find(source);
+        VerifiedCopyEntry result = entry is DirectoryInfo
+            ? VerifyDirectory(sourceBefore, targetBefore, access)
+            : access.Find(target) is FileInfo
+                ? VerifiedCopyEntry.File(sourceBefore, targetBefore,
+                    VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)))
+                : throw new IOException("The copied entry kind differs.");
+        return access.Capture(source) != sourceBefore || access.Capture(target) != targetBefore
+            ? throw new IOException("An entry changed during verification.") : result;
+    }
+
+    private static VerifiedCopyEntry VerifyDirectory(
+        VerifiedEntrySnapshot source,
+        VerifiedEntrySnapshot target,
+        VerifiedTreeAccess access)
+    {
+        IReadOnlyList<FileSystemPath> sourceChildren = access.Children(source.Path);
+        return VerifiedCopyEntry.Directory(source, target, VerifyChildren(sourceChildren, target.Path, access));
+    }
+
+    /// <summary>Applies the canonical target-name and exact membership admission to one complete source enumeration.</summary>
+    internal static IReadOnlyList<VerifiedCopyEntry> VerifyChildren(
+        IReadOnlyList<FileSystemPath> sourceChildren,
+        FileSystemPath target,
+        VerifiedTreeAccess access)
+    {
+        IReadOnlyList<FileSystemPath> targetChildren = access.Children(target);
+        HashSet<FileSystemPath> targets = new(targetChildren, FileSystemPathIdentityComparer.Instance);
+        List<VerifiedCopyEntry> children = [];
+        foreach (FileSystemPath child in sourceChildren)
+        {
+            FileSystemPath childTarget = DeriveChild(target, access.Find(child).Name) ??
+                throw new IOException("A copied child name is not representable.");
+            if (!targets.Remove(childTarget))
+            {
+                throw new IOException("The copied directory entry set differs.");
+            }
+            children.Add(VerifyEntry(child, childTarget, access));
+        }
+        return targets.Count != 0 ? throw new IOException("The copied directory contains an unexpected entry.")
+            : children.AsReadOnly();
+    }
 }

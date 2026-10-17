@@ -38,9 +38,9 @@ public sealed class WindowsWslFileSystemTests
         Assert.IsFalse(fileSystem.ContainsReparsePoint(fileEntry));
         Assert.IsNull(fileSystem.Copy(fileEntry, copiedFile).Failure);
         Assert.IsFalse(fileSystem.ContainsReparsePoint(copiedFile));
-        Assert.IsTrue(fileSystem.Matches(fileEntry, copiedFile));
+        Assert.IsTrue(fileSystem.VerifyCopy(Snapshot(fileEntry), copiedFile).Failure is null);
         File.AppendAllText(root.Resolve("copied.txt"), "changed");
-        Assert.IsFalse(fileSystem.Matches(fileEntry, copiedFile));
+        Assert.IsFalse(fileSystem.VerifyCopy(Snapshot(fileEntry), copiedFile).Failure is null);
         fileSystem.Delete(RequireEntry(fileSystem.Find(copiedFile)));
         fileSystem.Rename(fileEntry, renamedFile);
         Assert.IsFalse(File.Exists(root.Resolve("file.txt")));
@@ -60,7 +60,7 @@ public sealed class WindowsWslFileSystemTests
         _ = root.WriteFile("created\\child.txt", "child");
         WslPath copiedDirectory = Wsl("/owned/copied-directory");
         Assert.IsNull(fileSystem.Copy(directoryEntry, copiedDirectory).Failure);
-        Assert.IsTrue(fileSystem.Matches(directoryEntry, copiedDirectory));
+        Assert.IsTrue(fileSystem.VerifyCopy(Snapshot(RequireEntry(fileSystem.Find(created))), copiedDirectory).Failure is null);
         _ = root.CreateDirectory("linked-tree");
         _ = root.CreateJunction("linked-tree\\nested-link", "link-target");
         Assert.IsTrue(fileSystem.ContainsReparsePoint(Wsl("/owned/linked-tree")));
@@ -114,16 +114,12 @@ public sealed class WindowsWslFileSystemTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.ContainsReparsePoint((WslPath)null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Copy(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Copy(entry, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(null!, Wsl("/owned/new")));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Matches(entry, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.VerifyCopy(null!, Wsl("/owned/new")));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.VerifyCopy(Snapshot(entry), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => fileSystem.CopyFromWindowsLocal(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => fileSystem.CopyFromWindowsLocal(new FileInfo(root.Resolve("item")), null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => fileSystem.MatchesWindowsLocal(null!, Wsl("/owned/new")));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => fileSystem.MatchesWindowsLocal(new FileInfo(root.Resolve("item")), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.CreateDirectory(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(null!, Wsl("/owned/new")));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Rename(entry, null!));
@@ -307,10 +303,10 @@ public sealed class WindowsWslFileSystemTests
         Assert.IsTrue(Directory.Exists(root.ResolveVerbatim("copy.")));
         Assert.AreEqual("inner", File.ReadAllText(root.ResolveVerbatim("copy.\\inner")));
         Assert.AreEqual("dot", File.ReadAllText(root.ResolveVerbatim("copy.\\foo.")));
-        Assert.IsTrue(fileSystem.Matches(file, Wsl("/owned/copy./foo.")));
-        Assert.IsFalse(fileSystem.Matches(directory, Wsl("/owned/copy.")));
+        Assert.IsTrue(fileSystem.VerifyCopy(Snapshot(file), Wsl("/owned/copy./foo.")).Failure is null);
+        Assert.IsFalse(fileSystem.VerifyCopy(Snapshot(directory), Wsl("/owned/copy.")).Failure is null);
         File.Delete(root.ResolveVerbatim("copy.\\foo."));
-        Assert.IsTrue(fileSystem.Matches(directory, Wsl("/owned/copy.")));
+        Assert.IsTrue(fileSystem.VerifyCopy(Snapshot(directory), Wsl("/owned/copy.")).Failure is null);
 
         fileSystem.Rename(file, Wsl("/owned/renamed."));
         Assert.AreEqual("dot", File.ReadAllText(root.ResolveVerbatim("renamed.")));
@@ -349,7 +345,7 @@ public sealed class WindowsWslFileSystemTests
             text =>
             {
                 queried.Add(text);
-                return WindowsFileIdentifier.ReadHandleFacts(text);
+                return OwnedWslNamespace.ReadFacts(text);
             });
 
         Assert.AreEqual(fileName, RequireEntry(fileSystem.Find(Wsl("/owned/" + fileName))).Name);
@@ -392,13 +388,18 @@ public sealed class WindowsWslFileSystemTests
             Resolve(root, Assert.IsInstanceOfType<WslPath>(WindowsLocalTreeCopy.DeriveChild(Wsl("/owned/sub."), "bar "))));
     }
 
+    private static FileEntrySnapshot Snapshot(WslFileSystemEntry entry)
+    {
+        return FileEntrySnapshot.Create(entry.Path, entry.Identity, DeletionCapability.PermanentOnly);
+    }
+
     private static WindowsWslFileSystem FileSystem(TestOwnedTemporaryRoot root)
     {
         // The unguarded reader is the only way to obtain real handle facts from an NTFS test root;
         // production composes the same file system with the 9P-guarded reader by default.
         return new WindowsWslFileSystem(
             path => Resolve(root, path),
-            WindowsFileIdentifier.ReadHandleFacts);
+            OwnedWslNamespace.ReadFacts);
     }
 
     private static WslFileSystemEntry RequireEntry(WslFileSystemEntry? entry)

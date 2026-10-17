@@ -43,7 +43,6 @@ public sealed class NullGuardTests
     /// <summary>Proves each tree entry boundary rejects an absent source, target or adapter callback.</summary>
     [TestMethod]
     [DataRow(nameof(WindowsLocalTreeCopy.Copy))]
-    [DataRow(nameof(WindowsLocalTreeCopy.Matches))]
     [DataRow(nameof(WindowsLocalTreeCopy.Preflight))]
     public void TreeMethodsWhenRequiredArgumentIsNullRejectBeforeIo(string methodName)
     {
