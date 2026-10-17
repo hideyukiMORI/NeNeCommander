@@ -112,7 +112,14 @@ byte比較の独立性を示せなかった。同じ長さの有効JSONへ書換
 90.91%。drive許可とbyte一致をORに変えるmutant 2433がKilledになった。
 限定scoreを新しいInfrastructure全体scoreとして扱わず、元の90.22%と補強結果を別に保持する。
 scope・コマンド・raw JSON・source hashは`supplemental/`、設計判断と照合は`root/mutation-review.md`。
-補完testを含む確定版CodeQLはまだ未完了で、技術受理とmain統合は未宣言。
+補完testを含むcandidate `f9635abeadc798894ec319f62d86f2de794acf08`は通常commit hookを通過した。
+同じCodeQL 2.27.2・canonical設定・build-mode noneで最終解析し、685/685 C#を抽出、164 rules・結果0。
+GitHub analysis `1973042465`もこのcommitで結果0・open branch alerts 0を返し、2026-10-17に技術受理した。
+raw diagnosticは既存の生成コード/native/Appに関する8 groupを保持する。以前の#243との比較で増えた
+1件は#251で加わった生成`InputSurface`参照で、今回の変更ではない。XAMLの宣言と成功した全体buildを
+照合した。新しいdrive境界と補完testに新たな抽出問題はなく、診断なしとは記述しない。
+最終command、SARIF、照合とGitHub API readbackは`ci/codeql-final/`、受理一覧は`root/acceptance.json`。
+以後の文書更新は検証入力を変えず、成功済みbuild/test/mutation/CodeQLを再利用する。
 
 実share、network mapping、removable mediaと[#94](https://github.com/hideyukiMORI/NeNeCommander/issues/94)の
 手動release確認は未実行の別tier。synthetic drive factsと所有temporary rootの試験をlive証明と混同しない。
@@ -121,6 +128,8 @@ scope・コマンド・raw JSON・source hashは`supplemental/`、設計判断�
 
 作業branchは`fix/181-mapped-network-boundary`、worktreeは`D:/NeNeCommander/worktrees/issue-181`。
 一時出力は`D:/NeNeCommander/outputs/issue-181`、恒久証拠は`D:/NeNeCommander/evidence/issue-181`に置く。
-実装・検証中のためworktreeと出力を保持する。main統合や後片付け完了はまだ主張しない。
-完了時は取込、未保存・未追跡・ignored file、唯一の成果物、稼働参照とlinkを確認して整理する。
-現在、新しい後片付けの自動承認拒否やhideへの実行依頼はない。
+実装と技術受理は完了した。PR #273のReady・squash mergeとmain同期、作業領域の整理は、
+各実行後にPRと`D:/NeNeCommander/evidence/issue-181/completion.json`へ実績を記録する。
+この検証時点の記述から将来のmerge SHAや削除完了を推定しない。
+整理では取込、未保存・未追跡・ignored file、唯一の成果物、稼働参照とlinkを確認し、
+branch・commit・恒久証拠・共有SDKを保持する。現時点で新しい後片付けの承認拒否や実行依頼はない。

@@ -56,7 +56,7 @@ Public-only reflectionでinternal methodを検索していた。live 16 skipは�
 製品コードを変えずexact internal signatureのnull/callback未呼出し証明へ修正し、不足工程を個別に補完した。
 Domainの全関連入力はIssue #243から不変で、`ci/domain-evidence-reuse.json`に成功証拠の再利用を記録した。
 CodeQL analysis `1972885555`は685/685 C#、164 rules、結果0・branch open alerts 0。
-元workflowはfailedのまま保持し、補完が揃うまで技術受理とmain統合を主張しない。
+元workflowはfailedのまま保持する。補完を含む最終技術受理は以下の確定版CodeQLと併せて読む。
 補完済み: null test 2件、Application/Infrastructure/Presentation coverage 100/92.138177/94.246862%、
 明示dependency audit（脆弱性なし）、adversarial各3回（88/362/12成功、Infra live 3 skip）。
 Complete mutationもApplication 95.60%、Infrastructure 90.22%、Presentation 95.05%で成功した。
@@ -65,7 +65,12 @@ Infrastructureの新しい拒否境界5箇所の追加・強化8件（unique増�
 5 owner限定mutationは95.82%、確認対象7 mutantは全てKilled。settingsの既存ADV-012も
 同長JSON・復元identity一致で1件強化し、通常・3反復成功、`DestinationMatches`文字範囲の
 mutationは90.91%、内容比較をORに変えるmutant 2433はKilled。これらは全体scoreに置き換えない。
-`supplemental/`と`root/mutation-review.md`を参照。確定版CodeQLが残る。
+`supplemental/`と`root/mutation-review.md`を参照。
+最終candidate `f9635abeadc798894ec319f62d86f2de794acf08`のCodeQLも完了。
+analysis `1973042465`は685/685 C#・164 rules・結果0・open branch alerts 0で、2026-10-17に技術受理した。
+生成コード/native/Appの既存8 diagnostic groupは保持し、#243以後に増えた生成`InputSurface`参照1件は
+先行#251のものと確認した。新しいdrive境界と補完testに新たな抽出問題はない。
+`ci/codeql-final/`と`root/acceptance.json`に照合・API結果を保存する。文書だけの最終更新は再解析しない。
 全体通常testや成功済みstageを工程都合で再実行しない。
 成功証拠は関連入力が不変なら工程変更やpush/mergeだけを理由に繰り返さない。
 live share/mapping/removableと#94手動release確認は別tierで未実行。
@@ -74,7 +79,9 @@ P4 Issues #244–#248は今回に混ぜず、記録のみのまま維持する�
 ## 作業場所と整理
 
 branch `fix/181-mapped-network-boundary`、worktree `D:/NeNeCommander/worktrees/issue-181`、
-一時出力 `D:/NeNeCommander/outputs/issue-181` は未完作業のため保持中。
+一時出力 `D:/NeNeCommander/outputs/issue-181` は統合・整理の対象。
 恒久証拠は `D:/NeNeCommander/evidence/issue-181`、SDKは共有tool領域に保持する。
-完了後はmain取込と成果物・未保存状態・稼働参照・linkを確認して作業copyと不要出力を整理する。
-現在、新しい後片付けの承認拒否や実行依頼はない。
+PR #273と`D:/NeNeCommander/evidence/issue-181/completion.json`で実際のmerge・main同期・削除結果を読む。
+各実行後に更新されるため、この検証時点の文書から完了や未完を推定しない。
+main取込と成果物・未保存状態・稼働参照・linkを確認して作業copyと不要出力を整理し、branch・commitは保持する。
+現時点で新しい後片付けの承認拒否や実行依頼はない。
