@@ -128,8 +128,25 @@ raw diagnosticは既存の生成コード/native/Appに関する8 groupを保持
 
 作業branchは`fix/181-mapped-network-boundary`、worktreeは`D:/NeNeCommander/worktrees/issue-181`。
 一時出力は`D:/NeNeCommander/outputs/issue-181`、恒久証拠は`D:/NeNeCommander/evidence/issue-181`に置く。
-実装と技術受理は完了した。PR #273のReady・squash mergeとmain同期、作業領域の整理は、
-各実行後にPRと`D:/NeNeCommander/evidence/issue-181/completion.json`へ実績を記録する。
-この検証時点の記述から将来のmerge SHAや削除完了を推定しない。
-整理では取込、未保存・未追跡・ignored file、唯一の成果物、稼働参照とlinkを確認し、
-branch・commit・恒久証拠・共有SDKを保持する。現時点で新しい後片付けの承認拒否や実行依頼はない。
+実装と技術受理は完了し、PR #273を2026-10-18 00:01:38 JSTにsquash mergeした。
+mainは`5d817de8e91b68155148fe50ca14db7abaf76a2b`へ同期・cleanで、受理したtask treeと一致した。
+Issue #181はclosed、追加worktreeは削除済み。branch・commit・恒久証拠・共有SDKを保持する。
+
+未保存・未追跡・ignored file、唯一の成果物、稼働参照とlinkを確認し、37 raw log・51補完artifact・
+4 TRXとCodeQL証拠を恒久領域へ保存した。出力内のjunction 10個は全て同じ所有一時領域内を指し、
+稼働参照はなかった。しかし出力削除は自動承認レビューが`blocked by policy`で拒否した。
+コマンドは開始されず、別手段での削除再試行もしていない。読み取り確認で出力の残存を確かめた。
+この実績と保留は`completion.json`、`cleanup-preflight.json`、`cleanup-pending.json`へ保存し、
+Issue #274で本書・引き継ぎ・PROJECT_STATEへ反映する。文書だけのため製品検証やCIは追加しない。
+
+! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-181`のみ。理由は自動承認レビューの`blocked by policy`。
+保持するものは`D:/NeNeCommander/evidence/issue-181`、branch・commit、共有SDK。
+下記をhideで実行する。対象外に置いたscriptは構文と範囲を確認済みで、サナは実行していない。
+既知linkを追跡せず外し、対象directoryを1回のnative呼出しで削除する。削除済みでも実行できる。
+個々のfile再検証・削除loopや恒久証拠の再hashは行わず、完了時間の保証はしない。
+
+```powershell
+pwsh -NoProfile -File "D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1"
+```
