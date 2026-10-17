@@ -1,13 +1,29 @@
-# 日報 2026年10月17日 検証済み移動元削除の検証完了
+# 日報 2026年10月17日 検証済み移動の検証・統合・整理完了
 
 Status: informational
 
-最終更新: 2026-10-17 18:21:49 JST。
+最終更新: 2026-10-17 18:45:28 JST。
 
 hideの再開指示と役割分担に従い、NeNe Commanderサナが設計・受理判断を担当し、
 Solが残る検証、Lunaが独立した設定検体修正と整理前の調査を担当した。
 [前回日報](2026-10-16-verified-move-daily-report.md)と
 [前回引き継ぎ](../handoffs/2026-10-16-verified-move-handoff.md)から再開した。
+
+## 本日の結果
+
+前日から残っていた#243の検証を完了し、移動元の変更を検出して未削除分を保持する修正をmainへ統合した。
+後片付けもhideの実行確認まで完了している。次の製品作業は設定の残留tmp問題#250で、今日は着手していない。
+
+| 完了した作業 | 統合PR | main commit |
+| --- | --- | --- |
+| #257 未知schema検体の1行修正 | [#258](https://github.com/hideyukiMORI/NeNeCommander/pull/258) | `5b6ac92` |
+| #243 検証済み子孫だけの削除と検証補強 | [#249](https://github.com/hideyukiMORI/NeNeCommander/pull/249) | `a6587bf` |
+| #259 後片付け完了の確認・記録 | [#260](https://github.com/hideyukiMORI/NeNeCommander/pull/260) | `a26e29a` |
+
+3件のIssueはCLOSED、PRはMERGED。日報仕上げの着手時点ではmain `a26e29a`がGitHubと同期・cleanで、open PRは0だった。
+検証の要点は追加44ケース成功、Infrastructure mutation 90.32%、CodeQL 671ファイル・164規則・検出0件。
+元のdeep失敗、Timeoutとの区別、既存抽出診断、live環境の未実行範囲は以下に保持する。
+成功済みの製品検証を、文書更新・push・mergeだけを理由に繰り返していない。
 
 ## 完了した修正と受理範囲
 
@@ -178,6 +194,14 @@ path最終確認からmutationまで、およびowned child削除から直後の
 ADR-0069の明示した残存範囲である。tree凍結・writer排他・live 9Pの実証は主張しない。
 手動release表示確認#94は別件。次は設定一時ファイル残留#250をred再現から扱い、終了契約#251、
 P4 #244〜#248、低優先度#181は独立Issueのまま維持する。
+
+hideの「日報と引き継ぎ書を書いて」という依頼を
+[Issue #261](https://github.com/hideyukiMORI/NeNeCommander/issues/261)として記録し、既存の2文書を最終版に整えた。
+引き継ぎには#250の最初の再現、維持する設定保存の安全契約、次回の作業配置を明記した。
+この仕上げは文書だけの変更で、`git diff --check`・相対リンク確認・通常hookの
+`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`を選択した。追加worktree/outputは作成していない。
+最終文書PRの統合・main同期はIssue #261に対応するPRと
+`D:/NeNeCommander/evidence/issue-243/20261017/session-report-completion.json`に記録する。
 
 ## 後片付け完了
 
