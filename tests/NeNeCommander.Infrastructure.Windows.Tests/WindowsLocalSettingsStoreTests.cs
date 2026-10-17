@@ -6,10 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
+using NeNeCommander.Infrastructure.Windows.FileOperations;
 using NeNeCommander.Infrastructure.Windows.Settings;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -1286,11 +1288,13 @@ public sealed class WindowsLocalSettingsStoreTests
         const string Original =
             "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}";
         const string ConcurrentDocument =
-            "{\"schemaVersion\":1,\"showHiddenItems\":false,\"colorScheme\":\"nene-light\"}";
+            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"nene-dark\" }";
+        Assert.AreEqual(Original.Length, ConcurrentDocument.Length);
         string documentPath = root.WriteFile(DocumentName, Original);
         FileInfo metadata = new(documentPath);
         DateTime creationTimeUtc = metadata.CreationTimeUtc;
         DateTime lastWriteTimeUtc = metadata.LastWriteTimeUtc;
+        FileIdentity originalIdentity = WindowsLocalEntryIdentity.Describe(metadata);
         WindowsLocalSettingsStore store = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -1300,6 +1304,7 @@ public sealed class WindowsLocalSettingsStoreTests
                     File.WriteAllText(path, ConcurrentDocument);
                     File.SetCreationTimeUtc(path, creationTimeUtc);
                     File.SetLastWriteTimeUtc(path, lastWriteTimeUtc);
+                    Assert.AreEqual(originalIdentity, WindowsLocalEntryIdentity.Describe(new FileInfo(path)));
                 },
             });
 

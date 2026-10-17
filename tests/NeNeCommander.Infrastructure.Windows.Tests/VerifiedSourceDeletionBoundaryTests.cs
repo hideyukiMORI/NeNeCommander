@@ -15,6 +15,53 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class VerifiedSourceDeletionBoundaryTests
 {
+    /// <summary>A local child remap during receipt structure validation stops before deletion.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public async Task DeleteVerifiedLocalDirectoryWhenChildDriveIsRejectedRetainsBothTreesAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("source");
+        _ = root.CreateDirectory("destination\\source");
+        string sourceFile = root.WriteFile("source\\kept.txt", "kept");
+        string targetFile = root.WriteFile("destination\\source\\kept.txt", "kept");
+        WindowsLocalPath sourcePath = Local(root.Resolve("source"));
+        WindowsLocalPath targetPath = Local(root.Resolve("destination\\source"));
+        WindowsLocalPath sourceChild = Local(sourceFile);
+        WindowsLocalPath targetChild = Local(targetFile);
+        VerifiedTreeAccess admitted = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed));
+        VerifiedCopyEntry child = VerifiedCopyEntry.File(admitted.Capture(sourceChild), admitted.Capture(targetChild),
+            VerifiedFileContent.Compare(sourceFile, targetFile));
+        VerifiedCopyEntry directory = VerifiedCopyEntry.Directory(admitted.Capture(sourcePath), admitted.Capture(targetPath), [child]);
+        FrozenSourcePort port = new(FileEntrySnapshot.Create(sourcePath, directory.Source.Identity,
+            DeletionCapability.PermanentOnly), targetPath);
+        using FileOperationGateway gateway = new(port);
+        CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(Assert.IsInstanceOfType<FileOperationRequestAccepted>(
+            CopyRequest.Create([sourcePath], Local(root.Resolve("destination")))).Request);
+        _ = await gateway.ExecuteAsync(request, IgnoredFileOperationProgress.Create(), CancellationToken.None);
+        FileEntrySnapshot source = port.Frozen ?? throw new AssertFailedException("The gateway did not freeze the source.");
+        Assert.AreEqual(targetPath, source.TransferTarget);
+        VerifiedCopyReceipt receipt = VerifiedCopyReceipt.Create(source, directory,
+            VerifiedTreeBoundary.Create(admitted.Ancestors(sourcePath), admitted.Ancestors(targetPath)));
+        bool driveQueried = false;
+        VerifiedTreeAccess denied = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ =>
+        {
+            driveQueried = true;
+            return DriveType.Network;
+        }));
+
+        ProviderStepOutcome outcome = VerifiedSourceDeletion.Execute(source, receipt, denied);
+
+        Assert.IsTrue(driveQueried);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.IsNull(outcome.Effect);
+        Assert.AreEqual("kept", File.ReadAllText(sourceFile));
+        Assert.AreEqual("kept", File.ReadAllText(targetFile));
+        Assert.IsTrue(Directory.Exists(sourcePath.CanonicalText));
+        Assert.IsTrue(Directory.Exists(targetPath.CanonicalText));
+    }
+
     /// <summary>A remap after the first source leaf deletion stops the remaining verified source with a partial effect.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -230,6 +277,12 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         _ = fixture.Root.WriteFile("wsl\\directory\\a.txt", "first");
         _ = fixture.Root.WriteFile("wsl\\directory\\b.txt", "second");
         return fixture;
+    }
+
+    private static WindowsLocalPath Local(string text)
+    {
+        return Assert.IsInstanceOfType<WindowsLocalPath>(
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path);
     }
 
     private static async Task<VerifiedCopyReceipt> ReceiptAsync(WslToWindowsTransferFixture fixture)

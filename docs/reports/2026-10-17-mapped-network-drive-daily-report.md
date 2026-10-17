@@ -41,7 +41,7 @@ Win32 identifier、settings schema、依存package、資格情報、実ドライ
 
 ADR-0061により、実装中は影響するbuild・test・formatを選択する。
 local mutation全体、転送、settingsと共有read結果に及ぶ安全境界の変更なので、
-安定candidateに一度の明示的security deep reviewを予定する。
+安定candidateに一度の明示的security deep reviewを実行した。
 deep reviewがcanonical gate・coverage・adversarial反復・mutation・CodeQLを含むため、
 同じ入力にquality CIを重ねない。単にpushやmergeをした理由で成功証拠を再実行しない。
 
@@ -75,11 +75,44 @@ settings最終sourceの実行前hashは未採取で、成功後のCRLF変更と�
 修正後のInfrastructure.Tests Release buildは警告・エラー0、null guard・構成・直接境界の8件、
 `eng/security-check.ps1 -SkipProof`と変更5 fileのformatが成功した。formatのworkspace-load警告は記録する。
 独立レビューもこの差分に追加P1/P2なし。App buildはこの内部構成修正より前の証拠であり、
-最終candidate全体のbuildは次のdeep reviewで確認する。失敗hookは`root/commit.log`、
+candidate全体のbuildは後述のdeep reviewで成功した。失敗hookは`root/commit.log`、
 修正後のargv/log/hashは`infra/final/proof.json`の`sec014Followup`に保持する。
 
-安定candidateのdeep reviewとmain統合はまだ未実行であり、技術受理を完了扱いにしない。
-CI結果は受理時にこの節へ追記する。
+commit `2e6c0aeed0df0dca41b437eedd6d3d0063f218be`でCommit規約・112 conformance・24 security登録の検査が成功し、
+[draft PR #273](https://github.com/hideyukiMORI/NeNeCommander/pull/273)を作成した。
+このcandidateへ[deep review run 39036679946](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/39036679946)を
+2026-10-17 22:28:09 JSTに明示起動した。
+candidateの全変更file hashと実行先は`root/candidate-manifest.json`、成功hookは`root/commit-02.log`に保存する。
+このrunは失敗した。negative gate proof、security/supply-chain proof、locked restore、format、
+全体Release build（警告・エラー0）は成功し、通常testsは1,733成功・2失敗・live 16 skipだった。
+失敗した2件は既存tree-copy null testがinternalへ移したCopy/PreflightをPublic-only reflectionで
+検索していたためで、製品コードを変えずexact internal signatureへ追従し、全引数nullとcallback未呼出しを確認する。
+成功済みstageの再実行は求めず、未実行のcoverage以降を個別に補完した。Domainはsource/testと全関連設定が
+Issue #243の成功時から不変で、coverage 100%、Complete mutation 95.54%、adversarial 60件×3回を再利用する。
+差分と元証拠hashは`ci/domain-evidence-reuse.json`。元workflowを成功に書き換えない。
+後続CodeQL analysis `1972885555`はcandidateの685/685 C#を解析し、164 rules・結果0・branch open alerts 0。
+build-mode noneの依存解決試行の失敗や診断はraw logに残し、通常Release build成功と区別する。
+workflow log、元failed report、API結果とSARIF exportは`ci/run-39036679946/`に保持する。
+
+補完のnull test 2件は成功。canonical coverage settingsを用いた実行はApplication 660件・100%、
+Infrastructure 712成功/16 live skip・92.138177%、Presentation 258件・94.246862%で、各分岐閾値を満たす。
+明示dependency auditは不足していたArchitecture.Tests/Domain.Testsのassetsだけをlocked restoreして成功し、
+脆弱性を検出しなかった。Domain testを再実行したものではない。
+adversarialはApplication 88成功、Infrastructure 362成功/3 live skip、Presentation 12成功を
+各3回確認した。Complete mutationはApplication 95.60%（閾値95）、Infrastructure 90.22%、
+Presentation 95.05%（後二者の閾値90）で成功した。Domainは前記の95.54%を再利用する。
+閾値・除外・concurrencyは変更していない。Infrastructureの全体成功後、今回の変更に属する
+取得失敗・型付き拒否の未実行分岐を確認し、製品を変更せず5境界の8ケースを追加・強化した。
+既存1ケースの2行化と新規6ケースで、unique件数の増加は7。通常8件とADV-024の8件×3回が成功し、
+5 owner限定mutationは95.82%、確認対象7 mutantは全てKilledになった。
+
+settingsの既存並行編集テストも1件強化した。従来の編集は長さが変わり、metadataを復元しても
+byte比較の独立性を示せなかった。同じ長さの有効JSONへ書換え、復元後のidentity一致をassertする。
+この1件とADV-012の3反復が成功し、`DestinationMatches`の文字範囲だけのComplete mutationは
+90.91%。drive許可とbyte一致をORに変えるmutant 2433がKilledになった。
+限定scoreを新しいInfrastructure全体scoreとして扱わず、元の90.22%と補強結果を別に保持する。
+scope・コマンド・raw JSON・source hashは`supplemental/`、設計判断と照合は`root/mutation-review.md`。
+補完testを含む確定版CodeQLはまだ未完了で、技術受理とmain統合は未宣言。
 
 実share、network mapping、removable mediaと[#94](https://github.com/hideyukiMORI/NeNeCommander/issues/94)の
 手動release確認は未実行の別tier。synthetic drive factsと所有temporary rootの試験をlive証明と混同しない。

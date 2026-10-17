@@ -115,6 +115,12 @@ Locations labels are reused conceptually but remain separate from current per-re
 or persistence migration is required. Removing this boundary would require replacing all consumers
 and proof together, not bypassing one callsite.
 
+The tree-copy/preflight entry points now consume one internal immutable `WindowsTreeCopyAccess`
+instead of separate provider callbacks. Their consumers are inside Infrastructure, so these entry
+points become internal under CS-009; their existing null-argument proof targets that exact internal
+signature. The public read-success and status-line API changes and this visibility narrowing are
+recorded as one incompatible contract migration.
+
 ## Executable proof and verification scope
 
 Deterministic tests inject OS facts, preserve failing behavioral evidence before each fix, and prove

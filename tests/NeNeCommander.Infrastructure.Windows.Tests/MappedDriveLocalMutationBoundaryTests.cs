@@ -84,17 +84,81 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         Assert.AreEqual("kept", File.ReadAllText(sourceText));
     }
 
-    /// <summary>Drive query failures deny local identity.</summary>
+    /// <summary>Drive query failures deny local identity without reading the entry.</summary>
     [TestMethod]
-    public async Task DirectAdapterWhenDriveQueryFailsRejectsWithoutIdentity()
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    [DataRow("io")]
+    [DataRow("access")]
+    public async Task DirectAdapterWhenDriveQueryFailsRejectsWithoutIdentityAsync(string kind)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = Adapter(new WindowsDriveBoundary(_ => throw new IOException("Drive query unavailable.")));
+        Exception failure = kind == "io" ? new IOException("Drive query unavailable.")
+            : new UnauthorizedAccessException("Drive query denied.");
+        bool queried = false;
+        WindowsLocalFileOperationAdapter adapter = Adapter(new WindowsDriveBoundary(_ =>
+        {
+            queried = true;
+            throw failure;
+        }));
 
         FileInspectionOutcome outcome = await adapter.InspectAsync(Local(root.WriteFile("a.txt", "kept")), CancellationToken.None);
 
+        Assert.IsTrue(queried);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<FileInspectionFailed>(outcome).Failure);
+        Assert.AreEqual("kept", File.ReadAllText(root.Resolve("a.txt")));
+    }
+
+    /// <summary>Failure to query an existing destination's drive refuses transfer admission.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    [DataRow("io")]
+    [DataRow("access")]
+    public void LocalTransferDestinationWhenDriveQueryFailsRejectsWithoutEffect(string kind)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalPath destination = Local(root.CreateDirectory("dest"));
+        string sentinel = root.WriteFile("dest\\kept.txt", "kept");
+        Exception failure = kind == "io" ? new IOException("Drive query unavailable.")
+            : new UnauthorizedAccessException("Drive query denied.");
+        bool queried = false;
+        WindowsDriveBoundary drives = new(_ =>
+        {
+            queried = true;
+            throw failure;
+        });
+
+        FileOperationFailureKind? outcome = WindowsLocalTransferDestination.Failure(destination, drives);
+
+        Assert.IsTrue(queried);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome);
+        Assert.AreEqual("kept", File.ReadAllText(sentinel));
+    }
+
+    /// <summary>A nonlocal source drive cannot claim cross-provider atomic move capability.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    [DataRow(DriveType.Network)]
+    [DataRow(DriveType.Unknown)]
+    public async Task WindowsToWslWhenLocalSourceDriveIsRejectedReportsUnavailableCapabilityAsync(DriveType observed)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalPath sourcePath = Local(root.WriteFile("source.txt", "kept"));
+        FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            await Adapter(new WindowsDriveBoundary(_ => DriveType.Fixed))
+                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+        WindowsDriveBoundary drives = new(_ => observed);
+        WindowsToWslTransfer transfer = new(new WindowsLocalIoExecutionBoundary(), new ScriptedWslFileSystem(), drives);
+
+        AtomicMoveCapabilityOutcome outcome = await transfer.GetAtomicMoveCapabilityAsync(
+            source, WslToWindowsTransferFixture.Source("destination"), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<AtomicMoveCapabilityFailed>(outcome).Failure);
+        Assert.AreEqual("kept", File.ReadAllText(sourcePath.CanonicalText));
     }
 
     /// <summary>A remapped local source prevents transfer before any target is created.</summary>

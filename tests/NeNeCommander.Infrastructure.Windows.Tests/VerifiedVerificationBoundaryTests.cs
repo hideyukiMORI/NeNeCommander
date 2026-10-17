@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -11,6 +12,35 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class VerifiedVerificationBoundaryTests
 {
+    /// <summary>A remapped local verification endpoint yields a typed denial before any effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public void VerifyWhenLocalDriveIsRejectedReportsProviderUnavailable()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        string sourceText = root.WriteFile("source.txt", "kept");
+        string targetText = root.WriteFile("target.txt", "kept");
+        FileSystemPath sourcePath = Path(sourceText);
+        FileSystemPath targetPath = Path(targetText);
+        VerifiedTreeAccess admitted = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed));
+        FileEntrySnapshot source = FileEntrySnapshot.Create(sourcePath, admitted.Capture(sourcePath).Identity,
+            DeletionCapability.PermanentOnly);
+        bool driveQueried = false;
+        VerifiedTreeAccess denied = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ =>
+        {
+            driveQueried = true;
+            return DriveType.Network;
+        }));
+
+        CopyVerificationOutcome outcome = WindowsLocalTreeCopy.Verify(source, targetPath, denied);
+
+        Assert.IsTrue(driveQueried);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.AreEqual("kept", File.ReadAllText(sourceText));
+        Assert.AreEqual("kept", File.ReadAllText(targetText));
+    }
+
     /// <summary>Never issues a successful receipt for a frozen source identity different from the observed tree.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
