@@ -2,7 +2,7 @@
 
 Status: informational
 
-最終更新: 2026-10-17 17:50:42 JST。
+最終更新: 2026-10-17 18:21:49 JST。
 
 hideの再開指示と役割分担に従い、NeNe Commanderサナが設計・受理判断を担当し、
 Solが残る検証、Lunaが独立した設定検体修正と整理前の調査を担当した。
@@ -162,11 +162,11 @@ dotnet stryker --config-file ../../stryker-config.json --project NeNeCommander.I
 
 ## 統合、整理、残る別作業
 
-設計担当が最終test候補`0b9f5ba4d906f3ba63ea747cf5aa2cbc4950076e`と選択した証拠を技術受理した。PR #249はこの日報・引き継ぎ・状態文書を含めてReadyへ進め、head照合付きsquashとmain同期を行う。
+設計担当が最終test候補`0b9f5ba4d906f3ba63ea747cf5aa2cbc4950076e`と選択した証拠を技術受理した。PR #249は文書head`18e30d9`を含め、2026-10-17 17:52:18 JSTにmain `a6587bfb16f1d804148d12e7f9d91d2945b573ad`へsquash統合済み。Issue #243 CLOSED、main同期・clean、taskとmainのtree一致を確認した。
 PR #249の最終squash/main同期と整理実績は、PRの読戻しおよび恒久evidenceの
-`20261017/completion.json`に記録する。本報告commit後の機械的な統合で成功済みtestを再実行しない。
+`20261017/completion.json`に記録済み。本報告commit後の機械的な統合では成功済みtestを再実行していない。
 #257の追加worktree/outputは取込・未保存物・稼働参照・linkを確認して削除済み。
-#243もmain取込と唯一のraw成果物の収載を確認してから、次の二つだけを整理する。
+#243もmain取込と唯一のraw成果物の収載を確認して、次の二つを整理済み。
 
 - `D:/NeNeCommander/worktrees/issue-243`
 - `D:/NeNeCommander/outputs/issue-243`
@@ -179,17 +179,16 @@ ADR-0069の明示した残存範囲である。tree凍結・writer排他・live 
 手動release表示確認#94は別件。次は設定一時ファイル残留#250をred再現から扱い、終了契約#251、
 P4 #244〜#248、低優先度#181は独立Issueのまま維持する。
 
-! hide実行待ち：後片付け
+## 後片付け完了
 
-対象: `D:/NeNeCommander/evidence/issue-243/20261016/supplemental-deep/mutation-raw`
-
-整理前の調査で別名の保存済みrawを見落とし、同じ5件を重複コピーした。後続のSHA-256照合で
-既存の原本5件と一致を確認した。今回作った重複folderだけの再帰削除を自動承認レビューが
-`blocked by policy`として拒否したため、別機構で再試行せず保持している。原本は親directoryの
-`mutation-application.json`、`mutation-domain.json`、`mutation-presentation.json`、
-`mutation-hash-guard-character-span.json`、`mutation-hash-guard-selection0.json`として保持する。
-対象・内容・link・原本の存在を確認する次のscriptは構文確認済みで、サナは実行していない。
-
-```powershell
-pwsh -NoProfile -File "D:/NeNeCommander/evidence/issue-243/20261017/cleanup-pending.ps1"
-```
+対象だった`D:/NeNeCommander/evidence/issue-243/20261016/supplemental-deep/mutation-raw`は削除済み。
+別名で保存済みの原本を見落として重複コピーした5件だけが対象だった。
+自動承認レビューが再帰削除を`blocked by policy`として拒否した履歴は保持し、サナは再試行していない。
+2026-10-17 18:19:06 JSTにhideが準備済み`cleanup-pending.ps1`を実行し、完了結果を報告した。
+同日18:20:31 JSTの読み取り確認で対象不在と原本5件の存在・SHA-256一致を確認した。
+原本は親directoryの`mutation-application.json`、`mutation-domain.json`、
+`mutation-presentation.json`、`mutation-hash-guard-character-span.json`、
+`mutation-hash-guard-selection0.json`として保持する。
+証拠は`D:/NeNeCommander/evidence/issue-243/20261017/cleanup-pending-completed.json`と
+`cleanup-confirmation.json`。記録更新は[Issue #259](https://github.com/hideyukiMORI/NeNeCommander/issues/259)に対応する。
+後片付けの保留はなく、同じ削除を再依頼しない。文書更新は差分・リンクと通常Commit-modeだけで確認する。
