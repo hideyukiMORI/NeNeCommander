@@ -107,6 +107,8 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
 | localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
+| framework asynchronous work | `AsyncWorkOwner`; Stop closes admission before cancelling and awaiting admitted work (ADR-0030, ADR-0071) |
+| normal final-window shutdown | `AppWindowCloseAdapter` translates system close to one `WindowShutdownOwner` drain, then the composition root closes the window (ADR-0071) |
 | window adjustment decisions | `WindowAdjustmentSession` with `WindowAdjustmentPlanner` |
 | Windows drive enumeration | `IDriveCatalog` implemented only by `WindowsDriveCatalog` through the Windows local I/O execution boundary |
 | Locations picker state, admission, focus, and qualified validation | `LocationsSession` over `IDriveCatalog` and `IWslDistributionCatalog` |

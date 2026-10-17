@@ -52,6 +52,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private bool _renderingAddressTransition;
     private bool _renderingCommandPalette;
     private bool _commandPaletteIsComposing;
+    private bool _stopping;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
     /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
@@ -112,6 +113,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnLoaded(object _, RoutedEventArgs args)
     {
+        if (_stopping)
+        {
+            return;
+        }
         _ = _paneWork.TryStart(cancellationToken => RenderAfterAsync(LoadInitialLocationsAsync(cancellationToken)));
     }
 
@@ -125,6 +130,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
+        if (_stopping)
+        {
+            args.Handled = true;
+            return;
+        }
         KeyboardContext context = GetKeyboardContext();
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
         if (context == KeyboardContext.CommandPalette && _commandPaletteIsComposing)
@@ -143,6 +153,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)
     {
+        if (_stopping)
+        {
+            args.Handled = true;
+            return;
+        }
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateCharacter(args, GetKeyboardContext());
         args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
     }
@@ -684,6 +699,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void ForwardIntent(UserIntent intent)
     {
+        if (_stopping)
+        {
+            return;
+        }
         if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox focusedAddress)
         {
             focusedAddress.SelectAll();
@@ -788,8 +807,16 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
     public async Task StopAsync()
     {
-        await _paneWork.StopAsync().ConfigureAwait(true);
-        await _session.StopAsync().ConfigureAwait(true);
+        _stopping = true;
+        InputSurface.IsHitTestVisible = false;
+        try
+        {
+            await _paneWork.StopAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            await _session.StopAsync().ConfigureAwait(true);
+        }
     }
 
     private KeyboardContext GetKeyboardContext()

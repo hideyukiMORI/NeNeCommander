@@ -5,6 +5,7 @@ using System.Runtime.ExceptionServices;
 using Microsoft.UI.Xaml;
 using NeNeCommander.App.Themes;
 using NeNeCommander.App.Views;
+using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Launching;
@@ -44,15 +45,16 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
 
     private FileOperationGateway? _gateway;
     private ResourceDictionary? _schemeDictionary;
-    private readonly AsyncWorkOwner _shutdownWork;
+    private readonly WindowShutdownOwner _shutdownWork;
     private readonly AsyncWorkOwner _startupWork;
+    private AppWindowCloseAdapter? _closeAdapter;
     private CommanderWindow? _window;
 
     /// <summary>Initializes the WinUI application resources.</summary>
     public CommanderApplication()
     {
         _startupWork = new AsyncWorkOwner(ReportDefect);
-        _shutdownWork = new AsyncWorkOwner(ReportDefect);
+        _shutdownWork = new WindowShutdownOwner(ShutdownAsync, QueueFinalWindowClose, ReportDefect);
         InitializeComponent();
     }
 
@@ -63,7 +65,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         _ = _startupWork.TryStart(StartAsync);
     }
 
-    /// <summary>Releases the composed gateway once the window has closed.</summary>
+    /// <summary>Releases the composed gateway after admitted work has stopped.</summary>
     public void Dispose()
     {
         _gateway?.Dispose();
@@ -90,7 +92,7 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         _window = CreateWindow(settings, ioExecutionBoundary, settingsSession);
         _window.ColorSchemeChanged += OnColorSchemeChanged;
         ApplyElementTheme(_window, settings.ColorScheme.Appearance);
-        _window.Closed += OnWindowClosed;
+        _closeAdapter = new AppWindowCloseAdapter(_window, OnWindowCloseRequested);
         _window.Activate();
     }
 
@@ -174,9 +176,23 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             configuration);
     }
 
-    private void OnWindowClosed(object _, WindowEventArgs args)
+    private void OnWindowCloseRequested()
     {
-        _ = _shutdownWork.TryStart(_ => ShutdownAsync());
+        _ = _shutdownWork.RequestClose();
+    }
+
+    private void QueueFinalWindowClose()
+    {
+        CommanderWindow window = _window ?? throw new InvalidOperationException("The closing window is unavailable.");
+        if (!window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _closeAdapter?.Detach();
+                _closeAdapter = null;
+                window.Close();
+            }))
+        {
+            throw new InvalidOperationException("The closing window dispatcher refused the final close.");
+        }
     }
 
     private async Task ShutdownAsync()

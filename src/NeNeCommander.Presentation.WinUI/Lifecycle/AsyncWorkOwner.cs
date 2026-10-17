@@ -10,6 +10,7 @@ namespace NeNeCommander.Presentation.WinUI.Lifecycle;
 /// and closes in-flight work in cancel, await, dispose order. While that work runs it admits one
 /// interrupt and only for <see cref="UserIntent.Escape"/>, so the user can cancel a running
 /// operation (ADR-0018) or abandon a loading pane read (ADR-0058); every other overlap is rejected.
+/// Stop permanently closes admission before cancelling and awaiting owned work.
 /// </summary>
 public sealed class AsyncWorkOwner
 {
@@ -20,6 +21,7 @@ public sealed class AsyncWorkOwner
     private Exception? _fault;
     private OwnedRun? _interrupt;
     private OwnedRun? _run;
+    private bool _stopped;
 
     /// <summary>Initializes an owner that reports every observed defect through one host callback.</summary>
     /// <param name="defectObserver">Host callback that publishes an unexpected task defect.</param>
@@ -66,8 +68,8 @@ public sealed class AsyncWorkOwner
     }
 
     /// <summary>
-    /// Starts work only when no prior work is running or faulted. A successfully completed prior
-    /// run is disposed before its replacement is created.
+    /// Starts work only before Stop and when no prior work is running or faulted. A successfully
+    /// completed prior run is disposed before its replacement is created.
     /// </summary>
     /// <param name="work">Work factory receiving the token owned by this instance.</param>
     /// <returns><see langword="true"/> when this call started the work.</returns>
@@ -76,7 +78,7 @@ public sealed class AsyncWorkOwner
         ArgumentNullException.ThrowIfNull(work);
         lock (_sync)
         {
-            if (_fault is not null || _run is { Work.IsCompleted: false } || _interrupt is { Work.IsCompleted: false })
+            if (_stopped || _fault is not null || _run is { Work.IsCompleted: false } || _interrupt is { Work.IsCompleted: false })
             {
                 return false;
             }
@@ -84,7 +86,11 @@ public sealed class AsyncWorkOwner
             {
                 CompleteRun(_run);
             }
-            if (_fault is not null)
+            if (_interrupt is not null)
+            {
+                CompleteRun(_interrupt);
+            }
+            if (_fault is not null || _run is not null || _interrupt is not null)
             {
                 return false;
             }
@@ -97,8 +103,8 @@ public sealed class AsyncWorkOwner
     /// <summary>
     /// Starts the work of one intent. With no work running it is an ordinary start. While work runs,
     /// only <see cref="UserIntent.Escape"/> starts, as the single interrupt that runs beside it; a
-    /// second interrupt while the first runs, any other intent, and any work after an observed
-    /// defect are rejected.
+    /// second interrupt while the first runs, any other intent, and any work after Stop or an
+    /// observed defect are rejected.
     /// </summary>
     /// <param name="intent">Intent the work forwards; it decides whether the work may interrupt.</param>
     /// <param name="work">Work factory receiving a token owned by this instance.</param>
@@ -109,6 +115,10 @@ public sealed class AsyncWorkOwner
         ArgumentNullException.ThrowIfNull(work);
         lock (_sync)
         {
+            if (_stopped)
+            {
+                return false;
+            }
             if (_run is not { Work.IsCompleted: false })
             {
                 return TryStart(work);
@@ -121,7 +131,7 @@ public sealed class AsyncWorkOwner
             {
                 CompleteRun(_interrupt);
             }
-            if (_fault is not null)
+            if (_fault is not null || _interrupt is not null)
             {
                 return false;
             }
@@ -159,20 +169,39 @@ public sealed class AsyncWorkOwner
         }
     }
 
-    /// <summary>Cancels running work and any interrupt, awaits their completion, then disposes their token owners.</summary>
+    /// <summary>Closes admission, cancels running work and any interrupt, then awaits their cleanup and token disposal.</summary>
     public async Task StopAsync()
     {
-        OwnedRun? run;
-        OwnedRun? interrupt;
-        lock (_sync)
+        OwnedRun? run = null;
+        OwnedRun? interrupt = null;
+        try
         {
-            run = _run;
-            interrupt = _interrupt;
-            CancelRunning(run);
-            CancelRunning(interrupt);
+            lock (_sync)
+            {
+                _stopped = true;
+                run = _run;
+                interrupt = _interrupt;
+                try
+                {
+                    CancelRunning(run);
+                }
+                finally
+                {
+                    CancelRunning(interrupt);
+                }
+            }
         }
-        await AwaitCompletionAsync(run);
-        await AwaitCompletionAsync(interrupt);
+        finally
+        {
+            try
+            {
+                await AwaitCompletionAsync(run);
+            }
+            finally
+            {
+                await AwaitCompletionAsync(interrupt);
+            }
+        }
     }
 
     private static void CancelRunning(OwnedRun? run)
@@ -190,30 +219,44 @@ public sealed class AsyncWorkOwner
 
     private void CompleteRun(OwnedRun run)
     {
-        Exception? defect;
-        lock (_sync)
+        Exception? defect = null;
+        bool claimed = false;
+        try
         {
-            if (run.IsDisposed)
+            lock (_sync)
             {
-                return;
+                if (run.IsCompleting)
+                {
+                    return;
+                }
+                run.IsCompleting = true;
+                claimed = true;
+                defect = RecordFault(run);
+                run.Cancellation.Dispose();
+                _cancellationDisposed();
             }
-            defect = RecordFault(run);
-            if (ReferenceEquals(run, _run))
+            if (defect is not null)
             {
-                _run = null;
+                _defectObserver(defect);
             }
-            else
-            {
-                _interrupt = null;
-            }
-            run.IsDisposed = true;
-            run.Cancellation.Dispose();
-            _cancellationDisposed();
-            run.Completion.SetResult();
         }
-        if (defect is not null)
+        finally
         {
-            _defectObserver(defect);
+            if (claimed)
+            {
+                lock (_sync)
+                {
+                    if (ReferenceEquals(run, _run))
+                    {
+                        _run = null;
+                    }
+                    if (ReferenceEquals(run, _interrupt))
+                    {
+                        _interrupt = null;
+                    }
+                    run.Completion.SetResult();
+                }
+            }
         }
     }
 
@@ -241,7 +284,7 @@ public sealed class AsyncWorkOwner
 
         internal TaskCompletionSource Completion { get; }
 
-        internal bool IsDisposed { get; set; }
+        internal bool IsCompleting { get; set; }
 
         internal Task Work { get; }
     }
