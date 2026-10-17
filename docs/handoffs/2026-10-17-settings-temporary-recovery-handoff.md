@@ -44,7 +44,7 @@ CS-010初回10 fixtureのraw logも後続runで上書きされ未保存。最終
 
 作業用コピーは`D:/NeNeCommander/worktrees/issue-250`、一時出力は
 `D:/NeNeCommander/outputs/issue-250`。取込・未保存物・唯一の成果物・稼働参照・linkを確認し、
-追加worktreeは削除済み。一時出力のみ、自動承認拒否により末尾の通りpendingである。
+追加worktreeは削除済み。一時出力もhideの実行後、末尾の通り不存在を確認した。
 branch/commit/evidenceと`D:/NeNeCommander/tools/dotnet-10.0.401`は保持する。
 
 ## 次の独立Issue #251
@@ -59,18 +59,13 @@ host/OS終了の実験はこの作業ではしていない。
 P4 #244〜#248、#181、hide立会いの手動release確認#94は別作業として維持する。
 今回の設計担当とSol/Lunaの分担は現在のhide指定範囲に限る。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象: `D:/NeNeCommander/outputs/issue-250`。
-自動承認レビューがネイティブPowerShellの再帰削除を`blocked by policy`で拒否した。
-別の削除手段を試さない。残留内容は退避済みの文書3件とcompiler cacheで、link・稼働参照はない。
-文書3件の同一hashコピーと全検証証拠は`D:/NeNeCommander/evidence/issue-250/`に保持済み。
-branch、commit、固定SDKは削除対象に含めない。Issue #264はこの記録更新であり、削除完了ではない。
+hideが20:10:04 JSTに準備済みscriptを実行した。
+20:11:17 JSTの読み取り専用確認で`D:/NeNeCommander/outputs/issue-250`の不存在を確認済み。
+Issue #250と#264の追加worktreeも削除済みで、branch、commit、恒久証拠、固定SDKは保持されている。
+以前の`blocked by policy`は履歴。サナは拒否された削除を別手段で再試行していない。
 
-hide用の準備済みcommandは以下。scriptの文法解析だけを行い、サナからは実行していない。
-hideの実行報告後、`cleanup-pending-completed.json`または読み取り専用の不存在確認で完了を確定する。
-それまでは次の日報・引き継ぎにもpendingを持ち越す。
-
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-250/cleanup-pending.ps1
-```
+`D:/NeNeCommander/evidence/issue-250/`の`cleanup-pending-completed.json`、`cleanup-confirmation.json`、
+更新した`completion.json`が証拠である。Issue #266が完了確認の記録更新を扱う。
+後片付け待ちはなく、同じcommandの再実行を求めない。
