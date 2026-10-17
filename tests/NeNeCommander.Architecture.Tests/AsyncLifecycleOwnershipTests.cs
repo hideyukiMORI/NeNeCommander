@@ -18,11 +18,15 @@ public sealed class AsyncLifecycleOwnershipTests
     {
         FieldInfo[] applicationFields = FieldsOf(typeof(CommanderApplication));
         FieldInfo[] windowFields = FieldsOf(typeof(CommanderWindow));
+        FieldInfo[] shutdownFields = FieldsOf(typeof(WindowShutdownOwner));
 
         Assert.IsFalse(applicationFields.Any(field => typeof(Task).IsAssignableFrom(field.FieldType)));
         Assert.IsFalse(windowFields.Any(field => typeof(Task).IsAssignableFrom(field.FieldType)));
-        Assert.AreEqual(2, applicationFields.Count(field => field.FieldType == typeof(AsyncWorkOwner)));
+        Assert.IsFalse(shutdownFields.Any(field => typeof(Task).IsAssignableFrom(field.FieldType)));
+        Assert.AreEqual(1, applicationFields.Count(field => field.FieldType == typeof(AsyncWorkOwner)));
+        Assert.AreEqual(1, applicationFields.Count(field => field.FieldType == typeof(WindowShutdownOwner)));
         Assert.AreEqual(1, windowFields.Count(field => field.FieldType == typeof(AsyncWorkOwner)));
+        Assert.AreEqual(1, shutdownFields.Count(field => field.FieldType == typeof(AsyncWorkOwner)));
     }
 
     private static FieldInfo[] FieldsOf(Type type)

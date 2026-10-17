@@ -32,6 +32,7 @@ The App composition root supplies one defect callback that rethrows the preserve
 - Input received while pane work is active is rejected by the owner, matching the session's existing freeze invariant without starting overlapping render continuations.
 - Framework event forwarding remains the only permitted `async void` boundary.
 - ADR-0058 adds one exception to the overlap rejection: while work runs, `TryStartIntent` admits a single `Escape` interrupt beside it, with its own token, and rejects every other overlap; `StopAsync` cancels and awaits both, and a defect in either blocks every later start.
+- ADR-0071 makes Stop terminal and corrects the host lifetime assumption above: ordinary `AppWindow.Closing` is synchronously cancelled, one `WindowShutdownOwner` uses this same ownership mechanism to drain, and the final `Window.Close` runs only afterwards. Starting the drain from the final window's `Closed` event did not guarantee message-loop survival.
 
 ## Rejected alternatives
 

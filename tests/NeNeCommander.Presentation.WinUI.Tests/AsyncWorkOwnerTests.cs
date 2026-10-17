@@ -34,8 +34,143 @@ public sealed class AsyncWorkOwnerTests
         Assert.AreSame(defect, owner.Fault);
         Assert.HasCount(1, observed);
         Assert.AreSame(defect, observed[0]);
-        Assert.IsFalse(owner.HasOwnedWork);
         await owner.StopAsync();
+        Assert.IsFalse(owner.HasOwnedWork);
+    }
+
+    /// <summary>Proves Stop waits until a fault observer finishes publishing the defect.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenDefectObserverPendingWaitsForPublication()
+    {
+        InvalidOperationException defect = new("Injected work defect.");
+        TaskCompletionSource work = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<Task> entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Func<Task> stop = static () => Task.CompletedTask;
+        Func<bool> hasOwnedWork = static () => false;
+        Exception? observed = null;
+        bool pendingDuringObserver = false;
+        bool ownedDuringObserver = false;
+        AsyncWorkOwner owner = new(exception =>
+        {
+            observed = exception;
+            Task stopping = stop();
+            pendingDuringObserver = !stopping.IsCompleted;
+            ownedDuringObserver = hasOwnedWork();
+            entered.SetResult(stopping);
+        });
+        stop = owner.StopAsync;
+        hasOwnedWork = () => owner.HasOwnedWork;
+        Assert.IsTrue(owner.TryStart(_ => work.Task));
+
+        work.SetException(defect);
+        Task stopping = await entered.Task;
+        await stopping;
+
+        Assert.AreSame(defect, observed);
+        Assert.IsTrue(pendingDuringObserver);
+        Assert.IsTrue(ownedDuringObserver);
+        Assert.IsFalse(owner.HasOwnedWork);
+    }
+
+    /// <summary>Proves a throwing observer still releases the owned run and its waiter once.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenDefectObserverThrowsStillCompletesOwnedRun()
+    {
+        InvalidOperationException workDefect = new("Injected work defect.");
+        InvalidOperationException observerDefect = new("Injected observer defect.");
+        ControlledSynchronizationContext context = new();
+        int disposals = 0;
+        AsyncWorkOwner owner = new(
+            _ => throw observerDefect,
+            static () => new CancellationTokenSource(),
+            () => disposals++);
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            Assert.IsTrue(owner.TryStart(_ => Task.FromException(workDefect)));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+        await context.Posted;
+        Task stopping = owner.StopAsync();
+
+        InvalidOperationException thrown = Assert.ThrowsExactly<InvalidOperationException>(context.ExecuteOne);
+        await stopping;
+
+        Assert.AreSame(observerDefect, thrown);
+        Assert.AreSame(workDefect, owner.Fault);
+        Assert.AreEqual(1, disposals);
+        Assert.IsFalse(owner.HasOwnedWork);
+    }
+
+    /// <summary>Proves a completed run remains unavailable while its completion callback is active.</summary>
+    [TestMethod]
+    public async Task TryStartWhenCompletedRunIsStillCompletingRejectsBothRoutes()
+    {
+        TaskCompletionSource replacement = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource checkedAdmission = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Func<bool> ordinary = static () => true;
+        Func<bool> intent = static () => true;
+        bool ordinaryAccepted = true;
+        bool intentAccepted = true;
+        AsyncWorkOwner owner = new(
+            _ => Assert.Fail("No defect expected."),
+            static () => new CancellationTokenSource(),
+            () =>
+            {
+                if (!checkedAdmission.Task.IsCompleted)
+                {
+                    ordinaryAccepted = ordinary();
+                    intentAccepted = intent();
+                    checkedAdmission.SetResult();
+                }
+            });
+        ordinary = () => owner.TryStart(_ => replacement.Task);
+        intent = () => owner.TryStartIntent(UserIntent.Escape, _ => Task.CompletedTask);
+
+        Assert.IsTrue(owner.TryStart(_ => Task.CompletedTask));
+        await checkedAdmission.Task;
+        replacement.SetResult();
+        await owner.StopAsync();
+
+        Assert.IsFalse(ordinaryAccepted);
+        Assert.IsFalse(intentAccepted);
+    }
+
+    /// <summary>Proves a queued duplicate completion cannot detach a successful replacement run.</summary>
+    [TestMethod]
+    public async Task TryStartWhenStaleCompletionRunsKeepsReplacementOwned()
+    {
+        ControlledSynchronizationContext context = new();
+        AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            Assert.IsTrue(owner.TryStart(_ => Task.CompletedTask));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+        await context.Posted;
+        TaskCompletionSource replacement = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        bool started = owner.TryStart(_ => replacement.Task);
+        context.ExecuteOne();
+        bool stillOwned = owner.HasOwnedWork;
+        Task stopping = owner.StopAsync();
+        bool pending = !stopping.IsCompleted;
+        replacement.SetResult();
+        await stopping;
+
+        Assert.IsTrue(started);
+        Assert.IsTrue(stillOwned);
+        Assert.IsTrue(pending);
+        Assert.IsFalse(owner.HasOwnedWork);
     }
 
     /// <summary>Proves shutdown cancels, awaits the work cleanup, and disposes the token source.</summary>
@@ -72,23 +207,156 @@ public sealed class AsyncWorkOwnerTests
         Assert.AreEqual("disposed", events[1]);
     }
 
+    /// <summary>Proves stopping an idle owner permanently rejects both admission routes.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenIdleRejectsOrdinaryAndIntentStarts()
+    {
+        int starts = 0;
+        AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
+
+        await owner.StopAsync();
+        await owner.StopAsync();
+        bool ordinary = owner.TryStart(_ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+        bool intent = owner.TryStartIntent(UserIntent.Escape, _ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+
+        Assert.IsFalse(ordinary);
+        Assert.IsFalse(intent);
+        Assert.AreEqual(0, starts);
+    }
+
+    /// <summary>Proves Stop rejects starts while admitted work drains and after it completes.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenWorkPendingRejectsStartsDuringAndAfterDrain()
+    {
+        TaskCompletionSource completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        int starts = 0;
+        AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
+        Assert.IsTrue(owner.TryStart(_ => completion.Task));
+
+        Task stopping = owner.StopAsync();
+        bool interruptDuringDrain = owner.TryStartIntent(UserIntent.Escape, _ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+        Assert.IsFalse(stopping.IsCompleted);
+        completion.SetResult();
+        await stopping;
+        bool ordinaryAfterDrain = owner.TryStart(_ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+        bool intentAfterDrain = owner.TryStartIntent(UserIntent.MoveNext, _ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+
+        Assert.IsFalse(interruptDuringDrain);
+        Assert.IsFalse(ordinaryAfterDrain);
+        Assert.IsFalse(intentAfterDrain);
+        Assert.AreEqual(0, starts);
+    }
+
+    /// <summary>Proves completed work cannot be replaced once Stop latches.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenWorkCompletedRejectsReplacement()
+    {
+        int starts = 0;
+        AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
+        Assert.IsTrue(owner.TryStart(_ => Task.CompletedTask));
+
+        await owner.StopAsync();
+        bool replacement = owner.TryStart(_ =>
+        {
+            starts++;
+            return Task.CompletedTask;
+        });
+
+        Assert.IsFalse(replacement);
+        Assert.AreEqual(0, starts);
+    }
+
+    /// <summary>Proves a cancellation callback defect still cancels and drains both admitted runs.</summary>
+    [TestMethod]
+    public async Task StopAsyncWhenCancellationCallbackThrowsStillDrainsWorkAndInterrupt()
+    {
+        InvalidOperationException defect = new("Injected cancellation defect.");
+        TaskCompletionSource workDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource interruptDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        CancellationToken workToken = default;
+        CancellationToken interruptToken = default;
+        int disposals = 0;
+        AsyncWorkOwner owner = new(
+            _ => Assert.Fail("Work itself must not fault."),
+            static () => new CancellationTokenSource(),
+            () => disposals++);
+        Assert.IsTrue(owner.TryStart(token =>
+        {
+            workToken = token;
+            _ = token.Register(() => throw defect);
+            return workDone.Task;
+        }));
+        Assert.IsTrue(owner.TryStartIntent(UserIntent.Escape, token =>
+        {
+            interruptToken = token;
+            return interruptDone.Task;
+        }));
+
+        Task stopping = owner.StopAsync();
+        bool pendingBeforeCleanup = !stopping.IsCompleted;
+        bool workCancelled = workToken.IsCancellationRequested;
+        bool interruptCancelled = interruptToken.IsCancellationRequested;
+        workDone.SetResult();
+        interruptDone.SetResult();
+        AggregateException thrown = await Assert.ThrowsExactlyAsync<AggregateException>(() => stopping);
+
+        Assert.IsTrue(pendingBeforeCleanup);
+        Assert.IsTrue(workCancelled);
+        Assert.IsTrue(interruptCancelled);
+        Assert.AreSame(defect, thrown.InnerException);
+        Assert.AreEqual(2, disposals);
+        Assert.IsFalse(owner.HasOwnedWork);
+    }
+
     /// <summary>Proves successful completed work may be replaced without overlapping runs.</summary>
     [TestMethod]
     public async Task TryStartWhenPriorWorkCompletedDisposesItAndStartsReplacement()
     {
         int starts = 0;
+        ControlledSynchronizationContext context = new();
         AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            Assert.IsTrue(owner.TryStart(_ =>
+            {
+                starts++;
+                return Task.CompletedTask;
+            }));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+        await context.Posted;
 
         Assert.IsTrue(owner.TryStart(_ =>
         {
             starts++;
             return Task.CompletedTask;
         }));
-        Assert.IsTrue(owner.TryStart(_ =>
-        {
-            starts++;
-            return Task.CompletedTask;
-        }));
+        context.ExecuteOne();
         await owner.StopAsync();
 
         Assert.AreEqual(2, starts);
@@ -181,6 +449,7 @@ public sealed class AsyncWorkOwnerTests
 
         Assert.IsTrue(owner.TryStart(_ => Task.CompletedTask));
         await disposed.Task;
+        await owner.StopAsync();
 
         Assert.IsFalse(owner.HasOwnedWork);
         _ = Assert.ThrowsExactly<ObjectDisposedException>(() => _ = cancellation.Token);
@@ -231,17 +500,28 @@ public sealed class AsyncWorkOwnerTests
     {
         TaskCompletionSource running = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource interrupt = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        ControlledSynchronizationContext context = new();
         int interrupts = 0;
         AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
         Assert.IsTrue(owner.TryStart(_ => running.Task));
         Assert.IsTrue(owner.HasOwnedWork);
 
         bool otherIntent = owner.TryStartIntent(UserIntent.MoveNext, _ => Task.CompletedTask);
-        bool first = owner.TryStartIntent(UserIntent.Escape, _ =>
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        bool first;
+        try
         {
-            interrupts++;
-            return interrupt.Task;
-        });
+            SynchronizationContext.SetSynchronizationContext(context);
+            first = owner.TryStartIntent(UserIntent.Escape, _ =>
+            {
+                interrupts++;
+                return interrupt.Task;
+            });
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
         bool second = owner.TryStartIntent(UserIntent.Escape, _ =>
         {
             interrupts++;
@@ -249,11 +529,13 @@ public sealed class AsyncWorkOwnerTests
         });
         bool ordinary = owner.TryStart(_ => Task.CompletedTask);
         interrupt.SetResult();
+        await context.Posted;
         bool afterInterrupt = owner.TryStartIntent(UserIntent.Escape, _ =>
         {
             interrupts++;
             return Task.CompletedTask;
         });
+        context.ExecuteOne();
         running.SetResult();
         await owner.StopAsync();
 
@@ -327,15 +609,27 @@ public sealed class AsyncWorkOwnerTests
     public async Task TryStartIntentWhenPriorInterruptCompletedReleasesItFirst()
     {
         TaskCompletionSource running = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        ControlledSynchronizationContext context = new();
         int disposals = 0;
         AsyncWorkOwner owner = new(
             _ => Assert.Fail("No defect expected."),
             static () => new CancellationTokenSource(),
             () => disposals++);
         _ = owner.TryStart(_ => running.Task);
-        _ = owner.TryStartIntent(UserIntent.Escape, _ => Task.CompletedTask);
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(context);
+            _ = owner.TryStartIntent(UserIntent.Escape, _ => Task.CompletedTask);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+        await context.Posted;
 
         bool replacement = owner.TryStartIntent(UserIntent.Escape, _ => Task.CompletedTask);
+        context.ExecuteOne();
         running.SetResult();
         await owner.StopAsync();
 
@@ -349,14 +643,30 @@ public sealed class AsyncWorkOwnerTests
     {
         TaskCompletionSource running = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource interrupt = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        ControlledSynchronizationContext runningContext = new();
+        ControlledSynchronizationContext interruptContext = new();
         AsyncWorkOwner owner = new(_ => Assert.Fail("No defect expected."));
-        _ = owner.TryStart(_ => running.Task);
-        _ = owner.TryStartIntent(UserIntent.Escape, _ => interrupt.Task);
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(runningContext);
+            _ = owner.TryStart(_ => running.Task);
+            SynchronizationContext.SetSynchronizationContext(interruptContext);
+            _ = owner.TryStartIntent(UserIntent.Escape, _ => interrupt.Task);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
         running.SetResult();
+        await runningContext.Posted;
 
         bool whileInterrupting = owner.TryStart(_ => Task.CompletedTask);
         interrupt.SetResult();
+        await interruptContext.Posted;
         bool afterInterrupt = owner.TryStart(_ => Task.CompletedTask);
+        runningContext.ExecuteOne();
+        interruptContext.ExecuteOne();
         await owner.StopAsync();
 
         Assert.IsFalse(whileInterrupting);
@@ -394,5 +704,33 @@ public sealed class AsyncWorkOwnerTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => owner.TryStartIntent(UserIntent.Escape, null!));
         running.SetResult();
         await owner.StopAsync();
+    }
+
+    private sealed class ControlledSynchronizationContext : SynchronizationContext
+    {
+        private readonly Queue<(SendOrPostCallback Callback, object? State)> _pending = [];
+        private readonly Lock _sync = new();
+        private readonly TaskCompletionSource _posted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        internal Task Posted => _posted.Task;
+
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            lock (_sync)
+            {
+                _pending.Enqueue((callback, state));
+                _ = _posted.TrySetResult();
+            }
+        }
+
+        internal void ExecuteOne()
+        {
+            (SendOrPostCallback Callback, object? State) work;
+            lock (_sync)
+            {
+                work = _pending.Dequeue();
+            }
+            work.Callback(work.State);
+        }
     }
 }

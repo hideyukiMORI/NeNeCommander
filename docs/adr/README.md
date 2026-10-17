@@ -14,6 +14,8 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 
 ## Accepted decisions
 
+- [ADR-0071: Drain owned work before normal window close](0071-drain-before-normal-window-close.md)
+
 - [ADR-0070: Allocate one settings temporary candidate per write attempt](0070-attempt-scoped-settings-temporary-files.md)
 
 - [ADR-0069: Carry verified descendant evidence to composite-move source deletion](0069-verified-move-source-deletion.md)
