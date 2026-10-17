@@ -2,6 +2,10 @@
 
 Status: informational
 
+更新: 2026-10-18。Issue #181は実装・技術受理・main統合・後片付けまで完了。
+本更新は[Issue #276](https://github.com/hideyukiMORI/NeNeCommander/issues/276)の文書整備で、製品入力は変更しない。
+元の後片付け依頼は解消済み。同じ削除commandを再実行・再送しない。
+
 正本は[PROJECT_STATE](../PROJECT_STATE.md)、
 [ADR-0072](../adr/0072-mapped-network-drive-boundary.md)、
 [日報](../reports/2026-10-17-mapped-network-drive-daily-report.md)。
@@ -22,7 +26,7 @@ main `a6113c427b98eeddce94efa2f4aefc215b6bfd04`から再開した。
 - 最後のqueryからpath reopenまでの競合、OS一括効果の内部再帰は残余。mapping固定やhandle-relative実装はない。
   UNC/network変更操作は未対応のまま。恒久削除の確認だけではidentity/capabilityの証明にならない。
 
-## 証拠と残り作業
+## 検証証拠
 
 `D:/NeNeCommander/evidence/issue-181/`に有効REDのsource/patch/SHA/argv/raw logを保持する。
 local inspection 3件、pane表示2件、settings6件を修正前に再現した。
@@ -78,24 +82,35 @@ P4 Issues #244–#248は今回に混ぜず、記録のみのまま維持する�
 
 ## 作業場所と整理
 
-branch `fix/181-mapped-network-boundary`、worktree `D:/NeNeCommander/worktrees/issue-181`、
-一時出力 `D:/NeNeCommander/outputs/issue-181` は統合・整理の対象。
+branch `fix/181-mapped-network-boundary`は保持済み。
+worktree `D:/NeNeCommander/worktrees/issue-181`と一時出力 `D:/NeNeCommander/outputs/issue-181`は削除済み。
 恒久証拠は `D:/NeNeCommander/evidence/issue-181`、SDKは共有tool領域に保持する。
 PR #273は2026-10-18 00:01:38 JSTに`5d817de8e91b68155148fe50ca14db7abaf76a2b`へsquash merge済み。
 main同期・clean・task tree一致を確認し、Issue #181の追加worktreeは削除した。branch・commitは保持する。
-出力削除は自動承認レビューが`blocked by policy`で拒否し、コマンドは開始されなかった。
-別手段で再試行しない。37 raw log・51補完artifact・4 TRX・CodeQL証拠は恒久保存済み。
-出力内のjunction 10個は所有一時領域内だけを指し、稼働参照なし。`cleanup-pending.json`と
-`completion.json`を読み、hide実行と完了結果または不在確認が揃うまで保留を引き継ぐ。
-Issue #274はこの文書記録だけを扱い、製品検証・CIは追加しない。
+出力削除は当初、自動承認レビューが`blocked by policy`で拒否し、コマンドは開始されなかった。
+エージェントは別手段で再試行していない。Issue #274 / PR #275はその時点の保留記録であり、
+00:10:18 JSTに`fc709c895ae9b311a2d4468ccd515bbe1c6a75ae`へ統合済み。
 
-! hide実行待ち：後片付け
-
-対象は`D:/NeNeCommander/outputs/issue-181`のみ。自動承認レビューの拒否理由は`blocked by policy`。
-`D:/NeNeCommander/evidence/issue-181`、branch・commit・共有SDKは保持する。
-構文・対象・link処理を確認済みのscriptをhideで実行する。サナは実行していない。
-対象directory単位のnative削除で、削除済みの再実行にも対応する。証拠の再hashや独自file削除loopはない。
+hideが実行したcommandは次のとおり。再実行依頼ではない。
 
 ```powershell
-pwsh -NoProfile -File "D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1"
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-181/cleanup-completed-output.ps1
 ```
+
+00:44:44 JSTに完了し、実行記録は対象不在・link entry 10個の解除を示す。
+00:47:08 JSTの読み取り専用確認でも出力と#181・#274のworktreeは不在だった。
+37 raw log・51補完artifact・4 TRX・CodeQL証拠、branch・commit、共有SDKは保持する。
+`cleanup-pending.json`は拒否時点の履歴。現在の完了状態は`cleanup-executed-by-hide.json`、
+`cleanup-confirmation.json`、`completion.json`を正本とする。後片付けの実行待ちはない。
+
+## 次回の入口
+
+1. AGENTS.md、PROJECT_STATEと実際のIssue/PR状態を確認する。製品統合はPR #273、本書整備はIssue #276のPR。
+   文書PRの最終統合とworktree整理は`D:/NeNeCommander/evidence/issue-181/report-closure/completion.json`で確認する。
+2. 変更fileは既存の日報、本書、PROJECT_STATEだけ。記録の整合性を`git diff --check`、リンク確認、
+   通常commit hookの`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`で確認する。
+   終了結果はIssue #276のPRと`report-closure/`へ保存する。製品検証やCIを文書更新だけの理由で再実行しない。
+3. 実share・network mapping・removableの証明と#94の手動release確認は未実施として扱う。
+   synthetic事実や所有temporary rootによる成功を実環境の成功と読み替えない。
+4. P4 #244–#248は記録のみ。UNC/network変更操作やshare列挙などの追加機能は別の要求・契約で扱う。
+   過去の役割分担は当時の実装記録として読み、次の作業へ自動的に広げない。
