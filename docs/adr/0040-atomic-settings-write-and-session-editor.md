@@ -7,6 +7,10 @@ Date: 2026-09-06
 Accepted under hide's delegated implementation authority and adopted by the NeNe Commander design
 owner for Issue #74.
 
+ADR-0070 supersedes the fixed temporary name and its incidental cross-store
+serialization. The remaining ownership, verification, publish, cancellation and
+session contracts below continue to apply.
+
 ## Context
 
 ADR-0022 established `%LOCALAPPDATA%\NeNeCommander\settings.json`, `ISettingsStore`,
@@ -44,10 +48,12 @@ has to coexist with the one operation bar and with file-operation modal ownershi
   reports directory creation separately from temporary-artifact residue rather than confusing
   either with the failure reason. The residual final path-reopen race is stated below and prevents
   an unconditional preservation claim in the presence of an external writer.
-- **The fixed temporary path has one-attempt ownership.** The adapter creates the sibling
-  `settings.json.tmp` with `CreateNew`; a file, directory, or reparse entry found there is a
+- **The selected temporary path has one-attempt ownership.** Under ADR-0070 the adapter requests
+  one injected identifier and creates the sibling `settings.json.<token>.tmp` with `CreateNew`;
+  a file, directory, or reparse entry found at that selected candidate is a
   collision and is not opened, overwritten, or deleted. Cleanup runs only after this attempt
-  successfully created that file.
+  successfully created that file. The candidate is not retried; legacy fixed-name and other-attempt
+  artifacts remain untouched, without startup enumeration or recovery.
   Cleanup revalidates the parent chain and both the temporary file's own identity and exact
   serialized bytes. A detected
   parent or temporary replacement is not deleted. A cleanup denial or identity ambiguity leaves
@@ -118,9 +124,10 @@ has to coexist with the one operation bar and with file-operation modal ownershi
   startup document is also visible through this settings-warning channel and is never repaired by
   an ordinary change.
 
-The fixed sibling temporary name serializes writers that overlap while one owns the temporary file,
-without ambient time or randomness. Same-process selections are additionally serialized by the
-settings session. Pre-publish identity and byte comparison detects changes since preflight. The
+The settings session serializes its own selections. ADR-0070 replaces the fixed sibling name with
+one injected candidate token per write, so distinct stores can own temporary files concurrently.
+The former fixed-name exclusion is no longer claimed. Pre-publish identity and byte comparison
+detects changes since preflight; two writers can still pass those comparisons before either publishes. The
 final path reopen between the last ancestor/document comparison and `Directory.CreateDirectory`,
 `CreateNew`, `Move`, `File.Replace`, or cleanup `File.Delete` remains a provider race because these
 BCL primitives reopen by path. The adapter does not claim handle-relative traversal,

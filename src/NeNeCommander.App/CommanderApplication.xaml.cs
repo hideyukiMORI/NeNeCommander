@@ -16,6 +16,7 @@ using NeNeCommander.Infrastructure.Windows.Directories;
 using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Identifiers;
 using NeNeCommander.Infrastructure.Windows.Launching;
 using NeNeCommander.Infrastructure.Windows.Settings;
 using NeNeCommander.Infrastructure.Windows.Time;
@@ -80,7 +81,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
         WindowsLocalSettingsStore settingsStore = new(
             WindowsLocalSettingsLocation.Resolve(),
-            ioExecutionBoundary);
+            ioExecutionBoundary,
+            new WindowsIdentifierSource());
         SettingsReadOutcome settingsOutcome = await settingsStore.ReadAsync(cancellationToken).ConfigureAwait(true);
         UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
         ApplyColorScheme(settings.ColorScheme);

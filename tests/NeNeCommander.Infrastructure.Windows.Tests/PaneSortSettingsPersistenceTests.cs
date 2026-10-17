@@ -16,6 +16,7 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 public sealed class PaneSortSettingsPersistenceTests
 {
     private const string DefaultOrder = "{\"key\":\"name\",\"direction\":\"ascending\"}";
+    private const string TemporaryName = "settings.json.00000000000000000000000000000001.tmp";
 
     /// <summary>Proves all eight orders on either side survive the real owned-root atomic write/read path.</summary>
     [TestMethod]
@@ -46,7 +47,7 @@ public sealed class PaneSortSettingsPersistenceTests
         Assert.AreEqual("Work", restored.Bookmarks.Categories[0].Value);
         Assert.AreSame(ColorScheme.Dracula, restored.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, restored.HiddenItemVisibility);
-        Assert.IsFalse(File.Exists(root.Resolve("settings.json.tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(TemporaryName)));
     }
 
     /// <summary>Proves valid legacy documents gain defaults in memory and change bytes only on explicit write.</summary>
@@ -128,7 +129,7 @@ public sealed class PaneSortSettingsPersistenceTests
         Assert.AreSame(SettingsReadFailureKind.Malformed, rejected.Kind);
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, failedWrite.Failure);
         Assert.AreEqual(document, File.ReadAllText(path));
-        Assert.IsFalse(File.Exists(root.Resolve("settings.json.tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(TemporaryName)));
     }
 
     /// <summary>Proves the new root member is mandatory and can occur exactly once.</summary>
@@ -173,6 +174,9 @@ public sealed class PaneSortSettingsPersistenceTests
     private static WindowsLocalSettingsStore Store(TestOwnedTemporaryRoot root)
     {
         WindowsLocalPath path = Assert.IsInstanceOfType<WindowsLocalPath>(Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(root.Resolve("settings.json"))).Path);
-        return new WindowsLocalSettingsStore(path, new WindowsLocalIoExecutionBoundary());
+        return new WindowsLocalSettingsStore(
+            path,
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
     }
 }

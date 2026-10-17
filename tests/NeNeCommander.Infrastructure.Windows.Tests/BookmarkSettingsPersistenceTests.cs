@@ -17,6 +17,7 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 public sealed class BookmarkSettingsPersistenceTests
 {
     private const string DocumentName = "settings.json";
+    private const string TemporarySuffix = ".00000000000000000000000000000001.tmp";
     /*lang=json,strict*/
     private const string VersionOne =
         "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
@@ -36,7 +37,7 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsEmpty(settings.Bookmarks.Categories);
         Assert.IsEmpty(settings.Bookmarks.Bookmarks);
         Assert.AreEqual(VersionOne, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(documentPath + ".tmp"));
+        Assert.IsFalse(File.Exists(documentPath + TemporarySuffix));
     }
 
     /// <summary>Proves the next write after a valid version-one read publishes complete version three.</summary>
@@ -541,7 +542,7 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(mutationBoundaryReached);
         Assert.IsFalse(Directory.Exists(root.Resolve("absent")));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves a complete schema-three document exactly at the byte boundary is accepted.</summary>
@@ -558,7 +559,7 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.AreEqual(
             SettingsDocumentValidator.MaximumDocumentLength,
             File.ReadAllBytes(root.Resolve(DocumentName)).Length);
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves the serializer writes schema three in deterministic preserved catalog order.</summary>
@@ -592,7 +593,7 @@ public sealed class BookmarkSettingsPersistenceTests
             "\"name\":\"Repository\\uD83D\\uDE00\",\"path\":\"C:\\\\work\\\\NeNeCommander\"," +
             "\"category\":\"Work\",\"shortcutSlot\":1}],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
             File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
 
         UserSettings reloaded = Assert.IsInstanceOfType<SettingsRead>(
             await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
@@ -690,7 +691,8 @@ public sealed class BookmarkSettingsPersistenceTests
     {
         return new WindowsLocalSettingsStore(
             ParseChild(root, DocumentName),
-            new WindowsLocalIoExecutionBoundary());
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
     }
 
     private static WindowsLocalSettingsStore CreateStoreAt(
@@ -701,6 +703,7 @@ public sealed class BookmarkSettingsPersistenceTests
         return new WindowsLocalSettingsStore(
             ParseChild(root, childName),
             new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource(),
             hook);
     }
 

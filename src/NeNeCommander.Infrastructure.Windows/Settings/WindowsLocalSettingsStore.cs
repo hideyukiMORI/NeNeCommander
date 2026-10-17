@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
@@ -22,8 +23,8 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
     private const string TemporarySuffix = ".tmp";
 
     private readonly WindowsLocalPath _documentPath;
-    private readonly WindowsLocalPath _temporaryPath;
     private readonly WindowsLocalIoExecutionBoundary _ioExecutionBoundary;
+    private readonly IIdentifierSource _identifierSource;
     private readonly ISettingsWriteTestHook _writeTestHook;
     private readonly Lock _baselineSync = new();
     private ExistingDocumentSnapshot? _expectedDocument;
@@ -32,24 +33,29 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
     /// <summary>Initializes the store with the composed location of the settings document.</summary>
     /// <param name="documentPath">Validated Windows local path of the settings document.</param>
     /// <param name="ioExecutionBoundary">Sole scheduler for synchronous Windows filesystem work.</param>
+    /// <param name="identifierSource">Source of one opaque candidate token per admitted write.</param>
     public WindowsLocalSettingsStore(
         WindowsLocalPath documentPath,
-        WindowsLocalIoExecutionBoundary ioExecutionBoundary)
-        : this(documentPath, ioExecutionBoundary, NoOpSettingsWriteTestHook.Instance)
+        WindowsLocalIoExecutionBoundary ioExecutionBoundary,
+        IIdentifierSource identifierSource)
+        : this(documentPath, ioExecutionBoundary, identifierSource, NoOpSettingsWriteTestHook.Instance)
     {
     }
 
     internal WindowsLocalSettingsStore(
         WindowsLocalPath documentPath,
         WindowsLocalIoExecutionBoundary ioExecutionBoundary,
+        IIdentifierSource identifierSource,
         ISettingsWriteTestHook writeTestHook)
     {
         ArgumentNullException.ThrowIfNull(documentPath);
         ArgumentNullException.ThrowIfNull(ioExecutionBoundary);
+        ArgumentNullException.ThrowIfNull(identifierSource);
         ArgumentNullException.ThrowIfNull(writeTestHook);
         _documentPath = documentPath;
-        _temporaryPath = ParseTemporaryPath(documentPath);
+        _ = ParseTemporaryPath(documentPath, Guid.Empty);
         _ioExecutionBoundary = ioExecutionBoundary;
+        _identifierSource = identifierSource;
         _writeTestHook = writeTestHook;
     }
 
@@ -206,8 +212,11 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 SettingsDirectoryEffect.NotAttempted);
         }
 
+        WindowsLocalPath temporaryPath = ParseTemporaryPath(
+            _documentPath,
+            _identifierSource.NextIdentifier());
         string documentText = _documentPath.CanonicalText;
-        string temporaryText = _temporaryPath.CanonicalText;
+        string temporaryText = temporaryPath.CanonicalText;
         SettingsDirectoryEffect directoryEffect = SettingsDirectoryEffect.NotAttempted;
         TemporaryOwnershipState temporaryOwnership = TemporaryOwnershipState.NotOwned;
         string? temporaryIdentifier = null;
@@ -245,7 +254,7 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            if (WindowsLocalEntryIdentity.Find(_temporaryPath) is not null)
+            if (WindowsLocalEntryIdentity.Find(temporaryPath) is not null)
             {
                 return RejectedBeforeTemporary(
                     SettingsWriteFailureKind.TemporaryArtifactCollision,
@@ -758,9 +767,10 @@ public sealed class WindowsLocalSettingsStore : ISettingsStore
         return true;
     }
 
-    private static WindowsLocalPath ParseTemporaryPath(WindowsLocalPath documentPath)
+    private static WindowsLocalPath ParseTemporaryPath(WindowsLocalPath documentPath, Guid token)
     {
-        PathParseOutcome parsed = FileSystemPath.Parse(documentPath.CanonicalText + TemporarySuffix);
+        PathParseOutcome parsed = FileSystemPath.Parse(
+            documentPath.CanonicalText + "." + token.ToString("N") + TemporarySuffix);
         return parsed is PathParseSuccess { Path: WindowsLocalPath temporary }
             ? temporary
             : throw new ArgumentException(
