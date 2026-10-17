@@ -80,13 +80,36 @@ App側の変更file formatもexit 0。hostの実行引数・raw log・fixture両
 
 ## 統合と整理
 
-作業branchは`fix/251-owned-window-shutdown`、worktreeは
-`D:/NeNeCommander/worktrees/issue-251`、一時出力は`D:/NeNeCommander/outputs/issue-251`。
-恒久証拠は`D:/NeNeCommander/evidence/issue-251`へ保存する。
-PR、squash commit、main同期、対象の状態確認と整理実績は同配下の`completion.json`へ収載する。
-証拠原本、branch、commit、共通SDKは整理対象に含めない。
+[PR #268](https://github.com/hideyukiMORI/NeNeCommander/pull/268)は2026-10-17 21:04:02 JSTに
+squash mergeされ、Issue #251もclosedとなった。
+mainは`0a92009f44756cd9f00110a5d59572838e65ce93`へ同期し、clean・origin一致を確認した。
+検証したtaskとmainのtreeは`3a78fef9c47cf6cca72b7623cce7d3e9d6491204`で同一。
+通常Commit hookの規約112件、security登録23件、commit message検査が成功し、CIは起動していない。
+
+`D:/NeNeCommander/worktrees/issue-251`は状態と取込を確認して削除した。
+一時出力の唯一の39 fileはSHA-256一致で恒久証拠の`cleanup-archive/`へ収載した。
+未保存・未追跡file、ignored output、linkと稼働参照を確認し、専用hostの両PIDも終了している。
+一時出力の削除だけは自動承認に拒否され、下記のとおりhideの実行待ち。
+詳細は`D:/NeNeCommander/evidence/issue-251/completion.json`、`cleanup-inspection.json`、
+`cleanup-process-inspection.json`に保持する。branch、commit、証拠原本と共通SDKを保持する。
+[Issue #269](https://github.com/hideyukiMORI/NeNeCommander/issues/269)はこの記録更新のみを扱い、
+文面・リンク・差分と通常Commit hookを確認する。製品build/testとCIは再実行しない。
 
 ## 次の作業
 
-このIssueの実装・証拠・統合を完了してから、未着手のP4 Issues #244–#248などを別件として判断する。
+このIssueの実装・証拠・統合は完了した。未着手のP4 Issues #244–#248などは別件として判断する。
 #94はhide同席のrelease画面確認であり、この通常closeの開発証拠とは分ける。
+
+## ! hide実行待ち：後片付け
+
+hideは次の1行を実行する。対象は`D:/NeNeCommander/outputs/issue-251`のみ。
+恒久証拠`D:/NeNeCommander/evidence/issue-251`、branch、commit、共通SDKは保持する。
+対象を固定したscriptはlink・稼働参照を確認し、directory単位で削除する。既に不在でも完了を記録する。
+scriptの構文検査は成功したが、サナは削除を再実行していない。hideの実行と不在確認まで待ちを維持する。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-251/cleanup-pending.ps1
+```
+
+自動承認レビューが上記対象への`Remove-Item -LiteralPath ... -Recurse -Force`を
+`blocked by policy`として拒否したため、別の削除手段へ切り替えず実行を引き継ぐ。
