@@ -76,18 +76,27 @@ public sealed class NullGuardTests
     public void ConstructWhenSettingsLocationIsNullThrowsArgumentNullException()
     {
         ConstructorInfo constructor = typeof(WindowsLocalSettingsStore).GetConstructor(
-            [typeof(WindowsLocalPath), typeof(WindowsLocalIoExecutionBoundary)]) ??
+            [typeof(WindowsLocalPath), typeof(WindowsLocalIoExecutionBoundary),
+                typeof(NeNeCommander.Application.Identifiers.IIdentifierSource)]) ??
             throw new AssertFailedException("The public settings store constructor was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => constructor.Invoke([null, new WindowsLocalIoExecutionBoundary()]));
+            () => constructor.Invoke([null, new WindowsLocalIoExecutionBoundary(),
+                new DeterministicIdentifierSource()]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
 
         TargetInvocationException boundaryFailure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => constructor.Invoke([ParsePath("C:\\settings.json"), null]));
+            () => constructor.Invoke([ParsePath("C:\\settings.json"), null,
+                new DeterministicIdentifierSource()]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(boundaryFailure.InnerException);
+
+        TargetInvocationException identifierFailure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => constructor.Invoke([ParsePath("C:\\settings.json"),
+                new WindowsLocalIoExecutionBoundary(), null]));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(identifierFailure.InnerException);
     }
 
     /// <summary>Proves the internal settings write seam rejects an absent required observer.</summary>
@@ -100,6 +109,7 @@ public sealed class NullGuardTests
             () => new WindowsLocalSettingsStore(
                 path,
                 new WindowsLocalIoExecutionBoundary(),
+                new DeterministicIdentifierSource(),
                 null!));
     }
 

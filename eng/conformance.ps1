@@ -687,7 +687,9 @@ $sourcePatterns = [ordered]@{
     'CS-010:ambient Stopwatch type reference' = '(?i)(?<![\w@])@?Stopwatch\b'
     'CS-010:ambient Environment clock' = '(?i)(?<![\w@])@?Environment\s*\.\s*@?(?:TickCount|TickCount64)\b'
     'CS-010:direct environment access' = '(?i)(?<![\w@])@?Environment\s*\.\s*@?[A-Za-z_]\w*\b'
-    'CS-010:direct identifier generation' = '\bGuid\.NewGuid\s*\('
+    'CS-010:identifier type alias' = '(?im)(?:^|[;{}])\s*(?:global\s+)?using\s+@?[A-Za-z_]\w*\s*=\s*(?:(?:global\s*::\s*)?@?System\s*\.\s*)?@?Guid\s*;'
+    'CS-010:identifier static import' = '(?im)(?:^|[;{}])\s*(?:global\s+)?using\s+static\s+(?:global\s*::\s*)?(?:@?System\s*\.\s*)?@?Guid\s*;'
+    'CS-010:direct identifier generation' = '(?i)(?<![\w@])(?:global\s*::\s*)?(?:@?System\s*\.\s*)?@?Guid\s*\.\s*@?NewGuid\b'
     'CS-014:global using' = '(?m)^\s*global\s+using\s+'
     'CS-014:primary constructor' = '(?m)^\s*(?:public|internal|private|protected|file)?\s*(?:sealed\s+|abstract\s+|partial\s+)*(?:class|record(?:\s+class)?)\s+[A-Za-z_]\w*\s*\('
     'CS-016:blocking task result' = '\.(?:Result|Wait)\b'
@@ -710,6 +712,9 @@ foreach ($file in $sourceFiles) {
             continue
         }
         if ($parts[1] -eq 'direct environment access' -and $relativePath -ceq 'src/NeNeCommander.Infrastructure.Windows/Settings/WindowsLocalSettingsLocation.cs') {
+            continue
+        }
+        if ($parts[1] -eq 'direct identifier generation' -and $relativePath -ceq 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs') {
             continue
         }
         if ($content -match $entry.Value) {

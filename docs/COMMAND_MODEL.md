@@ -114,7 +114,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | color scheme | scheme resource dictionary merged by the composition root |
 | focused file launch | `PaneSession` file/directory decision through `IFileLauncher`, with path admission owned by `WindowsShellFileLauncher` |
 | time | `IClock` boundary |
-| identifiers | `IIdentifierSource` boundary |
+| identifiers | `IIdentifierSource` boundary, composed with `WindowsIdentifierSource`; settings writes request one candidate token per attempt (ADR-0070) |
 | object construction | `NeNeCommander.App` composition root |
 
 A new row requires an accepted ADR. Replacing a row is one migration: the old mechanism and compatibility path are removed in the same change.

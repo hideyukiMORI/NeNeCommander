@@ -4,7 +4,7 @@ param(
     [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
 
     [Parameter()]
-    [ValidateSet('All', 'QLT-015')]
+    [ValidateSet('All', 'QLT-015', 'CS-010')]
     [string] $Rule = 'All'
 )
 
@@ -133,6 +133,90 @@ function Assert-SourceConformanceFailure {
     }
 }
 
+function Assert-IdentifierGenerationProofs {
+    Assert-ConformanceSuccess -Name 'identifier-generation-exact-owner' -Validate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs'
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw 'The exact identifier-generation owner is missing from the source tree.'
+        }
+        $content = Get-Content -LiteralPath $path -Raw
+        if ($content -notmatch '(?i)(?<![\w@])(?:global\s*::\s*)?(?:@?System\s*\.\s*)?@?Guid\s*\.\s*@?NewGuid\s*\(') {
+            throw 'The exact identifier-generation owner no longer exercises its approved direct API concern.'
+        }
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-other-path' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/PolicyProof/IdentifierViolation.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value 'internal sealed class IdentifierViolation { private static object Next() { return Guid.NewGuid(); } }'
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-sibling-same-name' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/Other/WindowsIdentifierSource.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value 'internal sealed class OtherIdentifierSource { private static object Next() { return Guid.NewGuid(); } }'
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-qualified-spaced-escaped' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/PolicyProof/IdentifierViolation.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value 'internal sealed class IdentifierViolation { private static object Next() { return global :: @System . @Guid . @NewGuid ( ); } }'
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-method-group-outside-owner' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/PolicyProof/IdentifierViolation.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value 'internal sealed class IdentifierViolation { private static Func<Guid> Next() { return Guid.NewGuid; } }'
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-alias-outside-owner' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/PolicyProof/IdentifierViolation.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value "using GuidAlias = global::System.Guid;`r`ninternal sealed class IdentifierViolation { private static object Next() { return GuidAlias.NewGuid(); } }"
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-static-import-outside-owner' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'tests/PolicyProof/IdentifierViolation.cs'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Set-Content -LiteralPath $path -Value "using static global::System.Guid;`r`ninternal sealed class IdentifierViolation { private static object Next() { return NewGuid(); } }"
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-alias-inside-owner' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value ("using GuidAlias = global::System.Guid;`r`n" + $content) -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-generation-static-import-inside-owner' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value ("using static global::System.Guid;`r`n" + $content) -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-owner-ambient-clock' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value ($content.Replace('return Guid.NewGuid();', 'DateTime now = DateTime.UtcNow; _ = now; return Guid.NewGuid();')) -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'identifier-owner-environment-access' -ExpectedRule 'CS-010' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Infrastructure.Windows/Identifiers/WindowsIdentifierSource.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value ($content.Replace('return Guid.NewGuid();', 'string currentDirectory = Environment.CurrentDirectory; _ = currentDirectory; return Guid.NewGuid();')) -NoNewline
+    }
+}
+
 function Assert-VerificationCadenceProof {
     Assert-ConformanceFailure -Name 'full-gate-on-push' -ExpectedRule 'QLT-015' -Mutate {
         param($caseRoot)
@@ -190,6 +274,11 @@ try {
     if ($Rule -eq 'QLT-015') {
         Assert-VerificationCadenceProof
         Write-Host 'Gate proofs passed: seven QLT-015 verification-cadence fixtures only.'
+        return
+    }
+    if ($Rule -eq 'CS-010') {
+        Assert-IdentifierGenerationProofs
+        Write-Host 'Gate proofs passed: CS-010 identifier-generation boundary fixtures only.'
         return
     }
     Assert-FoundationMaterialization
@@ -312,6 +401,8 @@ try {
     Assert-SourceConformanceFailure -Name 'escaped-direct-wall-clock' -Source "internal sealed class Violation { private static object Read() { return @DateTime . @Now; } }`r`n"
     Assert-SourceConformanceFailure -Name 'ambient-environment-clock' -Source "internal sealed class Violation { private static long Read() { return Environment . TickCount64; } }`r`n"
     Assert-SourceConformanceFailure -Name 'escaped-environment-clock' -Source "internal sealed class Violation { private static long Read() { return @Environment . @TickCount64; } }`r`n"
+
+    Assert-IdentifierGenerationProofs
 
     Assert-ConformanceFailure -Name 'environment-clock-inside-location-adapter' -ExpectedRule 'CS-010' -Mutate {
         param($caseRoot)

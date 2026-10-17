@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
@@ -18,6 +19,9 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 public sealed class WindowsLocalSettingsStoreTests
 {
     private const string DocumentName = "settings.json";
+    private const string TemporarySuffix = ".00000000000000000000000000000001.tmp";
+    private const string SecondTemporarySuffix = ".00000000000000000000000000000002.tmp";
+    private const string ThirdTemporarySuffix = ".00000000000000000000000000000003.tmp";
 
     /// <summary>Proves startup preflight and document I/O begin only inside the shared scheduler.</summary>
     [TestMethod]
@@ -30,7 +34,8 @@ public sealed class WindowsLocalSettingsStoreTests
         ManualIoScheduler scheduler = new();
         WindowsLocalSettingsStore store = new(
             ParseChild(root, DocumentName),
-            new WindowsLocalIoExecutionBoundary(scheduler));
+            new WindowsLocalIoExecutionBoundary(scheduler),
+            new DeterministicIdentifierSource());
 
         Task<SettingsReadOutcome> read = store.ReadAsync(CancellationToken.None);
 
@@ -51,7 +56,8 @@ public sealed class WindowsLocalSettingsStoreTests
         using CancellationTokenSource cancellation = new();
         WindowsLocalSettingsStore store = new(
             ParseChild(root, DocumentName),
-            new WindowsLocalIoExecutionBoundary(scheduler));
+            new WindowsLocalIoExecutionBoundary(scheduler),
+            new DeterministicIdentifierSource());
 
         Task<SettingsReadOutcome> read = store.ReadAsync(cancellation.Token);
         cancellation.Cancel();
@@ -142,7 +148,8 @@ public sealed class WindowsLocalSettingsStoreTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = new(
             ParseChild(root, "absent-directory\\" + DocumentName),
-            new WindowsLocalIoExecutionBoundary());
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
 
         SettingsReadOutcome outcome = await store.ReadAsync(CancellationToken.None);
 
@@ -168,7 +175,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves a document appearing with its missing parent is a destination change.</summary>
@@ -192,7 +199,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Foreign, File.ReadAllText(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves an oversized document is rejected on length and left byte-for-byte unchanged.</summary>
@@ -301,7 +308,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.Unauthorized, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Foreign, File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves an unreadable startup baseline cannot become writable after its lock clears.</summary>
@@ -329,7 +336,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Original, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves the composed production location names the product settings document.</summary>
@@ -371,7 +378,7 @@ public sealed class WindowsLocalSettingsStoreTests
                 "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
                 "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}"),
             bytes);
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a valid existing document is atomically replaced by the complete new value.</summary>
@@ -410,7 +417,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(oversized, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a valid document at the exact size boundary remains replaceable.</summary>
@@ -435,7 +442,7 @@ public sealed class WindowsLocalSettingsStoreTests
             "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
             "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
             File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a direct write never repairs malformed settings.</summary>
@@ -453,7 +460,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Malformed, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a non-file destination is rejected before temporary-file creation.</summary>
@@ -470,7 +477,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsTrue(Directory.Exists(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a locked destination becomes a closed I/O rejection without mutation.</summary>
@@ -489,7 +496,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves one store advances its baseline after publish so ordered choices can continue.</summary>
@@ -497,7 +504,13 @@ public sealed class WindowsLocalSettingsStoreTests
     public async Task WriteAsyncWhenTwoValuesAreOrderedPublishesBothWithoutSelfConflictAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalSettingsStore store = CreateStore(root);
+        List<string> candidates = [];
+        WindowsLocalSettingsStore store = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnBeforeTemporaryCreation = candidates.Add,
+            });
         _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
 
         SettingsWriteOutcome first = await store.WriteAsync(
@@ -513,6 +526,13 @@ public sealed class WindowsLocalSettingsStoreTests
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(second);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(third);
+        string[] expectedCandidates =
+        [
+            root.Resolve(DocumentName + TemporarySuffix),
+            root.Resolve(DocumentName + SecondTemporarySuffix),
+            root.Resolve(DocumentName + ThirdTemporarySuffix),
+        ];
+        CollectionAssert.AreEqual(expectedCandidates, candidates);
         Assert.AreEqual(
             "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"monokai\"," +
             "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
@@ -540,7 +560,7 @@ public sealed class WindowsLocalSettingsStoreTests
             "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
             "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
             File.ReadAllText(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves a verified created parent remains the baseline after a later write failure.</summary>
@@ -577,7 +597,7 @@ public sealed class WindowsLocalSettingsStoreTests
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(second);
         Assert.AreEqual(2, attempts);
         Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves an exception before created-parent verification reports uncertainty.</summary>
@@ -602,7 +622,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsTrue(Directory.Exists(root.Resolve("unconfirmed-parent")));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves a detected existing-ancestor replacement cannot become the created baseline.</summary>
@@ -634,7 +654,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsDirectoryEffect.CreationUnconfirmed, outcome.DirectoryEffect);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
         Assert.IsTrue(Directory.Exists(root.Resolve("original-parent\\created-parent")));
     }
 
@@ -660,7 +680,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Foreign, File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves identical foreign bytes cannot become the owned post-publish baseline.</summary>
@@ -700,7 +720,7 @@ public sealed class WindowsLocalSettingsStoreTests
         CollectionAssert.AreEqual(
             File.ReadAllBytes(root.Resolve(DocumentName + ".owned")),
             File.ReadAllBytes(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves the post-publish location baseline detects a replaced created parent.</summary>
@@ -725,7 +745,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
         Assert.IsTrue(File.Exists(root.Resolve("owned-parent\\settings.json")));
     }
 
@@ -750,7 +770,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Malformed, File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a rejected startup document cannot become an implicit repair write.</summary>
@@ -773,7 +793,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreEqual(ExternalRepair, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a preexisting temporary artifact is neither overwritten nor deleted.</summary>
@@ -782,16 +802,346 @@ public sealed class WindowsLocalSettingsStoreTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         const string Occupant = "owned elsewhere";
-        _ = root.WriteFile(DocumentName + ".tmp", Occupant);
-        WindowsLocalSettingsStore store = CreateStore(root);
+        _ = root.WriteFile(DocumentName + TemporarySuffix, Occupant);
+        DeterministicIdentifierSource identifiers = new();
+        WindowsLocalSettingsStore store = CreateStore(root, identifiers);
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(UserSettings.Default, CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
-        Assert.AreEqual(Occupant, File.ReadAllText(root.Resolve(DocumentName + ".tmp")));
+        Assert.AreEqual(1, identifiers.IssuedCount);
+        Assert.AreEqual(Occupant, File.ReadAllText(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+    }
+
+    /// <summary>Proves an invalid startup document never consumes a write candidate.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenStartupDocumentIsRejectedRequestsNoIdentifierAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Malformed = "{\"schemaVersion\":1";
+        _ = root.WriteFile(DocumentName, Malformed);
+        DeterministicIdentifierSource identifiers = new();
+        WindowsLocalSettingsStore store = CreateStore(root, identifiers);
+
+        _ = Assert.IsInstanceOfType<SettingsRejected>(await store.ReadAsync(CancellationToken.None));
+        Assert.AreEqual(0, identifiers.IssuedCount);
+        SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await store.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
+        Assert.AreEqual(0, identifiers.IssuedCount);
+        Assert.AreEqual(Malformed, File.ReadAllText(root.Resolve(DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+    }
+
+    /// <summary>Proves a cancelled write does not request a candidate or mutate the document.</summary>
+    [TestMethod]
+    public async Task WriteAsyncWhenCancelledBeforePreflightRequestsNoIdentifierAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        DeterministicIdentifierSource identifiers = new();
+        WindowsLocalSettingsStore store = CreateStore(root, identifiers);
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
+
+        _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(
+            () => store.WriteAsync(UserSettings.Default, cancellation.Token));
+
+        Assert.AreEqual(0, identifiers.IssuedCount);
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+    }
+
+    /// <summary>Proves the maximum candidate path is validated without requesting an identifier.</summary>
+    [TestMethod]
+    public void ConstructWhenCandidatePathWouldExceedLimitRejectsBeforeIdentifierAccess()
+    {
+        string documentText = "C:\\" + new string('a', 32767 - TemporarySuffix.Length - 3 + 1);
+        WindowsLocalPath documentPath = Assert.IsInstanceOfType<WindowsLocalPath>(
+            Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(documentText)).Path);
+        DeterministicIdentifierSource identifiers = new();
+
+        _ = Assert.ThrowsExactly<ArgumentException>(
+            () => new WindowsLocalSettingsStore(
+                documentPath,
+                new WindowsLocalIoExecutionBoundary(),
+                identifiers));
+
+        Assert.AreEqual(0, identifiers.IssuedCount);
+    }
+
+    /// <summary>Proves a new store can save after an earlier process leaves its flushed temporary file.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenPriorStoreLeavesFlushedTemporaryAllowsNewStoreToSaveAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalSettingsStore interruptedStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = _ => throw new InvalidOperationException("Injected interruption after flush."),
+            });
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => interruptedStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+        string leftoverPath = root.Resolve(DocumentName + TemporarySuffix);
+        byte[] leftoverBytes = File.ReadAllBytes(leftoverPath);
+        Assert.IsGreaterThan(0, leftoverBytes.Length);
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
+        WindowsLocalSettingsStore recoveredStore = CreateStore(
+            root,
+            new DeterministicIdentifierSource(first: 2));
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(
+            await recoveredStore.ReadAsync(CancellationToken.None));
+        UserSettings replacement = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Shown,
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
+
+        SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            outcome,
+            $"Unexpected settings write rejection: {(outcome as SettingsWriteRejected)?.Failure}");
+        CollectionAssert.AreEqual(leftoverBytes, File.ReadAllBytes(leftoverPath));
+        UserSettings saved = Assert.IsInstanceOfType<SettingsRead>(
+            await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
+        Assert.AreSame(ColorScheme.Dracula, saved.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, saved.HiddenItemVisibility);
+    }
+
+    /// <summary>Proves a valid document survives an interrupted replace and a new store can save.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenPriorReplaceLeavesFlushedTemporaryPreservesOriginalAndRecoversAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Original =
+            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
+        string documentPath = root.WriteFile(DocumentName, Original);
+        WindowsLocalSettingsStore interruptedStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = _ => throw new InvalidOperationException("Injected interruption after flush."),
+            });
+        _ = Assert.IsInstanceOfType<SettingsRead>(
+            await interruptedStore.ReadAsync(CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => interruptedStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+        string leftoverPath = root.Resolve(DocumentName + TemporarySuffix);
+        byte[] leftoverBytes = File.ReadAllBytes(leftoverPath);
+        Assert.IsGreaterThan(0, leftoverBytes.Length);
+        Assert.AreEqual(Original, File.ReadAllText(documentPath));
+        WindowsLocalSettingsStore recoveredStore = CreateStore(
+            root,
+            new DeterministicIdentifierSource(first: 2));
+        UserSettings oldSettings = Assert.IsInstanceOfType<SettingsRead>(
+            await recoveredStore.ReadAsync(CancellationToken.None)).Settings;
+        Assert.AreSame(ColorScheme.Ubuntu, oldSettings.ColorScheme);
+        UserSettings replacement = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Hidden,
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
+
+        SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
+        CollectionAssert.AreEqual(leftoverBytes, File.ReadAllBytes(leftoverPath));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
+        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(documentPath));
+        UserSettings saved = Assert.IsInstanceOfType<SettingsRead>(
+            await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
+        Assert.AreSame(ColorScheme.Dracula, saved.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, saved.HiddenItemVisibility);
+    }
+
+    /// <summary>Proves an old fixed-name temporary remains untouched while a new candidate saves.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenLegacyTemporaryRemainsPreservesItAndSavesAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string LegacyTemporary = "legacy temporary bytes";
+        _ = root.WriteFile(DocumentName + ".tmp", LegacyTemporary);
+        WindowsLocalSettingsStore store = CreateStore(root);
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
+
+        SettingsWriteOutcome outcome = await store.WriteAsync(UserSettings.Default, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
+        Assert.AreEqual(LegacyTemporary, File.ReadAllText(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        _ = Assert.IsInstanceOfType<SettingsRead>(
+            await CreateStore(root).ReadAsync(CancellationToken.None));
+    }
+
+    /// <summary>Proves a stale writer rejects a completed write and cleans only its own candidate.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenAnotherStorePublishesBeforeFinalCheckRejectsStaleWriterAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        ManualIoScheduler otherScheduler = new();
+        bool distinctCandidatesCoexisted = false;
+        WindowsLocalSettingsStore otherStore = new(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(otherScheduler),
+            new DeterministicIdentifierSource(first: 2),
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = temporaryPath =>
+                    distinctCandidatesCoexisted =
+                        File.Exists(root.Resolve(DocumentName + TemporarySuffix)) &&
+                        temporaryPath.Equals(
+                            root.Resolve(DocumentName + SecondTemporarySuffix),
+                            StringComparison.Ordinal) &&
+                        File.Exists(temporaryPath),
+            });
+        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
+        otherScheduler.ExecuteAll();
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(await otherRead);
+        Task<SettingsWriteOutcome>? otherWrite = null;
+        UserSettings otherValue = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Shown,
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
+        WindowsLocalSettingsStore staleStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnBeforePublish = _ =>
+                {
+                    otherWrite = otherStore.WriteAsync(otherValue, CancellationToken.None);
+                    otherScheduler.ExecuteAll();
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(
+            await staleStore.ReadAsync(CancellationToken.None));
+
+        SettingsWriteRejected stale = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await staleStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, stale.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, stale.TemporaryEffect);
+        Assert.IsTrue(distinctCandidatesCoexisted);
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(otherWrite));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
+        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(root.Resolve(DocumentName)));
+    }
+
+    /// <summary>Proves a stale replace rejects another store's completed replacement.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenAnotherStoreReplacesDocumentRejectsStaleReplaceAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        const string Original =
+            "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
+        string documentPath = root.WriteFile(DocumentName, Original);
+        ManualIoScheduler otherScheduler = new();
+        WindowsLocalSettingsStore otherStore = new(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(otherScheduler),
+            new DeterministicIdentifierSource(first: 2));
+        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
+        otherScheduler.ExecuteAll();
+        _ = Assert.IsInstanceOfType<SettingsRead>(await otherRead);
+        Task<SettingsWriteOutcome>? otherWrite = null;
+        UserSettings otherValue = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Hidden,
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
+        WindowsLocalSettingsStore staleStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnBeforePublish = _ =>
+                {
+                    otherWrite = otherStore.WriteAsync(otherValue, CancellationToken.None);
+                    otherScheduler.ExecuteAll();
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsRead>(
+            await staleStore.ReadAsync(CancellationToken.None));
+
+        SettingsWriteRejected stale = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await staleStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+
+        Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, stale.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, stale.TemporaryEffect);
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(otherWrite));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
+        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(documentPath));
+    }
+
+    /// <summary>Proves equal candidate tokens cannot mutate the first store's owned temporary.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-012")]
+    public async Task WriteAsyncWhenAnotherStoreSelectsSameCandidatePreservesOwnerAsync()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        ManualIoScheduler otherScheduler = new();
+        WindowsLocalSettingsStore otherStore = new(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(otherScheduler),
+            new DeterministicIdentifierSource());
+        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
+        otherScheduler.ExecuteAll();
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(await otherRead);
+        Task<SettingsWriteOutcome>? competingWrite = null;
+        byte[]? ownerBytesAfterCollision = null;
+        UserSettings competingValue = UserSettings.Create(
+            ColorScheme.Dracula,
+            HiddenItemVisibility.Shown,
+            BookmarkCatalog.Empty,
+            PaneSortPreferences.Default);
+        WindowsLocalSettingsStore ownerStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = _ =>
+                {
+                    competingWrite = otherStore.WriteAsync(competingValue, CancellationToken.None);
+                    otherScheduler.ExecuteAll();
+                    ownerBytesAfterCollision = File.ReadAllBytes(root.Resolve(DocumentName + TemporarySuffix));
+                },
+            });
+        _ = Assert.IsInstanceOfType<SettingsAbsent>(
+            await ownerStore.ReadAsync(CancellationToken.None));
+
+        SettingsWriteOutcome owner = await ownerStore.WriteAsync(UserSettings.Default, CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(owner);
+        SettingsWriteRejected competitor = Assert.IsInstanceOfType<SettingsWriteRejected>(
+            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(competingWrite));
+        Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, competitor.Failure);
+        Assert.AreSame(SettingsWriteEffect.None, competitor.TemporaryEffect);
+        CollectionAssert.AreEqual(
+            Assert.IsInstanceOfType<byte[]>(ownerBytesAfterCollision),
+            File.ReadAllBytes(root.Resolve(DocumentName)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
     }
 
     /// <summary>Proves a destination created after absent preflight is preserved and blocks publish.</summary>
@@ -816,7 +1166,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(ConcurrentDocument, File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a destination created after the startup read is never silently overwritten.</summary>
@@ -844,7 +1194,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreEqual(ConcurrentDocument, File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(temporaryFlushed);
     }
 
@@ -874,7 +1224,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(temporaryFlushed);
     }
 
@@ -899,7 +1249,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.AreEqual(Original, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a valid document edited after startup read is preserved before mutation starts.</summary>
@@ -923,7 +1273,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreEqual(ConcurrentDocument, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves in-place content change after valid preflight blocks publish even with restored metadata.</summary>
@@ -958,7 +1308,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreEqual(ConcurrentDocument, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation after a move publish cannot hide its successful effect.</summary>
@@ -979,7 +1329,7 @@ public sealed class WindowsLocalSettingsStoreTests
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.IsTrue(cancellation.IsCancellationRequested);
         Assert.IsTrue(File.Exists(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation after replace cannot turn its successful effect into cancellation.</summary>
@@ -1005,7 +1355,7 @@ public sealed class WindowsLocalSettingsStoreTests
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.IsTrue(cancellation.IsCancellationRequested);
         Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves cleanup reports owned residue when the operating system refuses deletion.</summary>
@@ -1033,7 +1383,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, outcome.Failure);
         Assert.AreSame(SettingsDirectoryEffect.CreationObserved, outcome.DirectoryEffect);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        Assert.IsTrue(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsTrue(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
     }
 
@@ -1044,7 +1394,7 @@ public sealed class WindowsLocalSettingsStoreTests
     public async Task WriteAsyncWhenTemporaryPathIsDirectoryReportsCollisionWithoutDeletingItAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        _ = root.CreateDirectory(DocumentName + ".tmp");
+        _ = root.CreateDirectory(DocumentName + TemporarySuffix);
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
@@ -1053,7 +1403,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsDirectoryEffect.NotAttempted, outcome.DirectoryEffect);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
-        Assert.IsTrue(Directory.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsTrue(Directory.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
@@ -1073,7 +1423,7 @@ public sealed class WindowsLocalSettingsStoreTests
             {
                 OnBeforePublish = documentPath =>
                 {
-                    string temporaryPath = documentPath + ".tmp";
+                    string temporaryPath = documentPath + TemporarySuffix;
                     File.Move(temporaryPath, temporaryPath + ".owned");
                     File.WriteAllText(temporaryPath, ForeignTemporary);
                     File.WriteAllText(documentPath, ConcurrentDocument);
@@ -1085,8 +1435,8 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + ".tmp")));
-        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.owned")));
+        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + TemporarySuffix + ".owned")));
         Assert.AreEqual(ConcurrentDocument, File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -1104,7 +1454,7 @@ public sealed class WindowsLocalSettingsStoreTests
             {
                 OnBeforePublish = documentPath =>
                 {
-                    string temporaryPath = documentPath + ".tmp";
+                    string temporaryPath = documentPath + TemporarySuffix;
                     File.Move(temporaryPath, temporaryPath + ".owned");
                     File.WriteAllText(temporaryPath, ForeignTemporary);
                 },
@@ -1115,8 +1465,8 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + ".tmp")));
-        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.owned")));
+        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + TemporarySuffix + ".owned")));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
@@ -1150,7 +1500,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        CollectionAssert.AreEqual(foreignBytes, File.ReadAllBytes(root.Resolve(DocumentName + ".tmp")));
+        CollectionAssert.AreEqual(foreignBytes, File.ReadAllBytes(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
@@ -1173,15 +1523,15 @@ public sealed class WindowsLocalSettingsStoreTests
                     Directory.Move(root.Resolve("settings-parent"), root.Resolve("parked-parent"));
                     _ = root.CreateDirectory("settings-parent");
                     File.Move(
-                        root.Resolve("parked-parent\\" + DocumentName + ".tmp"),
-                        root.Resolve("settings-parent\\" + DocumentName + ".tmp"));
+                        root.Resolve("parked-parent\\" + DocumentName + TemporarySuffix),
+                        root.Resolve("settings-parent\\" + DocumentName + TemporarySuffix));
                 },
                 OnTemporaryFlushed = temporaryPath =>
                 {
                     laterCheckReached = true;
                     File.Move(
                         temporaryPath,
-                        root.Resolve("parked-parent\\" + DocumentName + ".tmp"));
+                        root.Resolve("parked-parent\\" + DocumentName + TemporarySuffix));
                     Directory.Delete(root.Resolve("settings-parent"));
                     Directory.Move(root.Resolve("parked-parent"), root.Resolve("settings-parent"));
                 },
@@ -1194,9 +1544,9 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
         Assert.IsFalse(laterCheckReached);
-        Assert.IsTrue(File.Exists(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
+        Assert.IsTrue(File.Exists(root.Resolve("settings-parent\\" + DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("parked-parent\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("parked-parent\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves post-close identity capture cannot adopt a same-byte foreign temporary file.</summary>
@@ -1223,8 +1573,8 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp")));
-        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.owned")));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + TemporarySuffix + ".owned")));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
@@ -1251,7 +1601,7 @@ public sealed class WindowsLocalSettingsStoreTests
             Assert.IsInstanceOfType<SettingsRejected>(read).Kind);
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, write.Failure);
         Assert.AreEqual(TargetDocument, File.ReadAllText(root.Resolve(TargetName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a dangling ancestor junction is unsafe rather than an absent directory.</summary>
@@ -1272,7 +1622,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, write.Failure);
         Assert.IsFalse(Directory.Exists(root.Resolve("missing-target")));
         Assert.IsFalse(File.Exists(root.Resolve("missing-target\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("missing-target\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("missing-target\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a dangling document symlink is rejected during write preflight.</summary>
@@ -1290,7 +1640,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.ExistingDocumentRejected, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve("missing-target.json")));
     }
 
@@ -1301,7 +1651,7 @@ public sealed class WindowsLocalSettingsStoreTests
     public async Task WriteAsyncWhenTemporaryIsDanglingSymbolicLinkReportsCollisionAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        _ = root.CreateFileSymbolicLink(DocumentName + ".tmp", "missing-temporary-target.json");
+        _ = root.CreateFileSymbolicLink(DocumentName + TemporarySuffix, "missing-temporary-target.json");
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
@@ -1346,7 +1696,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
         Assert.AreEqual(TargetDocument, File.ReadAllText(root.Resolve(TargetName)));
         Assert.AreEqual(OriginalDocument, File.ReadAllText(root.Resolve(DocumentName + ".original")));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves post-publish observation cannot adopt a replacement parent as its anchor.</summary>
@@ -1394,7 +1744,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, second.Failure);
         Assert.Contains("\"colorScheme\":\"nene-dark\"", File.ReadAllText(
             root.Resolve("settings-parent\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a direct write cannot bypass an unsafe ancestor through a read baseline.</summary>
@@ -1414,7 +1764,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a vanished owned temporary is rejected and its relocated entry is untouched.</summary>
@@ -1436,9 +1786,9 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
-        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + ".tmp.moved")));
+        Assert.IsTrue(File.Exists(root.Resolve(DocumentName + TemporarySuffix + ".moved")));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a reparse ancestor is rejected before reads or writes reach its target.</summary>
@@ -1461,7 +1811,7 @@ public sealed class WindowsLocalSettingsStoreTests
             Assert.IsInstanceOfType<SettingsRejected>(read).Kind);
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, write.Failure);
         Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves replacing a captured parent with a junction blocks mutation before temp creation.</summary>
@@ -1484,7 +1834,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, write.Failure);
         Assert.AreSame(SettingsWriteEffect.None, write.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a blocked startup location cannot be replaced and retried implicitly.</summary>
@@ -1508,7 +1858,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve("settings-link\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("settings-link\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("settings-link\\" + DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
     }
 
@@ -1531,7 +1881,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, outcome.Failure);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves detected parent replacement after temp creation reports the old-parent residue.</summary>
@@ -1561,8 +1911,8 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, write.Failure);
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, write.TemporaryEffect);
-        Assert.IsTrue(File.Exists(root.Resolve("parked-parent\\" + DocumentName + ".tmp")));
-        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + ".tmp")));
+        Assert.IsTrue(File.Exists(root.Resolve("parked-parent\\" + DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve("target\\" + DocumentName)));
     }
 
@@ -1584,7 +1934,7 @@ public sealed class WindowsLocalSettingsStoreTests
                 {
                     Directory.Move(root.Resolve("settings-parent"), root.Resolve("parked-parent"));
                     _ = root.CreateDirectory("settings-parent");
-                    _ = root.WriteFile("settings-parent\\" + DocumentName + ".tmp", ForeignTemporary);
+                    _ = root.WriteFile("settings-parent\\" + DocumentName + TemporarySuffix, ForeignTemporary);
                 },
             });
         _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
@@ -1596,8 +1946,8 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteEffect.TemporaryArtifactLeft, outcome.TemporaryEffect);
         Assert.AreEqual(
             ForeignTemporary,
-            File.ReadAllText(root.Resolve("settings-parent\\" + DocumentName + ".tmp")));
-        Assert.IsTrue(File.Exists(root.Resolve("parked-parent\\" + DocumentName + ".tmp")));
+            File.ReadAllText(root.Resolve("settings-parent\\" + DocumentName + TemporarySuffix)));
+        Assert.IsTrue(File.Exists(root.Resolve("parked-parent\\" + DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve("settings-parent\\" + DocumentName)));
     }
 
@@ -1609,7 +1959,8 @@ public sealed class WindowsLocalSettingsStoreTests
         const string nestedDocument = "cancelled-parent\\settings.json";
         WindowsLocalSettingsStore store = new(
             ParseChild(root, nestedDocument),
-            new WindowsLocalIoExecutionBoundary());
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
         using CancellationTokenSource cancellation = new();
         cancellation.Cancel();
 
@@ -1618,7 +1969,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.IsFalse(Directory.Exists(root.Resolve("cancelled-parent")));
         Assert.IsFalse(File.Exists(root.Resolve(nestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(nestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(nestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation wins before a blocked startup baseline is evaluated.</summary>
@@ -1638,7 +1989,7 @@ public sealed class WindowsLocalSettingsStoreTests
             () => store.WriteAsync(UserSettings.Default, cancellation.Token));
 
         Assert.AreEqual(Malformed, File.ReadAllText(documentPath));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation observed immediately before directory creation leaves no directory effect.</summary>
@@ -1661,7 +2012,7 @@ public sealed class WindowsLocalSettingsStoreTests
 
         Assert.IsFalse(Directory.Exists(root.Resolve("cancelled-directory")));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation after directory creation cannot hide the observed directory effect.</summary>
@@ -1689,7 +2040,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
         Assert.IsTrue(Directory.Exists(root.Resolve("started-directory")));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument)));
-        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
     /// <summary>Proves cancellation observed at the temporary boundary leaves the existing parent untouched.</summary>
@@ -1709,7 +2060,7 @@ public sealed class WindowsLocalSettingsStoreTests
             () => store.WriteAsync(UserSettings.Default, cancellation.Token));
 
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + ".tmp")));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
     /// <summary>Proves a file that wins the final CreateNew race is reported and preserved as a collision.</summary>
@@ -1734,7 +2085,7 @@ public sealed class WindowsLocalSettingsStoreTests
         Assert.AreSame(SettingsWriteFailureKind.TemporaryArtifactCollision, outcome.Failure);
         Assert.AreSame(SettingsDirectoryEffect.NotAttempted, outcome.DirectoryEffect);
         Assert.AreSame(SettingsWriteEffect.None, outcome.TemporaryEffect);
-        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + ".tmp")));
+        Assert.AreEqual(ForeignTemporary, File.ReadAllText(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName)));
     }
 
@@ -1742,7 +2093,8 @@ public sealed class WindowsLocalSettingsStoreTests
     {
         return new WindowsLocalSettingsStore(
             ParseChild(root, DocumentName),
-            new WindowsLocalIoExecutionBoundary());
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
     }
 
     private static WindowsLocalSettingsStore CreateStore(
@@ -1752,7 +2104,18 @@ public sealed class WindowsLocalSettingsStoreTests
         return new WindowsLocalSettingsStore(
             ParseChild(root, DocumentName),
             new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource(),
             writeTestHook);
+    }
+
+    private static WindowsLocalSettingsStore CreateStore(
+        TestOwnedTemporaryRoot root,
+        IIdentifierSource identifierSource)
+    {
+        return new WindowsLocalSettingsStore(
+            ParseChild(root, DocumentName),
+            new WindowsLocalIoExecutionBoundary(),
+            identifierSource);
     }
 
     private static WindowsLocalSettingsStore CreateStoreAt(
@@ -1761,7 +2124,8 @@ public sealed class WindowsLocalSettingsStoreTests
     {
         return new WindowsLocalSettingsStore(
             ParseChild(root, childName),
-            new WindowsLocalIoExecutionBoundary());
+            new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource());
     }
 
     private static WindowsLocalSettingsStore CreateStoreAt(
@@ -1772,6 +2136,7 @@ public sealed class WindowsLocalSettingsStoreTests
         return new WindowsLocalSettingsStore(
             ParseChild(root, childName),
             new WindowsLocalIoExecutionBoundary(),
+            new DeterministicIdentifierSource(),
             writeTestHook);
     }
 
