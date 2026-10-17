@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
@@ -19,6 +20,30 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 [TestClass]
 public sealed class DualPanePresenterTests
 {
+    /// <summary>Proves either pane reports its own observed network fact regardless of active side.</summary>
+    [TestMethod]
+    public async Task PresentWhenNetworkDriveIsPassiveStillShowsLocationIndication()
+    {
+        DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing leftListing = CreateListing("Z:\\share", ["a.txt"]);
+        DirectoryListing rightListing = CreateListing("C:\\right", ["b.txt"]);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, DriveKind.Network));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, DriveKind.Fixed));
+        _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
+        DualPaneSnapshot snapshot = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
+
+        DualPanePresentation first = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPaneSnapshot activated = await panes.HandleAsync(
+            UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPanePresentation second = DualPanePresenter.Present(activated, TestMetadataFormats.Utc);
+
+        Assert.AreSame(PaneLocationStatus.NetworkDrive, first.Left.LocationStatus);
+        Assert.IsNull(first.Right.LocationStatus);
+        Assert.AreSame(PaneLocationStatus.NetworkDrive, second.Left.LocationStatus);
+        Assert.IsNull(second.Right.LocationStatus);
+    }
+
     /// <summary>Proves the active side gets the active frame and both panes are projected.</summary>
     [TestMethod]
     public async Task PresentWhenLeftIsActiveFramesLeftActiveAndRightPassive()
@@ -26,7 +51,7 @@ public sealed class DualPanePresenterTests
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         right.Enqueue(DirectoryReadOutcome.Cancelled());
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         DualPaneSnapshot snapshot = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
@@ -68,8 +93,8 @@ public sealed class DualPanePresenterTests
     {
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\", ["Users"])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\Users", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\", ["Users"]), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\Users", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
 
@@ -124,10 +149,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
@@ -168,8 +193,8 @@ public sealed class DualPanePresenterTests
     {
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\", ["Users"])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\Users", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\", ["Users"]), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\Users", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
 
@@ -209,10 +234,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
@@ -245,10 +270,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
@@ -274,10 +299,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
@@ -298,8 +323,8 @@ public sealed class DualPanePresenterTests
     {
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"]), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
@@ -345,10 +370,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -377,10 +402,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -402,8 +427,8 @@ public sealed class DualPanePresenterTests
     {
         DualPaneSession panes = CreatePanes(out ScriptedDirectoryReadPort left, out ScriptedDirectoryReadPort right, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"]), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
@@ -447,10 +472,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -479,10 +504,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -534,8 +559,8 @@ public sealed class DualPanePresenterTests
             out QueuedFileOperationPort port);
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt", "b.txt"]);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -599,10 +624,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt", "b.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -637,10 +662,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
@@ -716,8 +741,8 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;
@@ -776,8 +801,8 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;
@@ -827,10 +852,10 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt", "b.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         _ = await panes.HandleAsync(UserIntent.ToggleSelection, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -1050,8 +1075,8 @@ public sealed class DualPanePresenterTests
             out ScriptedDirectoryReadPort right,
             out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", ["b.txt"])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", ["a.txt"]), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", ["b.txt"]), null));
         _ = await panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         DualPaneSnapshot snapshot = await panes.NavigateAsync(
             PaneSide.Right,
@@ -1200,8 +1225,8 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DirectoryListing leftListing = CreateListing("C:\\left", ["a.txt"]);
         DirectoryListing rightListing = CreateListing("C:\\right", []);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         return DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);

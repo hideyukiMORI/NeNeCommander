@@ -234,7 +234,7 @@ public sealed class CommanderSessionLocationsTests
         Assert.HasCount(2, fixture.Right.Requests);
         Assert.HasCount(1, fixture.Left.Requests);
         Assert.AreSame(open.Items[1].Location, fixture.Right.Requests[1].Location);
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("\\\\wsl.localhost\\Ubuntu", "home")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("\\\\wsl.localhost\\Ubuntu", "home"), null));
         CommanderSnapshot selected = await selecting;
         PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(selected.Panes.Right.Content);
         Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\", listed.Listing.Location.CanonicalText);
@@ -435,8 +435,8 @@ public sealed class CommanderSessionLocationsTests
             BlockingInspectionPort port,
             Task<CommanderSnapshot> operation)
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt"), null));
             port.Release();
             return await operation;
         }
@@ -448,8 +448,8 @@ public sealed class CommanderSessionLocationsTests
 
         private async Task ListBothAsync()
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt"), null));
             _ = await Session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
             _ = await Session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
         }

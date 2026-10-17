@@ -30,6 +30,7 @@
   <data name="PaneSortSizeDescending" xml:space="preserve"><value>size ↓</value></data>
   <data name="PaneSortModifiedAscending" xml:space="preserve"><value>modified ↑</value></data>
   <data name="PaneSortModifiedDescending" xml:space="preserve"><value>modified ↓</value></data>
+  <data name="PaneLocationNetworkDrive" xml:space="preserve"><value>Network drive</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>Moving…</value></data>

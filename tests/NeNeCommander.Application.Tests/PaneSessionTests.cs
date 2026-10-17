@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Launching;
@@ -17,13 +18,46 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class PaneSessionTests
 {
+    /// <summary>Proves a read fact follows retained content and is replaced only by another successful read.</summary>
+    [TestMethod]
+    public async Task NavigateWhenDriveFactChangesRetainsAndReplacesObservedKind()
+    {
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        DirectoryListing listing = Listing("C:\\root",
+            ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
+        port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        port.Enqueue(DirectoryReadOutcome.Cancelled());
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Fixed));
+        PaneSession session = CreateSession(port);
+
+        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        PaneSnapshot focused = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        PaneSnapshot selected = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
+        PaneSnapshot sorted = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
+        PaneSnapshot failed = await session.NavigateAsync(ParsePath("C:\\denied"), CancellationToken.None);
+        PaneSnapshot cancelled = await session.NavigateAsync(ParsePath("C:\\cancelled"), CancellationToken.None);
+        PaneSnapshot refreshed = await session.RefreshAsync(CancellationToken.None);
+
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(listed.Content).DriveKind);
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(focused.Content).DriveKind);
+        Assert.AreNotSame(
+            Assert.IsInstanceOfType<PaneContentListed>(listed.Content).State.FocusItem,
+            Assert.IsInstanceOfType<PaneContentListed>(focused.Content).State.FocusItem);
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(selected.Content).DriveKind);
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(sorted.Content).DriveKind);
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(failed.Content).DriveKind);
+        Assert.AreSame(DriveKind.Network, Assert.IsInstanceOfType<PaneContentListed>(cancelled.Content).DriveKind);
+        Assert.AreSame(DriveKind.Fixed, Assert.IsInstanceOfType<PaneContentListed>(refreshed.Content).DriveKind);
+    }
+
     /// <summary>Proves a successful read lists the location with the first entry focused.</summary>
     [TestMethod]
     public async Task NavigateAsyncWhenReadSucceedsListsLocationWithFirstEntryFocused()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing("C:\\root", ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
 
         PaneSnapshot snapshot = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -44,7 +78,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
         PaneSession session = CreateSession(port);
         FileSystemPath denied = ParsePath("C:\\root\\denied");
@@ -96,7 +130,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing(location, ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("docs", DirectoryEntryKind.Directory), ("a.txt", DirectoryEntryKind.File)), null));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(FileLaunchOutcome.Accepted());
         PaneSession session = CreateSession(port, launcher);
@@ -125,7 +159,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing(location, ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("a.txt", DirectoryEntryKind.File)), null));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
         PaneSession session = CreateSession(port, launcher);
@@ -153,7 +187,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing(location, ("a.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
         PaneSession session = CreateSession(port, launcher);
@@ -188,7 +222,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing(location, ("a.txt", DirectoryEntryKind.File))));
+            Listing(location, ("a.txt", DirectoryEntryKind.File)), null));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
         launcher.Enqueue(FileLaunchOutcome.Cancelled());
@@ -215,7 +249,7 @@ public sealed class PaneSessionTests
         const string Location = "\\\\server\\share\\folder";
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing(Location, ("a.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
         PaneSession session = CreateSession(port, launcher);
@@ -238,7 +272,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File))));
+            Listing("C:\\root", ("a.txt", DirectoryEntryKind.File)), null));
         ScriptedFileLauncher launcher = new();
         launcher.Enqueue(new UnsupportedFileLaunchOutcome());
         PaneSession session = CreateSession(port, launcher);
@@ -269,7 +303,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listedSnapshot = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
 
@@ -289,8 +323,8 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing("C:\\root", ("docs", DirectoryEntryKind.Directory));
         DirectoryListing docs = Listing("C:\\root\\docs", ("readme.md", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(docs));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(docs, null));
         ScriptedFileLauncher launcher = new();
         PaneSession session = CreateSession(port, launcher);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -309,7 +343,7 @@ public sealed class PaneSessionTests
     public async Task HandleAsyncWhenOpenFocusedOnEmptyListingDoesNothing()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\empty")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\empty"), null));
         ScriptedFileLauncher launcher = new();
         PaneSession session = CreateSession(port, launcher);
 
@@ -328,8 +362,8 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing docs = Listing("C:\\root\\docs", ("readme.md", DirectoryEntryKind.File));
         DirectoryListing root = Listing("C:\\root", ("archive", DirectoryEntryKind.Directory), ("DOCS", DirectoryEntryKind.Directory));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(docs));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(docs, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root\\docs"), CancellationToken.None);
 
@@ -347,8 +381,8 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing first = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
         DirectoryListing second = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File), ("c.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(first));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(second));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(first, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(second, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot initial = await session.RefreshAsync(CancellationToken.None);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -369,7 +403,7 @@ public sealed class PaneSessionTests
     public async Task HandleAsyncWhenNavigateParentAtRootDoesNotRead()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\", ("Users", DirectoryEntryKind.Directory))));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\", ("Users", DirectoryEntryKind.Directory)), null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\"), CancellationToken.None);
 
@@ -387,7 +421,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -395,7 +429,7 @@ public sealed class PaneSessionTests
 
         Task<PaneSnapshot> navigation = session.NavigateAsync(target, CancellationToken.None);
         PaneSnapshot frozen = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
-        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\other", ("c.txt", DirectoryEntryKind.File))));
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\other", ("c.txt", DirectoryEntryKind.File)), null));
         PaneSnapshot completed = await navigation;
 
         Assert.AreSame(target, Assert.IsInstanceOfType<PaneLoading>(frozen.Activity).Target);
@@ -412,7 +446,7 @@ public sealed class PaneSessionTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing("C:\\root", ("a.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -420,7 +454,7 @@ public sealed class PaneSessionTests
         Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\other"), CancellationToken.None);
         PaneSnapshot plain = await session.RefreshAsync(CancellationToken.None);
         PaneSnapshot focusing = await session.RefreshFocusingAsync(root.Entries[0].Path, CancellationToken.None);
-        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\other", ("c.txt", DirectoryEntryKind.File))));
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\other", ("c.txt", DirectoryEntryKind.File)), null));
         _ = await navigation;
 
         _ = Assert.IsInstanceOfType<PaneLoading>(plain.Activity);
@@ -443,9 +477,9 @@ public sealed class PaneSessionTests
 
         Task<PaneSnapshot> firstNavigation = session.NavigateAsync(ParsePath("C:\\stale"), CancellationToken.None);
         Task<PaneSnapshot> secondNavigation = session.NavigateAsync(ParsePath("C:\\fresh"), CancellationToken.None);
-        second.SetResult(DirectoryReadOutcome.Succeeded(fresh));
+        second.SetResult(DirectoryReadOutcome.Succeeded(fresh, null));
         PaneSnapshot freshSnapshot = await secondNavigation;
-        first.SetResult(DirectoryReadOutcome.Succeeded(stale));
+        first.SetResult(DirectoryReadOutcome.Succeeded(stale, null));
         PaneSnapshot staleSnapshot = await firstNavigation;
 
         Assert.AreSame(fresh, Assert.IsInstanceOfType<PaneContentListed>(freshSnapshot.Content).Listing);
@@ -466,7 +500,7 @@ public sealed class PaneSessionTests
             "C:\\root",
             ("a.txt", EntryVisibility.Normal),
             ("b.txt", EntryVisibility.Hidden));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port, HiddenItemVisibility.Hidden);
 
         PaneSnapshot snapshot = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -485,8 +519,8 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing first = HiddenListing("C:\\root", ("a.txt", EntryVisibility.Hidden));
         DirectoryListing second = HiddenListing("C:\\other", ("b.txt", EntryVisibility.Hidden));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(first));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(second));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(first, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(second, null));
         PaneSession session = CreateSession(port, HiddenItemVisibility.Shown);
 
         PaneSnapshot initial = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -506,10 +540,10 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing("C:\\root", ("z.txt", DirectoryEntryKind.File));
         DirectoryListing other = Listing("C:\\other", ("b.txt", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(root.Location, CancellationToken.None);
         _ = await session.NavigateAsync(other.Location, CancellationToken.None);
@@ -534,7 +568,7 @@ public sealed class PaneSessionTests
     public async Task HandleAsyncWhenHistoryHasNoCandidateDoesNotRead()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root"), null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
 
@@ -553,11 +587,11 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing("C:\\root");
         DirectoryListing other = Listing("C:\\other");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other, null));
         port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
         port.Enqueue(DirectoryReadOutcome.Cancelled());
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(root.Location, CancellationToken.None);
         _ = await session.NavigateAsync(other.Location, CancellationToken.None);
@@ -582,12 +616,12 @@ public sealed class PaneSessionTests
         DirectoryListing root = Listing("C:\\root");
         DirectoryListing other = Listing("C:\\other");
         DirectoryListing sameIdentity = Listing("c:\\ROOT");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(other));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(sameIdentity, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(other, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(root.Location, CancellationToken.None);
         _ = await session.NavigateAsync(other.Location, CancellationToken.None);
@@ -613,7 +647,7 @@ public sealed class PaneSessionTests
             ("b.txt", DirectoryEntryKind.File),
             ("a.md", DirectoryEntryKind.File),
             ("c", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot initial = await session.NavigateAsync(root.Location, CancellationToken.None);
 
@@ -639,10 +673,10 @@ public sealed class PaneSessionTests
             ("a.md", DirectoryEntryKind.File),
             ("c", DirectoryEntryKind.File));
         DirectoryListing next = Listing("C:\\next", ("y.txt", DirectoryEntryKind.File), ("z.md", DirectoryEntryKind.File));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(next));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(root));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(next, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(root.Location, CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);

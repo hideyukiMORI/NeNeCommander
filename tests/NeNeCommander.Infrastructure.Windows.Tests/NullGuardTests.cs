@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Diagnostics;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -47,18 +48,39 @@ public sealed class NullGuardTests
     public void TreeMethodsWhenRequiredArgumentIsNullRejectBeforeIo(string methodName)
     {
         FileSystemPath path = ParsePath("C:\\source");
+        int callbacks = 0;
         object?[] arguments =
         [
             new DirectoryInfo(path.CanonicalText), path,
-            (Func<FileSystemPath, string>)(target => target.CanonicalText),
-            (Action<FileSystemInfo>)WindowsLocalTreeCopy.InspectLocalSource,
+            new WindowsTreeCopyAccess(_ =>
+            {
+                callbacks++;
+                throw new InvalidOperationException("Null guard must precede target resolution.");
+            }, _ =>
+            {
+                callbacks++;
+                throw new InvalidOperationException("Null guard must precede source inspection.");
+            }, new WindowsDriveBoundary(_ =>
+            {
+                callbacks++;
+                throw new InvalidOperationException("Null guard must precede drive inspection.");
+            })),
         ];
+        MethodInfo? method = typeof(WindowsLocalTreeCopy).GetMethod(methodName,
+            BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly,
+            binder: null,
+            types: [typeof(FileSystemInfo), typeof(FileSystemPath), typeof(WindowsTreeCopyAccess)],
+            modifiers: null);
+        Assert.IsNotNull(method);
         for (int index = 0; index < arguments.Length; index++)
         {
             object?[] supplied = (object?[])arguments.Clone();
             supplied[index] = null;
-            AssertStaticNullGuard(typeof(WindowsLocalTreeCopy), methodName, supplied);
+            TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
+                () => method.Invoke(null, supplied));
+            _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
         }
+        Assert.AreEqual(0, callbacks);
     }
 
     /// <summary>Proves closed result constructors preserve their internal null invariants.</summary>

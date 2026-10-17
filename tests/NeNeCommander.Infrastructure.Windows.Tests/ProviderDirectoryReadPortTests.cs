@@ -168,7 +168,7 @@ public sealed class ProviderDirectoryReadPortTests
                 DirectoryListingCompleteness.Complete,
                 0);
             DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
-            return Task.FromResult(DirectoryReadOutcome.Succeeded(listing));
+            return Task.FromResult(DirectoryReadOutcome.Succeeded(listing, null));
         }
     }
 }

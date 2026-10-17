@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -15,6 +16,25 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class DirectoryListingTests
 {
+    /// <summary>Proves the read fact is carried only with drive-rooted listings.</summary>
+    [TestMethod]
+    public void SucceededWhenDriveFactIsPresentRequiresWindowsLocalListing()
+    {
+        DirectoryListing local = CreateListing(ParsePath("Z:\\share"), [], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing unc = CreateListing(ParsePath("\\\\server\\share"), [], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing wsl = CreateListing(ParsePath("\\\\wsl.localhost\\Ubuntu\\home"), [], DirectoryListingCompleteness.Complete, 0);
+
+        DirectoryReadSucceeded success = Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            DirectoryReadOutcome.Succeeded(local, DriveKind.Network));
+
+        Assert.AreSame(local, success.Listing);
+        Assert.AreSame(DriveKind.Network, success.DriveKind);
+        Assert.IsNull(Assert.IsInstanceOfType<DirectoryReadSucceeded>(
+            DirectoryReadOutcome.Succeeded(unc, null)).DriveKind);
+        _ = Assert.ThrowsExactly<ArgumentException>(() => DirectoryReadOutcome.Succeeded(unc, DriveKind.Network));
+        _ = Assert.ThrowsExactly<ArgumentException>(() => DirectoryReadOutcome.Succeeded(wsl, DriveKind.Network));
+    }
+
     /// <summary>Proves ordering ignores enumeration order and places directories first.</summary>
     [TestMethod]
     public void CreateWhenEntriesArriveUnorderedOrdersDirectoriesFirstThenNameIgnoringCaseThenOrdinal()
@@ -200,7 +220,7 @@ public sealed class DirectoryListingTests
     {
         DirectoryListing listing = CreateListing(ParsePath("C:\\x"), [], DirectoryListingCompleteness.Complete, 0);
 
-        DirectoryReadOutcome succeeded = DirectoryReadOutcome.Succeeded(listing);
+        DirectoryReadOutcome succeeded = DirectoryReadOutcome.Succeeded(listing, null);
         DirectoryReadOutcome cancelled = DirectoryReadOutcome.Cancelled();
         DirectoryReadOutcome failed = DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound);
 

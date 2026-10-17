@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -6,8 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
@@ -15,6 +18,46 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsLocalDirectoryReaderTests
 {
+    /// <summary>Browsing keeps its listing and reports the current drive fact.</summary>
+    [TestMethod]
+    [DataRow(DriveType.Network)]
+    [DataRow(DriveType.Unknown)]
+    public async Task ReadAsyncWhenDriveIsNetworkOrUnknownReportsObservedKind(
+        DriveType observed)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.WriteFile("visible.txt", "content");
+        int queries = 0;
+        WindowsLocalDirectoryReader reader = new(new(), new WindowsDirectoryEnumerator(),
+            new WindowsDriveBoundary(_ =>
+            {
+                queries++;
+                return observed;
+            }));
+
+        DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
+
+        DirectoryReadSucceeded succeeded = Assert.IsInstanceOfType<DirectoryReadSucceeded>(outcome);
+        Assert.AreSame(observed == DriveType.Network ? DriveKind.Network : DriveKind.Unknown, succeeded.DriveKind);
+        Assert.HasCount(1, succeeded.Listing.Entries);
+        Assert.AreEqual("visible.txt", succeeded.Listing.Entries[0].Name);
+        Assert.AreEqual(1, queries);
+    }
+
+    /// <summary>Drive query failures normalize to provider unavailability.</summary>
+    [TestMethod]
+    public async Task ReadAsyncWhenDriveQueryFailsNormalizesFailure()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalDirectoryReader reader = new(new(), new WindowsDirectoryEnumerator(),
+            new WindowsDriveBoundary(_ => throw new IOException("Drive query unavailable.")));
+
+        DirectoryReadOutcome outcome = await reader.ReadAsync(Request(root.Path, 8), CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<DirectoryReadFailed>(outcome).Failure);
+    }
+
     /// <summary>Proves an empty directory yields a complete empty listing.</summary>
     [TestMethod]
     public async Task ReadAsyncWhenDirectoryIsEmptyReturnsCompleteEmptyListing()

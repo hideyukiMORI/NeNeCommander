@@ -46,7 +46,7 @@ public sealed class PaneSortPersistenceTests
         using Fixture fixture = new(PaneSortPreferences.Create(Order(2), PaneSortOrder.Default));
         fixture.Left.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
         fixture.Left.Enqueue(DirectoryReadOutcome.Cancelled());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left"), null));
 
         _ = await fixture.Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
         _ = await fixture.Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
@@ -68,7 +68,7 @@ public sealed class PaneSortPersistenceTests
         _ = await fixture.HandleAsync(UserIntent.Escape);
         _ = await abandoned;
         first.SetResult(DirectoryReadOutcome.Cancelled());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left"), null));
 
         _ = await fixture.Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
 
@@ -131,7 +131,7 @@ public sealed class PaneSortPersistenceTests
         TaskCompletionSource<DirectoryReadOutcome> read = fixture.Left.EnqueuePending();
         Task<CommanderSnapshot> navigation = fixture.Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
         _ = await fixture.HandleAsync(UserIntent.SortByExtension);
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\left"), null));
         _ = await navigation;
         _ = await fixture.HandleAsync(UserIntent.OpenSettings);
         _ = await fixture.HandleAsync(UserIntent.SortBySize);
@@ -236,8 +236,8 @@ public sealed class PaneSortPersistenceTests
 
         internal async Task ListBothAsync()
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
             _ = await Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
             _ = await Session.NavigateAsync(PaneSide.Right, Path("C:\\right"), CancellationToken.None);
         }

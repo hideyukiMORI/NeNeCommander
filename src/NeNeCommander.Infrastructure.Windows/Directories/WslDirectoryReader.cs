@@ -41,11 +41,11 @@ internal sealed class WslDirectoryReader : IDirectoryReadPort
         ArgumentNullException.ThrowIfNull(request);
         return request.Location is WslPath location
             ? _executionBoundary.ExecuteAsync(
-                () => WindowsDirectoryReadOperation.Read(
-                    request,
+                () => new WindowsDirectoryReadOperation(
                     () => _enumerator.Enumerate(WslWin32PathText.Resolve(location)),
                     ClassifyVisibility,
-                    cancellationToken))
+                    () => null)
+                    .Read(request, cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 

@@ -39,11 +39,11 @@ internal sealed class WindowsUncDirectoryReader : IDirectoryReadPort
         ArgumentNullException.ThrowIfNull(request);
         return request.Location is WindowsUncPath location
             ? _executionBoundary.ExecuteAsync(
-                () => WindowsDirectoryReadOperation.Read(
-                    request,
+                () => new WindowsDirectoryReadOperation(
                     () => _enumerator.Enumerate(location.CanonicalText),
                     WindowsDirectoryReadOperation.ClassifyByAttributes,
-                    cancellationToken))
+                    () => null)
+                    .Read(request, cancellationToken))
             : Task.FromResult(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 }

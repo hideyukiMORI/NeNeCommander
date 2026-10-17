@@ -41,6 +41,10 @@ internal sealed class VerifiedSourceDeletion
         {
             return ProviderStepOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete));
         }
+        catch (WindowsDriveBoundaryRejectedException)
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
         catch (IOException exception)
         {
             return ProviderStepOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete));
@@ -84,6 +88,10 @@ internal sealed class VerifiedSourceDeletion
         catch (UnauthorizedAccessException exception)
         {
             return Failure(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete));
+        }
+        catch (WindowsDriveBoundaryRejectedException)
+        {
+            return Failure(FileOperationFailureKind.ProviderUnavailable);
         }
         catch (IOException exception)
         {

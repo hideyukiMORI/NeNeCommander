@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -13,15 +14,21 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
     private const int CompletedWithoutChildTraversal = 0x00270008;
     private readonly FileEntrySnapshot _source;
     private readonly CancellationToken _cancellationToken;
+    private readonly WindowsDriveBoundary _driveBoundary;
     private int _preCount;
     private int _postCount;
     private bool _admitted;
 
-    internal WindowsRecycleProgress(FileEntrySnapshot source, CancellationToken cancellationToken)
+    internal WindowsRecycleProgress(
+        FileEntrySnapshot source,
+        WindowsDriveBoundary driveBoundary,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(driveBoundary);
         _source = source;
         _cancellationToken = cancellationToken;
+        _driveBoundary = driveBoundary;
     }
 
     internal IWindowsShellEntry? RecycledEntry { get; private set; }
@@ -41,7 +48,7 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
         {
             return Reject(FileOperationFailureKind.Delete);
         }
-        FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(_source);
+        FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(_source, _driveBoundary);
         if (refusal is not null)
         {
             return Reject(refusal);

@@ -36,7 +36,7 @@ public sealed class DualPaneSessionTests
     {
         using Fixture fixture = Fixture.Create();
         DirectoryListing rightListing = Listing("C:\\Users", ("xi", DirectoryEntryKind.Directory));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\Users"), CancellationToken.None);
 
@@ -55,8 +55,8 @@ public sealed class DualPaneSessionTests
     public async Task HandleAsyncWhenActivateOtherPaneTogglesActiveSideWithoutMovingFocus()
     {
         using Fixture fixture = Fixture.Create();
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File))));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("c.txt", DirectoryEntryKind.File), ("d.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File)), null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("c.txt", DirectoryEntryKind.File), ("d.txt", DirectoryEntryKind.File)), null));
         _ = await fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         DualPaneSnapshot before = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
 
@@ -100,11 +100,11 @@ public sealed class DualPaneSessionTests
         DirectoryListing leftNext = Listing("C:\\left-next");
         DirectoryListing rightNext = Listing("C:\\right-next");
         await fixture.ListBothAsync(left, right);
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftNext));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightNext));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftNext, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightNext, null));
         _ = await fixture.Panes.NavigateAsync(PaneSide.Left, leftNext.Location, CancellationToken.None);
         _ = await fixture.Panes.NavigateAsync(PaneSide.Right, rightNext.Location, CancellationToken.None);
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(left));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(left, null));
 
         DualPaneSnapshot leftBack = await fixture.Panes.HandleAsync(
             UserIntent.NavigateBack,
@@ -114,7 +114,7 @@ public sealed class DualPaneSessionTests
             UserIntent.ActivateOtherPane,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(right));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(right, null));
         DualPaneSnapshot rightBack = await fixture.Panes.HandleAsync(
             UserIntent.NavigateBack,
             RecordingDualPaneObserver.Create(),
@@ -204,7 +204,7 @@ public sealed class DualPaneSessionTests
     {
         using Fixture fixture = Fixture.Create();
         DirectoryListing rightListing = Listing("C:\\right", ("c.txt", DirectoryEntryKind.File), ("d.txt", DirectoryEntryKind.File));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         TaskCompletionSource<DirectoryReadOutcome> pendingLeft = fixture.Left.EnqueuePending();
         DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
         _ = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
@@ -212,7 +212,7 @@ public sealed class DualPaneSessionTests
         Task<DualPaneSnapshot> leftNavigation = fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         DualPaneSnapshot switched = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot rightMoved = await fixture.Panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        pendingLeft.SetResult(DirectoryReadOutcome.Succeeded(leftListing));
+        pendingLeft.SetResult(DirectoryReadOutcome.Succeeded(leftListing, null));
         DualPaneSnapshot completed = await leftNavigation;
 
         _ = Assert.IsInstanceOfType<PaneLoading>(switched.Left.Activity);
@@ -238,8 +238,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
         DirectoryListing leftAfter = Listing("C:\\left", ("b.txt", DirectoryEntryKind.File));
         DirectoryListing rightAfter = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter, null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -267,8 +267,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
         fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
         DirectoryListing rightAfter = Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter, null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -341,8 +341,8 @@ public sealed class DualPaneSessionTests
                     repeatedConflict,
                     TransferConflictDecision.Skip)),
                 conflict.ExistingTarget)]));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
             UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.All),
             RecordingDualPaneObserver.Create(),
@@ -374,8 +374,8 @@ public sealed class DualPaneSessionTests
             UserIntent.Copy,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
 
         DualPaneSnapshot cancelledSnapshot = await fixture.Panes.HandleAsync(
             UserIntent.Escape,
@@ -418,8 +418,8 @@ public sealed class DualPaneSessionTests
         await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
         fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot cancelled = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -437,8 +437,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
         fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
         fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File)), null));
 
         DualPaneSnapshot second = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -465,8 +465,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
         fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
         fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File)), null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -502,8 +502,8 @@ public sealed class DualPaneSessionTests
             fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
             fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
         }
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
@@ -566,8 +566,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueueInspection(Inspection(leftListing.Location));
         fixture.Port.EnqueueDirectoryCreation(ProviderStepOutcome.Succeeded());
         DirectoryListing leftAfter = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("new", DirectoryEntryKind.Directory));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.SubmitName("new"), observer, CancellationToken.None);
@@ -608,8 +608,8 @@ public sealed class DualPaneSessionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(Inspection(leftListing.Location));
         fixture.Port.EnqueueDirectoryCreation(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot refused = await fixture.Panes.HandleAsync(UserIntent.SubmitName("a.txt"), RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -674,8 +674,8 @@ public sealed class DualPaneSessionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
         fixture.Port.EnqueueRename(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("b.txt", DirectoryEntryKind.File))));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("b.txt", DirectoryEntryKind.File)), null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.SubmitName("b.txt"), observer, CancellationToken.None);
@@ -705,8 +705,8 @@ public sealed class DualPaneSessionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
         fixture.Port.EnqueueRename(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("A.TXT", DirectoryEntryKind.File))));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("A.TXT", DirectoryEntryKind.File)), null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.SubmitName("A.TXT"), RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -738,8 +738,8 @@ public sealed class DualPaneSessionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
         fixture.Port.EnqueueRename(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot refused = await fixture.Panes.HandleAsync(UserIntent.SubmitName("taken.txt"), RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -806,8 +806,8 @@ public sealed class DualPaneSessionTests
             fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
         }
         DirectoryListing leftAfter = Listing("C:\\left", ("c.txt", DirectoryEntryKind.File));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File)), null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -824,11 +824,11 @@ public sealed class DualPaneSessionTests
     public async Task HandleAsyncWhenMoveHasNoDestinationOrNoSourceDoesNothing()
     {
         using Fixture fixture = Fixture.Create();
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("a.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", ("a.txt", DirectoryEntryKind.File)), null));
         DualPaneSnapshot leftOnly = await fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
 
         DualPaneSnapshot noDestination = await fixture.Panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         _ = await fixture.Panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
         _ = await fixture.Panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot noSource = await fixture.Panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -863,8 +863,8 @@ public sealed class DualPaneSessionTests
         DirectoryListing leftListing = Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
         await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
         fixture.Port.EnqueueInspection(FileInspectionOutcome.Failed(FileOperationFailureKind.AccessDenied));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot snapshot = await fixture.Panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
@@ -921,8 +921,8 @@ public sealed class DualPaneSessionTests
         DualPaneSnapshot frozenHiddenToggle = await panes.HandleAsync(UserIntent.ToggleHiddenItems, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenActivation = await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot frozenNavigation = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\other"), CancellationToken.None);
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File))));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", ("a.txt", DirectoryEntryKind.File)), null));
         blocking.Release();
         DualPaneSnapshot completed = await move;
 
@@ -979,8 +979,8 @@ public sealed class DualPaneSessionTests
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
         fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
         DirectoryListing leftAfter = Listing("C:\\left", ("b.txt", DirectoryEntryKind.File));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         DualPaneSnapshot confirmed = await fixture.Panes.HandleAsync(UserIntent.Confirm, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<OperationAwaitingConfirmation>(frozenMove.Operation);
@@ -1007,8 +1007,8 @@ public sealed class DualPaneSessionTests
         await fixture.ListBothAsync(leftListing, Listing("C:\\right"));
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path, DeletionCapability.Recycle));
         fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left")));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left"), null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
 
         DualPaneSnapshot recycled = await fixture.Panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DualPaneSnapshot nothingFocused = await fixture.Panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -1079,7 +1079,7 @@ public sealed class DualPaneSessionTests
         Task<DualPaneSnapshot> leftNavigation = fixture.Panes.NavigateAsync(PaneSide.Left, ParsePath("C:\\left-target"), CancellationToken.None);
         fixture.Port.EnqueueInspection(Inspection(leftListing.Entries[0].Path));
         fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right")));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right"), null));
         running = fixture;
 
         DualPaneSnapshot cancelled = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -1089,7 +1089,7 @@ public sealed class DualPaneSessionTests
             Assert.IsInstanceOfType<OperationCompleted>(cancelled.Operation).Outcome.Completion);
         _ = Assert.IsInstanceOfType<PaneLoading>(cancelled.Left.Activity);
         Assert.IsFalse(fixture.Left.Tokens[1].IsCancellationRequested);
-        leftRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\left-target")));
+        leftRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\left-target"), null));
         DualPaneSnapshot completed = await leftNavigation;
         Assert.AreEqual("C:\\left-target", Assert.IsInstanceOfType<PaneContentListed>(completed.Left.Content).Listing.Location.CanonicalText);
     }
@@ -1233,8 +1233,8 @@ public sealed class DualPaneSessionTests
 
         internal async Task ListBothAsync(DirectoryListing leftListing, DirectoryListing rightListing)
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
             _ = await Panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
             _ = await Panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         }

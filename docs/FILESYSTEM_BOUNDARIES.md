@@ -16,6 +16,15 @@ Filesystem behavior is selected from a parsed provider boundary and an explicit 
 
 `FileSystemPath.Parent` is the only way to derive the containing location. Each variant derives it from its own root and segments without re-parsing, preserves provider identity rules, and returns absence at the drive, share, or distribution root.
 
+A drive-rooted `WindowsLocalPath` is syntax, not proof of local storage. ADR-0072 requires the
+Infrastructure `WindowsDriveBoundary` to query current OS drive facts inside the existing I/O
+worker. Network, unknown, missing-root and unrecognized types are refused for local identity and
+mutation. Known local types still need every existing operation capability, identity and containment
+check. No cached Locations row, drive-letter equality or implicit UNC conversion grants admission.
+The same boundary is used by local operations, cross-provider transfers, verified tree access and
+settings. It repeats the observation at existing effect and cleanup revalidations; a remap after the
+last query but before a path reopen remains a declared residual race, not a stable mapping guarantee.
+
 ### FS-001 — Normalize without changing identity
 
 - Status: **active**
@@ -35,6 +44,12 @@ For operation snapshots, a Windows local entry uses the operating system's volum
 - Enforcement: provider contract tests.
 
 Recycle support, atomic move, replace behavior, case sensitivity, link support, timestamp precision, free-space reporting, and permission behavior are capabilities returned by the provider adapter. They are not fixed assumptions derived from a broad provider label.
+
+Mapped network drives retain bounded directory reads and the existing Shell file handoff, but
+local file inspection and mutation return `ProviderUnavailable` under ADR-0072. Network permanent
+deletion is not enabled merely because recycle is unavailable; it needs a separate accepted network
+identity and capability contract. Existing Fixed-only recycle and Fixed/Removable WSL destination
+requirements remain stricter than the general local drive observation.
 
 Windows recycle capability (ADR-0063) requires an existing non-root entry on a fixed drive, non-link ancestors and source tree, Shell filesystem/delete attributes, and an available volume recycle namespace. This admits a recycle-only attempt; it does not promise unchanged quota or permissions. Removable and network drives are not admitted by this capability.
 
@@ -84,6 +99,11 @@ Collision decisions are `Replace`, `Skip`, `KeepBoth`, or `Cancel`, restricted b
 
 Temporary, test, and staged-operation roots are resolved before mutation. Every target is checked against the same provider-aware root. String-prefix containment is prohibited. A failed or ambiguous containment check stops the operation.
 
+The settings store also requires current local-drive admission while capturing and matching its
+approved location (ADR-0072). A network or unknown drive is an unsafe settings location; a later
+observed remap blocks publication and cleanup through the same existing revalidation path, leaving
+unconfirmed residue explicit rather than deleting through a changed mapping.
+
 The settings document is accepted only as a `WindowsLocalPath`. Its store runs reads and writes through the existing Windows local I/O scheduler, walks from the document parent to the drive root with the existing Win32 volume/file identifier, rejects every reparse-point or non-directory ancestor it observes, and rejects the document itself when it is a reparse entry. It revalidates the captured chain before directory or sibling-temporary creation, before publishing, after publishing, and before cleanup. Only startup capture and a verified chain after owned directory creation may establish the ancestor baseline; later checks must match it. A rejected result reports directory creation as not attempted, observed, or unconfirmed separately from temporary residue. A detected identity or exact temporary-byte change stops the write. `Directory.CreateDirectory`, temporary `CreateNew`, `Move`, `File.Replace`, and cleanup `File.Delete` remain path-based BCL operations with a final reopen race after the preceding check; ADR-0040 does not claim handle-relative traversal or reject ordinary hard links as reparse traversal.
 
 ### FS-009 — Metadata preservation is truthful
@@ -108,6 +128,11 @@ Disconnected shares, stopped WSL distributions, removed drives, permission chang
 A read returns the direct entries of one validated location through `IDirectoryReadPort` and never recurses or follows links. One Infrastructure.Windows provider router delegates validated `WindowsLocalPath`, `WindowsUncPath`, and `WslPath` requests to their adapters; all three use one shared direct-enumeration operation and the existing I/O execution boundary (ADR-0057). UNC reads and bounded file activation (ADR-0065) are supported; UNC mutation, entry identity, recycle, and share enumeration in the Locations picker remain `ProviderUnavailable`. A UNC read authenticates with the current Windows logon session, never retries or falls back to another provider, and reports logon or credential-conflict failures as `AccessDenied` and unreachable, timed-out, or dropped network sessions as `ProviderUnavailable`. The first enumeration call on an unreachable host blocks until the operating system's SMB timeout; cancellation is observed only before enumeration and between entries. The adapter stops at the request's entry boundary and reports a bounded listing, observes cancellation before enumeration and before each entry, and reports denied, missing, or non-directory locations as typed failures instead of an empty listing. Windows hidden/system attributes and WSL dot-prefixed names are reported as provider facts; all entries remain in the listing and visibility is a later pane transition. Every name is derived with `FileSystemPath.Child`; a rejected name is counted as unrepresentable, not shown and not silently dropped. Ordering is decided by `DirectoryListing`, never by provider enumeration order.
 
 UNC file activation uses the existing Windows Shell handoff under ADR-0065. It requires a non-root typed path shorter than 260 canonical UTF-16 code units, preserves the server/share/path and parent exactly, and adds no credential collection, drive mapping, retry or fallback. Windows authenticates with the current logon session; Shell/application UI and network blocking remain OS behavior. Cancellation cannot undo a started handoff. No SMB entry identity or mutation capability is implied.
+
+A drive-rooted read carries its current OS-reported `DriveKind` with the successful read result
+(ADR-0072). The pane retains that optional fact with its listing and replaces it on the next
+successful read. The network indication coexists with completeness, omission and activity status;
+it is display evidence and never a mutation capability. UNC and WSL reads report no drive kind.
 
 WSL file activation uses the separate ADR-0064 association contract: the existing `IFileLauncher` hands the original canonical WSL path to the Windows Shell only when every segment satisfies the canonical Windows-name rules and the namespace text is shorter than 260 characters. Roots, unsupported names and excessive lengths are refused without scheduling, translation or fallback. This ordinary Shell representation does not alter ADR-0060 extended-length filesystem reads/mutations. Linux application dispatch is not implemented.
 

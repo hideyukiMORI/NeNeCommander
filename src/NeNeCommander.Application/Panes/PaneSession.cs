@@ -178,7 +178,7 @@ public sealed class PaneSession
         PaneState next = PaneReducer.Apply(listed.State, intent);
         if (!ReferenceEquals(next, listed.State))
         {
-            Current = PaneSnapshot.IdleWith(new PaneContentListed(next, listed.Listing));
+            Current = PaneSnapshot.IdleWith(new PaneContentListed(next, listed.Listing, listed.DriveKind));
         }
         return Task.FromResult(Current);
     }
@@ -315,7 +315,7 @@ public sealed class PaneSession
             previousState?.SortOrder ?? _initialSortOrder,
             preferredFocus);
         PaneState committed = PaneReducer.CommitNavigation(previousState, ordered, action);
-        return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing));
+        return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing, succeeded.DriveKind));
     }
 
     /// <summary>

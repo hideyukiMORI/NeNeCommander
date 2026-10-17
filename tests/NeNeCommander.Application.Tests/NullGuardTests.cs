@@ -120,7 +120,7 @@ public sealed class NullGuardTests
         AssertStaticNullGuard(typeof(DirectoryListing), nameof(DirectoryListing.Create),
             [path, new[] { entry }, null, 0]);
         AssertStaticNullGuard(typeof(DirectoryReadRequest), nameof(DirectoryReadRequest.Create), [null, 1]);
-        AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null]);
+        AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Succeeded), [null, null]);
         AssertStaticNullGuard(typeof(DirectoryReadOutcome), nameof(DirectoryReadOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(FileLaunchOutcome), nameof(FileLaunchOutcome.Failed), [null]);
         AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.Navigate),
@@ -590,8 +590,8 @@ public sealed class NullGuardTests
             DirectoryListing.Create(path, [], DirectoryListingCompleteness.Complete, 0)).Listing;
         PaneState state = PaneReducer.Navigate(listing, capacity, null, HiddenItemVisibility.Hidden);
 
-        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [null, listing]);
-        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [state, null]);
+        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [null, listing, null]);
+        AssertInternalConstructorNullGuard(typeof(PaneContentListed), [state, null, null]);
         AssertInternalConstructorNullGuard(typeof(PaneLoading), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadCancelled), [null]);
         AssertInternalConstructorNullGuard(typeof(PaneReadAbandoned), [null]);

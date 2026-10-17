@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -14,6 +15,28 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsLocalFileOperationAdapterTests
 {
+    /// <summary>A mapped or unidentified drive cannot produce a local file identity.</summary>
+    [TestMethod]
+    [DataRow(DriveType.Network)]
+    [DataRow(DriveType.Unknown)]
+    [DataRow(DriveType.NoRootDirectory)]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public async Task InspectAsyncWhenDriveIsNotLocalRejectsBeforeIdentity(DriveType observed)
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        WindowsLocalPath path = (WindowsLocalPath)ParsePath(root.WriteFile("a.txt", "abc"));
+        WindowsDriveBoundary drives = new(_ => observed);
+        WindowsLocalFileOperationAdapter adapter = new(new(),
+            new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }),
+            new WindowsWslFileSystem(), drives);
+
+        FileInspectionOutcome outcome = await adapter.InspectAsync(path, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<FileInspectionFailed>(outcome).Failure);
+    }
+
     /// <summary>Proves inspection reports a stable identity and permanent-only deletion for a file.</summary>
     [TestMethod]
     public async Task InspectAsyncWhenEntryIsFileReportsStableIdentityAndPermanentOnly()
@@ -756,7 +779,8 @@ public sealed class WindowsLocalFileOperationAdapterTests
         string target = root.WriteFile("b.txt", "keep");
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
-            source, ParsePath(target), path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            source, ParsePath(target), new WindowsTreeCopyAccess(path => path.CanonicalText,
+                WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
         Assert.IsNull(outcome.Effect);
 

@@ -76,8 +76,8 @@ public sealed class PaneRowAutomationTests
     {
         DirectoryListing listing = CreateListing("C:\\root", ["a.zip", "b.txt"]);
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\root", ["b.txt", "a.zip"])));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\root", ["b.txt", "a.zip"]), null));
         PaneSession session = CreateSession(port);
         PanePresentation initial = Present(await session.NavigateAsync(listing.Location, CancellationToken.None));
         PaneRow original = RowNamed(initial, "a.zip");
@@ -108,7 +108,7 @@ public sealed class PaneRowAutomationTests
     private static PaneSession CreateSession(DirectoryListing listing)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         return CreateSession(port);
     }
 

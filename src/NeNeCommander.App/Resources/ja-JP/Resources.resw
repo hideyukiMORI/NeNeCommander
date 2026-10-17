@@ -30,6 +30,7 @@
   <data name="PaneSortSizeDescending" xml:space="preserve"><value>サイズ ↓</value></data>
   <data name="PaneSortModifiedAscending" xml:space="preserve"><value>更新 ↑</value></data>
   <data name="PaneSortModifiedDescending" xml:space="preserve"><value>更新 ↓</value></data>
+  <data name="PaneLocationNetworkDrive" xml:space="preserve"><value>ネットワークドライブ</value></data>
   <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
   <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
   <data name="OperationStatusMoving" xml:space="preserve"><value>移動しています…</value></data>

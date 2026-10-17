@@ -250,7 +250,7 @@ public sealed class CommandPalettePresenterTests
     public async Task SelectionWhenMovedClampsAndQueryResetsToFirstAsync()
     {
         CommandPaletteViewState view = CommandPalettePresenter.Present(
-            await OpenPaletteAsync(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "other.txt"))),
+            await OpenPaletteAsync(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "other.txt"), null)),
             Localize);
 
         view.MovePrevious();
@@ -404,7 +404,7 @@ public sealed class CommandPalettePresenterTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         if (passiveListing is not null)
         {
             right.Enqueue(passiveListing);

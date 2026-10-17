@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -9,8 +11,12 @@ internal static class WindowsLocalTransferDestination
 {
     internal static FileOperationFailureKind? Failure(WindowsLocalPath destination)
     {
-        DriveType driveType = new DriveInfo(destination.Drive).DriveType;
-        if (driveType is not DriveType.Fixed and not DriveType.Removable)
+        return Failure(destination, new WindowsDriveBoundary());
+    }
+
+    internal static FileOperationFailureKind? Failure(WindowsLocalPath destination, WindowsDriveBoundary driveBoundary)
+    {
+        if (!AdmitsDrive(destination, driveBoundary))
         {
             return FileOperationFailureKind.ProviderUnavailable;
         }
@@ -29,6 +35,22 @@ internal static class WindowsLocalTransferDestination
             current = location.Parent;
         }
         return null;
+    }
+
+    internal static bool AdmitsDrive(WindowsLocalPath destination, WindowsDriveBoundary driveBoundary)
+    {
+        try
+        {
+            return driveBoundary.ReadType(destination) is DriveType.Fixed or DriveType.Removable;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     internal static bool Exists(WindowsLocalPath target)

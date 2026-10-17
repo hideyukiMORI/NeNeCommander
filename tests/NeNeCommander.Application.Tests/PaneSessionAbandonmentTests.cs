@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Launching;
@@ -21,8 +22,8 @@ public sealed class PaneSessionAbandonmentTests
     public async Task HandleAsyncWhenEscapeArrivesDuringReadKeepsPreviousContent()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\first", "x.txt")));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\first", "x.txt"), null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt"), DriveKind.Network));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\first"), CancellationToken.None);
@@ -38,6 +39,7 @@ public sealed class PaneSessionAbandonmentTests
         Assert.AreSame(before.Content, abandoned.Content);
         PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(abandoned.Content);
         Assert.AreEqual("C:\\root", listed.Listing.Location.CanonicalText);
+        Assert.AreSame(DriveKind.Network, listed.DriveKind);
         Assert.AreSame(listed.Listing.Entries[1].Path, listed.State.FocusItem);
         Assert.HasCount(1, listed.State.Selection);
         Assert.AreEqual("C:\\first", listed.State.NavigationHistory.BackTarget?.CanonicalText);
@@ -110,7 +112,7 @@ public sealed class PaneSessionAbandonmentTests
     public async Task NavigateAsyncWhenAbandonedReadReturnsLateDiscardsResult(string outcome)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -118,7 +120,7 @@ public sealed class PaneSessionAbandonmentTests
         PaneSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
 
         pending.SetResult(outcome == "succeeded"
-            ? DirectoryReadOutcome.Succeeded(Listing("C:\\late", "late.txt"))
+            ? DirectoryReadOutcome.Succeeded(Listing("C:\\late", "late.txt"), null)
             : outcome == "failed"
                 ? DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
                 : DirectoryReadOutcome.Cancelled());
@@ -133,10 +135,10 @@ public sealed class PaneSessionAbandonmentTests
     public async Task HandleAsyncWhenReadWasAbandonedAcceptsIntentsAgain()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt", "c.txt")));
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\next", "n.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt", "b.txt", "c.txt"), null));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\next", "n.txt"), null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
         Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
@@ -145,7 +147,7 @@ public sealed class PaneSessionAbandonmentTests
         PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
         PaneSnapshot refreshed = await session.HandleAsync(UserIntent.Refresh, CancellationToken.None);
         PaneSnapshot navigated = await session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None);
-        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "u.txt")));
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "u.txt"), null));
         PaneSnapshot afterLateResult = await navigation;
 
         Assert.AreSame(PaneActivity.Idle, moved.Activity);
@@ -170,7 +172,7 @@ public sealed class PaneSessionAbandonmentTests
     public async Task HandleAsyncWhenReadIsInFlightFreezesEveryIntentButEscape(string intentName)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -191,7 +193,7 @@ public sealed class PaneSessionAbandonmentTests
     public async Task HandleAsyncWhenEscapeArrivesDuringLaunchStaysFrozen()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt"), null));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> launch = launcher.EnqueuePending();
         PaneSession session = CreateSession(port, launcher);
@@ -219,7 +221,7 @@ public sealed class PaneSessionAbandonmentTests
         PaneSession session = CreateSession(port);
         Task<PaneSnapshot> firstNavigation = session.NavigateAsync(ParsePath("C:\\first"), CancellationToken.None);
         Task<PaneSnapshot> secondNavigation = session.NavigateAsync(ParsePath("C:\\second"), CancellationToken.None);
-        first.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\first", "f.txt")));
+        first.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\first", "f.txt"), null));
         _ = await firstNavigation;
 
         PaneSnapshot abandoned = await session.HandleAsync(UserIntent.Escape, CancellationToken.None);
@@ -274,7 +276,7 @@ public sealed class PaneSessionAbandonmentTests
     public async Task EntryPointWhenAbandonedReadFaultedRethrowsOrphanedFaultOnce(string entryPoint)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePendingInline();
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -308,7 +310,7 @@ public sealed class PaneSessionAbandonmentTests
 
         if (completion == "succeeded")
         {
-            pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "u.txt")));
+            pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "u.txt"), null));
         }
         else
         {
@@ -336,7 +338,7 @@ public sealed class PaneSessionAbandonmentTests
         }
         WaitHandle beforeCompletion = port.Tokens[0].WaitHandle;
 
-        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt")));
+        pending.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\root", "a.txt"), null));
         _ = await navigation;
 
         Assert.IsNotNull(beforeCompletion);
