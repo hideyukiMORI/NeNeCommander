@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Directories;
 
@@ -22,34 +23,75 @@ public sealed class WindowsDirectoryReadOperationTests
         cancellation.Cancel();
         int invocationCount = 0;
 
-        DirectoryReadOutcome outcome = WindowsDirectoryReadOperation.Read(
-            Request(),
+        DirectoryReadOutcome outcome = new WindowsDirectoryReadOperation(
             () =>
             {
                 invocationCount++;
                 throw new IOException("The cancelled provider must remain untouched.");
             },
             WindowsDirectoryReadOperation.ClassifyByAttributes,
-            cancellation.Token);
+            () => null).Read(Request(), cancellation.Token);
 
         _ = Assert.IsInstanceOfType<DirectoryReadCancelled>(outcome);
         Assert.AreEqual(0, invocationCount);
+    }
+
+    /// <summary>A cancelled drive observation never begins directory enumeration.</summary>
+    [TestMethod]
+    public void ReadWhenCancelledDuringDriveObservationSkipsEnumeration()
+    {
+        using CancellationTokenSource cancellation = new();
+        int enumerations = 0;
+        WindowsDirectoryReadOperation operation = new(
+            () =>
+            {
+                enumerations++;
+                return [];
+            },
+            WindowsDirectoryReadOperation.ClassifyByAttributes,
+            () =>
+            {
+                cancellation.Cancel();
+                return DriveKind.Network;
+            });
+
+        DirectoryReadOutcome outcome = operation.Read(Request(), cancellation.Token);
+
+        _ = Assert.IsInstanceOfType<DirectoryReadCancelled>(outcome);
+        Assert.AreEqual(0, enumerations);
+    }
+
+    /// <summary>An empty enumeration that cancels still returns cancellation.</summary>
+    [TestMethod]
+    public void ReadWhenEmptyEnumerationCancelsReturnsCancelled()
+    {
+        using CancellationTokenSource cancellation = new();
+        WindowsDirectoryReadOperation operation = new(
+            () =>
+            {
+                cancellation.Cancel();
+                return [];
+            },
+            WindowsDirectoryReadOperation.ClassifyByAttributes,
+            () => null);
+
+        DirectoryReadOutcome outcome = operation.Read(Request(), cancellation.Token);
+
+        _ = Assert.IsInstanceOfType<DirectoryReadCancelled>(outcome);
     }
 
     /// <summary>Proves a provider that throws while creating its enumerable is normalized.</summary>
     [TestMethod]
     public void ReadWhenProviderCallbackThrowsNormalizesFailure()
     {
-        DirectoryReadOutcome denied = WindowsDirectoryReadOperation.Read(
-            Request(),
+        DirectoryReadOutcome denied = new WindowsDirectoryReadOperation(
             () => throw new UnauthorizedAccessException(),
             WindowsDirectoryReadOperation.ClassifyByAttributes,
-            CancellationToken.None);
-        DirectoryReadOutcome missing = WindowsDirectoryReadOperation.Read(
-            Request(),
+            () => null).Read(Request(), CancellationToken.None);
+        DirectoryReadOutcome missing = new WindowsDirectoryReadOperation(
             () => throw new DirectoryNotFoundException(),
             WindowsDirectoryReadOperation.ClassifyByAttributes,
-            CancellationToken.None);
+            () => null).Read(Request(), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.AccessDenied, Assert.IsInstanceOfType<DirectoryReadFailed>(denied).Failure);
         Assert.AreSame(FileOperationFailureKind.NotFound, Assert.IsInstanceOfType<DirectoryReadFailed>(missing).Failure);
@@ -59,16 +101,14 @@ public sealed class WindowsDirectoryReadOperationTests
     [TestMethod]
     public void ReadWhenIteratorThrowsAfterEntryNormalizesFailureWithoutPartialListing()
     {
-        DirectoryReadOutcome denied = WindowsDirectoryReadOperation.Read(
-            Request(),
+        DirectoryReadOutcome denied = new WindowsDirectoryReadOperation(
             () => EntriesThenFailure(new UnauthorizedAccessException()),
             WindowsDirectoryReadOperation.ClassifyByAttributes,
-            CancellationToken.None);
-        DirectoryReadOutcome unavailable = WindowsDirectoryReadOperation.Read(
-            Request(),
+            () => null).Read(Request(), CancellationToken.None);
+        DirectoryReadOutcome unavailable = new WindowsDirectoryReadOperation(
             () => EntriesThenFailure(new IOException("Synthetic provider loss.")),
             WindowsDirectoryReadOperation.ClassifyByAttributes,
-            CancellationToken.None);
+            () => null).Read(Request(), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.AccessDenied, Assert.IsInstanceOfType<DirectoryReadFailed>(denied).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, Assert.IsInstanceOfType<DirectoryReadFailed>(unavailable).Failure);

@@ -1,0 +1,63 @@
+# 引き継ぎ 2026年10月17日 ネットワーク割当てドライブ
+
+Status: informational
+
+正本は[PROJECT_STATE](../PROJECT_STATE.md)、
+[ADR-0072](../adr/0072-mapped-network-drive-boundary.md)、
+[日報](../reports/2026-10-17-mapped-network-drive-daily-report.md)。
+[Issue #181](https://github.com/hideyukiMORI/NeNeCommander/issues/181)を
+main `a6113c427b98eeddce94efa2f4aefc215b6bfd04`から再開した。
+先行#251・#269・#271の統合と整理は完了済み。同じ削除依頼を再送しない。
+
+## 維持する契約
+
+- ドライブ文字をlocal capabilityと同一視しない。`WindowsDriveBoundary`を共通のOS事実境界とする。
+  Network・Unknown・NoRootDirectory・未知の値と取得失敗は閉じる。既存の個別capabilityは緩めない。
+- direct local adapter、source/destination、再帰child、verified source削除、recycleのcallbackでも再検査する。
+  正規化前のraw traversal例外はverification/deletion ownerが捕捉し、既存の型付き拒否とpartial effectへ戻す。
+- settingsの公開・cleanupも同じdrive境界を使う。危険なcleanupは残置結果にし、別の場所を削除しない。
+  既存のdocument変更理由、schema、candidate tokenと所有権の意味を維持する。
+- read結果の`DriveKind`は一覧に伴う観測事実。paneのstate変更や失敗で取り違えず、新しい成功readで置き換える。
+  statusの警告・活動・sort表示を残したままnetwork表示を結合する。表示をmutation許可に使わない。
+- 最後のqueryからpath reopenまでの競合、OS一括効果の内部再帰は残余。mapping固定やhandle-relative実装はない。
+  UNC/network変更操作は未対応のまま。恒久削除の確認だけではidentity/capabilityの証明にならない。
+
+## 証拠と残り作業
+
+`D:/NeNeCommander/evidence/issue-181/`に有効REDのsource/patch/SHA/argv/raw logを保持する。
+local inspection 3件、pane表示2件、settings6件を修正前に再現した。
+non-behavioral seamを含む再現なので、未変更mainの直接実行と記述しない。
+compile・restore・0件filterの失敗はREDや成功件数に含めない。
+
+現時点の成功はPresentation 67件、Application 131件、settings新規6件と既存80件。
+settingsの17件filter runは設定以外の重複も含むため、17件を新規settings件数として加算しない。
+Applicationの旧constructor反射テストとsettingsの既存失敗理由の順序は修正済み。
+操作matrixのfocused 19、関連境界142、最後のcross/reader 4、最終reader/capability 99、
+destination 13のfilterも成功。重複とsource時点があるため合計せず、
+`infra/final/proof.json`の再利用・上書き対応を読む。
+read観測中取消と、既存main由来の空列挙後取消は別々のREDを保存して修正済み。
+最終App Release buildは警告・エラー0。変更C# formatは成功済みの各owner分に加え、
+未確認10 fileとAppの1 fileをrootが補完し、全変更分を確認した。conformance 112規約成功。
+独立読み取り専用レビューは未解決の具体的P1/P2なし。`review/README.md`を参照。
+settings最終sourceの実行前hashは未採取であり、成功後に採取した現行hashと混同しない。
+
+最初のcommit hookのSEC-014指摘2件は、既定`ReadWslFacts`参照をWSL owner内へ戻して修正した。
+規則は不変。修正後のInfrastructure.Tests buildは警告・エラー0、対象8件・security-check・
+変更5 fileのformatが成功し、独立再レビューに追加P1/P2なし。formatのworkspace-load警告は保持する。
+App buildはこの内部構成修正前で、candidate全体はdeep reviewが確認する。
+`root/commit.log`と`infra/final/proof.json.sec014Followup`を参照。
+
+安定candidateで全共有境界を対象とした一回のsecurity deep reviewを明示起動する予定。
+canonical/coverage/adversarial/mutation/CodeQLを含むためqualityを別に重ねない。
+CI成功・main統合・技術受理はまだ主張しない。
+成功証拠は関連入力が不変なら工程変更やpush/mergeだけを理由に繰り返さない。
+live share/mapping/removableと#94手動release確認は別tierで未実行。
+P4 Issues #244–#248は今回に混ぜず、記録のみのまま維持する。
+
+## 作業場所と整理
+
+branch `fix/181-mapped-network-boundary`、worktree `D:/NeNeCommander/worktrees/issue-181`、
+一時出力 `D:/NeNeCommander/outputs/issue-181` は未完作業のため保持中。
+恒久証拠は `D:/NeNeCommander/evidence/issue-181`、SDKは共有tool領域に保持する。
+完了後はmain取込と成果物・未保存状態・稼働参照・linkを確認して作業copyと不要出力を整理する。
+現在、新しい後片付けの承認拒否や実行依頼はない。

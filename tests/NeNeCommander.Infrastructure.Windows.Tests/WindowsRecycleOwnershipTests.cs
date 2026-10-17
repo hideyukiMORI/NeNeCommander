@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -50,7 +51,8 @@ public sealed class WindowsRecycleOwnershipTests
             using WindowsShellEntry entry = (WindowsShellEntry)shell.OpenEntry(WindowsRecycleBinTests.Path(source.Path.CanonicalText));
             using WindowsShellOperation operation = (WindowsShellOperation)shell.OpenOperation();
             operation.Dispose();
-            _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.DeleteItem(entry, new WindowsRecycleProgress(source, CancellationToken.None)));
+            _ = Assert.ThrowsExactly<ObjectDisposedException>(() => operation.DeleteItem(entry,
+                new WindowsRecycleProgress(source, new WindowsDriveBoundary(), CancellationToken.None)));
             return 0;
         });
     }
@@ -63,7 +65,7 @@ public sealed class WindowsRecycleOwnershipTests
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
         _ = await new WindowsShellIoScheduler().ScheduleAsync(() =>
         {
-            WindowsRecycleProgress policy = new(source, CancellationToken.None);
+            WindowsRecycleProgress policy = new(source, new WindowsDriveBoundary(), CancellationToken.None);
             using NativeWindowsRecycleProgress callback = new(policy);
             INativeWindowsShellEntry before = OpenNative(source.Path.CanonicalText);
             Assert.AreEqual(0, callback.PreDeleteItem(0x80, before));
@@ -85,7 +87,7 @@ public sealed class WindowsRecycleOwnershipTests
         string receiptPath = root.WriteFile("receipt", "owned callback fixture");
         _ = await new WindowsShellIoScheduler().ScheduleAsync(() =>
         {
-            WindowsRecycleProgress policy = new(source, CancellationToken.None);
+            WindowsRecycleProgress policy = new(source, new WindowsDriveBoundary(), CancellationToken.None);
             using NativeWindowsRecycleProgress callback = new(policy);
             Assert.AreEqual(0, callback.PreDeleteItem(0x80, OpenNative(source.Path.CanonicalText)));
             INativeWindowsShellEntry first = OpenNative(receiptPath);

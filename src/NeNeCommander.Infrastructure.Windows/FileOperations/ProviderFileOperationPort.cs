@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -22,18 +23,26 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
 
     /// <summary>Initializes the provider router over the shared Windows I/O execution boundary.</summary>
     public ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(executionBoundary, new WindowsWslFileSystem())
+        : this(executionBoundary, new WindowsDriveBoundary())
     {
     }
 
     private ProviderFileOperationPort(
         WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsWslFileSystem wslFileSystem)
+        WindowsDriveBoundary driveBoundary)
+        : this(executionBoundary, new WindowsWslFileSystem(driveBoundary), driveBoundary)
+    {
+    }
+
+    private ProviderFileOperationPort(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsWslFileSystem wslFileSystem,
+        WindowsDriveBoundary driveBoundary)
         : this(
-            new WindowsLocalFileOperationAdapter(executionBoundary, wslFileSystem),
+            new WindowsLocalFileOperationAdapter(executionBoundary, wslFileSystem, driveBoundary),
             new WslFileOperationAdapter(executionBoundary, wslFileSystem),
-            new WindowsToWslTransfer(executionBoundary, wslFileSystem),
-            new WslToWindowsTransfer(executionBoundary, wslFileSystem))
+            new WindowsToWslTransfer(executionBoundary, wslFileSystem, driveBoundary),
+            new WslToWindowsTransfer(executionBoundary, wslFileSystem, driveBoundary))
     {
     }
 

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -23,15 +24,26 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
 {
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly IWslFileSystem _destination;
+    private readonly WindowsDriveBoundary _driveBoundary;
 
     internal WindowsToWslTransfer(
         WindowsLocalIoExecutionBoundary executionBoundary,
         IWslFileSystem destination)
+        : this(executionBoundary, destination, new WindowsDriveBoundary())
+    {
+    }
+
+    internal WindowsToWslTransfer(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        IWslFileSystem destination,
+        WindowsDriveBoundary driveBoundary)
     {
         ArgumentNullException.ThrowIfNull(executionBoundary);
         ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(driveBoundary);
         _executionBoundary = executionBoundary;
         _destination = destination;
+        _driveBoundary = driveBoundary;
     }
 
     public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
@@ -65,7 +77,10 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
+        return _executionBoundary.ExecuteAsync(() => source.Path is WindowsLocalPath local &&
+            _driveBoundary.AdmitsLocal(local) && destination is WslPath
+                ? AtomicMoveCapabilityOutcome.Unsupported
+                : AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
     public Task<ProviderStepOutcome> MoveAsync(
@@ -150,7 +165,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         List<TransferPlanEntry> plan = [];
         foreach (FileEntrySnapshot source in sources)
         {
-            RevalidationOutcome revalidation = WindowsLocalFileOperationAdapter.RevalidateTransferSource(source);
+            RevalidationOutcome revalidation = WindowsLocalFileOperationAdapter.RevalidateTransferSource(source, _driveBoundary);
             if (revalidation is EntryRejected rejected)
             {
                 return TransferPreflightOutcome.Rejected(rejected.Failure);
@@ -174,14 +189,15 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         return destination is not WslPath wslDestination
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(
-                source,
+                source, _driveBoundary,
                 entry => CopyEntry(entry, wslDestination));
     }
 
     private ProviderStepOutcome CopyEntry(FileSystemInfo source, WslPath destination)
     {
         if (!WslFileOperationAdapter.IsUsableDestination(_destination, destination) ||
-            WindowsLocalTreeCopy.ContainsReparsePoint(source) ||
+            WindowsLocalTreeCopy.ContainsReparsePoint(source,
+                entry => WindowsLocalTreeCopy.InspectLocalSource(entry, _driveBoundary)) ||
             WslFileOperationAdapter.BuildTarget(source.Name, destination) is not WslPath target)
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
@@ -193,7 +209,9 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
 
         try
         {
-            return _destination.CopyFromWindowsLocal(source, target);
+            return WindowsLocalTreeCopy.InspectLocalSource(source, _driveBoundary)
+                ? _destination.CopyFromWindowsLocal(source, target)
+                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -217,21 +235,41 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         {
             return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
-        ProviderStepOutcome admission = WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, entry =>
-            WslFileOperationAdapter.IsUsableDestination(_destination, wslDestination) &&
-            !WindowsLocalTreeCopy.ContainsReparsePoint(entry) &&
+        RevalidationOutcome revalidation = WindowsLocalFileOperationAdapter.RevalidateLocal(source, _driveBoundary);
+        if (revalidation is EntryRejected rejected)
+        {
+            return CopyVerificationOutcome.Failed(rejected.Failure);
+        }
+        FileSystemInfo entry = ((EntryMatched)revalidation).Entry;
+        ProviderStepOutcome admission = WslFileOperationAdapter.IsUsableDestination(_destination, wslDestination) &&
             WslFileOperationAdapter.BuildTarget(entry.Name, wslDestination) is WslPath target &&
             _destination.TargetExists(target) && !_destination.ContainsReparsePoint(target)
-                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification);
         if (admission.Failure is FileOperationFailureKind failure)
         {
             return CopyVerificationOutcome.Failed(failure);
         }
+        if (!_driveBoundary.AdmitsLocal((WindowsLocalPath)source.Path))
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        bool unsafeSource = WindowsLocalTreeCopy.ContainsReparsePoint(entry,
+            child => WindowsLocalTreeCopy.InspectLocalSource(child, _driveBoundary));
+        if (!_driveBoundary.AdmitsLocal((WindowsLocalPath)source.Path))
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        if (unsafeSource)
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
+        }
         FileSystemInfo current = WindowsLocalEntryIdentity.Find((WindowsLocalPath)source.Path) ??
             throw new IOException("The verified source disappeared.");
-        return WslFileOperationAdapter.BuildTarget(current.Name, wslDestination) is WslPath copiedTarget
-            ? _destination.VerifyCopy(source, copiedTarget)
-            : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
+        return !_driveBoundary.AdmitsLocal((WindowsLocalPath)source.Path)
+            ? CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            : WslFileOperationAdapter.BuildTarget(current.Name, wslDestination) is WslPath copiedTarget
+                ? _destination.VerifyCopy(source, copiedTarget)
+                : CopyVerificationOutcome.Failed(FileOperationFailureKind.Verification);
     }
 
     private static Task<ProviderStepOutcome> FailedStep()

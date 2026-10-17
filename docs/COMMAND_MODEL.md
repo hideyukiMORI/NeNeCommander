@@ -87,6 +87,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | filesystem path parsing | `FileSystemPath.Parse` |
 | filesystem mutations | `FileOperationGateway` |
 | Windows-side file-operation provider routing | `ProviderFileOperationPort` |
+| current drive type and admission to local storage operations | `WindowsDriveBoundary`, queried inside existing Windows I/O workers and reused at effect revalidations (ADR-0072) |
 | Windows local file-operation provider | `WindowsLocalFileOperationAdapter` behind the provider router |
 | WSL mutation and transfer provider | `WslFileOperationAdapter` behind the provider router |
 | composite-move verification and conditional source deletion | the existing `FileOperationGateway` pipeline carrying immutable descendant evidence from the shared tree verifier to the source provider (ADR-0069) |
@@ -96,6 +97,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | pane navigation, history reads, and intent routing | `PaneSession` |
 | active side, intent routing between panes, and starting file operations | `DualPaneSession` |
 | pane projection | `PaneListingPresenter` over `PaneSnapshot` |
+| observed network-drive indication | optional read-success `DriveKind`, retained by `PaneContentListed` and projected through `PanePresentation` / `PaneStatusLine` (ADR-0072) |
 | pane state | `PaneReducer` |
 | keyboard mapping | `KeyboardIntentMapper` |
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |

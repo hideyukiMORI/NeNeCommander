@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.Paths;
 
@@ -23,6 +24,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly WindowsRecycleBin _recycleBin;
     private readonly IWslFileSystem _wslFileSystem;
+    private readonly WindowsDriveBoundary _driveBoundary;
 
     /// <summary>Initializes an adapter with the default Windows local I/O execution boundary.</summary>
     public WindowsLocalFileOperationAdapter()
@@ -33,25 +35,62 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     /// <summary>Initializes an adapter with the composed Windows local I/O execution boundary.</summary>
     /// <param name="executionBoundary">Shared boundary for synchronous Windows filesystem work.</param>
     public WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell()))
+        : this(executionBoundary, new WindowsDriveBoundary())
+    {
+    }
+
+    internal WindowsLocalFileOperationAdapter(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsDriveBoundary driveBoundary)
+        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
+            new WindowsWslFileSystem(driveBoundary), driveBoundary)
     {
     }
 
     internal WindowsLocalFileOperationAdapter(
         WindowsLocalIoExecutionBoundary executionBoundary,
         WindowsRecycleBin recycleBin)
+        : this(executionBoundary, recycleBin, new WindowsDriveBoundary())
+    {
+    }
+
+    private WindowsLocalFileOperationAdapter(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsRecycleBin recycleBin,
+        WindowsDriveBoundary driveBoundary)
+        : this(executionBoundary, recycleBin,
+            new WindowsWslFileSystem(driveBoundary), driveBoundary)
+    {
+    }
+
+    internal WindowsLocalFileOperationAdapter(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsRecycleBin recycleBin,
+        IWslFileSystem wslFileSystem,
+        WindowsDriveBoundary driveBoundary)
     {
         ArgumentNullException.ThrowIfNull(executionBoundary);
         ArgumentNullException.ThrowIfNull(recycleBin);
+        ArgumentNullException.ThrowIfNull(wslFileSystem);
+        ArgumentNullException.ThrowIfNull(driveBoundary);
         _executionBoundary = executionBoundary;
         _recycleBin = recycleBin;
-        _wslFileSystem = new WindowsWslFileSystem();
+        _wslFileSystem = wslFileSystem;
+        _driveBoundary = driveBoundary;
     }
 
     internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary, IWslFileSystem wslFileSystem)
-        : this(executionBoundary)
+        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell()), wslFileSystem, new WindowsDriveBoundary())
     {
-        _wslFileSystem = wslFileSystem;
+    }
+
+    internal WindowsLocalFileOperationAdapter(
+        WindowsLocalIoExecutionBoundary executionBoundary,
+        IWslFileSystem wslFileSystem,
+        WindowsDriveBoundary driveBoundary)
+        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
+            wslFileSystem, driveBoundary)
+    {
     }
 
     /// <inheritdoc />
@@ -129,7 +168,9 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
         return mode == DeletionExecutionMode.Recycle
-            ? _executionBoundary.ExecuteShellAsync(() => _recycleBin.Recycle(source, cancellationToken))
+            ? _executionBoundary.ExecuteShellAsync(() => source.Path is WindowsLocalPath local && _driveBoundary.AdmitsLocal(local)
+                ? _recycleBin.Recycle(source, cancellationToken)
+                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable))
             : _executionBoundary.ExecuteAsync(
                 () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
@@ -160,24 +201,24 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             () => Guarded(() => Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private static ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
+    private ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
     {
-        return target is not WindowsLocalPath localTarget
+        return target is not WindowsLocalPath localTarget || !_driveBoundary.AdmitsLocal(localTarget)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry => RenameEntry(entry, source.Path, localTarget));
+            : WithRevalidatedEntry(source, _driveBoundary, entry => RenameEntry(entry, source.Path, localTarget));
     }
 
-    private static AtomicMoveCapabilityOutcome AtomicMoveCapability(
+    private AtomicMoveCapabilityOutcome AtomicMoveCapability(
         FileEntrySnapshot source,
         FileSystemPath destination)
     {
-        if (destination is not WindowsLocalPath localDestination)
+        if (destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination))
         {
             return AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         try
         {
-            return WindowsLocalEntryIdentity.Revalidate(source) switch
+            return RevalidateLocal(source, _driveBoundary) switch
             {
                 EntryRejected rejected => AtomicMoveCapabilityOutcome.Failed(rejected.Failure),
                 EntryMatched matched => SupportsAtomicMove(matched.Entry, localDestination),
@@ -209,14 +250,14 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             : AtomicMoveCapabilityOutcome.Unsupported;
     }
 
-    private static ProviderStepOutcome Move(FileEntrySnapshot source, FileSystemPath destination)
+    private ProviderStepOutcome Move(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WindowsLocalPath localDestination
+        return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry => MoveEntry(entry, source, localDestination));
+            : WithRevalidatedEntry(source, _driveBoundary, entry => MoveEntry(entry, source, localDestination));
     }
 
-    private static ProviderStepOutcome MoveEntry(
+    private ProviderStepOutcome MoveEntry(
         FileSystemInfo entry,
         FileEntrySnapshot source,
         WindowsLocalPath destination)
@@ -245,6 +286,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
         }
+        if (source.Path is not WindowsLocalPath localSource || !_driveBoundary.AdmitsLocal(localSource) ||
+            !_driveBoundary.AdmitsLocal(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
         if (entry is DirectoryInfo)
         {
             Directory.Move(entry.FullName, targetText);
@@ -256,7 +302,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return ProviderStepOutcome.Succeeded();
     }
 
-    private static ProviderStepOutcome RenameEntry(FileSystemInfo entry, FileSystemPath source, WindowsLocalPath target)
+    private ProviderStepOutcome RenameEntry(FileSystemInfo entry, FileSystemPath source, WindowsLocalPath target)
     {
         if (!SharesParent(source, target))
         {
@@ -265,6 +311,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         if (TargetExists(target.CanonicalText) && !IsSameEntryText(source, target))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        if (source is not WindowsLocalPath localSource || !_driveBoundary.AdmitsLocal(localSource) ||
+            !_driveBoundary.AdmitsLocal(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         if (entry is DirectoryInfo)
         {
@@ -296,14 +347,14 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return target.CanonicalText.Equals(source.CanonicalText, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
+    private ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
     {
-        return target is not WindowsLocalPath localTarget
+        return target is not WindowsLocalPath localTarget || !_driveBoundary.AdmitsLocal(localTarget)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(location, entry => CreateDirectoryBeneath(entry, location.Path, localTarget));
+            : WithRevalidatedEntry(location, _driveBoundary, entry => CreateDirectoryBeneath(entry, location.Path, localTarget));
     }
 
-    private static ProviderStepOutcome CreateDirectoryBeneath(FileSystemInfo entry, FileSystemPath location, WindowsLocalPath target)
+    private ProviderStepOutcome CreateDirectoryBeneath(FileSystemInfo entry, FileSystemPath location, WindowsLocalPath target)
     {
         if (entry is not DirectoryInfo)
         {
@@ -321,13 +372,18 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
         }
+        if (location is not WindowsLocalPath localLocation || !_driveBoundary.AdmitsLocal(localLocation) ||
+            !_driveBoundary.AdmitsLocal(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
         _ = Directory.CreateDirectory(target.CanonicalText);
         return ProviderStepOutcome.Succeeded();
     }
 
     private FileInspectionOutcome Inspect(FileSystemPath path)
     {
-        if (path is not WindowsLocalPath local)
+        if (path is not WindowsLocalPath local || !_driveBoundary.AdmitsLocal(local))
         {
             return FileInspectionOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
@@ -351,11 +407,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
     }
 
-    private static TransferPreflightOutcome Preflight(
+    private TransferPreflightOutcome Preflight(
         IReadOnlyList<FileEntrySnapshot> sources,
         FileSystemPath destination)
     {
-        if (destination is not WindowsLocalPath localDestination)
+        if (destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination))
         {
             return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
         }
@@ -374,7 +430,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         List<TransferConflict> conflicts = [];
         foreach (FileEntrySnapshot source in sources)
         {
-            RevalidationOutcome revalidation = RevalidateTransferSource(source);
+            RevalidationOutcome revalidation = RevalidateTransferSource(source, _driveBoundary);
             if (revalidation is EntryRejected rejected)
             {
                 return TransferPreflightOutcome.Rejected(rejected.Failure);
@@ -446,10 +502,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     /// reparse point. Every transfer preflight that reads a Windows local source uses this check,
     /// whatever the destination provider (ADR-0059).
     /// </summary>
-    internal static RevalidationOutcome RevalidateTransferSource(FileEntrySnapshot source)
+    internal static RevalidationOutcome RevalidateTransferSource(FileEntrySnapshot source, WindowsDriveBoundary driveBoundary)
     {
-        RevalidationOutcome revalidation = WindowsLocalEntryIdentity.Revalidate(source);
-        return revalidation is EntryMatched matched && WindowsLocalTreeCopy.ContainsReparsePoint(matched.Entry)
+        RevalidationOutcome revalidation = RevalidateLocal(source, driveBoundary);
+        return revalidation is EntryMatched matched && WindowsLocalTreeCopy.ContainsReparsePoint(
+            matched.Entry, entry => WindowsLocalTreeCopy.InspectLocalSource(entry, driveBoundary))
             ? new EntryRejected(FileOperationFailureKind.ProviderUnavailable)
             : revalidation;
     }
@@ -481,31 +538,39 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         return name.Length > 255 ? null : (destination.Child(name) as PathParseSuccess)?.Path;
     }
 
-    private static ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
+    private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WindowsLocalPath localDestination
+        return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, entry =>
+            : WithRevalidatedEntry(source, _driveBoundary, entry =>
                 BuildTarget(source, localDestination, entry) is WindowsLocalPath target
                     ? CopyEntry(entry, target)
                     : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private static ProviderStepOutcome CopyEntry(FileSystemInfo entry, WindowsLocalPath target)
+    private ProviderStepOutcome CopyEntry(FileSystemInfo entry, WindowsLocalPath target)
     {
+        if (!_driveBoundary.AdmitsLocal(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
         string targetText = target.CanonicalText;
         if (TargetExists(targetText))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
         }
-        if (WindowsLocalTreeCopy.ContainsReparsePoint(entry))
+        if (WindowsLocalTreeCopy.ContainsReparsePoint(entry,
+            source => WindowsLocalTreeCopy.InspectLocalSource(source, _driveBoundary)))
         {
             return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         try
         {
             return WindowsLocalTreeCopy.Copy(
-                entry, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+                entry, target, new WindowsTreeCopyAccess(
+                    path => path.CanonicalText,
+                    source => WindowsLocalTreeCopy.InspectLocalSource(source, _driveBoundary),
+                    _driveBoundary));
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -526,11 +591,12 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 
     private CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
     {
-        if (destination is not WindowsLocalPath local || WindowsLocalTransferDestination.Failure(local) is not null)
+        if (destination is not WindowsLocalPath local || !_driveBoundary.AdmitsLocal(local) ||
+            WindowsLocalTransferDestination.Failure(local, _driveBoundary) is not null)
         {
             return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
-        RevalidationOutcome revalidation = RevalidateTransferSource(source);
+        RevalidationOutcome revalidation = RevalidateTransferSource(source, _driveBoundary);
         if (revalidation is EntryRejected rejected)
         {
             return CopyVerificationOutcome.Failed(rejected.Failure);
@@ -549,11 +615,15 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
                 : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
             : mode != DeletionExecutionMode.Permanent
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(source, DeleteEntry);
+            : WithRevalidatedEntry(source, _driveBoundary, entry => DeleteEntry(entry, (WindowsLocalPath)source.Path));
     }
 
-    private static ProviderStepOutcome DeleteEntry(FileSystemInfo entry)
+    private ProviderStepOutcome DeleteEntry(FileSystemInfo entry, WindowsLocalPath source)
     {
+        if (!_driveBoundary.AdmitsLocal(source))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
         if (entry is DirectoryInfo directory)
         {
             directory.Delete(recursive: true);
@@ -567,14 +637,22 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
 
     internal static ProviderStepOutcome WithRevalidatedEntry(
         FileEntrySnapshot source,
+        WindowsDriveBoundary driveBoundary,
         Func<FileSystemInfo, ProviderStepOutcome> step)
     {
-        return WindowsLocalEntryIdentity.Revalidate(source) switch
+        return RevalidateLocal(source, driveBoundary) switch
         {
             EntryRejected rejected => ProviderStepOutcome.Failed(rejected.Failure),
             EntryMatched matched => step(matched.Entry),
             _ => throw new InvalidOperationException("The revalidation outcome variant is not executable."),
         };
+    }
+
+    internal static RevalidationOutcome RevalidateLocal(FileEntrySnapshot source, WindowsDriveBoundary driveBoundary)
+    {
+        return source.Path is not WindowsLocalPath local || !driveBoundary.AdmitsLocal(local)
+            ? new EntryRejected(FileOperationFailureKind.ProviderUnavailable)
+            : WindowsLocalEntryIdentity.Revalidate(source);
     }
 
     private static ProviderStepOutcome Guarded(Func<ProviderStepOutcome> step, FileOperationFailureKind fallback)

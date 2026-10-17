@@ -24,8 +24,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         BookmarkCatalog catalog = Catalog(
             Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One));
@@ -124,10 +124,10 @@ public sealed class CommanderSessionTests
         Assert.AreSame(SettingsEditorState.Closed, settings.Settings.Editor);
         Assert.AreSame(PaneContent.Absent, pane.Panes.Left.Content);
         Assert.AreSame(PaneContent.Absent, explicitNavigation.Panes.Right.Content);
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "item.txt")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "item.txt"), null));
         _ = await navigation;
 
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "next.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "next.txt"), null));
         _ = await session.HandleAsync(
             UserIntent.BookmarkSlotOne,
             observer,
@@ -175,7 +175,7 @@ public sealed class CommanderSessionTests
         Assert.HasCount(1, pendingPort.Requests);
         ScriptedDirectoryReadPort otherPort = side == PaneSide.Left ? right : left;
         Assert.IsEmpty(otherPort.Requests);
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\pending", "item.txt")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\pending", "item.txt"), null));
         _ = await pending;
     }
 
@@ -185,7 +185,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> read = left.EnqueuePending();
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
@@ -216,7 +216,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
         BookmarkEntry entry = Entry("Target", "C:\\bookmark", null);
         BookmarkCatalog catalog = Catalog(entry);
         using FileOperationGateway gateway = CreateGateway();
@@ -266,7 +266,7 @@ public sealed class CommanderSessionTests
         _ = Assert.IsInstanceOfType<BookmarkNavigationPending>(
             paneIntentIgnored.Settings.BookmarksEditor);
         Assert.HasCount(2, left.Requests);
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt"), null));
         CommanderSnapshot navigated = await navigation;
 
         Assert.AreSame(SettingsEditorState.Closed, navigated.Settings.Editor);
@@ -277,7 +277,7 @@ public sealed class CommanderSessionTests
                 .Listing.Location.CanonicalText);
 
         _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "again.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "again.txt"), null));
         _ = await session.HandleAsync(
             UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
             observer,
@@ -292,7 +292,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
         left.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
         BookmarkEntry entry = Entry("Offline", "\\\\server\\share", null);
         BookmarkEntry other = Entry("Other", "C:\\other", null);
@@ -428,7 +428,7 @@ public sealed class CommanderSessionTests
         Assert.AreEqual(string.Empty, absentDraft.Draft.Path);
 
         ScriptedDirectoryReadPort root = ScriptedDirectoryReadPort.Create();
-        root.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\", "item.txt")));
+        root.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\", "item.txt"), null));
         using FileOperationGateway rootGateway = CreateGateway();
         CommanderSession atRoot = CreateSession(
             root,
@@ -482,7 +482,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\Current\\Folder", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\Current\\Folder", "old.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
@@ -535,8 +535,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -586,7 +586,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -623,7 +623,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> targetRead = left.EnqueuePending();
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
@@ -649,7 +649,7 @@ public sealed class CommanderSessionTests
         Assert.AreEqual("C:\\target", loading.Target.CanonicalText);
         Assert.HasCount(2, left.Requests);
         Assert.AreEqual("C:\\target", left.Requests[1].Location.CanonicalText);
-        targetRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "new.txt")));
+        targetRead.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\target", "new.txt"), null));
         CommanderSnapshot navigated = await navigating;
         PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(navigated.Panes.Left.Content);
         Assert.AreEqual("C:\\target", content.Listing.Location.CanonicalText);
@@ -661,7 +661,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -691,8 +691,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -734,7 +734,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         bool cancelled = outcomeName == "cancelled";
         left.Enqueue(cancelled
             ? DirectoryReadOutcome.Cancelled()
@@ -781,7 +781,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt"), null));
         TaskCompletionSource<DirectoryReadOutcome> leftRead = left.EnqueuePending();
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
@@ -813,7 +813,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -839,8 +839,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -875,8 +875,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\corrected", "new.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\corrected", "new.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -973,7 +973,7 @@ public sealed class CommanderSessionTests
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         CommanderSession session = CreateSession(left, right, gateway, store);
         RecordingCommanderObserver observer = new();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.OpenSettings, observer, CancellationToken.None);
 
@@ -1000,7 +1000,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1040,8 +1040,8 @@ public sealed class CommanderSessionTests
         RecordingCommanderObserver observer = new();
         DirectoryListing leftListing = Listing("C:\\left", "item.txt");
         DirectoryListing rightListing = Listing("C:\\right", "item.txt");
-        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await session.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await session.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
         FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
@@ -1111,7 +1111,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1177,7 +1177,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(EmptyListing("C:\\")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(EmptyListing("C:\\"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1206,7 +1206,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1243,7 +1243,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1277,7 +1277,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1308,7 +1308,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
@@ -1348,7 +1348,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1387,7 +1387,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1428,8 +1428,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1464,7 +1464,7 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = Listing("C:\\left", "item.txt");
-        left.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(PermanentInspection(listing.Entries[0].Path));
         using FileOperationGateway gateway = new(port);
@@ -1500,7 +1500,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1541,8 +1541,8 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1580,7 +1580,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1614,7 +1614,7 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         ScriptedFileLauncher launcher = new();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1663,7 +1663,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1689,7 +1689,7 @@ public sealed class CommanderSessionTests
         Assert.IsFalse(ScopeIsOpen(refused, scope));
         _ = Assert.IsInstanceOfType<PaneReadAbandoned>(abandoned.Panes.Left.Activity);
         Assert.IsTrue(ScopeIsOpen(admitted, scope));
-        completion.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "late.txt")));
+        completion.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\unreachable", "late.txt"), null));
         CommanderSnapshot late = await pending;
         _ = Assert.IsInstanceOfType<PaneReadAbandoned>(late.Panes.Left.Activity);
         Assert.AreEqual("C:\\left", Assert.IsInstanceOfType<PaneContentListed>(late.Panes.Left.Content).Listing.Location.CanonicalText);
@@ -1716,8 +1716,8 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         ScriptedFileLauncher leftLauncher = new();
         ScriptedFileLauncher rightLauncher = new();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt")));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "left.txt"), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "right.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1766,7 +1766,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
             left,
@@ -1803,7 +1803,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1844,7 +1844,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
             left,
@@ -1881,7 +1881,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
             left,
@@ -1919,7 +1919,7 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         ScriptedFileLauncher launcher = new();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSession(
             left,
@@ -1965,10 +1965,10 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\next", "next.txt")));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\next", "next.txt"), null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
             left,
@@ -2007,9 +2007,9 @@ public sealed class CommanderSessionTests
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         BookmarkEntry entry = Entry("Target", "C:\\bookmark", null);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "old.txt"), null));
         left.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\bookmark", "new.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(left, right, gateway, Catalog(entry));
         RecordingCommanderObserver observer = new();
@@ -2041,7 +2041,7 @@ public sealed class CommanderSessionTests
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
-        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CreateGateway();
         CommanderSession session = CreateSessionWithCatalog(
             left,

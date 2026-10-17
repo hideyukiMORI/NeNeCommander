@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -14,6 +15,30 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class VerifiedSourceDeletionBoundaryTests
 {
+    /// <summary>A remap after the first source leaf deletion stops the remaining verified source with a partial effect.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public async Task DeleteVerifiedSourceWhenTargetDriveRemapsAfterFirstLeafReportsPartialDeletionAsync()
+    {
+        using WslToWindowsTransferFixture fixture = Tree();
+        VerifiedCopyReceipt receipt = await ReceiptAsync(fixture);
+        string firstLeaf = fixture.Root.Resolve("wsl\\directory\\a.txt");
+        WindowsDriveBoundary drives = new(_ => File.Exists(firstLeaf)
+            ? DriveType.Fixed : DriveType.Network);
+        WindowsWslFileSystem fileSystem = new(
+            path => OwnedWslNamespace.Resolve(fixture.Root.ResolveVerbatim("wsl"), path),
+            OwnedWslNamespace.ReadFacts, drives);
+
+        ProviderStepOutcome outcome = fileSystem.DeleteVerifiedSource(receipt.Source, receipt);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.AreSame(ProviderStepEffectKind.SourcePartiallyDeleted, outcome.Effect);
+        Assert.IsFalse(File.Exists(firstLeaf));
+        Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\b.txt")));
+        Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\a.txt")));
+    }
+
     /// <summary>Rejects a frozen source whose sole changed field is identity, while the receipt and tree remain valid.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]

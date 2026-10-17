@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -17,11 +18,12 @@ public sealed class WindowsRecycleGuardTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         ScriptedWindowsShellOperation operation = new();
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsRecycleBin(null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsRecycleProgress(null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsRecycleProgress(null!, new WindowsDriveBoundary(),
+            CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new NativeWindowsRecycleProgress(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsShellEntry(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsShellOperation(null!));

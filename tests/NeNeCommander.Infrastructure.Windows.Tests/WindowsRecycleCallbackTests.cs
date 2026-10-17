@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -10,6 +12,34 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsRecycleCallbackTests
 {
+    /// <summary>A drive reassignment before Shell's effect callback vetoes recycle.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public void PreDeleteItemWhenDriveRemapsToNetworkVetoesShellEffect()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        DriveType observed = DriveType.Fixed;
+        WindowsDriveBoundary boundary = new(_ => observed);
+        ScriptedWindowsShellOperation operation = new()
+        {
+            Perform = (sink, entry) =>
+            {
+                observed = DriveType.Network;
+                return sink.PreDeleteItem(WindowsRecycleProgress.RecycleFlag, entry);
+            },
+        };
+        WindowsRecycleBin bin = new(new ScriptedWindowsRecycleShell { Operation = operation }, boundary);
+
+        ProviderStepOutcome outcome = bin.Recycle(source, CancellationToken.None);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.IsNull(outcome.Effect);
+        Assert.AreEqual(1, operation.PerformCount);
+        Assert.IsTrue(File.Exists(source.Path.CanonicalText));
+    }
+
     /// <summary>Cancellation after admission cannot hide a receipt for work already completed.</summary>
     [TestMethod]
     public void PostDeleteItemWhenCancellationPrecedesReceiptRetainsCompletedEffect()
@@ -17,7 +47,7 @@ public sealed class WindowsRecycleCallbackTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         using CancellationTokenSource cancellation = new();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, cancellation.Token);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), cancellation.Token);
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
         cancellation.Cancel();
@@ -34,7 +64,7 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, new CancellationToken(true));
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), new CancellationToken(true));
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, entry));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("unadmitted receipt")));
@@ -47,7 +77,7 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreNewItem(0, IntPtr.Zero, "unexpected"));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Failure);
@@ -66,7 +96,7 @@ public sealed class WindowsRecycleCallbackTests
     public void CallbackWhenMutationWasNotRequestedVetoesOperation(string callback)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), CancellationToken.None);
+        WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), new WindowsDriveBoundary(), CancellationToken.None);
         using NativeWindowsRecycleProgress native = new(progress);
         int result = callback switch
         {
@@ -90,7 +120,7 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         using CancellationTokenSource cancellation = new();
-        WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), cancellation.Token);
+        WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), new WindowsDriveBoundary(), cancellation.Token);
         using NativeWindowsRecycleProgress native = new(progress);
         Assert.AreEqual(0, native.StartOperations());
         Assert.AreEqual(0, native.ResetTimer());
@@ -108,7 +138,7 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         ScriptedWindowsShellEntry receipt = new("first receipt");
         Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
@@ -128,7 +158,7 @@ public sealed class WindowsRecycleCallbackTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
-        WindowsRecycleProgress progress = new(source, CancellationToken.None);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
         Assert.AreEqual(0, ScriptedWindowsShellOperation.CompleteRecycle(progress, new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
         using NativeWindowsRecycleProgress native = new(progress);
         Assert.AreEqual(finished < 0 ? WindowsRecycleProgress.Abort : 0, native.FinishOperations(finished));

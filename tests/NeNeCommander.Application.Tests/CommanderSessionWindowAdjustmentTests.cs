@@ -476,7 +476,7 @@ public sealed class CommanderSessionWindowAdjustmentTests
             Fixture.AssertUnchanged(before, fixture.Session.Current);
         }
         WindowAdjustmentOpen beforeLeave = fixture.CurrentOpen();
-        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\background", "late.txt")));
+        read.SetResult(DirectoryReadOutcome.Succeeded(Listing("C:\\background", "late.txt"), null));
         _ = await background;
         WindowAdjustmentOpen afterRead = fixture.CurrentOpen();
         WindowAdjustmentState left = fixture.Session.LeaveWindowAdjustment(afterRead);
@@ -702,8 +702,8 @@ public sealed class CommanderSessionWindowAdjustmentTests
             BlockingInspectionPort port,
             Task<CommanderSnapshot> operation)
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt"), null));
             port.Release();
             return await operation;
         }
@@ -715,8 +715,8 @@ public sealed class CommanderSessionWindowAdjustmentTests
 
         private async Task ListBothAsync()
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "item.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "item.txt"), null));
             _ = await Session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
             _ = await Session.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
         }

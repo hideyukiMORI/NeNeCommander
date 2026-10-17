@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -80,7 +81,7 @@ public sealed class LiveWindowsRecycleTests
         WindowsRecycleShell shell = new();
         using WindowsShellEntry entry = (WindowsShellEntry)shell.OpenEntry((WindowsLocalPath)fixture.Source.Path);
         using WindowsShellOperation operation = (WindowsShellOperation)shell.OpenOperation();
-        WindowsRecycleProgress progress = new(fixture.Source, CancellationToken.None);
+        WindowsRecycleProgress progress = new(fixture.Source, new WindowsDriveBoundary(), CancellationToken.None);
         Assert.AreEqual(0, operation.SetOperationFlags(WindowsRecycleSession.OperationFlags & ~0x00080000u));
         Assert.AreEqual(0, operation.DeleteItem(entry, progress));
         _ = operation.PerformOperations();

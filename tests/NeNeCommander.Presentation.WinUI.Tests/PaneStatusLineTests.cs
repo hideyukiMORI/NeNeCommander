@@ -51,7 +51,7 @@ public sealed class PaneStatusLineTests
     [TestMethod]
     public void ComposeWhenSortStatusIsPresentFormatsStatusAndIndication()
     {
-        string line = PaneStatusLine.Compose(PaneStatus.Complete, PaneSortStatus.ExtensionDescending, Localize);
+        string line = PaneStatusLine.Compose(PaneStatus.Complete, PaneSortStatus.ExtensionDescending, null, Localize);
 
         Assert.AreEqual("Listing complete · ext desc", line);
     }
@@ -60,7 +60,7 @@ public sealed class PaneStatusLineTests
     [TestMethod]
     public void ComposeWhenSortStatusIsAbsentShowsStatusAlone()
     {
-        string line = PaneStatusLine.Compose(PaneStatus.NoListing, null, Localize);
+        string line = PaneStatusLine.Compose(PaneStatus.NoListing, null, null, Localize);
 
         Assert.AreEqual("Nothing listed", line);
     }
@@ -70,10 +70,32 @@ public sealed class PaneStatusLineTests
     public void ComposeWhenArgumentIsNullThrowsArgumentNullException()
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            PaneStatusLine.Compose(null!, PaneSortStatus.NameAscending, Localize));
+            PaneStatusLine.Compose(null!, PaneSortStatus.NameAscending, null, Localize));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            PaneStatusLine.Compose(PaneStatus.Complete, PaneSortStatus.NameAscending, null!));
+            PaneStatusLine.Compose(PaneStatus.Complete, PaneSortStatus.NameAscending, null, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneSortStatus.For(null!));
+    }
+
+    /// <summary>Proves network wording joins existing warnings and activity without hiding them.</summary>
+    [TestMethod]
+    public void ComposeWhenNetworkDriveIsListedKeepsStatusAndSortSegments()
+    {
+        Assert.AreEqual("PaneLocationNetworkDrive", PaneLocationStatus.NetworkDrive.ResourceKey);
+        Assert.AreEqual(
+            "Listing bounded · ext desc · Network drive",
+            PaneStatusLine.Compose(PaneStatus.Bounded, PaneSortStatus.ExtensionDescending,
+                PaneLocationStatus.NetworkDrive, Localize));
+        Assert.AreEqual(
+            "Entries omitted · ext desc · Network drive",
+            PaneStatusLine.Compose(PaneStatus.EntriesOmitted, PaneSortStatus.ExtensionDescending,
+                PaneLocationStatus.NetworkDrive, Localize));
+        Assert.AreEqual(
+            "Reading · ext desc · Network drive",
+            PaneStatusLine.Compose(PaneStatus.Loading, PaneSortStatus.ExtensionDescending,
+                PaneLocationStatus.NetworkDrive, Localize));
+        Assert.AreEqual(
+            "Listing complete · Network drive",
+            PaneStatusLine.Compose(PaneStatus.Complete, null, PaneLocationStatus.NetworkDrive, Localize));
     }
 
     private static string Localize(string key)
@@ -83,6 +105,10 @@ public sealed class PaneStatusLineTests
             ["PaneStatusComplete"] = "Listing complete",
             ["PaneStatusNoListing"] = "Nothing listed",
             ["PaneSortExtensionDescending"] = "ext desc",
+            ["PaneStatusBounded"] = "Listing bounded",
+            ["PaneStatusEntriesOmitted"] = "Entries omitted",
+            ["PaneStatusLoading"] = "Reading",
+            ["PaneLocationNetworkDrive"] = "Network drive",
         };
         return values[key];
     }

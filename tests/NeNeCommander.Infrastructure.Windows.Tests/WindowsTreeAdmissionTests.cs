@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -43,9 +44,9 @@ public sealed class WindowsTreeAdmissionTests
         FileSystemPath target = Parse(root.CreateDirectory("target"));
 
         FileOperationFailureKind? preflight = WindowsLocalTreeCopy.PreflightChildren(
-            enumeration, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            enumeration, target, LocalAccess(path => path.CanonicalText));
         ProviderStepOutcome copy = WindowsLocalTreeCopy.CopyChildren(
-            enumeration, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            enumeration, target, LocalAccess(path => path.CanonicalText));
         _ = Assert.ThrowsExactly<IOException>(() => WindowsLocalTreeCopy.VerifyChildren(
             [Parse(first.FullName), Parse(second.FullName)], target, new VerifiedTreeAccess(new WindowsWslFileSystem())));
 
@@ -82,7 +83,7 @@ public sealed class WindowsTreeAdmissionTests
         }
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
-            source, target, Resolve, WindowsLocalTreeCopy.InspectLocalSource);
+            source, target, LocalAccess(Resolve));
 
         Assert.AreSame(change == "missing-parent" ? FileOperationFailureKind.NotFound : FileOperationFailureKind.Conflict,
             outcome.Failure);
@@ -114,7 +115,7 @@ public sealed class WindowsTreeAdmissionTests
         }
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
-            source, target, Resolve, WindowsLocalTreeCopy.InspectLocalSource);
+            source, target, LocalAccess(Resolve));
 
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
         Assert.IsNull(outcome.Effect);
@@ -141,7 +142,7 @@ public sealed class WindowsTreeAdmissionTests
         FileSystemPath target = Parse(root.Resolve("copied"));
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(
-            source, target, path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            source, target, LocalAccess(path => path.CanonicalText));
 
         Assert.IsNull(outcome.Failure);
         Assert.IsNull(new WindowsWslFileSystem().VerifyCopy(
@@ -165,6 +166,11 @@ public sealed class WindowsTreeAdmissionTests
         Assert.IsNull(WindowsLocalTreeCopy.DeriveChild(parent, "trailing."));
         Assert.IsNull(WindowsLocalTreeCopy.DeriveChild(parent, "trailing "));
         Assert.IsNotNull(WindowsLocalTreeCopy.DeriveChild(parent, "a\uF03Ab"));
+    }
+
+    private static WindowsTreeCopyAccess LocalAccess(Func<FileSystemPath, string> resolve)
+    {
+        return new WindowsTreeCopyAccess(resolve, WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary());
     }
 
     private static FileSystemInfo CreateEntry(TestOwnedTemporaryRoot root, string name, string kind)

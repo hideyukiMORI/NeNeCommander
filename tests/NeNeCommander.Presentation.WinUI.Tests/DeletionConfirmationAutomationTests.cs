@@ -28,10 +28,10 @@ public sealed class DeletionConfirmationAutomationTests
             out QueuedFileOperationPort port);
         using FileOperationGateway owned = gateway;
         DirectoryListing listing = CreateListing("C:\\left", ["a.txt"]);
-        left.Enqueue(DirectoryReadOutcome.Succeeded(listing));
-        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", [])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
-        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", [])));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\left", []), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", []), null));
+        right.Enqueue(DirectoryReadOutcome.Succeeded(CreateListing("C:\\right", []), null));
         _ = await panes.NavigateAsync(PaneSide.Left, listing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, ParsePath("C:\\right"), CancellationToken.None);
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity")).Identity;

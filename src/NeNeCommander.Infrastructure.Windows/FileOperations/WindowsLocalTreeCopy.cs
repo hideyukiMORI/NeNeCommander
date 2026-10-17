@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -30,35 +31,39 @@ public static partial class WindowsLocalTreeCopy
             (entry is DirectoryInfo directory && Children(directory).Any(ContainsReparsePoint));
     }
 
+    internal static bool ContainsReparsePoint(FileSystemInfo entry, Func<FileSystemInfo, bool> admit)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(admit);
+        return !admit(entry) || IsReparsePoint(entry) ||
+            (entry is DirectoryInfo directory && Children(directory).Any(child => ContainsReparsePoint(child, admit)));
+    }
+
     /// <summary>Checks every destination name and reservation before any tree is copied.</summary>
     /// <param name="source">Source entry.</param>
     /// <param name="target">Typed target path.</param>
-    /// <param name="resolveTarget">Owning provider's transport resolver.</param>
-    /// <param name="inspectSource">Owning provider's current entry inspection.</param>
+    /// <param name="access">Owning provider's transport and current admission.</param>
     /// <returns>The rejection, or absence when every descendant is admissible.</returns>
-    public static FileOperationFailureKind? Preflight(
+    internal static FileOperationFailureKind? Preflight(
         FileSystemInfo source,
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
+        WindowsTreeCopyAccess access)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        ArgumentNullException.ThrowIfNull(resolveTarget);
-        ArgumentNullException.ThrowIfNull(inspectSource);
-        inspectSource(source);
-        return IsReparsePoint(source) ? FileOperationFailureKind.ProviderUnavailable
-            : Exists(resolveTarget(target)) ? FileOperationFailureKind.Conflict
+        ArgumentNullException.ThrowIfNull(access);
+        return !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source)
+            ? FileOperationFailureKind.ProviderUnavailable
+            : Exists(access.ResolveTarget(target)) ? FileOperationFailureKind.Conflict
             : source is DirectoryInfo directory
-            ? PreflightChildren(Children(directory), target, resolveTarget, inspectSource) : null;
+            ? PreflightChildren(Children(directory), target, access) : null;
     }
 
     /// <summary>Admits one complete enumeration, including case-sensitive source names on Windows targets.</summary>
     internal static FileOperationFailureKind? PreflightChildren(
         IEnumerable<FileSystemInfo> children,
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
+        WindowsTreeCopyAccess access)
     {
         HashSet<FileSystemPath> reserved = new(FileSystemPathIdentityComparer.Instance);
         foreach (FileSystemInfo child in children)
@@ -71,7 +76,7 @@ public static partial class WindowsLocalTreeCopy
             {
                 return FileOperationFailureKind.Conflict;
             }
-            if (Preflight(child, childTarget, resolveTarget, inspectSource) is FileOperationFailureKind failure)
+            if (Preflight(child, childTarget, access) is FileOperationFailureKind failure)
             {
                 return failure;
             }
@@ -82,29 +87,25 @@ public static partial class WindowsLocalTreeCopy
     /// <summary>Copies to an absent target and refuses invalid children or directory merging.</summary>
     /// <param name="source">Existing source.</param>
     /// <param name="target">Typed target path.</param>
-    /// <param name="resolveTarget">Owning provider's transport resolver.</param>
-    /// <param name="inspectSource">Owning provider's current entry inspection.</param>
+    /// <param name="access">Owning provider's transport and current admission.</param>
     /// <returns>The copy outcome, retaining a created target after a child refusal.</returns>
-    public static ProviderStepOutcome Copy(
+    internal static ProviderStepOutcome Copy(
         FileSystemInfo source,
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
+        WindowsTreeCopyAccess access)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        ArgumentNullException.ThrowIfNull(resolveTarget);
-        ArgumentNullException.ThrowIfNull(inspectSource);
-        inspectSource(source);
-        return IsReparsePoint(source)
+        ArgumentNullException.ThrowIfNull(access);
+        return !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : TargetParentFailure(target, resolveTarget) is FileOperationFailureKind failure
+            : TargetParentFailure(target, access) is FileOperationFailureKind failure
             ? ProviderStepOutcome.Failed(failure)
-            : Exists(resolveTarget(target))
+            : Exists(access.ResolveTarget(target))
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
             : source is DirectoryInfo directory
-            ? CopyDirectory(directory, target, resolveTarget, inspectSource)
-            : CopyFile(source, resolveTarget(target));
+            ? CopyDirectory(directory, target, access)
+            : CopyFile(source, target, access);
     }
 
     /// <summary>Derives exactly one provider-valid child, including the Windows component limit.</summary>
@@ -118,20 +119,36 @@ public static partial class WindowsLocalTreeCopy
     }
 
     /// <summary>Refreshes a local source before its current attributes and content are consumed.</summary>
-    internal static void InspectLocalSource(FileSystemInfo source)
+    internal static bool InspectLocalSource(FileSystemInfo source)
     {
-        source.Refresh();
+        return InspectLocalSource(source, new WindowsDriveBoundary());
     }
 
-    private static ProviderStepOutcome CopyFile(FileSystemInfo source, string target)
+    internal static bool InspectLocalSource(FileSystemInfo source, WindowsDriveBoundary driveBoundary)
     {
+        if (FileSystemPath.Parse(source.FullName) is not PathParseSuccess { Path: WindowsLocalPath local } ||
+            !driveBoundary.AdmitsLocal(local))
+        {
+            return false;
+        }
+        source.Refresh();
+        return true;
+    }
+
+    private static ProviderStepOutcome CopyFile(FileSystemInfo source, FileSystemPath target, WindowsTreeCopyAccess access)
+    {
+        if (!access.InspectSource(source) || !access.AdmitsTarget(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        string targetText = access.ResolveTarget(target);
         try
         {
-            File.Copy(source.FullName, target, overwrite: false);
+            File.Copy(source.FullName, targetText, overwrite: false);
             return ProviderStepOutcome.Succeeded();
         }
         catch (IOException exception) when (
-            exception.HResult is unchecked((int)0x80070050) or unchecked((int)0x800700B7) || Directory.Exists(target))
+            exception.HResult is unchecked((int)0x80070050) or unchecked((int)0x800700B7) || Directory.Exists(targetText))
         {
             // Exclusive file creation cannot have created the competing file or directory.
             return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
@@ -141,10 +158,13 @@ public static partial class WindowsLocalTreeCopy
     private static ProviderStepOutcome CopyDirectory(
         DirectoryInfo source,
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
+        WindowsTreeCopyAccess access)
     {
-        string targetText = resolveTarget(target);
+        if (!access.InspectSource(source) || !access.AdmitsTarget(target))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        }
+        string targetText = access.ResolveTarget(target);
         string nativeText = target is WindowsLocalPath ? @"\\?\" + targetText : targetText;
         if (!CreateDirectory(nativeText, IntPtr.Zero))
         {
@@ -154,15 +174,14 @@ public static partial class WindowsLocalTreeCopy
                 : WindowsLocalFileOperationAdapter.Normalize(
                     unchecked((int)(0x80070000u | (uint)error)), FileOperationFailureKind.Copy));
         }
-        return CopyChildren(Children(source), target, resolveTarget, inspectSource);
+        return CopyChildren(Children(source), target, access);
     }
 
     /// <summary>Copies an enumeration into the newly owned target directory without merging children.</summary>
     internal static ProviderStepOutcome CopyChildren(
         IEnumerable<FileSystemInfo> children,
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget,
-        Action<FileSystemInfo> inspectSource)
+        WindowsTreeCopyAccess access)
     {
         HashSet<FileSystemPath> reserved = new(FileSystemPathIdentityComparer.Instance);
         foreach (FileSystemInfo child in children)
@@ -175,7 +194,7 @@ public static partial class WindowsLocalTreeCopy
             {
                 return Partial(FileOperationFailureKind.Conflict);
             }
-            if (Copy(child, childTarget, resolveTarget, inspectSource).Failure is FileOperationFailureKind failure)
+            if (Copy(child, childTarget, access).Failure is FileOperationFailureKind failure)
             {
                 return Partial(failure);
             }
@@ -185,13 +204,17 @@ public static partial class WindowsLocalTreeCopy
 
     private static FileOperationFailureKind? TargetParentFailure(
         FileSystemPath target,
-        Func<FileSystemPath, string> resolveTarget)
+        WindowsTreeCopyAccess access)
     {
         if (target.Parent is not FileSystemPath parent)
         {
             return FileOperationFailureKind.ProviderUnavailable;
         }
-        DirectoryInfo directory = new(resolveTarget(parent));
+        if (!access.AdmitsTarget(parent))
+        {
+            return FileOperationFailureKind.ProviderUnavailable;
+        }
+        DirectoryInfo directory = new(access.ResolveTarget(parent));
         return !directory.Exists ? FileOperationFailureKind.NotFound
             : IsReparsePoint(directory) ? FileOperationFailureKind.ProviderUnavailable : null;
     }
@@ -249,6 +272,10 @@ public static partial class WindowsLocalTreeCopy
         {
             return CopyVerificationOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(
                 exception.HResult, FileOperationFailureKind.Verification));
+        }
+        catch (WindowsDriveBoundaryRejectedException)
+        {
+            return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
         }
         catch (IOException exception)
         {

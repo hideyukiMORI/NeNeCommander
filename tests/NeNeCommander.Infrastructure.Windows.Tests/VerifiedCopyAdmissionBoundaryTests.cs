@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
@@ -11,6 +12,31 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class VerifiedCopyAdmissionBoundaryTests
 {
+    /// <summary>A remap after root creation stops the next child while preserving the truthful partial target.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-024")]
+    public void CopyWhenDriveRemapsBeforeRecursiveChildRetainsOnlyCreatedTarget()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("source");
+        _ = root.WriteFile("source\\child.txt", "kept");
+        string targetText = root.Resolve("target");
+        WindowsDriveBoundary drives = new(_ => Directory.Exists(targetText)
+            ? DriveType.Network : DriveType.Fixed);
+        WindowsTreeCopyAccess access = new(path => path.CanonicalText,
+            entry => WindowsLocalTreeCopy.InspectLocalSource(entry, drives), drives);
+
+        ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(new DirectoryInfo(root.Resolve("source")),
+            Path(targetText), access);
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
+        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, outcome.Effect);
+        Assert.IsTrue(Directory.Exists(targetText));
+        Assert.HasCount(0, Directory.GetFileSystemEntries(targetText));
+        Assert.AreEqual("kept", File.ReadAllText(root.Resolve("source\\child.txt")));
+    }
+
     /// <summary>Rechecks a cached local directory after replacement by a junction before creating any target.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
@@ -27,7 +53,8 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
         _ = root.CreateJunction("source", "linked");
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(source, Path(root.Resolve("target")),
-            path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            new WindowsTreeCopyAccess(path => path.CanonicalText,
+                WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
         Assert.IsNull(outcome.Effect);
@@ -52,7 +79,8 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
         }
 
         ProviderStepOutcome outcome = WindowsLocalTreeCopy.Copy(new FileInfo(root.Resolve("source")),
-            Path(root.Resolve("parent\\target")), path => path.CanonicalText, WindowsLocalTreeCopy.InspectLocalSource);
+            Path(root.Resolve("parent\\target")), new WindowsTreeCopyAccess(path => path.CanonicalText,
+                WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
 
         Assert.AreSame(parent == "junction" ? FileOperationFailureKind.ProviderUnavailable : FileOperationFailureKind.NotFound, outcome.Failure);
         Assert.IsNull(outcome.Effect);

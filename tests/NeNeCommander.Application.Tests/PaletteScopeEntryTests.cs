@@ -225,7 +225,7 @@ public sealed class PaletteScopeEntryTests
         internal async Task ListEmptyAsync(PaneSide side)
         {
             ScriptedDirectoryReadPort port = side == PaneSide.Left ? Left : Right;
-            port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\empty")));
+            port.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\empty"), null));
             _ = await Session.NavigateAsync(side, Path("C:\\empty"), CancellationToken.None);
             if (side == PaneSide.Right)
             {
@@ -235,10 +235,10 @@ public sealed class PaletteScopeEntryTests
 
         internal async Task PrepareAsync(PaneSide activeSide)
         {
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "a.txt", "b.txt")));
-            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left\\next", "a.txt", "b.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "a.txt", "b.txt")));
-            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right\\next", "a.txt", "b.txt")));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left", "a.txt", "b.txt"), null));
+            Left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\left\\next", "a.txt", "b.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right", "a.txt", "b.txt"), null));
+            Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("C:\\right\\next", "a.txt", "b.txt"), null));
             _ = await Session.NavigateAsync(PaneSide.Left, Path("C:\\left"), CancellationToken.None);
             _ = await Session.NavigateAsync(PaneSide.Left, Path("C:\\left\\next"), CancellationToken.None);
             _ = await Session.NavigateAsync(PaneSide.Right, Path("C:\\right"), CancellationToken.None);

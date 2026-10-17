@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Diagnostics;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
@@ -50,8 +51,8 @@ public sealed class NullGuardTests
         object?[] arguments =
         [
             new DirectoryInfo(path.CanonicalText), path,
-            (Func<FileSystemPath, string>)(target => target.CanonicalText),
-            (Action<FileSystemInfo>)WindowsLocalTreeCopy.InspectLocalSource,
+            new WindowsTreeCopyAccess(target => target.CanonicalText,
+                WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()),
         ];
         for (int index = 0; index < arguments.Length; index++)
         {

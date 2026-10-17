@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -10,21 +11,34 @@ internal static class WindowsRecycleAdmission
 {
     internal static FileOperationFailureKind? Inspect(WindowsLocalPath path)
     {
-        return path.Parent is not WindowsLocalPath parent || new DriveInfo(path.Drive).DriveType != DriveType.Fixed
+        return Inspect(path, new WindowsDriveBoundary());
+    }
+
+    internal static FileOperationFailureKind? Inspect(WindowsLocalPath path, WindowsDriveBoundary driveBoundary)
+    {
+        return path.Parent is not WindowsLocalPath parent || !driveBoundary.AdmitsLocal(path) ||
+            driveBoundary.ReadType(path) != DriveType.Fixed
             ? FileOperationFailureKind.ProviderUnavailable
-            : WindowsLocalTransferDestination.Failure(parent) ?? InspectTree(path);
+            : WindowsLocalTransferDestination.Failure(parent, driveBoundary) ?? InspectTree(path, driveBoundary);
     }
 
     internal static FileOperationFailureKind? Revalidate(FileEntrySnapshot source)
     {
+        return Revalidate(source, new WindowsDriveBoundary());
+    }
+
+    internal static FileOperationFailureKind? Revalidate(FileEntrySnapshot source, WindowsDriveBoundary driveBoundary)
+    {
         try
         {
-            return WindowsLocalEntryIdentity.Revalidate(source) switch
-            {
-                EntryRejected rejected => rejected.Failure,
-                EntryMatched => Inspect((WindowsLocalPath)source.Path),
-                _ => throw new InvalidOperationException("The revalidation variant is not executable."),
-            };
+            return source.Path is not WindowsLocalPath local || !driveBoundary.AdmitsLocal(local)
+                ? FileOperationFailureKind.ProviderUnavailable
+                : WindowsLocalEntryIdentity.Revalidate(source) switch
+                {
+                    EntryRejected rejected => rejected.Failure,
+                    EntryMatched => Inspect(local, driveBoundary),
+                    _ => throw new InvalidOperationException("The revalidation variant is not executable."),
+                };
         }
         catch (UnauthorizedAccessException)
         {
@@ -36,12 +50,13 @@ internal static class WindowsRecycleAdmission
         }
     }
 
-    private static FileOperationFailureKind? InspectTree(WindowsLocalPath path)
+    private static FileOperationFailureKind? InspectTree(WindowsLocalPath path, WindowsDriveBoundary driveBoundary)
     {
         FileSystemInfo? entry = WindowsLocalEntryIdentity.Find(path);
         return entry is null
             ? FileOperationFailureKind.NotFound
-            : WindowsLocalTreeCopy.IsReparsePoint(entry) || WindowsLocalTreeCopy.ContainsReparsePoint(entry)
+            : WindowsLocalTreeCopy.IsReparsePoint(entry) || WindowsLocalTreeCopy.ContainsReparsePoint(
+                entry, child => WindowsLocalTreeCopy.InspectLocalSource(child, driveBoundary))
                 ? FileOperationFailureKind.ProviderUnavailable
                 : null;
     }

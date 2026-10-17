@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -33,6 +34,10 @@ public sealed record PanePresentation
         SortStatus = sourceSnapshot.Content is PaneContentListed listed
             ? PaneSortStatus.For(listed.State.SortOrder)
             : null;
+        LocationStatus = sourceSnapshot.Content is PaneContentListed locationListed &&
+            locationListed.DriveKind == DriveKind.Network
+                ? PaneLocationStatus.NetworkDrive
+                : null;
     }
 
     internal PaneRows OwnedRows { get; }
@@ -58,4 +63,7 @@ public sealed record PanePresentation
     /// nothing is ordered.
     /// </summary>
     public PaneSortStatus? SortStatus { get; }
+
+    /// <summary>Gets an indication of the listed location, or absence when no indication applies.</summary>
+    public PaneLocationStatus? LocationStatus { get; }
 }

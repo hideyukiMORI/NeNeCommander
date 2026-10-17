@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -11,17 +12,27 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 internal sealed class VerifiedTreeAccess
 {
     private readonly IWslFileSystem _wsl;
+    private readonly WindowsDriveBoundary _driveBoundary;
 
     internal VerifiedTreeAccess(IWslFileSystem wsl)
+        : this(wsl, new WindowsDriveBoundary())
     {
+    }
+
+    internal VerifiedTreeAccess(IWslFileSystem wsl, WindowsDriveBoundary driveBoundary)
+    {
+        ArgumentNullException.ThrowIfNull(wsl);
+        ArgumentNullException.ThrowIfNull(driveBoundary);
         _wsl = wsl;
+        _driveBoundary = driveBoundary;
     }
 
     internal string Resolve(FileSystemPath path)
     {
         return path switch
         {
-            WindowsLocalPath => path.CanonicalText,
+            WindowsLocalPath local => _driveBoundary.AdmitsLocal(local)
+                ? path.CanonicalText : throw new WindowsDriveBoundaryRejectedException(),
             WslPath wsl => _wsl.ResolveVerificationPath(wsl),
             _ => throw new IOException("The verification provider is unavailable."),
         };
@@ -94,6 +105,7 @@ internal sealed class VerifiedTreeAccess
     internal void Delete(FileSystemPath path)
     {
         FileSystemInfo entry = Find(path);
+        _ = Resolve(path);
         if (entry is DirectoryInfo directory)
         {
             directory.Delete(recursive: false);

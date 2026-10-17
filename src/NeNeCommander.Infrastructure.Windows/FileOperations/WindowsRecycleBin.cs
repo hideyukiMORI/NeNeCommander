@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -12,11 +13,19 @@ internal sealed class WindowsRecycleBin
 {
     private const uint RequiredAttributes = 0x40000000 | 0x20;
     private readonly IWindowsRecycleShell _shell;
+    private readonly WindowsDriveBoundary _driveBoundary;
 
     internal WindowsRecycleBin(IWindowsRecycleShell shell)
+        : this(shell, new WindowsDriveBoundary())
+    {
+    }
+
+    internal WindowsRecycleBin(IWindowsRecycleShell shell, WindowsDriveBoundary driveBoundary)
     {
         ArgumentNullException.ThrowIfNull(shell);
+        ArgumentNullException.ThrowIfNull(driveBoundary);
         _shell = shell;
+        _driveBoundary = driveBoundary;
     }
 
     internal DeletionCapability GetCapability(WindowsLocalPath path)
@@ -24,7 +33,7 @@ internal sealed class WindowsRecycleBin
         ArgumentNullException.ThrowIfNull(path);
         try
         {
-            return WindowsRecycleAdmission.Inspect(path) is null && QueryCapability(path)
+            return WindowsRecycleAdmission.Inspect(path, _driveBoundary) is null && QueryCapability(path)
                 ? DeletionCapability.Recycle
                 : DeletionCapability.PermanentOnly;
         }
@@ -45,7 +54,7 @@ internal sealed class WindowsRecycleBin
     internal ProviderStepOutcome Recycle(FileEntrySnapshot source, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
-        FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(source);
+        FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(source, _driveBoundary);
         if (refusal is not null)
         {
             return ProviderStepOutcome.Failed(refusal);
@@ -80,7 +89,8 @@ internal sealed class WindowsRecycleBin
         try
         {
             operation = _shell.OpenOperation();
-            return new WindowsRecycleSession(operation, entry, new WindowsRecycleProgress(source, cancellationToken));
+            return new WindowsRecycleSession(operation, entry,
+                new WindowsRecycleProgress(source, _driveBoundary, cancellationToken));
         }
         finally
         {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
+using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Launching;
@@ -36,7 +37,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing("C:\\projects", ["b.txt", "a.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
         PaneSession session = CreateSession(port);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
@@ -53,6 +54,8 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowMark.Unmarked, initial.Rows[1].Mark);
         Assert.AreSame(PaneRowKind.File, initial.Rows[0].Kind);
         Assert.AreSame(PaneStatus.Complete, initial.Status);
+        Assert.AreSame(PaneLocationStatus.NetworkDrive, initial.LocationStatus);
+        Assert.AreSame(PaneLocationStatus.NetworkDrive, afterMove.LocationStatus);
         Assert.AreEqual("C:\\projects", initial.AddressText);
     }
 
@@ -62,7 +65,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt", "c.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
@@ -113,7 +116,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing("C:\\projects", ["a.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
@@ -145,7 +148,7 @@ public sealed class PaneListingPresenterTests
             ["a.txt", "b.txt"],
             DirectoryListingCompleteness.Complete,
             0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
@@ -161,6 +164,7 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(initial.Rows[0], updated.Rows[0]);
         Assert.AreSame(initial.Rows[1], updated.Rows[1]);
         Assert.AreSame(PaneStatus.Loading, updated.Status);
+        Assert.AreSame(PaneLocationStatus.NetworkDrive, updated.LocationStatus);
     }
 
     /// <summary>Proves focus movement replaces only the previous and current focus rows.</summary>
@@ -173,7 +177,7 @@ public sealed class PaneListingPresenterTests
             ["a.txt", "b.txt", "c.txt"],
             DirectoryListingCompleteness.Complete,
             0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
@@ -199,7 +203,7 @@ public sealed class PaneListingPresenterTests
         PaneSession unlisted = CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> unlistedRead);
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            CreateListing("C:\\root", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0)));
+            CreateListing("C:\\root", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0), null));
         TaskCompletionSource<DirectoryReadOutcome> listedRead = port.EnqueuePending();
         PaneSession listed = CreateSession(port);
         _ = await listed.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
@@ -252,7 +256,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing("C:\\projects", ["a.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
@@ -272,7 +276,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot focused = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
@@ -311,7 +315,7 @@ public sealed class PaneListingPresenterTests
             ["a.zip", "b.txt", "c.md"],
             DirectoryListingCompleteness.Complete,
             0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
@@ -405,7 +409,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateMeasuredListing("C:\\projects");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
@@ -442,7 +446,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateMixedListing("C:\\projects");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port, HiddenItemVisibility.Hidden);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
 
@@ -462,7 +466,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateMixedListing("C:\\projects");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         PaneSession session = CreateSession(port, HiddenItemVisibility.Shown);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
 
@@ -588,7 +592,7 @@ public sealed class PaneListingPresenterTests
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         port.Enqueue(DirectoryReadOutcome.Succeeded(
-            CreateListing(location, ["a.txt"], DirectoryListingCompleteness.Complete, 0)));
+            CreateListing(location, ["a.txt"], DirectoryListingCompleteness.Complete, 0), null));
         ScriptedFileLauncher launcher = new();
         TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
         launcher.Enqueue(FileLaunchOutcome.Cancelled());
@@ -621,7 +625,7 @@ public sealed class PaneListingPresenterTests
     private static async Task<PaneSnapshot> ListAsync(DirectoryListing listing)
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing));
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         return await CreateSession(port).NavigateAsync(listing.Location, CancellationToken.None);
     }
 

@@ -572,7 +572,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             addressPresentation is { Status: PaneStatus addressStatus }
                 ? addressStatus
                 : presentation.Status;
-        status.Text = PaneStatusLine.Compose(paneStatus, presentation.SortStatus, _resources.GetString);
+        status.Text = PaneStatusLine.Compose(
+            paneStatus, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
     }
 
     private void RenderAddressTransition(AddressEditorPresentation presentation)

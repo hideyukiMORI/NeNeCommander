@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -104,7 +105,10 @@ public sealed class WindowsWslFileSystemTests
         WindowsWslFileSystem mapped = FileSystem(root);
         WslFileSystemEntry entry = RequireEntry(mapped.Find(Wsl("/owned/item")));
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowsWslFileSystem(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsWslFileSystem((Func<WslPath, string>)null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => new WindowsWslFileSystem((WindowsDriveBoundary)null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsWslFileSystem(path => Resolve(root, path), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fileSystem.Find(null!));
