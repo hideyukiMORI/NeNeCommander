@@ -49,9 +49,28 @@ App側のformatもexit 0。
 
 ## 統合・整理の確認先
 
-`completion.json`とIssue PRの実状態からmain統合、同期と整理を読み戻す。
-作業物は`D:/NeNeCommander/worktrees/issue-251`と`D:/NeNeCommander/outputs/issue-251`。
-整理前に唯一のfixture/log/sourceを恒久証拠へ保存し、未保存file、ignored output、稼働参照、linkを確認する。
-branch、commit、evidenceと共通SDKは保持する。
+[PR #268](https://github.com/hideyukiMORI/NeNeCommander/pull/268)は2026-10-17 21:04:02 JSTに
+squash mergeされ、Issue #251はclosed。
+main `0a92009f44756cd9f00110a5d59572838e65ce93`への同期、clean・origin一致と
+task/mainの同一tree `3a78fef9c47cf6cca72b7623cce7d3e9d6491204`を確認済み。
+`D:/NeNeCommander/worktrees/issue-251`は削除済み。
+`D:/NeNeCommander/outputs/issue-251`の唯一の39 fileは恒久証拠`cleanup-archive/`へSHA一致で収載済み。
+未保存・未追跡file、ignored output、link、稼働参照と専用host両PIDの終了も確認した。
+自動承認による削除拒否のため、この出力だけ下記の実行待ちとして保持する。
+branch、commit、evidenceと共通SDKは保持済み。
+正確な記録は`D:/NeNeCommander/evidence/issue-251/completion.json`と`cleanup-inspection.json`。
+[Issue #269](https://github.com/hideyukiMORI/NeNeCommander/issues/269)は記録更新だけを扱う。
+文書更新・push・mergeのために成功済みの製品試験を繰り返さない。
 
 次は未着手P4 Issues #244–#248などの別件選定。通常closeの今回scopeに新機能を混ぜない。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-251`のみ。恒久証拠、branch、commitと共通SDKは対象外。
+自動承認レビューがdirectory削除を`blocked by policy`として拒否したため、別手段で再試行していない。
+対象・link・稼働参照を確認するscriptは構文検査済みで、既に不在の対象にも対応する。
+hideの実行報告と完了記録または読み取り専用の不在確認まで、この待ちを次の引き継ぎにも残す。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-251/cleanup-pending.ps1
+```
