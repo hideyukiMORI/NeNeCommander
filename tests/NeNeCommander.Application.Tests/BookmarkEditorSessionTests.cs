@@ -9,6 +9,37 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class BookmarkEditorSessionTests
 {
+    /// <summary>Proves an unregistered action is a defect and cannot cancel an active draft.</summary>
+    [TestMethod]
+    public void ApplyWhenActionVariantIsUnsupportedThrowsWithoutChangingDraft()
+    {
+        BookmarkEditorSession editor = OpenEditor();
+        _ = editor.Apply(BookmarkEditorAction.BeginAddBookmark, BookmarkCatalog.Empty, EmptyDefaults());
+        BookmarkDrafting before = Assert.IsInstanceOfType<BookmarkDrafting>(editor.Current);
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(
+            () => editor.Apply(new UnsupportedBookmarkEditorAction(), BookmarkCatalog.Empty, EmptyDefaults()));
+
+        Assert.AreSame(before, editor.Current);
+    }
+
+    /// <summary>Proves an unregistered filter is a defect and preserves the complete browse state.</summary>
+    [TestMethod]
+    public void ApplyWhenCategoryFilterVariantIsUnsupportedThrowsWithoutChangingBrowse()
+    {
+        BookmarkCategoryName work = Category("Work");
+        BookmarkCatalog catalog = Catalog([work], []);
+        BookmarkEditorSession editor = OpenEditor();
+        _ = editor.Apply(BookmarkEditorAction.Search("retained"), catalog, EmptyDefaults());
+        _ = editor.Apply(BookmarkEditorAction.Filter(BookmarkCategoryFilter.For(work)), catalog, EmptyDefaults());
+        BookmarksBrowsing before = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current);
+
+        _ = Assert.ThrowsExactly<InvalidOperationException>(
+            () => editor.Apply(BookmarkEditorAction.Filter(new UnsupportedBookmarkCategoryFilter()), catalog, EmptyDefaults()));
+
+        Assert.AreSame(before, editor.Current);
+    }
+
     /// <summary>Proves registration validates only on Save and emits one complete catalog change.</summary>
     [TestMethod]
     public void ApplyWhenAddingBookmarkPreservesDraftUntilACompleteValueIsAccepted()
@@ -623,33 +654,25 @@ public sealed class BookmarkEditorSessionTests
         BookmarkEntry entry = Entry("Repo", "C:\\repo", work);
         BookmarkCatalog catalog = Catalog([work], [entry]);
         BookmarkRegistrationDefaults defaults = EmptyDefaults();
-
-        BookmarkEditorSession bookmark = OpenEditor();
-        _ = bookmark.Apply(BookmarkEditorAction.Search("book"), catalog, defaults);
-        _ = bookmark.Apply(BookmarkEditorAction.BeginAddBookmark, catalog, defaults);
-        _ = bookmark.Apply(BookmarkEditorAction.Cancel, catalog, defaults);
-        Assert.AreEqual(
-            "book",
-            Assert.IsInstanceOfType<BookmarksBrowsing>(bookmark.Current).Context.SearchText);
-
-        BookmarkEditorSession category = OpenEditor();
-        _ = category.Apply(BookmarkEditorAction.Search("category"), catalog, defaults);
-        _ = category.Apply(BookmarkEditorAction.BeginAddCategory, catalog, defaults);
-        _ = category.Apply(BookmarkEditorAction.Cancel, catalog, defaults);
-        Assert.AreEqual(
-            "category",
-            Assert.IsInstanceOfType<BookmarksBrowsing>(category.Current).Context.SearchText);
-
-        BookmarkEditorSession deletion = OpenEditor();
-        _ = deletion.Apply(BookmarkEditorAction.Search("delete"), catalog, defaults);
-        _ = deletion.Apply(
+        BookmarkEditorAction[] actions = [
+            BookmarkEditorAction.BeginAddBookmark,
+            BookmarkEditorAction.BeginAddCategory,
             BookmarkEditorAction.BeginDeleteCategory(RequireCategory(catalog, work)),
-            catalog,
-            defaults);
-        _ = deletion.Apply(BookmarkEditorAction.Cancel, catalog, defaults);
-        Assert.AreEqual(
-            "delete",
-            Assert.IsInstanceOfType<BookmarksBrowsing>(deletion.Current).Context.SearchText);
+        ];
+        foreach (BookmarkEditorAction action in actions)
+        {
+            BookmarkEditorSession editor = OpenEditor();
+            _ = editor.Apply(BookmarkEditorAction.Search("retained"), catalog, defaults);
+            _ = editor.Apply(BookmarkEditorAction.Filter(BookmarkCategoryFilter.For(work)), catalog, defaults);
+            _ = editor.Apply(BookmarkEditorAction.Select(new BookmarkSelection(entry)), catalog, defaults);
+            BookmarkBrowseContext before = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current).Context;
+
+            _ = editor.Apply(action, catalog, defaults);
+            _ = Assert.IsInstanceOfType<BookmarkEditorTransition.StateChanged>(
+                editor.Apply(BookmarkEditorAction.Cancel, catalog, defaults));
+
+            Assert.AreSame(before, Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current).Context);
+        }
     }
 
     /// <summary>Proves registration defaults retain a selected category but never retain All.</summary>

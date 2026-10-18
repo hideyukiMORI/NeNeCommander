@@ -45,7 +45,8 @@ internal sealed class BookmarkEditorSession
             BookmarkEditorAction.BeginDeleteCategoryAction delete =>
                 BeginDeleteCategory(delete.Selection, catalog),
             BookmarkEditorAction.ConfirmDeleteCategoryAction => ConfirmDeleteCategory(catalog),
-            _ => ApplyCancel(action),
+            BookmarkEditorAction.CancelAction => Cancel(),
+            _ => throw new InvalidOperationException("The bookmark editor action variant is not supported."),
         };
     }
 
@@ -295,12 +296,6 @@ internal sealed class BookmarkEditorSession
         return result.Transition;
     }
 
-    private BookmarkEditorTransition ApplyCancel(BookmarkEditorAction action)
-    {
-        _ = (BookmarkEditorAction.CancelAction)action;
-        return Cancel();
-    }
-
     private static BookmarkCategoryFilter? ResolveFilter(
         BookmarkCategoryFilter filter,
         BookmarkCatalog catalog)
@@ -309,7 +304,10 @@ internal sealed class BookmarkEditorSession
         {
             return filter;
         }
-        BookmarkUserCategoryFilter user = (BookmarkUserCategoryFilter)filter;
+        if (filter is not BookmarkUserCategoryFilter user)
+        {
+            throw new InvalidOperationException("The bookmark category filter variant is not supported.");
+        }
         BookmarkCategorySelection? category = catalog.Select(user.Category);
         return category is null ? null : BookmarkCategoryFilter.For(category.Category);
     }
