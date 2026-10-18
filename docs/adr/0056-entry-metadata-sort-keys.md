@@ -4,6 +4,10 @@ Status: accepted
 
 Date: 2026-10-09
 
+On 2026-10-18, ADR-0074 replaces the name tie-break with natural ASCII numeric
+ordering. The metadata primary keys, unknown-value ranks and grouping remain as
+decided here.
+
 ## Context
 
 ADR-0053 sorts a pane by name or extension through `EntryOrdering` over the `PaneSortOrder` held

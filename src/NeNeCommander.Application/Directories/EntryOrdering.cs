@@ -17,8 +17,9 @@ public static class EntryOrdering
     private const int UnknownRank = 1;
 
     /// <summary>
-    /// Projects entries into the order a pane shows them. The name comparison ignores case first
-    /// and then compares ordinally, so providers with case-sensitive names stay deterministic. The
+    /// Projects entries into the order a pane shows them. Names compare ASCII digit runs numerically,
+    /// with shorter zero padding first, and other text ignoring case (ADR-0074). Whole-name ties
+    /// compare ordinally, so providers with case-sensitive names stay deterministic. The
     /// extension is the text after the last dot of the name; a name without a dot, or whose only
     /// dot is its first character, has no extension and sorts first ascending. Extensions compare
     /// ignoring case and ties fall back to the ascending name comparison. Size and modification
@@ -89,8 +90,58 @@ public static class EntryOrdering
 
     private static int CompareNames(DirectoryEntry left, DirectoryEntry right)
     {
-        int ignoringCase = string.Compare(left.Name, right.Name, StringComparison.OrdinalIgnoreCase);
+        int ignoringCase = CompareNaturalNames(left.Name.AsSpan(), right.Name.AsSpan());
         return ignoringCase != 0 ? ignoringCase : string.CompareOrdinal(left.Name, right.Name);
+    }
+
+    private static int CompareNaturalNames(ReadOnlySpan<char> first, ReadOnlySpan<char> second)
+    {
+        while (!first.IsEmpty && !second.IsEmpty)
+        {
+            int firstLength = NameRunLength(first);
+            int secondLength = NameRunLength(second);
+            int comparison;
+            if (char.IsAsciiDigit(first[0]) && char.IsAsciiDigit(second[0]))
+            {
+                comparison = CompareDigitRuns(first[..firstLength], second[..secondLength]);
+            }
+            else
+            {
+                firstLength = Math.Min(firstLength, secondLength);
+                secondLength = firstLength;
+                comparison = first[..firstLength].CompareTo(second[..secondLength], StringComparison.OrdinalIgnoreCase);
+            }
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+            first = first[firstLength..];
+            second = second[secondLength..];
+        }
+        return first.Length.CompareTo(second.Length);
+    }
+
+    private static int NameRunLength(ReadOnlySpan<char> text)
+    {
+        bool digits = char.IsAsciiDigit(text[0]);
+        int length = 1;
+        while (length < text.Length && char.IsAsciiDigit(text[length]) == digits)
+        {
+            length++;
+        }
+        return length;
+    }
+
+    private static int CompareDigitRuns(ReadOnlySpan<char> first, ReadOnlySpan<char> second)
+    {
+        ReadOnlySpan<char> firstSignificant = first.TrimStart('0');
+        ReadOnlySpan<char> secondSignificant = second.TrimStart('0');
+        int comparison = firstSignificant.Length.CompareTo(secondSignificant.Length);
+        if (comparison == 0)
+        {
+            comparison = firstSignificant.CompareTo(secondSignificant, StringComparison.Ordinal);
+        }
+        return comparison != 0 ? comparison : first.Length.CompareTo(second.Length);
     }
 
     private static ReadOnlySpan<char> ExtensionOf(string name)

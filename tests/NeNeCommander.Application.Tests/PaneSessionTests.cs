@@ -669,10 +669,10 @@ public sealed class PaneSessionTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing root = Listing(
             "C:\\root",
-            ("b.txt", DirectoryEntryKind.File),
+            ("file10.txt", DirectoryEntryKind.File),
             ("a.md", DirectoryEntryKind.File),
-            ("c", DirectoryEntryKind.File));
-        DirectoryListing next = Listing("C:\\next", ("y.txt", DirectoryEntryKind.File), ("z.md", DirectoryEntryKind.File));
+            ("file2.txt", DirectoryEntryKind.File));
+        DirectoryListing next = Listing("C:\\next", ("y10.txt", DirectoryEntryKind.File), ("y2.txt", DirectoryEntryKind.File), ("z.md", DirectoryEntryKind.File));
         port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         port.Enqueue(DirectoryReadOutcome.Succeeded(root, null));
         port.Enqueue(DirectoryReadOutcome.Succeeded(next, null));
@@ -689,11 +689,11 @@ public sealed class PaneSessionTests
         PaneState refreshedState = Assert.IsInstanceOfType<PaneContentListed>(refreshed.Content).State;
         PaneState movedState = Assert.IsInstanceOfType<PaneContentListed>(moved.Content).State;
         PaneState backState = Assert.IsInstanceOfType<PaneContentListed>(back.Content).State;
-        AssertVisibleNames(["b.txt", "a.md", "c"], refreshedState);
+        AssertVisibleNames(["file2.txt", "file10.txt", "a.md"], refreshedState);
         Assert.AreSame(root.Entries[0].Path, refreshedState.FocusItem);
-        AssertVisibleNames(["y.txt", "z.md"], movedState);
+        AssertVisibleNames(["y2.txt", "y10.txt", "z.md"], movedState);
         Assert.AreSame(movedState.VisibleEntries[0].Path, movedState.FocusItem);
-        AssertVisibleNames(["b.txt", "a.md", "c"], backState);
+        AssertVisibleNames(["file2.txt", "file10.txt", "a.md"], backState);
         Assert.AreSame(backState.VisibleEntries[0].Path, backState.FocusItem);
         Assert.AreSame(SortKey.Extension, backState.SortOrder.Key);
         Assert.AreSame(SortDirection.Descending, backState.SortOrder.Direction);
