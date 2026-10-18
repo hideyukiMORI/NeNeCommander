@@ -128,17 +128,21 @@ branch、commit、恒久証拠、共通SDKは保持する。
 
 一時出力の削除は自動承認レビューが`blocked by policy`でcommand開始前に拒否した。
 別手段による再試行はせず、15:39:13 JSTに出力の残存とworktreeの不在を読み取り専用で確認した。
-[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299)で、この実際の状態と実行用commandを記録する。
-既存checkoutを使う文書3件だけの追記で、追加worktree/output、build/test/CI/NAS測定はない。
-文面/link/diffと通常Commit hookを確認し、その統合は`report-closure/completion.json`に保存する。
-`cleanup-preflight.json`、`cleanup-output-disposition.json`、`cleanup-pending.json`、`completion.json`が整理の記録である。
+[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299) /
+[PR #300](https://github.com/hideyukiMORI/NeNeCommander/pull/300)で、その時点の保留状態を記録し、
+15:42:07 JSTに`f2d1158faf62a2e4c0238342b2ad15dabf98a5de`へsquash mergeした。
+`cleanup-preflight.json`、`cleanup-output-disposition.json`、`cleanup-pending.json`と
+`report-closure/completion.json`は削除前の確認・拒否・記録統合の履歴として保持する。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-297`だけ。
-scriptは対象・保存済み成果物・在庫・link・稼働参照を確認して削除し、実行記録を恒久証拠へ保存する。
-サナは構文検査だけを行い、削除拒否後にscriptを実行していない。
+hideが15:44:58 JSTに用意済みscriptを実行し、`D:/NeNeCommander/outputs/issue-297`を削除した。
+15:45:47 JSTの読み取り専用確認で、その出力とtask worktreeの不在を確認した。
+branch、commit、恒久証拠、共通SDKは残っている。サナによる削除再試行はない。
+`cleanup-executed-by-hide.json`、`cleanup-confirmation.json`、`completion.json`が完了の記録である。
+整理の実行待ちはなく、commandの再実行も不要。
 
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/window-close-20261018/cleanup-completed-output.ps1
-```
+[Issue #301](https://github.com/hideyukiMORI/NeNeCommander/issues/301)で日報・引き継ぎ・PROJECT_STATEを
+この完了状態へ更新した。既存checkoutの文書3件のみを変更し、追加worktree/output、build/test/CI、
+NAS測定はない。文面/link/diffと通常Commit hookだけを確認する。
+この文書更新のPRと`cleanup-closure/completion.json`に最終統合・main同期を記録する。
