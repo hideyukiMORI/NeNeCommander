@@ -45,6 +45,11 @@ docs/
 
 ## Folder law
 
+`eng/complexity/` holds the standalone CS-013 metric implementation and its small
+fixtures, owned by `eng/measure-complexity.ps1` (ADR-0075). It compiles with the
+pinned SDK into ignored `artifacts/complexity/`, without a solution project,
+dependency, product build or gate/CI connection.
+
 `eng/record-closure/` holds the compiler-driven CS-002 gate sources owned by
 `eng/verify-record-closure.ps1` (ADR-0073). They compile directly with the pinned
 SDK into ignored `artifacts/record-closure/`, not a solution project or a production

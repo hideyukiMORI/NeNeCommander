@@ -6,6 +6,15 @@ ADR-0061 selects verification by change impact. `eng/check.ps1` (default `Merge`
 
 ## Gate sequence
 
+The ADR-0075 CS-013 checker is a standalone measurement tool, not a gate stage.
+`pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect` measures every
+in-scope working-tree C# source. It returns 0 for conformity, 1 for retained
+findings and 2 for input/tool failure; inspect both the exit code and the fresh
+`artifacts/complexity/Inspect/result.json`. `-Mode SelfTest` runs only its own
+boundary/negative fixtures. It uses the pinned SDK compiler without restoring or
+building product projects. Global adoption requires resolving current findings
+and a separate change through the existing gate, with its own negative proof.
+
 The canonical gate stops at the first failing stage:
 
 1. pinned SDK and repository-state validation;
