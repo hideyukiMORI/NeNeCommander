@@ -10,6 +10,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileOperationRequest
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private const int MaximumSourceCount = 10000;
 
     internal FileOperationRequest(IReadOnlyList<FileSystemPath> sources)

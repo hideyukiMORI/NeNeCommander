@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record InteractionOwnership
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the ownership the scope receives while it may act on input.</summary>
     public static InteractionOwnership ScopeOwnsInput { get; } = new OwnedByThisScope();
 
@@ -16,7 +19,17 @@ public abstract record InteractionOwnership
     {
     }
 
-    private sealed record OwnedByThisScope : InteractionOwnership;
+    private sealed record OwnedByThisScope : InteractionOwnership
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record OwnedByAnotherScope : InteractionOwnership;
+    private sealed record OwnedByAnotherScope : InteractionOwnership
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

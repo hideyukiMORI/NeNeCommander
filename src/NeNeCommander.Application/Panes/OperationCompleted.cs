@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents the complete typed outcome of the most recent operation.</summary>
 public sealed record OperationCompleted : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationCompleted(OperationKind kind, FileOperationOutcome outcome)
     {
         ArgumentNullException.ThrowIfNull(kind);

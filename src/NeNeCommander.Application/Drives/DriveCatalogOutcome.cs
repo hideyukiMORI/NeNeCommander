@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Drives;
 /// <summary>Represents the closed success, cancellation, or expected failure of drive listing.</summary>
 public abstract record DriveCatalogOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal DriveCatalogOutcome()
     {
     }

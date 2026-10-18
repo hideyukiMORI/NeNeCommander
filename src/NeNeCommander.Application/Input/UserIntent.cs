@@ -12,6 +12,9 @@ namespace NeNeCommander.Application.Input;
 /// </summary>
 public abstract record UserIntent
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the intent to focus the next visible item.</summary>
     public static UserIntent MoveNext { get; } = new MoveNextIntent();
 
@@ -244,35 +247,190 @@ public abstract record UserIntent
         return new BookmarkEditorActionSubmission(action);
     }
 
-    private sealed record MoveNextIntent : UserIntent;
-    private sealed record MovePreviousIntent : UserIntent;
-    private sealed record FocusFirstIntent : UserIntent;
-    private sealed record FocusLastIntent : UserIntent;
-    private sealed record MoveHalfPageDownIntent : UserIntent;
-    private sealed record MoveHalfPageUpIntent : UserIntent;
-    private sealed record NavigateParentIntent : UserIntent;
-    private sealed record NavigateBackIntent : UserIntent;
-    private sealed record NavigateForwardIntent : UserIntent;
-    private sealed record OpenFocusedIntent : UserIntent;
-    private sealed record ActivateOtherPaneIntent : UserIntent;
-    private sealed record ToggleSelectionIntent : UserIntent;
-    private sealed record ToggleHiddenItemsIntent : UserIntent;
-    private sealed record SortByNameIntent : UserIntent;
-    private sealed record SortByExtensionIntent : UserIntent;
-    private sealed record SortBySizeIntent : UserIntent;
-    private sealed record SortByModifiedIntent : UserIntent;
-    private sealed record EscapeIntent : UserIntent;
-    private sealed record RenameIntent : UserIntent;
-    private sealed record CopyIntent : UserIntent;
-    private sealed record MoveIntent : UserIntent;
-    private sealed record CreateDirectoryIntent : UserIntent;
-    private sealed record DeleteIntent : UserIntent;
-    private sealed record FocusAddressIntent : UserIntent;
-    private sealed record RefreshIntent : UserIntent;
-    private sealed record ConfirmIntent : UserIntent;
-    private sealed record OpenSettingsIntent : UserIntent;
-    private sealed record OpenCommandPaletteIntent : UserIntent;
-    private sealed record OpenBookmarksIntent : UserIntent;
-    private sealed record OpenWindowAdjustmentIntent : UserIntent;
-    private sealed record OpenLocationsIntent : UserIntent;
+    private sealed record MoveNextIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MovePreviousIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record FocusFirstIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record FocusLastIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveHalfPageDownIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveHalfPageUpIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NavigateParentIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NavigateBackIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NavigateForwardIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenFocusedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ActivateOtherPaneIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ToggleSelectionIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ToggleHiddenItemsIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SortByNameIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SortByExtensionIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SortBySizeIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SortByModifiedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record EscapeIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RenameIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CopyIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CreateDirectoryIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DeleteIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record FocusAddressIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RefreshIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ConfirmIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenSettingsIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenCommandPaletteIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenBookmarksIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenWindowAdjustmentIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenLocationsIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

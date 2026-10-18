@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Carries the editor captured from the pane snapshot read before any activation effect.</summary>
 public sealed record AddressEditAdmitted : AddressEditAdmission
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressEditAdmitted(AddressEditing editor)
     {
         ArgumentNullException.ThrowIfNull(editor);

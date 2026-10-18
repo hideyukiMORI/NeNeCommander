@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record CommandPaletteValidation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the result that leaves the session no palette intent to dispatch.</summary>
     public static CommandPaletteValidation NothingToDispatch { get; } = new NoDispatch();
 
@@ -13,5 +16,10 @@ public abstract record CommandPaletteValidation
     {
     }
 
-    private sealed record NoDispatch : CommandPaletteValidation;
+    private sealed record NoDispatch : CommandPaletteValidation
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

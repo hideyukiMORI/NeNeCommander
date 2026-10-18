@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Launching;
 /// <summary>Identifies one closed expected reason a file handoff was not accepted.</summary>
 public abstract record FileLaunchFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for a target or containing directory that no longer exists.</summary>
     public static FileLaunchFailureKind NotFound { get; } = new NotFoundFailure();
 
@@ -22,9 +25,34 @@ public abstract record FileLaunchFailureKind
     {
     }
 
-    private sealed record NotFoundFailure : FileLaunchFailureKind;
-    private sealed record AccessDeniedFailure : FileLaunchFailureKind;
-    private sealed record AssociationUnavailableFailure : FileLaunchFailureKind;
-    private sealed record ProviderUnavailableFailure : FileLaunchFailureKind;
-    private sealed record ShellRejectedFailure : FileLaunchFailureKind;
+    private sealed record NotFoundFailure : FileLaunchFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AccessDeniedFailure : FileLaunchFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AssociationUnavailableFailure : FileLaunchFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ProviderUnavailableFailure : FileLaunchFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ShellRejectedFailure : FileLaunchFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

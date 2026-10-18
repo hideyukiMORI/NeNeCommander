@@ -12,6 +12,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record RenameRequest : FileOperationRequest
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private RenameRequest(
         ReadOnlyCollection<FileSystemPath> sources,
         FileSystemPath source,

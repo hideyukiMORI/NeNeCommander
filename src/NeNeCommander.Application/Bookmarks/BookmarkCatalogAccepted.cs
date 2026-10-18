@@ -3,6 +3,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents collections accepted as one complete bookmark catalog.</summary>
 public sealed record BookmarkCatalogAccepted : BookmarkCatalogCreationOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkCatalogAccepted(BookmarkCatalog catalog)
     {
         Catalog = catalog;

@@ -3,6 +3,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Contains a normalized preflight failure.</summary>
 public sealed record TransferPreflightRejected : TransferPreflightOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal TransferPreflightRejected(FileOperationFailureKind failure)
     {
         Failure = failure;

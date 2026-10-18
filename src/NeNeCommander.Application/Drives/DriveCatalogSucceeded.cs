@@ -11,6 +11,10 @@ namespace NeNeCommander.Application.Drives;
 /// </summary>
 public sealed record DriveCatalogSucceeded : DriveCatalogOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private readonly ReadOnlyCollection<DriveLocation> _drives;
 
     internal DriveCatalogSucceeded(IReadOnlyList<DriveLocation> drives, int unrepresentableRootCount)

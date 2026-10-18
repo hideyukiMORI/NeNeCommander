@@ -8,6 +8,10 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public sealed record ActiveNameEntry : NameEntryPresentation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ActiveNameEntry(string initialText)
     {
         ArgumentNullException.ThrowIfNull(initialText);

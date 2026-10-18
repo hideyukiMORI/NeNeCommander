@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record OperationActivity
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected OperationActivity()
     {
     }
@@ -13,5 +16,10 @@ public abstract record OperationActivity
     /// <summary>Gets the activity when no operation is running and none has been reported.</summary>
     public static OperationActivity Idle { get; } = new OperationIdle();
 
-    private sealed record OperationIdle : OperationActivity;
+    private sealed record OperationIdle : OperationActivity
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

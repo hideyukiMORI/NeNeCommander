@@ -20,6 +20,15 @@ Domain invariants use unit and deterministic property tests. Application orchest
 
 Every accepted input class has a successful example and every rejected invariant has a minimal counterexample. A feature test set that proves only success is incomplete.
 
+ADR-0073 proves public record closure with the pinned compiler against the actual
+four non-host Release assemblies. External abstract derivation and known-case
+copy usage must compile; external concrete ordinary/copy/override attempts must
+fail for the expected diagnostics. Public abstract requirements are implemented
+in probes, so their omission cannot falsely establish closure. The checker also
+rejects deliberately reopened fixtures and unrelated compiler errors. Existing
+factory/behavior tests and focused root/concrete `with`, equality/hash and payload
+tests establish runtime compatibility without calling the structural member.
+
 ### TST-003 — Tests are deterministic
 
 - Status: **active**

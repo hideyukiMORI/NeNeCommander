@@ -10,6 +10,10 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public sealed record WindowAdjustmentOpen : WindowAdjustmentState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WindowAdjustmentOpen(PaneSide activeSide, WindowAdjustmentOutcome outcome)
     {
         ArgumentNullException.ThrowIfNull(activeSide);

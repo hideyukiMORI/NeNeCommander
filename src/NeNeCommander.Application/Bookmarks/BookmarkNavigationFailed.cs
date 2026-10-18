@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Retains the manager state and selection after the canonical pane read fails.</summary>
 public sealed record BookmarkNavigationFailed : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkNavigationFailed(
         BookmarkBrowseContext returnContext,
         BookmarkSelection selection,

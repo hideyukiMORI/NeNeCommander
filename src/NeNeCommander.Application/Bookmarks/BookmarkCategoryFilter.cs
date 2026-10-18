@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents the closed category filter choices owned by the bookmark manager.</summary>
 public abstract record BookmarkCategoryFilter
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the filter that includes every registered bookmark.</summary>
     public static BookmarkCategoryFilter All { get; } = new BookmarkAllCategoryFilter();
 

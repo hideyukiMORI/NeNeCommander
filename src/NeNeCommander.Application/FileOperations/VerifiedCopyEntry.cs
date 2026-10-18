@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Records one exactly compared file or directory and its immutable descendant evidence.</summary>
 public abstract record VerifiedCopyEntry
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected VerifiedCopyEntry(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -40,6 +43,10 @@ public abstract record VerifiedCopyEntry
     /// <summary>Represents a file and its SHA-256 evidence.</summary>
     public sealed record VerifiedFile : VerifiedCopyEntry
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal VerifiedFile(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, FileContentHash content)
             : base(source, target)
         {
@@ -53,6 +60,10 @@ public abstract record VerifiedCopyEntry
     /// <summary>Represents a directory's complete directly verified entry set.</summary>
     public sealed record VerifiedDirectory : VerifiedCopyEntry
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal VerifiedDirectory(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, IReadOnlyList<VerifiedCopyEntry> children)
             : base(source, target)
         {

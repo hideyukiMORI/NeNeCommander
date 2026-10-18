@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Closes the exact address editor whose native control lost focus.</summary>
 public sealed record AddressFocusDeparture : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressFocusDeparture(AddressEditorState expectedState)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

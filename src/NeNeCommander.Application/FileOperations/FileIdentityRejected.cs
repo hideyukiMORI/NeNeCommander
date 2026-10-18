@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record FileIdentityRejected : FileIdentityParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal FileIdentityRejected()
     {
     }

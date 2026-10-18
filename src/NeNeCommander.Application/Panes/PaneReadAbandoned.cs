@@ -11,6 +11,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record PaneReadAbandoned : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneReadAbandoned(FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(target);

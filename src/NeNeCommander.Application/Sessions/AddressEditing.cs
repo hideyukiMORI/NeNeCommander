@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents address editing for one captured pane and canonical origin location.</summary>
 public sealed record AddressEditing : AddressEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressEditing(PaneSide side, FileSystemPath originalLocation)
     {
         ArgumentNullException.ThrowIfNull(side);

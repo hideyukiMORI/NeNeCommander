@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Directories;
 /// <summary>Represents one expected directory read failure normalized by its adapter.</summary>
 public sealed record DirectoryReadFailed : DirectoryReadOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DirectoryReadFailed(FileOperationFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

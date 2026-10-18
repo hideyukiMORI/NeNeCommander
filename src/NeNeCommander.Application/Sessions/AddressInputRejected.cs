@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents one rejected raw address that remains open for correction.</summary>
 public sealed record AddressInputRejected : AddressEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressInputRejected(
         PaneSide side,
         FileSystemPath originalLocation,

@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileOperationFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for another operation already owning the gateway.</summary>
     public static FileOperationFailureKind Reentrant { get; } = new ReentrantFailure();
 
@@ -45,16 +48,76 @@ public abstract record FileOperationFailureKind
     {
     }
 
-    private sealed record ReentrantFailure : FileOperationFailureKind;
-    private sealed record InspectionFailure : FileOperationFailureKind;
-    private sealed record ConflictFailure : FileOperationFailureKind;
-    private sealed record CopyFailure : FileOperationFailureKind;
-    private sealed record MoveFailure : FileOperationFailureKind;
-    private sealed record VerificationFailure : FileOperationFailureKind;
-    private sealed record DeleteFailure : FileOperationFailureKind;
-    private sealed record ConfirmationRequiredFailure : FileOperationFailureKind;
-    private sealed record IdentityChangedFailure : FileOperationFailureKind;
-    private sealed record ProviderUnavailableFailure : FileOperationFailureKind;
-    private sealed record AccessDeniedFailure : FileOperationFailureKind;
-    private sealed record NotFoundFailure : FileOperationFailureKind;
+    private sealed record ReentrantFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InspectionFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ConflictFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CopyFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record VerificationFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DeleteFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ConfirmationRequiredFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record IdentityChangedFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ProviderUnavailableFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AccessDeniedFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NotFoundFailure : FileOperationFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

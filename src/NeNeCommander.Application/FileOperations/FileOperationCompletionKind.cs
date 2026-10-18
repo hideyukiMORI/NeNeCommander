@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileOperationCompletionKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the state in which every requested effect completed.</summary>
     public static FileOperationCompletionKind Succeeded { get; } = new SucceededCompletion();
 
@@ -21,8 +24,28 @@ public abstract record FileOperationCompletionKind
     {
     }
 
-    private sealed record SucceededCompletion : FileOperationCompletionKind;
-    private sealed record CancelledCompletion : FileOperationCompletionKind;
-    private sealed record RejectedCompletion : FileOperationCompletionKind;
-    private sealed record PartiallyCompletedCompletion : FileOperationCompletionKind;
+    private sealed record SucceededCompletion : FileOperationCompletionKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CancelledCompletion : FileOperationCompletionKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RejectedCompletion : FileOperationCompletionKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PartiallyCompletedCompletion : FileOperationCompletionKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -10,6 +10,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record ColorScheme
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the default dark scheme used when no valid persisted scheme exists.</summary>
     public static ColorScheme NeNeDark { get; } = new NeNeDarkScheme();
 
@@ -78,48 +81,80 @@ public abstract record ColorScheme
 
     private sealed record NeNeDarkScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "nene-dark";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record UbuntuScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "ubuntu";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record MonokaiScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "monokai";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record SolarizedDarkScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "solarized-dark";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record SolarizedLightScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "solarized-light";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Light;
     }
 
     private sealed record DraculaScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "dracula";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record NeNeBlackScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "nene-black";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Dark;
     }
 
     private sealed record NeNeLightScheme : ColorScheme
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string Identifier => "nene-light";
         public override ColorSchemeAppearance Appearance => ColorSchemeAppearance.Light;
     }

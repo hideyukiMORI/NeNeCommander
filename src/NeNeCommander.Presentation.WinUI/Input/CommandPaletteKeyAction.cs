@@ -3,6 +3,9 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// <summary>Names the closed Presentation-owned selection action of one palette key.</summary>
 public abstract record CommandPaletteKeyAction
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the action that selects the preceding filtered command.</summary>
     public static CommandPaletteKeyAction MovePrevious { get; } = new MovePreviousAction();
 
@@ -22,9 +25,34 @@ public abstract record CommandPaletteKeyAction
     {
     }
 
-    private sealed record MovePreviousAction : CommandPaletteKeyAction;
-    private sealed record MoveNextAction : CommandPaletteKeyAction;
-    private sealed record ExecuteAction : CommandPaletteKeyAction;
-    private sealed record CancelAction : CommandPaletteKeyAction;
-    private sealed record MoveFocusAction : CommandPaletteKeyAction;
+    private sealed record MovePreviousAction : CommandPaletteKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveNextAction : CommandPaletteKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ExecuteAction : CommandPaletteKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CancelAction : CommandPaletteKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveFocusAction : CommandPaletteKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

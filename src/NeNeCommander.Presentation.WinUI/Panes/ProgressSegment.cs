@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record ProgressSegment
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the segment that represents completed work.</summary>
     public static ProgressSegment Filled { get; } = new FilledSegment();
 
@@ -22,11 +25,19 @@ public abstract record ProgressSegment
 
     private sealed record FilledSegment : ProgressSegment
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string BrushResourceKey => "OperationProgressBrush";
     }
 
     private sealed record EmptySegment : ProgressSegment
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string BrushResourceKey => "OperationTrackBrush";
     }
 }

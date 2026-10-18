@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents a read stopped by cancellation that left the content unchanged.</summary>
 public sealed record PaneReadCancelled : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneReadCancelled(FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(target);

@@ -9,6 +9,10 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public sealed record LocationsLoading : LocationsState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LocationsLoading(PaneSide activeSide)
     {
         ArgumentNullException.ThrowIfNull(activeSide);

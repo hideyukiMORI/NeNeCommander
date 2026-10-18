@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Requests direct navigation through one of the nine fixed bookmark slots.</summary>
 public sealed record BookmarkShortcutSelection : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkShortcutSelection(BookmarkShortcutSlot slot)
     {
         ArgumentNullException.ThrowIfNull(slot);

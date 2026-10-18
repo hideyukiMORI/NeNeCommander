@@ -11,6 +11,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record PaneRowVisibility
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the rendering of an entry the provider does not mark hidden or system.</summary>
     public static PaneRowVisibility Normal { get; } = new NormalRowVisibility();
 
@@ -35,11 +38,19 @@ public abstract record PaneRowVisibility
 
     private sealed record NormalRowVisibility : PaneRowVisibility
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string NameBrushResourceKey => "TextPrimaryBrush";
     }
 
     private sealed record HiddenRowVisibility : PaneRowVisibility
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string NameBrushResourceKey => "TextHiddenBrush";
     }
 }

@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public sealed record SettingsRejected : SettingsReadOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal SettingsRejected(SettingsReadFailureKind kind)
     {
         ArgumentNullException.ThrowIfNull(kind);

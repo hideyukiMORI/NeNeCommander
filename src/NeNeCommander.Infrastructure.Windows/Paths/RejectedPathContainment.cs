@@ -5,6 +5,10 @@ namespace NeNeCommander.Infrastructure.Windows.Paths;
 /// <summary>Represents a candidate rejected from an operation root.</summary>
 public sealed record RejectedPathContainment : PathContainmentOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal RejectedPathContainment(PathContainmentFailureKind kind)
     {
         ArgumentNullException.ThrowIfNull(kind);

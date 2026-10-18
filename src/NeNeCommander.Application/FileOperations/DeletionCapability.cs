@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record DeletionCapability
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the capability that guarantees recycle semantics.</summary>
     public static DeletionCapability Recycle { get; } = new RecycleCapability();
 
@@ -15,6 +18,16 @@ public abstract record DeletionCapability
     {
     }
 
-    private sealed record RecycleCapability : DeletionCapability;
-    private sealed record PermanentOnlyCapability : DeletionCapability;
+    private sealed record RecycleCapability : DeletionCapability
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PermanentOnlyCapability : DeletionCapability
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

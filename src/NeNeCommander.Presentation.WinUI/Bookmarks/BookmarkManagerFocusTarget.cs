@@ -3,6 +3,9 @@ namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 /// <summary>Closed native-control focus target for each newly rendered manager substate.</summary>
 public abstract record BookmarkManagerFocusTarget
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the browse search target.</summary>
     public static BookmarkManagerFocusTarget Search { get; } = new SearchTarget();
     /// <summary>Gets the bookmark-name draft target.</summary>
@@ -19,9 +22,34 @@ public abstract record BookmarkManagerFocusTarget
     {
     }
 
-    private sealed record SearchTarget : BookmarkManagerFocusTarget;
-    private sealed record BookmarkNameTarget : BookmarkManagerFocusTarget;
-    private sealed record CategoryNameTarget : BookmarkManagerFocusTarget;
-    private sealed record CancelCategoryDeleteTarget : BookmarkManagerFocusTarget;
-    private sealed record RetryNavigationTarget : BookmarkManagerFocusTarget;
+    private sealed record SearchTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BookmarkNameTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CategoryNameTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CancelCategoryDeleteTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RetryNavigationTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

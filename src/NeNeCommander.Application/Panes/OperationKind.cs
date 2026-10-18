@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record OperationKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the kind for moving the active pane's items to the passive pane.</summary>
     public static OperationKind Move { get; } = new MoveKind();
 
@@ -24,9 +27,34 @@ public abstract record OperationKind
     {
     }
 
-    private sealed record MoveKind : OperationKind;
-    private sealed record CopyKind : OperationKind;
-    private sealed record DeleteKind : OperationKind;
-    private sealed record CreateDirectoryKind : OperationKind;
-    private sealed record RenameKind : OperationKind;
+    private sealed record MoveKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CopyKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DeleteKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CreateDirectoryKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RenameKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

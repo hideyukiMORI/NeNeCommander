@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryListingFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for a null entry element.</summary>
     public static DirectoryListingFailureKind NullEntry { get; } = new NullEntryFailure();
 
@@ -18,7 +21,22 @@ public abstract record DirectoryListingFailureKind
     {
     }
 
-    private sealed record NullEntryFailure : DirectoryListingFailureKind;
-    private sealed record DuplicateEntryFailure : DirectoryListingFailureKind;
-    private sealed record TooManyEntriesFailure : DirectoryListingFailureKind;
+    private sealed record NullEntryFailure : DirectoryListingFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DuplicateEntryFailure : DirectoryListingFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooManyEntriesFailure : DirectoryListingFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents the closed actions accepted by the session-owned bookmark manager.</summary>
 public abstract record BookmarkEditorAction
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the action that validates and saves the current draft.</summary>
     public static BookmarkEditorAction Save { get; } = new SaveAction();
     /// <summary>Gets the action that starts registration with session-derived defaults.</summary>
@@ -77,6 +80,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record SearchAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal SearchAction(string text)
         {
             ArgumentNullException.ThrowIfNull(text);
@@ -88,6 +95,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record FilterAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal FilterAction(BookmarkCategoryFilter filter)
         {
             ArgumentNullException.ThrowIfNull(filter);
@@ -99,6 +110,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record SelectAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal SelectAction(BookmarkSelection? selection)
         {
             Selection = selection;
@@ -107,10 +122,19 @@ public abstract record BookmarkEditorAction
         internal BookmarkSelection? Selection { get; }
     }
 
-    internal sealed record BeginAddBookmarkAction : BookmarkEditorAction;
+    internal sealed record BeginAddBookmarkAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
     internal sealed record BeginEditBookmarkAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal BeginEditBookmarkAction(BookmarkSelection selection)
         {
             ArgumentNullException.ThrowIfNull(selection);
@@ -122,6 +146,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record UpdateBookmarkAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal UpdateBookmarkAction(BookmarkDraft draft)
         {
             ArgumentNullException.ThrowIfNull(draft);
@@ -131,11 +159,25 @@ public abstract record BookmarkEditorAction
         internal BookmarkDraft Draft { get; }
     }
 
-    internal sealed record SaveAction : BookmarkEditorAction;
-    internal sealed record BeginAddCategoryAction : BookmarkEditorAction;
+    internal sealed record SaveAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    internal sealed record BeginAddCategoryAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
     internal sealed record BeginRenameCategoryAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal BeginRenameCategoryAction(BookmarkCategorySelection selection)
         {
             ArgumentNullException.ThrowIfNull(selection);
@@ -147,6 +189,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record UpdateCategoryAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal UpdateCategoryAction(string name)
         {
             ArgumentNullException.ThrowIfNull(name);
@@ -158,6 +204,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record DeleteBookmarkAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal DeleteBookmarkAction(BookmarkSelection selection)
         {
             ArgumentNullException.ThrowIfNull(selection);
@@ -169,6 +219,10 @@ public abstract record BookmarkEditorAction
 
     internal sealed record BeginDeleteCategoryAction : BookmarkEditorAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal BeginDeleteCategoryAction(BookmarkCategorySelection selection)
         {
             ArgumentNullException.ThrowIfNull(selection);
@@ -178,6 +232,16 @@ public abstract record BookmarkEditorAction
         internal BookmarkCategorySelection Selection { get; }
     }
 
-    internal sealed record ConfirmDeleteCategoryAction : BookmarkEditorAction;
-    internal sealed record CancelAction : BookmarkEditorAction;
+    internal sealed record ConfirmDeleteCategoryAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    internal sealed record CancelAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Settings;
 /// <summary>Identifies the temporary-artifact residue of one rejected write attempt.</summary>
 public abstract record SettingsWriteEffect
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the state for an attempt that left no owned temporary artifact.</summary>
     public static SettingsWriteEffect None { get; } = new NoEffect();
 
@@ -13,6 +16,16 @@ public abstract record SettingsWriteEffect
     {
     }
 
-    private sealed record NoEffect : SettingsWriteEffect;
-    private sealed record TemporaryArtifactLeftEffect : SettingsWriteEffect;
+    private sealed record NoEffect : SettingsWriteEffect
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TemporaryArtifactLeftEffect : SettingsWriteEffect
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

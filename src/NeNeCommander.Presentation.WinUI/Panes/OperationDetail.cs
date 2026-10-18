@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record OperationDetail
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected OperationDetail()
     {
     }
@@ -14,5 +17,10 @@ public abstract record OperationDetail
     /// <summary>Gets the detail when there is nothing numeric to show.</summary>
     public static OperationDetail None { get; } = new OperationNoDetail();
 
-    private sealed record OperationNoDetail : OperationDetail;
+    private sealed record OperationNoDetail : OperationDetail
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

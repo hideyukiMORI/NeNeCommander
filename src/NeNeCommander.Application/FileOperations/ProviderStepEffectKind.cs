@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record ProviderStepEffectKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>
     /// Gets the effect indicating that the copy target entry now exists but its contents may be
     /// incomplete because the copy step failed.
@@ -21,7 +24,22 @@ public abstract record ProviderStepEffectKind
     {
     }
 
-    private sealed record CopyTargetCreatedEffect : ProviderStepEffectKind;
-    private sealed record RecycledEffect : ProviderStepEffectKind;
-    private sealed record SourcePartiallyDeletedEffect : ProviderStepEffectKind;
+    private sealed record CopyTargetCreatedEffect : ProviderStepEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RecycledEffect : ProviderStepEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SourcePartiallyDeletedEffect : ProviderStepEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

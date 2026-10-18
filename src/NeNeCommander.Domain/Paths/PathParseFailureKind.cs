@@ -5,6 +5,9 @@ namespace NeNeCommander.Domain.Paths;
 /// </summary>
 public abstract record PathParseFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure used for missing or whitespace-only input.</summary>
     public static PathParseFailureKind Empty { get; } = new EmptyFailure();
 
@@ -33,19 +36,59 @@ public abstract record PathParseFailureKind
     {
     }
 
-    private sealed record EmptyFailure : PathParseFailureKind;
+    private sealed record EmptyFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record TooLongFailure : PathParseFailureKind;
+    private sealed record TooLongFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record RelativeFailure : PathParseFailureKind;
+    private sealed record RelativeFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record InvalidRootFailure : PathParseFailureKind;
+    private sealed record InvalidRootFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record InvalidSegmentFailure : PathParseFailureKind;
+    private sealed record InvalidSegmentFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record ParentTraversalFailure : PathParseFailureKind;
+    private sealed record ParentTraversalFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record DeviceNamespaceFailure : PathParseFailureKind;
+    private sealed record DeviceNamespaceFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record InvalidDistributionFailure : PathParseFailureKind;
+    private sealed record InvalidDistributionFailure : PathParseFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

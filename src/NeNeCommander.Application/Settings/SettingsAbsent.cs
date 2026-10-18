@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public sealed record SettingsAbsent : SettingsReadOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal SettingsAbsent()
     {
     }

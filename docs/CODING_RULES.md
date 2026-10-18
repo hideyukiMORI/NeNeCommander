@@ -20,6 +20,17 @@ Raw strings, integers, tuples, and dictionaries may not represent paths, item id
 
 Domain and application states use sealed record-class hierarchies. Boolean mode parameters, magic strings, nullable state switches, bit fields, and combinations of flags that permit impossible states are prohibited.
 
+Under ADR-0073, a public abstract record is closed against additional concrete cases
+in ordinary non-friend external C# code by an externally inaccessible abstract member.
+Reuse meaningful nonpublic abstract members; otherwise declare
+`private protected abstract void RestrictDerivation();` and an empty override in
+each sealed case. This member is compile-time structure and is never called at
+runtime. Do not add coverage exclusions or calls merely to exercise it. External
+abstract derivation and explicitly trusted friend assemblies remain possible.
+`eng/verify-record-closure.ps1` checks concrete ordinary/copy/override attempts with
+the pinned compiler after the canonical Release build; its self-proof is selected
+through `eng/prove-gates.ps1 -Rule CS-002` and included in the full gate.
+
 ### CS-003 — Project-owned value types are reference types
 
 - Status: **active**
@@ -33,6 +44,10 @@ Project-owned `struct`, `record struct`, and mutable tuple models are prohibited
 - Enforcement: syntax scan and review.
 
 Domain and application choices use closed sealed record-class hierarchies so arbitrary integer casts cannot create invalid values. Enums are permitted only at framework interop boundaries and must be translated immediately through an exhaustive switch.
+
+The CS-002 concrete-case closure rule also applies to public record choices and
+outcomes in Infrastructure and Presentation. Nonpublic roots do not gain a
+structural member solely for external access that is already impossible.
 
 ### CS-005 — Null has one meaning
 
@@ -61,6 +76,12 @@ Public and internal models expose constructor-complete immutable state. Public s
 - Enforcement: constructor scan and tests.
 
 Invariant-bearing types have private constructors and one canonical named factory, normally `Parse` for boundary text or `Create` for validated components. Parallel constructors, `TryCreate`, builders, object initializers, and partially initialized states are prohibited.
+
+A private ordinary constructor alone does not close an abstract record: its
+synthesized protected copy constructor remains an external derivation path.
+The CS-002 mechanism closes concrete cases while preserving known records' `with`,
+value equality, hash and immutable payload. Ordinary-constructor inspection or
+enumerating only the defining assembly cannot substitute for the compiler proof.
 
 ## Surface and organization
 

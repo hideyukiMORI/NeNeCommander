@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Directories;
 /// <summary>Represents one complete, successful directory read.</summary>
 public sealed record DirectoryReadSucceeded : DirectoryReadOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DirectoryReadSucceeded(DirectoryListing listing, DriveKind? driveKind)
     {
         ArgumentNullException.ThrowIfNull(listing);

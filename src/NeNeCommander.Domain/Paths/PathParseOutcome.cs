@@ -5,6 +5,9 @@ namespace NeNeCommander.Domain.Paths;
 /// </summary>
 public abstract record PathParseOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected PathParseOutcome()
     {
     }

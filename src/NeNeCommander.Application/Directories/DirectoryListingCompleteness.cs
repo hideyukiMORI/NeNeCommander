@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryListingCompleteness
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the state in which every representable direct entry was read.</summary>
     public static DirectoryListingCompleteness Complete { get; } = new CompleteState();
 
@@ -15,6 +18,16 @@ public abstract record DirectoryListingCompleteness
     {
     }
 
-    private sealed record CompleteState : DirectoryListingCompleteness;
-    private sealed record BoundedState : DirectoryListingCompleteness;
+    private sealed record CompleteState : DirectoryListingCompleteness
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BoundedState : DirectoryListingCompleteness
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

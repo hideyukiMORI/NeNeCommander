@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries one Locations entry selection qualified by the exact open state that showed it.</summary>
 public sealed record LocationSelection : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LocationSelection(LocationsOpen expectedState, LocationItem item)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents a normalized file handoff failure with pane content left unchanged.</summary>
 public sealed record PaneLaunchFailed : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneLaunchFailed(FileSystemPath target, FileLaunchFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(target);

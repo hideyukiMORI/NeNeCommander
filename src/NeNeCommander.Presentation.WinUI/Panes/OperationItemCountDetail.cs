@@ -5,6 +5,10 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// <summary>Represents the number of items a pending confirmation names.</summary>
 public sealed record OperationItemCountDetail : OperationDetail
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationItemCountDetail(int count)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);

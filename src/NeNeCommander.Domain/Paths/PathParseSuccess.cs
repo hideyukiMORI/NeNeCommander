@@ -5,6 +5,10 @@ namespace NeNeCommander.Domain.Paths;
 /// </summary>
 public sealed record PathParseSuccess : PathParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PathParseSuccess(FileSystemPath path)
     {
         Path = path;

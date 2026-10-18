@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Settings;
 /// <summary>Represents the closed persistence state of the session's current settings revision.</summary>
 public abstract record SettingsPersistenceState
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal SettingsPersistenceState()
     {
     }

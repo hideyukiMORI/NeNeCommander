@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record PaneFrame
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the frame of the pane that receives intents.</summary>
     public static PaneFrame Active { get; } = new ActivePaneFrame();
 
@@ -31,6 +34,10 @@ public abstract record PaneFrame
 
     private sealed record ActivePaneFrame : PaneFrame
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string BrushResourceKey => "FocusRingBrush";
 
         public override string ThicknessResourceKey => "BorderActivePaneThickness";
@@ -42,6 +49,10 @@ public abstract record PaneFrame
 
     private sealed record PassivePaneFrame : PaneFrame
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string BrushResourceKey => "BorderSubtleBrush";
 
         public override string ThicknessResourceKey => "BorderPassivePaneThickness";

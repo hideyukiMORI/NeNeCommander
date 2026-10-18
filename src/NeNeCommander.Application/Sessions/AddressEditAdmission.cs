@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record AddressEditAdmission
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the decision that refuses the request and leaves the scope untouched.</summary>
     public static AddressEditAdmission Refused { get; } = new RefusedRequest();
 
@@ -13,5 +16,10 @@ public abstract record AddressEditAdmission
     {
     }
 
-    private sealed record RefusedRequest : AddressEditAdmission;
+    private sealed record RefusedRequest : AddressEditAdmission
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

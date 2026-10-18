@@ -45,6 +45,11 @@ docs/
 
 ## Folder law
 
+`eng/record-closure/` holds the compiler-driven CS-002 gate sources owned by
+`eng/verify-record-closure.ps1` (ADR-0073). They compile directly with the pinned
+SDK into ignored `artifacts/record-closure/`, not a solution project or a production
+dependency. The existing gate and proof entries invoke this one implementation.
+
 - Folders are named for product concepts or adapter boundaries, not technical grab bags.
 - `Helpers`, `Utils`, `Utilities`, `Common`, `Misc`, and equivalent catch-all folders are prohibited.
 - A feature is placed by ownership. Mirrored copies across layers are prohibited.

@@ -12,6 +12,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record CreateDirectoryRequest : FileOperationRequest
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private CreateDirectoryRequest(
         ReadOnlyCollection<FileSystemPath> sources,
         FileSystemPath location,

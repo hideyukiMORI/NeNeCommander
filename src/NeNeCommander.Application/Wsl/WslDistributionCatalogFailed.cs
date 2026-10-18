@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Wsl;
 /// <summary>Represents one expected WSL distribution discovery failure.</summary>
 public sealed record WslDistributionCatalogFailed : WslDistributionCatalogOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WslDistributionCatalogFailed(WslDistributionCatalogFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

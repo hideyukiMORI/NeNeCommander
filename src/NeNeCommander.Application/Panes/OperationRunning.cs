@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents an operation running through the gateway; every pane intent except escape is frozen meanwhile.</summary>
 public sealed record OperationRunning : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationRunning(OperationKind kind, FileOperationProgress progress)
     {
         ArgumentNullException.ThrowIfNull(kind);

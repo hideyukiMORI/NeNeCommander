@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryListingCreation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected DirectoryListingCreation()
     {
     }

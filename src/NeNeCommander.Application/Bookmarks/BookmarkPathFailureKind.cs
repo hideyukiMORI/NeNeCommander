@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Identifies one closed reason bookmark path text was rejected.</summary>
 public abstract record BookmarkPathFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for an unpaired UTF-16 surrogate.</summary>
     public static BookmarkPathFailureKind InvalidUnicode { get; } = new InvalidUnicodeFailure();
 
@@ -13,6 +16,16 @@ public abstract record BookmarkPathFailureKind
     {
     }
 
-    private sealed record InvalidUnicodeFailure : BookmarkPathFailureKind;
-    private sealed record InvalidPathFailure : BookmarkPathFailureKind;
+    private sealed record InvalidUnicodeFailure : BookmarkPathFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidPathFailure : BookmarkPathFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

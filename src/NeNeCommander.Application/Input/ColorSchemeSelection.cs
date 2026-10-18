@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Represents one approved scheme selected in the session-owned settings editor.</summary>
 public sealed record ColorSchemeSelection : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ColorSchemeSelection(ColorScheme scheme)
     {
         ArgumentNullException.ThrowIfNull(scheme);

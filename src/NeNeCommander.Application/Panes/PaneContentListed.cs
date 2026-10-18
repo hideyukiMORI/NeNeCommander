@@ -9,6 +9,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents a pane showing one listed location with its focus and selection state.</summary>
 public sealed record PaneContentListed : PaneContent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneContentListed(PaneState state, DirectoryListing listing, DriveKind? driveKind)
     {
         ArgumentNullException.ThrowIfNull(state);

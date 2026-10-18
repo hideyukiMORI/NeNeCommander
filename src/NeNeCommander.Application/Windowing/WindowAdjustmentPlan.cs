@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Windowing;
 /// </summary>
 public abstract record WindowAdjustmentPlan
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the plan that asks the host to maximize the window.</summary>
     public static WindowAdjustmentPlan Maximize { get; } = new MaximizePlan();
 
@@ -16,6 +19,16 @@ public abstract record WindowAdjustmentPlan
     {
     }
 
-    private sealed record MaximizePlan : WindowAdjustmentPlan;
-    private sealed record RestorePlan : WindowAdjustmentPlan;
+    private sealed record MaximizePlan : WindowAdjustmentPlan
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RestorePlan : WindowAdjustmentPlan
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

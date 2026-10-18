@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Represents one expected provider inspection failure.</summary>
 public sealed record FileInspectionFailed : FileInspectionOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal FileInspectionFailed(FileOperationFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

@@ -9,6 +9,9 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// </summary>
 public abstract record WindowAdjustmentKeyAction
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the action that moves the window left by one step.</summary>
     public static WindowAdjustmentKeyAction MoveLeft { get; } = new MoveLeftAction();
 
@@ -48,46 +51,82 @@ public abstract record WindowAdjustmentKeyAction
 
     private sealed record MoveLeftAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveLeft;
     }
 
     private sealed record MoveDownAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveDown;
     }
 
     private sealed record MoveUpAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveUp;
     }
 
     private sealed record MoveRightAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.MoveRight;
     }
 
     private sealed record EnlargeAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Enlarge;
     }
 
     private sealed record ShrinkAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Shrink;
     }
 
     private sealed record MaximizeAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Maximize;
     }
 
     private sealed record RestoreAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction WindowAction => WindowAdjustmentAction.Restore;
     }
 
     private sealed record LeaveAction : WindowAdjustmentKeyAction
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override WindowAdjustmentAction? WindowAction => null;
     }
 }

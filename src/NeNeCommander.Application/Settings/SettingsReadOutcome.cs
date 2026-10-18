@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record SettingsReadOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal SettingsReadOutcome()
     {
     }

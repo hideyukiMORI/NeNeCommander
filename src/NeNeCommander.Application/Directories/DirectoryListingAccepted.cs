@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public sealed record DirectoryListingAccepted : DirectoryListingCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DirectoryListingAccepted(DirectoryListing listing)
     {
         Listing = listing;

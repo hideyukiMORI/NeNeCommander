@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Commands;
 /// <summary>Names the closed state-level reason a catalog command cannot start.</summary>
 public abstract record CommandUnavailableReason
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the reason that the active pane has no focused entry.</summary>
     public static CommandUnavailableReason FocusRequired { get; } = new FocusRequiredReason();
 
@@ -25,10 +28,40 @@ public abstract record CommandUnavailableReason
     {
     }
 
-    private sealed record FocusRequiredReason : CommandUnavailableReason;
-    private sealed record SourceRequiredReason : CommandUnavailableReason;
-    private sealed record PassivePaneUnavailableReason : CommandUnavailableReason;
-    private sealed record ParentUnavailableReason : CommandUnavailableReason;
-    private sealed record BackUnavailableReason : CommandUnavailableReason;
-    private sealed record ForwardUnavailableReason : CommandUnavailableReason;
+    private sealed record FocusRequiredReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SourceRequiredReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PassivePaneUnavailableReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ParentUnavailableReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BackUnavailableReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ForwardUnavailableReason : CommandUnavailableReason
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

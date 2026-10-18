@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Represents the next-launch hidden-item default selected in settings.</summary>
 public sealed record LaunchHiddenItemVisibilitySelection : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LaunchHiddenItemVisibilitySelection(HiddenItemVisibility visibility)
     {
         ArgumentNullException.ThrowIfNull(visibility);

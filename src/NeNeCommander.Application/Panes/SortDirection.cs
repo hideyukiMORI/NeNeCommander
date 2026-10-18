@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record SortDirection
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the direction that places the smallest key first.</summary>
     public static SortDirection Ascending { get; } = new AscendingDirection();
 
@@ -21,11 +24,19 @@ public abstract record SortDirection
 
     private sealed record AscendingDirection : SortDirection
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override SortDirection Reversed => Descending;
     }
 
     private sealed record DescendingDirection : SortDirection
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override SortDirection Reversed => Ascending;
     }
 }

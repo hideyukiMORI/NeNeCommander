@@ -3,6 +3,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents bookmark-name text accepted as one bounded display name.</summary>
 public sealed record BookmarkDisplayNameAccepted : BookmarkDisplayNameParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkDisplayNameAccepted(BookmarkDisplayName name)
     {
         Name = name;

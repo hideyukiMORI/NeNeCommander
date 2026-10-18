@@ -9,6 +9,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record OperationAwaitingConfirmation : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationAwaitingConfirmation(DeleteRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);

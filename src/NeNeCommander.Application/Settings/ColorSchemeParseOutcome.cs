@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record ColorSchemeParseOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected ColorSchemeParseOutcome()
     {
     }

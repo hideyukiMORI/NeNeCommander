@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record NameEntryPresentation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the presentation when no name is being entered.</summary>
     public static NameEntryPresentation Hidden { get; } = new HiddenNameEntry();
 
@@ -14,5 +17,10 @@ public abstract record NameEntryPresentation
     {
     }
 
-    private sealed record HiddenNameEntry : NameEntryPresentation;
+    private sealed record HiddenNameEntry : NameEntryPresentation
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileInspectionOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected FileInspectionOutcome()
     {
     }

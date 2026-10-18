@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents an operation that never reached the gateway because its request was invalid.</summary>
 public sealed record OperationRequestRejected : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationRequestRejected(OperationKind kind, FileOperationRequestFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(kind);

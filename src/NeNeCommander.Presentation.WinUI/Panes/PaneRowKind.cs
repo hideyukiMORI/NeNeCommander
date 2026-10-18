@@ -10,6 +10,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record PaneRowKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the rendering of an entry that can itself be read as a directory.</summary>
     public static PaneRowKind Directory { get; } = new DirectoryRowKind();
 
@@ -46,6 +49,10 @@ public abstract record PaneRowKind
 
     private sealed record DirectoryRowKind : PaneRowKind
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "EntryKindDirectoryLabel";
 
         public override bool IsDirectory => true;
@@ -55,6 +62,10 @@ public abstract record PaneRowKind
 
     private sealed record FileRowKind : PaneRowKind
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "EntryKindFileLabel";
 
         public override bool IsDirectory => false;

@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileOperationRequestFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for an empty source set.</summary>
     public static FileOperationRequestFailureKind EmptySources { get; } = new EmptySourcesFailure();
 
@@ -30,11 +33,46 @@ public abstract record FileOperationRequestFailureKind
     {
     }
 
-    private sealed record EmptySourcesFailure : FileOperationRequestFailureKind;
-    private sealed record TooManySourcesFailure : FileOperationRequestFailureKind;
-    private sealed record NullSourceFailure : FileOperationRequestFailureKind;
-    private sealed record DuplicateSourceFailure : FileOperationRequestFailureKind;
-    private sealed record DestinationIsSourceFailure : FileOperationRequestFailureKind;
-    private sealed record InvalidNameFailure : FileOperationRequestFailureKind;
-    private sealed record SourceIsRootFailure : FileOperationRequestFailureKind;
+    private sealed record EmptySourcesFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooManySourcesFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NullSourceFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DuplicateSourceFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DestinationIsSourceFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidNameFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SourceIsRootFailure : FileOperationRequestFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Wsl;
 /// <summary>Represents the closed success, cancellation, or expected failure of discovery.</summary>
 public abstract record WslDistributionCatalogOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal WslDistributionCatalogOutcome()
     {
     }

@@ -5,6 +5,10 @@ namespace NeNeCommander.Domain.Paths;
 /// </summary>
 public sealed record PathParseFailure : PathParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PathParseFailure(PathParseFailureKind kind)
     {
         Kind = kind;

@@ -11,6 +11,10 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public sealed record LocationsOpen : LocationsState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LocationsOpen(
         PaneSide activeSide,
         DriveSection drives,

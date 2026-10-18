@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record HiddenItemVisibility
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the visibility that lists hidden and system entries.</summary>
     public static HiddenItemVisibility Shown { get; } = new ShownVisibility();
 
@@ -16,6 +19,16 @@ public abstract record HiddenItemVisibility
     {
     }
 
-    private sealed record ShownVisibility : HiddenItemVisibility;
-    private sealed record HiddenVisibility : HiddenItemVisibility;
+    private sealed record ShownVisibility : HiddenItemVisibility
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record HiddenVisibility : HiddenItemVisibility
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

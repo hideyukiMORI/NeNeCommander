@@ -8,6 +8,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record AtomicMoveCapabilityOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected AtomicMoveCapabilityOutcome()
     {
     }
@@ -27,7 +30,17 @@ public abstract record AtomicMoveCapabilityOutcome
         return new AtomicMoveCapabilityFailed(failure);
     }
 
-    private sealed record AtomicMoveSupported : AtomicMoveCapabilityOutcome;
+    private sealed record AtomicMoveSupported : AtomicMoveCapabilityOutcome
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record AtomicMoveUnsupported : AtomicMoveCapabilityOutcome;
+    private sealed record AtomicMoveUnsupported : AtomicMoveCapabilityOutcome
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

@@ -5,6 +5,9 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// </summary>
 public abstract record RevalidationOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected RevalidationOutcome()
     {
     }

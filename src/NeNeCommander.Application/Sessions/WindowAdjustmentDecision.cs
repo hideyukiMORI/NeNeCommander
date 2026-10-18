@@ -7,6 +7,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record WindowAdjustmentDecision
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the result that leaves the host nothing to apply and changes no state.</summary>
     public static WindowAdjustmentDecision NothingToApply { get; } = new NoDecision();
 
@@ -14,5 +17,10 @@ public abstract record WindowAdjustmentDecision
     {
     }
 
-    private sealed record NoDecision : WindowAdjustmentDecision;
+    private sealed record NoDecision : WindowAdjustmentDecision
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

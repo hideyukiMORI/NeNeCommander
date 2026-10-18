@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Requests navigation from one complete immutable manager selection.</summary>
 public sealed record BookmarkNavigationSelection : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkNavigationSelection(BookmarkSelection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);

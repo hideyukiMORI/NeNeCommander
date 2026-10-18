@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Requests address editing for the pane whose native control received focus.</summary>
 public sealed record AddressFocusSubmission : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressFocusSubmission(PaneSide side)
     {
         ArgumentNullException.ThrowIfNull(side);

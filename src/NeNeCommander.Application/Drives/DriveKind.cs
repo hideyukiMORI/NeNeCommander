@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Drives;
 /// </summary>
 public abstract record DriveKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the kind of a fixed local disk.</summary>
     public static DriveKind Fixed { get; } = new FixedKind();
 
@@ -25,13 +28,38 @@ public abstract record DriveKind
     {
     }
 
-    private sealed record FixedKind : DriveKind;
+    private sealed record FixedKind : DriveKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record RemovableKind : DriveKind;
+    private sealed record RemovableKind : DriveKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record NetworkKind : DriveKind;
+    private sealed record NetworkKind : DriveKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record OpticalKind : DriveKind;
+    private sealed record OpticalKind : DriveKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record UnknownKind : DriveKind;
+    private sealed record UnknownKind : DriveKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

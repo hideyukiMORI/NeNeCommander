@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries one explicit decision and operation-scoped application scope from the conflict modal.</summary>
 public sealed record ConflictDecisionSubmission : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ConflictDecisionSubmission(TransferConflictDecision decision, TransferConflictScope scope)
     {
         ArgumentNullException.ThrowIfNull(decision);

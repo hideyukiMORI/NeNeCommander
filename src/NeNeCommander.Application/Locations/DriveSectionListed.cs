@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents a drives section whose listing succeeded, in provider order.</summary>
 public sealed record DriveSectionListed : DriveSection
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DriveSectionListed(DriveCatalogSucceeded listing)
     {
         ArgumentNullException.ThrowIfNull(listing);

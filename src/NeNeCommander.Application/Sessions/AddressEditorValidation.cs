@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record AddressEditorValidation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the result that leaves the session no address target to navigate.</summary>
     public static AddressEditorValidation NothingToNavigate { get; } = new NoNavigation();
 
@@ -13,5 +16,10 @@ public abstract record AddressEditorValidation
     {
     }
 
-    private sealed record NoNavigation : AddressEditorValidation;
+    private sealed record NoNavigation : AddressEditorValidation
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

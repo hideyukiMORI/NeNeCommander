@@ -8,6 +8,9 @@ namespace NeNeCommander.Application.Launching;
 /// </summary>
 public abstract record FileLaunchOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal FileLaunchOutcome()
     {
     }

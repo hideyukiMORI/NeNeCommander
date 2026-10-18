@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Wsl;
 /// <summary>Represents one complete snapshot of registered WSL distribution roots.</summary>
 public sealed record WslDistributionCatalogSucceeded : WslDistributionCatalogOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private readonly ReadOnlyCollection<WslPath> _roots;
 
     internal WslDistributionCatalogSucceeded(IReadOnlyList<WslPath> roots)

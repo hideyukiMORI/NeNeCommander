@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Identifies one of the nine fixed direct-navigation bookmark slots.</summary>
 public abstract record BookmarkShortcutSlot
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets slot 1.</summary>
     public static BookmarkShortcutSlot One { get; } = new Slot(1);
     /// <summary>Gets slot 2.</summary>
@@ -58,6 +61,10 @@ public abstract record BookmarkShortcutSlot
 
     private sealed record Slot : BookmarkShortcutSlot
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal Slot(int number)
             : base(number)
         {

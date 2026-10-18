@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Reports normalized verification failure or the immutable evidence needed for source deletion.</summary>
 public abstract record CopyVerificationOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected CopyVerificationOutcome()
     {
     }

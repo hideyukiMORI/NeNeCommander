@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents a manager navigation whose existing pane read has not settled.</summary>
 public sealed record BookmarkNavigationPending : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkNavigationPending(
         BookmarkBrowseContext returnContext,
         BookmarkSelection selection)

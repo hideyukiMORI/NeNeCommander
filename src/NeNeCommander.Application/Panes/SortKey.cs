@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record SortKey
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the key that orders entries by name, ignoring case and then ordinally.</summary>
     public static SortKey Name { get; } = new NameKey();
 
@@ -31,8 +34,28 @@ public abstract record SortKey
     {
     }
 
-    private sealed record NameKey : SortKey;
-    private sealed record ExtensionKey : SortKey;
-    private sealed record SizeKey : SortKey;
-    private sealed record ModifiedKey : SortKey;
+    private sealed record NameKey : SortKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ExtensionKey : SortKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SizeKey : SortKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ModifiedKey : SortKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }
