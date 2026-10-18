@@ -32,6 +32,17 @@ last query but before a path reopen remains a declared residual race, not a stab
 
 Parsing removes redundant separators and `.` segments and resolves `..` without crossing a root. It does not trim legal filename characters, invent a drive, case-fold Linux names, resolve links, touch the filesystem, or silently reinterpret a relative path. Infrastructure addresses a WSL path only through its extended-length Win32 text (`\\?\UNC\wsl.localhost\...`), so Win32 normalization never trims a trailing `.` or space from a segment; that text never leaves Infrastructure, and `CanonicalText` remains the user-facing form (ADR-0060).
 
+Windows local and UNC child segments reject the canonical Windows device-name stems without regard
+to case, including `COM1` through `COM9`, `LPT1` through `LPT9`, and the six superscript forms
+`COM¹`, `COM²`, `COM³`, `LPT¹`, `LPT²`, and `LPT³`. Adding an extension does not make a reserved
+stem valid. `Parse` and `Child` share this predicate; UNC server/share and WSL distribution roots
+retain their separate rules. WSL path segments preserve these names, while their Windows-name
+compatibility and Windows-destination child derivation apply the same Windows predicate before
+Shell handoff or transfer. No Unicode normalization or general numeric-character expansion is used.
+Issue #245 completes the existing device-name rule using the
+[Windows naming specification](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file);
+it does not change the existing treatment of `COM0`, `LPT0`, or `CONIN$`.
+
 Both untrusted input and every successful `CanonicalText` are limited to 32767 UTF-16 code units. The parser checks the canonical result after provider normalization, including the trailing separator of a UNC root and expansion of the legacy `\\wsl$` alias to `\\wsl.localhost`; a result above the limit is `TooLong`. An accepted canonical value can be parsed again with the same canonical representation and provider identity.
 
 All sets, duplicate checks, selection checks, and confirmation comparisons use `FileSystemPathIdentityComparer`. Windows local and UNC identity is case-insensitive. A WSL distribution name is case-insensitive, while its Linux path is case-sensitive. Direct record equality is not a filesystem identity decision.

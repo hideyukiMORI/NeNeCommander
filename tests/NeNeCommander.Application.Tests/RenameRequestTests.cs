@@ -48,6 +48,8 @@ public sealed class RenameRequestTests
     [DataRow("a\\b")]
     [DataRow("a/b")]
     [DataRow("CON")]
+    [DataRow("com³.tar.gz")]
+    [DataRow("LPT¹")]
     public void CreateWhenNameIsRejectedByDomainInvalidNameRejection(string name)
     {
         FileOperationRequestCreation outcome = RenameRequest.Create(ParsePath("C:\\Users\\xi\\notes.txt"), name);

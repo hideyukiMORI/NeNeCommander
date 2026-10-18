@@ -241,6 +241,8 @@ public sealed class WindowsShellFileLauncherTests
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a:b.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\a\"b.txt")]
     [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\NUL.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\home\\com¹.txt")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\LPT³.tar.gz\\file.txt")]
     public async Task LaunchAsyncWhenPathCannotUseShellRefusesBeforeSchedulingAsync(string path)
     {
         ManualIoScheduler scheduler = new();

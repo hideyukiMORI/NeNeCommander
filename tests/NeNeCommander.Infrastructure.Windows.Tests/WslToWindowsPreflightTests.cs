@@ -20,6 +20,8 @@ public sealed class WslToWindowsPreflightTests
     [DataRow("bad ")]
     [DataRow("CON")]
     [DataRow("NUL.txt")]
+    [DataRow("COM².txt")]
+    [DataRow("lpt³.tar.gz")]
     public async Task CopyWhenLaterSourceNameIsInvalidRejectsEntireBatch(string name)
     {
         using WslToWindowsTransferFixture fixture = WslToWindowsTransferFixture.Create();
@@ -42,6 +44,8 @@ public sealed class WslToWindowsPreflightTests
     [DataRow("bad.")]
     [DataRow("bad ")]
     [DataRow("COM1.txt")]
+    [DataRow("com³.txt")]
+    [DataRow("LPT¹")]
     public async Task CopyWhenLaterTreeContainsInvalidNameRejectsBeforeEffects(string name)
     {
         using WslToWindowsTransferFixture fixture = WslToWindowsTransferFixture.Create();

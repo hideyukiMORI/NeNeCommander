@@ -37,6 +37,12 @@ Every material threat has a stable ID, owner, expected defense, and test mapping
 
 Inputs are length-bounded, parsed once, normalized without identity loss, and rejected when ambiguous. `FileSystemPath.Parse` bounds both raw input and the provider-normalized canonical result, so root separators and WSL alias expansion cannot produce an accepted path beyond the fixed boundary. Paths, distribution names, resource keys, settings values, and operation batches never enter shell or filesystem APIs as unchecked text. The Windows file launcher receives a typed `FileSystemPath` and admits non-root Windows-local, UNC and WSL paths (ADR-0065). UNC and WSL canonical paths must be shorter than 260 UTF-16 code units, and WSL names must additionally satisfy the canonical Windows segment rules (ADR-0064). It passes the original canonical text as one `ProcessStartInfo.FileName`, derives the working directory from its canonical parent, enables Shell association, and supplies no verb, arguments, or command interpreter. It rejects unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names before scheduling, without translation or fallback. Launch-time network/session failures normalize to `ProviderUnavailable` and access/logon/credential conflicts to `AccessDenied`, with one attempt and no new authentication mechanism (ADV-019). WSL discovery uses fixed process argument tokens, bounds both redirected streams before publishing output, and validates every reported distribution through the canonical path parser; one malformed line rejects the whole snapshot. WSL directory reads and mutations route only from validated `WslPath` values, and UNC directory reads only from validated `WindowsUncPath` values. Each untrusted enumerated name passes through `FileSystemPath.Child` before publication, and mutation targets are canonical children produced by the existing request model.
 
+The existing Windows device-name defense (ADV-015) includes the six `COM`/`LPT` superscript
+forms documented by Windows, with the same case and extension handling as ASCII device names
+(Issue #245). WSL parsing preserves those Linux names; the shared Windows-name predicate blocks
+their Shell handoff (ADV-019), and Windows-destination child derivation rejects their transfer
+before effects (ADV-022). This is a lexical admission rule, not filesystem identity or an OS probe.
+
 ### SEC-003 — Filesystem operations resist races
 
 - Status: **active**

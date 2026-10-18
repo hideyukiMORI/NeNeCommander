@@ -72,6 +72,30 @@ public sealed class FileSystemPathChildTests
         Assert.AreSame(PathParseFailureKind.InvalidSegment, Assert.IsInstanceOfType<PathParseFailure>(outcome).Kind);
     }
 
+    /// <summary>Proves Windows children reject reserved superscripts while WSL preserves their exact names.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
+    [DataRow("COM¹")]
+    [DataRow("com².txt")]
+    [DataRow("CoM³.tar.gz")]
+    [DataRow("LPT¹")]
+    [DataRow("lpt².txt")]
+    [DataRow("LpT³.tar.gz")]
+    public void ChildWhenNameHasReservedSuperscriptAppliesProviderRules(string name)
+    {
+        PathParseOutcome local = ParsePath("C:\\Users").Child(name);
+        PathParseOutcome unc = ParsePath("\\\\server\\share").Child(name);
+        WslPath wsl = Assert.IsInstanceOfType<WslPath>(
+            RequireChild(ParsePath("\\\\wsl.localhost\\Ubuntu\\home"), name));
+
+        Assert.AreSame(PathParseFailureKind.InvalidSegment, Assert.IsInstanceOfType<PathParseFailure>(local).Kind);
+        Assert.AreSame(PathParseFailureKind.InvalidSegment, Assert.IsInstanceOfType<PathParseFailure>(unc).Kind);
+        Assert.AreEqual("\\\\wsl.localhost\\Ubuntu\\home\\" + name, wsl.CanonicalText);
+        Assert.AreEqual("/home/" + name, wsl.LinuxPath);
+        Assert.IsFalse(wsl.HasWindowsCompatibleNames);
+    }
+
     /// <summary>Proves a name that pushes the path past the length boundary is rejected as too long.</summary>
     [TestMethod]
     public void ChildWhenNameExceedsPathBoundaryRejectedAsTooLong()
