@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
@@ -14,7 +15,6 @@ public sealed record BookmarkBrowsePresentation
         string searchText,
         IReadOnlyList<BookmarkCategoryOption> categories,
         IReadOnlyList<BookmarkRow> rows,
-        BookmarkRow? selectedRow,
         BookmarkEmptyContent emptyContent)
     {
         ArgumentNullException.ThrowIfNull(searchText);
@@ -24,7 +24,7 @@ public sealed record BookmarkBrowsePresentation
         SearchText = searchText;
         _categories = new List<BookmarkCategoryOption>(categories).AsReadOnly();
         _rows = new List<BookmarkRow>(rows).AsReadOnly();
-        SelectedRow = selectedRow;
+        SelectedRow = _rows.LastOrDefault(row => row.IsSelected);
         EmptyContent = emptyContent;
     }
 

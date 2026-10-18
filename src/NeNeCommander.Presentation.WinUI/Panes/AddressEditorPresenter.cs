@@ -25,17 +25,14 @@ public static class AddressEditorPresenter
                     state,
                     editing.Side,
                     editing.OriginalLocation.CanonicalText,
-                    null,
                     null),
                 AddressInputRejected rejected => new AddressEditorPresentation(
                     state,
                     rejected.Side,
                     rejected.RawText,
-                    PaneStatus.InvalidAddress,
                     null),
                 AddressEditorClosed closed => new AddressEditorPresentation(
                     state,
-                    null,
                     null,
                     null,
                     closed.FileListFocusSide),

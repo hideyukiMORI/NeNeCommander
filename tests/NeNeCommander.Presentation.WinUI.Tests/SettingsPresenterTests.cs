@@ -149,36 +149,49 @@ public sealed class SettingsPresenterTests
                 ColorScheme.NeNeDark),
         ];
 
+        SettingsSnapshot source = Snapshot(UserSettings.Default, SettingsEditorState.Closed, SettingsPersistenceState.Succeeded);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
-            null!,
-            HiddenItemVisibility.Hidden,
-            schemes,
-            SettingsSaveStatus.Succeeded,
-            SettingsWarningPresentation.Hidden));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
-            SettingsEditorState.Closed,
             null!,
             schemes,
             SettingsSaveStatus.Succeeded,
             SettingsWarningPresentation.Hidden));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
-            SettingsEditorState.Closed,
-            HiddenItemVisibility.Hidden,
+            source,
             null!,
             SettingsSaveStatus.Succeeded,
             SettingsWarningPresentation.Hidden));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
-            SettingsEditorState.Closed,
-            HiddenItemVisibility.Hidden,
+            source,
             schemes,
             null!,
             SettingsWarningPresentation.Hidden));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new SettingsPresentation(
-            SettingsEditorState.Closed,
-            HiddenItemVisibility.Hidden,
+            source,
             schemes,
             SettingsSaveStatus.Succeeded,
             null!));
+    }
+
+    /// <summary>Proves modal facts come from one source and its rendered options remain frozen.</summary>
+    [TestMethod]
+    public void SettingsPresentationWhenOptionSourceChangesKeepsOwnedSnapshot()
+    {
+        SettingsSnapshot source = Snapshot(
+            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            SettingsEditorState.Open,
+            SettingsPersistenceState.Succeeded);
+        SettingsColorSchemeOption option = new(ColorScheme.Dracula, "ColorSchemeNameDracula", ColorScheme.Dracula);
+        System.Collections.Generic.List<SettingsColorSchemeOption> schemes = [option];
+        SettingsPresentation presentation = new(source, schemes, SettingsSaveStatus.Succeeded, SettingsWarningPresentation.Hidden);
+
+        schemes.Clear();
+
+        Assert.IsTrue(presentation.IsOpen);
+        Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
+        Assert.HasCount(1, presentation.Schemes);
+        Assert.AreSame(option, presentation.Schemes[0]);
+        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
+            ((System.Collections.Generic.IList<SettingsColorSchemeOption>)presentation.Schemes).Clear());
     }
 
     private static SettingsSnapshot Snapshot(

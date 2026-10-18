@@ -202,39 +202,38 @@ public sealed class KeyboardIntentMapper
         {
             _paletteEnterRepeatGuardActive = false;
         }
-        if (input.Context == KeyboardContext.CommandPalette)
-        {
-            _pendingChordStartedAt = null;
-            KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
-            if (outcome is MappedCommandPaletteAction mapped &&
-                mapped.Action == CommandPaletteKeyAction.Execute)
-            {
-                _paletteEnterRepeatGuardActive = true;
-            }
-            return outcome;
-        }
-        if (input.Context == KeyboardContext.WindowAdjustment)
-        {
-            _pendingChordStartedAt = null;
-            return MapWindowAdjustmentKey(input);
-        }
-        if (input.Context == KeyboardContext.Locations)
-        {
-            _pendingChordStartedAt = null;
-            return MapLocationsKey(input);
-        }
-        if (input.Context == KeyboardContext.TextEntry || input.Context == KeyboardContext.Modal)
-        {
-            _pendingChordStartedAt = null;
-            return MapOwnedKey(input);
-        }
+        return input.Context == KeyboardContext.FileList || input.Context == KeyboardContext.NavigationSurface
+            ? MapPaneKey(input)
+            : MapContextKey(input);
+    }
 
-        if (input.Context == KeyboardContext.AddressEntry)
+    private KeyboardMappingOutcome MapContextKey(KeyboardInput input)
+    {
+        _pendingChordStartedAt = null;
+        return input.Context switch
         {
-            _pendingChordStartedAt = null;
-            return MapDeclaredKey(input);
-        }
+            KeyboardContext context when context == KeyboardContext.CommandPalette => MapPaletteKey(input),
+            KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
+            KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
+            KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
+                MapOwnedKey(input),
+            _ => MapDeclaredKey(input),
+        };
+    }
 
+    private KeyboardMappingOutcome MapPaletteKey(KeyboardInput input)
+    {
+        KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
+        if (outcome is MappedCommandPaletteAction mapped &&
+            mapped.Action == CommandPaletteKeyAction.Execute)
+        {
+            _paletteEnterRepeatGuardActive = true;
+        }
+        return outcome;
+    }
+
+    private KeyboardMappingOutcome MapPaneKey(KeyboardInput input)
+    {
         if (input.Key == KeyboardKey.Other)
         {
             // A printable key arrives twice: as a raw virtual key and as its produced character.

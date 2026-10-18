@@ -192,11 +192,11 @@ public sealed class LocationsPresenterTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationsPresentation(open, null!, [], []));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationsPresentation(LocationsState.Closed, texts, null!, []));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationsPresentation(LocationsState.Closed, texts, [], null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(null!, "C:", "Fixed", "C:, Fixed", "LocationsRow_C:"));
-        _ = Assert.ThrowsExactly<ArgumentException>(() => new LocationRow(open.Items[0], " ", "Fixed", "C:, Fixed", "LocationsRow_C:"));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(open.Items[0], "C:", null!, "C:, Fixed", "LocationsRow_C:"));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(open.Items[0], "C:", "Fixed", null!, "LocationsRow_C:"));
-        _ = Assert.ThrowsExactly<ArgumentException>(() => new LocationRow(open.Items[0], "C:", "Fixed", "C:, Fixed", " "));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(null!, "C:", "Fixed", "C:, Fixed"));
+        _ = Assert.ThrowsExactly<ArgumentException>(() => new LocationRow(open.Items[0], " ", "Fixed", "C:, Fixed"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(open.Items[0], "C:", null!, "C:, Fixed"));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new LocationRow(open.Items[0], "C:", "Fixed", null!));
+        Assert.AreEqual("LocationsRow_C:", new LocationRow(open.Items[0], "C:", "Fixed", "C:, Fixed").AutomationId);
     }
 
     private static void AssertRow(LocationRow row, LocationItem item, string name, string detail)

@@ -20,8 +20,7 @@ public static class SettingsPresenter
                 snapshot.Settings.ColorScheme));
         }
         return new SettingsPresentation(
-            snapshot.Editor,
-            snapshot.Settings.HiddenItemVisibility,
+            snapshot,
             schemes,
             PresentSaveStatus(snapshot.Persistence),
             PresentWarning(snapshot.Persistence));

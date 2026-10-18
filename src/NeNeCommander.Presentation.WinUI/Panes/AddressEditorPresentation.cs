@@ -11,14 +11,13 @@ public sealed record AddressEditorPresentation
         AddressEditorState sourceState,
         PaneSide? editingSide,
         string? replacementText,
-        PaneStatus? status,
         PaneSide? fileListFocusSide)
     {
         ArgumentNullException.ThrowIfNull(sourceState);
         SourceState = sourceState;
         EditingSide = editingSide;
         ReplacementText = replacementText;
-        Status = status;
+        Status = sourceState is AddressInputRejected ? PaneStatus.InvalidAddress : null;
         FileListFocusSide = fileListFocusSide;
         SelectAll = sourceState is AddressEditing;
     }

@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Input;
-using Windows.System;
-using Windows.UI.Core;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
-/// <summary>Proves the context-aware canonical Vim keyboard map.</summary>
+/// <summary>Proves KeyboardIntentMapper behavior and contracts.</summary>
 [TestClass]
 public sealed class KeyboardIntentMapperTests
 {
@@ -18,323 +15,77 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void MapWhenSingleFileListKeysAreUsedEmitsCanonicalIntents()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
 
-        AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
-        AssertMaps(mapper, Input(KeyboardKey.Down), UserIntent.MoveNext);
-        AssertMaps(mapper, Input(KeyboardKey.K), UserIntent.MovePrevious);
-        AssertMaps(mapper, Input(KeyboardKey.Up), UserIntent.MovePrevious);
-        AssertMaps(mapper, Input(KeyboardKey.H), UserIntent.NavigateParent);
-        AssertMaps(mapper, Input(KeyboardKey.Backspace), UserIntent.NavigateParent);
-        AssertMaps(mapper, Input(KeyboardKey.L), UserIntent.OpenFocused);
-        AssertMaps(mapper, Input(KeyboardKey.Enter), UserIntent.OpenFocused);
-        AssertMaps(mapper, Input(KeyboardKey.UpperG), UserIntent.FocusLast);
-        AssertMaps(mapper, Input(KeyboardKey.PageDown), UserIntent.MoveHalfPageDown);
-        AssertMaps(mapper, Input(KeyboardKey.PageUp), UserIntent.MoveHalfPageUp);
-        AssertMaps(mapper, Input(KeyboardKey.Tab), UserIntent.ActivateOtherPane);
-        AssertMaps(mapper, Input(KeyboardKey.Space), UserIntent.ToggleSelection);
-        AssertMaps(mapper, Input(KeyboardKey.Escape), UserIntent.Escape);
-        AssertMaps(mapper, Input(KeyboardKey.F2), UserIntent.Rename);
-        AssertMaps(mapper, Input(KeyboardKey.F5), UserIntent.Copy);
-        AssertMaps(mapper, Input(KeyboardKey.F6), UserIntent.Move);
-        AssertMaps(mapper, Input(KeyboardKey.F7), UserIntent.CreateDirectory);
-        AssertMaps(mapper, Input(KeyboardKey.F8), UserIntent.Delete);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.J), UserIntent.MoveNext);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Down), UserIntent.MoveNext);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.K), UserIntent.MovePrevious);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Up), UserIntent.MovePrevious);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.H), UserIntent.NavigateParent);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Backspace), UserIntent.NavigateParent);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.L), UserIntent.OpenFocused);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Enter), UserIntent.OpenFocused);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.UpperG), UserIntent.FocusLast);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.PageDown), UserIntent.MoveHalfPageDown);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.PageUp), UserIntent.MoveHalfPageUp);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Tab), UserIntent.ActivateOtherPane);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Space), UserIntent.ToggleSelection);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Escape), UserIntent.Escape);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F2), UserIntent.Rename);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F5), UserIntent.Copy);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F6), UserIntent.Move);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F7), UserIntent.CreateDirectory);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F8), UserIntent.Delete);
     }
 
     /// <summary>Proves every modified Windows-compatible alias.</summary>
     [TestMethod]
     public void MapWhenModifiedAliasesAreUsedEmitsCanonicalIntents()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
 
-        AssertMaps(mapper, Input(KeyboardKey.Up, KeyboardModifier.Alt), UserIntent.NavigateParent);
-        AssertMaps(mapper, Input(KeyboardKey.Left, KeyboardModifier.Alt), UserIntent.NavigateBack);
-        AssertMaps(mapper, Input(KeyboardKey.Right, KeyboardModifier.Alt), UserIntent.NavigateForward);
-        AssertMaps(mapper, Input(KeyboardKey.D, KeyboardModifier.Control), UserIntent.MoveHalfPageDown);
-        AssertMaps(mapper, Input(KeyboardKey.U, KeyboardModifier.Control), UserIntent.MoveHalfPageUp);
-        AssertMaps(mapper, Input(KeyboardKey.L, KeyboardModifier.Control), UserIntent.FocusAddress);
-        AssertMaps(mapper, Input(KeyboardKey.R, KeyboardModifier.Control), UserIntent.Refresh);
-        AssertMaps(mapper, Input(KeyboardKey.P, KeyboardModifier.Control), UserIntent.OpenCommandPalette);
-        AssertMaps(mapper, Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
-        AssertMaps(mapper, Input(KeyboardKey.Comma, KeyboardModifier.Control), UserIntent.OpenSettings);
-        AssertMaps(mapper, Input(KeyboardKey.B, KeyboardModifier.Control), UserIntent.OpenBookmarks);
-        AssertMaps(mapper, Input(KeyboardKey.One, KeyboardModifier.Control), UserIntent.BookmarkSlotOne);
-        AssertMaps(mapper, Input(KeyboardKey.Two, KeyboardModifier.Control), UserIntent.BookmarkSlotTwo);
-        AssertMaps(mapper, Input(KeyboardKey.Three, KeyboardModifier.Control), UserIntent.BookmarkSlotThree);
-        AssertMaps(mapper, Input(KeyboardKey.Four, KeyboardModifier.Control), UserIntent.BookmarkSlotFour);
-        AssertMaps(mapper, Input(KeyboardKey.Five, KeyboardModifier.Control), UserIntent.BookmarkSlotFive);
-        AssertMaps(mapper, Input(KeyboardKey.Six, KeyboardModifier.Control), UserIntent.BookmarkSlotSix);
-        AssertMaps(mapper, Input(KeyboardKey.Seven, KeyboardModifier.Control), UserIntent.BookmarkSlotSeven);
-        AssertMaps(mapper, Input(KeyboardKey.Eight, KeyboardModifier.Control), UserIntent.BookmarkSlotEight);
-        AssertMaps(mapper, Input(KeyboardKey.Nine, KeyboardModifier.Control), UserIntent.BookmarkSlotNine);
-    }
-
-    /// <summary>Proves the gg chord includes its exact lifetime boundary.</summary>
-    [TestMethod]
-    public void MapWhenGgCompletesWithinLifetimeFocusFirstIntent()
-    {
-        AdjustableClock clock = AdjustableClock.Create();
-        KeyboardIntentMapper mapper = new(clock);
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        clock.Advance(TimeSpan.FromMilliseconds(750));
-        AssertMaps(mapper, Input(KeyboardKey.LowerG), UserIntent.FocusFirst);
-    }
-
-    /// <summary>Proves an expired gg suffix begins a fresh chord.</summary>
-    [TestMethod]
-    public void MapWhenGgExpiresCurrentGStartsNewChord()
-    {
-        AdjustableClock clock = AdjustableClock.Create();
-        KeyboardIntentMapper mapper = new(clock);
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        clock.Advance(TimeSpan.FromMilliseconds(751));
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-    }
-
-    /// <summary>Proves an unrelated suffix is processed normally.</summary>
-    [TestMethod]
-    public void MapWhenUnrelatedKeyFollowsGCancelsChordAndProcessesKey()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-
-        AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
-    }
-
-    /// <summary>
-    /// Proves Escape after a pending g still emits the one Escape intent and cancels the chord, so a
-    /// loading panes read is abandoned and the chord is gone, in the keyboard models order (ADR-0058).
-    /// </summary>
-    [TestMethod]
-    public void MapWhenEscapeFollowsGEmitsEscapeAndCancelsChord()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-
-        KeyboardMappingOutcome escape = mapper.Map(Input(KeyboardKey.Escape));
-        KeyboardMappingOutcome next = mapper.Map(Input(KeyboardKey.LowerG));
-
-        Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(escape).Intent);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(next);
-    }
-    /// <summary>Proves the raw virtual-key event of a printable key neither completes nor cancels a chord.</summary>
-    [TestMethod]
-    public void MapWhenUnmappedKeyFollowsGKeepsChordPending()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Other)));
-
-        AssertMaps(mapper, Input(KeyboardKey.LowerG), UserIntent.FocusFirst);
-    }
-
-    /// <summary>Proves text and modal contexts block underlying commands.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-013")]
-    public void MapWhenTextEntryOrModalOwnsInputBlocksUnderlyingCommands()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-
-        KeyboardMappingOutcome text = mapper.Map(Input(KeyboardKey.F8, KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modal = mapper.Map(Input(KeyboardKey.F8, KeyboardContext.Modal));
-        KeyboardMappingOutcome textEscape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modalEscape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.Modal));
-        KeyboardMappingOutcome modalEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
-        KeyboardMappingOutcome textEnter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modalMovement = mapper.Map(Input(KeyboardKey.J, KeyboardContext.Modal));
-        KeyboardMappingOutcome textHiddenToggle = mapper.Map(KeyboardInput.Create(
-            KeyboardKey.H,
-            KeyboardModifier.Control,
-            KeyRepeatState.Initial,
-            KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modalHiddenToggle = mapper.Map(KeyboardInput.Create(
-            KeyboardKey.H,
-            KeyboardModifier.Control,
-            KeyRepeatState.Initial,
-            KeyboardContext.Modal));
-        KeyboardMappingOutcome textBack = mapper.Map(Input(
-            KeyboardKey.Left,
-            KeyboardModifier.Alt,
-            KeyboardContext.TextEntry));
-        KeyboardMappingOutcome textForward = mapper.Map(Input(
-            KeyboardKey.Right,
-            KeyboardModifier.Alt,
-            KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modalBack = mapper.Map(Input(
-            KeyboardKey.Left,
-            KeyboardModifier.Alt,
-            KeyboardContext.Modal));
-        KeyboardMappingOutcome modalForward = mapper.Map(Input(
-            KeyboardKey.Right,
-            KeyboardModifier.Alt,
-            KeyboardContext.Modal));
-
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(text);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modal);
-        Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(textEscape).Intent);
-        Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEscape).Intent);
-        Assert.AreSame(UserIntent.Confirm, Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEnter).Intent);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textEnter);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalMovement);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textHiddenToggle);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalHiddenToggle);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textBack);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textForward);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalBack);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(modalForward);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-    }
-
-    /// <summary>Proves a held Enter cannot cross into a newly opened confirmation scope.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-013")]
-    public void MapWhenModalEnterRepeatsConsumesItUntilTheNextInitialPress()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        KeyboardMappingOutcome repeated = mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.Modal));
-        KeyboardMappingOutcome initial = mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Initial,
-            KeyboardContext.Modal));
-
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(repeated);
-        Assert.AreSame(
-            UserIntent.Confirm,
-            Assert.IsInstanceOfType<MappedKeyboardIntent>(initial).Intent);
-    }
-
-    /// <summary>Proves a palette Enter repeat cannot cross into any resulting input owner.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-013")]
-    public void MapWhenPaletteEnterChangesOwnerConsumesItsRepeatUntilNewInitialEnter()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
-
-        AssertMaps(mapper, Input(KeyboardKey.J), UserIntent.MoveNext);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.FileList)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.Modal)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.WindowAdjustment)));
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-
-        AssertMaps(mapper, Input(KeyboardKey.Enter, KeyboardContext.AddressEntry), UserIntent.Confirm);
-        AssertMaps(
-            mapper,
-            KeyboardInput.Create(
-                KeyboardKey.Enter,
-                KeyboardModifier.None,
-                KeyRepeatState.Repeated,
-                KeyboardContext.FileList),
-            UserIntent.OpenFocused);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Up, KeyboardModifier.Alt), UserIntent.NavigateParent);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Left, KeyboardModifier.Alt), UserIntent.NavigateBack);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Right, KeyboardModifier.Alt), UserIntent.NavigateForward);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.D, KeyboardModifier.Control), UserIntent.MoveHalfPageDown);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.U, KeyboardModifier.Control), UserIntent.MoveHalfPageUp);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.L, KeyboardModifier.Control), UserIntent.FocusAddress);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.R, KeyboardModifier.Control), UserIntent.Refresh);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.P, KeyboardModifier.Control), UserIntent.OpenCommandPalette);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.H, KeyboardModifier.Control), UserIntent.ToggleHiddenItems);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Comma, KeyboardModifier.Control), UserIntent.OpenSettings);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.B, KeyboardModifier.Control), UserIntent.OpenBookmarks);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.One, KeyboardModifier.Control), UserIntent.BookmarkSlotOne);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Two, KeyboardModifier.Control), UserIntent.BookmarkSlotTwo);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Three, KeyboardModifier.Control), UserIntent.BookmarkSlotThree);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Four, KeyboardModifier.Control), UserIntent.BookmarkSlotFour);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Five, KeyboardModifier.Control), UserIntent.BookmarkSlotFive);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Six, KeyboardModifier.Control), UserIntent.BookmarkSlotSix);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Seven, KeyboardModifier.Control), UserIntent.BookmarkSlotSeven);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Eight, KeyboardModifier.Control), UserIntent.BookmarkSlotEight);
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.Nine, KeyboardModifier.Control), UserIntent.BookmarkSlotNine);
     }
 
     /// <summary>Proves bookmark and window entry chords retain their existing pane-surface bindings.</summary>
     [TestMethod]
     public void MapWhenScopeEntryChordsArriveUsesCanonicalPaneBindings()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
         KeyboardContext[] contexts = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
         foreach (KeyboardContext context in contexts)
         {
-            AssertMaps(mapper, Input(KeyboardKey.B, KeyboardModifier.Control, context), UserIntent.OpenBookmarks);
-            AssertMaps(mapper, Input(KeyboardKey.W, KeyboardModifier.Control, context), UserIntent.OpenWindowAdjustment);
+            KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.B, KeyboardModifier.Control, context), UserIntent.OpenBookmarks);
+            KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.W, KeyboardModifier.Control, context), UserIntent.OpenWindowAdjustment);
         }
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.W, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
-    }
-
-    /// <summary>Proves address editing owns only confirm, cancel, and focus-address bindings.</summary>
-    [TestMethod]
-    public void MapWhenAddressEntryOwnsInputMapsNavigationKeysAndPassesNativeEditingThrough()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        AssertMaps(mapper, Input(KeyboardKey.Enter, KeyboardContext.AddressEntry), UserIntent.Confirm);
-        AssertMaps(mapper, Input(KeyboardKey.Escape, KeyboardContext.AddressEntry), UserIntent.Escape);
-        AssertMaps(
-            mapper,
-            Input(KeyboardKey.L, KeyboardModifier.Control, KeyboardContext.AddressEntry),
-            UserIntent.FocusAddress);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.Other, KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.J, KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.L, KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.L, KeyboardModifier.Other, KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.Left, KeyboardModifier.Alt, KeyboardContext.AddressEntry)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.Right, KeyboardModifier.Alt, KeyboardContext.AddressEntry)));
-    }
-
-    /// <summary>Proves a native-control modal leaves Enter and Space to focus while retaining Escape.</summary>
-    [TestMethod]
-    public void DeferModalConfirmToNativeControlPreservesFocusedControlKeyboardBehavior()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        KeyboardMappingOutcome enter = mapper.Map(Input(KeyboardKey.Enter, KeyboardContext.Modal));
-        KeyboardMappingOutcome space = mapper.Map(Input(KeyboardKey.Space, KeyboardContext.Modal));
-        KeyboardMappingOutcome escape = mapper.Map(Input(KeyboardKey.Escape, KeyboardContext.Modal));
-        KeyboardMappingOutcome repeatedEnter = mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.Modal));
-
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            KeyboardIntentMapper.DeferModalConfirmToNativeControl(enter));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            KeyboardIntentMapper.DeferModalConfirmToNativeControl(space));
-        Assert.AreSame(
-            UserIntent.Escape,
-            Assert.IsInstanceOfType<MappedKeyboardIntent>(
-                KeyboardIntentMapper.DeferModalConfirmToNativeControl(escape)).Intent);
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
-            KeyboardIntentMapper.DeferModalConfirmToNativeControl(repeatedEnter));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            KeyboardIntentMapper.DeferModalConfirmToNativeControl(null!));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.W, KeyboardModifier.Control, KeyboardContext.CommandPalette)));
     }
 
     /// <summary>Proves repeated destructive keys do not emit commands.</summary>
     [TestMethod]
     public void MapWhenDestructiveKeyRepeatsPassesThroughWithoutIntent()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
         KeyboardKey[] keys = [KeyboardKey.F2, KeyboardKey.F5, KeyboardKey.F6, KeyboardKey.F7, KeyboardKey.F8];
 
         IEnumerable<KeyboardMappingOutcome> outcomes = keys.Select(key => mapper.Map(
@@ -353,593 +104,63 @@ public sealed class KeyboardIntentMapperTests
     [TestMethod]
     public void MapWhenMovementKeyRepeatsEmitsMovementIntent()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
         KeyboardInput input = KeyboardInput.Create(
             KeyboardKey.J,
             KeyboardModifier.None,
             KeyRepeatState.Repeated,
             KeyboardContext.FileList);
 
-        AssertMaps(mapper, input, UserIntent.MoveNext);
+        KeyboardMappingTestContext.AssertMaps(mapper, input, UserIntent.MoveNext);
     }
 
     /// <summary>Proves F5 meaning is selected by explicit context.</summary>
     [TestMethod]
     public void MapWhenNavigationSurfaceReceivesF5RefreshesWithoutCopying()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
 
-        AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardContext.NavigationSurface), UserIntent.Refresh);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(mapper, KeyboardMappingTestContext.Input(KeyboardKey.F5, KeyboardContext.NavigationSurface), UserIntent.Refresh);
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.Left, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.Left, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
             UserIntent.NavigateBack);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.Right, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.Right, KeyboardModifier.Alt, KeyboardContext.NavigationSurface),
             UserIntent.NavigateForward);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.Comma, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.Comma, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenSettings);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.P, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.P, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenCommandPalette);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.B, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.OpenBookmarks);
-        AssertMaps(
+        KeyboardMappingTestContext.AssertMaps(
             mapper,
-            Input(KeyboardKey.Nine, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
+            KeyboardMappingTestContext.Input(KeyboardKey.Nine, KeyboardModifier.Control, KeyboardContext.NavigationSurface),
             UserIntent.BookmarkSlotNine);
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.J, KeyboardContext.NavigationSurface)));
-    }
-
-    /// <summary>
-    /// Proves Ctrl+F3 and Ctrl+F4 sort only from the file list and the navigation surface, plain
-    /// and otherwise modified F3 and F4 pass through there, and every owning context keeps them.
-    /// </summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-013")]
-    public void MapWhenSortKeysArriveMapsControlChordOnlyOnPaneSurfaces()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        KeyboardContext[] paneSurfaces = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
-        KeyboardContext[] owningContexts =
-        [
-            KeyboardContext.Modal,
-            KeyboardContext.TextEntry,
-            KeyboardContext.AddressEntry,
-            KeyboardContext.CommandPalette,
-        ];
-
-        foreach (KeyboardContext context in paneSurfaces)
-        {
-            AssertMaps(mapper, Input(KeyboardKey.F3, KeyboardModifier.Control, context), UserIntent.SortByName);
-            AssertMaps(mapper, Input(KeyboardKey.F4, KeyboardModifier.Control, context), UserIntent.SortByExtension);
-            foreach (KeyboardModifier modifier in new[] { KeyboardModifier.None, KeyboardModifier.Alt, KeyboardModifier.Other })
-            {
-                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F3, modifier, context)));
-                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F4, modifier, context)));
-            }
-        }
-        foreach (KeyboardContext context in owningContexts)
-        {
-            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-                mapper.Map(Input(KeyboardKey.F3, KeyboardModifier.Control, context)));
-            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-                mapper.Map(Input(KeyboardKey.F4, KeyboardModifier.Control, context)));
-        }
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
-            mapper.Map(Input(KeyboardKey.F3, KeyboardModifier.Control, KeyboardContext.WindowAdjustment)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(
-            mapper.Map(Input(KeyboardKey.F4, KeyboardModifier.Control, KeyboardContext.WindowAdjustment)));
-    }
-
-    /// <summary>Proves plain F3 leaves a pending chord alone and Ctrl+F4 cancels it before sorting.</summary>
-    [TestMethod]
-    public void MapWhenSortKeyFollowsGKeepsOrCancelsChordByDeclaration()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F3)));
-        AssertMaps(mapper, Input(KeyboardKey.LowerG), UserIntent.FocusFirst);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-        AssertMaps(mapper, Input(KeyboardKey.F4, KeyboardModifier.Control), UserIntent.SortByExtension);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-    }
-
-    /// <summary>Proves the raw F3 and F4 virtual keys translate under Control and name their chord caps.</summary>
-    [TestMethod]
-    public void TranslateKeyDataWhenSortChordArrivesMapsToSortIntentAndChordCap()
-    {
-        AssertRawControlKey(VirtualKey.F3, KeyboardKey.F3, UserIntent.SortByName);
-        AssertRawControlKey(VirtualKey.F4, KeyboardKey.F4, UserIntent.SortByExtension);
-
-        KeyBinding byName = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
-            .Single(binding => binding.Intent == UserIntent.SortByName);
-        KeyBinding byExtension = KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface)
-            .Single(binding => binding.Intent == UserIntent.SortByExtension);
-        Assert.AreEqual("KeyLabelCtrlF3", byName.KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelCtrlF4", byExtension.KeyLabelResourceKey);
-    }
-
-    /// <summary>
-    /// Proves Ctrl+F5 and Ctrl+F6 sort by size and modification time only from the file list and
-    /// the navigation surface, other modifiers pass through there, and every owning context keeps
-    /// them (ADR-0056).
-    /// </summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-013")]
-    public void MapWhenMetadataSortKeysArriveMapsControlChordOnlyOnPaneSurfaces()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        KeyboardContext[] paneSurfaces = [KeyboardContext.FileList, KeyboardContext.NavigationSurface];
-        KeyboardContext[] owningContexts =
-        [
-            KeyboardContext.Modal,
-            KeyboardContext.TextEntry,
-            KeyboardContext.AddressEntry,
-            KeyboardContext.CommandPalette,
-        ];
-        KeyboardContext[] consumingContexts = [KeyboardContext.WindowAdjustment, KeyboardContext.Locations];
-
-        foreach (KeyboardContext context in paneSurfaces)
-        {
-            AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardModifier.Control, context), UserIntent.SortBySize);
-            AssertMaps(mapper, Input(KeyboardKey.F6, KeyboardModifier.Control, context), UserIntent.SortByModified);
-            foreach (KeyboardModifier modifier in new[] { KeyboardModifier.Alt, KeyboardModifier.Other })
-            {
-                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F5, modifier, context)));
-                _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.F6, modifier, context)));
-            }
-        }
-        foreach (KeyboardContext context in owningContexts)
-        {
-            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-                mapper.Map(Input(KeyboardKey.F5, KeyboardModifier.Control, context)));
-            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-                mapper.Map(Input(KeyboardKey.F6, KeyboardModifier.Control, context)));
-        }
-        foreach (KeyboardContext context in consumingContexts)
-        {
-            _ = Assert.IsInstanceOfType<KeyboardConsumed>(
-                mapper.Map(Input(KeyboardKey.F5, KeyboardModifier.Control, context)));
-            _ = Assert.IsInstanceOfType<KeyboardConsumed>(
-                mapper.Map(Input(KeyboardKey.F6, KeyboardModifier.Control, context)));
-        }
-    }
-
-    /// <summary>
-    /// Proves plain F5 and F6 keep their commands beside the new chords: copy and move in the file
-    /// list, refresh and pass-through on the navigation surface.
-    /// </summary>
-    [TestMethod]
-    public void MapWhenPlainF5AndF6ArriveKeepsCopyMoveAndRefresh()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        AssertMaps(mapper, Input(KeyboardKey.F5), UserIntent.Copy);
-        AssertMaps(mapper, Input(KeyboardKey.F6), UserIntent.Move);
-        AssertMaps(mapper, Input(KeyboardKey.F5, KeyboardContext.NavigationSurface), UserIntent.Refresh);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.F6, KeyboardContext.NavigationSurface)));
-    }
-
-    /// <summary>
-    /// Proves the repeat guard on F5 and F6 also holds the chords: a held Ctrl+F5 or Ctrl+F6 does
-    /// not keep reversing the order.
-    /// </summary>
-    [TestMethod]
-    public void MapWhenMetadataSortChordRepeatsPassesThroughWithoutIntent()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        foreach (KeyboardKey key in new[] { KeyboardKey.F5, KeyboardKey.F6 })
-        {
-            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardInput.Create(
-                key,
-                KeyboardModifier.Control,
-                KeyRepeatState.Repeated,
-                KeyboardContext.FileList)));
-        }
-    }
-
-    /// <summary>Proves the raw F5 and F6 virtual keys translate under Control and name their chord caps.</summary>
-    [TestMethod]
-    public void TranslateKeyDataWhenMetadataSortChordArrivesMapsToSortIntentAndChordCap()
-    {
-        AssertRawControlKey(VirtualKey.F5, KeyboardKey.F5, UserIntent.SortBySize);
-        AssertRawControlKey(VirtualKey.F6, KeyboardKey.F6, UserIntent.SortByModified);
-
-        KeyBinding bySize = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
-            .Single(binding => binding.Intent == UserIntent.SortBySize);
-        KeyBinding byModified = KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface)
-            .Single(binding => binding.Intent == UserIntent.SortByModified);
-        Assert.AreEqual("KeyLabelCtrlF5", bySize.KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelCtrlF6", byModified.KeyLabelResourceKey);
+            mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.J, KeyboardContext.NavigationSurface)));
     }
 
     /// <summary>Proves unmapped keys and modifier combinations pass through.</summary>
     [TestMethod]
     public void MapWhenKeyOrModifierIsUnmappedPassesThrough()
     {
-        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
 
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Other)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.Other)));
         _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.J, KeyboardModifier.Other)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Comma)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Left)));
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(Input(KeyboardKey.Right)));
-    }
-
-    /// <summary>Proves every supported framework virtual key has one canonical translation.</summary>
-    [TestMethod]
-    public void TranslateKeyDataWhenVirtualKeyVariesReturnsCanonicalKeyAndRepeatState()
-    {
-        AssertTranslatedVirtualKey(VirtualKey.Down, KeyboardKey.Down);
-        AssertTranslatedVirtualKey(VirtualKey.Up, KeyboardKey.Up);
-        AssertTranslatedVirtualKey(VirtualKey.Left, KeyboardKey.Left);
-        AssertTranslatedVirtualKey(VirtualKey.Right, KeyboardKey.Right);
-        AssertTranslatedVirtualKey(VirtualKey.Back, KeyboardKey.Backspace);
-        AssertTranslatedVirtualKey(VirtualKey.Enter, KeyboardKey.Enter);
-        AssertTranslatedVirtualKey(VirtualKey.PageDown, KeyboardKey.PageDown);
-        AssertTranslatedVirtualKey(VirtualKey.PageUp, KeyboardKey.PageUp);
-        AssertTranslatedVirtualKey(VirtualKey.Tab, KeyboardKey.Tab);
-        AssertTranslatedVirtualKey(VirtualKey.Escape, KeyboardKey.Escape);
-        AssertTranslatedVirtualKey(VirtualKey.F2, KeyboardKey.F2);
-        AssertTranslatedVirtualKey(VirtualKey.F3, KeyboardKey.F3);
-        AssertTranslatedVirtualKey(VirtualKey.F4, KeyboardKey.F4);
-        AssertTranslatedVirtualKey(VirtualKey.F5, KeyboardKey.F5);
-        AssertTranslatedVirtualKey(VirtualKey.F6, KeyboardKey.F6);
-        AssertTranslatedVirtualKey(VirtualKey.F7, KeyboardKey.F7);
-        AssertTranslatedVirtualKey(VirtualKey.F8, KeyboardKey.F8);
-        AssertTranslatedVirtualKey(VirtualKey.Space, KeyboardKey.Space);
-        AssertTranslatedVirtualKey(VirtualKey.A, KeyboardKey.Other);
-        AssertTranslatedVirtualKey((VirtualKey)188, KeyboardKey.Other);
-        KeyboardInput controlComma = KeyboardInputTranslator.TranslateKeyData(
-            188,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.Control);
-        Assert.AreSame(KeyboardKey.Comma, controlComma.Key);
-        Assert.AreSame(UserIntent.OpenSettings, Assert.IsInstanceOfType<MappedKeyboardIntent>(
-            CreateMapper().Map(controlComma)).Intent);
-        AssertRawControlKey(VirtualKey.B, KeyboardKey.B, UserIntent.OpenBookmarks);
-        AssertRawControlKey(VirtualKey.Number1, KeyboardKey.One, UserIntent.BookmarkSlotOne);
-        AssertRawControlKey(VirtualKey.Number9, KeyboardKey.Nine, UserIntent.BookmarkSlotNine);
-        KeyboardInput controlP = KeyboardInputTranslator.TranslateKeyData(
-            (int)VirtualKey.P,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.Control);
-        Assert.AreSame(KeyboardKey.Other, controlP.Key);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(CreateMapper().Map(controlP));
-
-        KeyboardInput repeated = KeyboardInputTranslator.TranslateKeyData(
-            (int)VirtualKey.Down,
-            KeyRepeatState.Repeated,
-            KeyboardContext.NavigationSurface,
-            KeyboardModifier.Alt);
-        Assert.AreSame(KeyRepeatState.Repeated, repeated.RepeatState);
-        Assert.AreSame(KeyboardContext.NavigationSurface, repeated.Context);
-        Assert.AreSame(KeyboardModifier.Alt, repeated.Modifier);
-    }
-
-    /// <summary>Proves layout-translated characters and control aliases have exact key identities.</summary>
-    [TestMethod]
-    public void TranslateCharacterDataWhenCharacterVariesReturnsCanonicalKeyAndRepeatState()
-    {
-        AssertTranslatedCharacter(' ', KeyboardKey.Other);
-        AssertTranslatedCharacter('d', KeyboardKey.D);
-        AssertTranslatedCharacter('b', KeyboardKey.B);
-        AssertTranslatedCharacter('\u0002', KeyboardKey.B);
-        AssertTranslatedCharacter('\u0004', KeyboardKey.D);
-        AssertTranslatedCharacter('G', KeyboardKey.UpperG);
-        AssertTranslatedCharacter('g', KeyboardKey.LowerG);
-        AssertTranslatedCharacter('h', KeyboardKey.H);
-        AssertTranslatedCharacter('j', KeyboardKey.J);
-        AssertTranslatedCharacter('k', KeyboardKey.K);
-        AssertTranslatedCharacter('l', KeyboardKey.L);
-        AssertTranslatedCharacter('\u000c', KeyboardKey.L);
-        AssertTranslatedCharacter('p', KeyboardKey.P);
-        AssertTranslatedCharacter('\u0010', KeyboardKey.P);
-        AssertTranslatedCharacter('r', KeyboardKey.R);
-        AssertTranslatedCharacter('\u0012', KeyboardKey.R);
-        AssertTranslatedCharacter('u', KeyboardKey.U);
-        AssertTranslatedCharacter('\u0015', KeyboardKey.U);
-        AssertTranslatedCharacter(',', KeyboardKey.Comma);
-        AssertTranslatedCharacter('1', KeyboardKey.One);
-        AssertTranslatedCharacter('2', KeyboardKey.Two);
-        AssertTranslatedCharacter('3', KeyboardKey.Three);
-        AssertTranslatedCharacter('4', KeyboardKey.Four);
-        AssertTranslatedCharacter('5', KeyboardKey.Five);
-        AssertTranslatedCharacter('6', KeyboardKey.Six);
-        AssertTranslatedCharacter('7', KeyboardKey.Seven);
-        AssertTranslatedCharacter('8', KeyboardKey.Eight);
-        AssertTranslatedCharacter('9', KeyboardKey.Nine);
-        AssertTranslatedCharacter('x', KeyboardKey.Other);
-
-        KeyboardInput controlH = KeyboardInputTranslator.TranslateCharacterData(
-            '\u0008',
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.Control);
-        KeyboardInput unmodifiedBackspaceCharacter = KeyboardInputTranslator.TranslateCharacterData(
-            '\u0008',
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.None);
-
-        Assert.AreSame(KeyboardKey.H, controlH.Key);
-        Assert.AreSame(KeyboardKey.Other, unmodifiedBackspaceCharacter.Key);
-
-        KeyboardInput repeated = KeyboardInputTranslator.TranslateCharacterData(
-            'j',
-            KeyRepeatState.Repeated,
-            KeyboardContext.TextEntry,
-            KeyboardModifier.Control);
-        Assert.AreSame(KeyRepeatState.Repeated, repeated.RepeatState);
-        Assert.AreSame(KeyboardContext.TextEntry, repeated.Context);
-        Assert.AreSame(KeyboardModifier.Control, repeated.Modifier);
-    }
-
-    /// <summary>Proves modifier combinations collapse into one closed modifier value.</summary>
-    [TestMethod]
-    public void TranslateModifierStateWhenKeysVaryReturnsCanonicalModifier()
-    {
-        Assert.AreSame(
-            KeyboardModifier.None,
-            KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.None, CoreVirtualKeyStates.None));
-        Assert.AreSame(
-            KeyboardModifier.Control,
-            KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.Down, CoreVirtualKeyStates.None));
-        Assert.AreSame(
-            KeyboardModifier.Alt,
-            KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down));
-        Assert.AreSame(
-            KeyboardModifier.Other,
-            KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.Down, CoreVirtualKeyStates.Down));
-    }
-
-    private static void AssertTranslatedVirtualKey(VirtualKey virtualKey, KeyboardKey expected)
-    {
-        KeyboardInput input = KeyboardInputTranslator.TranslateKeyData(
-            (int)virtualKey,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.None);
-        Assert.AreSame(expected, input.Key);
-        Assert.AreSame(KeyRepeatState.Initial, input.RepeatState);
-    }
-
-    private static void AssertTranslatedCharacter(char character, KeyboardKey expected)
-    {
-        KeyboardInput input = KeyboardInputTranslator.TranslateCharacterData(
-            character,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.None);
-        Assert.AreSame(expected, input.Key);
-        Assert.AreSame(KeyRepeatState.Initial, input.RepeatState);
-    }
-
-    private static void AssertRawControlKey(
-        VirtualKey virtualKey,
-        KeyboardKey expectedKey,
-        UserIntent expectedIntent)
-    {
-        KeyboardInput input = KeyboardInputTranslator.TranslateKeyData(
-            (int)virtualKey,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList,
-            KeyboardModifier.Control);
-        Assert.AreSame(expectedKey, input.Key);
-        Assert.AreSame(
-            expectedIntent,
-            Assert.IsInstanceOfType<MappedKeyboardIntent>(CreateMapper().Map(input)).Intent);
-    }
-
-    /// <summary>Proves no context maps one keystroke to more than one intent (KBD-005).</summary>
-    [TestMethod]
-    public void BindingsForWhenContextIsDeclaredMapsEachKeystrokeToOneIntent()
-    {
-        KeyboardContext[] contexts =
-        [
-            KeyboardContext.FileList,
-            KeyboardContext.NavigationSurface,
-            KeyboardContext.Modal,
-            KeyboardContext.TextEntry,
-            KeyboardContext.AddressEntry,
-        ];
-
-        foreach (KeyboardContext context in contexts)
-        {
-            AssertKeystrokesAreUnique(context);
-        }
-    }
-
-    /// <summary>Proves every declared binding is the intent the mapper emits for its keystroke.</summary>
-    [TestMethod]
-    public void BindingsForWhenDeclarationIsMappedEmitsTheDeclaredIntent()
-    {
-        KeyboardContext[] contexts =
-        [
-            KeyboardContext.FileList,
-            KeyboardContext.NavigationSurface,
-            KeyboardContext.Modal,
-            KeyboardContext.TextEntry,
-            KeyboardContext.AddressEntry,
-        ];
-
-        foreach (KeyboardContext context in contexts)
-        {
-            AssertDeclarationsAreMapped(context);
-        }
-    }
-
-    /// <summary>Proves the file-list context declares every documented binding and nothing else.</summary>
-    [TestMethod]
-    public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
-    {
-        Assert.HasCount(45, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(26, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
-        Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
-        Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
-        Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
-        Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
-        Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));
-    }
-
-    /// <summary>Proves every key identity names one distinct key-cap label resource.</summary>
-    [TestMethod]
-    public void LabelResourceKeyWhenKeyIsReadNamesOneDistinctResource()
-    {
-        Assert.AreEqual("KeyLabelLowerG", KeyboardKey.LowerG.LabelResourceKey);
-        Assert.AreEqual("KeyLabelUpperG", KeyboardKey.UpperG.LabelResourceKey);
-        Assert.AreEqual("KeyLabelH", KeyboardKey.H.LabelResourceKey);
-        Assert.AreEqual("KeyLabelJ", KeyboardKey.J.LabelResourceKey);
-        Assert.AreEqual("KeyLabelK", KeyboardKey.K.LabelResourceKey);
-        Assert.AreEqual("KeyLabelL", KeyboardKey.L.LabelResourceKey);
-        Assert.AreEqual("KeyLabelD", KeyboardKey.D.LabelResourceKey);
-        Assert.AreEqual("KeyLabelR", KeyboardKey.R.LabelResourceKey);
-        Assert.AreEqual("KeyLabelP", KeyboardKey.P.LabelResourceKey);
-        Assert.AreEqual("KeyLabelU", KeyboardKey.U.LabelResourceKey);
-        Assert.AreEqual("KeyLabelB", KeyboardKey.B.LabelResourceKey);
-        Assert.AreEqual("KeyLabel1", KeyboardKey.One.LabelResourceKey);
-        Assert.AreEqual("KeyLabel2", KeyboardKey.Two.LabelResourceKey);
-        Assert.AreEqual("KeyLabel3", KeyboardKey.Three.LabelResourceKey);
-        Assert.AreEqual("KeyLabel4", KeyboardKey.Four.LabelResourceKey);
-        Assert.AreEqual("KeyLabel5", KeyboardKey.Five.LabelResourceKey);
-        Assert.AreEqual("KeyLabel6", KeyboardKey.Six.LabelResourceKey);
-        Assert.AreEqual("KeyLabel7", KeyboardKey.Seven.LabelResourceKey);
-        Assert.AreEqual("KeyLabel8", KeyboardKey.Eight.LabelResourceKey);
-        Assert.AreEqual("KeyLabel9", KeyboardKey.Nine.LabelResourceKey);
-        Assert.AreEqual("KeyLabelComma", KeyboardKey.Comma.LabelResourceKey);
-        Assert.AreEqual("KeyLabelDown", KeyboardKey.Down.LabelResourceKey);
-        Assert.AreEqual("KeyLabelUp", KeyboardKey.Up.LabelResourceKey);
-        Assert.AreEqual("KeyLabelLeft", KeyboardKey.Left.LabelResourceKey);
-        Assert.AreEqual("KeyLabelRight", KeyboardKey.Right.LabelResourceKey);
-        Assert.AreEqual("KeyLabelBackspace", KeyboardKey.Backspace.LabelResourceKey);
-        Assert.AreEqual("KeyLabelEnter", KeyboardKey.Enter.LabelResourceKey);
-        Assert.AreEqual("KeyLabelPageDown", KeyboardKey.PageDown.LabelResourceKey);
-        Assert.AreEqual("KeyLabelPageUp", KeyboardKey.PageUp.LabelResourceKey);
-        Assert.AreEqual("KeyLabelTab", KeyboardKey.Tab.LabelResourceKey);
-        Assert.AreEqual("KeyLabelSpace", KeyboardKey.Space.LabelResourceKey);
-        Assert.AreEqual("KeyLabelEscape", KeyboardKey.Escape.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF2", KeyboardKey.F2.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF3", KeyboardKey.F3.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF4", KeyboardKey.F4.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF5", KeyboardKey.F5.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF6", KeyboardKey.F6.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF7", KeyboardKey.F7.LabelResourceKey);
-        Assert.AreEqual("KeyLabelF8", KeyboardKey.F8.LabelResourceKey);
-        Assert.AreEqual("KeyLabelUnmapped", KeyboardKey.Other.LabelResourceKey);
-        AssertLabelResourceKeysAreDistinct();
-    }
-
-    /// <summary>Proves the palette context owns selection, execution, cancellation, and focus-loop keys.</summary>
-    [TestMethod]
-    public void MapWhenContextIsCommandPaletteEmitsPresentationActionsOnly()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        AssertPaletteAction(mapper, KeyboardKey.Up, CommandPaletteKeyAction.MovePrevious);
-        AssertPaletteAction(mapper, KeyboardKey.Down, CommandPaletteKeyAction.MoveNext);
-        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
-        AssertPaletteAction(mapper, KeyboardKey.Escape, CommandPaletteKeyAction.Cancel);
-        AssertPaletteAction(mapper, KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus);
-        MappedCommandPaletteAction controlTab = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
-            mapper.Map(Input(
-                KeyboardKey.Tab,
-                KeyboardModifier.Control,
-                KeyboardContext.CommandPalette)));
-        MappedCommandPaletteAction altTab = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
-            mapper.Map(Input(
-                KeyboardKey.Tab,
-                KeyboardModifier.Alt,
-                KeyboardContext.CommandPalette)));
-        Assert.AreSame(CommandPaletteKeyAction.MoveFocus, controlTab.Action);
-        Assert.AreSame(CommandPaletteKeyAction.MoveFocus, altTab.Action);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(
-            mapper.Map(Input(KeyboardKey.J, KeyboardContext.CommandPalette)));
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardInput.Create(
-            KeyboardKey.Enter,
-            KeyboardModifier.None,
-            KeyRepeatState.Repeated,
-            KeyboardContext.CommandPalette)));
-        AssertPaletteAction(mapper, KeyboardKey.Down, CommandPaletteKeyAction.MoveNext, KeyRepeatState.Repeated);
-        Assert.HasCount(5, KeyboardIntentMapper.CommandPaletteBindings);
-    }
-
-    /// <summary>
-    /// Proves a held Enter that the palette never started is consumed rather than executed, so a
-    /// repeat produced by an earlier owner cannot run the selected command.
-    /// </summary>
-    [TestMethod]
-    public void MapWhenPaletteReceivesAnUnstartedEnterRepeatConsumesItWithoutExecuting()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        KeyboardMappingOutcome repeated = mapper.Map(Repeated(
-            KeyboardKey.Enter,
-            KeyboardContext.CommandPalette));
-
-        _ = Assert.IsInstanceOfType<KeyboardConsumed>(repeated);
-        AssertPaletteAction(mapper, KeyboardKey.Enter, CommandPaletteKeyAction.Execute);
-    }
-
-    /// <summary>
-    /// Proves only a repeated modal Enter is consumed, so a held Enter still reaches a text editor
-    /// and a held Escape still cancels the modal that owns it.
-    /// </summary>
-    [TestMethod]
-    public void MapWhenOwnedContextKeyRepeatsOnlyModalEnterIsConsumed()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-
-        KeyboardMappingOutcome textEnter = mapper.Map(Repeated(
-            KeyboardKey.Enter,
-            KeyboardContext.TextEntry));
-        KeyboardMappingOutcome modalEscape = mapper.Map(Repeated(
-            KeyboardKey.Escape,
-            KeyboardContext.Modal));
-        KeyboardMappingOutcome textEscape = mapper.Map(Repeated(
-            KeyboardKey.Escape,
-            KeyboardContext.TextEntry));
-
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(textEnter);
-        Assert.AreSame(
-            UserIntent.Escape,
-            Assert.IsInstanceOfType<MappedKeyboardIntent>(modalEscape).Intent);
-        Assert.AreSame(
-            UserIntent.Escape,
-            Assert.IsInstanceOfType<MappedKeyboardIntent>(textEscape).Intent);
-    }
-
-    /// <summary>
-    /// Proves address editing cancels a pending chord even when its own key is passed through, so
-    /// a later file-list prefix starts a new chord instead of completing the abandoned one.
-    /// </summary>
-    [TestMethod]
-    public void MapWhenAddressEntryKeyFollowsGCancelsTheChord()
-    {
-        KeyboardIntentMapper mapper = CreateMapper();
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
-
-        KeyboardMappingOutcome typed = mapper.Map(Input(
-            KeyboardKey.Other,
-            KeyboardContext.AddressEntry));
-
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(typed);
-        _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
+            mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.J, KeyboardModifier.Other)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.Comma)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.Left)));
+        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(KeyboardKey.Right)));
     }
 
     /// <summary>
@@ -950,134 +171,9 @@ public sealed class KeyboardIntentMapperTests
     public void ConstructKeyboardMappingWhenAnyPartIsNullThrowsArgumentNullException()
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new KeyboardIntentMapper(null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CreateMapper().Map(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => KeyboardMappingTestContext.CreateMapper().Map(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
             new CommandPaletteKeyBinding(null!, CommandPaletteKeyAction.Execute));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new MappedKeyboardIntent(null!));
-    }
-
-    /// <summary>Proves the binding query rejects an absent context.</summary>
-    [TestMethod]
-    public void BindingsForWhenContextIsNullThrowsArgumentNullException()
-    {
-        MethodInfo method = typeof(KeyboardIntentMapper).GetMethod(
-            nameof(KeyboardIntentMapper.BindingsFor),
-            BindingFlags.Public | BindingFlags.Static) ??
-            throw new AssertFailedException("The binding query was not found.");
-
-        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null]));
-
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-    }
-
-    private static void AssertKeystrokesAreUnique(KeyboardContext context)
-    {
-        HashSet<string> keystrokes = [];
-        foreach (KeyBinding binding in KeyboardIntentMapper.BindingsFor(context))
-        {
-            Assert.AreSame(context, binding.Context);
-            Assert.IsTrue(
-                keystrokes.Add(binding.Key.LabelResourceKey + " " + binding.Modifier.GetType().Name),
-                "A keystroke is declared more than once in one context.");
-        }
-    }
-
-    private static void AssertDeclarationsAreMapped(KeyboardContext context)
-    {
-        foreach (KeyBinding binding in KeyboardIntentMapper.BindingsFor(context))
-        {
-            KeyboardInput input = KeyboardInput.Create(
-                binding.Key,
-                binding.Modifier,
-                KeyRepeatState.Initial,
-                context);
-            MappedKeyboardIntent mapped = Assert.IsInstanceOfType<MappedKeyboardIntent>(
-                CreateMapper().Map(input));
-            Assert.AreSame(binding.Intent, mapped.Intent);
-        }
-    }
-
-    private static void AssertLabelResourceKeysAreDistinct()
-    {
-        HashSet<string> labels = [];
-        foreach (KeyboardContext context in new[] { KeyboardContext.FileList, KeyboardContext.NavigationSurface })
-        {
-            foreach (KeyBinding binding in KeyboardIntentMapper.BindingsFor(context))
-            {
-                _ = labels.Add(binding.Key.LabelResourceKey);
-                Assert.StartsWith("KeyLabel", binding.Key.LabelResourceKey);
-            }
-        }
-        Assert.IsNotEmpty(labels);
-    }
-
-    private static KeyboardIntentMapper CreateMapper()
-    {
-        return new KeyboardIntentMapper(AdjustableClock.Create());
-    }
-
-    private static void AssertPaletteAction(
-        KeyboardIntentMapper mapper,
-        KeyboardKey key,
-        CommandPaletteKeyAction expected)
-    {
-        AssertPaletteAction(mapper, key, expected, KeyRepeatState.Initial);
-    }
-
-    private static void AssertPaletteAction(
-        KeyboardIntentMapper mapper,
-        KeyboardKey key,
-        CommandPaletteKeyAction expected,
-        KeyRepeatState repeatState)
-    {
-        MappedCommandPaletteAction mapped = Assert.IsInstanceOfType<MappedCommandPaletteAction>(
-            mapper.Map(KeyboardInput.Create(
-                key,
-                KeyboardModifier.None,
-                repeatState,
-                KeyboardContext.CommandPalette)));
-        Assert.AreEqual(expected, mapped.Action);
-    }
-
-    private static KeyboardInput Input(KeyboardKey key)
-    {
-        return Input(key, KeyboardModifier.None);
-    }
-
-    private static KeyboardInput Input(KeyboardKey key, KeyboardModifier modifier)
-    {
-        return KeyboardInput.Create(
-            key,
-            modifier,
-            KeyRepeatState.Initial,
-            KeyboardContext.FileList);
-    }
-
-    private static KeyboardInput Input(KeyboardKey key, KeyboardContext context)
-    {
-        return KeyboardInput.Create(key, KeyboardModifier.None, KeyRepeatState.Initial, context);
-    }
-
-    private static KeyboardInput Repeated(KeyboardKey key, KeyboardContext context)
-    {
-        return KeyboardInput.Create(key, KeyboardModifier.None, KeyRepeatState.Repeated, context);
-    }
-
-    private static KeyboardInput Input(
-        KeyboardKey key,
-        KeyboardModifier modifier,
-        KeyboardContext context)
-    {
-        return KeyboardInput.Create(key, modifier, KeyRepeatState.Initial, context);
-    }
-
-    private static void AssertMaps(
-        KeyboardIntentMapper mapper,
-        KeyboardInput input,
-        UserIntent expected)
-    {
-        MappedKeyboardIntent mapped = Assert.IsInstanceOfType<MappedKeyboardIntent>(mapper.Map(input));
-        Assert.AreSame(expected, mapped.Intent);
     }
 }
