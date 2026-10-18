@@ -102,20 +102,28 @@ branch・commit・恒久証拠・共有SDKを保持する。
 一時出力にはcompiler/analyzer cache 23 DLLとIssue/PR本文2 fileがあり、本文は恒久領域へhash一致で保存済み。
 出力削除は自動承認レビューが`blocked by policy`で拒否した。コマンドは開始されず、別手段で再試行していない。
 12:35:35 JSTの読み取り確認で対象出力の残存とworktreeの不在を確認した。
-`cleanup-preflight.json`、`cleanup-pending.json`と`completion.json`に実際の状態を記録する。
-[Issue #279](https://github.com/hideyukiMORI/NeNeCommander/issues/279)で本書・引き継ぎ・PROJECT_STATEを更新する。
-文面・link・`git diff --check`、準備済みscriptの構文だけの解析、通常Commit hookを選択し、製品検証やCIは再実行しない。
+この時点の確認と拒否は`cleanup-preflight.json`、`cleanup-pending.json`へ保持した。
+[Issue #279](https://github.com/hideyukiMORI/NeNeCommander/issues/279) /
+[PR #280](https://github.com/hideyukiMORI/NeNeCommander/pull/280)で本書・引き継ぎ・PROJECT_STATEに保留を記録し、
+`13202555aef511a0aca139170ec12ba57daec17f`へ統合した。
+文面・link・`git diff --check`、準備済みscriptの構文だけの解析、通常Commit hookを確認し、製品検証やCIは再実行しなかった。
 
 P4 #244・#246・#247・#248は今回の対象外で、#94の手動release確認も未実施のまま。
 本件は予約名の字句的な拒否漏れを直したものであり、Windowsの全namespaceや実provider能力を網羅する証明ではない。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-245`だけ。
-恒久証拠`D:/NeNeCommander/evidence/issue-245/`、branch・commit、共有SDKは保持する。
-自動承認レビューが再帰削除を`blocked by policy`で拒否したため、hideが次を実行する。
-scriptは構文確認のみで、サナは実行していない。完了結果または対象不在の確認までは保留を維持する。
+hideは12:42:12 JSTに次の準備済みcommandを実行し、完了結果を報告した。これは実行履歴であり、再実行の依頼ではない。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-245/cleanup-completed-output.ps1
 ```
+
+12:43:48 JSTの読み取り確認で、`D:/NeNeCommander/outputs/issue-245`と
+`D:/NeNeCommander/worktrees/issue-245`の不在を確認した。
+恒久証拠`D:/NeNeCommander/evidence/issue-245/`、branch・commit、共有SDKは保持されている。
+実行結果は`cleanup-executed-by-hide.json`、確認は`cleanup-confirmation.json`、最終状態は`completion.json`に記録する。
+[Issue #281](https://github.com/hideyukiMORI/NeNeCommander/issues/281)で既存3文書の保留を完了へ更新する。
+文面・相対link・`git diff --check`と通常Commit hookを確認し、入力不変の製品検証は再利用する。
+この文書更新の統合記録は`cleanup-closure/completion.json`に保持する。追加worktreeや一時出力は作らない。
+本件の後片付け待ちはない。
