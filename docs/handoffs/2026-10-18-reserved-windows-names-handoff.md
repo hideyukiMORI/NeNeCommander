@@ -36,17 +36,33 @@ UNCはinjected enumerator、WSL転送は所有NTFS fixtureであり、実share/9
 `implementation-inventory.json`、stage別command JSON/raw log、`final-source/`、
 `final-source-hashes.json`、`implementation.patch`を日報の件数・commandと照合する。
 独立レビューは最終9 sourceのhash/patch、REDとbaseline、filterと182件の対応を照合し、具体的P1/P2なし。
-通常Commit hookの結果はPRおよび最終受理記録を読む。
+通常Commit hookは112規約・24security登録とcommit-message検査が成功し、`root/commit.log`に保持する。
 
 ## 再開時の確認
 
 1. AGENTS.md、PROJECT_STATE、現在のhide指示、実際のIssue/PRとmainを確認する。
-2. Issue #245を閉じるPRと`D:/NeNeCommander/evidence/issue-245/completion.json`で
-   squash統合・main同期・tree一致・後片付けの事実を確認する。古いP4記録から未着手に戻さない。
+2. [PR #278](https://github.com/hideyukiMORI/NeNeCommander/pull/278)は12:32:52 JSTに
+   `18a694571e6ea7eaa5b58b2156aae8bc6e5a3b44`へsquash統合済み。main同期・cleanと受理taskの同一treeを確認した。
+   Issue #245はclosed。`D:/NeNeCommander/evidence/issue-245/completion.json`で統合と整理を分けて読む。
+   古いP4記録から未着手に戻さない。
 3. 作業用pathは`D:/NeNeCommander/worktrees/issue-245`、一時出力は`D:/NeNeCommander/outputs/issue-245`。
    branch `fix/245-windows-reserved-superscripts`・commit・証拠・共有SDKは保持する。
+   worktreeは削除済み。outputは自動承認拒否により残っているため、末尾の準備済みcommandを引き継ぐ。
    完了記録で削除が確認されたpathへ同じ削除を再依頼しない。
 4. P4 #244・#246・#247・#248は別件。#94はhide在席時の手動release確認で、開発阻害ではない。
    実share/mapping/removableの環境証明も本件から成功扱いしない。
 
 検証用SDKは`D:/NeNeCommander/tools/dotnet-10.0.401`。必要なprocessにだけ指定し、system SDKやglobal PATHは変更しない。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-245`だけ。
+所有出力・取込・未保存物・稼働参照・linkを確認し、本文2 fileも恒久証拠へ収載した後の削除を、
+自動承認レビューが`blocked by policy`で拒否した。commandは開始されず、サナによる別手段の再試行はない。
+12:35:35 JSTの読み取り確認では対象出力が残り、Issue #245のworktreeは不在だった。
+恒久証拠`D:/NeNeCommander/evidence/issue-245/`、branch・commit・共有SDKを保持する。
+Issue #279がこの保留記録を扱う。hideの実行と完了確認までは引き継ぎから消さない。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-245/cleanup-completed-output.ps1
+```

@@ -54,7 +54,8 @@ ASCII範囲patternへ必要な括弧を加えて解消した。抑止せず、�
 変更9 C# fileのformatはexit 0、警告出力なし。`git diff --check`も成功した。
 独立した読み取り専用レビューに具体的な未解決P1/P2はない。最終9 sourceと保存物のhash/patch、
 baseline productionを使ったRED、filterと182件の対応、成功したbuild/formatを照合済み。
-通常Commit hookの結果はPRと恒久証拠の最終受理記録で確認する。
+通常Commit hookは112規約・24security登録とcommit-message validatorが成功した。
+記録は`root/commit.log`、技術受理とレビューは`root/acceptance.json`で確認できる。
 
 ## 実行コマンドと証拠
 
@@ -90,10 +91,31 @@ formatは`dotnet format whitespace NeNeCommander.slnx --verify-no-changes --no-r
 
 ## 統合と次回の入口
 
-branchは`fix/245-windows-reserved-superscripts`。
-PRのsquash統合、main同期・task tree一致、追加worktreeと不要な出力の整理は、
-Issue #245を閉じるPRと`D:/NeNeCommander/evidence/issue-245/completion.json`を正本とする。
-branch・commit・恒久証拠・共有SDKを保持し、整理前に未保存物・唯一のartifact・稼働参照・linkを確認する。
+branchは`fix/245-windows-reserved-superscripts`、受理commitは`8658f30b8489e60566448d14e3c9bb777912f4a6`。
+[PR #278](https://github.com/hideyukiMORI/NeNeCommander/pull/278)は12:32:52 JSTに
+`18a694571e6ea7eaa5b58b2156aae8bc6e5a3b44`へsquash統合され、Issue #245はclosedとなった。
+main同期・cleanと、受理task/mainのtree `2c693ecc31127a35a269f4598b8d43026ffbd7e9`の一致を確認した。
+追加worktree `D:/NeNeCommander/worktrees/issue-245`は削除済み。
+branch・commit・恒久証拠・共有SDKを保持する。
+
+未保存/未追跡物、ignored build出力1006 file、稼働command/module参照、linkを確認した。
+一時出力にはcompiler/analyzer cache 23 DLLとIssue/PR本文2 fileがあり、本文は恒久領域へhash一致で保存済み。
+出力削除は自動承認レビューが`blocked by policy`で拒否した。コマンドは開始されず、別手段で再試行していない。
+12:35:35 JSTの読み取り確認で対象出力の残存とworktreeの不在を確認した。
+`cleanup-preflight.json`、`cleanup-pending.json`と`completion.json`に実際の状態を記録する。
+[Issue #279](https://github.com/hideyukiMORI/NeNeCommander/issues/279)で本書・引き継ぎ・PROJECT_STATEを更新する。
+文面・link・`git diff --check`、準備済みscriptの構文だけの解析、通常Commit hookを選択し、製品検証やCIは再実行しない。
 
 P4 #244・#246・#247・#248は今回の対象外で、#94の手動release確認も未実施のまま。
 本件は予約名の字句的な拒否漏れを直したものであり、Windowsの全namespaceや実provider能力を網羅する証明ではない。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-245`だけ。
+恒久証拠`D:/NeNeCommander/evidence/issue-245/`、branch・commit、共有SDKは保持する。
+自動承認レビューが再帰削除を`blocked by policy`で拒否したため、hideが次を実行する。
+scriptは構文確認のみで、サナは実行していない。完了結果または対象不在の確認までは保留を維持する。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-245/cleanup-completed-output.ps1
+```
