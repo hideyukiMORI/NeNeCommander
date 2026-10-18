@@ -1,0 +1,89 @@
+# CS-013 maintained measurement — 2026-10-18
+
+Status: measured findings; standalone tool, not a global gate.
+
+Issue [#324](https://github.com/hideyukiMORI/NeNeCommander/issues/324) implements
+[ADR-0075](../adr/0075-standalone-cs013-measurement.md). The product/test baseline is
+`85a6a9956ae37ae1fb0437542d0eaf6b1e556e74`; the measurement also includes this
+Issue's engineering sources. The report records all 722 source hashes and Roslyn
+5.9.0.0 from SDK 10.0.401. The metric version is `cs013-v1`.
+
+## Result
+
+`Inspect` correctly returns **1**, status `findings`. The repository is not yet
+CS-013 conformant. A finding is one exceeded metric at one declaration; the same
+declaration may contribute more than one finding.
+
+| Scope | C# files | Types | Measured callables | Method lines >40 | Cognitive >10 | Nesting >3 | Owned parameters >4 | Type lines >300 | Findings |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Product (`src`) | 502 | 894 | 3,747 | 7 | 22 | 14 | 29 | 5 | 77 |
+| Tests (`tests`) | 192 | 240 | 3,748 | 52 | 4 | 2 | 15 | 30 | 103 |
+| Engineering (`eng`) | 28 | 28 | 309 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Total | 722 | 1,162 | 7,804 | 59 | 26 | 16 | 44 | 35 | 180 |
+
+The 13 externally fixed native signatures above four parameters remain in the
+member report with raw counts and semantic classification. They do not produce
+an owned-parameter finding. Eight managed mirrors remain among the 29 product
+parameter findings. No whole file/type is exempt, and no finding is suppressed.
+
+The report counts 7,222 unresolved invocation expressions. This source-only model
+uses framework/SDK references and transitive source-project references; it does
+not restore product packages, run generators or build WinUI/MSTest projects.
+Resolved source targets and ambiguous source candidates contribute cycle edges;
+unknown calls do not. The cognitive result follows that explicit static definition
+and is not a complete runtime call graph or compiler-success claim. Line, syntax
+flow, nesting and explicit-parameter counts do not depend on successful product
+compilation. Unsupported input fails with exit 2 rather than being omitted.
+
+## New information for the adoption order
+
+The [earlier plan](cs013-readiness-2026-10-18.md) remains the responsibility-specific
+sequence. Its metric/native-policy/tool step is now complete. Its historical
+member counts excluded anonymous functions and used provisional control depth;
+do not compare those figures as if the definitions were unchanged.
+
+| Product member | Cognitive | Nesting | Logical lines | Owning future work |
+|---|---:|---:|---:|---|
+| `WindowsLocalSettingsStore.WriteDocument` | 34 | 2 | 200 | Settings attempt ownership, publication and cleanup |
+| `WindowsLocalFileOperationAdapter.Preflight` | 31 | 3 | 60 | Local provider admission |
+| `CommandPalettePresenter.Reason` | 22 | 6 | 18 | Presentation reason projection |
+| `FileOperationGateway.ExecuteDeleteAsync` | 20 | 3 | 32 | Shared deletion orchestration |
+| `WslToWindowsTransfer.Preflight` | 18 | 3 | 23 | WSL transfer admission |
+| `KeyboardIntentMapper.Map` | 17 | 2 | 38 | Deterministic input mapping |
+
+Full locations, values, types, members and native reasons are retained in the
+machine report. The source hashes identify the exact inputs. Resolve findings
+through the planned responsibility splits and their directly affected tests;
+do not raise thresholds, introduce a baseline or wire a changed-files-only gate.
+Global integration is a subsequent explicitly scoped change.
+
+## Reproduction and proof
+
+Use the pinned SDK, then run from the repository:
+
+```powershell
+pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode SelfTest
+pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect
+dotnet format whitespace ./eng/complexity --folder --verify-no-changes --verbosity minimal
+```
+
+The first command compiles only the tool with warnings as errors and passes 24
+fixture groups. These cover all threshold edges, multiline/token handling,
+partial/nested/file-local identities, logical operator runs, flow weights,
+direct/indirect/generic/partial recursion, transitive references, valid and spoofed
+native shapes, untracked/ignored sources, and refused unsupported/missing inputs.
+The second returns 1 with the table above. Formatting returns 0.
+
+The retained `Prove-Launcher.ps1` exercises seven external entry-point cases:
+conformant input; invalid source; empty project; missing project; compiler failure;
+missing repository root; and a real source junction. Every invalid run returns 2
+for its intended reason. Existing successful JSON is replaced; a compile failure
+cannot execute an old binary. The missing root is not created. The owned junction
+is removed without changing its target. These proofs all pass.
+
+Evidence is retained at `D:/NeNeCommander/evidence/cs013-tool-20261018/`: final
+inspection/self-test JSON and logs, launcher proof/script/logs, input manifest and
+tool hashes. The Issue PR and completion record own integration and cleanup facts.
+ADR-0061 selects these tool proofs and normal Commit checks. No product build,
+product test suite, full/deep CI, coverage, all-layer mutation or live environment
+proof is selected. Release confirmation #94 is unchanged and remains separate.

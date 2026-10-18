@@ -118,14 +118,22 @@ The file name matches its single primary top-level type. Small private nested ty
 ### CS-013 — Complexity has hard ceilings
 
 - Status: **active**
-- Enforcement: review. Repository-wide automatic enforcement is not yet implemented (ADR-0051).
+- Enforcement: review and the standalone ADR-0075 measurement tool. Repository-wide gate enforcement is not yet implemented (ADR-0051).
 
 A method has at most 40 logical lines, cognitive complexity 10, nesting depth 3, and 4 parameters. A type has at most 300 logical lines. Split behavior by named responsibility before reaching a limit; do not extract arbitrary fragments into generic helper modules.
 
-The [2026-10-18 inventory and adoption order](quality/cs013-readiness-2026-10-18.md)
-records the current measurements, unresolved metric/interop definitions and the
-responsibility splits required before adopting a global gate. It is not a baseline,
-waiver, threshold change or a claim that every ceiling is already checked by CI.
+[ADR-0075](adr/0075-standalone-cs013-measurement.md) defines the `cs013-v1` source,
+logical-line, flow, recursion and native-signature boundaries. Run
+`pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect` for all five
+metrics and `-Mode SelfTest` for its fixtures. Raw native parameter counts remain
+visible; only structurally verified external ABI signatures lack project-owned
+parameter design freedom. Managed mirrors remain subject to the four-parameter
+ceiling, and all other native metrics remain measured.
+
+The [current measurement](quality/cs013-measurement-2026-10-18.md) supersedes the
+provisional counts in the [adoption order](quality/cs013-readiness-2026-10-18.md).
+Its responsibility splits remain pending. The tool is not connected to the gate,
+hooks or CI; there is no baseline, waiver or threshold change.
 
 ## Language form
 

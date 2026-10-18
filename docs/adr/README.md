@@ -18,6 +18,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0075: Define CS-013 metrics through one standalone SDK-based checker](0075-standalone-cs013-measurement.md)
+
 - [ADR-0074: Compare visible entry names in natural numeric order](0074-natural-name-ordering.md)
 
 - [ADR-0073: Close concrete record cases with inaccessible abstract members](0073-close-record-cases-with-inaccessible-abstract-members.md)
