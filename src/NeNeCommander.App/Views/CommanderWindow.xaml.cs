@@ -55,44 +55,35 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private bool _stopping;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
-    /// <param name="keyboardIntentMapper">Canonical context-aware keyboard mapper.</param>
-    /// <param name="session">Coordinator over the pane and settings state owners.</param>
+    /// <param name="dependencies">Complete host dependencies supplied by the composition root.</param>
     /// <param name="initialLeftLocation">Validated location read into the left pane when the shell loads.</param>
     /// <param name="initialRightLocation">Validated location read into the right pane when the shell loads.</param>
-    /// <param name="defectObserver">Application callback that publishes unexpected task defects.</param>
-    /// <param name="localZone">Time zone the composition root read once; rows show modification times in it.</param>
     public CommanderWindow(
-        KeyboardIntentMapper keyboardIntentMapper,
-        CommanderSession session,
+        CommanderWindowDependencies dependencies,
         FileSystemPath initialLeftLocation,
-        FileSystemPath initialRightLocation,
-        Action<Exception> defectObserver,
-        TimeZoneInfo localZone)
+        FileSystemPath initialRightLocation)
     {
-        ArgumentNullException.ThrowIfNull(keyboardIntentMapper);
-        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(dependencies);
         ArgumentNullException.ThrowIfNull(initialLeftLocation);
         ArgumentNullException.ThrowIfNull(initialRightLocation);
-        ArgumentNullException.ThrowIfNull(defectObserver);
-        ArgumentNullException.ThrowIfNull(localZone);
-        _keyboardIntentMapper = keyboardIntentMapper;
-        _session = session;
+        _keyboardIntentMapper = dependencies.KeyboardIntentMapper;
+        _session = dependencies.Session;
         _initialLeftLocation = initialLeftLocation;
         _initialRightLocation = initialRightLocation;
-        _paneWork = new AsyncWorkOwner(defectObserver);
+        _paneWork = new AsyncWorkOwner(dependencies.DefectObserver);
         _resources = new ResourceLoader();
-        _metadataFormat = EntryMetadataFormat.Create(localZone, _resources.GetString);
+        _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         InitializeComponent();
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
         _windowAdjustmentView = new WindowAdjustmentView(
             WindowAdjustmentOverlay,
             _resources,
-            new WindowAdjustmentRoute(session, new AppWindowPlacementAdapter(AppWindow, InputSurface), defectObserver),
+            new WindowAdjustmentRoute(dependencies.Session, new AppWindowPlacementAdapter(AppWindow, InputSurface), dependencies.DefectObserver),
             FocusFileList);
         _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
         Title = _resources.GetString("CommanderWindowTitle");
         CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
-        _renderedScheme = session.Current.Settings.Settings.ColorScheme;
+        _renderedScheme = dependencies.Session.Current.Settings.Settings.ColorScheme;
     }
 
     /// <summary>Occurs when the session selects a scheme for the composition root to apply.</summary>

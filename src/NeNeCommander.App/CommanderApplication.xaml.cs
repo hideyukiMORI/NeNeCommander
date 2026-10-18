@@ -148,13 +148,12 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             new WindowAdjustmentSession(),
             new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()));
         CommanderSession session = new(panes, settingsSession, scopes);
+        CommanderWindowDependencies dependencies = CommanderWindowDependencies.Create(
+            keyboardIntentMapper, session, ReportDefect, TimeZoneInfo.Local);
         return new CommanderWindow(
-            keyboardIntentMapper,
-            session,
+            dependencies,
             ParseInitialLocation(InitialLeftLocationText),
-            ParseInitialLocation(InitialRightLocationText),
-            ReportDefect,
-            TimeZoneInfo.Local);
+            ParseInitialLocation(InitialRightLocationText));
     }
 
     private void OnColorSchemeChanged(object? _, ColorSchemeChangedEventArgs args)
