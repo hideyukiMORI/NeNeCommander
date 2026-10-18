@@ -99,40 +99,31 @@ stale-binaryのREDにもSelfTest、修正後にはCS-002と製品proofの同じ�
 canonical gate内のrestore/format/build/tests/coverageは`canonical-gate.log`に残す。
 通常`git commit`で`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`が動く。
 
-## 保存と終了
-
-恒久証拠にRED/GREENのsource・diagnostics・result、migration一覧、構造監査、
-build/format/full gate/対象追加proofのlog、入力hash、Issue/PR本文と差分を保存する。
-Issue PRと`completion.json`が通常Commitチェック、squash統合、main同期、後片付けの最終結果を持つ。
-統合後、`D:/NeNeCommander/worktrees/issue-306`と`D:/NeNeCommander/outputs/issue-306`を
-未保存/未追跡/無視ファイル・唯一の成果物・稼働参照・リンク確認後に整理する。
-branch/commit、恒久証拠と共有SDKを保持する。未実施の終了工程を完了とは記載しない。
-
-## 統合済み・後片付け待ち
+## 保存・統合・後片付け完了
 
 PR #313は2026-10-18 18:59:37 JSTに`936ab0440bf0f65b5d32fa634befd8ca91326180`へ
 squash統合した。19:00:04 JSTにmain同期・clean・受理tree一致を確認した。
-恒久証拠には最終compiler証明/coverage/製品binaryの1,971ファイルとhashを保存した。
-preflightのignored 4,383ファイルは証拠保存済みartifactと再生成可能なbin/obj、一時出力22ファイルは
-compilerのanalyzer cacheだった。今回起動したcompiler serverを正常終了し、最終preflightで
-稼働参照・リンク・未保存/未追跡/未知ignoredはないことを確認した。
+恒久証拠`D:/NeNeCommander/evidence/issue-306/`にはRED/GREEN、source/diagnostics/result、
+migration一覧、構造監査、build/format/full gate/最終対象proofのlog、入力hash、差分とPR記録を保存した。
+最終compiler証明・coverage・製品binaryの1,971ファイルとhashも保持している。
 
-削除コマンドは自動承認レビューによりprocess作成前に`blocked by policy`で拒否された。
-削除処理は実行されておらず、別方式で再試行していない。両対象は残っている。
-Issue #314はこのpending状態を既存文書へ記録するdocs-only変更で、追加worktree/outputや製品検証はない。
-`cleanup-blocked.json`、`cleanup-preflight.json`、`completion.json`が実際の状態を持つ。
-hideの実行と読み取り専用の不在確認まで、削除済みとは扱わない。
+削除前preflightのignored 4,383ファイルは証拠保存済みartifactと再生成可能なbin/obj、
+一時出力22ファイルはcompilerのanalyzer cacheだった。今回起動したcompiler serverを正常終了し、
+稼働参照・リンク・未保存/未追跡/未知ignoredがないことを確認した。
+削除コマンドは自動承認レビューによりprocess作成前に`blocked by policy`で拒否されたため、
+サナは別方式で再試行せず、Issue #314 / PR #315でhide実行待ちを記録した。
 
-! hide実行待ち：後片付け
+hideが専用scriptを2026-10-18 19:16:59 JSTに実行した。
+19:17:32 JSTの読み取り専用確認で`D:/NeNeCommander/worktrees/issue-306`と
+`D:/NeNeCommander/outputs/issue-306`の不在、worktree登録の解除を確認した。
+branch/commit、恒久証拠1,971ファイルと共有SDKは保持している。
+`cleanup-executed-by-hide.json`、`cleanup-confirmation.json`、`completion.json`に完了を記録し、
+過去の自動拒否とpreflight記録も保存する。
 
-対象は`D:/NeNeCommander/worktrees/issue-306`と`D:/NeNeCommander/outputs/issue-306`の2か所。
-`D:/NeNeCommander/evidence/issue-306/`、branch/commit、共有SDKは保持する。
-下記scriptは削除先を固定し、取込状態・未保存物・リンク・稼働参照を再確認してから整理する。
-構文確認のみ済ませており、サナは実行していない。
+確認は`Test-Path -LiteralPath`、`git worktree list --porcelain`、branch/commitと証拠一覧の読み取りで行った。
+Issue #316はこの日報・引き継ぎ・PROJECT_STATEを完了へ更新する文書のみの変更。
+既存checkoutを使い、追加worktree/output、製品build/test/coverage/mutation、CIは実行しない。
+text/linkレビュー、`git diff --check`と通常Commitチェックが対象で、文書PRと
+`cleanup-complete-closure.json`が最終統合・main同期の結果を持つ。
 
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-306/Complete-Cleanup.ps1
-```
-
-自動承認レビューが上記2対象の削除を`blocked by policy`で拒否したため、
-[cleanup handoff procedure](../DEVELOPMENT_WORKFLOW.md#blocked-cleanup-and-daily-reports)に従いhideへ実行を引き継ぐ。
+後片付けは完了しており、hideへの実行待ちはない。
