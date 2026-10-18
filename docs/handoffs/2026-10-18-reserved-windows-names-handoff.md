@@ -47,22 +47,29 @@ UNCはinjected enumerator、WSL転送は所有NTFS fixtureであり、実share/9
    古いP4記録から未着手に戻さない。
 3. 作業用pathは`D:/NeNeCommander/worktrees/issue-245`、一時出力は`D:/NeNeCommander/outputs/issue-245`。
    branch `fix/245-windows-reserved-superscripts`・commit・証拠・共有SDKは保持する。
-   worktreeは削除済み。outputは自動承認拒否により残っているため、末尾の準備済みcommandを引き継ぐ。
+   worktreeは削除済み。outputもhideの12:42:12 JSTの実行で削除され、12:43:48 JSTに両pathの不在を確認した。
    完了記録で削除が確認されたpathへ同じ削除を再依頼しない。
 4. P4 #244・#246・#247・#248は別件。#94はhide在席時の手動release確認で、開発阻害ではない。
    実share/mapping/removableの環境証明も本件から成功扱いしない。
 
 検証用SDKは`D:/NeNeCommander/tools/dotnet-10.0.401`。必要なprocessにだけ指定し、system SDKやglobal PATHは変更しない。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-245`だけ。
 所有出力・取込・未保存物・稼働参照・linkを確認し、本文2 fileも恒久証拠へ収載した後の削除を、
 自動承認レビューが`blocked by policy`で拒否した。commandは開始されず、サナによる別手段の再試行はない。
 12:35:35 JSTの読み取り確認では対象出力が残り、Issue #245のworktreeは不在だった。
-恒久証拠`D:/NeNeCommander/evidence/issue-245/`、branch・commit・共有SDKを保持する。
-Issue #279がこの保留記録を扱う。hideの実行と完了確認までは引き継ぎから消さない。
+Issue #279 / PR #280でこの保留を記録した後、hideが12:42:12 JSTに次を実行して完了した。
+これは実行履歴であり、再実行しない。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-245/cleanup-completed-output.ps1
 ```
+
+12:43:48 JSTの読み取り確認で、`D:/NeNeCommander/outputs/issue-245`と
+`D:/NeNeCommander/worktrees/issue-245`の不在、恒久証拠と共有SDKの保持を確認した。
+branch・commitも保持する。実行結果は`cleanup-executed-by-hide.json`、確認は`cleanup-confirmation.json`、
+最終状態は`completion.json`にあり、すべて`D:/NeNeCommander/evidence/issue-245/`で確認できる。
+Issue #281が既存3文書をこの完了状態へ更新し、`cleanup-closure/completion.json`にその統合を記録する。
+文面・相対link・`git diff --check`と通常Commit hookを確認し、製品検証・CIは実行しない。
+追加worktreeや一時出力は作らず、本件の後片付け待ちはない。
