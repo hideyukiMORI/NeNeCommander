@@ -112,7 +112,6 @@ public static class BookmarkManagerPresenter
         string uncategorizedText)
     {
         List<BookmarkRow> rows = [];
-        BookmarkRow? selectedRow = null;
         foreach (BookmarkEntry entry in catalog.Bookmarks)
         {
             if (!Matches(entry, context, uncategorizedText))
@@ -128,16 +127,11 @@ public static class BookmarkManagerPresenter
                     ? BookmarkOptionSelection.Selected
                     : BookmarkOptionSelection.NotSelected);
             rows.Add(row);
-            if (row.IsSelected)
-            {
-                selectedRow = row;
-            }
         }
         return new BookmarkBrowsePresentation(
             context.SearchText,
             categories,
             rows,
-            selectedRow,
             EmptyContent(catalog, rows));
     }
 

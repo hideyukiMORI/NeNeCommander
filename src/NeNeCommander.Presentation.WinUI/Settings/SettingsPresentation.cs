@@ -11,19 +11,17 @@ public sealed record SettingsPresentation
     private readonly ReadOnlyCollection<SettingsColorSchemeOption> _schemes;
 
     internal SettingsPresentation(
-        SettingsEditorState editor,
-        HiddenItemVisibility hiddenItemVisibility,
+        SettingsSnapshot source,
         IReadOnlyList<SettingsColorSchemeOption> schemes,
         SettingsSaveStatus saveStatus,
         SettingsWarningPresentation warning)
     {
-        ArgumentNullException.ThrowIfNull(editor);
-        ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(schemes);
         ArgumentNullException.ThrowIfNull(saveStatus);
         ArgumentNullException.ThrowIfNull(warning);
-        IsOpen = editor == SettingsEditorState.Open;
-        ShowHiddenItemsAtLaunch = hiddenItemVisibility == HiddenItemVisibility.Shown;
+        IsOpen = source.Editor == SettingsEditorState.Open;
+        ShowHiddenItemsAtLaunch = source.Settings.HiddenItemVisibility == HiddenItemVisibility.Shown;
         _schemes = new List<SettingsColorSchemeOption>(schemes).AsReadOnly();
         SaveStatus = saveStatus;
         Warning = warning;

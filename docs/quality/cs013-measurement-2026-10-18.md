@@ -13,6 +13,7 @@ metric definition and record their own input hashes and complete findings.
 | #326 palette presentation and matching fixtures | 71 | 102 | 0 | 173 |
 | #328 pane presentation and matching fixtures | 66 | 93 | 0 | 159 |
 | #330 App view composition | 60 | 93 | 0 | 153 |
+| #332 remaining Presentation models and input | 55 | 86 | 0 | 141 |
 
 Issue #326 removes all six palette product findings and the large palette test
 type finding. Every changed/new declaration is within all five ceilings. Its
@@ -29,6 +30,17 @@ all changed/new C# meets the five ceilings. Its [report](../reports/2026-10-18-a
 records focus/event/lifecycle compatibility, 65 focused cases and reuse of the
 unchanged palette/pane evidence. The remaining 153 findings and global gate
 integration remain separate work; the initial measurement is retained below.
+
+Issue #332 removes the five remaining Presentation product findings and seven
+related test findings. Map has 12 logical lines, cognitive complexity 6 and nesting
+1; the four model constructors each take four arguments. All changed/new C#
+meets the ceilings. Its [report](../reports/2026-10-18-presentation-input-refactor-daily-report.md)
+records 114 successful focused cases and unchanged public binding/key-table proof.
+The current census is 765 sources, 1,205 types and 7,917 callables, with 7,298
+unresolved invocations under the unchanged static model. Metric totals for
+method/cognitive/nesting/parameters/type are 48/22/10/33/28. The next priority is
+shared file-operation contracts, followed by providers, settings, remaining
+fixtures/flow and global enforcement after every finding is resolved.
 
 ## Initial census
 

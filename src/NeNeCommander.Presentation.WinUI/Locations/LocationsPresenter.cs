@@ -119,8 +119,7 @@ public static class LocationsPresenter
             item,
             name,
             detail,
-            Format(localize("LocationsRowAutomationNameFormat"), name, detail),
-            "LocationsRow_" + name);
+            Format(localize("LocationsRowAutomationNameFormat"), name, detail));
     }
 
     private static string DrivesText(DriveSection drives, Func<string, string> localize)

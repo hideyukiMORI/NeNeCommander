@@ -76,3 +76,5 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | commander pane view | The App-owned `CommanderPaneView` that binds one pane's rows, address, status and semantic activation resources to its existing controls. |
 | bookmark browse view | The App-owned `BookmarkBrowseView` that binds category/entry lists, selection and browsing controls, sharing the overlay's rendering guard. |
 | bookmark details view | The App-owned `BookmarkDetailsView` that binds bookmark/category drafts, confirmation controls and detail focus, without owning editor state. |
+| bookmark browse presentation | The immutable filtered result owned by `BookmarkBrowsePresentation`; its selected row is derived from the frozen rows and retains the same row object identity. |
+| location row | A localized `LocationRow` retaining the exact Application location item, its display/detail text and UIA name; its stable UIA ID is derived only from the validated display name. |

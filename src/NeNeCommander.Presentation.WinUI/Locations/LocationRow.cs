@@ -10,19 +10,17 @@ public sealed record LocationRow
         LocationItem item,
         string nameText,
         string detailText,
-        string automationName,
-        string automationId)
+        string automationName)
     {
         ArgumentNullException.ThrowIfNull(item);
         ArgumentException.ThrowIfNullOrWhiteSpace(nameText);
         ArgumentNullException.ThrowIfNull(detailText);
         ArgumentNullException.ThrowIfNull(automationName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(automationId);
         Item = item;
         NameText = nameText;
         DetailText = detailText;
         AutomationName = automationName;
-        AutomationId = automationId;
+        AutomationId = "LocationsRow_" + nameText;
     }
 
     /// <summary>Gets the Application entry a selection of this row submits.</summary>
