@@ -85,3 +85,5 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | file entry transfer | The immutable `FileEntryTransfer` annotations for an entry's selected target and conflict choice; provider path, identity and deletion capability remain frozen. |
 | file operation effect summary | The immutable `FileOperationEffectSummary` owning ordered completed effects and explicitly untransferred sources in one outcome. |
 | transfer conflict pause | The internal `TransferConflictPause` pairing a returned conflict set with its exact gateway-issued continuation in an awaiting outcome. |
+| `WindowsLocalOperationSteps` | Internal owner of the existing local mutation/capability/verification bodies, invoked only inside the Windows local adapter execution boundary. |
+| `WindowsLocalTransferPreflight` | One-call owner of ordered Windows local transfer reservations, choices and conflicts; retains no plan across calls and performs no mutation. |
