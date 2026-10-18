@@ -102,6 +102,11 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
         return Abort;
     }
 
+    public int RejectUnrequestedMutation()
+    {
+        return Reject(FileOperationFailureKind.ProviderUnavailable);
+    }
+
     public int StartOperations()
     {
         return 0;
@@ -109,38 +114,6 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
     public int FinishOperations(int result)
     {
         return result < 0 ? Reject(WindowsFileFailureNormalizer.Normalize(result)) : 0;
-    }
-    public int PreRenameItem(uint flags, IntPtr entry, string name)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PostRenameItem(uint flags, IntPtr entry, string name, int result, IntPtr created)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PreMoveItem(uint flags, IntPtr entry, IntPtr destination, string name)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PostMoveItem(uint flags, IntPtr entry, IntPtr destination, string name, int result, IntPtr created)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PreCopyItem(uint flags, IntPtr entry, IntPtr destination, string name)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PostCopyItem(uint flags, IntPtr entry, IntPtr destination, string name, int result, IntPtr created)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PreNewItem(uint flags, IntPtr destination, string name)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
-    }
-    public int PostNewItem(uint flags, IntPtr destination, string name, string template, uint attributes, int result, IntPtr created)
-    {
-        return Reject(FileOperationFailureKind.ProviderUnavailable);
     }
     public int UpdateProgress(uint total, uint completed)
     {

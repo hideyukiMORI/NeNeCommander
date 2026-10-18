@@ -15,6 +15,12 @@ metric definition and record their own input hashes and complete findings.
 | #330 App view composition | 60 | 93 | 0 | 153 |
 | #332 remaining Presentation models and input | 55 | 86 | 0 | 141 |
 | #334 shared transfer contracts and gateway execution | 42 | 76 | 0 | 118 |
+| #336 managed recycle callback policy | 34 | 76 | 0 | 110 |
+
+Issue #336 removes the eight managed callback findings while preserving every native
+signature. All changed C# conforms and 82 focused cases pass; its
+[report](../reports/2026-10-18-recycle-callback-refactor-daily-report.md) retains
+structural proof, commands and the remaining provider/settings/fixture work.
 
 Issue #326 removes all six palette product findings and the large palette test
 type finding. Every changed/new declaration is within all five ceilings. Its

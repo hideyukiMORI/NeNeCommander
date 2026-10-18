@@ -50,42 +50,42 @@ internal sealed partial class NativeWindowsRecycleProgress : INativeWindowsRecyc
 
     public int PreRenameItem(uint flags, IntPtr entry, string name)
     {
-        return _sink.PreRenameItem(flags, entry, name);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PostRenameItem(uint flags, IntPtr entry, string name, int result, IntPtr created)
     {
-        return _sink.PostRenameItem(flags, entry, name, result, created);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PreMoveItem(uint flags, IntPtr entry, IntPtr destination, string name)
     {
-        return _sink.PreMoveItem(flags, entry, destination, name);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PostMoveItem(uint flags, IntPtr entry, IntPtr destination, string name, int result, IntPtr created)
     {
-        return _sink.PostMoveItem(flags, entry, destination, name, result, created);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PreCopyItem(uint flags, IntPtr entry, IntPtr destination, string name)
     {
-        return _sink.PreCopyItem(flags, entry, destination, name);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PostCopyItem(uint flags, IntPtr entry, IntPtr destination, string name, int result, IntPtr created)
     {
-        return _sink.PostCopyItem(flags, entry, destination, name, result, created);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PreNewItem(uint flags, IntPtr destination, string name)
     {
-        return _sink.PreNewItem(flags, destination, name);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int PostNewItem(uint flags, IntPtr destination, string name, string template, uint attributes, int result, IntPtr created)
     {
-        return _sink.PostNewItem(flags, destination, name, template, attributes, result, created);
+        return _sink.RejectUnrequestedMutation();
     }
 
     public int UpdateProgress(uint total, uint completed)

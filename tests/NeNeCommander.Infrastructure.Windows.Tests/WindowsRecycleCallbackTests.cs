@@ -78,7 +78,7 @@ public sealed class WindowsRecycleCallbackTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
         WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
-        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreNewItem(0, IntPtr.Zero, "unexpected"));
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.RejectUnrequestedMutation());
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Failure);
     }
@@ -96,7 +96,8 @@ public sealed class WindowsRecycleCallbackTests
     public void CallbackWhenMutationWasNotRequestedVetoesOperation(string callback)
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsRecycleProgress progress = new(WindowsRecycleBinTests.Source(root), new WindowsDriveBoundary(), CancellationToken.None);
+        FileEntrySnapshot source = WindowsRecycleBinTests.Source(root);
+        WindowsRecycleProgress progress = new(source, new WindowsDriveBoundary(), CancellationToken.None);
         using NativeWindowsRecycleProgress native = new(progress);
         int result = callback switch
         {
@@ -112,6 +113,9 @@ public sealed class WindowsRecycleCallbackTests
         };
         Assert.AreEqual(WindowsRecycleProgress.Abort, result);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Complete(0, 0, 0).Failure);
+        Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80,
+            new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
+        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
     }
 
     /// <summary>Harmless progress callbacks observe cancellation without inventing an effect.</summary>
