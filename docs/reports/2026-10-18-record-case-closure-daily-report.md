@@ -107,3 +107,32 @@ Issue PRと`completion.json`が通常Commitチェック、squash統合、main同
 統合後、`D:/NeNeCommander/worktrees/issue-306`と`D:/NeNeCommander/outputs/issue-306`を
 未保存/未追跡/無視ファイル・唯一の成果物・稼働参照・リンク確認後に整理する。
 branch/commit、恒久証拠と共有SDKを保持する。未実施の終了工程を完了とは記載しない。
+
+## 統合済み・後片付け待ち
+
+PR #313は2026-10-18 18:59:37 JSTに`936ab0440bf0f65b5d32fa634befd8ca91326180`へ
+squash統合した。19:00:04 JSTにmain同期・clean・受理tree一致を確認した。
+恒久証拠には最終compiler証明/coverage/製品binaryの1,971ファイルとhashを保存した。
+preflightのignored 4,383ファイルは証拠保存済みartifactと再生成可能なbin/obj、一時出力22ファイルは
+compilerのanalyzer cacheだった。今回起動したcompiler serverを正常終了し、最終preflightで
+稼働参照・リンク・未保存/未追跡/未知ignoredはないことを確認した。
+
+削除コマンドは自動承認レビューによりprocess作成前に`blocked by policy`で拒否された。
+削除処理は実行されておらず、別方式で再試行していない。両対象は残っている。
+Issue #314はこのpending状態を既存文書へ記録するdocs-only変更で、追加worktree/outputや製品検証はない。
+`cleanup-blocked.json`、`cleanup-preflight.json`、`completion.json`が実際の状態を持つ。
+hideの実行と読み取り専用の不在確認まで、削除済みとは扱わない。
+
+! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/worktrees/issue-306`と`D:/NeNeCommander/outputs/issue-306`の2か所。
+`D:/NeNeCommander/evidence/issue-306/`、branch/commit、共有SDKは保持する。
+下記scriptは削除先を固定し、取込状態・未保存物・リンク・稼働参照を再確認してから整理する。
+構文確認のみ済ませており、サナは実行していない。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-306/Complete-Cleanup.ps1
+```
+
+自動承認レビューが上記2対象の削除を`blocked by policy`で拒否したため、
+[cleanup handoff procedure](../DEVELOPMENT_WORKFLOW.md#blocked-cleanup-and-daily-reports)に従いhideへ実行を引き継ぐ。
