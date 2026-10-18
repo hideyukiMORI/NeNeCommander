@@ -128,17 +128,24 @@ worktreeはtracked/untracked clean、ignored 109件はbin/objのみ、outputは1
 追加worktreeの削除は成功した。続く一時outputの削除は、自動承認レビューが`blocked by policy`で拒否し、
 コマンドは開始されていない。別手段で再試行していない。
 
-Issue #293はこの実状態を日報/引き継ぎ/PROJECT_STATEへ記録する文書だけのclosure。
-既存checkoutを使い、追加worktree/outputを作らず、NAS測定や製品検証を再実行しない。
+Issue #293 / PR #294は、この拒否時点の実状態を日報/引き継ぎ/PROJECT_STATEへ記録し、
+main `f59adb427a45f82b857020d651c5d991e2424125`へ統合した。
 恒久証拠の`cleanup-preflight.json`、`cleanup-output-inventory.json`、`cleanup-pending.json`が根拠。
-準備したscriptは構文確認だけで、サナは実行していない。実行またはabsence確認までは未削除として扱う。
-branch/commit、`D:/NeNeCommander/evidence/issue-247/fixture-preparation-20261018/`、共有SDKは保持する。
+サナはscriptを構文確認しただけで、削除を再試行していない。拒否時点の記録は履歴として保持する。
 
-! hide実行待ち：後片付け
+## 後片付け完了
 
-対象: `D:/NeNeCommander/outputs/issue-291` のみ。
-自動承認レビューによる拒否理由: `blocked by policy`。worktreeは削除済み、恒久証拠とSDKは削除しない。
+hideが2026-10-18 14:31:05 JSTに下記scriptを実行し、完了を報告した。
+14:31:24 JSTの読み取り確認で`D:/NeNeCommander/outputs/issue-291`と
+`D:/NeNeCommander/worktrees/issue-291`の両方が存在しないことを確認した。
+恒久source/binary/evidence、branch/commitと共有SDKは保持されている。
+後片付け待ちは残っていない。以下は実行済みコマンドの履歴で、再実行は不要。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/fixture-preparation-20261018/cleanup-completed-output.ps1
 ```
+
+`cleanup-executed-by-hide.json`、`cleanup-confirmation.json`、`completion.json`が完了の根拠。
+Issue #295は現在の3文書を完了へ更新する。既存checkoutを使い、追加worktree/outputを作らず、
+NAS測定・製品build/test・CIを再実行しない。文書/link/diffと通常Commit hookのみ確認する。
+この文書closureの最終統合はIssue PRと`cleanup-closure/completion.json`に記録する。

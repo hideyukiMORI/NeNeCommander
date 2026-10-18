@@ -37,11 +37,11 @@ baseline `4cccad04eff1c1ed477022290f60d7a0a7c787d7`。
 最終状態は`completion.json`とIssue PRを読む。通常Commit hook以外の製品gate/CIは起動しない。
 repo変更は4文書。TST-011では実施した限定環境観測と、canonical live UNC gate非搭載を区別する。
 worktree `D:/NeNeCommander/worktrees/issue-291`、output `D:/NeNeCommander/outputs/issue-291`は
-統合・収載後に稼働参照/未保存物/linkを確認して整理する。sourceのprojectにある既定参照先はその時点で履歴となり、
+統合・収載と稼働参照/未保存物/link確認を経て、下記のとおり整理済み。sourceのprojectにある既定参照先は履歴となり、
 再buildはREADMEのRepositoryRoot指定を使う。保持したbinaryからの起動には元worktreeは不要。
 branch/commit/恒久証拠/共有SDKは保持する。#246/#94は別件として残す。
 
-## 実際の統合と残る整理
+## 実際の統合と整理完了
 
 #291 / PR #292は2026-10-18 14:24:07 JSTにsquash mergeし、mainを
 `8eb48350615f28bf65612b9cd960b597ac9ccd0a`へ同期、clean/tree一致を確認した。
@@ -49,15 +49,18 @@ task worktreeは削除済み。fixtureのsource/binary/結果と各版のhashは
 稼働process/module参照とlinkは観測されなかった。通常Commitの112 rules / 24 adversarial登録確認も通過。
 
 outputのdirectory-level削除だけが自動承認レビューの`blocked by policy`で実行前に拒否された。
-サナは別手段で再試行していない。Issue #293で既存の3文書を更新し、新しいworktree/outputや製品検証を作らない。
-`cleanup-pending.json`を実行確認まで維持する。prepared scriptは構文確認のみで未実行。
-hideの実行後に`cleanup-executed-by-hide.json`と対象absenceを読み取り確認し、pending記録を完了へ更新する。
-その際も製品testやNAS測定を再実行しない。共有SDK、branch/commit、恒久source/evidenceは保持する。
+サナは別手段で再試行していない。Issue #293 / PR #294は拒否時点の状態を記録した履歴。
+その後、hideが2026-10-18 14:31:05 JSTにprepared scriptを実行した。
+14:31:24 JSTに`cleanup-executed-by-hide.json`と対象absenceを読み取り確認し、
+output/worktreeの両方が存在しないことと、恒久source/evidence/SDKの保持を確認した。
+`cleanup-confirmation.json`とroot `completion.json`が現在の完了状態を示し、`cleanup-pending.json`は履歴として残す。
 
-! hide実行待ち：後片付け
+後片付け待ちはない。以下は実行済みコマンドで、再実行は不要。
 
-対象: `D:/NeNeCommander/outputs/issue-291` のみ。拒否理由: `blocked by policy`。
-NASは復旧済み、worktreeは削除済み。恒久証拠とSDKは削除しない。
+Issue #295で既存3文書を完了へ更新し、新しいworktree/outputは作らない。
+文書/link/diff/通常Commit hookだけを確認し、製品test/CI/NAS測定は再実行しない。
+文書closureの最終状態はIssue PRと`cleanup-closure/completion.json`に記録する。
+NASは復旧済み。共有SDK、branch/commit、恒久source/evidenceは保持する。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/fixture-preparation-20261018/cleanup-completed-output.ps1
