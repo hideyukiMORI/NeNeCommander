@@ -115,6 +115,30 @@ ADR-0071どおりだった。単なるtimeoutは同期OS呼出し自体の取消
 未計測のnative内訳や広い環境分布は限界として残し、今回の完了条件へ後から追加しない。
 将来native cancellationや並列度を変える具体的要求が出た場合は、別Issue/ADRと影響に応じた証拠を先行させる。
 
-Issue PRと恒久証拠の`completion.json`がsquash統合、main同期、tree一致、整理の最終状態を記録する。
-task専用worktreeは`D:/NeNeCommander/worktrees/issue-297`、一時出力は`D:/NeNeCommander/outputs/issue-297`。
-統合後に未保存・未追跡・ignored file、唯一の成果物、稼働参照、linkを確認して整理し、branch/commit/恒久証拠/SDKを保持する。
+[PR #298](https://github.com/hideyukiMORI/NeNeCommander/pull/298)は2026-10-18 15:37:08 JSTに
+`0e99ec5c7f84737b706fdc9d006e389b41b176ea`へsquash mergeされ、#297と親#247はclosedになった。
+mainを同期し、clean・origin一致・受理したtaskとのtree一致を確認した。
+通常Commit hookは規約112件、security登録24件、commit message検査を通過し、CIは起動していない。
+
+`D:/NeNeCommander/worktrees/issue-297`はtracked/untrackedがclean、ignored 109件がbin/objのみで、
+link・process module/command-lineの参照がないことを確認して削除した。
+一時出力436 fileは、359件が恒久証拠とSHA-256一致、73件が再生成可能なbuild/cache、
+4件が保存しないprivate target設定だった。source/binaryの353件manifestとは数える対象が異なる。
+branch、commit、恒久証拠、共通SDKは保持する。
+
+一時出力の削除は自動承認レビューが`blocked by policy`でcommand開始前に拒否した。
+別手段による再試行はせず、15:39:13 JSTに出力の残存とworktreeの不在を読み取り専用で確認した。
+[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299)で、この実際の状態と実行用commandを記録する。
+既存checkoutを使う文書3件だけの追記で、追加worktree/output、build/test/CI/NAS測定はない。
+文面/link/diffと通常Commit hookを確認し、その統合は`report-closure/completion.json`に保存する。
+`cleanup-preflight.json`、`cleanup-output-disposition.json`、`cleanup-pending.json`、`completion.json`が整理の記録である。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-297`だけ。
+scriptは対象・保存済み成果物・在庫・link・稼働参照を確認して削除し、実行記録を恒久証拠へ保存する。
+サナは構文検査だけを行い、削除拒否後にscriptを実行していない。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/window-close-20261018/cleanup-completed-output.ps1
+```

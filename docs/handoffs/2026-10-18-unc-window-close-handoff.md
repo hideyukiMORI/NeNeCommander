@@ -38,11 +38,26 @@ fixture Release buildは警告・エラー0、admission 6件成功。
 
 ## 終了時の扱い
 
-Issue PRと`completion.json`から統合、同期main、tree一致、整理状態を確認する。
-task worktree/outputはそれぞれ`D:/NeNeCommander/worktrees/issue-297`と`D:/NeNeCommander/outputs/issue-297`。
-未統合・稼働中の間は保持し、完了後に唯一の証拠・private設定・稼働参照・linkを確認して整理する。
-branch、commit、恒久証拠、共通SDKは保持する。
+[PR #298](https://github.com/hideyukiMORI/NeNeCommander/pull/298)は15:37:08 JSTにsquash mergeされ、
+#297と#247はclosed。main `0e99ec5c7f84737b706fdc9d006e389b41b176ea`の同期・clean・task tree一致を確認した。
+worktree `D:/NeNeCommander/worktrees/issue-297`は状態・取込・ignored 109件・link・稼働参照を確認して削除済み。
+出力436件は保存先とSHA一致359件、再生成可能73件、破棄するprivate設定4件に分類した。
+`D:/NeNeCommander/outputs/issue-297`の削除だけが自動承認の`blocked by policy`で開始前に拒否され、残存している。
+別手段の再試行は行っていない。branch、commit、恒久証拠、共通SDKは保持する。
+[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299)の文書追記は既存checkoutを使い、
+追加worktree/output、build/test/CI、NAS測定なし。文面/link/diffと通常Commit hookだけを確認する。
+`completion.json`、`cleanup-pending.json`と`report-closure/completion.json`から最終状態を確認する。
 現行契約を維持し、独自timeout/自動abandonは採用しない。
 親#247も調査・実測・採否判断が揃ったものとして同じPRで完了する。
 native内訳、広い環境分布、全製品compositionやreleaseは未計測の限界であり、今回へ追加しない。
 将来のtimeout/native cancellation/並列度/新ownerの具体的要求は別Issue/ADRと証拠を必要とする。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-297`だけ。下記scriptは構文確認済み、サナは実行していない。
+hideの実行後は`cleanup-executed-by-hide.json`と対象の不在を読み取り専用で確認し、この保留記録を完了へ更新する。
+測定やbuild/testは繰り返さない。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/window-close-20261018/cleanup-completed-output.ps1
+```
