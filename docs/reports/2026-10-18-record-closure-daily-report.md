@@ -136,11 +136,11 @@ negative compile自体の拒否は期待結果であり、失敗を抑止した�
 本Issueは再現・分類・対策提案で完了する。製品修正は未実装で、ADRも未受理。
 [後続Issue #306](https://github.com/hideyukiMORI/NeNeCommander/issues/306)で未実装の修正を追跡し、
 調査Issueのcloseで欠陥まで解消したとは記録しない。
-PR統合後、main同期・tree一致・保存済み成果物・未追跡/無視file・link・稼働参照を確認して、
-taskのworktree/outputだけを整理する。branch/commit、恒久証拠、共通SDKは残す。
-実際のPR、merge、clean main、整理結果はIssue PRと`completion.json`へ記録する。
+PR統合後、main同期・tree一致・保存済み成果物・未追跡/無視file・link・稼働参照を確認した。
+以下の経緯でtaskのworktree/outputの整理も完了した。branch/commit、恒久証拠、共通SDKは保持する。
+実際のPR、merge、clean main、整理結果はIssue PRと`completion.json`へ記録している。
 
-## 統合と後片付けの引き継ぎ
+## 統合と後片付けの完了
 
 [PR #307](https://github.com/hideyukiMORI/NeNeCommander/pull/307)を2026-10-18 17:17:51 JSTに
 `bd06edb05ece024e8d0ee5a8be3a6ae023dd3d2d`へsquash mergeし、#305はclosed。
@@ -151,20 +151,16 @@ mainはclean同期済みでtask treeと一致した。通常Commit checkは112 n
 削除前確認では497 fileの恒久保存、60 output objと109 worktree build filesの再生成可能性、
 未保存/未追跡変更なし、link 0、稼働参照0を確認した。自動承認レビューは削除コマンドのprocess生成を
 `blocked by policy`で拒否し、read-only確認で両対象の残存を確かめた。別機構で再試行していない。
-[Issue #308](https://github.com/hideyukiMORI/NeNeCommander/issues/308)でこの引き継ぎを記録する。
-既存checkoutを使う文書のみのclosureで、新しいworktree/output、製品test、CIは追加しない。
+[Issue #308](https://github.com/hideyukiMORI/NeNeCommander/issues/308) / PR #309でこの時点の引き継ぎを記録した。
 
-`Cleanup-Issue305.ps1`は削除対象外の恒久証拠領域へ保存し、PowerShell syntax確認に成功した。
-取込、exact paths、変更、link、processを再確認し、完了済み2対象だけを除去する。agentは実行していない。
-`cleanup-rejection.json`、`cleanup-preflight.json`と`completion.json`を保持し、
-hideの実行結果とread-only不存在確認までcleanupはpendingのまま引き継ぐ。
+hideは2026-10-18 17:34:20 JSTに準備済み`Cleanup-Issue305.ps1`を実行した。
+17:39:37 JSTのread-only確認で`D:/NeNeCommander/worktrees/issue-305`と
+`D:/NeNeCommander/outputs/issue-305`の不存在、task worktree登録の解消を確認した。
+`D:/NeNeCommander/evidence/record-closure-20261018/`の497 file、branch/commit、共通SDKは保持されている。
+agentによる削除再試行はない。後片付けは完了し、hideへの実行依頼は残っていない。
 
-! hide実行待ち：後片付け
-
-対象は`D:/NeNeCommander/worktrees/issue-305`と`D:/NeNeCommander/outputs/issue-305`のみ。
-`D:/NeNeCommander/evidence/record-closure-20261018/`、branch/commit、共通SDKは残す。
-理由は自動承認レビューの`blocked by policy`。hide用の実行コマンド:
-
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/record-closure-20261018/Cleanup-Issue305.ps1
-```
+`cleanup-executed-by-hide.json`、`cleanup-confirmation.json`、更新した`completion.json`が完了の証拠で、
+旧`cleanup-rejection.json` / `cleanup-preflight.json`は経緯として保持する。
+[Issue #310](https://github.com/hideyukiMORI/NeNeCommander/issues/310)で3文書の状態を完了へ更新する。
+既存checkoutを使い、追加worktree/output、製品test、CIは作らない。
+文書link/diffと通常Commit hookを確認し、最終統合はIssue PRと`cleanup-complete-closure.json`へ記録する。
