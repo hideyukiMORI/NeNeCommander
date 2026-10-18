@@ -66,3 +66,8 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | palette context | The immutable localized target and opposite-pane summaries captured once by `CommandPaletteContext` for an open palette; it owns no application or selection state. |
 | palette feedback | The immutable reason, unavailable marker, selected detail and complete automation name produced by `CommandPaletteFeedback` from the captured availability, caption and context. |
 | waiver | A narrow, owned, expiring exception that does not weaken a protected invariant. |
+| pane projection source | The immutable snapshot/frame pair captured by `PaneProjectionSource` to qualify reuse of a pane's rows. |
+| pane header | The immutable status, address, sort and observed-location indications projected from one snapshot by `PaneHeaderPresentation`. |
+| pane pair | The two projected panes and Application-owned active side captured by `PanePairPresentation`; each frame comes from its pane's projection source. |
+| operation bar presentation | The immutable status, numeric detail, semantic tone and canonical key hints captured by `OperationBarPresentation`. |
+| operation interaction presentation | The immutable name editor, conflict modal and input context captured by `OperationInteractionPresentation`; it owns no operation or input state. |

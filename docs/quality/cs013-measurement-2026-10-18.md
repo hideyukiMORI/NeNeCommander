@@ -11,11 +11,17 @@ metric definition and record their own input hashes and complete findings.
 |---|---:|---:|---:|---:|
 | #324 initial measurement | 77 | 103 | 0 | 180 |
 | #326 palette presentation and matching fixtures | 71 | 102 | 0 | 173 |
+| #328 pane presentation and matching fixtures | 66 | 93 | 0 | 159 |
 
 Issue #326 removes all six palette product findings and the large palette test
 type finding. Every changed/new declaration is within all five ceilings. Its
 [report](../reports/2026-10-18-palette-refactor-daily-report.md) retains proof and
 remaining work; the global gate stays disconnected.
+
+Issue #328 removes five pane product findings and nine fixture findings. All
+changed/new declarations meet the five ceilings. Its [report](../reports/2026-10-18-pane-refactor-daily-report.md)
+records the 74 focused cases, compatible public bindings and retained row/modal
+identities. The next ordered step is App view composition.
 
 ## Initial census
 

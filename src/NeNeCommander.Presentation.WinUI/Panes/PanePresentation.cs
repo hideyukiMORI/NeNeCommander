@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using NeNeCommander.Application.Drives;
 using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -11,40 +10,30 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public sealed record PanePresentation
 {
+    private readonly PaneProjectionSource _source;
+    private readonly PaneHeaderPresentation _header;
+
     internal PanePresentation(
         PaneRows rows,
         PaneRow? focusRow,
-        PaneStatus status,
-        string addressText,
-        PaneSnapshot sourceSnapshot,
-        PaneFrame sourceFrame)
+        PaneProjectionSource source,
+        PaneHeaderPresentation header)
     {
         ArgumentNullException.ThrowIfNull(rows);
-        ArgumentNullException.ThrowIfNull(status);
-        ArgumentNullException.ThrowIfNull(addressText);
-        ArgumentNullException.ThrowIfNull(sourceSnapshot);
-        ArgumentNullException.ThrowIfNull(sourceFrame);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(header);
         OwnedRows = rows;
         Rows = rows.View;
         FocusRow = focusRow;
-        Status = status;
-        AddressText = addressText;
-        SourceSnapshot = sourceSnapshot;
-        SourceFrame = sourceFrame;
-        SortStatus = sourceSnapshot.Content is PaneContentListed listed
-            ? PaneSortStatus.For(listed.State.SortOrder)
-            : null;
-        LocationStatus = sourceSnapshot.Content is PaneContentListed locationListed &&
-            locationListed.DriveKind == DriveKind.Network
-                ? PaneLocationStatus.NetworkDrive
-                : null;
+        _source = source;
+        _header = header;
     }
 
     internal PaneRows OwnedRows { get; }
 
-    internal PaneSnapshot SourceSnapshot { get; }
+    internal PaneSnapshot SourceSnapshot => _source.Snapshot;
 
-    internal PaneFrame SourceFrame { get; }
+    internal PaneFrame SourceFrame => _source.Frame;
 
     /// <summary>Gets the ordered rows to display with their selection marks, or an empty list when nothing is listed.</summary>
     public IReadOnlyList<PaneRow> Rows { get; }
@@ -53,17 +42,17 @@ public sealed record PanePresentation
     public PaneRow? FocusRow { get; }
 
     /// <summary>Gets the status the pane shows.</summary>
-    public PaneStatus Status { get; }
+    public PaneStatus Status => _header.Status;
 
     /// <summary>Gets the canonical text of the listed or targeted location, or empty text.</summary>
-    public string AddressText { get; }
+    public string AddressText => _header.AddressText;
 
     /// <summary>
     /// Gets the sort order the listed rows follow, or absence when nothing is listed and therefore
     /// nothing is ordered.
     /// </summary>
-    public PaneSortStatus? SortStatus { get; }
+    public PaneSortStatus? SortStatus => _header.SortStatus;
 
     /// <summary>Gets an indication of the listed location, or absence when no indication applies.</summary>
-    public PaneLocationStatus? LocationStatus { get; }
+    public PaneLocationStatus? LocationStatus => _header.LocationStatus;
 }

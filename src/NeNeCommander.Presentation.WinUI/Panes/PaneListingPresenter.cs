@@ -76,10 +76,8 @@ public static class PaneListingPresenter
         return new PanePresentation(
             rows,
             null,
-            PaneActivityStatusPresenter.Present(snapshot.Activity, PaneStatus.NoListing),
-            TargetText(snapshot.Activity),
-            snapshot,
-            frame);
+            PaneProjectionSource.Create(snapshot, frame),
+            PaneHeaderPresentation.Create(snapshot));
     }
 
     /// <summary>
@@ -114,10 +112,8 @@ public static class PaneListingPresenter
         return new PanePresentation(
             ownedRows,
             FindFocusRow(ownedRows, listed.State.FocusItem),
-            PaneActivityStatusPresenter.Present(snapshot.Activity, TranslateListing(listed.Listing)),
-            listed.Listing.Location.CanonicalText,
-            snapshot,
-            frame);
+            PaneProjectionSource.Create(snapshot, frame),
+            PaneHeaderPresentation.Create(snapshot));
     }
 
     private static PanePresentation UpdateListed(
@@ -158,10 +154,8 @@ public static class PaneListingPresenter
         return new PanePresentation(
             rows,
             FindFocusRow(rows, listed.State.FocusItem),
-            PaneActivityStatusPresenter.Present(snapshot.Activity, TranslateListing(listed.Listing)),
-            listed.Listing.Location.CanonicalText,
-            snapshot,
-            frame);
+            PaneProjectionSource.Create(snapshot, frame),
+            PaneHeaderPresentation.Create(snapshot));
     }
 
     private static void AddWhenPresent(HashSet<FileSystemPath> paths, FileSystemPath? path)
@@ -198,24 +192,4 @@ public static class PaneListingPresenter
     {
         return FileSystemPathIdentityComparer.Instance.Equals(entry.Path, listed.State.FocusItem);
     }
-
-    private static PaneStatus TranslateListing(DirectoryListing listing)
-    {
-        return listing.Completeness == DirectoryListingCompleteness.Bounded
-            ? PaneStatus.Bounded
-            : listing.UnrepresentableEntryCount > 0 ? PaneStatus.EntriesOmitted : PaneStatus.Complete;
-    }
-
-    private static string TargetText(PaneActivity activity)
-    {
-        return activity switch
-        {
-            PaneLoading loading => loading.Target.CanonicalText,
-            PaneReadCancelled cancelled => cancelled.Target.CanonicalText,
-            PaneReadAbandoned abandoned => abandoned.Target.CanonicalText,
-            PaneReadFailed failed => failed.Target.CanonicalText,
-            _ => string.Empty,
-        };
-    }
-
 }
