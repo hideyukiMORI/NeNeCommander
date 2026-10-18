@@ -29,8 +29,7 @@ public sealed class TransferConflictWindowsTests
         TransferConflict conflict = awaiting.Conflicts!.Conflicts[0];
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            TransferConflictDecision.KeepBoth,
-            TransferConflictScope.Current,
+            TransferConflictResponse.Create(TransferConflictDecision.KeepBoth, TransferConflictScope.Current),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
@@ -59,8 +58,7 @@ public sealed class TransferConflictWindowsTests
             CancellationToken.None);
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            TransferConflictDecision.KeepBoth,
-            TransferConflictScope.Current,
+            TransferConflictResponse.Create(TransferConflictDecision.KeepBoth, TransferConflictScope.Current),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
@@ -87,8 +85,7 @@ public sealed class TransferConflictWindowsTests
 
         FileOperationOutcome completed = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            TransferConflictDecision.KeepBoth,
-            TransferConflictScope.Current,
+            TransferConflictResponse.Create(TransferConflictDecision.KeepBoth, TransferConflictScope.Current),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
@@ -119,8 +116,7 @@ public sealed class TransferConflictWindowsTests
 
         FileOperationOutcome raced = await gateway.ResumeAsync(
             awaiting.Continuation!,
-            TransferConflictDecision.KeepBoth,
-            TransferConflictScope.All,
+            TransferConflictResponse.Create(TransferConflictDecision.KeepBoth, TransferConflictScope.All),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
@@ -147,8 +143,7 @@ public sealed class TransferConflictWindowsTests
             CancellationToken.None);
         FileOperationOutcome skipped = await gateway.ResumeAsync(
             firstAwaiting.Continuation!,
-            TransferConflictDecision.Skip,
-            TransferConflictScope.All,
+            TransferConflictResponse.Create(TransferConflictDecision.Skip, TransferConflictScope.All),
             IgnoredFileOperationProgress.Create(),
             CancellationToken.None);
 
