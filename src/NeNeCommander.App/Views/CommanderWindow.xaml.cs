@@ -1,23 +1,18 @@
 using System;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Input;
 using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Input;
-using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Domain.Paths;
-using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Locations;
@@ -38,20 +33,20 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
     private readonly LocationsView _locationsView;
+    private readonly CommandPaletteView _paletteView;
+    private readonly OperationBarView _operationView;
+    private readonly CommanderPaneView _leftPaneView;
+    private readonly CommanderPaneView _rightPaneView;
     private readonly EntryMetadataFormat _metadataFormat;
     private AddressEditorPresentation? _addressPresentation;
     private AddressEditorState? _defaultFileListFocusSuppressedState;
     private AddressEditorState? _leftAddressOwner;
     private AddressEditorState? _rightAddressOwner;
-    private ActiveConflictModal? _renderedConflictModal;
-    private CommandPaletteViewState? _commandPaletteView;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
     private bool _renderingSettings;
     private bool _renderingAddressTransition;
-    private bool _renderingCommandPalette;
-    private bool _commandPaletteIsComposing;
     private bool _stopping;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
@@ -82,7 +77,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             FocusFileList);
         _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
         Title = _resources.GetString("CommanderWindowTitle");
-        CommandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
+        _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
+        _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
+        _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
+        _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right);
         _renderedScheme = dependencies.Session.Current.Settings.Settings.ColorScheme;
     }
 
@@ -128,7 +126,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         KeyboardContext context = GetKeyboardContext();
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
-        if (context == KeyboardContext.CommandPalette && _commandPaletteIsComposing)
+        if (context == KeyboardContext.CommandPalette && _paletteView.IsComposing)
         {
             return;
         }
@@ -204,7 +202,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             RenderAddressTransition(address);
         }
-        RenderCommandPalette(snapshot);
+        _paletteView.Render(snapshot);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
@@ -219,19 +217,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation);
         _presentation = presentation;
-        RenderPane(PaneSide.Left, presentation.Left, LeftAddress, LeftStatus, LeftFileList);
-        RenderPane(PaneSide.Right, presentation.Right, RightAddress, RightStatus, RightFileList);
-        RenderFrame(presentation.LeftFrame, LeftPaneBorder, LeftPaneHeader);
-        RenderNumber(presentation.LeftFrame, LeftPaneNumberSurface, LeftPaneNumber);
-        RenderFrame(presentation.RightFrame, RightPaneBorder, RightPaneHeader);
-        RenderNumber(presentation.RightFrame, RightPaneNumberSurface, RightPaneNumber);
-        OperationStatus.Text = _resources.GetString(presentation.OperationStatus.ResourceKey);
-        AutomationProperties.SetAutomationId(OperationContent, presentation.DeletionConfirmationAutomationId);
-        RenderTone(presentation.Tone);
-        RenderDetail(presentation.Detail);
-        OperationKeyHints.ItemsSource = presentation.KeyHints;
-        RenderNameEntry(presentation.NameEntry);
-        RenderConflict(presentation.ConflictModal);
+        _leftPaneView.Render(presentation.Left, presentation.LeftFrame, _addressPresentation);
+        _rightPaneView.Render(presentation.Right, presentation.RightFrame, _addressPresentation);
+        _operationView.Render(presentation);
         _operationContext = presentation.InputContext;
         if (!_renderingAddressTransition && ShouldScheduleFileListFocus())
         {
@@ -265,308 +253,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _renderingSettings = false;
     }
 
-    private void RenderCommandPalette(CommanderSnapshot snapshot)
-    {
-        CommandPaletteState state = snapshot.Scopes.CommandPalette;
-        if (state is not CommandPaletteOpen open)
-        {
-            bool wasOpen = _commandPaletteView is not null;
-            _commandPaletteView = null;
-            _commandPaletteIsComposing = false;
-            CommandPaletteOverlay.Visibility = Visibility.Collapsed;
-            if (wasOpen &&
-                state is CommandPaletteClosed { FileListFocusSide: PaneSide focusSide })
-            {
-                FocusFileList(focusSide);
-            }
-            else if (wasOpen && PaletteExecutionLeavesFileListOwner(snapshot))
-            {
-                FocusFileList(snapshot.Panes.ActiveSide);
-            }
-            return;
-        }
-
-        bool opening = _commandPaletteView is null ||
-            !ReferenceEquals(_commandPaletteView.SourceState, open);
-        if (opening)
-        {
-            _commandPaletteView = CommandPalettePresenter.Present(open, _resources.GetString);
-            _renderingCommandPalette = true;
-            CommandPaletteSearch.Text = string.Empty;
-            _renderingCommandPalette = false;
-        }
-        CommandPaletteOverlay.Visibility = Visibility.Visible;
-        RenderCommandPaletteView();
-        if (opening)
-        {
-            _ = CommandPaletteSearch.Focus(FocusState.Programmatic);
-        }
-    }
-
-    private static bool PaletteExecutionLeavesFileListOwner(CommanderSnapshot snapshot)
-    {
-        return snapshot.Settings.Editor == SettingsEditorState.Closed &&
-            snapshot.Scopes.AddressEditor is AddressEditorClosed &&
-            snapshot.Panes.Operation is not (
-                OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
-    }
-
-    private void RenderCommandPaletteView()
-    {
-        if (_commandPaletteView is not CommandPaletteViewState view)
-        {
-            return;
-        }
-        CommandPaletteContext.Text = view.Context;
-        _renderingCommandPalette = true;
-        CommandPaletteCandidateList.ItemsSource = view.Rows;
-        CommandPaletteCandidateList.SelectedItem = view.SelectedRow;
-        _renderingCommandPalette = false;
-        CommandPaletteZeroResults.Visibility = view.Rows.Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        CommandPaletteDetail.Text = view.SelectedRow?.Detail ?? string.Empty;
-        if (view.SelectedRow is CommandPaletteRow selected)
-        {
-            CommandPaletteCandidateList.ScrollIntoView(selected);
-        }
-    }
-
-    private void OnCommandPaletteQueryChanged(object sender, TextChangedEventArgs args)
-    {
-        _ = args;
-        if (_renderingCommandPalette ||
-            sender is not TextBox search ||
-            _commandPaletteView is not CommandPaletteViewState view)
-        {
-            return;
-        }
-        view.UpdateQuery(search.Text);
-        RenderCommandPaletteView();
-    }
-
-    private void OnCommandPaletteCompositionStarted(
-        TextBox sender,
-        TextCompositionStartedEventArgs args)
-    {
-        _ = sender;
-        _ = args;
-        _commandPaletteIsComposing = true;
-    }
-
-    private void OnCommandPaletteCompositionEnded(
-        TextBox sender,
-        TextCompositionEndedEventArgs args)
-    {
-        _ = sender;
-        _ = args;
-        _commandPaletteIsComposing = false;
-    }
-
-    private void OnCommandPaletteCandidateClick(object sender, ItemClickEventArgs args)
-    {
-        _ = sender;
-        if (_commandPaletteView is not CommandPaletteViewState view ||
-            args.ClickedItem is not CommandPaletteRow row ||
-            !view.Select(row))
-        {
-            return;
-        }
-        RenderCommandPaletteView();
-        if (row.IsAvailable)
-        {
-            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, row.Intent));
-        }
-    }
-
-    private void OnCommandPaletteSelectionChanged(object sender, SelectionChangedEventArgs args)
-    {
-        _ = sender;
-        if (_renderingCommandPalette ||
-            _commandPaletteView is not CommandPaletteViewState view)
-        {
-            return;
-        }
-        if (args.AddedItems.Count == 1 &&
-            args.AddedItems[0] is CommandPaletteRow row &&
-            view.Select(row))
-        {
-            RenderCommandPaletteView();
-            return;
-        }
-        RenderCommandPaletteView();
-    }
-
-    private void OnCommandPaletteScrimTapped(object sender, TappedRoutedEventArgs args)
-    {
-        _ = sender;
-        _ = args;
-        if (_commandPaletteView is CommandPaletteViewState view)
-        {
-            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
-        }
-    }
-
-    private void OnCommandPaletteSurfaceTapped(object sender, TappedRoutedEventArgs args)
-    {
-        _ = sender;
-        args.Handled = true;
-    }
-
-    private void RenderTone(OperationBarTone tone)
-    {
-        OperationBar.Background = ResolveBrush(tone.SurfaceBrushResourceKey);
-        OperationBar.BorderBrush = ResolveBrush(tone.BorderBrushResourceKey);
-        Brush foreground = ResolveBrush(tone.ForegroundBrushResourceKey);
-        OperationStatus.Foreground = foreground;
-        OperationDetailCount.Foreground = foreground;
-        OperationProgressSeparator.Foreground = foreground;
-        OperationTotal.Foreground = foreground;
-        OperationWarningIcon.Stroke = foreground;
-        OperationNameEntryIcon.Stroke = foreground;
-        RenderToneIcon(tone.Icon);
-    }
-
-    private void RenderToneIcon(OperationBarIcon icon)
-    {
-        OperationWarningIcon.Visibility = icon == OperationBarIcon.Warning
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        OperationNameEntryIcon.Visibility = icon == OperationBarIcon.NameEntry
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    private void RenderDetail(OperationDetail detail)
-    {
-        TransferResultSegments.Visibility = detail is TransferResultDetail
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        switch (detail)
-        {
-            case OperationItemCountDetail count:
-                OperationProgressSegments.ItemsSource = null;
-                OperationDetailCount.Text = count.Count.ToString(CultureInfo.CurrentCulture);
-                OperationProgressSeparator.Text = string.Empty;
-                OperationTotal.Text = string.Empty;
-                break;
-            case OperationProgressDetail progress:
-                OperationProgressSegments.ItemsSource = progress.Segments;
-                OperationDetailCount.Text = progress.Completed.ToString(CultureInfo.CurrentCulture);
-                OperationProgressSeparator.Text = _resources.GetString("OperationProgressSeparator");
-                OperationTotal.Text = progress.Total.ToString(CultureInfo.CurrentCulture);
-                break;
-            case TransferResultDetail result:
-                OperationProgressSegments.ItemsSource = null;
-                OperationDetailCount.Text = string.Empty;
-                OperationProgressSeparator.Text = string.Empty;
-                OperationTotal.Text = string.Empty;
-                TransferResultNotTransferredCount.Text = result.NotTransferred.ToString(CultureInfo.CurrentCulture);
-                TransferResultCopiedCount.Text = result.Copied.ToString(CultureInfo.CurrentCulture);
-                TransferResultVerifiedCount.Text = result.Verified.ToString(CultureInfo.CurrentCulture);
-                TransferResultSourceDeletedCount.Text = result.SourceDeleted.ToString(CultureInfo.CurrentCulture);
-                TransferResultSourcePartiallyDeletedCount.Text = result.SourcePartiallyDeleted.ToString(CultureInfo.CurrentCulture);
-                break;
-            default:
-                OperationProgressSegments.ItemsSource = null;
-                OperationDetailCount.Text = string.Empty;
-                OperationProgressSeparator.Text = string.Empty;
-                OperationTotal.Text = string.Empty;
-                break;
-        }
-    }
-
-    private void RenderNameEntry(NameEntryPresentation nameEntry)
-    {
-        if (nameEntry is not ActiveNameEntry active)
-        {
-            NameEntryFrame.Visibility = Visibility.Collapsed;
-            return;
-        }
-        if (NameEntryFrame.Visibility == Visibility.Collapsed)
-        {
-            NameEntry.Text = active.InitialText;
-            NameEntryFrame.Visibility = Visibility.Visible;
-        }
-        _ = NameEntry.Focus(FocusState.Programmatic);
-        NameEntry.SelectAll();
-    }
-
-    private void RenderConflict(ConflictModalPresentation conflictModal)
-    {
-        if (conflictModal is not ActiveConflictModal active)
-        {
-            ConflictModal.Visibility = Visibility.Collapsed;
-            _renderedConflictModal = null;
-            return;
-        }
-        bool isNewConflict = !ReferenceEquals(_renderedConflictModal, active);
-        ConflictSource.Text = active.SourceText;
-        ConflictExistingTarget.Text = active.ExistingTargetText;
-        ConflictKeepBothCandidate.Text = active.KeepBothCandidateText;
-        ConflictModal.Visibility = Visibility.Visible;
-        if (isNewConflict)
-        {
-            ConflictApplyToAll.IsChecked = false;
-            _ = ConflictCancel.Focus(FocusState.Programmatic);
-        }
-        _renderedConflictModal = active;
-    }
-
-    private void OnConflictSkip(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.Skip);
-    }
-
-    private void OnConflictKeepBoth(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.KeepBoth);
-    }
-
-    private void OnConflictCancel(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.Cancel);
-    }
-
-    private void ForwardConflictDecision(TransferConflictDecision decision)
-    {
-        TransferConflictScope scope = ConflictApplyToAll.IsChecked is true
-            ? TransferConflictScope.All
-            : TransferConflictScope.Current;
-        ForwardIntent(UserIntent.ResolveConflict(decision, scope));
-    }
-
-    private void RenderPane(
-        PaneSide side,
-        PanePresentation presentation,
-        TextBox address,
-        TextBlock status,
-        ListView fileList)
-    {
-        AddressEditorPresentation? addressPresentation = _addressPresentation;
-        bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
-            editingSide == side;
-        if (!isEditingAddress)
-        {
-            address.Text = presentation.AddressText;
-        }
-        if (!ReferenceEquals(fileList.ItemsSource, presentation.Rows))
-        {
-            fileList.ItemsSource = presentation.Rows;
-        }
-        fileList.SelectedItem = presentation.FocusRow;
-        if (presentation.FocusRow is not null)
-        {
-            fileList.ScrollIntoView(presentation.FocusRow);
-        }
-        PaneStatus paneStatus = isEditingAddress &&
-            addressPresentation is { Status: PaneStatus addressStatus }
-                ? addressStatus
-                : presentation.Status;
-        status.Text = PaneStatusLine.Compose(
-            paneStatus, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
-    }
-
     private void RenderAddressTransition(AddressEditorPresentation presentation)
     {
         if (presentation.EditingSide is PaneSide side)
@@ -588,25 +274,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             FocusFileList(fileListSide);
         }
-    }
-
-    private static void RenderFrame(PaneFrame frame, Border border, Border header)
-    {
-        Brush brush = ResolveBrush(frame.BrushResourceKey);
-        border.BorderBrush = brush;
-        border.BorderThickness = (Thickness)Microsoft.UI.Xaml.Application.Current.Resources[frame.ThicknessResourceKey];
-        header.BorderBrush = brush;
-    }
-
-    private static void RenderNumber(PaneFrame frame, Border surface, TextBlock number)
-    {
-        surface.Background = ResolveBrush(frame.NumberSurfaceBrushResourceKey);
-        number.Foreground = ResolveBrush(frame.NumberForegroundBrushResourceKey);
-    }
-
-    private static Brush ResolveBrush(string resourceKey)
-    {
-        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[resourceKey];
     }
 
     /// <summary>
@@ -631,7 +298,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         if (outcome is MappedCommandPaletteAction paletteAction)
         {
-            return ForwardCommandPaletteAction(paletteAction.Action);
+            return _paletteView.Forward(paletteAction.Action);
         }
         if (outcome is MappedKeyboardIntent mapped)
         {
@@ -639,54 +306,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return true;
         }
         return outcome is KeyboardAwaitingChord or KeyboardConsumed;
-    }
-
-    private bool ForwardCommandPaletteAction(CommandPaletteKeyAction action)
-    {
-        if (_commandPaletteView is not CommandPaletteViewState view)
-        {
-            return true;
-        }
-        if (action == CommandPaletteKeyAction.MovePrevious)
-        {
-            view.MovePrevious();
-            RenderCommandPaletteView();
-            return true;
-        }
-        if (action == CommandPaletteKeyAction.MoveNext)
-        {
-            view.MoveNext();
-            RenderCommandPaletteView();
-            return true;
-        }
-        if (action == CommandPaletteKeyAction.Cancel)
-        {
-            ForwardIntent(UserIntent.CancelCommandPalette(view.SourceState));
-            return true;
-        }
-        if (action == CommandPaletteKeyAction.MoveFocus)
-        {
-            return MoveCommandPaletteFocus();
-        }
-        if (action == CommandPaletteKeyAction.Execute &&
-            view.SelectedRow is CommandPaletteRow { IsAvailable: true } selected)
-        {
-            ForwardIntent(UserIntent.SubmitCommand(view.SourceState, selected.Intent));
-        }
-        return true;
-    }
-
-    private bool MoveCommandPaletteFocus()
-    {
-        if (_commandPaletteView is null)
-        {
-            return false;
-        }
-        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        _ = ReferenceEquals(focused, CommandPaletteSearch)
-            ? CommandPaletteCandidateList.Focus(FocusState.Keyboard)
-            : CommandPaletteSearch.Focus(FocusState.Keyboard);
-        return true;
     }
 
     private void ForwardIntent(UserIntent intent)

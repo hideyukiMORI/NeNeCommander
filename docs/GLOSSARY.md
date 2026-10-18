@@ -71,3 +71,8 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | pane pair | The two projected panes and Application-owned active side captured by `PanePairPresentation`; each frame comes from its pane's projection source. |
 | operation bar presentation | The immutable status, numeric detail, semantic tone and canonical key hints captured by `OperationBarPresentation`. |
 | operation interaction presentation | The immutable name editor, conflict modal and input context captured by `OperationInteractionPresentation`; it owns no operation or input state. |
+| command palette view | The App-owned `CommandPaletteView` that binds the existing palette controls and forwards captured typed intents through the window; `CommandPaletteViewState` still owns query and selection. |
+| operation bar view | The App-owned `OperationBarView` that binds status, counts, name entry and conflict controls without owning an operation or an async task. |
+| commander pane view | The App-owned `CommanderPaneView` that binds one pane's rows, address, status and semantic activation resources to its existing controls. |
+| bookmark browse view | The App-owned `BookmarkBrowseView` that binds category/entry lists, selection and browsing controls, sharing the overlay's rendering guard. |
+| bookmark details view | The App-owned `BookmarkDetailsView` that binds bookmark/category drafts, confirmation controls and detail focus, without owning editor state. |
