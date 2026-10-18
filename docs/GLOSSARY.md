@@ -78,3 +78,10 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | bookmark details view | The App-owned `BookmarkDetailsView` that binds bookmark/category drafts, confirmation controls and detail focus, without owning editor state. |
 | bookmark browse presentation | The immutable filtered result owned by `BookmarkBrowsePresentation`; its selected row is derived from the frozen rows and retains the same row object identity. |
 | location row | A localized `LocationRow` retaining the exact Application location item, its display/detail text and UIA name; its stable UIA ID is derived only from the validated display name. |
+| frozen transfer | The internal immutable `FrozenTransfer` holding the original validated request, owned ordered source snapshots and destination across gateway-issued continuations; resume never reinspects or replaces those facts. |
+| transfer conflict response | The immutable `TransferConflictResponse` pairing an explicit decision and its selected current/all scope; it grants no ownership of a continuation. |
+| transfer execution | One internal `TransferExecution` attempt invoked only under FileOperationGateway's existing lease, owning its effects and skipped-source accounting without another lease or public mutation entry point. |
+| transfer preflight validation | The existing gateway admission predicates, owned by internal `TransferPreflightValidation`, that reject substituted/reordered sources, changed choices and out-of-destination targets. |
+| file entry transfer | The immutable `FileEntryTransfer` annotations for an entry's selected target and conflict choice; provider path, identity and deletion capability remain frozen. |
+| file operation effect summary | The immutable `FileOperationEffectSummary` owning ordered completed effects and explicitly untransferred sources in one outcome. |
+| transfer conflict pause | The internal `TransferConflictPause` pairing a returned conflict set with its exact gateway-issued continuation in an awaiting outcome. |

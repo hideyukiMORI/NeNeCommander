@@ -14,6 +14,7 @@ metric definition and record their own input hashes and complete findings.
 | #328 pane presentation and matching fixtures | 66 | 93 | 0 | 159 |
 | #330 App view composition | 60 | 93 | 0 | 153 |
 | #332 remaining Presentation models and input | 55 | 86 | 0 | 141 |
+| #334 shared transfer contracts and gateway execution | 42 | 76 | 0 | 118 |
 
 Issue #326 removes all six palette product findings and the large palette test
 type finding. Every changed/new declaration is within all five ceilings. Its
@@ -41,6 +42,16 @@ unresolved invocations under the unchanged static model. Metric totals for
 method/cognitive/nesting/parameters/type are 48/22/10/33/28. The next priority is
 shared file-operation contracts, followed by providers, settings, remaining
 fixtures/flow and global enforcement after every finding is resolved.
+
+Issue #334 removes 13 product and ten related test findings. FileOperationGateway
+is 210 logical lines, its internal transfer attempt 162 and its result validator
+67; deletion admission has cognitive complexity 3. All changed/new C# meets the
+five ceilings. Its [report](../reports/2026-10-18-transfer-contract-refactor-daily-report.md)
+records 275 successful focused cases, the fully migrated resume signature and
+retained lease/continuation/provider-step invariants. The current census contains
+794 sources, 1,233 types and 7,957 callables, with 7,314 unresolved invocations.
+Method/cognitive/nesting/parameter/type totals are 40/20/10/24/24. Provider and
+settings responsibility splits precede remaining tests/flow and global adoption.
 
 ## Initial census
 

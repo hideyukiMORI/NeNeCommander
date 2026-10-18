@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -9,58 +8,54 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record FileOperationOutcome
 {
-    private readonly ReadOnlyCollection<FileOperationEffect> _effects;
-    private readonly ReadOnlyCollection<FileSystemPath> _notTransferred;
+    private readonly FileOperationEffectSummary _summary;
+    private readonly TransferConflictPause? _pause;
 
     private FileOperationOutcome(
         FileOperationCompletionKind completion,
-        ReadOnlyCollection<FileOperationEffect> effects,
-        ReadOnlyCollection<FileSystemPath> notTransferred,
+        FileOperationEffectSummary summary,
         FileOperationFailureKind? failure,
-        ConflictSet? conflicts,
-        TransferContinuation? continuation)
+        TransferConflictPause? pause)
     {
         Completion = completion;
-        _effects = effects;
-        _notTransferred = notTransferred;
+        _summary = summary;
         Failure = failure;
-        Conflicts = conflicts;
-        Continuation = continuation;
+        _pause = pause;
     }
 
     /// <summary>Gets the closed overall completion state.</summary>
     public FileOperationCompletionKind Completion { get; }
 
     /// <summary>Gets the exact ordered side effects completed before return.</summary>
-    public IReadOnlyList<FileOperationEffect> Effects => _effects;
+    public IReadOnlyList<FileOperationEffect> Effects => _summary.Effects;
 
     /// <summary>Gets sources deliberately left untransferred by explicit Skip decisions.</summary>
-    public IReadOnlyList<FileSystemPath> NotTransferred => _notTransferred;
+    public IReadOnlyList<FileSystemPath> NotTransferred => _summary.NotTransferred;
 
     /// <summary>Gets the normalized failure, or absence for success and cancellation.</summary>
     public FileOperationFailureKind? Failure { get; }
 
     /// <summary>Gets the complete collision set awaiting a decision, or absence for a completed outcome.</summary>
-    public ConflictSet? Conflicts { get; }
+    public ConflictSet? Conflicts => _pause?.Conflicts;
 
     /// <summary>Gets the operation-owned frozen continuation paired with <see cref="Conflicts"/>.</summary>
-    public TransferContinuation? Continuation { get; }
+    public TransferContinuation? Continuation => _pause?.Continuation;
 
     internal static FileOperationOutcome Succeeded(IReadOnlyList<FileOperationEffect> effects)
     {
-        return Create(FileOperationCompletionKind.Succeeded, effects, [], null, null, null);
+        return Create(FileOperationCompletionKind.Succeeded, FileOperationEffectSummary.Create(effects, []), null, null);
     }
 
     internal static FileOperationOutcome Cancelled(IReadOnlyList<FileOperationEffect> effects)
     {
-        return Create(FileOperationCompletionKind.Cancelled, effects, [], null, null, null);
+        return Create(FileOperationCompletionKind.Cancelled, FileOperationEffectSummary.Create(effects, []), null, null);
     }
 
     internal static FileOperationOutcome Cancelled(
         IReadOnlyList<FileOperationEffect> effects,
         IReadOnlyList<FileSystemPath> notTransferred)
     {
-        return Create(FileOperationCompletionKind.Cancelled, effects, notTransferred, null, null, null);
+        return Create(FileOperationCompletionKind.Cancelled, FileOperationEffectSummary.Create(effects, notTransferred), null, null);
     }
 
     internal static FileOperationOutcome Failed(
@@ -70,7 +65,7 @@ public sealed record FileOperationOutcome
         FileOperationCompletionKind completion = effects.Count == 0
             ? FileOperationCompletionKind.Rejected
             : FileOperationCompletionKind.PartiallyCompleted;
-        return Create(completion, effects, [], failure, null, null);
+        return Create(completion, FileOperationEffectSummary.Create(effects, []), failure, null);
     }
 
     internal static FileOperationOutcome Failed(
@@ -81,39 +76,29 @@ public sealed record FileOperationOutcome
         FileOperationCompletionKind completion = effects.Count == 0 && notTransferred.Count == 0
             ? FileOperationCompletionKind.Rejected
             : FileOperationCompletionKind.PartiallyCompleted;
-        return Create(completion, effects, notTransferred, failure, null, null);
+        return Create(completion, FileOperationEffectSummary.Create(effects, notTransferred), failure, null);
     }
 
     internal static FileOperationOutcome Succeeded(
         IReadOnlyList<FileOperationEffect> effects,
         IReadOnlyList<FileSystemPath> notTransferred)
     {
-        return Create(FileOperationCompletionKind.Succeeded, effects, notTransferred, null, null, null);
+        return Create(FileOperationCompletionKind.Succeeded, FileOperationEffectSummary.Create(effects, notTransferred), null, null);
     }
 
     internal static FileOperationOutcome AwaitingConflict(
         ConflictSet conflicts,
         TransferContinuation continuation)
     {
-        return Create(FileOperationCompletionKind.Rejected, [], [], FileOperationFailureKind.Conflict, conflicts, continuation);
+        return Create(FileOperationCompletionKind.Rejected, FileOperationEffectSummary.Create([], []), FileOperationFailureKind.Conflict, TransferConflictPause.Create(conflicts, continuation));
     }
 
     private static FileOperationOutcome Create(
         FileOperationCompletionKind completion,
-        IReadOnlyList<FileOperationEffect> effects,
-        IReadOnlyList<FileSystemPath> notTransferred,
+        FileOperationEffectSummary summary,
         FileOperationFailureKind? failure,
-        ConflictSet? conflicts,
-        TransferContinuation? continuation)
+        TransferConflictPause? pause)
     {
-        List<FileOperationEffect> ownedEffects = [.. effects];
-        List<FileSystemPath> ownedNotTransferred = [.. notTransferred];
-        return new FileOperationOutcome(
-            completion,
-            ownedEffects.AsReadOnly(),
-            ownedNotTransferred.AsReadOnly(),
-            failure,
-            conflicts,
-            continuation);
+        return new FileOperationOutcome(completion, summary, failure, pause);
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using NeNeCommander.Domain.Paths;
 
@@ -9,31 +8,28 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Retains the original transfer request and frozen source identities while conflict input is pending.</summary>
 public sealed class TransferContinuation
 {
-    private readonly ReadOnlyCollection<FileEntrySnapshot> _sources;
+
     private readonly object _owner;
     private int _consumed;
 
     private TransferContinuation(
-        FileOperationRequest request,
-        ReadOnlyCollection<FileEntrySnapshot> sources,
-        FileSystemPath destination,
+        FrozenTransfer transfer,
         TransferResolution resolution,
         ConflictSet pendingConflicts,
         object owner)
     {
-        Request = request;
-        _sources = sources;
-        Destination = destination;
+        Transfer = transfer;
         Resolution = resolution;
         PendingConflicts = pendingConflicts;
         _owner = owner;
     }
 
-    internal FileOperationRequest Request { get; }
+    internal FrozenTransfer Transfer { get; }
+    internal FileOperationRequest Request => Transfer.Request;
     /// <summary>Gets the original ordered frozen source snapshots.</summary>
-    public IReadOnlyList<FileEntrySnapshot> Sources => _sources;
+    public IReadOnlyList<FileEntrySnapshot> Sources => Transfer.Sources;
     /// <summary>Gets the original transfer destination.</summary>
-    public FileSystemPath Destination { get; }
+    public FileSystemPath Destination => Transfer.Destination;
     internal TransferResolution Resolution { get; }
     internal ConflictSet PendingConflicts { get; }
 
@@ -48,23 +44,17 @@ public sealed class TransferContinuation
     }
 
     internal static TransferContinuation Create(
-        FileOperationRequest request,
-        IReadOnlyList<FileEntrySnapshot> sources,
-        FileSystemPath destination,
+        FrozenTransfer transfer,
         TransferResolution resolution,
         ConflictSet pendingConflicts,
         object owner)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(sources);
-        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(transfer);
         ArgumentNullException.ThrowIfNull(resolution);
         ArgumentNullException.ThrowIfNull(pendingConflicts);
         ArgumentNullException.ThrowIfNull(owner);
         return new TransferContinuation(
-            request,
-            new List<FileEntrySnapshot>(sources).AsReadOnly(),
-            destination,
+            transfer,
             resolution,
             pendingConflicts,
             owner);

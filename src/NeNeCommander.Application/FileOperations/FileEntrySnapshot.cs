@@ -8,18 +8,18 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record FileEntrySnapshot
 {
+    private readonly FileEntryTransfer _transfer;
+
     private FileEntrySnapshot(
         FileSystemPath path,
         FileIdentity identity,
         DeletionCapability deletionCapability,
-        FileSystemPath? transferTarget,
-        TransferConflictChoice? conflictChoice)
+        FileEntryTransfer transfer)
     {
         Path = path;
         Identity = identity;
         DeletionCapability = deletionCapability;
-        TransferTarget = transferTarget;
-        ConflictChoice = conflictChoice;
+        _transfer = transfer;
     }
 
     /// <summary>Gets the source path captured during preflight.</summary>
@@ -32,10 +32,10 @@ public sealed record FileEntrySnapshot
     public DeletionCapability DeletionCapability { get; }
 
     /// <summary>Gets the exact preflighted transfer target, or absence before transfer preflight.</summary>
-    public FileSystemPath? TransferTarget { get; }
+    public FileSystemPath? TransferTarget => _transfer.Target;
 
     /// <summary>Gets the operation-scoped conflict choice applied during resumed preflight.</summary>
-    public TransferConflictChoice? ConflictChoice { get; }
+    public TransferConflictChoice? ConflictChoice => _transfer.Choice;
 
     /// <summary>
     /// Creates an immutable preflight snapshot from validated components.
@@ -52,17 +52,17 @@ public sealed record FileEntrySnapshot
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(deletionCapability);
-        return new FileEntrySnapshot(path, identity, deletionCapability, null, null);
+        return new FileEntrySnapshot(path, identity, deletionCapability, FileEntryTransfer.Create(null, null));
     }
 
     internal FileEntrySnapshot WithTransferTarget(FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        return new FileEntrySnapshot(Path, Identity, DeletionCapability, target, ConflictChoice);
+        return new FileEntrySnapshot(Path, Identity, DeletionCapability, FileEntryTransfer.Create(target, ConflictChoice));
     }
 
     internal FileEntrySnapshot WithConflictChoice(TransferConflictChoice? choice)
     {
-        return new FileEntrySnapshot(Path, Identity, DeletionCapability, TransferTarget, choice);
+        return new FileEntrySnapshot(Path, Identity, DeletionCapability, FileEntryTransfer.Create(TransferTarget, choice));
     }
 }

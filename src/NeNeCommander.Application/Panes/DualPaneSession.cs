@@ -226,15 +226,13 @@ public sealed class DualPaneSession
         return intent == UserIntent.Escape
             ? ResumeConflictAsync(
                 awaiting,
-                TransferConflictDecision.Cancel,
-                TransferConflictScope.Current,
+                TransferConflictResponse.Create(TransferConflictDecision.Cancel, TransferConflictScope.Current),
                 observer,
                 cancellationToken)
             : intent is ConflictDecisionSubmission submission
             ? ResumeConflictAsync(
                 awaiting,
-                submission.Decision,
-                submission.Scope,
+                TransferConflictResponse.Create(submission.Decision, submission.Scope),
                 observer,
                 cancellationToken)
             : Task.FromResult(Current);
@@ -242,8 +240,7 @@ public sealed class DualPaneSession
 
     private async Task<DualPaneSnapshot> ResumeConflictAsync(
         OperationAwaitingConflict awaiting,
-        TransferConflictDecision decision,
-        TransferConflictScope scope,
+        TransferConflictResponse response,
         IDualPaneProgressObserver observer,
         CancellationToken cancellationToken)
     {
@@ -252,8 +249,7 @@ public sealed class DualPaneSession
             FileOperationProgress.Create(0, awaiting.Continuation.Sources.Count));
         FileOperationOutcome outcome = await _gateway.ResumeAsync(
             awaiting.Continuation,
-            decision,
-            scope,
+            response,
             new ProgressRelay(this, awaiting.Kind, observer),
             cancellationToken);
         if (outcome.Conflicts is ConflictSet conflicts)

@@ -72,20 +72,18 @@ public sealed class FileOperationGateway : IDisposable
     /// <summary>Resumes one conflict-paused transfer against its original frozen identities.</summary>
     public async Task<FileOperationOutcome> ResumeAsync(
         TransferContinuation continuation,
-        TransferConflictDecision decision,
-        TransferConflictScope scope,
+        TransferConflictResponse response,
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(continuation);
-        ArgumentNullException.ThrowIfNull(decision);
-        ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(response);
         ArgumentNullException.ThrowIfNull(progress);
         if (!continuation.IsOwnedBy(_continuationOwner))
         {
             return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
         }
-        if (decision == TransferConflictDecision.Cancel || cancellationToken.IsCancellationRequested)
+        if (response.Decision == TransferConflictDecision.Cancel || cancellationToken.IsCancellationRequested)
         {
             return continuation.TryConsume()
                 ? FileOperationOutcome.Cancelled([])
@@ -104,15 +102,10 @@ public sealed class FileOperationGateway : IDisposable
             }
             TransferResolution resolution = continuation.Resolution.Add(
                 continuation.PendingConflicts,
-                decision,
-                scope);
-            return await ExecuteFrozenTransferAsync(
-                continuation.Request,
-                continuation.Sources,
-                continuation.Destination,
-                resolution,
-                progress,
-                cancellationToken);
+                response.Decision,
+                response.Scope);
+            TransferExecution execution = new(_port, continuation.Transfer, _continuationOwner);
+            return await execution.ExecuteAsync(resolution, progress, cancellationToken);
         }
         finally
         {
@@ -149,233 +142,10 @@ public sealed class FileOperationGateway : IDisposable
             ? FileOperationOutcome.Cancelled([])
             : inspection.Failure is FileOperationFailureKind failedInspection
             ? FileOperationOutcome.Failed([], failedInspection)
-            : await ExecuteFrozenTransferAsync(
-                request,
-                inspection.Snapshots,
-                destination,
-                TransferResolution.None,
-                progress,
-                cancellationToken);
-    }
-
-    private async Task<FileOperationOutcome> ExecuteFrozenTransferAsync(
-        FileOperationRequest request,
-        IReadOnlyList<FileEntrySnapshot> snapshots,
-        FileSystemPath destination,
-        TransferResolution resolution,
-        IFileOperationProgressObserver progress,
-        CancellationToken cancellationToken)
-    {
-        List<FileOperationEffect> effects = [];
-        List<FileSystemPath> notTransferred = [];
-
-        IReadOnlyList<FileEntrySnapshot> preflightSources = snapshots
-            .Select(snapshot => snapshot.WithConflictChoice(resolution.Find(snapshot.Path)))
-            .ToList()
-            .AsReadOnly();
-        TransferPreflightOutcome preflight = await _port.PreflightTransferAsync(
-            preflightSources,
-            destination,
-            cancellationToken);
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-        if (preflight is TransferPreflightRejected rejected)
-        {
-            return FileOperationOutcome.Failed(effects, rejected.Failure);
-        }
-        if (preflight is ConflictSet conflictSet)
-        {
-            return IsValidConflictSet(conflictSet, preflightSources, destination)
-                ? FileOperationOutcome.AwaitingConflict(
-                    conflictSet,
-                    TransferContinuation.Create(
-                        request,
-                        snapshots,
-                        destination,
-                        resolution,
-                        conflictSet,
-                        _continuationOwner))
-                : FileOperationOutcome.Failed(effects, FileOperationFailureKind.ProviderUnavailable);
-        }
-        IReadOnlyList<TransferPlanEntry> plan = ((TransferPreflightSucceeded)preflight).Plan;
-        if (!IsValidPlan(plan, preflightSources, destination))
-        {
-            return FileOperationOutcome.Failed(effects, FileOperationFailureKind.ProviderUnavailable);
-        }
-
-        IReadOnlyList<AtomicMoveCapabilityOutcome> capabilities = await GetAtomicMoveCapabilitiesAsync(
-            request,
-            plan,
-            destination,
-            cancellationToken);
-        AtomicMoveCapabilityFailed? capabilityFailure = capabilities
-            .OfType<AtomicMoveCapabilityFailed>()
-            .FirstOrDefault();
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-        if (capabilityFailure is not null)
-        {
-            return FileOperationOutcome.Failed(effects, capabilityFailure.Failure);
-        }
-
-        int completed = 0;
-        for (int index = 0; index < plan.Count; index++)
-        {
-            TransferPlanEntry entry = plan[index];
-            if (entry.Disposition == TransferDisposition.Skip)
-            {
-                notTransferred.Add(entry.Source.Path);
-                completed++;
-                progress.Report(FileOperationProgress.Create(completed, plan.Count));
-                continue;
-            }
-            FileEntrySnapshot snapshot = entry.Source.WithTransferTarget(entry.Target);
-            FileOperationOutcome? stopped = request is MoveRequest
-                ? await MoveOneAsync(snapshot, destination, capabilities[index], effects, cancellationToken)
-                : (await CopyOneAsync(snapshot, destination, effects, cancellationToken)).Stopped;
-            if (stopped is not null)
-            {
-                return MergeNotTransferred(stopped, notTransferred);
-            }
-            completed++;
-            progress.Report(FileOperationProgress.Create(completed, plan.Count));
-        }
-        return FileOperationOutcome.Succeeded(effects, notTransferred);
-    }
-
-    private static bool IsValidConflictSet(
-        ConflictSet conflicts,
-        IReadOnlyList<FileEntrySnapshot> sources,
-        FileSystemPath destination)
-    {
-        Dictionary<FileSystemPath, int> sourceIndexes = new(FileSystemPathIdentityComparer.Instance);
-        for (int sourceIndex = 0; sourceIndex < sources.Count; sourceIndex++)
-        {
-            sourceIndexes.Add(sources[sourceIndex].Path, sourceIndex);
-        }
-        int previousSourceIndex = -1;
-        foreach (TransferConflict conflict in conflicts.Conflicts)
-        {
-            if (!sourceIndexes.TryGetValue(conflict.Source.Path, out int sourceIndex) ||
-                sourceIndex <= previousSourceIndex ||
-                !MatchesSnapshot(sources[sourceIndex], conflict.Source) ||
-                !IsDirectChild(conflict.ExistingTarget, destination) ||
-                !IsDirectChild(conflict.KeepBothCandidate, destination) ||
-                FileSystemPathIdentityComparer.Instance.Equals(
-                    conflict.ExistingTarget,
-                    conflict.KeepBothCandidate))
-            {
-                return false;
-            }
-            previousSourceIndex = sourceIndex;
-        }
-        return true;
-    }
-
-    private static bool IsValidPlan(
-        IReadOnlyList<TransferPlanEntry> plan,
-        IReadOnlyList<FileEntrySnapshot> sources,
-        FileSystemPath destination)
-    {
-        if (plan.Count != sources.Count)
-        {
-            return false;
-        }
-        for (int index = 0; index < plan.Count; index++)
-        {
-            TransferPlanEntry entry = plan[index];
-            FileEntrySnapshot expected = sources[index];
-            if (!MatchesSnapshot(expected, entry.Source) ||
-                !IsDirectChild(entry.Target, destination) ||
-                !MatchesDisposition(expected.ConflictChoice, entry))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static bool MatchesSnapshot(FileEntrySnapshot expected, FileEntrySnapshot actual)
-    {
-        return FileSystemPathIdentityComparer.Instance.Equals(expected.Path, actual.Path) &&
-            expected.Identity == actual.Identity &&
-            expected.DeletionCapability == actual.DeletionCapability &&
-            actual.TransferTarget is null &&
-            MatchesChoice(expected.ConflictChoice, actual.ConflictChoice);
-    }
-
-    private static bool MatchesChoice(
-        TransferConflictChoice? expected,
-        TransferConflictChoice? actual)
-    {
-        return expected is null
-            ? actual is null
-            : actual is not null &&
-                FileSystemPathIdentityComparer.Instance.Equals(expected.Source, actual.Source) &&
-                expected.Decision == actual.Decision &&
-                FileSystemPathIdentityComparer.Instance.Equals(
-                    expected.KeepBothCandidate,
-                    actual.KeepBothCandidate);
-    }
-
-    private static bool MatchesDisposition(
-        TransferConflictChoice? choice,
-        TransferPlanEntry entry)
-    {
-        return choice is null
-            ? entry.Disposition == TransferDisposition.Transfer
-            : choice.Decision == TransferConflictDecision.Skip
-                ? entry.Disposition == TransferDisposition.Skip
-                : choice.Decision == TransferConflictDecision.KeepBoth &&
-                    entry.Disposition == TransferDisposition.Transfer &&
-                    FileSystemPathIdentityComparer.Instance.Equals(
-                        choice.KeepBothCandidate,
-                        entry.Target);
-    }
-
-    private static bool IsDirectChild(FileSystemPath target, FileSystemPath destination)
-    {
-        return target.Parent is FileSystemPath parent &&
-            FileSystemPathIdentityComparer.Instance.Equals(parent, destination);
-    }
-
-    private async Task<IReadOnlyList<AtomicMoveCapabilityOutcome>> GetAtomicMoveCapabilitiesAsync(
-        FileOperationRequest request,
-        IReadOnlyList<TransferPlanEntry> plan,
-        FileSystemPath destination,
-        CancellationToken cancellationToken)
-    {
-        List<AtomicMoveCapabilityOutcome> capabilities = [];
-        foreach (TransferPlanEntry entry in plan)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
-            AtomicMoveCapabilityOutcome capability = request is MoveRequest &&
-                entry.Disposition == TransferDisposition.Transfer &&
-                entry.Source.ConflictChoice?.Decision != TransferConflictDecision.KeepBoth
-                ? await _port.GetAtomicMoveCapabilityAsync(
-                    entry.Source.WithTransferTarget(entry.Target),
-                    destination,
-                    cancellationToken)
-                : AtomicMoveCapabilityOutcome.Unsupported;
-            capabilities.Add(capability);
-        }
-        return capabilities.AsReadOnly();
-    }
-
-    private static FileOperationOutcome MergeNotTransferred(
-        FileOperationOutcome outcome,
-        IReadOnlyList<FileSystemPath> notTransferred)
-    {
-        return outcome.Failure is FileOperationFailureKind failure
-            ? FileOperationOutcome.Failed(outcome.Effects, notTransferred, failure)
-            : FileOperationOutcome.Cancelled(outcome.Effects, notTransferred);
+            : await new TransferExecution(
+                _port,
+                FrozenTransfer.Create(request, inspection.Snapshots, destination),
+                _continuationOwner).ExecuteAsync(TransferResolution.None, progress, cancellationToken);
     }
 
     private async Task<FileOperationOutcome> ExecuteDeleteAsync(
@@ -385,47 +155,64 @@ public sealed class FileOperationGateway : IDisposable
     {
         List<FileOperationEffect> effects = [];
         InspectionBatch inspection = await InspectAllAsync(request.Sources, cancellationToken);
-        if (inspection.Completion == InspectionBatchCompletion.Cancelled)
+        return inspection switch
         {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-        if (inspection.Failure is not null)
-        {
-            return FileOperationOutcome.Failed(effects, inspection.Failure);
-        }
-        if (NeedsConfirmation(inspection.Snapshots) &&
-            (request.Confirmation is null || !request.Confirmation.Covers(request.Sources)))
-        {
-            return FileOperationOutcome.Failed(effects, FileOperationFailureKind.ConfirmationRequired);
-        }
+            _ when inspection.Completion == InspectionBatchCompletion.Cancelled => FileOperationOutcome.Cancelled(effects),
+            { Failure: FileOperationFailureKind failure } => FileOperationOutcome.Failed(effects, failure),
+            _ when NeedsConfirmation(inspection.Snapshots) &&
+                (request.Confirmation is null || !request.Confirmation.Covers(request.Sources)) =>
+                FileOperationOutcome.Failed(effects, FileOperationFailureKind.ConfirmationRequired),
+            _ => await DeleteInspectedAsync(request, inspection.Snapshots, progress, cancellationToken),
+        };
+    }
 
-        foreach (FileEntrySnapshot snapshot in inspection.Snapshots)
+    private async Task<FileOperationOutcome> DeleteInspectedAsync(
+        DeleteRequest request,
+        IReadOnlyList<FileEntrySnapshot> snapshots,
+        IFileOperationProgressObserver progress,
+        CancellationToken cancellationToken)
+    {
+        List<FileOperationEffect> effects = [];
+        foreach (FileEntrySnapshot snapshot in snapshots)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 return FileOperationOutcome.Cancelled(effects);
             }
-            DeletionExecutionMode mode = snapshot.DeletionCapability == DeletionCapability.Recycle
-                ? DeletionExecutionMode.Recycle
-                : DeletionExecutionMode.Permanent;
-            ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, mode, cancellationToken);
-            if (deletion.Failure is not null)
+            FileOperationOutcome? stopped = await DeleteOneAsync(snapshot, effects, cancellationToken);
+            if (stopped is not null)
             {
-                if (deletion.Effect == ProviderStepEffectKind.Recycled)
-                {
-                    effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Recycled));
-                }
-                return cancellationToken.IsCancellationRequested
-                    ? FileOperationOutcome.Cancelled(effects)
-                    : FileOperationOutcome.Failed(effects, deletion.Failure);
+                return stopped;
             }
-            FileOperationEffectKind effect = mode == DeletionExecutionMode.Recycle
-                ? FileOperationEffectKind.Recycled
-                : FileOperationEffectKind.PermanentlyDeleted;
-            effects.Add(FileOperationEffect.Create(snapshot.Path, effect));
             progress.Report(FileOperationProgress.Create(effects.Count, request.Sources.Count));
         }
         return FileOperationOutcome.Succeeded(effects);
+    }
+
+    private async Task<FileOperationOutcome?> DeleteOneAsync(
+        FileEntrySnapshot snapshot,
+        List<FileOperationEffect> effects,
+        CancellationToken cancellationToken)
+    {
+        DeletionExecutionMode mode = snapshot.DeletionCapability == DeletionCapability.Recycle
+            ? DeletionExecutionMode.Recycle
+            : DeletionExecutionMode.Permanent;
+        ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, mode, cancellationToken);
+        if (deletion.Failure is not null)
+        {
+            if (deletion.Effect == ProviderStepEffectKind.Recycled)
+            {
+                effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Recycled));
+            }
+            return cancellationToken.IsCancellationRequested
+                ? FileOperationOutcome.Cancelled(effects)
+                : FileOperationOutcome.Failed(effects, deletion.Failure);
+        }
+        FileOperationEffectKind effect = mode == DeletionExecutionMode.Recycle
+            ? FileOperationEffectKind.Recycled
+            : FileOperationEffectKind.PermanentlyDeleted;
+        effects.Add(FileOperationEffect.Create(snapshot.Path, effect));
+        return null;
     }
 
     private async Task<FileOperationOutcome> ExecuteCreateDirectoryAsync(
@@ -508,155 +295,9 @@ public sealed class FileOperationGateway : IDisposable
         return InspectionBatch.Succeeded(snapshots);
     }
 
-    private async Task<CopyExecution> CopyOneAsync(
-        FileEntrySnapshot snapshot,
-        FileSystemPath destination,
-        List<FileOperationEffect> effects,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return CopyExecution.Stop(FileOperationOutcome.Cancelled(effects));
-        }
-        ProviderStepOutcome copy = await _port.CopyAsync(snapshot, destination, cancellationToken);
-        AddCopyProviderEffect(snapshot, copy, effects);
-        if (copy.Failure is not null)
-        {
-            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, copy.Failure));
-        }
-        effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Copied));
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return CopyExecution.Stop(FileOperationOutcome.Cancelled(effects));
-        }
-
-        CopyVerificationOutcome verification = await _port.VerifyCopyAsync(snapshot, destination, cancellationToken);
-        if (verification.Failure is not null)
-        {
-            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, verification.Failure));
-        }
-        VerifiedCopyReceipt receipt = ((CopyVerified)verification).Receipt;
-        if (receipt.Source.Identity != snapshot.Identity ||
-            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Source.Path, snapshot.Path) ||
-            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Root.Target.Path, snapshot.TransferTarget))
-        {
-            return CopyExecution.Stop(FileOperationOutcome.Failed(effects, FileOperationFailureKind.Verification));
-        }
-        effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Verified));
-        return CopyExecution.Complete(receipt);
-    }
-
-    private static void AddCopyProviderEffect(
-        FileEntrySnapshot snapshot,
-        ProviderStepOutcome copy,
-        List<FileOperationEffect> effects)
-    {
-        if (copy.Effect == ProviderStepEffectKind.CopyTargetCreated)
-        {
-            effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.CopyTargetCreated));
-        }
-    }
-
-    private async Task<FileOperationOutcome?> MoveOneAsync(
-        FileEntrySnapshot snapshot,
-        FileSystemPath destination,
-        AtomicMoveCapabilityOutcome capability,
-        List<FileOperationEffect> effects,
-        CancellationToken cancellationToken)
-    {
-        if (capability == AtomicMoveCapabilityOutcome.Supported)
-        {
-            return await MoveAtomicallyAsync(snapshot, destination, effects, cancellationToken);
-        }
-        CopyExecution copy = await CopyOneAsync(snapshot, destination, effects, cancellationToken);
-        if (copy.Stopped is not null)
-        {
-            return copy.Stopped;
-        }
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-
-        ProviderStepOutcome deletion = await _port.DeleteAsync(
-            snapshot,
-            DeletionExecutionMode.VerifiedCopy(((CopyCompleted)copy).Receipt),
-            cancellationToken);
-        if (deletion.Effect == ProviderStepEffectKind.SourcePartiallyDeleted)
-        {
-            effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.SourcePartiallyDeleted));
-        }
-        if (deletion.Failure is not null)
-        {
-            return FileOperationOutcome.Failed(effects, deletion.Failure);
-        }
-        effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.SourceDeleted));
-        return null;
-    }
-
-    private async Task<FileOperationOutcome?> MoveAtomicallyAsync(
-        FileEntrySnapshot snapshot,
-        FileSystemPath destination,
-        List<FileOperationEffect> effects,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return FileOperationOutcome.Cancelled(effects);
-        }
-        ProviderStepOutcome move = await _port.MoveAsync(snapshot, destination, cancellationToken);
-        if (move.Failure is not null)
-        {
-            return FileOperationOutcome.Failed(effects, move.Failure);
-        }
-        effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.AtomicallyMoved));
-        return null;
-    }
-
     private static bool NeedsConfirmation(IReadOnlyList<FileEntrySnapshot> snapshots)
     {
         return snapshots.Any(snapshot => snapshot.DeletionCapability == DeletionCapability.PermanentOnly);
-    }
-
-    private abstract record CopyExecution
-    {
-        private protected CopyExecution()
-        {
-        }
-
-        internal abstract FileOperationOutcome? Stopped { get; }
-
-        internal static CopyStopped Stop(FileOperationOutcome outcome)
-        {
-            return new CopyStopped(outcome);
-        }
-
-        internal static CopyCompleted Complete(VerifiedCopyReceipt receipt)
-        {
-            return new CopyCompleted(receipt);
-        }
-    }
-
-    private sealed record CopyStopped : CopyExecution
-    {
-        internal CopyStopped(FileOperationOutcome stopped)
-        {
-            Stopped = stopped;
-        }
-
-        internal override FileOperationOutcome Stopped { get; }
-    }
-
-    private sealed record CopyCompleted : CopyExecution
-    {
-        internal CopyCompleted(VerifiedCopyReceipt receipt)
-        {
-            Receipt = receipt;
-        }
-
-        internal VerifiedCopyReceipt Receipt { get; }
-        internal override FileOperationOutcome? Stopped => null;
     }
 
     private sealed class InspectionBatch
