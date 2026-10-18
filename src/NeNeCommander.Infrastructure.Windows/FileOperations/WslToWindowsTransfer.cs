@@ -136,31 +136,44 @@ internal sealed class WslToWindowsTransfer : IFileOperationPort
         List<TransferPlanEntry> plan = [];
         foreach (FileEntrySnapshot source in sources)
         {
-            WslFileSystemEntry? entry = _source.Find((WslPath)source.Path);
-            if (entry is null || entry.Identity != source.Identity)
+            if (PreflightSource(source, local, reserved, plan) is FileOperationFailureKind refusal)
             {
-                return TransferPreflightOutcome.Rejected(entry is null
-                    ? FileOperationFailureKind.NotFound : FileOperationFailureKind.IdentityChanged);
+                return TransferPreflightOutcome.Rejected(refusal);
             }
-            if (WindowsLocalTreeCopy.DeriveChild(local, entry.Name) is not WindowsLocalPath target)
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
-            }
-            if (!_driveBoundary.AdmitsLocal(target))
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
-            }
-            if (!reserved.Add(target))
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
-            }
-            if (_source.PreflightToWindowsLocal(entry, target) is FileOperationFailureKind rejected)
-            {
-                return TransferPreflightOutcome.Rejected(rejected);
-            }
-            plan.Add(TransferPlanEntry.Transfer(source, target));
         }
         return TransferPreflightOutcome.Succeeded(plan);
+    }
+
+    private FileOperationFailureKind? PreflightSource(
+        FileEntrySnapshot source,
+        WindowsLocalPath local,
+        HashSet<FileSystemPath> reserved,
+        List<TransferPlanEntry> plan)
+    {
+        WslFileSystemEntry? entry = _source.Find((WslPath)source.Path);
+        if (entry is null || entry.Identity != source.Identity)
+        {
+            return entry is null
+                ? FileOperationFailureKind.NotFound : FileOperationFailureKind.IdentityChanged;
+        }
+        if (WindowsLocalTreeCopy.DeriveChild(local, entry.Name) is not WindowsLocalPath target)
+        {
+            return FileOperationFailureKind.ProviderUnavailable;
+        }
+        if (!_driveBoundary.AdmitsLocal(target))
+        {
+            return FileOperationFailureKind.ProviderUnavailable;
+        }
+        if (!reserved.Add(target))
+        {
+            return FileOperationFailureKind.Conflict;
+        }
+        if (_source.PreflightToWindowsLocal(entry, target) is FileOperationFailureKind rejected)
+        {
+            return rejected;
+        }
+        plan.Add(TransferPlanEntry.Transfer(source, target));
+        return null;
     }
 
     private ProviderStepOutcome WithSource(

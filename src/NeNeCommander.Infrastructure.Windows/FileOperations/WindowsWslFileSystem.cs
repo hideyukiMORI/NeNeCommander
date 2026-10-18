@@ -206,7 +206,7 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         FileIdentity identity = FileIdentity.Parse(value) is FileIdentityAccepted accepted
             ? accepted.Identity
             : throw new IOException("The WSL identity token exceeds the identity boundary.");
-        return new WslFileSystemEntry(path, entry.Name, identity, kind, (FileAttributes)facts.Attributes);
+        return new WslFileSystemEntry(path, entry.Name, new WslEntryMetadata(identity, kind, (FileAttributes)facts.Attributes));
     }
 
     private FileSystemInfo ResolveEntry(WslFileSystemEntry source)

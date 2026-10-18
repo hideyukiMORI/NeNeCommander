@@ -17,6 +17,9 @@ metric definition and record their own input hashes and complete findings.
 | #334 shared transfer contracts and gateway execution | 42 | 76 | 0 | 118 |
 | #336 managed recycle callback policy | 34 | 76 | 0 | 110 |
 | #338 Windows local operation responsibilities and fixtures | 29 | 75 | 0 | 104 |
+| #340 WSL provider observations, preflight and affected fixtures | 20 | 60 | 0 | 80 |
+
+Issue #340 removes nine WSL/cross-provider product findings and fifteen affected test findings. All changed/new C# conforms. Its [daily report](../reports/2026-10-19-cs013-priority-daily-report.md) records 273 successful cases, three explicitly unexecuted Live WSL cases, structural proof and the checkpoint after priorities 1–3. The census is 821 sources, 1,260 types, 7,993 callables and 7,347 unresolved invocations; all source hashes match. Method/cognitive/nesting/parameter/type totals are 32/11/5/13/19. Settings, remaining tests/flow and global enforcement remain next.
 
 Issue #338 removes five local-provider findings and the direct fixture type finding.
 All changed/new C# conforms; 190 focused cases and exact moved-body proof pass.

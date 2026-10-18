@@ -159,14 +159,7 @@ internal static partial class WindowsFileIdentifier
         byte[] attributeTag = QueryInformation(handle, FileAttributeTagInfoClass, FileAttributeTagInfoLength);
         byte[] standard = QueryInformation(handle, FileStandardInfoClass, FileStandardInfoLength);
         byte[] basic = QueryInformation(handle, FileBasicInfoClass, FileBasicInfoLength);
-        return new WslHandleFacts(
-            inode,
-            BitConverter.ToUInt32(attributeTag, 0),
-            BitConverter.ToUInt32(attributeTag, 4),
-            BitConverter.ToInt64(standard, 8),
-            BitConverter.ToUInt32(standard, 16),
-            BitConverter.ToInt64(basic, 16),
-            BitConverter.ToInt64(basic, 24));
+        return new WslHandleFacts(inode, BitConverter.ToUInt32(attributeTag, 0), BitConverter.ToUInt32(attributeTag, 4), new WslRewriteFacts(BitConverter.ToInt64(standard, 8), BitConverter.ToUInt32(standard, 16), BitConverter.ToInt64(basic, 16), BitConverter.ToInt64(basic, 24)));
     }
 
     private static long ReadInode(SafeFileHandle handle)

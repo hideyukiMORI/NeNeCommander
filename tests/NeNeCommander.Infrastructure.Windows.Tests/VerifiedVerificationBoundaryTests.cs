@@ -77,42 +77,17 @@ public sealed class VerifiedVerificationBoundaryTests
         _ = root.CreateDirectory("wsl");
         _ = root.WriteFile("wsl\\file.txt", "first");
         _ = root.WriteFile("local.txt", "first");
-        bool active = false;
-        bool duringEntry = false;
-        bool observedChange = false;
-        WindowsWslFileSystem fileSystem = new(path => OwnedWslNamespace.Resolve(root.ResolveVerbatim("wsl"), path), path =>
-        {
-            WslHandleFacts facts = OwnedWslNamespace.ReadFacts(path);
-            if (!active)
-            {
-                return facts;
-            }
-            if (!path.EndsWith("\\file.txt", StringComparison.Ordinal))
-            {
-                if (duringEntry)
-                {
-                    active = false;
-                }
-                duringEntry = false;
-                return facts;
-            }
-            if (duringEntry)
-            {
-                observedChange = true;
-                return ChangedTime(facts);
-            }
-            duringEntry = true;
-            return facts;
-        });
+        FinalEntryCaptureRace race = new();
+        WindowsWslFileSystem fileSystem = new(path => OwnedWslNamespace.Resolve(root.ResolveVerbatim("wsl"), path), race.Read);
         VerifiedTreeAccess access = new(fileSystem);
         FileSystemPath sourcePath = side == "source" ? WslToWindowsTransferFixture.Source("file.txt") : Path(root.Resolve("local.txt"));
         FileSystemPath targetPath = side == "target" ? WslToWindowsTransferFixture.Source("file.txt") : Path(root.Resolve("local.txt"));
         FileEntrySnapshot source = FileEntrySnapshot.Create(sourcePath, access.Capture(sourcePath).Identity, DeletionCapability.PermanentOnly);
-        active = true;
+        race.Activate();
 
         CopyVerificationOutcome outcome = WindowsLocalTreeCopy.Verify(source, targetPath, access);
 
-        Assert.IsTrue(observedChange);
+        Assert.IsTrue(race.ObservedChange);
         Assert.AreSame(FileOperationFailureKind.Verification, outcome.Failure);
         Assert.AreEqual("first", File.ReadAllText(root.Resolve("wsl\\file.txt")));
         Assert.AreEqual("first", File.ReadAllText(root.Resolve("local.txt")));
@@ -201,10 +176,9 @@ public sealed class VerifiedVerificationBoundaryTests
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\file.txt")));
     }
 
-    private static WslHandleFacts ChangedTime(WslHandleFacts facts)
+    internal static WslHandleFacts ChangedTime(WslHandleFacts facts)
     {
-        return new WslHandleFacts(facts.Inode, facts.Attributes, facts.ReparseTag, facts.EndOfFile,
-            facts.NumberOfLinks, facts.LastWriteFileTimeUtc, facts.ChangeFileTimeUtc + 1);
+        return new WslHandleFacts(facts.Inode, facts.Attributes, facts.ReparseTag, new WslRewriteFacts(facts.EndOfFile, facts.NumberOfLinks, facts.LastWriteFileTimeUtc, facts.ChangeFileTimeUtc + 1));
     }
 
     private static FileSystemPath Path(string text)
