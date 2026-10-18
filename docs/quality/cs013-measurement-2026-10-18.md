@@ -2,6 +2,23 @@
 
 Status: measured findings; standalone tool, not a global gate.
 
+## Progress after the initial census
+
+The initial table below is the #324 snapshot. Later focused changes keep the same
+metric definition and record their own input hashes and complete findings.
+
+| Work | Product findings | Test findings | Engineering findings | Total |
+|---|---:|---:|---:|---:|
+| #324 initial measurement | 77 | 103 | 0 | 180 |
+| #326 palette presentation and matching fixtures | 71 | 102 | 0 | 173 |
+
+Issue #326 removes all six palette product findings and the large palette test
+type finding. Every changed/new declaration is within all five ceilings. Its
+[report](../reports/2026-10-18-palette-refactor-daily-report.md) retains proof and
+remaining work; the global gate stays disconnected.
+
+## Initial census
+
 Issue [#324](https://github.com/hideyukiMORI/NeNeCommander/issues/324) implements
 [ADR-0075](../adr/0075-standalone-cs013-measurement.md). The product/test baseline is
 `85a6a9956ae37ae1fb0437542d0eaf6b1e556e74`; the measurement also includes this

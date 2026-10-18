@@ -22,17 +22,14 @@ public static class CommandPaletteKeyHintPresenter
 
     private static string ActionLabel(CommandPaletteKeyAction action)
     {
-        return action == CommandPaletteKeyAction.MovePrevious
-            ? "CommandPaletteHintPrevious"
-            : action == CommandPaletteKeyAction.MoveNext
-                ? "CommandPaletteHintNext"
-                : action == CommandPaletteKeyAction.Execute
-                    ? "CommandPaletteHintExecute"
-                    : action == CommandPaletteKeyAction.Cancel
-                        ? "CommandPaletteHintCancel"
-                        : action == CommandPaletteKeyAction.MoveFocus
-                            ? "CommandPaletteHintFocus"
-                            : throw new InvalidOperationException(
-                                "The command palette key action is not supported.");
+        return action switch
+        {
+            CommandPaletteKeyAction value when value == CommandPaletteKeyAction.MovePrevious => "CommandPaletteHintPrevious",
+            CommandPaletteKeyAction value when value == CommandPaletteKeyAction.MoveNext => "CommandPaletteHintNext",
+            CommandPaletteKeyAction value when value == CommandPaletteKeyAction.Execute => "CommandPaletteHintExecute",
+            CommandPaletteKeyAction value when value == CommandPaletteKeyAction.Cancel => "CommandPaletteHintCancel",
+            CommandPaletteKeyAction value when value == CommandPaletteKeyAction.MoveFocus => "CommandPaletteHintFocus",
+            _ => throw new InvalidOperationException("The command palette key action is not supported."),
+        };
     }
 }
