@@ -24,4 +24,6 @@ waiverなし。先行#318の統合とcleanup完了も既存の日報・引き継
 既存checkoutで`docs/320-provider-visibility`を使用し、追加worktree/outputは作っていない。
 恒久証拠は`D:/NeNeCommander/evidence/visibility-glossary-20261018/`。
 Issue PRと`completion.json`にCommit結果、squash統合、cleanなmainへの同期を記録する。
+PR #321は19:55:57 JSTに`9a6d45fb474bd8f017e9668761e9de0b4e05449e`でsquash統合した。
+mainの同期・clean・task tree一致を確認済み。追加作業物と後片付けの実行待ちはない。
 後続のCS-013棚卸しと分割・gate化実施順の準備は別Issueで行う。
