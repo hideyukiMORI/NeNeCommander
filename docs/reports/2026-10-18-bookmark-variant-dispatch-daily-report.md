@@ -63,15 +63,44 @@ FullyQualifiedName~BookmarkEditorSessionTests|FullyQualifiedName~NullGuardTests.
 formatは`dotnet format whitespace NeNeCommander.slnx --verify-no-changes --no-restore --include`へ変更4 fileを渡した。
 正確なexecutable・argv・cwd・日時・exit・raw logは`D:/NeNeCommander/evidence/issue-248/`のstage別JSONに保持する。
 `run-selected.ps1`、`implementation-inventory.json`、source snapshot/hash/patchを照合する。
-rootの差分・証拠・文書レビュー、文書link/`git diff --check`と通常
-`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`の結果も同じ恒久領域へ記録する。
+rootの差分・証拠・文書レビューは具体的な未解決事項なし。最終4 sourceは保存hashと一致し、RED productionもbaselineと一致した。
+文書の相対linkはbroken 0、`git diff --check`はexit 0。
+通常commitの`pwsh -NoProfile -File ./eng/check.ps1 -Mode Commit`は112規約・24security登録とcommit message検査に成功した。
+`acceptance.json`、`commit.log/json`に記録する。
 文書更新・push・mergeだけを理由に成功済みの製品検証を繰り返さない。
 
 ## 統合と残件
 
-branchは`refactor/248-bookmark-variant-dispatch`。技術受理後のPR squash統合、main同期・clean・taskとのtree一致、
-追加worktree/不要出力の整理は、Issueを閉じるPRと`completion.json`の実際の結果を読む。
-branch・commit・恒久証拠・共有SDKは保持する。拒否された整理がある場合は、確認済みの対象だけを本書末尾と引き継ぎへ記録する。
+branchは`refactor/248-bookmark-variant-dispatch`、受理commitは`0ae9a9954bf86bb40036a3a4f6d730b419eb9c42`。
+[PR #284](https://github.com/hideyukiMORI/NeNeCommander/pull/284)は13:14:50 JSTに
+`8c68c60127f89953a364ecad80a8f3e30d96fa75`へsquash統合され、Issue #248はclosedとなった。
+main同期・cleanと、受理task/mainのtree `cd171df03da63eef6aaf5fe1b97c7138d42a64bf`の一致を確認した。
+追加worktree `D:/NeNeCommander/worktrees/issue-248`は削除済み。branch・commit・恒久証拠・共有SDKを保持する。
+
+未保存/未追跡物、ignored bin/obj 385 file、link、稼働command/module参照を確認した。
+一時出力はcompiler/analyzer cache 21 DLLだけで、唯一の実装証拠は残っていない。
+初回確認ではtaskが起動したidle compilerが出力DLLを保持していたため、
+`dotnet build-server shutdown --vbcscompiler --msbuild`でtaskのcompiler/MSBuild serverを正常終了し、
+PIDとmodule参照の不在を確認した。実行中の製品testを止めたり、processを強制終了したものではない。
+観測はアクセス可能なcommand line/moduleに限定され、全handle調査ではない。
+
+出力削除は自動承認レビューが`blocked by policy`で拒否した。コマンドは開始されず、別手段で再試行していない。
+13:17:18 JSTの読み取り確認で出力の残存とworktreeの不在を確認した。
+`cleanup-preflight-before-server-shutdown.json`、shutdown log/JSON、`cleanup-preflight.json`、
+`cleanup-pending.json`、`completion.json`に実際の状態を保持する。
+[Issue #285](https://github.com/hideyukiMORI/NeNeCommander/issues/285)で既存3文書を更新する。
+文面・link・diff・通常Commit hookだけを確認し、成功済み製品検証は再実行しない。
 
 残る独立案件は#246の自然順sort、#247のUNC同期列挙待機、#94の手動release確認。
 #246の比較仕様や#247の実環境計測を、本件の検証で決定・完了したとは扱わない。
+
+## ! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/outputs/issue-248`だけ。
+恒久証拠`D:/NeNeCommander/evidence/issue-248/`、branch・commit・共有SDKは保持する。
+自動承認レビューが再帰削除を`blocked by policy`で拒否したため、hideが次を実行する。
+scriptは構文解析のみ成功し、サナは実行していない。完了結果と対象不在の確認までは保留を維持する。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-248/cleanup-completed-output.ps1
+```
