@@ -139,11 +139,14 @@ public sealed class WindowsUncDirectoryReaderTests
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-015")]
-    public async Task ReadAsyncWhenNamesCannotBeRepresentedCountsThemWithinTheBound()
+    [DataRow("CON")]
+    [DataRow("COM¹.txt")]
+    [DataRow("lpt².tar.gz")]
+    public async Task ReadAsyncWhenNamesCannotBeRepresentedCountsThemWithinTheBound(string name)
     {
         ScriptedEnumerator enumerator = new([
             Entry("trailing.", DirectoryEntryKind.File),
-            Entry("CON", DirectoryEntryKind.File),
+            Entry(name, DirectoryEntryKind.File),
             Entry("valid", DirectoryEntryKind.File),
             Entry("beyond", DirectoryEntryKind.File),
         ]);

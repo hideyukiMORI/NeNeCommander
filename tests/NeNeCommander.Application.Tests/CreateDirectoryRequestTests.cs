@@ -32,6 +32,8 @@ public sealed class CreateDirectoryRequestTests
     [DataRow("..")]
     [DataRow("a\\b")]
     [DataRow("CON")]
+    [DataRow("COM¹")]
+    [DataRow("lpt².txt")]
     public void CreateWhenNameIsRejectedByDomainInvalidNameRejection(string name)
     {
         FileOperationRequestCreation outcome = CreateDirectoryRequest.Create(ParsePath("C:\\Users"), name);

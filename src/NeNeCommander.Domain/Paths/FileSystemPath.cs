@@ -243,7 +243,7 @@ public abstract record FileSystemPath
             (candidate.Length == 4 &&
                 (candidate.StartsWith("COM", StringComparison.Ordinal) ||
                     candidate.StartsWith("LPT", StringComparison.Ordinal)) &&
-                candidate[3] is >= '1' and <= '9');
+                candidate[3] is (>= '1' and <= '9') or '¹' or '²' or '³');
     }
 
     private static bool ContainsControlCharacter(string input)
