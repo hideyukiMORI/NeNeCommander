@@ -113,3 +113,32 @@ Issue PRと`completion.json`がsquash統合、main同期、恒久収載、終了
 今回の推奨は、観測値を仕様上のtimeoutへ直結せず、現行動作を維持すること。
 未放棄readが実際の通常window closeへ与える影響を次の限定確認候補とし、
 自動abandon、native取消、read admission変更は別の設計判断として扱う。
+
+## 統合完了と後片付け
+
+PR [#292](https://github.com/hideyukiMORI/NeNeCommander/pull/292)を2026-10-18 14:24:07 JSTにsquash mergeした。
+mainは`8eb48350615f28bf65612b9cd960b597ac9ccd0a`へ同期し、cleanかつtask treeと一致した。
+#291はclosed、親#247はopen。通常Commit hookは112 normative rules / 24 adversarial登録とcommit message確認を通過した。
+文書確認は125 relative linksでbroken 0、保存版102 hash一致、実対象の診断混入0。
+新しいgate/CIや製品suiteの実行はない。
+
+worktreeはtracked/untracked clean、ignored 109件はbin/objのみ、outputは100ファイル。
+対象内のlinkと観測できるprocess/module参照は0。唯一の観測結果を含むsource/binary/log/resultは恒久収載し、
+生成obj/analyzer cacheは再生成可能、private接続入力4件は公開・恒久診断へ残さず破棄する分類とした。
+追加worktreeの削除は成功した。続く一時outputの削除は、自動承認レビューが`blocked by policy`で拒否し、
+コマンドは開始されていない。別手段で再試行していない。
+
+Issue #293はこの実状態を日報/引き継ぎ/PROJECT_STATEへ記録する文書だけのclosure。
+既存checkoutを使い、追加worktree/outputを作らず、NAS測定や製品検証を再実行しない。
+恒久証拠の`cleanup-preflight.json`、`cleanup-output-inventory.json`、`cleanup-pending.json`が根拠。
+準備したscriptは構文確認だけで、サナは実行していない。実行またはabsence確認までは未削除として扱う。
+branch/commit、`D:/NeNeCommander/evidence/issue-247/fixture-preparation-20261018/`、共有SDKは保持する。
+
+! hide実行待ち：後片付け
+
+対象: `D:/NeNeCommander/outputs/issue-291` のみ。
+自動承認レビューによる拒否理由: `blocked by policy`。worktreeは削除済み、恒久証拠とSDKは削除しない。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/fixture-preparation-20261018/cleanup-completed-output.ps1
+```
