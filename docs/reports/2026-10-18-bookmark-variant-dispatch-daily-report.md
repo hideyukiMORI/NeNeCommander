@@ -88,19 +88,27 @@ PIDとmodule参照の不在を確認した。実行中の製品testを止めた�
 13:17:18 JSTの読み取り確認で出力の残存とworktreeの不在を確認した。
 `cleanup-preflight-before-server-shutdown.json`、shutdown log/JSON、`cleanup-preflight.json`、
 `cleanup-pending.json`、`completion.json`に実際の状態を保持する。
-[Issue #285](https://github.com/hideyukiMORI/NeNeCommander/issues/285)で既存3文書を更新する。
-文面・link・diff・通常Commit hookだけを確認し、成功済み製品検証は再実行しない。
+[Issue #285](https://github.com/hideyukiMORI/NeNeCommander/issues/285) /
+[PR #286](https://github.com/hideyukiMORI/NeNeCommander/pull/286)で既存3文書に保留を記録し、
+`47e1fa62f89d0d861aac49132b0d3635c3d55f13`へ統合した。
+文面・link・diff・通常Commit hookだけを確認し、成功済み製品検証は再実行しなかった。
 
 残る独立案件は#246の自然順sort、#247のUNC同期列挙待機、#94の手動release確認。
 #246の比較仕様や#247の実環境計測を、本件の検証で決定・完了したとは扱わない。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-248`だけ。
-恒久証拠`D:/NeNeCommander/evidence/issue-248/`、branch・commit・共有SDKは保持する。
-自動承認レビューが再帰削除を`blocked by policy`で拒否したため、hideが次を実行する。
-scriptは構文解析のみ成功し、サナは実行していない。完了結果と対象不在の確認までは保留を維持する。
+hideは13:23:46 JSTに次の準備済みcommandを実行し、完了結果を報告した。これは実行履歴であり、再実行の依頼ではない。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-248/cleanup-completed-output.ps1
 ```
+
+13:24:34 JSTの読み取り確認で、`D:/NeNeCommander/outputs/issue-248`と
+`D:/NeNeCommander/worktrees/issue-248`の不在を確認した。#245のoutput/worktreeも不在だった。
+両案件の恒久証拠、branch・commit・共有SDKは保持されている。
+実行結果は`cleanup-executed-by-hide.json`、確認は`cleanup-confirmation.json`、最終状態は`completion.json`に記録する。
+[Issue #287](https://github.com/hideyukiMORI/NeNeCommander/issues/287)で既存3文書を完了へ更新する。
+文面・相対link・`git diff --check`と通常Commit hookを確認し、製品検証・CIは再実行しない。
+今回の統合記録は`cleanup-closure/completion.json`へ保持する。追加worktreeや一時出力は作らない。
+本件の後片付け待ちはない。

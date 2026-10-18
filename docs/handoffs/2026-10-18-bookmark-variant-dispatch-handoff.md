@@ -40,23 +40,30 @@ full/deep CI、全bookmarks/settings回帰、coverage/mutation、live UI/provide
    `8c68c60127f89953a364ecad80a8f3e30d96fa75`へsquash統合済み。main同期・cleanと受理taskとのtree一致を確認した。
    Issue #248はclosed。古いP4「記録のみ」から未着手に戻さず、統合と整理を分けて読む。
 2. branchは`refactor/248-bookmark-variant-dispatch`。作業copyは`D:/NeNeCommander/worktrees/issue-248`、
-   一時outputは`D:/NeNeCommander/outputs/issue-248`。worktreeは削除済みで、outputだけ自動承認拒否により残る。
+   一時outputは`D:/NeNeCommander/outputs/issue-248`。worktreeは削除済み。outputもhideの13:23:46 JSTの実行で削除され、13:24:34 JSTに両pathの不在を確認した。
    削除確認済みの対象を再削除しない。branch・commit・恒久証拠・共有SDKは保持する。
 3. #244/#245は統合・整理済み。残件は#246の自然順sort、#247のUNC同期列挙待機、#94の手動release確認。
    本件から新しいsort仕様や実環境計測の成功を推測しない。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-248`だけ。中身はcompiler/analyzer cache 21 DLLで、唯一の証拠は残っていない。
+対象だった`D:/NeNeCommander/outputs/issue-248`にはcompiler/analyzer cache 21 DLLだけがあり、唯一の証拠は残っていなかった。
 385 ignored bin/obj、未保存物、取込、link、稼働参照を確認した。
 taskのidle compiler/MSBuild serverは`dotnet build-server shutdown --vbcscompiler --msbuild`で正常終了し、
 観測されたmodule参照も解放された。初回/終了後preflightとshutdown記録を恒久証拠に残す。
 出力の再帰削除は自動承認レビューが`blocked by policy`で拒否した。commandは開始されず、サナによる再試行はない。
 13:17:18 JSTの読み取り確認では出力が残り、worktreeは不在だった。
 恒久証拠`D:/NeNeCommander/evidence/issue-248/`、branch・commit・共有SDKを保持する。
-Issue #285がこの保留記録を扱う。準備済みscriptは構文確認のみで、サナは実行していない。
-hideの実行と完了確認まではこの記録を引き継ぐ。
+Issue #285 / PR #286でこの保留を記録した後、hideが13:23:46 JSTに次を実行して完了した。
+これは実行履歴であり、再実行しない。
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-248/cleanup-completed-output.ps1
 ```
+
+13:24:34 JSTの読み取り確認で、Issue #248のoutput/worktreeと#245の同対象の不在を確認した。
+両案件の恒久証拠・branch・commit・共有SDKは保持する。
+実行結果`cleanup-executed-by-hide.json`、確認`cleanup-confirmation.json`、最終状態`completion.json`は
+`D:/NeNeCommander/evidence/issue-248/`にある。
+Issue #287が既存3文書を完了へ更新し、`cleanup-closure/completion.json`にその統合を記録する。
+文書・通常Commit確認だけを行い、製品検証・CIは実行しない。追加worktree/一時出力はなく、本件の後片付け待ちはない。
