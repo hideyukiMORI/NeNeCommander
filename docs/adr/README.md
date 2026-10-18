@@ -12,6 +12,10 @@ States are `proposed`, `accepted`, `superseded`, or `rejected`. An accepted ADR 
 
 An ADR is required for project-graph changes, a new dependency, a canonical-mechanism change, a provider-policy change, a protected API exception, a coverage exclusion, or a gate change. An ADR cannot authorize suppressions, silent destructive behavior, or bypassing the verification required for the selected change impact (ADR-0061).
 
+## Proposed decisions
+
+- [ADR-0073: Close concrete record cases with inaccessible abstract members](0073-close-record-cases-with-inaccessible-abstract-members.md)
+
 ## Accepted decisions
 
 - [ADR-0072: Keep mapped network drives outside local mutation admission](0072-mapped-network-drive-boundary.md)
