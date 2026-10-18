@@ -42,22 +42,23 @@ fixture Release buildは警告・エラー0、admission 6件成功。
 #297と#247はclosed。main `0e99ec5c7f84737b706fdc9d006e389b41b176ea`の同期・clean・task tree一致を確認した。
 worktree `D:/NeNeCommander/worktrees/issue-297`は状態・取込・ignored 109件・link・稼働参照を確認して削除済み。
 出力436件は保存先とSHA一致359件、再生成可能73件、破棄するprivate設定4件に分類した。
-`D:/NeNeCommander/outputs/issue-297`の削除だけが自動承認の`blocked by policy`で開始前に拒否され、残存している。
-別手段の再試行は行っていない。branch、commit、恒久証拠、共通SDKは保持する。
-[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299)の文書追記は既存checkoutを使い、
-追加worktree/output、build/test/CI、NAS測定なし。文面/link/diffと通常Commit hookだけを確認する。
-`completion.json`、`cleanup-pending.json`と`report-closure/completion.json`から最終状態を確認する。
+`D:/NeNeCommander/outputs/issue-297`の削除は自動承認の`blocked by policy`で開始前に拒否された。
+別手段の再試行は行わず、[Issue #299](https://github.com/hideyukiMORI/NeNeCommander/issues/299) /
+[PR #300](https://github.com/hideyukiMORI/NeNeCommander/pull/300)で当時の保留状態を記録した。
+PR #300は15:42:07 JSTに`f2d1158faf62a2e4c0238342b2ad15dabf98a5de`へsquash merge済み。
+`cleanup-pending.json`と`report-closure/completion.json`は当時の履歴であり、現在の実行待ちではない。
 現行契約を維持し、独自timeout/自動abandonは採用しない。
 親#247も調査・実測・採否判断が揃ったものとして同じPRで完了する。
 native内訳、広い環境分布、全製品compositionやreleaseは未計測の限界であり、今回へ追加しない。
 将来のtimeout/native cancellation/並列度/新ownerの具体的要求は別Issue/ADRと証拠を必要とする。
 
-## ! hide実行待ち：後片付け
+## 後片付け完了
 
-対象は`D:/NeNeCommander/outputs/issue-297`だけ。下記scriptは構文確認済み、サナは実行していない。
-hideの実行後は`cleanup-executed-by-hide.json`と対象の不在を読み取り専用で確認し、この保留記録を完了へ更新する。
-測定やbuild/testは繰り返さない。
+hideが15:44:58 JSTに用意済みscriptを実行し、15:45:47 JSTの読み取り専用確認で
+`D:/NeNeCommander/outputs/issue-297`と`D:/NeNeCommander/worktrees/issue-297`の不在を確認した。
+branch、commit、恒久証拠、共通SDKは保持されている。削除再試行や残る実行依頼はない。
+現在の状態は`cleanup-executed-by-hide.json`、`cleanup-confirmation.json`、`completion.json`で確認する。
 
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-247/window-close-20261018/cleanup-completed-output.ps1
-```
+[Issue #301](https://github.com/hideyukiMORI/NeNeCommander/issues/301)の完了記録は既存checkoutの文書3件のみ。
+追加worktree/output、build/test/CI、NAS測定はなく、文面/link/diffと通常Commit hookだけを確認する。
+文書更新のPRと`cleanup-closure/completion.json`に最終統合・main同期を記録する。
