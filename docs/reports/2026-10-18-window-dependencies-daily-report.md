@@ -41,5 +41,9 @@ canonical/deep CI、全件回帰、coverage/mutation、live UI/provider、releas
 
 Issue PRと恒久証拠の`completion.json`に最終Commitチェック、squash merge、
 main同期とclean/tree一致、成果物の保存、worktree/output整理の実行結果を記録する。
-統合前のこの記述自体は、統合や削除の完了を先取りしない。
+PR #319は19:52:27 JSTに`839936e1a1e7e471b2c80df28087f1d223f4bf91`でsquash統合した。
+mainの同期・clean・task tree一致を確認し、未保存/未追跡データ、無視されたbuild出力、
+リンクと稼働参照を点検した。恒久証拠を残して`Complete-Cleanup.ps1`がexit 0で終了し、
+`D:/NeNeCommander/worktrees/issue-318`と`D:/NeNeCommander/outputs/issue-318`は削除済み。
+worktree登録解除も確認した。ブランチ・commit・共有SDKは保持し、後片付けの実行待ちはない。
 後続は用語集のprovider visibility記述修正、CS-013棚卸しと分割・gate化の準備をこの順で行う。
