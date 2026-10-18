@@ -16,6 +16,10 @@ create a second ordering or let the view decide.
 
 ## Decision
 
+ADR-0074 replaces the name comparison below with natural ASCII numeric ordering
+after hide's 2026-10-18 decision. The single projection, canonical listing,
+directory precedence, direction and identity rules remain unchanged.
+
 - `PaneSortOrder` is pane state. It holds one closed `SortKey` (`Name`, `Extension`) and one
   `SortDirection` (`Ascending`, `Descending`), defaults to name ascending, and is carried
   unchanged through reads, refresh, and history navigation of the same pane. It is not persisted

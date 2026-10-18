@@ -12,16 +12,16 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class EntryOrderingTests
 {
-    /// <summary>Proves the default order is the canonical listing order.</summary>
+    /// <summary>Proves the visible natural order leaves the canonical lexical snapshot unchanged.</summary>
     [TestMethod]
-    public void ApplyWhenOrderIsDefaultMatchesCanonicalListingOrder()
+    public void ApplyWhenOrderIsDefaultProjectsNaturalNamesWithoutChangingCanonicalListing()
     {
         DirectoryEntry[] entries =
         [
-            FileNamed("b.txt"),
-            DirectoryNamed("Zeta"),
-            FileNamed("A.md"),
-            DirectoryNamed("alpha"),
+            FileNamed("file10.txt"),
+            DirectoryNamed("dir10"),
+            FileNamed("file2.txt"),
+            DirectoryNamed("dir2"),
             FileNamed("c"),
         ];
         DirectoryListing listing = Assert.IsInstanceOfType<DirectoryListingAccepted>(DirectoryListing.Create(
@@ -32,19 +32,19 @@ public sealed class EntryOrderingTests
 
         IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(entries, PaneSortOrder.Default);
 
-        CollectionAssert.AreEqual(listing.Entries.ToArray(), ordered.ToArray());
-        AssertNames(["alpha", "Zeta", "A.md", "b.txt", "c"], ordered);
+        AssertNames(["dir10", "dir2", "c", "file10.txt", "file2.txt"], listing.Entries);
+        AssertNames(["dir2", "dir10", "c", "file2.txt", "file10.txt"], ordered);
     }
 
     /// <summary>Proves descending names reverse each group while directories stay first.</summary>
     [TestMethod]
     public void ApplyWhenNameDescendingReversesEachGroupAndKeepsDirectoriesFirst()
     {
-        DirectoryEntry[] entries = [FileNamed("a.txt"), DirectoryNamed("b"), FileNamed("C.txt"), DirectoryNamed("a")];
+        DirectoryEntry[] entries = [FileNamed("file2.txt"), DirectoryNamed("dir10"), FileNamed("file10.txt"), DirectoryNamed("dir2")];
 
         IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(entries, NameDescending());
 
-        AssertNames(["b", "a", "C.txt", "a.txt"], ordered);
+        AssertNames(["dir10", "dir2", "file10.txt", "file2.txt"], ordered);
     }
 
     /// <summary>Proves names that differ only by case are ordered ordinally after the case-blind comparison.</summary>
@@ -85,13 +85,13 @@ public sealed class EntryOrderingTests
     [TestMethod]
     public void ApplyWhenExtensionsTieOrdersByAscendingNameInBothDirections()
     {
-        DirectoryEntry[] entries = [FileNamed("b.TXT"), FileNamed("a.md"), FileNamed("C.txt"), FileNamed("a.txt")];
+        DirectoryEntry[] entries = [FileNamed("file10.TXT"), FileNamed("a.part2"), FileNamed("file2.txt"), FileNamed("z.part10")];
 
         IReadOnlyList<DirectoryEntry> ascending = EntryOrdering.Apply(entries, ExtensionAscending());
         IReadOnlyList<DirectoryEntry> descending = EntryOrdering.Apply(entries, ExtensionDescending());
 
-        AssertNames(["a.md", "a.txt", "b.TXT", "C.txt"], ascending);
-        AssertNames(["a.txt", "b.TXT", "C.txt", "a.md"], descending);
+        AssertNames(["z.part10", "a.part2", "file2.txt", "file10.TXT"], ascending);
+        AssertNames(["file2.txt", "file10.TXT", "a.part2", "z.part10"], descending);
     }
 
     /// <summary>Proves descending extensions reverse only the key and keep directories first.</summary>
@@ -158,26 +158,26 @@ public sealed class EntryOrderingTests
     [TestMethod]
     public void ApplyWhenSizesTieOrdersByAscendingNameInBothDirections()
     {
-        DirectoryEntry[] entries = [Sized("b", 5), Unsized("D"), Sized("A", 5), Unsized("c")];
+        DirectoryEntry[] entries = [Sized("file10", 5), Unsized("unknown10"), Sized("file2", 5), Unsized("unknown2")];
 
         IReadOnlyList<DirectoryEntry> ascending = EntryOrdering.Apply(entries, SizeAscending());
         IReadOnlyList<DirectoryEntry> descending = EntryOrdering.Apply(entries, SizeDescending());
 
-        AssertNames(["A", "b", "c", "D"], ascending);
-        AssertNames(["c", "D", "A", "b"], descending);
+        AssertNames(["file2", "file10", "unknown2", "unknown10"], ascending);
+        AssertNames(["unknown2", "unknown10", "file2", "file10"], descending);
     }
 
     /// <summary>Proves equal times, including two unknown times, fall back to the ascending name order.</summary>
     [TestMethod]
     public void ApplyWhenTimesTieOrdersByAscendingNameInBothDirections()
     {
-        DirectoryEntry[] entries = [Dated("b", 1), Undated("D"), Dated("A", 1), Undated("c")];
+        DirectoryEntry[] entries = [Dated("file10", 1), Undated("unknown10"), Dated("file2", 1), Undated("unknown2")];
 
         IReadOnlyList<DirectoryEntry> ascending = EntryOrdering.Apply(entries, ModifiedAscending());
         IReadOnlyList<DirectoryEntry> descending = EntryOrdering.Apply(entries, ModifiedDescending());
 
-        AssertNames(["A", "b", "c", "D"], ascending);
-        AssertNames(["c", "D", "A", "b"], descending);
+        AssertNames(["file2", "file10", "unknown2", "unknown10"], ascending);
+        AssertNames(["unknown2", "unknown10", "file2", "file10"], descending);
     }
 
     /// <summary>Proves the size key compares byte counts numerically up to the largest count.</summary>

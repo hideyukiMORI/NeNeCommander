@@ -36,7 +36,7 @@ public sealed class PaneListingPresenterTests
     public async Task PresentWhenLocationIsListedShowsRowsFocusAndAddress()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["b.txt", "a.txt"], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing listing = CreateListing("C:\\projects", ["file10.txt", "file2.txt"], DirectoryListingCompleteness.Complete, 0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
         PaneSession session = CreateSession(port);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
@@ -46,10 +46,11 @@ public sealed class PaneListingPresenterTests
         PanePresentation afterMove = PaneListingPresenter.Present(moved, PaneFrame.Active, TestMetadataFormats.Utc);
 
         Assert.HasCount(2, initial.Rows);
-        Assert.AreSame(listing.Entries[0], initial.Rows[0].Entry);
-        Assert.AreSame(listing.Entries[1], initial.Rows[1].Entry);
+        Assert.AreEqual("file10.txt", listing.Entries[0].Name);
+        Assert.AreSame(listing.Entries[1], initial.Rows[0].Entry);
+        Assert.AreSame(listing.Entries[0], initial.Rows[1].Entry);
         Assert.AreSame(initial.Rows[0], initial.FocusRow);
-        Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
+        Assert.AreSame(listing.Entries[0], afterMove.FocusRow?.Entry);
         Assert.AreSame(PaneRowMark.FocusInActivePane, initial.Rows[0].Mark);
         Assert.AreSame(PaneRowMark.Unmarked, initial.Rows[1].Mark);
         Assert.AreSame(PaneRowKind.File, initial.Rows[0].Kind);
@@ -312,7 +313,7 @@ public sealed class PaneListingPresenterTests
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
         DirectoryListing listing = CreateListing(
             "C:\\projects",
-            ["a.zip", "b.txt", "c.md"],
+            ["file2.zip", "file10.txt", "file1.md"],
             DirectoryListingCompleteness.Complete,
             0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
@@ -320,22 +321,26 @@ public sealed class PaneListingPresenterTests
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
         PaneSnapshot sorted = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
-        PaneSnapshot moved = await session.HandleAsync(UserIntent.MovePrevious, CancellationToken.None);
+        PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
 
         PanePresentation reordered = PaneListingPresenter.Present(sorted, PaneFrame.Active, TestMetadataFormats.Utc, initial);
         PaneRow[] reorderedRows = [.. reordered.Rows];
         PanePresentation afterMove = PaneListingPresenter.Present(moved, PaneFrame.Active, TestMetadataFormats.Utc, reordered);
 
         Assert.AreNotSame(initial.Rows, reordered.Rows);
-        Assert.AreSame(listing.Entries[2], reorderedRows[0].Entry);
+        Assert.AreSame(listing.Entries[0], initial.Rows[0].Entry);
+        Assert.AreSame(listing.Entries[2], initial.Rows[1].Entry);
+        Assert.AreSame(listing.Entries[1], initial.Rows[2].Entry);
+        Assert.AreSame(listing.Entries[0], reorderedRows[0].Entry);
         Assert.AreSame(listing.Entries[1], reorderedRows[1].Entry);
-        Assert.AreSame(listing.Entries[0], reorderedRows[2].Entry);
-        Assert.AreSame(reorderedRows[2], reordered.FocusRow);
-        Assert.AreSame(PaneRowMark.FocusInActivePane, reorderedRows[2].Mark);
+        Assert.AreSame(listing.Entries[2], reorderedRows[2].Entry);
+        Assert.AreSame(reorderedRows[0], reordered.FocusRow);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, reorderedRows[0].Mark);
         Assert.AreSame(PaneSortStatus.ExtensionAscending, reordered.SortStatus);
         Assert.AreSame(PaneSortStatus.NameAscending, initial.SortStatus);
         Assert.AreSame(reordered.Rows, afterMove.Rows);
-        Assert.AreSame(reorderedRows[0], afterMove.Rows[0]);
+        Assert.AreNotSame(reorderedRows[0], afterMove.Rows[0]);
+        Assert.AreSame(reorderedRows[2], afterMove.Rows[2]);
         Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
     }
 

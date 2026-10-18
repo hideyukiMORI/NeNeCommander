@@ -95,11 +95,11 @@ public sealed class PaneSortOrderTests
     [TestMethod]
     public void CreateWhenEntriesAreUnorderedProjectsDefaultOrder()
     {
-        PaneState state = CreateState([FileNamed("b.txt"), FileNamed("c.md"), FileNamed("a.zip")]);
+        PaneState state = CreateState([FileNamed("file10.txt"), FileNamed("file2.md"), FileNamed("file1.zip")]);
 
         Assert.AreEqual(PaneSortOrder.Default, state.SortOrder);
-        AssertVisible(["a.zip", "b.txt", "c.md"], state);
-        Assert.AreEqual("a.zip", NameOf(state.FocusItem));
+        AssertVisible(["file1.zip", "file2.md", "file10.txt"], state);
+        Assert.AreEqual("file1.zip", NameOf(state.FocusItem));
     }
 
     /// <summary>Proves sorting by extension reorders the visible set and keeps focus and selection.</summary>
@@ -127,15 +127,17 @@ public sealed class PaneSortOrderTests
     [TestMethod]
     public void ApplyWhenSortingByNameAgainReversesDirection()
     {
-        PaneState state = CreateState([FileNamed("a"), FileNamed("b"), FileNamed("c")]);
+        PaneState state = CreateState([FileNamed("file10"), FileNamed("file2"), FileNamed("file1")]);
+        state = PaneReducer.Apply(state, UserIntent.ToggleSelection);
 
         PaneState descending = PaneReducer.Apply(state, UserIntent.SortByName);
         PaneState ascending = PaneReducer.Apply(descending, UserIntent.SortByName);
 
-        AssertVisible(["c", "b", "a"], descending);
+        AssertVisible(["file10", "file2", "file1"], descending);
         Assert.AreSame(SortDirection.Descending, descending.SortOrder.Direction);
-        Assert.AreEqual("a", NameOf(descending.FocusItem));
-        AssertVisible(["a", "b", "c"], ascending);
+        Assert.AreEqual("file1", NameOf(descending.FocusItem));
+        Assert.AreEqual("file1", NameOf(descending.Selection[0]));
+        AssertVisible(["file1", "file2", "file10"], ascending);
         Assert.AreEqual(PaneSortOrder.Default, ascending.SortOrder);
     }
 
@@ -169,7 +171,7 @@ public sealed class PaneSortOrderTests
     public void ApplyWhenSortedMovesOverProjectedOrder()
     {
         PaneState state = CreateState(
-            [FileNamed("a.zip"), FileNamed("b.txt"), FileNamed("c.md"), FileNamed("d")]);
+            [FileNamed("file10.txt"), FileNamed("file2.txt"), FileNamed("file1.txt"), FileNamed("file20.txt")]);
         PaneState sorted = PaneReducer.Apply(state, UserIntent.SortByExtension);
 
         PaneState first = PaneReducer.Apply(sorted, UserIntent.FocusFirst);
@@ -177,10 +179,10 @@ public sealed class PaneSortOrderTests
         PaneState paged = PaneReducer.Apply(first, UserIntent.MoveHalfPageDown);
         PaneState last = PaneReducer.Apply(next, UserIntent.FocusLast);
 
-        Assert.AreEqual("d", NameOf(first.FocusItem));
-        Assert.AreEqual("c.md", NameOf(next.FocusItem));
-        Assert.AreEqual("b.txt", NameOf(paged.FocusItem));
-        Assert.AreEqual("a.zip", NameOf(last.FocusItem));
+        Assert.AreEqual("file1.txt", NameOf(first.FocusItem));
+        Assert.AreEqual("file2.txt", NameOf(next.FocusItem));
+        Assert.AreEqual("file10.txt", NameOf(paged.FocusItem));
+        Assert.AreEqual("file20.txt", NameOf(last.FocusItem));
     }
 
     /// <summary>Proves a focus item that becomes hidden moves to the next visible entry in projected order.</summary>
@@ -188,7 +190,7 @@ public sealed class PaneSortOrderTests
     public void ApplyHiddenItemVisibilityWhenSortedRecoversFocusInProjectedOrder()
     {
         PaneState shown = CreateState(
-            [FileNamed("a.txt"), HiddenFileNamed("b.md"), FileNamed("c.zip"), FileNamed("d.aa")],
+            [FileNamed("file1.txt"), HiddenFileNamed("file2.txt"), FileNamed("file10.txt"), FileNamed("file20.txt")],
             HiddenItemVisibility.Shown);
         PaneState sorted = PaneReducer.Apply(shown, UserIntent.SortByExtension);
         PaneState onHidden = PaneReducer.Apply(
@@ -197,9 +199,9 @@ public sealed class PaneSortOrderTests
 
         PaneState omitted = PaneReducer.ApplyHiddenItemVisibility(onHidden, HiddenItemVisibility.Hidden);
 
-        AssertVisible(["d.aa", "b.md", "a.txt", "c.zip"], sorted);
-        Assert.AreEqual("b.md", NameOf(onHidden.FocusItem));
-        Assert.AreEqual("a.txt", NameOf(omitted.FocusItem));
+        AssertVisible(["file1.txt", "file2.txt", "file10.txt", "file20.txt"], sorted);
+        Assert.AreEqual("file2.txt", NameOf(onHidden.FocusItem));
+        Assert.AreEqual("file10.txt", NameOf(omitted.FocusItem));
         Assert.AreEqual(sorted.SortOrder, omitted.SortOrder);
     }
 
@@ -262,14 +264,14 @@ public sealed class PaneSortOrderTests
     {
         PaneState previous = CreateState([FileNamed("a")]);
         PaneState navigated = PaneReducer.ApplySortOrder(
-            PaneReducer.Navigate(Listing("C:\\next", "b.txt", "a.md"), Capacity(), null, HiddenItemVisibility.Hidden),
+            PaneReducer.Navigate(Listing("C:\\next", "file10.txt", "file2.txt"), Capacity(), null, HiddenItemVisibility.Hidden),
             ExtensionAscending(),
             null);
 
         PaneState committed = PaneReducer.CommitNavigation(previous, navigated, PaneNavigationAction.Append);
 
         Assert.AreEqual(ExtensionAscending(), committed.SortOrder);
-        AssertVisible(["a.md", "b.txt"], committed);
+        AssertVisible(["file2.txt", "file10.txt"], committed);
         Assert.HasCount(2, committed.NavigationHistory.Locations);
     }
 
