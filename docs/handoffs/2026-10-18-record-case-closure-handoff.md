@@ -39,44 +39,30 @@ and therefore the manual CI path. No new package/project, runtime registry or SD
   The marker has no executable statements/branches; three structural reopening mutations
   test the changed invariant. Thresholds/exclusions/suppressions remain unchanged.
 
-## Integration and cleanup
-
-The Issue PR and `D:/NeNeCommander/evidence/issue-306/completion.json` own actual Commit
-checks, squash integration, synchronized clean main and cleanup completion. Do not infer
-those later steps from test success. Permanent evidence includes source/diagnostic/result
-artifacts, RED/GREEN, coverage, structural audit, input hashes, commands, diff and PR metadata.
-
-Additional worktree: `D:/NeNeCommander/worktrees/issue-306`.
-Disposable output: `D:/NeNeCommander/outputs/issue-306`.
-After integration inspect saved/untracked/ignored files, unique evidence, live references and
-links, then remove only those task paths. Keep branch/commit, permanent evidence and the shared SDK.
-No additional product or environmental work is implied by this handoff.
-
-## Integrated; cleanup pending hide
+## Integration and cleanup complete
 
 PR #313 squash merged as `936ab0440bf0f65b5d32fa634befd8ca91326180` at
 2026-10-18 18:59:37 JST. Main synchronization, clean state and accepted-tree equality
-were confirmed at 19:00:04 JST. The 1,971 final compiler/coverage/product-binary artifacts
-and hashes are archived permanently. The task compiler server shut down normally;
-final preflight found no live references, links, unsaved/untracked or unknown ignored files.
-The 4,383 ignored files are archived proof or regenerable bin/obj; 22 temporary files are analyzer cache.
+were confirmed at 19:00:04 JST. Permanent evidence under `D:/NeNeCommander/evidence/issue-306/`
+includes source/diagnostic/result artifacts, RED/GREEN, coverage, structural audit,
+input hashes, commands, diff and PR metadata. The 1,971 final compiler/coverage/product-binary
+files and their hashes are retained.
 
+The task compiler server shut down normally. Final preflight found no live references,
+links, unsaved/untracked or unknown ignored files. The 4,383 ignored files were archived
+proof or regenerable bin/obj; the 22 temporary files were analyzer cache.
 Automatic approval review rejected the cleanup before process creation with `blocked by policy`.
-Neither target was removed. Do not retry through another deletion mechanism. Issue #314 records
-this state using the existing checkout with no additional worktree/output or product verification.
-Keep this pending record until hide executes the prepared command and absence is confirmed read-only.
-`cleanup-blocked.json`, `cleanup-preflight.json` and `completion.json` retain the actual state.
+The agent did not retry through another mechanism; Issue #314 / PR #315 recorded the pending handoff.
 
-! hide実行待ち：後片付け
+hide executed the prepared script at 2026-10-18 19:16:59 JST. Read-only confirmation at
+19:17:32 JST established that `D:/NeNeCommander/worktrees/issue-306` and
+`D:/NeNeCommander/outputs/issue-306` are absent and the task worktree registration is removed.
+Branches/commits, the 1,971 permanent artifacts and shared SDK remain.
+`cleanup-executed-by-hide.json`, `cleanup-confirmation.json` and `completion.json` record
+completion; the prior rejection and preflight records remain historical evidence.
 
-Exact targets: `D:/NeNeCommander/worktrees/issue-306` and `D:/NeNeCommander/outputs/issue-306`.
-Retain `D:/NeNeCommander/evidence/issue-306/`, branches/commits and the shared SDK.
-The script validates these fixed paths, integration, unsaved files, links and live references;
-its syntax is checked, but the agent has not executed it.
-
-```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/issue-306/Complete-Cleanup.ps1
-```
-
-Automatic approval review rejected removal of these two targets with `blocked by policy`;
-execution is handed to hide under the [cleanup procedure](../DEVELOPMENT_WORKFLOW.md#blocked-cleanup-and-daily-reports).
+Issue #316 updates this handoff, the daily report and PROJECT_STATE using the existing
+checkout. Verification is read-only absence/registration/artifact confirmation, text/link/diff
+review and normal Commit checks. No additional worktree/output, build, product test or CI.
+Its documentation PR and `cleanup-complete-closure.json` own final integration and clean-main proof.
+No cleanup execution request remains, and no additional product or environmental work is implied.
