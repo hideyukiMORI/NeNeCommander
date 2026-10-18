@@ -6,6 +6,10 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// <summary>Represents a key event consumed as one typed application intent.</summary>
 public sealed record MappedKeyboardIntent : KeyboardMappingOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal MappedKeyboardIntent(UserIntent intent)
     {
         ArgumentNullException.ThrowIfNull(intent);

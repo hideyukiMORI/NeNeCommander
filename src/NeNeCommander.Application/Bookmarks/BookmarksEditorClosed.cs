@@ -1,4 +1,9 @@
 namespace NeNeCommander.Application.Bookmarks;
 
 /// <summary>Represents the closed bookmark manager.</summary>
-public sealed record BookmarksEditorClosed : BookmarksEditorState;
+public sealed record BookmarksEditorClosed : BookmarksEditorState
+{
+    private protected override void RestrictDerivation()
+    {
+    }
+}

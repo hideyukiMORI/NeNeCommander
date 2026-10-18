@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Identifies one closed reason why a bookmark or category label was rejected.</summary>
 public abstract record BookmarkTextFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for absent or whitespace-only text.</summary>
     public static BookmarkTextFailureKind Empty { get; } = new EmptyFailure();
 
@@ -23,9 +26,34 @@ public abstract record BookmarkTextFailureKind
     {
     }
 
-    private sealed record EmptyFailure : BookmarkTextFailureKind;
-    private sealed record TooLongFailure : BookmarkTextFailureKind;
-    private sealed record SurroundingWhitespaceFailure : BookmarkTextFailureKind;
-    private sealed record ControlCharacterFailure : BookmarkTextFailureKind;
-    private sealed record InvalidUnicodeFailure : BookmarkTextFailureKind;
+    private sealed record EmptyFailure : BookmarkTextFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooLongFailure : BookmarkTextFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SurroundingWhitespaceFailure : BookmarkTextFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ControlCharacterFailure : BookmarkTextFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidUnicodeFailure : BookmarkTextFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

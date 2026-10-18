@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries a palette cancellation qualified by the exact open state that owned its event.</summary>
 public sealed record CommandPaletteCancellation : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandPaletteCancellation(CommandPaletteOpen expectedState)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

@@ -12,6 +12,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record OperationAwaitingName : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationAwaitingName(OperationKind kind, FileSystemPath subject, string initialName)
     {
         ArgumentNullException.ThrowIfNull(kind);

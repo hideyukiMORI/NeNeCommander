@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record PaneActivity
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected PaneActivity()
     {
     }
@@ -13,5 +16,10 @@ public abstract record PaneActivity
     /// <summary>Gets the activity of a pane with no work in flight and no unreported result.</summary>
     public static PaneActivity Idle { get; } = new PaneIdle();
 
-    private sealed record PaneIdle : PaneActivity;
+    private sealed record PaneIdle : PaneActivity
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

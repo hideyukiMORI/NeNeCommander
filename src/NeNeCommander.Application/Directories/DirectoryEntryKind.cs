@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryEntryKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the kind for an entry that can itself be read as a directory.</summary>
     public static DirectoryEntryKind Directory { get; } = new DirectoryKind();
 
@@ -15,6 +18,16 @@ public abstract record DirectoryEntryKind
     {
     }
 
-    private sealed record DirectoryKind : DirectoryEntryKind;
-    private sealed record FileKind : DirectoryEntryKind;
+    private sealed record DirectoryKind : DirectoryEntryKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record FileKind : DirectoryEntryKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

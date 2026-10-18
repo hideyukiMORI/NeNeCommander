@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Owns one frozen transfer continuation while the conflict modal awaits input.</summary>
 public sealed record OperationAwaitingConflict : OperationActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal OperationAwaitingConflict(
         OperationKind kind,
         ConflictSet conflicts,

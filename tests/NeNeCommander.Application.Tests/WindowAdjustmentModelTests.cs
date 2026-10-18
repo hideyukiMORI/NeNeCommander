@@ -10,7 +10,8 @@ namespace NeNeCommander.Application.Tests;
 
 /// <summary>
 /// Proves the window-adjustment outcome, refusal, action, plan, decision, and state models are
-/// closed: no type outside Application can extend them and every published value is distinct.
+/// contain exactly their declared cases and distinct published values. The external concrete-case
+/// compiler proof is owned by eng/verify-record-closure.ps1 (ADR-0073).
 /// </summary>
 [TestClass]
 public sealed class WindowAdjustmentModelTests
@@ -119,8 +120,8 @@ public sealed class WindowAdjustmentModelTests
     }
 
     /// <summary>
-    /// The compiler gives every abstract record a protected copy constructor; only the declared
-    /// constructors decide who may create a case, so the copy constructor is not one of them.
+    /// The protected record copy constructor is inspected separately by the external compiler proof.
+    /// This local test checks the ordinary constructor policy and the in-assembly known cases only.
     /// </summary>
     private static bool IsRecordCopyConstructor(Type root, ConstructorInfo constructor)
     {

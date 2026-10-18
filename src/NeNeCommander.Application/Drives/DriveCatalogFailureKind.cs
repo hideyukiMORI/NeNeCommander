@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Drives;
 /// <summary>Identifies one closed expected failure of drive listing.</summary>
 public abstract record DriveCatalogFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>The operating system could not list the volumes.</summary>
     public static DriveCatalogFailureKind ProviderUnavailable { get; } = new ProviderUnavailableFailure();
 
@@ -13,7 +16,17 @@ public abstract record DriveCatalogFailureKind
     {
     }
 
-    private sealed record ProviderUnavailableFailure : DriveCatalogFailureKind;
+    private sealed record ProviderUnavailableFailure : DriveCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
-    private sealed record AccessDeniedFailure : DriveCatalogFailureKind;
+    private sealed record AccessDeniedFailure : DriveCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

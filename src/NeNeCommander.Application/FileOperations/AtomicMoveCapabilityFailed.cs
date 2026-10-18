@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Reports the normalized failure that prevented a provider capability decision.</summary>
 public sealed record AtomicMoveCapabilityFailed : AtomicMoveCapabilityOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AtomicMoveCapabilityFailed(FileOperationFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

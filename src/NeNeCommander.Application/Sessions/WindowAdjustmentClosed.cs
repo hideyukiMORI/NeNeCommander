@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents a closed mode and its optional one-time file-list focus request.</summary>
 public sealed record WindowAdjustmentClosed : WindowAdjustmentState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WindowAdjustmentClosed(PaneSide? fileListFocusSide)
     {
         FileListFocusSide = fileListFocusSide;

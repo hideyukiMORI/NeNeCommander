@@ -4,7 +4,7 @@ param(
     [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
 
     [Parameter()]
-    [ValidateSet('All', 'QLT-015', 'CS-010')]
+    [ValidateSet('All', 'QLT-015', 'CS-010', 'CS-002')]
     [string] $Rule = 'All'
 )
 
@@ -271,6 +271,21 @@ function Assert-VerificationCadenceProof {
 
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    if ($Rule -eq 'All' -or $Rule -eq 'CS-002') {
+        & pwsh -NoProfile -File (Join-Path $root 'eng/verify-record-closure.ps1') -RepositoryRoot $root -Mode SelfTest
+        if ($LASTEXITCODE -ne 0) { throw '[CS-002] Record-closure checker self-proof failed.' }
+        Assert-ConformanceFailure -Name 'record-closure-disconnected' -ExpectedRule 'CS-002' -Mutate {
+            param($caseRoot)
+            $path = Join-Path $caseRoot 'eng/check.ps1'
+            $content = Get-Content -LiteralPath $path -Raw
+            $content = $content.Replace('verify-record-closure.ps1', 'disconnected-record-closure.ps1')
+            Set-Content -LiteralPath $path -Value $content -NoNewline
+        }
+        if ($Rule -eq 'CS-002') {
+            Write-Host 'Gate proofs passed: CS-002 external record-case closure fixtures only.'
+            return
+        }
+    }
     if ($Rule -eq 'QLT-015') {
         Assert-VerificationCadenceProof
         Write-Host 'Gate proofs passed: seven QLT-015 verification-cadence fixtures only.'

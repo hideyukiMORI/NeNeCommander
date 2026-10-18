@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents a read that failed with a normalized reason and left the content unchanged.</summary>
 public sealed record PaneReadFailed : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneReadFailed(FileSystemPath target, FileOperationFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(target);

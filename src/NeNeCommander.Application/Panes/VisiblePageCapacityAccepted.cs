@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record VisiblePageCapacityAccepted : VisiblePageCapacityCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal VisiblePageCapacityAccepted(VisiblePageCapacity capacity)
     {
         Capacity = capacity;

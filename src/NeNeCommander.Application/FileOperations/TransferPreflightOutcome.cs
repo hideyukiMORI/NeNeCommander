@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Represents the closed result of complete-batch transfer preflight.</summary>
 public abstract record TransferPreflightOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected TransferPreflightOutcome()
     {
     }

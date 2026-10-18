@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Settings;
 /// <summary>Identifies one closed expected reason that a settings write was rejected.</summary>
 public abstract record SettingsWriteFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets a rejection caused by denied access.</summary>
     public static SettingsWriteFailureKind Unauthorized { get; } = new UnauthorizedFailure();
 
@@ -32,11 +35,46 @@ public abstract record SettingsWriteFailureKind
     {
     }
 
-    private sealed record UnauthorizedFailure : SettingsWriteFailureKind;
-    private sealed record IoFailureKind : SettingsWriteFailureKind;
-    private sealed record ExistingDocumentRejectedFailure : SettingsWriteFailureKind;
-    private sealed record TemporaryArtifactCollisionFailure : SettingsWriteFailureKind;
-    private sealed record DestinationChangedFailure : SettingsWriteFailureKind;
-    private sealed record UnsafeLocationFailure : SettingsWriteFailureKind;
-    private sealed record TooLargeFailure : SettingsWriteFailureKind;
+    private sealed record UnauthorizedFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record IoFailureKind : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ExistingDocumentRejectedFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TemporaryArtifactCollisionFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DestinationChangedFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnsafeLocationFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooLargeFailure : SettingsWriteFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

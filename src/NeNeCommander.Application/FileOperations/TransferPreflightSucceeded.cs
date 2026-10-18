@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Contains the complete exact transfer plan.</summary>
 public sealed record TransferPreflightSucceeded : TransferPreflightOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal TransferPreflightSucceeded(ReadOnlyCollection<TransferPlanEntry> plan)
     {
         Plan = plan;

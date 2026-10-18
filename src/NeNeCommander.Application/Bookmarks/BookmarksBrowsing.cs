@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents normal manager browsing with an optional correctable rejection.</summary>
 public sealed record BookmarksBrowsing : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarksBrowsing(BookmarkBrowseContext context, BookmarkEditorProblem? problem)
     {
         ArgumentNullException.ThrowIfNull(context);

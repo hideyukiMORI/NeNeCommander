@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Panes;
 /// <summary>Represents a read in flight toward one target location; intents are frozen meanwhile.</summary>
 public sealed record PaneLoading : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneLoading(FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(target);

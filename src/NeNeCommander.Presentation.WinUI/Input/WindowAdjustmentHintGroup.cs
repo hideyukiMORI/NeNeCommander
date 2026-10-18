@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// </summary>
 public abstract record WindowAdjustmentHintGroup
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the hint that names moving the window.</summary>
     public static WindowAdjustmentHintGroup Move { get; } = new MoveGroup();
 
@@ -34,31 +37,55 @@ public abstract record WindowAdjustmentHintGroup
 
     private sealed record MoveGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintMove";
     }
 
     private sealed record EnlargeGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintEnlarge";
     }
 
     private sealed record ShrinkGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintShrink";
     }
 
     private sealed record MaximizeGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintMaximize";
     }
 
     private sealed record RestoreGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintRestore";
     }
 
     private sealed record LeaveGroup : WindowAdjustmentHintGroup
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "WindowAdjustmentHintLeave";
     }
 }

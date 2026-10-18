@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Names the action the mode last decided and handed to the host.</summary>
 public sealed record WindowActionPlanned : WindowAdjustmentOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WindowActionPlanned(WindowAdjustmentAction action)
     {
         ArgumentNullException.ThrowIfNull(action);

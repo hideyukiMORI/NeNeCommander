@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public sealed record DirectoryListingRejected : DirectoryListingCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DirectoryListingRejected(DirectoryListingFailureKind kind)
     {
         Kind = kind;

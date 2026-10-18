@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Commands;
 /// <summary>Represents one catalog command rejected by captured application state.</summary>
 public sealed record CommandUnavailable : CommandAvailability
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandUnavailable(CommandUnavailableReason reason)
     {
         ArgumentNullException.ThrowIfNull(reason);

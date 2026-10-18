@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Carries the one catalog intent the session must now dispatch over an already closed palette.</summary>
 public sealed record CommandPaletteIntentAccepted : CommandPaletteValidation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandPaletteIntentAccepted(UserIntent intent)
     {
         ArgumentNullException.ThrowIfNull(intent);

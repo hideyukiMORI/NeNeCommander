@@ -9,6 +9,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record EntrySize
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected EntrySize()
     {
     }
@@ -26,5 +29,10 @@ public abstract record EntrySize
         return new KnownEntrySize(bytes);
     }
 
-    private sealed record UnknownEntrySize : EntrySize;
+    private sealed record UnknownEntrySize : EntrySize
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

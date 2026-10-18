@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record VisiblePageCapacityRejected : VisiblePageCapacityCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal VisiblePageCapacityRejected()
     {
     }

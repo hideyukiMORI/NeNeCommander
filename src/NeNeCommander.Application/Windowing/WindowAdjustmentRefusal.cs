@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Windowing;
 /// </summary>
 public abstract record WindowAdjustmentRefusal
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the refusal of a move that would leave no reachable run of caption on the desktop.</summary>
     public static WindowAdjustmentRefusal CaptionWouldLeaveDesktop { get; } = new CaptionLeavesDesktop();
 
@@ -34,12 +37,52 @@ public abstract record WindowAdjustmentRefusal
     {
     }
 
-    private sealed record CaptionLeavesDesktop : WindowAdjustmentRefusal;
-    private sealed record MaximumSizeReached : WindowAdjustmentRefusal;
-    private sealed record MinimumSizeReached : WindowAdjustmentRefusal;
-    private sealed record AlreadyMaximized : WindowAdjustmentRefusal;
-    private sealed record AlreadyMinimized : WindowAdjustmentRefusal;
-    private sealed record AlreadyRestored : WindowAdjustmentRefusal;
-    private sealed record PresenterNotOverlapped : WindowAdjustmentRefusal;
-    private sealed record PlacementNotAvailable : WindowAdjustmentRefusal;
+    private sealed record CaptionLeavesDesktop : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MaximumSizeReached : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MinimumSizeReached : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AlreadyMaximized : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AlreadyMinimized : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AlreadyRestored : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PresenterNotOverlapped : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PlacementNotAvailable : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

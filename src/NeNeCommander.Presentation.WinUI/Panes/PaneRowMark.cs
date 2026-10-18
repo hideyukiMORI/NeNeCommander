@@ -9,6 +9,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record PaneRowMark
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the mark of the focus item while its pane receives intents.</summary>
     public static PaneRowMark FocusInActivePane { get; } = new ActiveFocusMark();
 
@@ -33,6 +36,10 @@ public abstract record PaneRowMark
 
     private sealed record ActiveFocusMark : PaneRowMark
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string MarkerBrushResourceKey => "FocusRingBrush";
 
         public override string SurfaceBrushResourceKey => "FocusSurfaceBrush";
@@ -40,6 +47,10 @@ public abstract record PaneRowMark
 
     private sealed record SelectedMark : PaneRowMark
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string MarkerBrushResourceKey => "SelectionMarkBrush";
 
         public override string SurfaceBrushResourceKey => "SelectionSurfaceBrush";
@@ -47,6 +58,10 @@ public abstract record PaneRowMark
 
     private sealed record PassiveFocusMark : PaneRowMark
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string MarkerBrushResourceKey => "BorderSubtleBrush";
 
         public override string SurfaceBrushResourceKey => "SurfacePaneBrush";
@@ -54,6 +69,10 @@ public abstract record PaneRowMark
 
     private sealed record PlainMark : PaneRowMark
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string MarkerBrushResourceKey => "SurfacePaneBrush";
 
         public override string SurfaceBrushResourceKey => "SurfacePaneBrush";

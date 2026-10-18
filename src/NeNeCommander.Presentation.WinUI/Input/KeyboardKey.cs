@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// </summary>
 public abstract record KeyboardKey
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the produced lower-case g key.</summary>
     public static KeyboardKey LowerG { get; } = new LowerGKey();
 
@@ -151,81 +154,145 @@ public abstract record KeyboardKey
 
     private sealed record LowerGKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelLowerG";
     }
 
     private sealed record UpperGKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelUpperG";
     }
 
     private sealed record HKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelH";
     }
 
     private sealed record JKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelJ";
     }
 
     private sealed record KKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelK";
     }
 
     private sealed record LKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelL";
     }
 
     private sealed record DKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelD";
     }
 
     private sealed record RKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelR";
     }
 
     private sealed record PKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelP";
     }
 
     private sealed record UKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelU";
     }
 
     private sealed record BKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelB";
     }
 
     private sealed record MKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelM";
     }
 
     private sealed record WKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelW";
     }
 
     private sealed record PlusKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelPlus";
     }
 
     private sealed record MinusKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelMinus";
     }
 
     private sealed record NumberKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal NumberKey(string labelResourceKey)
         {
             LabelResourceKey = labelResourceKey;
@@ -236,101 +303,181 @@ public abstract record KeyboardKey
 
     private sealed record CommaKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelComma";
     }
 
     private sealed record DownKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelDown";
     }
 
     private sealed record UpKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelUp";
     }
 
     private sealed record LeftKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelLeft";
     }
 
     private sealed record RightKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelRight";
     }
 
     private sealed record BackspaceKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelBackspace";
     }
 
     private sealed record EnterKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelEnter";
     }
 
     private sealed record PageDownKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelPageDown";
     }
 
     private sealed record PageUpKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelPageUp";
     }
 
     private sealed record TabKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelTab";
     }
 
     private sealed record SpaceKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelSpace";
     }
 
     private sealed record EscapeKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelEscape";
     }
 
     private sealed record F2Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF2";
     }
 
     private sealed record F3Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF3";
     }
 
     private sealed record F4Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF4";
     }
 
     private sealed record F5Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF5";
     }
 
     private sealed record F6Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF6";
     }
 
     private sealed record F7Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF7";
     }
 
     private sealed record F8Key : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelF8";
     }
 
     private sealed record OtherKey : KeyboardKey
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string LabelResourceKey => "KeyLabelUnmapped";
     }
 }

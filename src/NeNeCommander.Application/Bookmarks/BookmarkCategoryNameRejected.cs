@@ -3,6 +3,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents category text rejected before it became application state.</summary>
 public sealed record BookmarkCategoryNameRejected : BookmarkCategoryNameParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkCategoryNameRejected(BookmarkTextFailureKind kind)
     {
         Kind = kind;

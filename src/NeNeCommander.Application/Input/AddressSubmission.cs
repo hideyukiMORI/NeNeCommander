@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Confirms raw address text against the exact editor state that owned the control.</summary>
 public sealed record AddressSubmission : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressSubmission(AddressEditorState expectedState, string rawText)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

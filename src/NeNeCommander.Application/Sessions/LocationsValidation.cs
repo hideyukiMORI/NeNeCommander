@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public abstract record LocationsValidation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the result that leaves the session no navigation to perform.</summary>
     public static LocationsValidation NothingToRoute { get; } = new NoRoute();
 
@@ -13,5 +16,10 @@ public abstract record LocationsValidation
     {
     }
 
-    private sealed record NoRoute : LocationsValidation;
+    private sealed record NoRoute : LocationsValidation
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

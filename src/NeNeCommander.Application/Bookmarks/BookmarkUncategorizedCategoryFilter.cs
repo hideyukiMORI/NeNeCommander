@@ -1,4 +1,9 @@
 namespace NeNeCommander.Application.Bookmarks;
 
 /// <summary>Includes only bookmarks without a user category.</summary>
-public sealed record BookmarkUncategorizedCategoryFilter : BookmarkCategoryFilter;
+public sealed record BookmarkUncategorizedCategoryFilter : BookmarkCategoryFilter
+{
+    private protected override void RestrictDerivation()
+    {
+    }
+}

@@ -10,6 +10,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record MoveRequest : FileOperationRequest
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private MoveRequest(ReadOnlyCollection<FileSystemPath> sources, FileSystemPath destination)
         : base(sources)
     {

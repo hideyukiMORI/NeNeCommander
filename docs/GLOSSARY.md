@@ -17,6 +17,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
+| closed record cases | Known sealed cases whose public abstract root prevents ordinary non-friend external C# code from adding another concrete case through an externally inaccessible abstract member (ADR-0073). External abstract derivation and trusted friend assemblies remain possible; this is not an in-process security sandbox. |
 | entry | One direct child of a read location with its validated path, provider-reported name, closed kind, and entry metadata. |
 | entry visibility | The closed `EntryVisibility` a provider reports for one entry: `Normal`, or `Hidden` when the provider marks it hidden or system. It is a reported attribute, never derived from the entry name. |
 | entry metadata | The `EntryMetadata` a provider reports for one entry: its entry visibility, entry size, and entry timestamp (ADR-0056). Application reads it and never infers it. |

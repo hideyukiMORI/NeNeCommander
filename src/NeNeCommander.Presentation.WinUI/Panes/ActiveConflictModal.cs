@@ -6,6 +6,10 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// <summary>Provides the exact paths and safe initial focus for the current transfer conflict.</summary>
 public sealed record ActiveConflictModal : ConflictModalPresentation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ActiveConflictModal(
         ConflictSet conflicts,
         TransferConflictDecision initialFocus,

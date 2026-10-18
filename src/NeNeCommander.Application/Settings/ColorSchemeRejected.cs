@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public sealed record ColorSchemeRejected : ColorSchemeParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ColorSchemeRejected(ColorSchemeFailureKind kind)
     {
         Kind = kind;

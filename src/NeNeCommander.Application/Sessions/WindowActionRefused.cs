@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Names the closed reason the mode last refused an action.</summary>
 public sealed record WindowActionRefused : WindowAdjustmentOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WindowActionRefused(WindowAdjustmentRefusal reason)
     {
         ArgumentNullException.ThrowIfNull(reason);

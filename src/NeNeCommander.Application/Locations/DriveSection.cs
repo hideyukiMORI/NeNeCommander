@@ -8,6 +8,9 @@ namespace NeNeCommander.Application.Locations;
 /// </summary>
 public abstract record DriveSection
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected DriveSection()
     {
     }

@@ -10,6 +10,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record EntryTimestamp
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected EntryTimestamp()
     {
     }
@@ -28,5 +31,10 @@ public abstract record EntryTimestamp
             : throw new ArgumentException("The modification time must be carried in UTC.", nameof(utc));
     }
 
-    private sealed record UnknownEntryTimestamp : EntryTimestamp;
+    private sealed record UnknownEntryTimestamp : EntryTimestamp
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

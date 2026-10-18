@@ -13,7 +13,7 @@ The canonical gate stops at the first failing stage:
 3. locked dependency restore evaluated with the Release build configuration;
 4. formatting verification;
 5. Release build with warnings as errors;
-6. deterministic unit and contract tests;
+6. external record-case compiler proof, then deterministic unit and contract tests;
 7. architecture and conformance tests;
 8. coverage threshold verification;
 9. clean generated-output and dependency-lock proof.
@@ -70,6 +70,12 @@ Project existence, references, package use, forbidden APIs, source form, present
 - Enforcement: `eng/prove-gates.ps1` and `docs/quality/GATE_PROOFS.md`.
 
 A custom check is not trusted until a minimal invalid fixture makes it fail for the intended rule and a valid fixture passes. Gate changes update both proofs in the same change.
+
+The ADR-0073 record-closure check runs after Release build through
+`eng/verify-record-closure.ps1`. Its positive and deliberately reopened fixtures
+run through `eng/prove-gates.ps1 -Rule CS-002` and the full proof entry. These use
+the SDK-bundled compiler without a new package or project; Commit mode stays
+lightweight and does not invoke product builds or external compilation.
 
 ### QLT-008 — Coverage cannot ratchet downward
 

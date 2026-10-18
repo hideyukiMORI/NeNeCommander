@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Settings;
 /// <summary>Represents the closed result of writing one complete settings document.</summary>
 public abstract record SettingsWriteOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal SettingsWriteOutcome()
     {
     }

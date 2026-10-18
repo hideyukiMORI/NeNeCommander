@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Settings;
 /// <summary>Represents a rejected settings write with separate directory and temporary effects.</summary>
 public sealed record SettingsWriteRejected : SettingsWriteOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal SettingsWriteRejected(
         SettingsWriteFailureKind failure,
         SettingsDirectoryEffect directoryEffect,

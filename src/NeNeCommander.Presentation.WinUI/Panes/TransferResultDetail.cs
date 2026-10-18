@@ -5,6 +5,10 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// <summary>Reports separate transfer result counts without treating Skip as a filesystem effect.</summary>
 public sealed record TransferResultDetail : OperationDetail
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal TransferResultDetail(int notTransferred, int copied, int verified, SourceDeletionCounts sourceDeletion)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(notTransferred);

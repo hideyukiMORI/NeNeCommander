@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents a closed palette and its optional one-time file-list focus request.</summary>
 public sealed record CommandPaletteClosed : CommandPaletteState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandPaletteClosed(PaneSide? fileListFocusSide)
     {
         FileListFocusSide = fileListFocusSide;

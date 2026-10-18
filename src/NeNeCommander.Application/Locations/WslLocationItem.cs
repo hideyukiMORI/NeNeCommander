@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents one listed WSL distribution root in the Locations picker.</summary>
 public sealed record WslLocationItem : LocationItem
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WslLocationItem(WslPath root)
     {
         ArgumentNullException.ThrowIfNull(root);

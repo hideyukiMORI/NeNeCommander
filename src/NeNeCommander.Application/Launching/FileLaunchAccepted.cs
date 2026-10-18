@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Launching;
 /// </summary>
 public sealed record FileLaunchAccepted : FileLaunchOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal FileLaunchAccepted()
     {
     }

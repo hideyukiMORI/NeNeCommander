@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record ColorSchemeFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for text that is not present at all.</summary>
     public static ColorSchemeFailureKind Absent { get; } = new AbsentFailure();
 
@@ -15,6 +18,16 @@ public abstract record ColorSchemeFailureKind
     {
     }
 
-    private sealed record AbsentFailure : ColorSchemeFailureKind;
-    private sealed record UnknownFailure : ColorSchemeFailureKind;
+    private sealed record AbsentFailure : ColorSchemeFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnknownFailure : ColorSchemeFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

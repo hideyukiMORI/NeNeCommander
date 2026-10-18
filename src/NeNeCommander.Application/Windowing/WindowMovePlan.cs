@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Windowing;
 /// <summary>Asks the host to place the window at exactly these physical-pixel bounds, keeping its size.</summary>
 public sealed record WindowMovePlan : WindowAdjustmentPlan
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WindowMovePlan(WindowBounds bounds)
     {
         ArgumentNullException.ThrowIfNull(bounds);

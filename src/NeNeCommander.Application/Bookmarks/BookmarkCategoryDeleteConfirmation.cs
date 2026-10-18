@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents the dedicated category deletion confirmation.</summary>
 public sealed record BookmarkCategoryDeleteConfirmation : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkCategoryDeleteConfirmation(
         BookmarkBrowseContext returnContext,
         BookmarkCategorySelection selection)

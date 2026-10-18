@@ -10,6 +10,10 @@ namespace NeNeCommander.Application.Sessions;
 /// </summary>
 public sealed record LocationTargetAccepted : LocationsValidation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LocationTargetAccepted(PaneSide side, FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(side);

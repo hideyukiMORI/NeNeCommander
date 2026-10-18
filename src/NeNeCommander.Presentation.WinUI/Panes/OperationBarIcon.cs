@@ -7,6 +7,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record OperationBarIcon
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the icon of a bar that shows no shape.</summary>
     public static OperationBarIcon None { get; } = new NoIcon();
 
@@ -20,7 +23,22 @@ public abstract record OperationBarIcon
     {
     }
 
-    private sealed record NoIcon : OperationBarIcon;
-    private sealed record WarningIcon : OperationBarIcon;
-    private sealed record NameEntryIcon : OperationBarIcon;
+    private sealed record NoIcon : OperationBarIcon
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record WarningIcon : OperationBarIcon
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NameEntryIcon : OperationBarIcon
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

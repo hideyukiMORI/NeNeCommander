@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents a WSL section whose discovery succeeded, in provider order.</summary>
 public sealed record WslRootSectionListed : WslRootSection
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WslRootSectionListed(WslDistributionCatalogSucceeded discovery)
     {
         ArgumentNullException.ThrowIfNull(discovery);

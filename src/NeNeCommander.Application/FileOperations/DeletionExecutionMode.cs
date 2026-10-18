@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record DeletionExecutionMode
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the instruction that requires provider-guaranteed recycling.</summary>
     public static DeletionExecutionMode Recycle { get; } = new RecycleMode();
 
@@ -22,12 +25,26 @@ public abstract record DeletionExecutionMode
     {
     }
 
-    private sealed record RecycleMode : DeletionExecutionMode;
-    private sealed record PermanentMode : DeletionExecutionMode;
+    private sealed record RecycleMode : DeletionExecutionMode
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PermanentMode : DeletionExecutionMode
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 
     /// <summary>Requires source-provider deletion admission against the attached immutable tree.</summary>
     public sealed record VerifiedCopyMode : DeletionExecutionMode
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         internal VerifiedCopyMode(VerifiedCopyReceipt receipt)
         {
             Receipt = receipt;

@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record FileOperationRequestAccepted : FileOperationRequestCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal FileOperationRequestAccepted(FileOperationRequest request)
     {
         Request = request;

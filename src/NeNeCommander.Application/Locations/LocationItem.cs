@@ -9,6 +9,9 @@ namespace NeNeCommander.Application.Locations;
 /// </summary>
 public abstract record LocationItem
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected LocationItem()
     {
     }

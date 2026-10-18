@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record PaneLaunching : PaneActivity
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneLaunching(FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(target);

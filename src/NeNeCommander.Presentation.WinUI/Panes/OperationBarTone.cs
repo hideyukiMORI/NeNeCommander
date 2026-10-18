@@ -8,6 +8,9 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public abstract record OperationBarTone
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the tone of a bar that reports no attention-seeking state.</summary>
     public static OperationBarTone Idle { get; } = new IdleTone();
 
@@ -38,6 +41,10 @@ public abstract record OperationBarTone
 
     private sealed record IdleTone : OperationBarTone
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string SurfaceBrushResourceKey => "SurfacePaneBrush";
 
         public override string ForegroundBrushResourceKey => "TextPrimaryBrush";
@@ -49,6 +56,10 @@ public abstract record OperationBarTone
 
     private sealed record AwaitingNameTone : OperationBarTone
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string SurfaceBrushResourceKey => "FocusSurfaceBrush";
 
         public override string ForegroundBrushResourceKey => "TextPrimaryBrush";
@@ -60,6 +71,10 @@ public abstract record OperationBarTone
 
     private sealed record AwaitingConfirmationTone : OperationBarTone
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string SurfaceBrushResourceKey => "StatusWarningSurfaceBrush";
 
         public override string ForegroundBrushResourceKey => "StatusWarningBrush";
@@ -71,6 +86,10 @@ public abstract record OperationBarTone
 
     private sealed record FailureTone : OperationBarTone
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override string SurfaceBrushResourceKey => "StatusDangerSurfaceBrush";
 
         public override string ForegroundBrushResourceKey => "StatusDangerBrush";

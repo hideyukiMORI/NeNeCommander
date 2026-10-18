@@ -8,6 +8,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record DirectoryReadOutcome
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     internal DirectoryReadOutcome()
     {
     }

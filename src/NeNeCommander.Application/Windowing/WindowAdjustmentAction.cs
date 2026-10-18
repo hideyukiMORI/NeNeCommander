@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Windowing;
 /// </summary>
 public abstract record WindowAdjustmentAction
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the action that moves the window left by one step.</summary>
     public static WindowAdjustmentAction MoveLeft { get; } = new MoveLeftAction();
 
@@ -34,12 +37,52 @@ public abstract record WindowAdjustmentAction
     {
     }
 
-    private sealed record MoveLeftAction : WindowAdjustmentAction;
-    private sealed record MoveDownAction : WindowAdjustmentAction;
-    private sealed record MoveUpAction : WindowAdjustmentAction;
-    private sealed record MoveRightAction : WindowAdjustmentAction;
-    private sealed record EnlargeAction : WindowAdjustmentAction;
-    private sealed record ShrinkAction : WindowAdjustmentAction;
-    private sealed record MaximizeAction : WindowAdjustmentAction;
-    private sealed record RestoreAction : WindowAdjustmentAction;
+    private sealed record MoveLeftAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveDownAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveUpAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MoveRightAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record EnlargeAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ShrinkAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MaximizeAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RestoreAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

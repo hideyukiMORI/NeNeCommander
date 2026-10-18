@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents a WSL section whose discovery failed; it lists nothing and is never success.</summary>
 public sealed record WslRootSectionFailed : WslRootSection
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal WslRootSectionFailed(WslDistributionCatalogFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

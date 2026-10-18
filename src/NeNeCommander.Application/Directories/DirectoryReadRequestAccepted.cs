@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public sealed record DirectoryReadRequestAccepted : DirectoryReadRequestCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DirectoryReadRequestAccepted(DirectoryReadRequest request)
     {
         Request = request;

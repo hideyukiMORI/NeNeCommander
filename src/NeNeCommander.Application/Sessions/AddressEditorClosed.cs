@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents a closed address editor and its optional one-time file-list focus request.</summary>
 public sealed record AddressEditorClosed : AddressEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressEditorClosed(PaneSide? fileListFocusSide)
     {
         FileListFocusSide = fileListFocusSide;

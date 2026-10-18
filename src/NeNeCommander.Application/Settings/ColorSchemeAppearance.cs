@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record ColorSchemeAppearance
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the appearance of a scheme whose surfaces are darker than its text.</summary>
     public static ColorSchemeAppearance Dark { get; } = new DarkAppearance();
 
@@ -16,6 +19,16 @@ public abstract record ColorSchemeAppearance
     {
     }
 
-    private sealed record DarkAppearance : ColorSchemeAppearance;
-    private sealed record LightAppearance : ColorSchemeAppearance;
+    private sealed record DarkAppearance : ColorSchemeAppearance
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record LightAppearance : ColorSchemeAppearance
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

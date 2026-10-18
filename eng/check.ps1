@@ -83,6 +83,10 @@ try {
         & dotnet build $solution --configuration Release --no-restore
         if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
 
+        Write-Host '==> External record-case closure'
+        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'verify-record-closure.ps1') -RepositoryRoot $root
+        if ($LASTEXITCODE -ne 0) { throw 'External record-case closure failed.' }
+
         Write-Host '==> Tests'
         & dotnet test --solution $solution --configuration Release --no-build --no-restore
         if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }

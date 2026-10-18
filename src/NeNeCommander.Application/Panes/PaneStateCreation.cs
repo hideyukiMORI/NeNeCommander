@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record PaneStateCreation
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     private protected PaneStateCreation()
     {
     }

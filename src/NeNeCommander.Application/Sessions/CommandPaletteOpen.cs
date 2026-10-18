@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Captures both pane endpoints and candidates for one open command palette.</summary>
 public sealed record CommandPaletteOpen : CommandPaletteState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandPaletteOpen(
         PaneSnapshot left,
         PaneSnapshot right,

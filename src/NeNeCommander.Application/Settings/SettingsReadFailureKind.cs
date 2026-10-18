@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public abstract record SettingsReadFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for a document that is present but empty.</summary>
     public static SettingsReadFailureKind Empty { get; } = new EmptyFailure();
 
@@ -37,13 +40,58 @@ public abstract record SettingsReadFailureKind
     {
     }
 
-    private sealed record EmptyFailure : SettingsReadFailureKind;
-    private sealed record TooLargeFailure : SettingsReadFailureKind;
-    private sealed record MalformedFailure : SettingsReadFailureKind;
-    private sealed record UnknownVersionFailure : SettingsReadFailureKind;
-    private sealed record UnexpectedPropertyFailure : SettingsReadFailureKind;
-    private sealed record IncompleteFailure : SettingsReadFailureKind;
-    private sealed record UnknownColorSchemeFailure : SettingsReadFailureKind;
-    private sealed record InvalidBookmarksFailure : SettingsReadFailureKind;
-    private sealed record UnreadableFailure : SettingsReadFailureKind;
+    private sealed record EmptyFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooLargeFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MalformedFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnknownVersionFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnexpectedPropertyFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record IncompleteFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnknownColorSchemeFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidBookmarksFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnreadableFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

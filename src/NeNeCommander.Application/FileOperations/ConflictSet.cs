@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Contains every unresolved collision found by complete-batch preflight.</summary>
 public sealed record ConflictSet : TransferPreflightOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ConflictSet(ReadOnlyCollection<TransferConflict> conflicts)
     {
         Conflicts = conflicts;

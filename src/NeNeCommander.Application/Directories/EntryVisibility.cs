@@ -9,6 +9,9 @@ namespace NeNeCommander.Application.Directories;
 /// </summary>
 public abstract record EntryVisibility
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the visibility of an entry the provider does not mark hidden or system.</summary>
     public static EntryVisibility Normal { get; } = new NormalEntryVisibility();
 
@@ -19,6 +22,16 @@ public abstract record EntryVisibility
     {
     }
 
-    private sealed record NormalEntryVisibility : EntryVisibility;
-    private sealed record HiddenEntryVisibility : EntryVisibility;
+    private sealed record NormalEntryVisibility : EntryVisibility
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record HiddenEntryVisibility : EntryVisibility
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

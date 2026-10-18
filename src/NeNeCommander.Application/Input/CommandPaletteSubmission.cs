@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries one catalog intent qualified by the exact palette state that selected it.</summary>
 public sealed record CommandPaletteSubmission : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal CommandPaletteSubmission(CommandPaletteOpen expectedState, UserIntent selectedIntent)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

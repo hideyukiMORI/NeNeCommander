@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Settings;
 /// </summary>
 public sealed record ColorSchemeAccepted : ColorSchemeParseOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ColorSchemeAccepted(ColorScheme scheme)
     {
         Scheme = scheme;

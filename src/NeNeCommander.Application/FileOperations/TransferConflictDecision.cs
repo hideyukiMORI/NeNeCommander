@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Identifies one explicit decision for a transfer collision.</summary>
 public abstract record TransferConflictDecision
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Leaves the source untransferred.</summary>
     public static TransferConflictDecision Skip { get; } = new SkipDecision();
 
@@ -16,7 +19,22 @@ public abstract record TransferConflictDecision
     {
     }
 
-    private sealed record SkipDecision : TransferConflictDecision;
-    private sealed record KeepBothDecision : TransferConflictDecision;
-    private sealed record CancelDecision : TransferConflictDecision;
+    private sealed record SkipDecision : TransferConflictDecision
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record KeepBothDecision : TransferConflictDecision
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CancelDecision : TransferConflictDecision
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

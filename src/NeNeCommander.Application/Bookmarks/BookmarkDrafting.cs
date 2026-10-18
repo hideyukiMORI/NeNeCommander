@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents bookmark add or edit form ownership.</summary>
 public sealed record BookmarkDrafting : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkDrafting(
         BookmarkBrowseContext returnContext,
         BookmarkSelection? original,

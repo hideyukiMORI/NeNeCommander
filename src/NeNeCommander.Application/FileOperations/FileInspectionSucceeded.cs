@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Represents one complete, successful provider inspection.</summary>
 public sealed record FileInspectionSucceeded : FileInspectionOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal FileInspectionSucceeded(FileEntrySnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);

@@ -9,6 +9,10 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public sealed record DeleteRequest : FileOperationRequest
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     private DeleteRequest(
         ReadOnlyCollection<FileSystemPath> sources,
         PermanentDeletionConfirmation? confirmation)

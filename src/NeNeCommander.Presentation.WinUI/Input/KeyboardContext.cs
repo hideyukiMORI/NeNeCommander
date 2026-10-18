@@ -3,6 +3,9 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// <summary>Represents the explicit focus context that owns one keyboard event.</summary>
 public abstract record KeyboardContext
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the file-list context with file commands enabled.</summary>
     public static KeyboardContext FileList { get; } = new FileListContext();
 
@@ -31,12 +34,52 @@ public abstract record KeyboardContext
     {
     }
 
-    private sealed record FileListContext : KeyboardContext;
-    private sealed record NavigationSurfaceContext : KeyboardContext;
-    private sealed record TextEntryContext : KeyboardContext;
-    private sealed record AddressEntryContext : KeyboardContext;
-    private sealed record ModalContext : KeyboardContext;
-    private sealed record CommandPaletteContext : KeyboardContext;
-    private sealed record WindowAdjustmentContext : KeyboardContext;
-    private sealed record LocationsContext : KeyboardContext;
+    private sealed record FileListContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NavigationSurfaceContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TextEntryContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AddressEntryContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ModalContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CommandPaletteContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record WindowAdjustmentContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record LocationsContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

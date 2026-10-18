@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Represents the closed set of application-owned address editing states.</summary>
 public abstract record AddressEditorState
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the shared closed state that requests no focus change.</summary>
     public static AddressEditorState Closed { get; } = new AddressEditorClosed(null);
 

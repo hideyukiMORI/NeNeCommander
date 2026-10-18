@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Sessions;
 /// <summary>Carries the parsed target the session must now read into the captured pane.</summary>
 public sealed record AddressTargetAccepted : AddressEditorValidation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal AddressTargetAccepted(PaneSide side, FileSystemPath target)
     {
         ArgumentNullException.ThrowIfNull(side);

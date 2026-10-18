@@ -1,6 +1,6 @@
 # ADR-0073: Close concrete record cases with inaccessible abstract members
 
-Status: proposed
+Status: accepted
 
 Date: 2026-10-18
 
@@ -34,7 +34,11 @@ protected fails with CS8878, as described in the
 Both failures were reproduced with the pinned compiler. Preview language features
 shown in current documentation do not change the repository's C# 14 contract.
 
-## Proposed decision
+On 2026-10-18 hide selected the recommended implementation in Issue #306.
+This accepts the closure definition and structural mechanism below. Issue #305's
+investigation remains historical evidence, not the implementation acceptance.
+
+## Decision
 
 Retain record hierarchies, existing factories, immutable state and dispatch owners.
 Define closure precisely: ordinary C# code in a non-friend external assembly cannot
@@ -63,9 +67,31 @@ An empty implementation is intentional compile-time structure; do not manufactur
 a runtime call solely for coverage or add an exclusion. Existing factory guards,
 generated record equality and copy/with behavior remain in place.
 
-This document proposes the mechanism; Issue #305 does not accept or implement it.
-Follow-up Issue #306 tracks the outstanding migration.
-Acceptance must include the concrete migration and executable conformance design.
+Issue #306 migrates the exposed roots and sealed cases together with friend tests.
+The compiler proof lives under `eng/record-closure/`, launched by
+`eng/verify-record-closure.ps1`. It uses the pinned SDK's Roslyn compiler and bundled
+framework reference pack directly, with no project, package, production dependency
+or runtime registry. Generated binaries, sources and diagnostics stay under the
+existing ignored `artifacts/record-closure/` boundary.
+
+`eng/prove-gates.ps1 -Rule CS-002` runs the checker's self-proof before product build:
+a valid closed hierarchy, reopened private-constructor hierarchy and externally
+implementable abstract-member hierarchy distinguish closure from ordinary abstract
+requirements. The full proof entry includes this same self-proof. After Release
+build, `eng/check.ps1` invokes the product mode over all four non-host production
+assemblies. The existing manual quality/deep workflows inherit that call.
+
+The compiler imports all metadata and discovers visible abstract records, including
+future additions. For every root it accepts an external abstract copy-derived
+control and known-case `with` usage, implements externally implementable abstract
+members in probes, and requires the specific compiler refusal of ordinary, copy
+and inaccessible-override concrete derivation. It also requires existing concrete
+cases to be sealed. Unexpected diagnostics fail rather than count as closure.
+Nonpublic roots are inventoried but excluded from external accessibility claims.
+Compiler sources/diagnostics and a machine-readable result are retained; the
+checker never calls the structural member or constructs uninitialized product
+objects. Existing factory/behavior tests plus focused copy/equality/payload tests
+establish runtime compatibility.
 
 ## Alternatives not selected
 
@@ -134,7 +160,8 @@ constructor bypass and an attempted inaccessible override for each affected root
 Include a deliberately reopened minimal hierarchy as the negative proof of the
 closure checker itself. Wire the proof through `eng/check.ps1` and the existing
 manual CI path, with a focused entry and a registry entry under QLT-006/007. These
-are requirements for the follow-up, not a claim that such a gate currently executes.
+are enforced by the Issue #306 integration described above; the implementation PR
+records the actual positive and negative results before completion is claimed.
 
 Run affected factory/equality/copy and friend-dispatch tests during implementation.
 Because the proposed migration touches shared models across four layers and adds
@@ -143,5 +170,6 @@ impact: request the canonical gate once for the completed candidate under ADR-00
 Validate actual branch-coverage and mutation implications without weakening thresholds
 or suppressing findings. Request deep review only if a concrete trust-boundary impact
 requires it; do not duplicate a full gate already included in successful deep proof.
-This investigation itself changes no production, tests, dependencies or gates, so
-its selected verification remains isolated fixture builds/runs and documentation review.
+The original Issue #305 investigation changed no production, tests, dependencies
+or gates; its historical verification remains isolated fixture builds/runs and
+documentation review. Issue #306's implementation has the wider scope above.

@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Drives;
 /// <summary>Represents one expected drive listing failure.</summary>
 public sealed record DriveCatalogFailed : DriveCatalogOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DriveCatalogFailed(DriveCatalogFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

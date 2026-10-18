@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Represents category add or rename form ownership.</summary>
 public sealed record BookmarkCategoryDrafting : BookmarksEditorState
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal BookmarkCategoryDrafting(
         BookmarkBrowseContext returnContext,
         BookmarkCategorySelection? original,

@@ -6,6 +6,10 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// <summary>Represents an entry whose current metadata identity still matches its snapshot.</summary>
 public sealed record EntryMatched : RevalidationOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal EntryMatched(FileSystemInfo entry)
     {
         ArgumentNullException.ThrowIfNull(entry);

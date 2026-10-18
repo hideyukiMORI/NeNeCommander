@@ -7,6 +7,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents one listed drive root in the Locations picker.</summary>
 public sealed record DriveLocationItem : LocationItem
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DriveLocationItem(DriveLocation drive)
     {
         ArgumentNullException.ThrowIfNull(drive);

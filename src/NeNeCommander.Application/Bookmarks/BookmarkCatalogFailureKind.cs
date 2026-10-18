@@ -3,6 +3,9 @@ namespace NeNeCommander.Application.Bookmarks;
 /// <summary>Identifies one closed reason a complete bookmark catalog was rejected.</summary>
 public abstract record BookmarkCatalogFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for more than 32 user categories.</summary>
     public static BookmarkCatalogFailureKind TooManyCategories { get; } =
         new TooManyCategoriesFailure();
@@ -37,12 +40,52 @@ public abstract record BookmarkCatalogFailureKind
     {
     }
 
-    private sealed record TooManyCategoriesFailure : BookmarkCatalogFailureKind;
-    private sealed record TooManyBookmarksFailure : BookmarkCatalogFailureKind;
-    private sealed record DuplicateCategoryFailure : BookmarkCatalogFailureKind;
-    private sealed record InvalidCategoryReferenceFailure : BookmarkCatalogFailureKind;
-    private sealed record DuplicateBookmarkFailure : BookmarkCatalogFailureKind;
-    private sealed record DuplicateShortcutSlotFailure : BookmarkCatalogFailureKind;
-    private sealed record InvalidElementFailure : BookmarkCatalogFailureKind;
-    private sealed record StaleSelectionFailure : BookmarkCatalogFailureKind;
+    private sealed record TooManyCategoriesFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record TooManyBookmarksFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DuplicateCategoryFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidCategoryReferenceFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DuplicateBookmarkFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DuplicateShortcutSlotFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvalidElementFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record StaleSelectionFailure : BookmarkCatalogFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

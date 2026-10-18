@@ -6,6 +6,9 @@ namespace NeNeCommander.Application.Windowing;
 /// </summary>
 public abstract record WindowPresenterState
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the state of an overlapped window at its normal placement.</summary>
     public static WindowPresenterState Restored { get; } = new RestoredState();
 
@@ -25,9 +28,34 @@ public abstract record WindowPresenterState
     {
     }
 
-    private sealed record RestoredState : WindowPresenterState;
-    private sealed record MaximizedState : WindowPresenterState;
-    private sealed record MinimizedState : WindowPresenterState;
-    private sealed record NotOverlappedState : WindowPresenterState;
-    private sealed record UnavailableState : WindowPresenterState;
+    private sealed record RestoredState : WindowPresenterState
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MaximizedState : WindowPresenterState
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record MinimizedState : WindowPresenterState
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record NotOverlappedState : WindowPresenterState
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnavailableState : WindowPresenterState
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

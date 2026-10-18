@@ -8,6 +8,10 @@ namespace NeNeCommander.Application.Input;
 /// </summary>
 public sealed record NameSubmission : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal NameSubmission(string name)
     {
         ArgumentNullException.ThrowIfNull(name);

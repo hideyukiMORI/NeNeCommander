@@ -12,6 +12,10 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public sealed record OperationProgressDetail : OperationDetail
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     /// <summary>The fixed number of segments the progress bar always draws.</summary>
     public const int SegmentCount = 12;
 

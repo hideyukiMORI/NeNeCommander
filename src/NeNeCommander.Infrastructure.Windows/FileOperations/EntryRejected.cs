@@ -6,6 +6,10 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// <summary>Represents a snapshot that no longer describes an entry the adapter may act on.</summary>
 public sealed record EntryRejected : RevalidationOutcome
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal EntryRejected(FileOperationFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

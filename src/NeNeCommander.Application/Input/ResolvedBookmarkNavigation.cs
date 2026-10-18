@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries a session-resolved bookmark path through the existing pane intent route.</summary>
 internal sealed record ResolvedBookmarkNavigation : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal ResolvedBookmarkNavigation(FileSystemPath path)
     {
         ArgumentNullException.ThrowIfNull(path);

@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public abstract record FileOperationEffectKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the effect indicating destination bytes were copied.</summary>
     public static FileOperationEffectKind Copied { get; } = new CopiedEffect();
 
@@ -42,14 +45,64 @@ public abstract record FileOperationEffectKind
     {
     }
 
-    private sealed record CopiedEffect : FileOperationEffectKind;
-    private sealed record CopyTargetCreatedEffect : FileOperationEffectKind;
-    private sealed record VerifiedEffect : FileOperationEffectKind;
-    private sealed record SourceDeletedEffect : FileOperationEffectKind;
-    private sealed record SourcePartiallyDeletedEffect : FileOperationEffectKind;
-    private sealed record AtomicallyMovedEffect : FileOperationEffectKind;
-    private sealed record RecycledEffect : FileOperationEffectKind;
-    private sealed record PermanentlyDeletedEffect : FileOperationEffectKind;
-    private sealed record DirectoryCreatedEffect : FileOperationEffectKind;
-    private sealed record RenamedEffect : FileOperationEffectKind;
+    private sealed record CopiedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CopyTargetCreatedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record VerifiedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SourceDeletedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SourcePartiallyDeletedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record AtomicallyMovedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RecycledEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record PermanentlyDeletedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record DirectoryCreatedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record RenamedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

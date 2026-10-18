@@ -5,6 +5,10 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public sealed record PaneStateRejected : PaneStateCreation
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal PaneStateRejected(PaneStateFailureKind kind)
     {
         Kind = kind;

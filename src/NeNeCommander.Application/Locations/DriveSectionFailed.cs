@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Locations;
 /// <summary>Represents a drives section whose listing failed; it lists nothing and is never success.</summary>
 public sealed record DriveSectionFailed : DriveSection
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal DriveSectionFailed(DriveCatalogFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(failure);

@@ -6,6 +6,10 @@ namespace NeNeCommander.Application.Input;
 /// <summary>Carries a Locations picker cancellation qualified by the exact open state that owned its event.</summary>
 public sealed record LocationsCancellation : UserIntent
 {
+    private protected override void RestrictDerivation()
+    {
+    }
+
     internal LocationsCancellation(LocationsOpen expectedState)
     {
         ArgumentNullException.ThrowIfNull(expectedState);

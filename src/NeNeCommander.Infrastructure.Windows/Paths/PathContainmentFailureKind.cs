@@ -3,6 +3,9 @@ namespace NeNeCommander.Infrastructure.Windows.Paths;
 /// <summary>Identifies one closed reason a path is outside an operation root.</summary>
 public abstract record PathContainmentFailureKind
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the failure for paths owned by different providers.</summary>
     public static PathContainmentFailureKind ProviderMismatch { get; } = new ProviderMismatchFailure();
 
@@ -13,6 +16,16 @@ public abstract record PathContainmentFailureKind
     {
     }
 
-    private sealed record ProviderMismatchFailure : PathContainmentFailureKind;
-    private sealed record OutsideRootFailure : PathContainmentFailureKind;
+    private sealed record ProviderMismatchFailure : PathContainmentFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OutsideRootFailure : PathContainmentFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
 }

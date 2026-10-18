@@ -5,6 +5,9 @@ namespace NeNeCommander.Application.Panes;
 /// </summary>
 public abstract record PaneSide
 {
+    /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
+    private protected abstract void RestrictDerivation();
+
     /// <summary>Gets the left pane side.</summary>
     public static PaneSide Left { get; } = new LeftSide();
 
@@ -20,11 +23,19 @@ public abstract record PaneSide
 
     private sealed record LeftSide : PaneSide
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override PaneSide Other => Right;
     }
 
     private sealed record RightSide : PaneSide
     {
+        private protected override void RestrictDerivation()
+        {
+        }
+
         public override PaneSide Other => Left;
     }
 }

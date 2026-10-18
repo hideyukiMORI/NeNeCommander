@@ -120,6 +120,11 @@ $requiredFiles = @(
     'eng/validate-commit-message.ps1',
     'eng/check.ps1',
     'eng/verify-coverage.ps1',
+    'eng/verify-record-closure.ps1',
+    'eng/record-closure/RecordClosureCompiler.cs',
+    'eng/record-closure/RecordClosureProbe.cs',
+    'eng/record-closure/RecordClosureProgram.cs',
+    'eng/record-closure/RecordClosureSelfTest.cs',
     'eng/coverage.settings',
     'eng/prove-gates.ps1',
     'eng/security-policy.json',
@@ -175,6 +180,10 @@ if (Test-Path -LiteralPath $canonicalGatePath -PathType Leaf) {
     $releaseRestorePattern = '(?m)^\s*& dotnet restore \$solution -p:Configuration=Release --locked-mode\s*$'
     if ([regex]::Matches($canonicalGate, $releaseRestorePattern).Count -ne 1) {
         Add-Violation -Rule 'QLT-014' -Message 'The canonical gate must perform exactly one locked restore evaluated with Configuration=Release.'
+    }
+    $closurePattern = '(?m)^\s*& pwsh -NoProfile -File \(Join-Path \$PSScriptRoot ''verify-record-closure\.ps1''\) -RepositoryRoot \$root\s*$'
+    if ([regex]::Matches($canonicalGate, $closurePattern).Count -ne 1) {
+        Add-Violation -Rule 'CS-002' -Message 'The canonical gate must invoke the single external record-case compiler proof.'
     }
 }
 
