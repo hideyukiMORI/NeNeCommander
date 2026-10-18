@@ -12,6 +12,7 @@ metric definition and record their own input hashes and complete findings.
 | #324 initial measurement | 77 | 103 | 0 | 180 |
 | #326 palette presentation and matching fixtures | 71 | 102 | 0 | 173 |
 | #328 pane presentation and matching fixtures | 66 | 93 | 0 | 159 |
+| #330 App view composition | 60 | 93 | 0 | 153 |
 
 Issue #326 removes all six palette product findings and the large palette test
 type finding. Every changed/new declaration is within all five ceilings. Its
@@ -22,6 +23,12 @@ Issue #328 removes five pane product findings and nine fixture findings. All
 changed/new declarations meet the five ceilings. Its [report](../reports/2026-10-18-pane-refactor-daily-report.md)
 records the 74 focused cases, compatible public bindings and retained row/modal
 identities. The next ordered step is App view composition.
+
+Issue #330 completes that ordered App step, removing six product findings while
+all changed/new C# meets the five ceilings. Its [report](../reports/2026-10-18-app-view-refactor-daily-report.md)
+records focus/event/lifecycle compatibility, 65 focused cases and reuse of the
+unchanged palette/pane evidence. The remaining 153 findings and global gate
+integration remain separate work; the initial measurement is retained below.
 
 ## Initial census
 

@@ -509,9 +509,9 @@
                 <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
                 <CheckBox x:Name="ConflictApplyToAll" x:Uid="ConflictApplyToAll" IsChecked="False" />
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                    <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" Click="OnConflictSkip" />
-                    <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" Click="OnConflictKeepBoth" />
-                    <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" Click="OnConflictCancel" />
+                    <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" />
+                    <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" />
+                    <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -886,7 +886,6 @@
             AutomationProperties.AutomationId="CommandPaletteOverlay"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
             Canvas.ZIndex="20"
-            Tapped="OnCommandPaletteScrimTapped"
             Visibility="Collapsed">
             <Border
                 x:Name="CommandPaletteSurface"
@@ -898,7 +897,6 @@
                 HorizontalAlignment="Stretch"
                 MaxHeight="{Binding ActualHeight, ElementName=CommandPaletteOverlay}"
                 Padding="{StaticResource SpacingWindowOuter}"
-                Tapped="OnCommandPaletteSurfaceTapped"
                 VerticalAlignment="Top">
                 <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
                     <Grid.RowDefinitions>
@@ -920,20 +918,15 @@
                         Grid.Row="1"
                         AutomationProperties.AutomationId="CommandPaletteSearch"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
-                        FontSize="{StaticResource TypographyBodySize}"
-                        TextChanged="OnCommandPaletteQueryChanged"
-                        TextCompositionEnded="OnCommandPaletteCompositionEnded"
-                        TextCompositionStarted="OnCommandPaletteCompositionStarted" />
+                        FontSize="{StaticResource TypographyBodySize}" />
                     <ListView
                         x:Name="CommandPaletteCandidateList"
                         x:Uid="CommandPaletteCandidateList"
                         Grid.Row="2"
                         AutomationProperties.AutomationId="CommandPaletteCandidateList"
                         IsItemClickEnabled="True"
-                        ItemClick="OnCommandPaletteCandidateClick"
                         ItemContainerStyle="{StaticResource CommandPaletteRowContainerStyle}"
                         ItemTemplate="{StaticResource CommandPaletteRowTemplate}"
-                        SelectionChanged="OnCommandPaletteSelectionChanged"
                         SelectionMode="Single">
                         <ListView.Resources>
                             <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="SelectionSurfaceBrush" />
