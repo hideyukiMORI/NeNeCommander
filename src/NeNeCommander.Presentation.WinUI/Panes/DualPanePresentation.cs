@@ -11,85 +11,62 @@ namespace NeNeCommander.Presentation.WinUI.Panes;
 /// </summary>
 public sealed record DualPanePresentation
 {
+    private readonly PanePairPresentation _panes;
+    private readonly OperationBarPresentation _operationBar;
+    private readonly OperationInteractionPresentation _interaction;
+
     internal DualPanePresentation(
-        PanePresentation left,
-        PaneFrame leftFrame,
-        PanePresentation right,
-        PaneFrame rightFrame,
-        PaneSide activeSide,
-        OperationStatus operationStatus,
-        OperationDetail detail,
-        OperationBarTone tone,
-        IReadOnlyList<KeyHint> keyHints,
-        NameEntryPresentation nameEntry,
-        ConflictModalPresentation conflictModal,
-        KeyboardContext inputContext)
+        PanePairPresentation panes,
+        OperationBarPresentation operationBar,
+        OperationInteractionPresentation interaction)
     {
-        ArgumentNullException.ThrowIfNull(left);
-        ArgumentNullException.ThrowIfNull(leftFrame);
-        ArgumentNullException.ThrowIfNull(right);
-        ArgumentNullException.ThrowIfNull(rightFrame);
-        ArgumentNullException.ThrowIfNull(activeSide);
-        ArgumentNullException.ThrowIfNull(operationStatus);
-        ArgumentNullException.ThrowIfNull(detail);
-        ArgumentNullException.ThrowIfNull(tone);
-        ArgumentNullException.ThrowIfNull(keyHints);
-        ArgumentNullException.ThrowIfNull(nameEntry);
-        ArgumentNullException.ThrowIfNull(conflictModal);
-        ArgumentNullException.ThrowIfNull(inputContext);
-        Left = left;
-        LeftFrame = leftFrame;
-        Right = right;
-        RightFrame = rightFrame;
-        ActiveSide = activeSide;
-        OperationStatus = operationStatus;
-        Detail = detail;
-        Tone = tone;
-        KeyHints = keyHints;
-        NameEntry = nameEntry;
-        ConflictModal = conflictModal;
-        InputContext = inputContext;
+        ArgumentNullException.ThrowIfNull(panes);
+        ArgumentNullException.ThrowIfNull(operationBar);
+        ArgumentNullException.ThrowIfNull(interaction);
+        _panes = panes;
+        _operationBar = operationBar;
+        _interaction = interaction;
     }
 
     /// <summary>Gets the left pane presentation.</summary>
-    public PanePresentation Left { get; }
+    public PanePresentation Left => _panes.Left;
 
     /// <summary>Gets the left pane frame.</summary>
-    public PaneFrame LeftFrame { get; }
+    public PaneFrame LeftFrame => _panes.LeftFrame;
 
     /// <summary>Gets the right pane presentation.</summary>
-    public PanePresentation Right { get; }
+    public PanePresentation Right => _panes.Right;
 
     /// <summary>Gets the right pane frame.</summary>
-    public PaneFrame RightFrame { get; }
+    public PaneFrame RightFrame => _panes.RightFrame;
 
     /// <summary>Gets the side whose file list should hold keyboard focus.</summary>
-    public PaneSide ActiveSide { get; }
+    public PaneSide ActiveSide => _panes.ActiveSide;
 
     /// <summary>Gets the status of the file-operation activity.</summary>
-    public OperationStatus OperationStatus { get; }
+    public OperationStatus OperationStatus => _operationBar.Status;
 
     /// <summary>Gets the deletion-confirmation attached identifier while pending, otherwise an empty value that permits the framework's element-name fallback.</summary>
     public string DeletionConfirmationAutomationId => OperationStatus == OperationStatus.DeleteAwaitingConfirmation ? "DeletionConfirmation" : string.Empty;
 
     /// <summary>Gets the closed numeric detail shown beside the status: none, a confirmation's item count, or running progress.</summary>
-    public OperationDetail Detail { get; }
+    public OperationDetail Detail => _operationBar.Detail;
 
     /// <summary>Gets the closed tone the operation bar shows for the current activity.</summary>
-    public OperationBarTone Tone { get; }
+    public OperationBarTone Tone => _operationBar.Tone;
 
     /// <summary>Gets the ordered shortcut hints the operation bar shows, generated from the canonical key map.</summary>
-    public IReadOnlyList<KeyHint> KeyHints { get; }
+    public IReadOnlyList<KeyHint> KeyHints => _operationBar.KeyHints;
 
     /// <summary>Gets whether the host shows and focuses the name editor and, when it does, the text it starts from.</summary>
-    public NameEntryPresentation NameEntry { get; }
+    public NameEntryPresentation NameEntry => _interaction.NameEntry;
 
     /// <summary>Gets the transfer conflict modal presentation.</summary>
-    public ConflictModalPresentation ConflictModal { get; }
+    public ConflictModalPresentation ConflictModal => _interaction.ConflictModal;
 
     /// <summary>
     /// Gets the keyboard context the operation state imposes on the file list: modal while a
     /// confirmation or a name entry is pending, otherwise the file-list context.
     /// </summary>
-    public KeyboardContext InputContext { get; }
+    public KeyboardContext InputContext => _interaction.InputContext;
 }

@@ -34,18 +34,19 @@ public static class DualPanePresenter
             ? KeyboardContext.Modal
             : KeyboardContext.FileList;
         return new DualPanePresentation(
-            PresentPane(snapshot.Left, leftFrame, format, previous?.Left),
-            leftFrame,
-            PresentPane(snapshot.Right, rightFrame, format, previous?.Right),
-            rightFrame,
-            snapshot.ActiveSide,
-            TranslateOperation(snapshot.Operation),
-            TranslateDetail(snapshot.Operation),
-            TranslateTone(snapshot.Operation),
-            KeyHintPresenter.Present(inputContext),
-            TranslateNameEntry(snapshot.Operation),
-            TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
-            inputContext);
+            PanePairPresentation.Create(
+                PresentPane(snapshot.Left, leftFrame, format, previous?.Left),
+                PresentPane(snapshot.Right, rightFrame, format, previous?.Right),
+                snapshot.ActiveSide),
+            OperationBarPresentation.Create(
+                TranslateOperation(snapshot.Operation),
+                TranslateDetail(snapshot.Operation),
+                TranslateTone(snapshot.Operation),
+                KeyHintPresenter.Present(inputContext)),
+            OperationInteractionPresentation.Create(
+                TranslateNameEntry(snapshot.Operation),
+                TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
+                inputContext));
     }
 
     private static PanePresentation PresentPane(
@@ -155,41 +156,38 @@ public static class DualPanePresenter
 
     private static OperationStatus TranslateRunning(OperationKind kind)
     {
-        return kind == OperationKind.Move
-            ? OperationStatus.Moving
-            : kind == OperationKind.Copy
-                ? OperationStatus.Copying
-                : kind == OperationKind.Delete
-                    ? OperationStatus.Deleting
-                    : kind == OperationKind.CreateDirectory
-                        ? OperationStatus.CreatingDirectory
-                        : OperationStatus.Renaming;
+        return kind switch
+        {
+            OperationKind value when value == OperationKind.Move => OperationStatus.Moving,
+            OperationKind value when value == OperationKind.Copy => OperationStatus.Copying,
+            OperationKind value when value == OperationKind.Delete => OperationStatus.Deleting,
+            OperationKind value when value == OperationKind.CreateDirectory => OperationStatus.CreatingDirectory,
+            _ => OperationStatus.Renaming,
+        };
     }
 
     private static OperationStatus TranslateRequestRejection(OperationKind kind)
     {
-        return kind == OperationKind.Move
-            ? OperationStatus.MoveRequestRejected
-            : kind == OperationKind.Copy
-                ? OperationStatus.CopyRequestRejected
-                : kind == OperationKind.Delete
-                    ? OperationStatus.DeleteRequestRejected
-                    : kind == OperationKind.CreateDirectory
-                        ? OperationStatus.CreateDirectoryRequestRejected
-                        : OperationStatus.RenameRequestRejected;
+        return kind switch
+        {
+            OperationKind value when value == OperationKind.Move => OperationStatus.MoveRequestRejected,
+            OperationKind value when value == OperationKind.Copy => OperationStatus.CopyRequestRejected,
+            OperationKind value when value == OperationKind.Delete => OperationStatus.DeleteRequestRejected,
+            OperationKind value when value == OperationKind.CreateDirectory => OperationStatus.CreateDirectoryRequestRejected,
+            _ => OperationStatus.RenameRequestRejected,
+        };
     }
 
     private static OperationStatus TranslateCompletion(OperationKind kind, FileOperationCompletionKind completion)
     {
-        return kind == OperationKind.Move
-            ? TranslateMoveCompletion(completion)
-            : kind == OperationKind.Copy
-                ? TranslateCopyCompletion(completion)
-                : kind == OperationKind.Delete
-                    ? TranslateDeleteCompletion(completion)
-                    : kind == OperationKind.CreateDirectory
-                        ? TranslateCreateDirectoryCompletion(completion)
-                        : TranslateRenameCompletion(completion);
+        return kind switch
+        {
+            OperationKind value when value == OperationKind.Move => TranslateMoveCompletion(completion),
+            OperationKind value when value == OperationKind.Copy => TranslateCopyCompletion(completion),
+            OperationKind value when value == OperationKind.Delete => TranslateDeleteCompletion(completion),
+            OperationKind value when value == OperationKind.CreateDirectory => TranslateCreateDirectoryCompletion(completion),
+            _ => TranslateRenameCompletion(completion),
+        };
     }
 
     private static OperationStatus TranslateCreateDirectoryCompletion(FileOperationCompletionKind completion)

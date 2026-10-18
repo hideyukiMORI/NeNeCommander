@@ -1,44 +1,27 @@
-using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Drives;
-using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
-using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
-using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
-/// <summary>Proves the deterministic projection of pane snapshots onto rows, focus, status, and address.</summary>
+/// <summary>Proves PaneListingPresenter behavior and contracts.</summary>
 [TestClass]
 public sealed class PaneListingPresenterTests
 {
-    /// <summary>Proves a pane that never read a location shows nothing and says so.</summary>
-    [TestMethod]
-    public void PresentWhenNothingIsListedShowsNoListingStatus()
-    {
-        PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active, TestMetadataFormats.Utc);
-
-        Assert.IsEmpty(presentation.Rows);
-        Assert.IsNull(presentation.FocusRow);
-        Assert.AreSame(PaneStatus.NoListing, presentation.Status);
-        Assert.AreEqual(string.Empty, presentation.AddressText);
-    }
-
     /// <summary>Proves a listed location shows its ordered rows, focus entry, and address.</summary>
     [TestMethod]
     public async Task PresentWhenLocationIsListedShowsRowsFocusAndAddress()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["file10.txt", "file2.txt"], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing listing = PaneListingTestContext.CreateListing("C:\\projects", ["file10.txt", "file2.txt"], DirectoryListingCompleteness.Complete, 0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
-        PaneSession session = CreateSession(port);
+        PaneSession session = PaneListingTestContext.CreateSession(port);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
 
@@ -65,9 +48,9 @@ public sealed class PaneListingPresenterTests
     public async Task PresentWhenItemsAreSelectedMarksOnlyThoseRows()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt", "c.txt"], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing listing = PaneListingTestContext.CreateListing("C:\\projects", ["a.txt", "b.txt", "c.txt"], DirectoryListingCompleteness.Complete, 0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port);
+        PaneSession session = PaneListingTestContext.CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
         _ = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
@@ -86,11 +69,12 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowMark.FocusInActivePane, unmarked.Rows[2].Mark);
         Assert.AreSame(unmarked.Rows[2], unmarked.FocusRow);
     }
+
     /// <summary>Proves an empty listing has no focus entry.</summary>
     [TestMethod]
     public async Task PresentWhenListingIsEmptyHasNoFocusEntry()
     {
-        PaneSnapshot snapshot = await ListAsync(CreateListing("C:\\projects", [], DirectoryListingCompleteness.Complete, 0));
+        PaneSnapshot snapshot = await PaneListingTestContext.ListAsync(PaneListingTestContext.CreateListing("C:\\projects", [], DirectoryListingCompleteness.Complete, 0));
 
         PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active, TestMetadataFormats.Utc);
 
@@ -98,187 +82,14 @@ public sealed class PaneListingPresenterTests
         Assert.IsEmpty(presentation.Rows);
     }
 
-    /// <summary>Proves listing completeness maps to bounded before omitted before complete.</summary>
-    [TestMethod]
-    [TestCategory("Adversarial")]
-    [TestProperty("ThreatId", "ADV-011")]
-    public async Task PresentWhenListingIsBoundedOrOmittedReportsExactStatus()
-    {
-        PaneSnapshot bounded = await ListAsync(CreateListing("C:\\a", ["a.txt"], DirectoryListingCompleteness.Bounded, 2));
-        PaneSnapshot omitted = await ListAsync(CreateListing("C:\\b", ["a.txt"], DirectoryListingCompleteness.Complete, 1));
-
-        Assert.AreSame(PaneStatus.Bounded, PaneListingPresenter.Present(bounded, PaneFrame.Active, TestMetadataFormats.Utc).Status);
-        Assert.AreSame(PaneStatus.EntriesOmitted, PaneListingPresenter.Present(omitted, PaneFrame.Active, TestMetadataFormats.Utc).Status);
-    }
-
-    /// <summary>Proves a read in flight keeps the rows and shows the target as loading.</summary>
-    [TestMethod]
-    public async Task PresentWhenReadIsInFlightKeepsRowsAndShowsLoading()
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
-        PaneSession session = CreateSession(port);
-        _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
-        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None);
-
-        PanePresentation listedLoading = PaneListingPresenter.Present(session.Current, PaneFrame.Active, TestMetadataFormats.Utc);
-        pending.SetResult(DirectoryReadOutcome.Cancelled());
-        _ = await navigation;
-        PanePresentation absentLoading = PaneListingPresenter.Present(
-            CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> release).Current,
-            PaneFrame.Active, TestMetadataFormats.Utc);
-        release.SetResult(DirectoryReadOutcome.Cancelled());
-
-        Assert.AreSame(listing.Entries[0], listedLoading.Rows[0].Entry);
-        Assert.AreSame(PaneStatus.Loading, listedLoading.Status);
-        Assert.AreEqual("C:\\projects", listedLoading.AddressText);
-        Assert.IsEmpty(absentLoading.Rows);
-        Assert.AreSame(PaneStatus.Loading, absentLoading.Status);
-        Assert.AreEqual("C:\\pending", absentLoading.AddressText);
-    }
-
-    /// <summary>Proves an activity-only update keeps the existing row source and row instances.</summary>
-    [TestMethod]
-    public async Task PresentWhenOnlyActivityChangesReusesRows()
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing(
-            "C:\\projects",
-            ["a.txt", "b.txt"],
-            DirectoryListingCompleteness.Complete,
-            0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, DriveKind.Network));
-        TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
-        PaneSession session = CreateSession(port);
-        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
-        Task<PaneSnapshot> navigation = session.NavigateAsync(ParsePath("C:\\next"), CancellationToken.None);
-        PaneSnapshot loading = session.Current;
-        pending.SetResult(DirectoryReadOutcome.Cancelled());
-        _ = await navigation;
-        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
-
-        PanePresentation updated = PaneListingPresenter.Present(loading, PaneFrame.Active, TestMetadataFormats.Utc, initial);
-
-        Assert.AreSame(initial.Rows, updated.Rows);
-        Assert.AreSame(initial.Rows[0], updated.Rows[0]);
-        Assert.AreSame(initial.Rows[1], updated.Rows[1]);
-        Assert.AreSame(PaneStatus.Loading, updated.Status);
-        Assert.AreSame(PaneLocationStatus.NetworkDrive, updated.LocationStatus);
-    }
-
-    /// <summary>Proves focus movement replaces only the previous and current focus rows.</summary>
-    [TestMethod]
-    public async Task PresentWhenFocusMovesReplacesOnlyAffectedRows()
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing(
-            "C:\\projects",
-            ["a.txt", "b.txt", "c.txt"],
-            DirectoryListingCompleteness.Complete,
-            0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port);
-        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
-        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
-        PaneRow priorFocus = initial.Rows[0];
-        PaneRow priorNext = initial.Rows[1];
-        PaneRow unaffected = initial.Rows[2];
-        PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
-
-        PanePresentation updated = PaneListingPresenter.Present(moved, PaneFrame.Active, TestMetadataFormats.Utc, initial);
-
-        Assert.AreSame(initial.Rows, updated.Rows);
-        Assert.AreNotSame(priorFocus, updated.Rows[0]);
-        Assert.AreNotSame(priorNext, updated.Rows[1]);
-        Assert.AreSame(unaffected, updated.Rows[2]);
-        Assert.AreSame(PaneRowMark.Unmarked, updated.Rows[0].Mark);
-        Assert.AreSame(PaneRowMark.FocusInActivePane, updated.Rows[1].Mark);
-    }
-
-    /// <summary>Proves an abandoned read maps to its own closed status, not a failure or cancellation, with or without a listing.</summary>
-    [TestMethod]
-    public async Task PresentWhenReadIsAbandonedTranslatesActivity()
-    {
-        PaneSession unlisted = CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> unlistedRead);
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(
-            CreateListing("C:\\root", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0), null));
-        TaskCompletionSource<DirectoryReadOutcome> listedRead = port.EnqueuePending();
-        PaneSession listed = CreateSession(port);
-        _ = await listed.NavigateAsync(ParsePath("C:\\root"), CancellationToken.None);
-        _ = listed.NavigateAsync(ParsePath("C:\\unreachable"), CancellationToken.None);
-
-        PanePresentation absent = PaneListingPresenter.Present(
-            await unlisted.HandleAsync(UserIntent.Escape, CancellationToken.None),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-        PanePresentation kept = PaneListingPresenter.Present(
-            await listed.HandleAsync(UserIntent.Escape, CancellationToken.None),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-
-        Assert.AreSame(PaneStatus.ReadAbandoned, absent.Status);
-        Assert.AreEqual("C:\\pending", absent.AddressText);
-        Assert.IsEmpty(absent.Rows);
-        Assert.AreSame(PaneStatus.ReadAbandoned, kept.Status);
-        Assert.HasCount(2, kept.Rows);
-        unlistedRead.SetResult(DirectoryReadOutcome.Cancelled());
-        listedRead.SetResult(DirectoryReadOutcome.Cancelled());
-    }
-    /// <summary>Proves cancellation and each failure map to one closed status with the target address.</summary>
-    [TestMethod]
-    public async Task PresentWhenReadIsCancelledOrFailsTranslatesActivity()
-    {
-        PanePresentation cancelled = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Cancelled()),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-        PanePresentation denied = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied)),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-        PanePresentation missing = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound)),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-        PanePresentation unavailable = PaneListingPresenter.Present(
-            await ReadAbsentAsync(DirectoryReadOutcome.Failed(FileOperationFailureKind.Copy)),
-            PaneFrame.Active, TestMetadataFormats.Utc);
-
-        Assert.AreSame(PaneStatus.Cancelled, cancelled.Status);
-        Assert.AreEqual("C:\\target", cancelled.AddressText);
-        Assert.AreSame(PaneStatus.AccessDenied, denied.Status);
-        Assert.AreEqual("C:\\target", denied.AddressText);
-        Assert.AreSame(PaneStatus.NotFound, missing.Status);
-        Assert.AreSame(PaneStatus.ProviderUnavailable, unavailable.Status);
-        Assert.IsEmpty(unavailable.Rows);
-    }
-
-    /// <summary>Proves a failed read over listed content keeps the rows and the listed address.</summary>
-    [TestMethod]
-    public async Task PresentWhenReadFailsOverListedContentKeepsRows()
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt"], DirectoryListingCompleteness.Complete, 0);
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        port.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound));
-        PaneSession session = CreateSession(port);
-        _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
-        PaneSnapshot snapshot = await session.NavigateAsync(ParsePath("C:\\missing"), CancellationToken.None);
-
-        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active, TestMetadataFormats.Utc);
-
-        Assert.AreSame(listing.Entries[0], presentation.Rows[0].Entry);
-        Assert.AreSame(presentation.Rows[0], presentation.FocusRow);
-        Assert.AreSame(PaneStatus.NotFound, presentation.Status);
-        Assert.AreEqual("C:\\projects", presentation.AddressText);
-    }
-
     /// <summary>Proves the passive pane marks its focus row differently and selection outranks it.</summary>
     [TestMethod]
     public async Task PresentWhenPaneIsPassiveMarksFocusRowWithoutTheActiveTreatment()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0);
+        DirectoryListing listing = PaneListingTestContext.CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port);
+        PaneSession session = PaneListingTestContext.CreateSession(port);
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot focused = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
 
@@ -294,8 +105,8 @@ public sealed class PaneListingPresenterTests
     [TestMethod]
     public async Task PresentWhenPassivePaneFocusIsUnselectedMarksPassiveFocus()
     {
-        PaneSnapshot snapshot = await ListAsync(
-            CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0));
+        PaneSnapshot snapshot = await PaneListingTestContext.ListAsync(
+            PaneListingTestContext.CreateListing("C:\\projects", ["a.txt", "b.txt"], DirectoryListingCompleteness.Complete, 0));
 
         PanePresentation passive = PaneListingPresenter.Present(snapshot, PaneFrame.Passive, TestMetadataFormats.Utc);
 
@@ -311,13 +122,13 @@ public sealed class PaneListingPresenterTests
     public async Task PresentWhenSortOrderChangesRebuildsRowsInProjectedOrder()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateListing(
+        DirectoryListing listing = PaneListingTestContext.CreateListing(
             "C:\\projects",
             ["file2.zip", "file10.txt", "file1.md"],
             DirectoryListingCompleteness.Complete,
             0);
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port);
+        PaneSession session = PaneListingTestContext.CreateSession(port);
         PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
         PaneSnapshot sorted = await session.HandleAsync(UserIntent.SortByExtension, CancellationToken.None);
@@ -344,115 +155,14 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(listing.Entries[1], afterMove.FocusRow?.Entry);
     }
 
-    /// <summary>
-    /// Proves each row carries its size and local modification texts: a file shows its size, a
-    /// directory shows no size, and an unmeasured file shows the unknown glyph for both.
-    /// </summary>
-    [TestMethod]
-    public async Task PresentWhenEntriesCarryMetadataProjectsSizeAndModifiedTexts()
-    {
-        PaneSnapshot snapshot = await ListAsync(CreateMeasuredListing("C:\\projects"));
-        EntryMetadataFormat format = TestMetadataFormats.Create(TestMetadataFormats.PlusNine);
-
-        PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active, format);
-
-        PaneRow file = RowNamed(presentation, "a.txt");
-        PaneRow directory = RowNamed(presentation, "b");
-        PaneRow unmeasured = RowNamed(presentation, "c.txt");
-        Assert.AreEqual("812 B", file.SizeText);
-        Assert.AreEqual("2026-10-09 23:59", file.ModifiedText);
-        Assert.AreEqual(string.Empty, directory.SizeText);
-        Assert.AreEqual("2026-10-09 23:59", directory.ModifiedText);
-        Assert.AreEqual("\u2014", unmeasured.SizeText);
-        Assert.AreEqual("\u2014", unmeasured.ModifiedText);
-    }
-
-    /// <summary>
-    /// Proves a different metadata format re-projects every row of an unchanged snapshot with the
-    /// new texts, while the same format still reuses the whole presentation.
-    /// </summary>
-    [TestMethod]
-    public async Task PresentWhenFormatChangesReprojectsRowsWithNewTexts()
-    {
-        PaneSnapshot snapshot = await ListAsync(CreateMeasuredListing("C:\\projects"));
-        EntryMetadataFormat utc = TestMetadataFormats.Utc;
-        EntryMetadataFormat behind = TestMetadataFormats.Create(TestMetadataFormats.MinusFiveThirty);
-        PanePresentation initial = PaneListingPresenter.Present(snapshot, PaneFrame.Active, utc);
-
-        PanePresentation repeated = PaneListingPresenter.Present(snapshot, PaneFrame.Active, utc, initial);
-        PanePresentation reformatted = PaneListingPresenter.Present(snapshot, PaneFrame.Active, behind, initial);
-
-        Assert.AreSame(initial, repeated);
-        Assert.AreNotSame(initial.Rows, reformatted.Rows);
-        Assert.AreEqual("2026-10-09 14:59", RowNamed(initial, "a.txt").ModifiedText);
-        Assert.AreEqual("2026-10-09 09:29", RowNamed(reformatted, "a.txt").ModifiedText);
-        Assert.AreSame(PaneRowMark.FocusInActivePane, reformatted.Rows[0].Mark);
-        Assert.AreSame(reformatted.Rows[0], reformatted.FocusRow);
-    }
-
-    /// <summary>
-    /// Proves a pane without a listing builds a new empty row source for a different format and
-    /// keeps its empty source for the same format.
-    /// </summary>
-    [TestMethod]
-    public void PresentWhenNothingIsListedAndFormatChangesBuildsNewEmptyRows()
-    {
-        EntryMetadataFormat behind = TestMetadataFormats.Create(TestMetadataFormats.MinusFiveThirty);
-        PanePresentation initial = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active, TestMetadataFormats.Utc);
-
-        PanePresentation passive = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Passive, TestMetadataFormats.Utc, initial);
-        PanePresentation reformatted = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active, behind, initial);
-
-        Assert.AreSame(initial.Rows, passive.Rows);
-        Assert.AreNotSame(initial.Rows, reformatted.Rows);
-        Assert.IsEmpty(reformatted.Rows);
-    }
-
-    /// <summary>Proves a focus change keeps the size and modification texts of the replaced rows.</summary>
-    [TestMethod]
-    public async Task PresentWhenFocusMovesKeepsMetadataTextsOfReplacedRows()
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateMeasuredListing("C:\\projects");
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port);
-        PaneSnapshot listed = await session.NavigateAsync(listing.Location, CancellationToken.None);
-        PanePresentation initial = PaneListingPresenter.Present(listed, PaneFrame.Active, TestMetadataFormats.Utc);
-        PaneRow[] before = [.. initial.Rows];
-        PaneSnapshot moved = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
-
-        PanePresentation updated = PaneListingPresenter.Present(moved, PaneFrame.Active, TestMetadataFormats.Utc, initial);
-
-        Assert.AreSame(initial.Rows, updated.Rows);
-        Assert.AreNotSame(before[0], updated.Rows[0]);
-        Assert.AreNotSame(before[1], updated.Rows[1]);
-        for (int index = 0; index < before.Length; index++)
-        {
-            Assert.AreSame(before[index].Entry, updated.Rows[index].Entry);
-            Assert.AreSame(before[index].Kind, updated.Rows[index].Kind);
-            Assert.AreSame(before[index].Visibility, updated.Rows[index].Visibility);
-            Assert.AreEqual(before[index].SizeText, updated.Rows[index].SizeText);
-            Assert.AreEqual(before[index].ModifiedText, updated.Rows[index].ModifiedText);
-        }
-    }
-
-    /// <summary>Proves a pane that lists nothing has no sort indication.</summary>
-    [TestMethod]
-    public void PresentWhenNothingIsListedHasNoSortStatus()
-    {
-        PanePresentation presentation = PaneListingPresenter.Present(PaneSnapshot.Initial, PaneFrame.Active, TestMetadataFormats.Utc);
-
-        Assert.IsNull(presentation.SortStatus);
-    }
-
     /// <summary>Proves an omitted entry produces no row at all while its listing still holds it.</summary>
     [TestMethod]
     public async Task PresentWhenHiddenEntriesAreOmittedProjectsOnlyTheVisibleRows()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateMixedListing("C:\\projects");
+        DirectoryListing listing = PaneListingTestContext.CreateMixedListing("C:\\projects");
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port, HiddenItemVisibility.Hidden);
+        PaneSession session = PaneListingTestContext.CreateSession(port, HiddenItemVisibility.Hidden);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
 
         PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active, TestMetadataFormats.Utc);
@@ -470,9 +180,9 @@ public sealed class PaneListingPresenterTests
     public async Task PresentWhenHiddenEntriesAreShownRendersThemWithTheHiddenBrush()
     {
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        DirectoryListing listing = CreateMixedListing("C:\\projects");
+        DirectoryListing listing = PaneListingTestContext.CreateMixedListing("C:\\projects");
         port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        PaneSession session = CreateSession(port, HiddenItemVisibility.Shown);
+        PaneSession session = PaneListingTestContext.CreateSession(port, HiddenItemVisibility.Shown);
         PaneSnapshot snapshot = await session.NavigateAsync(listing.Location, CancellationToken.None);
 
         PanePresentation presentation = PaneListingPresenter.Present(snapshot, PaneFrame.Active, TestMetadataFormats.Utc);
@@ -482,296 +192,5 @@ public sealed class PaneListingPresenterTests
         Assert.AreSame(PaneRowVisibility.Hidden, presentation.Rows[1].Visibility);
         Assert.AreEqual("TextPrimaryBrush", presentation.Rows[0].Visibility.NameBrushResourceKey);
         Assert.AreEqual("TextHiddenBrush", presentation.Rows[1].Visibility.NameBrushResourceKey);
-    }
-
-    /// <summary>Proves the visibility projection rejects an absent entry visibility.</summary>
-    [TestMethod]
-    public void ForWhenEntryVisibilityIsNullThrowsArgumentNullException()
-    {
-        MethodInfo method = typeof(PaneRowVisibility).GetMethod(
-            nameof(PaneRowVisibility.For),
-            BindingFlags.Public | BindingFlags.Static) ??
-            throw new AssertFailedException("The visibility projection was not found.");
-
-        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null]));
-
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-    }
-
-    /// <summary>Proves every row mark and entry kind names the exact semantic design resources.</summary>
-    [TestMethod]
-    public void ResourceKeyWhenRowMarkOrKindIsReadNamesExactResources()
-    {
-        Assert.AreEqual("FocusRingBrush", PaneRowMark.FocusInActivePane.MarkerBrushResourceKey);
-        Assert.AreEqual("FocusSurfaceBrush", PaneRowMark.FocusInActivePane.SurfaceBrushResourceKey);
-        Assert.AreEqual("SelectionMarkBrush", PaneRowMark.Selected.MarkerBrushResourceKey);
-        Assert.AreEqual("SelectionSurfaceBrush", PaneRowMark.Selected.SurfaceBrushResourceKey);
-        Assert.AreEqual("BorderSubtleBrush", PaneRowMark.FocusInPassivePane.MarkerBrushResourceKey);
-        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.FocusInPassivePane.SurfaceBrushResourceKey);
-        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.MarkerBrushResourceKey);
-        Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.SurfaceBrushResourceKey);
-        Assert.AreEqual("EntryKindDirectoryLabel", PaneRowKind.Directory.LabelResourceKey);
-        Assert.IsTrue(PaneRowKind.Directory.IsDirectory);
-        Assert.IsFalse(PaneRowKind.Directory.IsFile);
-        Assert.AreEqual("EntryKindFileLabel", PaneRowKind.File.LabelResourceKey);
-        Assert.IsFalse(PaneRowKind.File.IsDirectory);
-        Assert.IsTrue(PaneRowKind.File.IsFile);
-        Assert.AreSame(PaneRowKind.Directory, PaneRowKind.For(DirectoryEntryKind.Directory));
-        Assert.AreSame(PaneRowKind.File, PaneRowKind.For(DirectoryEntryKind.File));
-        Assert.AreEqual("TextPrimaryBrush", PaneRowVisibility.Normal.NameBrushResourceKey);
-        Assert.AreEqual("TextHiddenBrush", PaneRowVisibility.Hidden.NameBrushResourceKey);
-        Assert.AreSame(PaneRowVisibility.Normal, PaneRowVisibility.For(EntryVisibility.Normal));
-        Assert.AreSame(PaneRowVisibility.Hidden, PaneRowVisibility.For(EntryVisibility.Hidden));
-        Assert.AreEqual("FocusRingBrush", PaneFrame.Active.NumberSurfaceBrushResourceKey);
-        Assert.AreEqual("SurfacePaneBrush", PaneFrame.Active.NumberForegroundBrushResourceKey);
-        Assert.AreEqual("BorderSubtleBrush", PaneFrame.Passive.NumberSurfaceBrushResourceKey);
-        Assert.AreEqual("TextSecondaryBrush", PaneFrame.Passive.NumberForegroundBrushResourceKey);
-    }
-
-    /// <summary>Proves the presenter rejects an absent snapshot.</summary>
-    [TestMethod]
-    public void PresentWhenSnapshotIsNullThrowsArgumentNullException()
-    {
-        MethodInfo method = typeof(PaneListingPresenter).GetMethod(
-            nameof(PaneListingPresenter.Present),
-            BindingFlags.Public | BindingFlags.Static) ??
-            throw new AssertFailedException("The present method was not found.");
-
-        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null, PaneFrame.Active, TestMetadataFormats.Utc]));
-        TargetInvocationException absentFrame = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [PaneSnapshot.Initial, null, TestMetadataFormats.Utc]));
-        TargetInvocationException absentFormat = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [PaneSnapshot.Initial, PaneFrame.Active, null]));
-
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(absentFrame.InnerException);
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(absentFormat.InnerException);
-    }
-
-    /// <summary>Proves the kind projection rejects an absent entry kind.</summary>
-    [TestMethod]
-    public void ForWhenEntryKindIsNullThrowsArgumentNullException()
-    {
-        MethodInfo method = typeof(PaneRowKind).GetMethod(
-            nameof(PaneRowKind.For),
-            BindingFlags.Public | BindingFlags.Static) ??
-            throw new AssertFailedException("The kind projection was not found.");
-
-        TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null]));
-
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-    }
-
-    /// <summary>Proves every status names a distinct localization resource key.</summary>
-    [TestMethod]
-    public void ResourceKeyWhenStatusIsReadNamesExactResource()
-    {
-        Assert.AreEqual("PaneStatusNoListing", PaneStatus.NoListing.ResourceKey);
-        Assert.AreEqual("PaneStatusLoading", PaneStatus.Loading.ResourceKey);
-        Assert.AreEqual("PaneStatusComplete", PaneStatus.Complete.ResourceKey);
-        Assert.AreEqual("PaneStatusBounded", PaneStatus.Bounded.ResourceKey);
-        Assert.AreEqual("PaneStatusEntriesOmitted", PaneStatus.EntriesOmitted.ResourceKey);
-        Assert.AreEqual("PaneStatusAccessDenied", PaneStatus.AccessDenied.ResourceKey);
-        Assert.AreEqual("PaneStatusNotFound", PaneStatus.NotFound.ResourceKey);
-        Assert.AreEqual("PaneStatusProviderUnavailable", PaneStatus.ProviderUnavailable.ResourceKey);
-        Assert.AreEqual("PaneStatusCancelled", PaneStatus.Cancelled.ResourceKey);
-        Assert.AreEqual("PaneStatusReadAbandoned", PaneStatus.ReadAbandoned.ResourceKey);
-        Assert.AreEqual("PaneStatusLaunching", PaneStatus.Launching.ResourceKey);
-        Assert.AreEqual("PaneStatusLaunchCancelled", PaneStatus.LaunchCancelled.ResourceKey);
-        Assert.AreEqual("PaneStatusLaunchNotFound", PaneStatus.LaunchNotFound.ResourceKey);
-        Assert.AreEqual("PaneStatusLaunchAccessDenied", PaneStatus.LaunchAccessDenied.ResourceKey);
-        Assert.AreEqual("PaneStatusAssociationUnavailable", PaneStatus.AssociationUnavailable.ResourceKey);
-        Assert.AreEqual("PaneStatusLaunchUnavailable", PaneStatus.LaunchUnavailable.ResourceKey);
-        Assert.AreEqual("PaneStatusInvalidAddress", PaneStatus.InvalidAddress.ResourceKey);
-    }
-
-    /// <summary>Proves every file handoff activity projects to its closed localized status.</summary>
-    [TestMethod]
-    [DataRow("C:\\root")]
-    [DataRow("\\\\wsl.localhost\\Ubuntu\\home")]
-    [DataRow("\\\\server\\share\\folder")]
-    public async Task PresentWhenFileLaunchChangesActivityTranslatesStatus(string location)
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(
-            CreateListing(location, ["a.txt"], DirectoryListingCompleteness.Complete, 0), null));
-        ScriptedFileLauncher launcher = new();
-        TaskCompletionSource<FileLaunchOutcome> release = launcher.EnqueuePending();
-        launcher.Enqueue(FileLaunchOutcome.Cancelled());
-        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.NotFound));
-        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AccessDenied));
-        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.AssociationUnavailable));
-        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ShellRejected));
-        launcher.Enqueue(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
-        PaneSession session = CreateSession(port, launcher);
-        _ = await session.NavigateAsync(ParsePath(location), CancellationToken.None);
-
-        Task<PaneSnapshot> pending = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
-        Assert.AreSame(PaneStatus.Launching, Present(session.Current).Status);
-        release.SetResult(FileLaunchOutcome.Accepted());
-        _ = await pending;
-        Assert.AreSame(PaneStatus.LaunchCancelled, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-        Assert.AreSame(PaneStatus.LaunchNotFound, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-        Assert.AreSame(PaneStatus.LaunchAccessDenied, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-        Assert.AreSame(PaneStatus.AssociationUnavailable, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-        Assert.AreSame(PaneStatus.LaunchUnavailable, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-        Assert.AreSame(PaneStatus.LaunchUnavailable, Present(
-            await session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None)).Status);
-    }
-
-    private static async Task<PaneSnapshot> ListAsync(DirectoryListing listing)
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
-        return await CreateSession(port).NavigateAsync(listing.Location, CancellationToken.None);
-    }
-
-    private static PanePresentation Present(PaneSnapshot snapshot)
-    {
-        return PaneListingPresenter.Present(snapshot, PaneFrame.Active, TestMetadataFormats.Utc);
-    }
-
-    private static PaneRow RowNamed(PanePresentation presentation, string name)
-    {
-        foreach (PaneRow row in presentation.Rows)
-        {
-            if (row.Entry.Name == name)
-            {
-                return row;
-            }
-        }
-        throw new AssertFailedException("The row was not projected.");
-    }
-
-    private static async Task<PaneSnapshot> ReadAbsentAsync(DirectoryReadOutcome outcome)
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        port.Enqueue(outcome);
-        return await CreateSession(port).NavigateAsync(ParsePath("C:\\target"), CancellationToken.None);
-    }
-
-    private static PaneSession CreateSessionWithPendingRead(out TaskCompletionSource<DirectoryReadOutcome> release)
-    {
-        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
-        release = port.EnqueuePending();
-        PaneSession session = CreateSession(port);
-        _ = session.NavigateAsync(ParsePath("C:\\pending"), CancellationToken.None);
-        return session;
-    }
-
-    private static PaneSession CreateSession(IDirectoryReadPort port)
-    {
-        return CreateSession(port, HiddenItemVisibility.Hidden);
-    }
-
-    private static PaneSession CreateSession(IDirectoryReadPort port, HiddenItemVisibility visibility)
-    {
-        return CreateSession(port, new AcceptedFileLauncher(), visibility);
-    }
-
-    private static PaneSession CreateSession(IDirectoryReadPort port, IFileLauncher fileLauncher)
-    {
-        return CreateSession(port, fileLauncher, HiddenItemVisibility.Hidden);
-    }
-
-    private static PaneSession CreateSession(
-        IDirectoryReadPort port,
-        IFileLauncher fileLauncher,
-        HiddenItemVisibility visibility)
-    {
-        VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(
-            VisiblePageCapacity.Create(4)).Capacity;
-        return new PaneSession(port,
-            fileLauncher,
-            PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, visibility, PaneSortOrder.Default));
-    }
-
-    private static DirectoryListing CreateListing(
-        string location,
-        string[] names,
-        DirectoryListingCompleteness completeness,
-        int unrepresentableEntryCount)
-    {
-        FileSystemPath parsedLocation = ParsePath(location);
-        DirectoryEntry[] entries = new DirectoryEntry[names.Length];
-        for (int index = 0; index < names.Length; index++)
-        {
-            entries[index] = DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\" + names[index]),
-                names[index],
-                DirectoryEntryKind.File,
-                EntryMetadata.Unmeasured(EntryVisibility.Normal));
-        }
-        DirectoryListingCreation creation = DirectoryListing.Create(
-            parsedLocation,
-            entries,
-            completeness,
-            unrepresentableEntryCount);
-        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
-    }
-
-    private static DirectoryListing CreateMeasuredListing(string location)
-    {
-        FileSystemPath parsedLocation = ParsePath(location);
-        DateTimeOffset modified = new(2026, 10, 9, 14, 59, 0, TimeSpan.Zero);
-        DirectoryEntry[] entries = [
-            DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\a.txt"),
-                "a.txt",
-                DirectoryEntryKind.File,
-                EntryMetadata.Create(EntryVisibility.Normal, EntrySize.Create(812), EntryTimestamp.Create(modified))),
-            DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\b"),
-                "b",
-                DirectoryEntryKind.Directory,
-                EntryMetadata.Create(EntryVisibility.Normal, EntrySize.Create(4096), EntryTimestamp.Create(modified))),
-            DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\c.txt"),
-                "c.txt",
-                DirectoryEntryKind.File,
-                EntryMetadata.Unmeasured(EntryVisibility.Normal)),
-        ];
-        DirectoryListingCreation creation = DirectoryListing.Create(
-            parsedLocation,
-            entries,
-            DirectoryListingCompleteness.Complete,
-            0);
-        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
-    }
-
-    private static DirectoryListing CreateMixedListing(string location)
-    {
-        FileSystemPath parsedLocation = ParsePath(location);
-        DirectoryEntry[] entries = [
-            DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\a.txt"),
-                "a.txt",
-                DirectoryEntryKind.File,
-                EntryMetadata.Unmeasured(EntryVisibility.Normal)),
-            DirectoryEntry.Create(
-                ParsePath(parsedLocation.CanonicalText + "\\b.txt"),
-                "b.txt",
-                DirectoryEntryKind.File,
-                EntryMetadata.Unmeasured(EntryVisibility.Hidden)),
-        ];
-        DirectoryListingCreation creation = DirectoryListing.Create(
-            parsedLocation,
-            entries,
-            DirectoryListingCompleteness.Complete,
-            0);
-        return Assert.IsInstanceOfType<DirectoryListingAccepted>(creation).Listing;
-    }
-
-    private static FileSystemPath ParsePath(string input)
-    {
-        return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(input)).Path;
     }
 }
