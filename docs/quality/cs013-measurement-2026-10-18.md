@@ -16,6 +16,12 @@ metric definition and record their own input hashes and complete findings.
 | #332 remaining Presentation models and input | 55 | 86 | 0 | 141 |
 | #334 shared transfer contracts and gateway execution | 42 | 76 | 0 | 118 |
 | #336 managed recycle callback policy | 34 | 76 | 0 | 110 |
+| #338 Windows local operation responsibilities and fixtures | 29 | 75 | 0 | 104 |
+
+Issue #338 removes five local-provider findings and the direct fixture type finding.
+All changed/new C# conforms; 190 focused cases and exact moved-body proof pass.
+Its [report](../reports/2026-10-18-windows-operation-refactor-daily-report.md) records
+the 170/169/91-line scheduling/step/preflight owners and remaining priorities.
 
 Issue #336 removes the eight managed callback findings while preserving every native
 signature. All changed C# conforms and 82 focused cases pass; its

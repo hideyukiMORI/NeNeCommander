@@ -97,15 +97,16 @@ public static partial class WindowsLocalTreeCopy
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(access);
-        return !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : TargetParentFailure(target, access) is FileOperationFailureKind failure
-            ? ProviderStepOutcome.Failed(failure)
-            : Exists(access.ResolveTarget(target))
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-            : source is DirectoryInfo directory
-            ? CopyDirectory(directory, target, access)
-            : CopyFile(source, target, access);
+        return target switch
+        {
+            _ when !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source) =>
+                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+            _ when TargetParentFailure(target, access) is FileOperationFailureKind failure =>
+                ProviderStepOutcome.Failed(failure),
+            _ when Exists(access.ResolveTarget(target)) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+            _ when source is DirectoryInfo directory => CopyDirectory(directory, target, access),
+            _ => CopyFile(source, target, access),
+        };
     }
 
     /// <summary>Derives exactly one provider-valid child, including the Windows component limit.</summary>

@@ -55,6 +55,11 @@ internal static class WindowsLocalTransferDestination
 
     internal static bool Exists(WindowsLocalPath target)
     {
-        return File.Exists(target.CanonicalText) || Directory.Exists(target.CanonicalText);
+        return Exists(target.CanonicalText);
+    }
+
+    internal static bool Exists(string targetText)
+    {
+        return File.Exists(targetText) || Directory.Exists(targetText);
     }
 }
