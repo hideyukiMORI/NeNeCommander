@@ -9,6 +9,16 @@ namespace NeNeCommander.Domain.Paths;
 /// <summary>
 /// Provides the sole parser and canonical representation for supported filesystem paths.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Generated record equality, equality operators, and default hashing compare the stored
+/// representation, not filesystem identity. Canonical text preserves the original component casing
+/// after provider normalization.
+/// </para>
+/// <para>
+/// Use <see cref="FileSystemPathIdentityComparer.Instance"/> for provider-aware lexical path identity.
+/// </para>
+/// </remarks>
 public abstract record FileSystemPath
 {
     private const int MaximumPathLength = 32767;

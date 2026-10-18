@@ -47,6 +47,22 @@ Both untrusted input and every successful `CanonicalText` are limited to 32767 U
 
 All sets, duplicate checks, selection checks, and confirmation comparisons use `FileSystemPathIdentityComparer`. Windows local and UNC identity is case-insensitive. A WSL distribution name is case-insensitive, while its Linux path is case-sensitive. Direct record equality is not a filesystem identity decision.
 
+`FileSystemPath` variants retain generated record equality and hashing over their stored values.
+Their representation preserves filename and provider-component casing, so record equality can
+distinguish two paths that the identity comparer equates. Path-keyed sets and dictionaries supply
+`FileSystemPathIdentityComparer.Instance` explicitly; default equality does not select that comparer.
+For example, `C:\Work\File.txt` and `C:\work\file.TXT` have different stored representations but
+the same Windows path identity. WSL distribution-case variants share identity only when their
+case-sensitive Linux paths also match.
+
+The identity requirement concerns paths, not equality of an entire immutable UI snapshot.
+Locations validates the expected state and membership in its listed snapshot; bookmark presentation
+compares complete display/selection records. These comparisons do not authorize filesystem effects.
+Likewise, rename checks exact ordinal `CanonicalText` to reject an unchanged name while preserving
+case-only rename (ADR-0021). Neither generated equality nor the path comparer queries the filesystem,
+resolves host aliases or links, or establishes the OS object identity used at effect boundaries.
+Issue #244 clarifies these existing meanings without changing equality, callers, or enforcement.
+
 For operation snapshots, a Windows local entry uses the operating system's volume serial and 128-bit file identifier plus kind, byte length, creation time, and last-write time (ADR-0033). A Windows-side WSL entry uses the `wsl-v2` tuple of ADR-0049: distribution name, Linux inode, kind, reparse tag, link count, byte length, last-write time, and change time, all read from one handle whose file system reports `9P`; creation time is excluded because 9P derives it from access time. Both identifier queries open the entry itself without following a reparse point, and the form is selected by the validated provider, never by a failed query. The snapshot detects both replacement and rewrite; it does not replace the mandatory effect-boundary revalidation.
 
 ### FS-002 — Capabilities are queried
