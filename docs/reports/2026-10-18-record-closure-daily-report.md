@@ -139,3 +139,32 @@ negative compile自体の拒否は期待結果であり、失敗を抑止した�
 PR統合後、main同期・tree一致・保存済み成果物・未追跡/無視file・link・稼働参照を確認して、
 taskのworktree/outputだけを整理する。branch/commit、恒久証拠、共通SDKは残す。
 実際のPR、merge、clean main、整理結果はIssue PRと`completion.json`へ記録する。
+
+## 統合と後片付けの引き継ぎ
+
+[PR #307](https://github.com/hideyukiMORI/NeNeCommander/pull/307)を2026-10-18 17:17:51 JSTに
+`bd06edb05ece024e8d0ee5a8be3a6ae023dd3d2d`へsquash mergeし、#305はclosed。
+mainはclean同期済みでtask treeと一致した。通常Commit checkは112 normative rules、
+24 adversarial registry、security scan、commit conventionで成功した。新規製品test実行件数ではない。
+後続#306はopen、ADR-0073はproposedであり、製品修正完了とはしない。
+
+削除前確認では497 fileの恒久保存、60 output objと109 worktree build filesの再生成可能性、
+未保存/未追跡変更なし、link 0、稼働参照0を確認した。自動承認レビューは削除コマンドのprocess生成を
+`blocked by policy`で拒否し、read-only確認で両対象の残存を確かめた。別機構で再試行していない。
+[Issue #308](https://github.com/hideyukiMORI/NeNeCommander/issues/308)でこの引き継ぎを記録する。
+既存checkoutを使う文書のみのclosureで、新しいworktree/output、製品test、CIは追加しない。
+
+`Cleanup-Issue305.ps1`は削除対象外の恒久証拠領域へ保存し、PowerShell syntax確認に成功した。
+取込、exact paths、変更、link、processを再確認し、完了済み2対象だけを除去する。agentは実行していない。
+`cleanup-rejection.json`、`cleanup-preflight.json`と`completion.json`を保持し、
+hideの実行結果とread-only不存在確認までcleanupはpendingのまま引き継ぐ。
+
+! hide実行待ち：後片付け
+
+対象は`D:/NeNeCommander/worktrees/issue-305`と`D:/NeNeCommander/outputs/issue-305`のみ。
+`D:/NeNeCommander/evidence/record-closure-20261018/`、branch/commit、共通SDKは残す。
+理由は自動承認レビューの`blocked by policy`。hide用の実行コマンド:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/record-closure-20261018/Cleanup-Issue305.ps1
+```

@@ -45,3 +45,26 @@ sourceを読んだだけの既存testを新たな成功件数へ足さない。
 実行は全て終了している。PR統合、同期main、tree一致、整理結果はIssue PRと`completion.json`で確認する。
 これらの最終記録ができる前に、本文の調査完了をworktree削除済みとは読み替えない。
 branch/commitと恒久証拠は保持する。cleanupが拒否された場合は開発手順に従い、その正確な対象だけを引き継ぐ。
+
+## 統合済み・後片付け待ち
+
+PR #307は2026-10-18 17:17:51 JSTに`bd06edb05ece024e8d0ee5a8be3a6ae023dd3d2d`へ統合された。
+#305はclosed、mainはclean同期・task tree一致。#306の修正は未実装でADR-0073はproposed。
+通常Commit hookは成功し、対象外の製品test/CIは起動していない。
+
+削除前に497保存file、60 output obj、109 worktree build files、clean/untracked/ignored state、
+link 0・稼働参照0を確認したが、自動承認レビューが削除コマンドを`blocked by policy`で拒否した。
+process未生成で両対象は残存。agentによる別手段の再試行はない。
+#308はこの記録の文書closure。削除そのものはhideの実行とread-only不存在確認までpending。
+`cleanup-rejection.json`、`cleanup-preflight.json`、`completion.json`を参照する。
+準備したscriptはsyntax確認済みで、削除対象外に保存し、取込・変更・link・processを再確認する。
+
+! hide実行待ち：後片付け
+
+対象: `D:/NeNeCommander/worktrees/issue-305`、`D:/NeNeCommander/outputs/issue-305`。
+保持: `D:/NeNeCommander/evidence/record-closure-20261018/`、branch/commit、共通SDK。
+拒否理由: 自動承認レビューの`blocked by policy`。実行していない次の1コマンドをhideへ引き継ぐ。
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/record-closure-20261018/Cleanup-Issue305.ps1
+```
