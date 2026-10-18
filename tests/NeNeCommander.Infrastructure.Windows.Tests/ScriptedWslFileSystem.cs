@@ -117,7 +117,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
             throw new IOException("Synthetic copy failure before target creation.");
         }
         Copied.Add((source, target));
-        Set(new WslFileSystemEntry(target, source.Name, source.Identity, source.Kind, source.Attributes));
+        Set(new WslFileSystemEntry(target, source.Name, new WslEntryMetadata(source.Identity, source.Kind, source.Attributes)));
         if (ReplaceSourceAfterCopy)
         {
             Set(Entry(source.Path, "replacement", source.Kind, source.Attributes));
@@ -163,7 +163,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         ThrowWhenConfigured();
         Renamed.Add((source, target));
         _ = _entries.Remove(source.Path.CanonicalText);
-        Set(new WslFileSystemEntry(target, source.Name, source.Identity, source.Kind, source.Attributes));
+        Set(new WslFileSystemEntry(target, source.Name, new WslEntryMetadata(source.Identity, source.Kind, source.Attributes)));
     }
 
     public void Delete(WslFileSystemEntry source)
@@ -181,7 +181,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
     {
         FileIdentity parsed = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse(identity)).Identity;
         int separator = path.LinuxPath.LastIndexOf('/');
-        return new WslFileSystemEntry(path, path.LinuxPath[(separator + 1)..], parsed, kind, attributes);
+        return new WslFileSystemEntry(path, path.LinuxPath[(separator + 1)..], new WslEntryMetadata(parsed, kind, attributes));
     }
 
     internal void Set(WslFileSystemEntry entry)

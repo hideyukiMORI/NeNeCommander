@@ -168,35 +168,13 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         Func<string, WslHandleFacts> read = OwnedWslNamespace.ReadFacts;
         using WslToWindowsTransferFixture fixture = Tree(path => read(path));
         VerifiedCopyReceipt receipt = await ReceiptAsync(fixture);
-        int firstLeafReads = 0;
-        bool changed = false;
         DateTime modified = File.GetLastWriteTimeUtc(fixture.Root.Resolve("windows\\directory\\a.txt"));
-        read = path =>
-        {
-            if (path.EndsWith("\\a.txt", StringComparison.Ordinal))
-            {
-                firstLeafReads++;
-                if (firstLeafReads == 3)
-                {
-                    if (change == "bytes")
-                    {
-                        _ = fixture.Root.WriteFile("windows\\directory\\a.txt", "other");
-                    }
-                    File.SetLastWriteTimeUtc(fixture.Root.Resolve("windows\\directory\\a.txt"),
-                        change == "bytes" ? modified : modified.AddTicks(10000000));
-                    changed = true;
-                }
-                else if (change == "transient-metadata" && firstLeafReads == 4)
-                {
-                    File.SetLastWriteTimeUtc(fixture.Root.Resolve("windows\\directory\\a.txt"), modified);
-                }
-            }
-            return OwnedWslNamespace.ReadFacts(path);
-        };
+        TargetLeafAdmissionRace race = new(fixture.Root, change, modified);
+        read = race.Read;
 
         ProviderStepOutcome outcome = fixture.FileSystem.DeleteVerifiedSource(receipt.Source, receipt);
 
-        Assert.IsTrue(changed);
+        Assert.IsTrue(race.Changed);
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
         Assert.IsNull(outcome.Effect);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\a.txt")));
@@ -257,8 +235,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
             "object" => ChangedObject(current),
             "transient-object" when observations == 1 => ChangedObject(current),
             "transient-object" => baseline,
-            "capture-pair" when observations == 2 => new WslHandleFacts(current.Inode, current.Attributes,
-                current.ReparseTag, current.EndOfFile, current.NumberOfLinks, current.LastWriteFileTimeUtc, current.ChangeFileTimeUtc + 1),
+            "capture-pair" when observations == 2 => new WslHandleFacts(current.Inode, current.Attributes, current.ReparseTag, new WslRewriteFacts(current.EndOfFile, current.NumberOfLinks, current.LastWriteFileTimeUtc, current.ChangeFileTimeUtc + 1)),
             "capture-pair" when observations > 2 => baseline,
             _ => current,
         };
@@ -266,8 +243,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
     private static WslHandleFacts ChangedObject(WslHandleFacts current)
     {
-        return new WslHandleFacts(current.Inode + 1, current.Attributes, current.ReparseTag, current.EndOfFile,
-            current.NumberOfLinks, current.LastWriteFileTimeUtc, current.ChangeFileTimeUtc);
+        return new WslHandleFacts(current.Inode + 1, current.Attributes, current.ReparseTag, new WslRewriteFacts(current.EndOfFile, current.NumberOfLinks, current.LastWriteFileTimeUtc, current.ChangeFileTimeUtc));
     }
 
     private static WslToWindowsTransferFixture Tree(Func<string, WslHandleFacts>? read = null)

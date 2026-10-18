@@ -20,8 +20,8 @@ public sealed class WindowsFileIdentifierTests
     [TestMethod]
     public void ComposeWslObjectTokenWhenDirectoryMetadataChangesKeepsOnlyOriginalObjectComponents()
     {
-        WslHandleFacts original = new(42, DirectoryAttribute, 0, 0, 2, 10, 20);
-        WslHandleFacts modified = new(42, DirectoryAttribute, 0, 0, 3, 11, 21);
+        WslHandleFacts original = new(42, DirectoryAttribute, 0, new WslRewriteFacts(0, 2, 10, 20));
+        WslHandleFacts modified = new(42, DirectoryAttribute, 0, new WslRewriteFacts(0, 3, 11, 21));
 
         Assert.AreEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
             WindowsFileIdentifier.ComposeWslObjectToken("ubuntu", modified));
@@ -30,7 +30,7 @@ public sealed class WindowsFileIdentifierTests
         Assert.AreNotEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
             WindowsFileIdentifier.ComposeWslObjectToken("Debian", original));
         Assert.AreNotEqual(WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", original),
-            WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", new WslHandleFacts(43, DirectoryAttribute, 0, 0, 2, 10, 20)));
+            WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", new WslHandleFacts(43, DirectoryAttribute, 0, new WslRewriteFacts(0, 2, 10, 20))));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsFileIdentifier.ComposeWslObjectToken(null!, original));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowsFileIdentifier.ComposeWslObjectToken("Ubuntu", null!));
     }
@@ -98,7 +98,7 @@ public sealed class WindowsFileIdentifierTests
     [TestMethod]
     public void WslIdentityBoundariesWhenArgumentIsNullRejectDefect()
     {
-        WslHandleFacts facts = Facts(1, FileAttribute, 0, 0, 1);
+        WslHandleFacts facts = new(1, FileAttribute, 0, new WslRewriteFacts(0, 1, 11, 12));
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => WindowsFileIdentifier.ReadHandleFacts(null!));
@@ -195,7 +195,7 @@ public sealed class WindowsFileIdentifierTests
     [TestMethod]
     public void ComposeWslTokenWhenFactsAreCompleteReturnsTheExactOrderedToken()
     {
-        WslHandleFacts facts = new(12345, FileAttribute, 0, 7, 2, 130000000000000000, 130000000000000001);
+        WslHandleFacts facts = new(12345, FileAttribute, 0, new WslRewriteFacts(7, 2, 130000000000000000, 130000000000000001));
 
         string token = WindowsFileIdentifier.ComposeWslToken("Ubuntu-22.04", facts);
 
@@ -209,11 +209,11 @@ public sealed class WindowsFileIdentifierTests
     [TestMethod]
     public void ComposeWslTokenWhenEntryIsLinkedDistinguishesKindFromAttributesAndTag()
     {
-        WslHandleFacts link = Facts(1, FileAttribute | ReparsePointAttribute, 0xA000001D, 0, 1);
-        WslHandleFacts directoryLink = Facts(1, DirectoryAttribute | ReparsePointAttribute, 0xA0000003, 0, 1);
-        WslHandleFacts directory = Facts(1, DirectoryAttribute, 0, 0, 1);
-        WslHandleFacts untaggedReparse = Facts(1, DirectoryAttribute | ReparsePointAttribute, 0, 0, 1);
-        WslHandleFacts taggedFile = Facts(1, FileAttribute, 0xA000001D, 0, 1);
+        WslHandleFacts link = new(1, FileAttribute | ReparsePointAttribute, 0xA000001D, new WslRewriteFacts(0, 1, 11, 12));
+        WslHandleFacts directoryLink = new(1, DirectoryAttribute | ReparsePointAttribute, 0xA0000003, new WslRewriteFacts(0, 1, 11, 12));
+        WslHandleFacts directory = new(1, DirectoryAttribute, 0, new WslRewriteFacts(0, 1, 11, 12));
+        WslHandleFacts untaggedReparse = new(1, DirectoryAttribute | ReparsePointAttribute, 0, new WslRewriteFacts(0, 1, 11, 12));
+        WslHandleFacts taggedFile = new(1, FileAttribute, 0xA000001D, new WslRewriteFacts(0, 1, 11, 12));
 
         Assert.AreEqual("wsl-v2|Ubuntu|1|link|A000001D|1|0|11|12", Token(link));
         Assert.AreEqual("wsl-v2|Ubuntu|1|link|A0000003|1|0|11|12", Token(directoryLink));
@@ -228,24 +228,24 @@ public sealed class WindowsFileIdentifierTests
     [TestProperty("ThreatId", "ADV-020")]
     public void ComposeWslTokenWhenOneFieldDiffersProducesADifferentToken()
     {
-        WslHandleFacts facts = new(1, FileAttribute, 0, 7, 1, 11, 12);
+        WslHandleFacts facts = new(1, FileAttribute, 0, new WslRewriteFacts(7, 1, 11, 12));
         string token = Token(facts);
 
-        Assert.AreNotEqual(token, Token(new WslHandleFacts(2, FileAttribute, 0, 7, 1, 11, 12)));
-        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, 8, 1, 11, 12)));
-        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, 7, 2, 11, 12)));
-        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, 7, 1, 13, 12)));
-        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, 7, 1, 11, 13)));
+        Assert.AreNotEqual(token, Token(new WslHandleFacts(2, FileAttribute, 0, new WslRewriteFacts(7, 1, 11, 12))));
+        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, new WslRewriteFacts(8, 1, 11, 12))));
+        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, new WslRewriteFacts(7, 2, 11, 12))));
+        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, new WslRewriteFacts(7, 1, 13, 12))));
+        Assert.AreNotEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, new WslRewriteFacts(7, 1, 11, 13))));
         Assert.AreNotEqual(token, WindowsFileIdentifier.ComposeWslToken("Debian", facts));
-        Assert.AreEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, 7, 1, 11, 12)));
+        Assert.AreEqual(token, Token(new WslHandleFacts(1, FileAttribute, 0, new WslRewriteFacts(7, 1, 11, 12))));
     }
 
     /// <summary>Proves a directory that reports a byte length is a provider anomaly and closes.</summary>
     [TestMethod]
     public void ComposeWslTokenWhenDirectoryReportsLengthFailsClosed()
     {
-        WslHandleFacts directory = Facts(1, DirectoryAttribute, 0, 1, 1);
-        WslHandleFacts directoryLink = Facts(1, DirectoryAttribute | ReparsePointAttribute, 0xA0000003, 1, 1);
+        WslHandleFacts directory = new(1, DirectoryAttribute, 0, new WslRewriteFacts(1, 1, 11, 12));
+        WslHandleFacts directoryLink = new(1, DirectoryAttribute | ReparsePointAttribute, 0xA0000003, new WslRewriteFacts(1, 1, 11, 12));
 
         Assert.AreEqual(
             NotSupported,
@@ -253,18 +253,10 @@ public sealed class WindowsFileIdentifierTests
         Assert.AreEqual("wsl-v2|Ubuntu|1|link|A0000003|1|1|11|12", Token(directoryLink));
         Assert.AreEqual(
             "wsl-v2|Ubuntu|1|directory|00000000|1|0|11|12",
-            Token(Facts(1, DirectoryAttribute, 0, 0, 1)));
+            Token(new WslHandleFacts(1, DirectoryAttribute, 0, new WslRewriteFacts(0, 1, 11, 12))));
     }
 
-    private static WslHandleFacts Facts(
-        long inode,
-        uint attributes,
-        uint reparseTag,
-        long endOfFile,
-        uint numberOfLinks)
-    {
-        return new WslHandleFacts(inode, attributes, reparseTag, endOfFile, numberOfLinks, 11, 12);
-    }
+
 
     private static string Token(WslHandleFacts facts)
     {

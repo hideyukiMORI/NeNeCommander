@@ -158,14 +158,19 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         return target is not WslPath wslTarget
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(_fileSystem, location, entry =>
-                entry.Kind != DirectoryEntryKind.Directory
-                    ? ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound)
-                    : IsReparsePoint(entry) || !IsDirectChild(location.Path, wslTarget)
-                        ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-                        : _fileSystem.TargetExists(wslTarget)
-                            ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-                            : CreateDirectory(wslTarget));
+            : WithRevalidatedEntry(_fileSystem, location, entry => CreateDirectoryBeneath(entry, location.Path, wslTarget));
+    }
+
+    private ProviderStepOutcome CreateDirectoryBeneath(WslFileSystemEntry entry, FileSystemPath location, WslPath target)
+    {
+        return entry switch
+        {
+            _ when entry.Kind != DirectoryEntryKind.Directory => ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound),
+            _ when IsReparsePoint(entry) || !IsDirectChild(location, target) =>
+                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+            _ => CreateDirectory(target),
+        };
     }
 
     private TransferPreflightOutcome Preflight(
@@ -186,32 +191,45 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         HashSet<FileSystemPath> reserved = new(FileSystemPathIdentityComparer.Instance);
         foreach (FileEntrySnapshot source in sources)
         {
-            WslFileSystemEntry? entry = _fileSystem.Find((WslPath)source.Path);
-            if (entry is null)
+            if (PreflightSource(source, wslDestination, reserved, plan) is FileOperationFailureKind refusal)
             {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.NotFound);
+                return TransferPreflightOutcome.Rejected(refusal);
             }
-            if (entry.Identity != source.Identity)
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.IdentityChanged);
-            }
-            if (IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry))
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
-            }
-            WslPath? target = BuildTarget(entry.Name, wslDestination);
-            if (target is null)
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.ProviderUnavailable);
-            }
-            if (ProviderPathContainment.Evaluate(entry.Path, wslDestination) is ContainedPath ||
-                !reserved.Add(target) || _fileSystem.TargetExists(target))
-            {
-                return TransferPreflightOutcome.Rejected(FileOperationFailureKind.Conflict);
-            }
-            plan.Add(TransferPlanEntry.Transfer(source, target));
         }
         return TransferPreflightOutcome.Succeeded(plan);
+    }
+
+    private FileOperationFailureKind? PreflightSource(
+        FileEntrySnapshot source,
+        WslPath wslDestination,
+        HashSet<FileSystemPath> reserved,
+        List<TransferPlanEntry> plan)
+    {
+        WslFileSystemEntry? entry = _fileSystem.Find((WslPath)source.Path);
+        if (entry is null)
+        {
+            return FileOperationFailureKind.NotFound;
+        }
+        if (entry.Identity != source.Identity)
+        {
+            return FileOperationFailureKind.IdentityChanged;
+        }
+        if (IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry))
+        {
+            return FileOperationFailureKind.ProviderUnavailable;
+        }
+        WslPath? target = BuildTarget(entry.Name, wslDestination);
+        if (target is null)
+        {
+            return FileOperationFailureKind.ProviderUnavailable;
+        }
+        if (ProviderPathContainment.Evaluate(entry.Path, wslDestination) is ContainedPath ||
+            !reserved.Add(target) || _fileSystem.TargetExists(target))
+        {
+            return FileOperationFailureKind.Conflict;
+        }
+        plan.Add(TransferPlanEntry.Transfer(source, target));
+        return null;
     }
 
     private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
@@ -306,12 +324,18 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         return target is not WslPath wslTarget
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(_fileSystem, source, entry =>
-                IsReparsePoint(entry) || !SharesParent(source.Path, wslTarget)
-                    ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-                    : _fileSystem.TargetExists(wslTarget)
-                        ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
-                        : Rename(entry, wslTarget));
+            : WithRevalidatedEntry(_fileSystem, source, entry => RenameWithinParent(entry, source.Path, wslTarget));
+    }
+
+    private ProviderStepOutcome RenameWithinParent(WslFileSystemEntry entry, FileSystemPath source, WslPath target)
+    {
+        return entry switch
+        {
+            _ when IsReparsePoint(entry) || !SharesParent(source, target) =>
+                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+            _ => Rename(entry, target),
+        };
     }
 
     private ProviderStepOutcome Rename(WslFileSystemEntry source, WslPath target)
@@ -322,16 +346,21 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
 
     private ProviderStepOutcome Delete(FileEntrySnapshot source, DeletionExecutionMode mode)
     {
-        return mode is DeletionExecutionMode.VerifiedCopyMode verified
-            ? source.Path is WslPath
+        return mode switch
+        {
+            DeletionExecutionMode.VerifiedCopyMode verified => source.Path is WslPath
                 ? _fileSystem.DeleteVerifiedSource(source, verified.Receipt)
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : mode != DeletionExecutionMode.Permanent
+                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+            _ when mode != DeletionExecutionMode.Permanent => ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+            _ => WithRevalidatedEntry(_fileSystem, source, DeletePermanent),
+        };
+    }
+
+    private ProviderStepOutcome DeletePermanent(WslFileSystemEntry entry)
+    {
+        return IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry)
             ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-            : WithRevalidatedEntry(_fileSystem, source, entry =>
-                IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry)
-                    ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
-                    : Delete(entry));
+            : Delete(entry);
     }
 
     private ProviderStepOutcome Delete(WslFileSystemEntry source)

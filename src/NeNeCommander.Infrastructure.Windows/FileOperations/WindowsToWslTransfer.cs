@@ -245,10 +245,16 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
             WslFileOperationAdapter.BuildTarget(entry.Name, wslDestination) is WslPath target &&
             _destination.TargetExists(target) && !_destination.ContainsReparsePoint(target)
                 ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification);
-        if (admission.Failure is FileOperationFailureKind failure)
-        {
-            return CopyVerificationOutcome.Failed(failure);
-        }
+        return admission.Failure is FileOperationFailureKind failure
+            ? CopyVerificationOutcome.Failed(failure)
+            : VerifyAdmittedSource(source, wslDestination, entry);
+    }
+
+    private CopyVerificationOutcome VerifyAdmittedSource(
+        FileEntrySnapshot source,
+        WslPath wslDestination,
+        FileSystemInfo entry)
+    {
         if (!_driveBoundary.AdmitsLocal((WindowsLocalPath)source.Path))
         {
             return CopyVerificationOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);

@@ -21,8 +21,7 @@ internal static class OwnedWslNamespace
     {
         WslHandleFacts facts = WindowsFileIdentifier.ReadHandleFacts(path);
         return (facts.Attributes & (uint)FileAttributes.Directory) == 0 ? facts :
-            new WslHandleFacts(facts.Inode, facts.Attributes, facts.ReparseTag, 0,
-                facts.NumberOfLinks, facts.LastWriteFileTimeUtc, facts.ChangeFileTimeUtc);
+            new WslHandleFacts(facts.Inode, facts.Attributes, facts.ReparseTag, new WslRewriteFacts(0, facts.NumberOfLinks, facts.LastWriteFileTimeUtc, facts.ChangeFileTimeUtc));
     }
 
     /// <summary>Maps the WSL tree <c>/owned</c> onto <paramref name="verbatimRoot"/>.</summary>
