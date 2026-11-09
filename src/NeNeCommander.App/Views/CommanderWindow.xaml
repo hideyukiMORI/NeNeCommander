@@ -964,7 +964,6 @@
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
                 HorizontalAlignment="Stretch"
-                MaxHeight="{Binding ActualHeight, ElementName=CommandPaletteOverlay}"
                 Padding="{StaticResource SpacingWindowOuter}"
                 VerticalAlignment="Top">
                 <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
@@ -1060,7 +1059,6 @@
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
                 HorizontalAlignment="Stretch"
-                MaxHeight="{Binding ActualHeight, ElementName=LocationsOverlay}"
                 Padding="{StaticResource SpacingWindowOuter}"
                 VerticalAlignment="Top">
                 <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
