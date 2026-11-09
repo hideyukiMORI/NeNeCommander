@@ -219,7 +219,7 @@ public sealed class PaletteScopeEntryTests
             Panes = new DualPaneSession(new PaneSession(Left, new ScriptedFileLauncher(), configuration), new PaneSession(Right, new ScriptedFileLauncher(), configuration), _gateway);
             Session = new CommanderSession(Panes,
                 new SettingsSession(Store, SettingsReadOutcome.Absent(), static exception => throw new AssertFailedException("Unexpected storage fault.", exception)),
-                new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
+                new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new KeyboardHelpSession()));
         }
 
         internal async Task ListEmptyAsync(PaneSide side)

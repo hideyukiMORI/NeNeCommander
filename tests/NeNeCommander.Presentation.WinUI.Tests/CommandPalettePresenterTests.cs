@@ -184,6 +184,7 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.SortByModified, "IntentLabelSortByModified", "KeyLabelCtrlF6"),
             (UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks", "KeyLabelCtrlB"),
             (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment", "KeyLabelCtrlW"),
+            (UserIntent.OpenHelp, "IntentLabelOpenHelp", "KeyLabelF1"),
         ];
     }
 }

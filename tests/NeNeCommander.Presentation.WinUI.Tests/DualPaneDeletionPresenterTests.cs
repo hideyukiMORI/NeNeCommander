@@ -144,13 +144,14 @@ public sealed class DualPaneDeletionPresenterTests
     {
         Assert.AreEqual(string.Empty, escaped.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
-        Assert.HasCount(11, escaped.KeyHints);
+        Assert.HasCount(12, escaped.KeyHints);
         Assert.AreEqual("KeyLabelF2", escaped.KeyHints[0].KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelCtrlP", escaped.KeyHints[7].KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelCtrlB", escaped.KeyHints[8].KeyLabelResourceKey);
         Assert.AreEqual("IntentLabelOpenBookmarks", escaped.KeyHints[8].IntentLabelResourceKey);
         Assert.AreEqual("KeyLabelCtrlComma", escaped.KeyHints[9].KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelEscape", escaped.KeyHints[10].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelF1", escaped.KeyHints[10].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelEscape", escaped.KeyHints[11].KeyLabelResourceKey);
         Assert.AreSame(OperationStatus.Idle, escaped.OperationStatus);
         Assert.AreSame(OperationDetail.None, escaped.Detail);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);

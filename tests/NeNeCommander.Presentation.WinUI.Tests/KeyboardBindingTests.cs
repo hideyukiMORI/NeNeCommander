@@ -40,6 +40,7 @@ public sealed class KeyboardBindingTests
             KeyboardContext.Modal,
             KeyboardContext.TextEntry,
             KeyboardContext.AddressEntry,
+            KeyboardContext.KeyboardHelp,
         ];
 
         foreach (KeyboardContext context in contexts)
@@ -52,9 +53,10 @@ public sealed class KeyboardBindingTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(45, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
-        Assert.HasCount(26, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
+        Assert.HasCount(46, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(27, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
+        Assert.HasCount(10, KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp));
         Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));

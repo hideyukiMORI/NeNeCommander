@@ -118,6 +118,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned window adjustment mode.</summary>
     public static UserIntent OpenWindowAdjustment { get; } = new OpenWindowAdjustmentIntent();
 
+    /// <summary>Gets the intent to open or close the keyboard help surface (ADR-0076).</summary>
+    public static UserIntent OpenHelp { get; } = new OpenHelpIntent();
+
     /// <summary>Gets the intent to open the session-owned Locations picker of drives and WSL roots.</summary>
     public static UserIntent OpenLocations { get; } = new OpenLocationsIntent();
 
@@ -422,6 +425,12 @@ public abstract record UserIntent
         }
     }
     private sealed record OpenWindowAdjustmentIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenHelpIntent : UserIntent
     {
         private protected override void RestrictDerivation()
         {

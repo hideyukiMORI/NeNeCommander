@@ -59,6 +59,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.FileList, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.FileList, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
+        new(KeyboardContext.FileList, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.FileList, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.FileList, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -81,6 +82,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
         new(KeyboardContext.NavigationSurface, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.NavigationSurface, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F3, KeyboardModifier.Control, UserIntent.SortByName),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F4, KeyboardModifier.Control, UserIntent.SortByExtension),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.Control, UserIntent.SortBySize),
@@ -103,6 +105,16 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.Locations, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
         new(KeyboardContext.Locations, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Locations, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.PageDown, KeyboardModifier.None, UserIntent.MoveHalfPageDown),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.PageUp, KeyboardModifier.None, UserIntent.MoveHalfPageUp),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.KeyboardHelp, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
         new(KeyboardContext.AddressEntry, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.AddressEntry, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.AddressEntry, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
@@ -215,6 +227,7 @@ public sealed class KeyboardIntentMapper
             KeyboardContext context when context == KeyboardContext.CommandPalette => MapPaletteKey(input),
             KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
+            KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
             _ => MapDeclaredKey(input),
@@ -252,7 +265,7 @@ public sealed class KeyboardIntentMapper
             return new KeyboardAwaitingChord();
         }
 
-        return IsRepeatedDestructiveCommand(input)
+        return IsRepeatedSingleShotCommand(input)
             ? new KeyboardPassThrough()
             : MapDeclaredKey(input);
     }
@@ -357,6 +370,27 @@ public sealed class KeyboardIntentMapper
         return declared is KeyboardPassThrough ? new KeyboardConsumed() : declared;
     }
 
+    /// <summary>
+    /// Maps one key while the keyboard help owns input (ADR-0076). A declared key with its declared
+    /// modifier yields its intent; a repeated close key is consumed so a held <c>F1</c> or
+    /// <c>Escape</c> cannot close and reopen the help. Every other identified key is consumed, so the
+    /// frozen panes receive nothing. The raw virtual-key event that precedes a produced character
+    /// passes through, because <c>j</c> and <c>k</c> are produced characters (KBD-003).
+    /// </summary>
+    private static KeyboardMappingOutcome MapKeyboardHelpKey(KeyboardInput input)
+    {
+        if (input.Key == KeyboardKey.Other)
+        {
+            return new KeyboardPassThrough();
+        }
+        KeyboardMappingOutcome declared = MapDeclaredKey(input);
+        return declared is MappedKeyboardIntent mapped &&
+            !(input.RepeatState == KeyRepeatState.Repeated &&
+                (mapped.Intent == UserIntent.Escape || mapped.Intent == UserIntent.OpenHelp))
+                ? declared
+                : new KeyboardConsumed();
+    }
+
     private static bool IsIgnoredWindowRepeat(
         WindowAdjustmentKeyAction action,
         KeyRepeatState repeatState)
@@ -384,14 +418,15 @@ public sealed class KeyboardIntentMapper
             input.RepeatState == KeyRepeatState.Initial;
     }
 
-    private static bool IsRepeatedDestructiveCommand(KeyboardInput input)
+    private static bool IsRepeatedSingleShotCommand(KeyboardInput input)
     {
         return input.RepeatState == KeyRepeatState.Repeated &&
             (input.Key == KeyboardKey.F2 ||
                 input.Key == KeyboardKey.F5 ||
                 input.Key == KeyboardKey.F6 ||
                 input.Key == KeyboardKey.F7 ||
-                input.Key == KeyboardKey.F8);
+                input.Key == KeyboardKey.F8 ||
+                input.Key == KeyboardKey.F1);
     }
 
     private static MappedKeyboardIntent MapIntent(UserIntent intent)

@@ -125,6 +125,7 @@ public sealed class KeyboardTranslationTests
         AssertTranslatedVirtualKey(VirtualKey.PageUp, KeyboardKey.PageUp);
         AssertTranslatedVirtualKey(VirtualKey.Tab, KeyboardKey.Tab);
         AssertTranslatedVirtualKey(VirtualKey.Escape, KeyboardKey.Escape);
+        AssertTranslatedVirtualKey(VirtualKey.F1, KeyboardKey.F1);
         AssertTranslatedVirtualKey(VirtualKey.F2, KeyboardKey.F2);
         AssertTranslatedVirtualKey(VirtualKey.F3, KeyboardKey.F3);
         AssertTranslatedVirtualKey(VirtualKey.F4, KeyboardKey.F4);

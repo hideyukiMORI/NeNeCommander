@@ -190,6 +190,68 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate x:Key="KeyboardHelpCapTemplate">
+                <Border
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="{StaticResource BorderKeyCapThickness}"
+                    CornerRadius="{StaticResource RadiusKeyCap}"
+                    Padding="{StaticResource SpacingKeyCap}"
+                    VerticalAlignment="Center">
+                    <TextBlock
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextKeyHintBrush}"
+                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                        VerticalAlignment="Center" />
+                </Border>
+            </DataTemplate>
+
+            <DataTemplate x:Key="KeyboardHelpRowTemplate">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
+                    <ItemsControl
+                        AutomationProperties.AccessibilityView="Raw"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyboardHelpCapTemplate}"
+                        ItemsSource="{Binding KeyLabelResourceKeys}"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityKeyboardHelpKeyColumnWidth}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <TextBlock
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding ActionLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="KeyboardHelpGroupTemplate">
+                <StackPanel Margin="{StaticResource SpacingWindowOuter}" Spacing="{StaticResource SpacingKeyHintGap}">
+                    <TextBlock
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{Binding TitleResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                    <ItemsControl
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyboardHelpRowTemplate}"
+                        ItemsSource="{Binding Rows}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </DataTemplate>
+
             <DataTemplate x:Key="WindowAdjustmentKeyHintTemplate">
                 <StackPanel
                     Orientation="Horizontal"
@@ -1054,6 +1116,77 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="KeyboardHelpOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="KeyboardHelpOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="22"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed">
+            <Border
+                x:Name="KeyboardHelpSurface"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Center"
+                Padding="{StaticResource SpacingWindowOuter}"
+                VerticalAlignment="Center">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        x:Name="KeyboardHelpTitle"
+                        x:Uid="KeyboardHelpTitle"
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Margin="{StaticResource SpacingWindowOuter}" />
+                    <ScrollViewer
+                        x:Name="KeyboardHelp"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="KeyboardHelp"
+                        HorizontalScrollBarVisibility="Disabled"
+                        IsTabStop="True"
+                        VerticalScrollBarVisibility="Auto">
+                        <Grid x:Name="KeyboardHelpColumns">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ItemsControl
+                                x:Name="KeyboardHelpPrimaryGroups"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                            <ItemsControl
+                                x:Name="KeyboardHelpSecondaryGroups"
+                                Grid.Column="1"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                        </Grid>
+                    </ScrollViewer>
+                    <TextBlock
+                        x:Uid="KeyboardHelpCloseNote"
+                        Grid.Row="2"
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingWindowOuter}" />
                 </Grid>
             </Border>
         </Grid>

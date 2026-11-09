@@ -18,6 +18,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0076: Show the canonical key map in a session-owned help surface](0076-keyboard-help-surface.md)
+
 - [ADR-0075: Define CS-013 metrics through one standalone SDK-based checker](0075-standalone-cs013-measurement.md)
 
 - [ADR-0074: Compare visible entry names in natural numeric order](0074-natural-name-ordering.md)

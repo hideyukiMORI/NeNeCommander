@@ -323,4 +323,26 @@
   <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>不明</value></data>
   <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
   <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}、{1}</value></data>
+  <data name="KeyLabelF1" xml:space="preserve"><value>F1</value></data>
+  <data name="KeyLabelChordGG" xml:space="preserve"><value>g g</value></data>
+  <data name="KeyLabelCtrl1To9" xml:space="preserve"><value>Ctrl+1–9</value></data>
+  <data name="IntentLabelOpenHelp" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="IntentLabelFocusFirst" xml:space="preserve"><value>先頭へ</value></data>
+  <data name="IntentLabelFocusLast" xml:space="preserve"><value>末尾へ</value></data>
+  <data name="IntentLabelMoveHalfPageDown" xml:space="preserve"><value>半ページ下へ</value></data>
+  <data name="IntentLabelMoveHalfPageUp" xml:space="preserve"><value>半ページ上へ</value></data>
+  <data name="IntentLabelBookmarkSlots" xml:space="preserve"><value>番号のブックマークへ移動</value></data>
+  <data name="KeyboardHelpGroupFileList" xml:space="preserve"><value>ファイル一覧</value></data>
+  <data name="KeyboardHelpGroupWindowAdjustment" xml:space="preserve"><value>ウィンドウ調整（Ctrl+W）</value></data>
+  <data name="KeyboardHelpGroupLocations" xml:space="preserve"><value>場所の選択（Ctrl+G）</value></data>
+  <data name="KeyboardHelpGroupCommandPalette" xml:space="preserve"><value>コマンドパレット（Ctrl+P）</value></data>
+  <data name="KeyboardHelpGroupHelp" xml:space="preserve"><value>このヘルプ（F1）</value></data>
+  <data name="KeyboardHelpScrollDown" xml:space="preserve"><value>下へスクロール</value></data>
+  <data name="KeyboardHelpScrollUp" xml:space="preserve"><value>上へスクロール</value></data>
+  <data name="KeyboardHelpPageDown" xml:space="preserve"><value>半ページ下へ</value></data>
+  <data name="KeyboardHelpPageUp" xml:space="preserve"><value>半ページ上へ</value></data>
+  <data name="KeyboardHelpClose" xml:space="preserve"><value>閉じる</value></data>
+  <data name="KeyboardHelpTitle.Text" xml:space="preserve"><value>キー操作</value></data>
+  <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Esc または F1 で閉じる</value></data>
+  <data name="KeyboardHelpName" xml:space="preserve"><value>キー操作の一覧</value></data>
 </root>

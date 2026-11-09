@@ -65,12 +65,14 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `Ctrl+W` | open the session-owned window adjustment mode from the file list or navigation surface |
 | `Ctrl+G` | open the session-owned Locations picker of drives and WSL distribution roots from the file list or navigation surface |
 | `Ctrl+1` through `Ctrl+9` | navigate the active pane to the bookmark assigned to that fixed slot; an unassigned slot performs no read |
+| `F1` | open the session-owned keyboard help from the file list or navigation surface; a held `F1` opens it once |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
 The command palette also opens Bookmarks and window adjustment (ADR-0068), using the same owners
 as `Ctrl+B` and `Ctrl+W`. Its existing twenty entries keep their order; Bookmarks and Window
-adjustment follow them. A qualified selection closes the palette before opening the chosen scope.
+adjustment follow them, and Help follows Window adjustment (ADR-0076). A qualified selection closes
+the palette before opening the chosen scope.
 Direct shortcuts remain frozen while the palette owns input, and bookmark slots are not candidates.
 
 ## Window adjustment mode
@@ -105,6 +107,28 @@ Letters and `+` and `-` are produced characters with Control and Alt absent (KBD
 | `Escape` | close the picker without navigating |
 
 Letters are produced characters with Control and Alt absent (KBD-003). The raw virtual-key event that precedes a produced character passes through; every other identified key, every declared key under an undeclared modifier, and a repeated `Enter` are consumed, so no pane, editor, or native control receives them and a held `Enter` selects at most once. While both sections are loading every intent is frozen and nothing is routed. Plain `g` and `G` keep their file-list meaning, and `Ctrl+G` cancels a pending `gg` chord like any other declared key.
+
+## Keyboard help
+
+`F1` opens one session-owned keyboard help (ADR-0076) under the same admission as the window
+adjustment mode. It lists the bindings of the file list, window adjustment mode, Locations picker,
+command palette and the help itself, generated from the canonical key map; aliases of one action
+share a row, `gg` is shown before `G`, and the nine bookmark slots share one row. The panes stay
+visible behind a transparent scrim and are frozen. While it is open the host's keyboard context is
+`KeyboardHelp`, declared in the canonical table of `KeyboardIntentMapper`:
+
+| Input | Intent |
+|---|---|
+| `j` or `Down` | scroll the help down by one row |
+| `k` or `Up` | scroll the help up by one row |
+| `PageDown` or `Ctrl+D` | scroll the help down by half its visible height |
+| `PageUp` or `Ctrl+U` | scroll the help up by half its visible height |
+| `Escape` or `F1` | close the help and return focus to the file list of the pane active at entry |
+
+Letters are produced characters with Control and Alt absent (KBD-003). The raw virtual-key event that
+precedes a produced character passes through; every other identified key, every declared key under an
+undeclared modifier, and a repeated `Escape` or `F1` are consumed, so the frozen panes receive nothing
+and a held key cannot close and reopen the help. Tapping the scrim closes it like `Escape`.
 
 ## Context precedence
 

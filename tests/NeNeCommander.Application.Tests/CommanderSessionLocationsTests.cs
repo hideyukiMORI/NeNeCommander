@@ -339,7 +339,8 @@ public sealed class CommanderSessionLocationsTests
                     new AddressEditorSession(),
                     new CommandPaletteSession(),
                     new WindowAdjustmentSession(),
-                    new LocationsSession(Drives, WslRoots)));
+                    new LocationsSession(Drives, WslRoots),
+                    new KeyboardHelpSession()));
         }
 
         internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();
