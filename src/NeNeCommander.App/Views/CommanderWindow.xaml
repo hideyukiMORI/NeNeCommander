@@ -170,19 +170,23 @@
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="{StaticResource BorderKeyCapThickness}"
                         CornerRadius="{StaticResource RadiusKeyCap}"
-                        Padding="{StaticResource SpacingKeyCap}">
+                        Padding="{StaticResource SpacingKeyCap}"
+                        VerticalAlignment="Center">
                         <TextBlock
                             FontFamily="{StaticResource TypographyMonospaceFamily}"
                             FontSize="{StaticResource TypographyMonospaceSize}"
                             Foreground="{StaticResource TextKeyHintBrush}"
-                            Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                            Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                            VerticalAlignment="Center" />
                     </Border>
                     <TextBlock
                         AutomationProperties.AutomationId="{Binding AutomationId}"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
                 </StackPanel>
             </DataTemplate>
 
@@ -208,12 +212,14 @@
                                     BorderBrush="{StaticResource BorderSubtleBrush}"
                                     BorderThickness="{StaticResource BorderKeyCapThickness}"
                                     CornerRadius="{StaticResource RadiusKeyCap}"
-                                    Padding="{StaticResource SpacingKeyCap}">
+                                    Padding="{StaticResource SpacingKeyCap}"
+                                    VerticalAlignment="Center">
                                     <TextBlock
                                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                                         FontSize="{StaticResource TypographyMonospaceSize}"
                                         Foreground="{StaticResource TextKeyHintBrush}"
-                                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}" />
+                                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                                        VerticalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -223,6 +229,7 @@
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
                         VerticalAlignment="Center" />
                 </StackPanel>
             </DataTemplate>
