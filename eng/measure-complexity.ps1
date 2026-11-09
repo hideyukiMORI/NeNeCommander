@@ -19,7 +19,7 @@ try {
     Push-Location $root
     $locationPushed = $true
     $sdkVersion = [string] ((Get-Content -LiteralPath (Join-Path $root 'global.json') -Raw | ConvertFrom-Json).sdk.version)
-    if ($sdkVersion -cne '10.0.401' -or (& dotnet --version).Trim() -cne $sdkVersion -or $LASTEXITCODE -ne 0) { throw 'The pinned SDK 10.0.401 must be active.' }
+    if ($sdkVersion -cne '10.0.403' -or (& dotnet --version).Trim() -cne $sdkVersion -or $LASTEXITCODE -ne 0) { throw 'The pinned SDK 10.0.403 must be active.' }
     $sdkLine = @(& dotnet --list-sdks | Where-Object { $_ -match ('^' + [regex]::Escape($sdkVersion) + ' \[') })
     if ($sdkLine.Count -ne 1 -or $sdkLine[0] -notmatch '\[(.+)\]$') { throw 'The pinned SDK path is ambiguous.' }
     $sdk = Join-Path $Matches[1] $sdkVersion
