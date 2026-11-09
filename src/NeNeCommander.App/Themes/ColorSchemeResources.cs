@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.App.Themes;
@@ -30,6 +32,34 @@ public static class ColorSchemeResources
             "nene-light" => new Uri("ms-appx:///Themes/Schemes/nene-light.xaml"),
             _ => throw new InvalidOperationException("The color scheme has no shipped resource dictionary."),
         };
+    }
+
+    /// <summary>
+    /// Copies one scheme's brush colors into the merged scheme dictionary without replacing it. Each
+    /// brush keeps its instance and receives the selected color, so every element that already
+    /// resolved it through <c>StaticResource</c> or a resource lookup repaints with the selected
+    /// scheme. A dictionary loaded from a <c>Source</c> rejects local values, so the plain
+    /// <c>Color</c> entries keep the first scheme's values; they are consumed only by the brushes of
+    /// the scheme dictionaries themselves, never by a view (ARC-012).
+    /// </summary>
+    /// <param name="selected">Freshly loaded dictionary of the selected scheme.</param>
+    /// <param name="merged">The one scheme dictionary merged into the application resources.</param>
+    /// <exception cref="InvalidOperationException">The dictionaries do not declare the same brushes, which is a defect.</exception>
+    public static void CopySchemeInPlace(ResourceDictionary selected, ResourceDictionary merged)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        ArgumentNullException.ThrowIfNull(merged);
+        foreach (KeyValuePair<object, object> entry in selected)
+        {
+            if (entry.Value is SolidColorBrush source)
+            {
+                SolidColorBrush target = merged.TryGetValue(entry.Key, out object? existing) &&
+                    existing is SolidColorBrush brush
+                        ? brush
+                        : throw new InvalidOperationException("The merged scheme dictionary lacks a declared brush.");
+                target.Color = source.Color;
+            }
+        }
     }
 
     /// <summary>
