@@ -535,7 +535,7 @@
         <Grid
             x:Name="SettingsOverlay"
             Grid.RowSpan="3"
-            Background="{StaticResource SurfaceWindowBrush}"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
             Visibility="Collapsed"
             Canvas.ZIndex="10">
             <Border
