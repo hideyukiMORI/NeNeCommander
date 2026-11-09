@@ -345,4 +345,5 @@
   <data name="KeyboardHelpTitle.Text" xml:space="preserve"><value>キー操作</value></data>
   <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Esc または F1 で閉じる</value></data>
   <data name="KeyboardHelpName" xml:space="preserve"><value>キー操作の一覧</value></data>
+  <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>設定（Ctrl+,）</value></data>
 </root>

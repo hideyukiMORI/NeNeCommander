@@ -108,11 +108,29 @@ Letters and `+` and `-` are produced characters with Control and Alt absent (KBD
 
 Letters are produced characters with Control and Alt absent (KBD-003). The raw virtual-key event that precedes a produced character passes through; every other identified key, every declared key under an undeclared modifier, and a repeated `Enter` are consumed, so no pane, editor, or native control receives them and a held `Enter` selects at most once. While both sections are loading every intent is frozen and nothing is routed. Plain `g` and `G` keep their file-list meaning, and `Ctrl+G` cancels a pending `gg` chord like any other declared key.
 
+## Settings editor
+
+`Ctrl+,` opens the session-owned settings editor (ADR-0040). While it is open the host's keyboard
+context is `Settings` (ADR-0077), declared in the canonical table of `KeyboardIntentMapper`:
+
+| Input | Intent |
+|---|---|
+| `j` or `Down` | focus the next item; the focus stops at the last item |
+| `k` or `Up` | focus the previous item; the focus stops at the first item |
+| `Space` or `Enter` | toggle the focused check box, select the focused color scheme, or close |
+| `Escape` | close the editor |
+
+The items are, in order, the hidden-at-launch check box, each color scheme, and the close button.
+Movement only moves focus: passing over a scheme neither applies nor saves it, and the selected
+scheme is saved when `Space` or `Enter` selects it. A repeated `Space` or `Enter` is consumed so a
+held key changes a setting at most once. Undeclared keys, including `Tab` and `Shift+Tab`, reach
+the native controls.
+
 ## Keyboard help
 
 `F1` opens one session-owned keyboard help (ADR-0076) under the same admission as the window
 adjustment mode. It lists the bindings of the file list, window adjustment mode, Locations picker,
-command palette and the help itself, generated from the canonical key map; aliases of one action
+settings editor, command palette and the help itself, generated from the canonical key map; aliases of one action
 share a row, `gg` is shown before `G`, and the nine bookmark slots share one row. The panes stay
 visible behind a transparent scrim and are frozen. While it is open the host's keyboard context is
 `KeyboardHelp`, declared in the canonical table of `KeyboardIntentMapper`:
@@ -144,7 +162,7 @@ When focus is inside an address, rename, search, settings, or dialog text editor
 - Status: **active**
 - Enforcement: mapper tests.
 
-A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns `Escape` as close, saves each selection immediately, and never rolls a saved or pending selection back when it closes.
+A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns the keys of its own `Settings` context (ADR-0077): `Escape` closes it, it saves each selection immediately, and it never rolls a saved or pending selection back when it closes.
 
 ### KBD-003 — Key mapping is layout-safe
 

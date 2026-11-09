@@ -105,6 +105,13 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.Locations, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
         new(KeyboardContext.Locations, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
         new(KeyboardContext.Locations, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
+        new(KeyboardContext.Settings, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.Settings, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
+        new(KeyboardContext.Settings, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.Settings, KeyboardKey.Up, KeyboardModifier.None, UserIntent.MovePrevious),
+        new(KeyboardContext.Settings, KeyboardKey.Space, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.Settings, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.Settings, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.KeyboardHelp, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.KeyboardHelp, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.KeyboardHelp, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
@@ -228,6 +235,7 @@ public sealed class KeyboardIntentMapper
             KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
+            KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
             _ => MapDeclaredKey(input),
@@ -389,6 +397,22 @@ public sealed class KeyboardIntentMapper
                 (mapped.Intent == UserIntent.Escape || mapped.Intent == UserIntent.OpenHelp))
                 ? declared
                 : new KeyboardConsumed();
+    }
+
+    /// <summary>
+    /// Maps one key while the settings editor owns input (ADR-0077). A declared key with its declared
+    /// modifier yields its intent and a repeated activation is consumed, so a held <c>Space</c> or
+    /// <c>Enter</c> changes a setting at most once. An undeclared key passes through, so <c>Tab</c> and
+    /// the native controls keep their own keyboard behavior.
+    /// </summary>
+    private static KeyboardMappingOutcome MapSettingsKey(KeyboardInput input)
+    {
+        KeyboardMappingOutcome declared = MapDeclaredKey(input);
+        return declared is MappedKeyboardIntent mapped &&
+            mapped.Intent == UserIntent.Confirm &&
+            input.RepeatState == KeyRepeatState.Repeated
+                ? new KeyboardConsumed()
+                : declared;
     }
 
     private static bool IsIgnoredWindowRepeat(

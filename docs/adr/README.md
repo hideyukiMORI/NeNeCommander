@@ -18,6 +18,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0077: Move through the settings editor with the pane movement keys](0077-settings-editor-keyboard.md)
+
 - [ADR-0076: Show the canonical key map in a session-owned help surface](0076-keyboard-help-surface.md)
 
 - [ADR-0075: Define CS-013 metrics through one standalone SDK-based checker](0075-standalone-cs013-measurement.md)

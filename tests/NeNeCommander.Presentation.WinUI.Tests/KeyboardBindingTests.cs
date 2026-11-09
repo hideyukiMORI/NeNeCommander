@@ -41,6 +41,7 @@ public sealed class KeyboardBindingTests
             KeyboardContext.TextEntry,
             KeyboardContext.AddressEntry,
             KeyboardContext.KeyboardHelp,
+            KeyboardContext.Settings,
         ];
 
         foreach (KeyboardContext context in contexts)
@@ -57,6 +58,7 @@ public sealed class KeyboardBindingTests
         Assert.HasCount(27, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
         Assert.HasCount(10, KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp));
+        Assert.HasCount(7, KeyboardIntentMapper.BindingsFor(KeyboardContext.Settings));
         Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));

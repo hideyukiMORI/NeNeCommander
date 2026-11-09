@@ -24,7 +24,7 @@ public static class KeyboardHelpPresenter
 
     /// <summary>
     /// Gets the help in display order: the file list in the first column, then window adjustment,
-    /// Locations, the command palette and the help itself in the second column.
+    /// Locations, settings, the command palette and the help itself in the second column.
     /// </summary>
     /// <returns>The two-column help content.</returns>
     public static KeyboardHelpPresentation Present()
@@ -34,6 +34,7 @@ public static class KeyboardHelpPresenter
         [
             new("KeyboardHelpGroupWindowAdjustment", WindowAdjustmentRows()),
             new("KeyboardHelpGroupLocations", ContextRows(KeyboardContext.Locations, LabelOf)),
+            new("KeyboardHelpGroupSettings", ContextRows(KeyboardContext.Settings, LabelOf)),
             new("KeyboardHelpGroupCommandPalette", CommandPaletteRows()),
             new("KeyboardHelpGroupHelp", ContextRows(KeyboardContext.KeyboardHelp, HelpLabelOf)),
         ];
