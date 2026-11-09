@@ -21,6 +21,22 @@ hide の「NeNeCommander の作業の準備をお願い」から始め、固定 
 
 Dependabot の #345・#346・#356 は、置き換えた PR を記したコメントを付けて close した。
 
+## 区切りの後の追加作業
+
+日報（#369 / #370）の merge 後、hide が最新の `main` を使って次の 2 点を確認した。
+
+- **`Ctrl+P` と `Ctrl+G` が開かない**（[#371](https://github.com/hideyukiMORI/NeNeCommander/issues/371) / [#372](https://github.com/hideyukiMORI/NeNeCommander/pull/372)）: 画面が暗くなるだけでコマンドパレットが出ない、と hide が報告。
+  F1 ヘルプ（#359）と同じく、surface の `MaxHeight` を Collapsed の overlay の `ActualHeight` に Binding していた。
+  場所の選択（Locations）も同じ状態だった。#359 の時点でリナは「パレットは正しく表示されている」と確かめずに
+  判断して変更しなかった。この判断は誤りで、hide に謝った。2 行の Binding を外し、一時ビルドの前後比較
+  （パレット・Locations、通常幅・狭幅）と hide の実機確認で直ったことを確かめた。
+- **試用版の置き場所**: 試用版を GitHub に置くのは早いか、という相談。リポジトリは public で、
+  pre-release でも誰でも取得できる。正式なリリースの条件（#94 の手動確認、96 時間以内の deep review）を
+  満たしておらず、署名もなく、バイナリを公開する手順も規約に無いため、まだ公開しないと合意した。
+  作るなら手元の zip（`D:/NeNeCommander/trial/`）か、書き込み権限のある人だけが見られる GitHub の
+  draft release にする。単一 exe は WinUI / Windows App SDK と相性が悪いため、self-contained の
+  フォルダを zip にする案。試用版はまだ作っていない。
+
 ## 判断と経緯
 
 - **SDK**: 固定 10.0.401 は system SDK から消えていた。D 側の保持 SDK で作業を続ける案もあったが、
@@ -72,3 +88,4 @@ Dependabot の #345・#346・#356 は、置き換えた PR を記したコメン
 - [#94](https://github.com/hideyukiMORI/NeNeCommander/issues/94): hide 同席の手動リリース確認。
 - ブックマーク管理モーダルも不透明な背景でファイラが見えない（hide に報告済み、未着手）。
 - 10/19 の引き継ぎにある ④ 設定保存の整理と ⑤ 残りの製品フロー・テストの CS-013 整理は未着手。
+- 試用版（未作成）と、最初の pre-release を公開する手順（ADR）。
