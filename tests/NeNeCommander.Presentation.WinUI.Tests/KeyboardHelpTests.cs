@@ -21,6 +21,7 @@ public sealed class KeyboardHelpTests
     [
         "KeyboardHelpGroupWindowAdjustment",
         "KeyboardHelpGroupLocations",
+        "KeyboardHelpGroupSettings",
         "KeyboardHelpGroupCommandPalette",
         "KeyboardHelpGroupHelp",
     ];
@@ -139,19 +140,22 @@ public sealed class KeyboardHelpTests
         CollectionAssert.AreEquivalent(
             KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations).Select(binding => binding.KeyLabelResourceKey).ToArray(),
             groups[1].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
-        Assert.HasCount(palette.Count, groups[2].Rows);
+        CollectionAssert.AreEquivalent(
+            KeyboardIntentMapper.BindingsFor(KeyboardContext.Settings).Select(binding => binding.KeyLabelResourceKey).ToArray(),
+            groups[2].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
+        Assert.HasCount(palette.Count, groups[3].Rows);
         CollectionAssert.AreEqual(
             palette.Select(hint => hint.KeyLabelResourceKey).ToArray(),
-            groups[2].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
-        CollectionAssert.AreEqual(
-            HelpLabels,
-            groups[3].Rows.Select(row => row.ActionLabelResourceKey).ToArray());
-        CollectionAssert.AreEquivalent(
-            KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp).Select(binding => binding.KeyLabelResourceKey).ToArray(),
             groups[3].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
         CollectionAssert.AreEqual(
+            HelpLabels,
+            groups[4].Rows.Select(row => row.ActionLabelResourceKey).ToArray());
+        CollectionAssert.AreEquivalent(
+            KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp).Select(binding => binding.KeyLabelResourceKey).ToArray(),
+            groups[4].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
+        CollectionAssert.AreEqual(
             CloseCaps,
-            groups[3].Rows[4].KeyLabelResourceKeys.ToArray());
+            groups[4].Rows[4].KeyLabelResourceKeys.ToArray());
     }
 
     private static int IndexOf(KeyboardHelpGroup group, string actionLabel)

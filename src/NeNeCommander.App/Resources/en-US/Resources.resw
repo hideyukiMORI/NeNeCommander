@@ -345,4 +345,5 @@
   <data name="KeyboardHelpTitle.Text" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Press Esc or F1 to close</value></data>
   <data name="KeyboardHelpName" xml:space="preserve"><value>Keyboard shortcut list</value></data>
+  <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>Settings (Ctrl+,)</value></data>
 </root>

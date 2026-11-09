@@ -30,6 +30,9 @@ public abstract record KeyboardContext
     /// <summary>Gets the Locations picker context that owns focus movement, selection, and closing.</summary>
     public static KeyboardContext Locations { get; } = new LocationsContext();
 
+    /// <summary>Gets the settings editor context that owns item movement, activation and closing (ADR-0077).</summary>
+    public static KeyboardContext Settings { get; } = new SettingsContext();
+
     /// <summary>Gets the keyboard help context that owns scrolling and closing the help (ADR-0076).</summary>
     public static KeyboardContext KeyboardHelp { get; } = new KeyboardHelpContext();
 
@@ -80,6 +83,12 @@ public abstract record KeyboardContext
         }
     }
     private sealed record LocationsContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SettingsContext : KeyboardContext
     {
         private protected override void RestrictDerivation()
         {
