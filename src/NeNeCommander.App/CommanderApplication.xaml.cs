@@ -97,19 +97,25 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     }
 
     /// <summary>
-    /// Replaces the one composition-root scheme dictionary with the selected closed scheme.
+    /// Applies the selected closed scheme. The first call merges the one composition-root scheme
+    /// dictionary before any view resolves a <c>StaticResource</c>. A later selection keeps that
+    /// dictionary and its brush instances and copies the selected scheme's colors into them, because
+    /// every element already holds a reference to those brushes; replacing the dictionary would leave
+    /// the visible elements on the previous scheme (Issue #366).
     /// </summary>
     private void ApplyColorScheme(ColorScheme scheme)
     {
-        if (_schemeDictionary is not null)
-        {
-            _ = Resources.MergedDictionaries.Remove(_schemeDictionary);
-        }
-        _schemeDictionary = new ResourceDictionary
+        ResourceDictionary selected = new()
         {
             Source = ColorSchemeResources.ResolveDictionaryAddress(scheme),
         };
-        Resources.MergedDictionaries.Add(_schemeDictionary);
+        if (_schemeDictionary is null)
+        {
+            _schemeDictionary = selected;
+            Resources.MergedDictionaries.Add(_schemeDictionary);
+            return;
+        }
+        ColorSchemeResources.CopySchemeInPlace(selected, _schemeDictionary);
     }
 
     private static void ApplyElementTheme(Window window, ColorSchemeAppearance appearance)

@@ -107,8 +107,10 @@ has to coexist with the one operation bar and with file-operation modal ownershi
   pane. `Ctrl+H` remains the active-pane session toggle and never writes settings.
 - **The scheme remains a composition concern.** A selected scheme applies immediately for the
   current session, including after a failed write. The session publishes the typed scheme to the
-  existing composition-root mapping, which replaces the one merged scheme dictionary and updates
-  the window content's `RequestedTheme`. Persisted text never becomes a resource address and the
+  existing composition-root mapping, which keeps the one merged scheme dictionary, copies the
+  selected scheme's brush colors into its existing brush instances so every element already
+  resolved through `StaticResource` repaints (Issue #366), and updates the window content's
+  `RequestedTheme`. Persisted text never becomes a resource address and the
   view does not add a theme mechanism.
 - **`Ctrl+,` is the sole settings entry.** The canonical `KeyboardIntentMapper` maps the produced
   comma with Control to `OpenSettings` in `FileList` and `NavigationSurface` contexts. Text entry,
