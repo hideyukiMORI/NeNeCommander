@@ -19,7 +19,7 @@ public sealed class KeyHintPresenterTests
     {
         IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.FileList);
 
-        Assert.HasCount(11, hints);
+        Assert.HasCount(12, hints);
         AssertHint(hints[0], "KeyLabelF2", "IntentLabelRename");
         AssertHint(hints[1], "KeyLabelF5", "IntentLabelCopy");
         AssertHint(hints[2], "KeyLabelF6", "IntentLabelMove");
@@ -30,7 +30,8 @@ public sealed class KeyHintPresenterTests
         AssertHint(hints[7], "KeyLabelCtrlP", "IntentLabelOpenCommandPalette");
         AssertHint(hints[8], "KeyLabelCtrlB", "IntentLabelOpenBookmarks");
         AssertHint(hints[9], "KeyLabelCtrlComma", "IntentLabelOpenSettings");
-        AssertHint(hints[10], "KeyLabelEscape", "IntentLabelEscape");
+        AssertHint(hints[10], "KeyLabelF1", "IntentLabelOpenHelp");
+        AssertHint(hints[11], "KeyLabelEscape", "IntentLabelEscape");
         Assert.AreEqual("SettingsEntryHint", hints[9].AutomationId);
         Assert.AreEqual(1, hints.Count(hint => hint.AutomationId.Length > 0));
     }

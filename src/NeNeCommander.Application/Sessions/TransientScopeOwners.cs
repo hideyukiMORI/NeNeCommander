@@ -13,20 +13,24 @@ public sealed record TransientScopeOwners
     /// <param name="commandPalette">Sole command palette scope owner.</param>
     /// <param name="windowAdjustment">Sole window adjustment scope owner.</param>
     /// <param name="locations">Sole Locations picker scope owner.</param>
+    /// <param name="keyboardHelp">Sole keyboard help scope owner.</param>
     public TransientScopeOwners(
         AddressEditorSession addressEditor,
         CommandPaletteSession commandPalette,
         WindowAdjustmentSession windowAdjustment,
-        LocationsSession locations)
+        LocationsSession locations,
+        KeyboardHelpSession keyboardHelp)
     {
         ArgumentNullException.ThrowIfNull(addressEditor);
         ArgumentNullException.ThrowIfNull(commandPalette);
         ArgumentNullException.ThrowIfNull(windowAdjustment);
         ArgumentNullException.ThrowIfNull(locations);
+        ArgumentNullException.ThrowIfNull(keyboardHelp);
         AddressEditor = addressEditor;
         CommandPalette = commandPalette;
         WindowAdjustment = windowAdjustment;
         Locations = locations;
+        KeyboardHelp = keyboardHelp;
     }
 
     /// <summary>Gets the sole address editor scope owner.</summary>
@@ -40,4 +44,7 @@ public sealed record TransientScopeOwners
 
     /// <summary>Gets the sole Locations picker scope owner.</summary>
     public LocationsSession Locations { get; }
+
+    /// <summary>Gets the sole keyboard help scope owner.</summary>
+    public KeyboardHelpSession KeyboardHelp { get; }
 }

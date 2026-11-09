@@ -323,4 +323,26 @@
   <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>Unknown</value></data>
   <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
   <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="KeyLabelF1" xml:space="preserve"><value>F1</value></data>
+  <data name="KeyLabelChordGG" xml:space="preserve"><value>g g</value></data>
+  <data name="KeyLabelCtrl1To9" xml:space="preserve"><value>Ctrl+1–9</value></data>
+  <data name="IntentLabelOpenHelp" xml:space="preserve"><value>Help</value></data>
+  <data name="IntentLabelFocusFirst" xml:space="preserve"><value>First item</value></data>
+  <data name="IntentLabelFocusLast" xml:space="preserve"><value>Last item</value></data>
+  <data name="IntentLabelMoveHalfPageDown" xml:space="preserve"><value>Half page down</value></data>
+  <data name="IntentLabelMoveHalfPageUp" xml:space="preserve"><value>Half page up</value></data>
+  <data name="IntentLabelBookmarkSlots" xml:space="preserve"><value>Go to a numbered bookmark</value></data>
+  <data name="KeyboardHelpGroupFileList" xml:space="preserve"><value>File list</value></data>
+  <data name="KeyboardHelpGroupWindowAdjustment" xml:space="preserve"><value>Window adjustment (Ctrl+W)</value></data>
+  <data name="KeyboardHelpGroupLocations" xml:space="preserve"><value>Locations (Ctrl+G)</value></data>
+  <data name="KeyboardHelpGroupCommandPalette" xml:space="preserve"><value>Command palette (Ctrl+P)</value></data>
+  <data name="KeyboardHelpGroupHelp" xml:space="preserve"><value>This help (F1)</value></data>
+  <data name="KeyboardHelpScrollDown" xml:space="preserve"><value>Scroll down</value></data>
+  <data name="KeyboardHelpScrollUp" xml:space="preserve"><value>Scroll up</value></data>
+  <data name="KeyboardHelpPageDown" xml:space="preserve"><value>Half page down</value></data>
+  <data name="KeyboardHelpPageUp" xml:space="preserve"><value>Half page up</value></data>
+  <data name="KeyboardHelpClose" xml:space="preserve"><value>Close</value></data>
+  <data name="KeyboardHelpTitle.Text" xml:space="preserve"><value>Keyboard shortcuts</value></data>
+  <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Press Esc or F1 to close</value></data>
+  <data name="KeyboardHelpName" xml:space="preserve"><value>Keyboard shortcut list</value></data>
 </root>

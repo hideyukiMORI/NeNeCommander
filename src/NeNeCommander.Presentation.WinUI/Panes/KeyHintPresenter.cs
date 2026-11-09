@@ -63,6 +63,7 @@ public static class KeyHintPresenter
             UserIntent.OpenCommandPalette,
             UserIntent.OpenBookmarks,
             UserIntent.OpenSettings,
+            UserIntent.OpenHelp,
             UserIntent.Escape,
         ];
     }

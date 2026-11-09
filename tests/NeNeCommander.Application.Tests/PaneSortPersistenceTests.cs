@@ -231,7 +231,8 @@ public sealed class PaneSortPersistenceTests
             Session = new CommanderSession(new DualPaneSession(left, right, _gateway),
                 new SettingsSession(Store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception)),
                 new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
+                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
+                    new KeyboardHelpSession()));
         }
 
         internal async Task ListBothAsync()

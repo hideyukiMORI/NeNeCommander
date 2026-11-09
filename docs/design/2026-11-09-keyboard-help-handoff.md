@@ -15,15 +15,13 @@ Generated from the canonical key map; nothing is hand-written.
 
 1. Title: `キー操作` / `Keyboard shortcuts`, with a one-line note `Esc または F1 で閉じる`.
 2. Groups, in key-map order, each with a localized heading:
-   - 移動 (Normal-mode movement): `j`/`Down`, `k`/`Up`, `h`/`Backspace`/`Alt+Up`, `l`/`Enter`,
-     `Alt+Left`, `Alt+Right`, `gg`, `G`, `Ctrl+D`/`PageDown`, `Ctrl+U`/`PageUp`, `Tab`, `Space`,
-     `Ctrl+H`, `Ctrl+F3`–`Ctrl+F6`, `Escape`.
-   - ファイル操作 (File commands): `F2`, `F5`, `F6`, `F7`, `F8`, `Ctrl+L`, `Ctrl+R`, `Ctrl+,`,
-     `Ctrl+P`, `Ctrl+B`, `Ctrl+W`, `Ctrl+G`, `Ctrl+1`–`Ctrl+9`, `F1`.
-   - ウィンドウ調整 (Window adjustment, `Ctrl+W`): `h`/`j`/`k`/`l` and arrows, `+`, `-`, `m`, `r`,
+   - ファイル一覧 (File list): every file-list binding in declaration order — movement, sorting,
+     file commands, scope entries, `gg` before `G`, one `Ctrl+1–9` bookmark row and `F1`.
+   - ウィンドウ調整（Ctrl+W） (Window adjustment): `h`/`j`/`k`/`l` and arrows, `+`, `-`, `m`, `r`,
      `Escape`/`Ctrl+W`.
-   - 場所の選択 (Locations picker, `Ctrl+G`): `j`/`Down`, `k`/`Up`, `Enter`, `Escape`.
-   - コマンドパレット (Command palette, `Ctrl+P`): its declared keys.
+   - 場所の選択（Ctrl+G） (Locations picker): `j`/`Down`, `k`/`Up`, `Enter`, `Escape`.
+   - コマンドパレット（Ctrl+P） (Command palette): its declared keys.
+   - このヘルプ（F1） (This help): its scrolling and closing keys.
 3. Each row: one or more key caps (aliases share a row) and the localized action label. Key caps
    reuse the operation bar's key-cap treatment.
 

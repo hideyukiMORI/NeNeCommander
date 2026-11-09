@@ -47,7 +47,8 @@ internal static class CommandPaletteTestContext
                 new AddressEditorSession(),
                 new CommandPaletteSession(),
                 new WindowAdjustmentSession(),
-                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog())));
+                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()),
+                new KeyboardHelpSession()));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         if (passiveListing is not null)
         {

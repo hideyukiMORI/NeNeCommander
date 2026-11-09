@@ -32,18 +32,23 @@ its own table would become a second, drifting description of the same bindings.
   picker and window adjustment scope, with the same mutual exclusion: at most one is open, both
   panes are frozen while it is open, and closing restores focus to the file list of the pane that
   was active at entry. No second surface manager, window, or navigation stack is introduced.
-- **Content is generated from the canonical declarations only.** A Presentation projection reads
-  `KeyboardIntentMapper.BindingsFor` for each declared context, `CommandPaletteBindings`,
-  `WindowAdjustmentBindings`, the documented `gg` chord entry exposed by the mapper, and
-  `CommandLabelCatalog` labels. Groups follow the key map's contexts (normal movement, file
-  commands, window adjustment, Locations picker, command palette). Aliases of one intent are shown
-  in one row. The projection owns ordering and grouping, not bindings. A conformance test fails
-  when a declared binding is absent from the projection or the projection shows a key the mapper
-  does not perform.
-- **Keys inside the surface.** `Escape` and `F1` close it. `Up`/`Down`, `j`/`k`, `PageUp`/`PageDown`
-  and `Ctrl+U`/`Ctrl+D` scroll. No other key acts; every identified key is consumed so the frozen
-  panes receive nothing, matching the window adjustment mode's consumption rule. The surface has no
-  search field, no command execution and no tab stops other than its scrolling region.
+- **Content is generated from the canonical declarations only.** `KeyboardHelpPresenter` reads
+  `KeyboardIntentMapper.BindingsFor` for the file-list, Locations and help contexts, reuses the
+  existing window-adjustment and palette key-hint projections, and takes labels from
+  `CommandLabelCatalog`. Groups follow the key map's contexts: file list, window adjustment,
+  Locations picker, command palette and the help itself. Aliases of one action share one row. The
+  projection adds only two display rules: the stateful `gg` chord, which is not a table binding,
+  is shown just before `G`, and the nine bookmark slots share one `Ctrl+1–9` row. The projection
+  owns ordering and grouping, not bindings. Conformance tests fail when a declared binding is
+  absent from the projection or the projection shows a key the mapper does not perform.
+- **Keys inside the surface.** A new `KeyboardHelp` context in the canonical table maps `Escape`
+  and `F1` to close, and `Up`/`Down`, `j`/`k`, `PageUp`/`PageDown` and `Ctrl+U`/`Ctrl+D` to the
+  existing movement intents, which the view applies as scrolling. Every other identified key is
+  consumed so the frozen panes receive nothing, and a repeated `Escape` or `F1` is consumed so a
+  held key cannot close and reopen the help; a repeated `F1` in the file list passes through like
+  the other single-shot function keys. The surface has no search field, no command execution and
+  no tab stops other than its scrolling region. Closing goes through the session's synchronous
+  `CloseKeyboardHelp` route with the open state last rendered, so a stale close changes nothing.
 - **Pointer.** The surface sits on the same transparent `SmokeFillColorDefaultBrush` scrim as the
   command palette, so the panes stay visible and pointer input cannot reach them. Tapping the
   scrim closes the surface through the same qualified close as `Escape`.

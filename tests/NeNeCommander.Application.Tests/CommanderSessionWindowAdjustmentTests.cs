@@ -577,7 +577,8 @@ public sealed class CommanderSessionWindowAdjustmentTests
                     new AddressEditorSession(),
                     new CommandPaletteSession(),
                     new WindowAdjustmentSession(),
-                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog())));
+                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
+                    new KeyboardHelpSession()));
         }
 
         internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();

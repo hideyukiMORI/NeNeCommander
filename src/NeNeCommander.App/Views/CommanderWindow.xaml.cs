@@ -32,6 +32,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly AsyncWorkOwner _paneWork;
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
+    private readonly KeyboardHelpView _keyboardHelpView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
     private readonly OperationBarView _operationView;
@@ -76,6 +77,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             new WindowAdjustmentRoute(dependencies.Session, new AppWindowPlacementAdapter(AppWindow, InputSurface), dependencies.DefectObserver),
             FocusFileList);
         _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
+        _keyboardHelpView = new KeyboardHelpView(KeyboardHelpOverlay, _resources, dependencies.Session, FocusFileList);
         Title = _resources.GetString("CommanderWindowTitle");
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
@@ -205,6 +207,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paletteView.Render(snapshot);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
+        _keyboardHelpView.Render();
         ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
         if (_renderedScheme != scheme)
         {
@@ -299,6 +302,12 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (outcome is MappedCommandPaletteAction paletteAction)
         {
             return _paletteView.Forward(paletteAction.Action);
+        }
+        if (outcome is MappedKeyboardIntent help &&
+            _session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen)
+        {
+            _keyboardHelpView.Forward(help.Intent);
+            return true;
         }
         if (outcome is MappedKeyboardIntent mapped)
         {
@@ -435,6 +444,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (_session.Current.Scopes.WindowAdjustment is WindowAdjustmentOpen)
         {
             return KeyboardContext.WindowAdjustment;
+        }
+        if (_session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen)
+        {
+            return KeyboardContext.KeyboardHelp;
         }
         if (_session.Current.Scopes.Locations is not LocationsClosed)
         {

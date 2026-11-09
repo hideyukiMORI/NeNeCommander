@@ -146,7 +146,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             new AddressEditorSession(),
             new CommandPaletteSession(),
             new WindowAdjustmentSession(),
-            new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()));
+            new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()),
+            new KeyboardHelpSession());
         CommanderSession session = new(panes, settingsSession, scopes);
         CommanderWindowDependencies dependencies = CommanderWindowDependencies.Create(
             keyboardIntentMapper, session, ReportDefect, TimeZoneInfo.Local);

@@ -44,7 +44,8 @@ public sealed class CommanderSession
                 _scopes.AddressEditor.Current,
                 _scopes.CommandPalette.Current,
                 _scopes.WindowAdjustment.Current,
-                _scopes.Locations.Current);
+                _scopes.Locations.Current,
+                _scopes.KeyboardHelp.Current);
             return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
         }
     }
@@ -62,6 +63,7 @@ public sealed class CommanderSession
             _scopes.AddressEditor.Current is not AddressEditorClosed ||
             _scopes.CommandPalette.Current is CommandPaletteOpen ||
             _scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
+            _scopes.KeyboardHelp.Current is KeyboardHelpOpen ||
             _scopes.Locations.Current is not LocationsClosed)
         {
             return Current;
@@ -78,7 +80,8 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
-        if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen)
+        if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
+            _scopes.KeyboardHelp.Current is KeyboardHelpOpen)
         {
             return Current;
         }
@@ -171,6 +174,11 @@ public sealed class CommanderSession
             OpenWindowAdjustment();
             return Current;
         }
+        if (intent == UserIntent.OpenHelp)
+        {
+            OpenKeyboardHelp();
+            return Current;
+        }
         if (intent == UserIntent.OpenLocations)
         {
             DualPaneSnapshot panes = _panes.Current;
@@ -223,6 +231,19 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(expected);
         return _scopes.WindowAdjustment.Leave(expected);
+    }
+
+    /// <summary>
+    /// Closes one qualified open keyboard help surface and requests the one-time focus return. It is
+    /// the help's declared synchronous route: it awaits nothing and touches only the help scope, so a
+    /// close is never refused while a pane read is pending (ADR-0076).
+    /// </summary>
+    /// <param name="expected">Exact open state the caller last rendered.</param>
+    /// <returns>The keyboard help state current after this decision.</returns>
+    public KeyboardHelpState CloseKeyboardHelp(KeyboardHelpOpen expected)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        return _scopes.KeyboardHelp.Close(expected);
     }
 
     /// <summary>Awaits every settings write queued before application shutdown.</summary>
@@ -410,6 +431,16 @@ public sealed class CommanderSession
     {
         DualPaneSnapshot panes = _panes.Current;
         _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, PaletteOwnership(panes));
+    }
+
+    /// <summary>
+    /// Opens the keyboard help under the same idle rule as the window mode (ADR-0076). An open palette
+    /// closes before it dispatches an accepted command, so it never reaches this point while open.
+    /// </summary>
+    private void OpenKeyboardHelp()
+    {
+        DualPaneSnapshot panes = _panes.Current;
+        _ = _scopes.KeyboardHelp.Open(panes.ActiveSide, PaletteOwnership(panes));
     }
 
     /// <summary>

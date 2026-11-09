@@ -38,6 +38,11 @@ public static class CommandLabelCatalog
         new(UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment"),
         new(UserIntent.Escape, "IntentLabelEscape"),
         new(UserIntent.Confirm, "IntentLabelConfirm"),
+        new(UserIntent.OpenHelp, "IntentLabelOpenHelp"),
+        new(UserIntent.FocusFirst, "IntentLabelFocusFirst"),
+        new(UserIntent.FocusLast, "IntentLabelFocusLast"),
+        new(UserIntent.MoveHalfPageDown, "IntentLabelMoveHalfPageDown"),
+        new(UserIntent.MoveHalfPageUp, "IntentLabelMoveHalfPageUp"),
     ]);
 
     /// <summary>Gets the label declared for an intent.</summary>

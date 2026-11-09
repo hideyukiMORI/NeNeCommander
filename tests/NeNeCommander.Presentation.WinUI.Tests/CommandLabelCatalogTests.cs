@@ -24,7 +24,7 @@ public sealed class CommandLabelCatalogTests
             Assert.AreEqual(resourceKey, label.ResourceKey);
         }
         _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
-            CommandLabelCatalog.LabelFor(UserIntent.FocusFirst));
+            CommandLabelCatalog.LabelFor(UserIntent.BookmarkSlotOne));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
             CommandLabelCatalog.LabelFor(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
@@ -64,6 +64,11 @@ public sealed class CommandLabelCatalogTests
             (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment"),
             (UserIntent.Escape, "IntentLabelEscape"),
             (UserIntent.Confirm, "IntentLabelConfirm"),
+            (UserIntent.OpenHelp, "IntentLabelOpenHelp"),
+            (UserIntent.FocusFirst, "IntentLabelFocusFirst"),
+            (UserIntent.FocusLast, "IntentLabelFocusLast"),
+            (UserIntent.MoveHalfPageDown, "IntentLabelMoveHalfPageDown"),
+            (UserIntent.MoveHalfPageUp, "IntentLabelMoveHalfPageUp"),
         ];
     }
 }

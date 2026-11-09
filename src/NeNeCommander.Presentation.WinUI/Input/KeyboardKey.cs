@@ -118,6 +118,9 @@ public abstract record KeyboardKey
     /// <summary>Gets the Escape virtual key.</summary>
     public static KeyboardKey Escape { get; } = new EscapeKey();
 
+    /// <summary>Gets the F1 virtual key.</summary>
+    public static KeyboardKey F1 { get; } = new F1Key();
+
     /// <summary>Gets the F2 virtual key.</summary>
     public static KeyboardKey F2 { get; } = new F2Key();
 
@@ -407,6 +410,15 @@ public abstract record KeyboardKey
         }
 
         public override string LabelResourceKey => "KeyLabelEscape";
+    }
+
+    private sealed record F1Key : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelF1";
     }
 
     private sealed record F2Key : KeyboardKey

@@ -24,6 +24,7 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.Tab => KeyboardKey.Tab,
             (int)VirtualKey.Space => KeyboardKey.Space,
             (int)VirtualKey.Escape => KeyboardKey.Escape,
+            (int)VirtualKey.F1 => KeyboardKey.F1,
             (int)VirtualKey.F2 => KeyboardKey.F2,
             (int)VirtualKey.F3 => KeyboardKey.F3,
             (int)VirtualKey.F4 => KeyboardKey.F4,
