@@ -44,12 +44,18 @@ internal static class VerifiedMoveTestContext
         return DeletionExecutionMode.VerifiedCopy(VerifiedCopyReceipt.Create(receipt.Source, changed, receipt.Boundary));
     }
 
-    internal static bool IsUntouchedDirectoryTarget(string change, string path)
+    /// <summary>
+    /// Names the directory whose injected change time advances after the late change. The external
+    /// parent is included because a mapped NTFS directory timestamp shares one system clock tick with
+    /// the fixture's earlier writes, so the real write alone is not deterministically observable.
+    /// </summary>
+    internal static bool ReportsChangedDirectoryTime(string change, string path)
     {
         return change switch
         {
             "untouched-root" => path.EndsWith("\\directory", StringComparison.Ordinal),
             "untouched-sibling" => path.EndsWith("\\sibling", StringComparison.Ordinal),
+            "external-parent" => path.EndsWith("\\wsl", StringComparison.Ordinal),
             _ => false,
         };
     }

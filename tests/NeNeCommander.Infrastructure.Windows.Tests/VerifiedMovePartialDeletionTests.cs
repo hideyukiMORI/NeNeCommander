@@ -33,7 +33,7 @@ public sealed class VerifiedMovePartialDeletionTests
         {
             inspect(path);
             WslHandleFacts facts = OwnedWslNamespace.ReadFacts(path);
-            return changed && VerifiedMoveTestContext.IsUntouchedDirectoryTarget(change, path)
+            return changed && VerifiedMoveTestContext.ReportsChangedDirectoryTime(change, path)
                 ? VerifiedMoveTestContext.ChangedTime(facts) : facts;
         });
         if (change == "untouched-sibling")
