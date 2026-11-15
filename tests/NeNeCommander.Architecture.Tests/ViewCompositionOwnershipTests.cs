@@ -21,6 +21,7 @@ public sealed class ViewCompositionOwnershipTests
     [DataRow("BookmarkBrowseView")]
     [DataRow("BookmarkDetailsView")]
     [DataRow("BookmarkManagerView")]
+    [DataRow("CaptionBarView")]
     public void VisualPartWhenComposedRetainsNoSessionOrAsyncWork(string name)
     {
         Type type = typeof(CommanderWindow).Assembly.GetType("NeNeCommander.App.Views." + name) ??
@@ -41,6 +42,7 @@ public sealed class ViewCompositionOwnershipTests
     [DataRow("BookmarkBrowseView")]
     [DataRow("BookmarkDetailsView")]
     [DataRow("BookmarkManagerView")]
+    [DataRow("CaptionBarView")]
     public void VisualPartWhenCreatedStaysWithinParameterLimit(string name)
     {
         Type type = typeof(CommanderWindow).Assembly.GetType("NeNeCommander.App.Views." + name) ??

@@ -34,6 +34,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly WindowAdjustmentView _windowAdjustmentView;
     private readonly KeyboardHelpView _keyboardHelpView;
     private readonly SettingsKeyboardView _settingsKeyboardView;
+    private readonly CaptionBarView _captionBarView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
     private readonly OperationBarView _operationView;
@@ -85,6 +86,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             SettingsClose,
             () => Content.XamlRoot);
         Title = _resources.GetString("CommanderWindowTitle");
+        _captionBarView = new CaptionBarView(
+            CaptionBar,
+            _resources,
+            new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons));
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
@@ -119,6 +124,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnActivated(object _, WindowActivatedEventArgs args)
     {
+        _captionBarView.RenderActivation(args.WindowActivationState);
         if (args.WindowActivationState != WindowActivationState.Deactivated)
         {
             _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);

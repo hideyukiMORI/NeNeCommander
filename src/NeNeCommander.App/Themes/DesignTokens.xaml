@@ -4,6 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Thickness x:Key="SpacingNone">0</Thickness>
     <Thickness x:Key="SpacingWindowOuter">6</Thickness>
+    <Thickness x:Key="SpacingWindowContent">6,0,6,6</Thickness>
+    <Thickness x:Key="SpacingCaptionTitle">12,0,0,0</Thickness>
     <Thickness x:Key="SpacingPaneHeader">10,0</Thickness>
     <Thickness x:Key="SpacingPaneList">0,6</Thickness>
     <Thickness x:Key="SpacingPaneNumber">6,1</Thickness>
@@ -50,5 +52,11 @@
     <x:Double x:Key="DensityNameEntryHeight">26</x:Double>
     <x:Double x:Key="DensityProgressSegmentSize">8</x:Double>
     <x:Double x:Key="DensityIconStrokeThickness">1.5</x:Double>
+    <x:Double x:Key="DensityCaptionBarHeight">32</x:Double>
+    <x:Double x:Key="DensityCaptionButtonWidth">46</x:Double>
+    <x:Double x:Key="DensityCaptionGlyphSize">10</x:Double>
+    <x:Double x:Key="DensityCaptionGlyphStrokeThickness">1</x:Double>
+    <x:Double x:Key="DensityCaptionResizeBorder">4</x:Double>
+    <x:Double x:Key="DensityCaptionButtonResizeBorder">2</x:Double>
     <Duration x:Key="MotionStandardDuration">0:0:0.160</Duration>
 </ResourceDictionary>
