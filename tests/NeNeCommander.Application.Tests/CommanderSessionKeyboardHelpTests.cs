@@ -122,6 +122,27 @@ public sealed class CommanderSessionKeyboardHelpTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => fixture.Session.CloseKeyboardHelp(null!));
     }
 
+    /// <summary>
+    /// Proves the session validates both arguments before the open help swallows input, so an
+    /// absent intent or observer is rejected rather than ignored while the help owns the keyboard.
+    /// </summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenHelpIsOpenStillRejectsAbsentArgumentsAsync()
+    {
+        using Fixture fixture = await Fixture.ListedAsync();
+        KeyboardHelpOpen open = Assert.IsInstanceOfType<KeyboardHelpOpen>(
+            (await fixture.HandleAsync(UserIntent.OpenHelp)).Scopes.KeyboardHelp);
+
+        ArgumentNullException intent = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => fixture.Session.HandleAsync(null!, new RecordingCommanderObserver(), CancellationToken.None));
+        ArgumentNullException observer = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+            () => fixture.Session.HandleAsync(UserIntent.Escape, null!, CancellationToken.None));
+
+        Assert.AreEqual("intent", intent.ParamName);
+        Assert.AreEqual("observer", observer.ParamName);
+        Assert.AreSame(open, fixture.Session.Current.Scopes.KeyboardHelp);
+    }
+
     private static DirectoryListing Listing(string location, string name)
     {
         DirectoryEntry entry = DirectoryEntry.Create(

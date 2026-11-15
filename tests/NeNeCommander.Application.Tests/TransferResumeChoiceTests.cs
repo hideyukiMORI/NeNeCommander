@@ -49,6 +49,7 @@ public sealed class TransferResumeChoiceTests
 
         FileOperationOutcome replayed = await TransferConflictTestContext.ResumeSkipAsync(gateway, awaiting.Continuation!);
         Assert.AreSame(FileOperationFailureKind.Reentrant, replayed.Failure);
+        Assert.IsEmpty(replayed.Effects);
         Assert.HasCount(3, port.Calls);
     }
 
@@ -100,6 +101,7 @@ public sealed class TransferResumeChoiceTests
             (TransferConflictDecision.Skip, TransferPlanEntry.Skip(matchingKeepBoth, conflict.ExistingTarget)),
             (TransferConflictDecision.Skip, TransferPlanEntry.Skip( conflict.Source.WithConflictChoice(TransferConflictChoice.Create( otherCandidateConflict, TransferConflictDecision.Skip)), conflict.ExistingTarget)),
             (TransferConflictDecision.KeepBoth, TransferPlanEntry.Skip(matchingKeepBoth, conflict.ExistingTarget)),
+            (TransferConflictDecision.KeepBoth, TransferPlanEntry.Skip(matchingKeepBoth, conflict.KeepBothCandidate)),
             (TransferConflictDecision.KeepBoth, TransferPlanEntry.Transfer(matchingKeepBoth, conflict.ExistingTarget)),
         ];
         foreach ((TransferConflictDecision decision, TransferPlanEntry entry) in invalidPlans)

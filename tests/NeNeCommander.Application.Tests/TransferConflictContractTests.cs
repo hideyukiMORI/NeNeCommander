@@ -181,6 +181,13 @@ public sealed class TransferConflictContractTests
         TransferConflictTestContext.AssertNullParameter(() => _ = new OperationAwaitingConflict(null!, conflicts, continuation), "kind");
         TransferConflictTestContext.AssertNullParameter(() => _ = new OperationAwaitingConflict(OperationKind.Copy, null!, continuation), "conflicts");
         TransferConflictTestContext.AssertNullParameter(() => _ = new OperationAwaitingConflict(OperationKind.Copy, conflicts, null!), "continuation");
+        TransferConflictTestContext.AssertNullParameter(() => _ = TransferConflictPause.Create(null!, continuation), "conflicts");
+        TransferConflictTestContext.AssertNullParameter(() => _ = TransferConflictPause.Create(conflicts, null!), "continuation");
+        FileOperationOutcome paused = FileOperationOutcome.AwaitingConflict(conflicts, continuation);
+        Assert.AreSame(conflicts, paused.Conflicts);
+        Assert.AreSame(continuation, paused.Continuation);
+        Assert.IsEmpty(paused.Effects);
+        Assert.IsEmpty(paused.NotTransferred);
     }
 
     private static void AssertConflictFactories(FileEntrySnapshot source, TransferConflict conflict)

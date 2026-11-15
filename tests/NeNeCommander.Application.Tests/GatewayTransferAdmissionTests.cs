@@ -126,6 +126,7 @@ public sealed class GatewayTransferAdmissionTests
             cancellation.Token);
 
         Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.IsEmpty(outcome.Effects);
         Assert.HasCount(1, port.Calls);
     }
 

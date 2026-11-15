@@ -100,4 +100,26 @@ public sealed class KeyboardHelpSessionTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Open(PaneSide.Left, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Close(null!));
     }
+
+    /// <summary>
+    /// Proves an absent side is rejected even when the open would be refused, and that the open
+    /// state itself refuses an absent side, so no state can capture a missing focus return.
+    /// </summary>
+    [TestMethod]
+    public void OpenWhenSideIsNullAndAnotherScopeOwnsInputStillThrows()
+    {
+        KeyboardHelpSession session = new();
+
+        ArgumentNullException refused = Assert.ThrowsExactly<ArgumentNullException>(
+            () => session.Open(null!, InteractionOwnership.AnotherScopeOwnsInput));
+        ArgumentNullException owned = Assert.ThrowsExactly<ArgumentNullException>(
+            () => session.Open(null!, InteractionOwnership.ScopeOwnsInput));
+        ArgumentNullException state = Assert.ThrowsExactly<ArgumentNullException>(
+            () => _ = new KeyboardHelpOpen(null!));
+
+        Assert.AreEqual("active", refused.ParamName);
+        Assert.AreEqual("active", owned.ParamName);
+        Assert.AreEqual("activeSide", state.ParamName);
+        Assert.AreSame(KeyboardHelpState.Closed, session.Current);
+    }
 }

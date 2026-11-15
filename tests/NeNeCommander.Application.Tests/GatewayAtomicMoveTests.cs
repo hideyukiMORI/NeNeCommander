@@ -92,6 +92,7 @@ public sealed class GatewayAtomicMoveTests
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
         port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
+        port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -103,6 +104,33 @@ public sealed class GatewayAtomicMoveTests
         Assert.IsEmpty(outcome.Effects);
         Assert.HasCount(4, port.Calls);
         Assert.AreEqual("AtomicCapability:C:\\first", port.Calls[3]);
+    }
+
+    /// <summary>Proves cancellation observed after capability preflight wins over a failed capability answer.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task ExecuteAsyncWhenCancellationArrivesWithFailedCapabilityReportsCancellation()
+    {
+        using CancellationTokenSource cancellation = new();
+        FileSystemPath source = GatewayTestContext.ParsePath("C:\\source");
+        ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(
+            ScriptedCallbackPoint.AfterAtomicCapability,
+            cancellation.Cancel);
+        port.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.Recycle));
+        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.Inspection));
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(
+            GatewayTestContext.CreateMove([source]),
+            RecordingFileOperationProgress.Create(),
+            cancellation.Token);
+
+        Assert.AreSame(FileOperationCompletionKind.Cancelled, outcome.Completion);
+        Assert.IsNull(outcome.Failure);
+        Assert.IsEmpty(outcome.Effects);
+        Assert.HasCount(3, port.Calls);
     }
 
     /// <summary>Proves an atomic provider failure reports no effect and starts no fallback mutation.</summary>
