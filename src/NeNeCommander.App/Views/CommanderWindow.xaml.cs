@@ -89,7 +89,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _captionBarView = new CaptionBarView(
             CaptionBar,
             _resources,
-            new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons));
+            new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons, dependencies.DefectObserver));
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);

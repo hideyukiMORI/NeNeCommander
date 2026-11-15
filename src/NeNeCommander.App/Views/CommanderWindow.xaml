@@ -50,7 +50,6 @@
         </Grid.RowDefinitions>
         <Grid
             x:Name="CaptionBar"
-            AutomationProperties.AutomationId="CaptionBar"
             Background="{StaticResource SurfaceWindowBrush}"
             Height="{StaticResource DensityCaptionBarHeight}">
             <Grid.ColumnDefinitions>
@@ -102,188 +101,164 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <Grid
-            x:Name="InputSurface"
-            Grid.Row="1"
-            AutomationProperties.AutomationId="CommanderDualPane"
-            Background="{StaticResource SurfaceWindowBrush}"
-            CharacterReceived="OnCharacterReceived"
-            PreviewKeyDown="OnKeyDown"
-            Loaded="OnLoaded"
-            Padding="{StaticResource SpacingWindowContent}"
-            RowSpacing="{StaticResource SpacingPaneGap}">
-            <Grid.Resources>
-                <views:SemanticResourceConverter x:Key="SemanticResourceConverter" />
-                <views:LocalizedTextConverter x:Key="LocalizedTextConverter" />
+    <!-- The dual-pane surface keeps its indentation from before Issue #379 so its history stays readable. -->
+    <Grid
+        x:Name="InputSurface"
+        Grid.Row="1"
+        AutomationProperties.AutomationId="CommanderDualPane"
+        Background="{StaticResource SurfaceWindowBrush}"
+        CharacterReceived="OnCharacterReceived"
+        PreviewKeyDown="OnKeyDown"
+        Loaded="OnLoaded"
+        Padding="{StaticResource SpacingWindowContent}"
+        RowSpacing="{StaticResource SpacingPaneGap}">
+        <Grid.Resources>
+            <views:SemanticResourceConverter x:Key="SemanticResourceConverter" />
+            <views:LocalizedTextConverter x:Key="LocalizedTextConverter" />
 
-                <Style x:Key="PlainTextEditorStyle" TargetType="TextBox">
-                    <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
-                    <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
-                    <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
-                    <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
-                    <Setter Property="FontFamily" Value="{StaticResource TypographyMonospaceFamily}" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TextBox">
-                                <ScrollViewer
-                                    x:Name="ContentElement"
-                                    AutomationProperties.AccessibilityView="Raw"
-                                    HorizontalScrollBarVisibility="Hidden"
-                                    HorizontalScrollMode="Auto"
-                                    IsTabStop="False"
-                                    VerticalScrollBarVisibility="Hidden"
-                                    VerticalScrollMode="Disabled"
-                                    ZoomMode="Disabled" />
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
+            <Style x:Key="PlainTextEditorStyle" TargetType="TextBox">
+                <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
+                <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
+                <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
+                <Setter Property="FontFamily" Value="{StaticResource TypographyMonospaceFamily}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <ScrollViewer
+                                x:Name="ContentElement"
+                                AutomationProperties.AccessibilityView="Raw"
+                                HorizontalScrollBarVisibility="Hidden"
+                                HorizontalScrollMode="Auto"
+                                IsTabStop="False"
+                                VerticalScrollBarVisibility="Hidden"
+                                VerticalScrollMode="Disabled"
+                                ZoomMode="Disabled" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-                <Style x:Key="PaneRowContainerStyle" TargetType="ListViewItem">
-                    <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
-                    <Setter Property="AutomationProperties.Name" Value="{Binding Entry.Name}" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="UseSystemFocusVisuals" Value="False" />
-                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                    <Setter Property="Margin" Value="{StaticResource SpacingNone}" />
-                    <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
-                    <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
-                    <Setter Property="Height" Value="{StaticResource DensityRowHeight}" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListViewItem">
-                                <ContentPresenter
-                                    Content="{TemplateBinding Content}"
-                                    ContentTemplate="{TemplateBinding ContentTemplate}"
-                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
+            <Style x:Key="PaneRowContainerStyle" TargetType="ListViewItem">
+                <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
+                <Setter Property="AutomationProperties.Name" Value="{Binding Entry.Name}" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="UseSystemFocusVisuals" Value="False" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                <Setter Property="Margin" Value="{StaticResource SpacingNone}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
+                <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
+                <Setter Property="Height" Value="{StaticResource DensityRowHeight}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <ContentPresenter
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-                <Style
-                    x:Key="CommandPaletteRowContainerStyle"
-                    BasedOn="{StaticResource DefaultListViewItemStyle}"
-                    TargetType="ListViewItem">
-                    <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
-                    <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="MinHeight" Value="{StaticResource DensityRowHeight}" />
-                    <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
-                    <Setter Property="ToolTipService.ToolTip" Value="{Binding Title}" />
-                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                </Style>
+            <Style
+                x:Key="CommandPaletteRowContainerStyle"
+                BasedOn="{StaticResource DefaultListViewItemStyle}"
+                TargetType="ListViewItem">
+                <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
+                <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="MinHeight" Value="{StaticResource DensityRowHeight}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
+                <Setter Property="ToolTipService.ToolTip" Value="{Binding Title}" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            </Style>
 
-                <DataTemplate x:Key="PaneRowTemplate" x:DataType="panes:PaneRow">
-                    <Grid
-                        AutomationProperties.Name="{x:Bind Entry.Name}"
-                        Background="{Binding Mark.SurfaceBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
-                        ColumnSpacing="{StaticResource SpacingRowGap}"
-                        Height="{StaticResource DensityRowHeight}"
-                        Padding="{StaticResource SpacingRowContent}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Rectangle
-                            Fill="{Binding Mark.MarkerBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
-                            Width="{StaticResource DensityRowMarkerWidth}" />
-                        <Path
-                            Grid.Column="1"
-                            Data="M1.5,4 L6,4 L7.5,5.5 L14.5,5.5 L14.5,13 L1.5,13 Z"
-                            Height="{StaticResource DensityKindIconSize}"
-                            Stroke="{StaticResource FocusRingBrush}"
-                            StrokeLineJoin="Round"
-                            StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                            VerticalAlignment="Center"
-                            Visibility="{x:Bind Kind.IsDirectory}"
-                            Width="{StaticResource DensityKindIconSize}" />
-                        <Path
-                            Grid.Column="1"
-                            Data="M3.5,1.5 L9.5,1.5 L12.5,4.5 L12.5,14.5 L3.5,14.5 Z M9.5,1.5 L9.5,4.5 L12.5,4.5"
-                            Height="{StaticResource DensityKindIconSize}"
-                            Stroke="{StaticResource TextSecondaryBrush}"
-                            StrokeLineJoin="Round"
-                            StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                            VerticalAlignment="Center"
-                            Visibility="{x:Bind Kind.IsFile}"
-                            Width="{StaticResource DensityKindIconSize}" />
-                        <TextBlock
-                            Grid.Column="2"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{Binding Visibility.NameBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
-                            Text="{x:Bind Entry.Name}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Center" />
-                        <TextBlock
-                            Grid.Column="3"
-                            AutomationProperties.Name="{x:Bind SizeText}"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{x:Bind SizeText}"
-                            TextAlignment="Right"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Center"
-                            Width="{StaticResource DensityRowSizeWidth}" />
-                        <TextBlock
-                            Grid.Column="4"
-                            AutomationProperties.Name="{x:Bind ModifiedText}"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{x:Bind ModifiedText}"
-                            TextAlignment="Right"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Center"
-                            Width="{StaticResource DensityRowModifiedWidth}" />
-                        <TextBlock
-                            Grid.Column="5"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyKindLabelSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{Binding Kind.LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                            VerticalAlignment="Center" />
-                    </Grid>
-                </DataTemplate>
+            <DataTemplate x:Key="PaneRowTemplate" x:DataType="panes:PaneRow">
+                <Grid
+                    AutomationProperties.Name="{x:Bind Entry.Name}"
+                    Background="{Binding Mark.SurfaceBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                    ColumnSpacing="{StaticResource SpacingRowGap}"
+                    Height="{StaticResource DensityRowHeight}"
+                    Padding="{StaticResource SpacingRowContent}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle
+                        Fill="{Binding Mark.MarkerBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                        Width="{StaticResource DensityRowMarkerWidth}" />
+                    <Path
+                        Grid.Column="1"
+                        Data="M1.5,4 L6,4 L7.5,5.5 L14.5,5.5 L14.5,13 L1.5,13 Z"
+                        Height="{StaticResource DensityKindIconSize}"
+                        Stroke="{StaticResource FocusRingBrush}"
+                        StrokeLineJoin="Round"
+                        StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind Kind.IsDirectory}"
+                        Width="{StaticResource DensityKindIconSize}" />
+                    <Path
+                        Grid.Column="1"
+                        Data="M3.5,1.5 L9.5,1.5 L12.5,4.5 L12.5,14.5 L3.5,14.5 Z M9.5,1.5 L9.5,4.5 L12.5,4.5"
+                        Height="{StaticResource DensityKindIconSize}"
+                        Stroke="{StaticResource TextSecondaryBrush}"
+                        StrokeLineJoin="Round"
+                        StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind Kind.IsFile}"
+                        Width="{StaticResource DensityKindIconSize}" />
+                    <TextBlock
+                        Grid.Column="2"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{Binding Visibility.NameBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                        Text="{x:Bind Entry.Name}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
+                    <TextBlock
+                        Grid.Column="3"
+                        AutomationProperties.Name="{x:Bind SizeText}"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{x:Bind SizeText}"
+                        TextAlignment="Right"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityRowSizeWidth}" />
+                    <TextBlock
+                        Grid.Column="4"
+                        AutomationProperties.Name="{x:Bind ModifiedText}"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{x:Bind ModifiedText}"
+                        TextAlignment="Right"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityRowModifiedWidth}" />
+                    <TextBlock
+                        Grid.Column="5"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyKindLabelSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding Kind.LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        VerticalAlignment="Center" />
+                </Grid>
+            </DataTemplate>
 
-                <DataTemplate x:Key="KeyHintTemplate">
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource SpacingKeyHintGap}"
-                        VerticalAlignment="Center">
-                        <Border
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
-                            BorderThickness="{StaticResource BorderKeyCapThickness}"
-                            CornerRadius="{StaticResource RadiusKeyCap}"
-                            Padding="{StaticResource SpacingKeyCap}"
-                            VerticalAlignment="Center">
-                            <TextBlock
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextKeyHintBrush}"
-                                Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock
-                            AutomationProperties.AutomationId="{Binding AutomationId}"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                            TextLineBounds="Tight"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                </DataTemplate>
-
-                <DataTemplate x:Key="KeyboardHelpCapTemplate">
+            <DataTemplate x:Key="KeyHintTemplate">
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="{StaticResource SpacingKeyHintGap}"
+                    VerticalAlignment="Center">
                     <Border
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="{StaticResource BorderKeyCapThickness}"
@@ -294,1075 +269,1100 @@
                             FontFamily="{StaticResource TypographyMonospaceFamily}"
                             FontSize="{StaticResource TypographyMonospaceSize}"
                             Foreground="{StaticResource TextKeyHintBrush}"
-                            Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                            Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
                             VerticalAlignment="Center" />
                     </Border>
-                </DataTemplate>
+                    <TextBlock
+                        AutomationProperties.AutomationId="{Binding AutomationId}"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
 
-                <DataTemplate x:Key="KeyboardHelpRowTemplate">
-                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                        <ItemsControl
-                            AutomationProperties.AccessibilityView="Raw"
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource KeyboardHelpCapTemplate}"
-                            ItemsSource="{Binding KeyLabelResourceKeys}"
-                            VerticalAlignment="Center"
-                            Width="{StaticResource DensityKeyboardHelpKeyColumnWidth}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingKeyHintGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                        <TextBlock
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{Binding ActionLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                            TextLineBounds="Tight"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                </DataTemplate>
+            <DataTemplate x:Key="KeyboardHelpCapTemplate">
+                <Border
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="{StaticResource BorderKeyCapThickness}"
+                    CornerRadius="{StaticResource RadiusKeyCap}"
+                    Padding="{StaticResource SpacingKeyCap}"
+                    VerticalAlignment="Center">
+                    <TextBlock
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextKeyHintBrush}"
+                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                        VerticalAlignment="Center" />
+                </Border>
+            </DataTemplate>
 
-                <DataTemplate x:Key="KeyboardHelpGroupTemplate">
-                    <StackPanel Margin="{StaticResource SpacingWindowOuter}" Spacing="{StaticResource SpacingKeyHintGap}">
-                        <TextBlock
-                            FontSize="{StaticResource TypographyBodySize}"
-                            FontWeight="Bold"
-                            Foreground="{StaticResource TextPrimaryBrush}"
-                            Text="{Binding TitleResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
-                        <ItemsControl
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource KeyboardHelpRowTemplate}"
-                            ItemsSource="{Binding Rows}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="{StaticResource SpacingKeyHintGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </StackPanel>
-                </DataTemplate>
+            <DataTemplate x:Key="KeyboardHelpRowTemplate">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
+                    <ItemsControl
+                        AutomationProperties.AccessibilityView="Raw"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyboardHelpCapTemplate}"
+                        ItemsSource="{Binding KeyLabelResourceKeys}"
+                        VerticalAlignment="Center"
+                        Width="{StaticResource DensityKeyboardHelpKeyColumnWidth}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <TextBlock
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding ActionLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
 
-                <DataTemplate x:Key="WindowAdjustmentKeyHintTemplate">
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource SpacingKeyHintGap}"
+            <DataTemplate x:Key="KeyboardHelpGroupTemplate">
+                <StackPanel Margin="{StaticResource SpacingWindowOuter}" Spacing="{StaticResource SpacingKeyHintGap}">
+                    <TextBlock
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{Binding TitleResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                    <ItemsControl
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyboardHelpRowTemplate}"
+                        ItemsSource="{Binding Rows}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="WindowAdjustmentKeyHintTemplate">
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="{StaticResource SpacingKeyHintGap}"
+                    VerticalAlignment="Center">
+                    <ItemsControl
+                        IsTabStop="False"
+                        ItemsSource="{Binding KeyLabelResourceKeys}"
                         VerticalAlignment="Center">
-                        <ItemsControl
-                            IsTabStop="False"
-                            ItemsSource="{Binding KeyLabelResourceKeys}"
-                            VerticalAlignment="Center">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingKeyHintGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border
-                                        BorderBrush="{StaticResource BorderSubtleBrush}"
-                                        BorderThickness="{StaticResource BorderKeyCapThickness}"
-                                        CornerRadius="{StaticResource RadiusKeyCap}"
-                                        Padding="{StaticResource SpacingKeyCap}"
-                                        VerticalAlignment="Center">
-                                        <TextBlock
-                                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                            FontSize="{StaticResource TypographyMonospaceSize}"
-                                            Foreground="{StaticResource TextKeyHintBrush}"
-                                            Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
-                                            VerticalAlignment="Center" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                    BorderThickness="{StaticResource BorderKeyCapThickness}"
+                                    CornerRadius="{StaticResource RadiusKeyCap}"
+                                    Padding="{StaticResource SpacingKeyCap}"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                        FontSize="{StaticResource TypographyMonospaceSize}"
+                                        Foreground="{StaticResource TextKeyHintBrush}"
+                                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                                        VerticalAlignment="Center" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate
+                x:Key="CommandPaletteRowTemplate"
+                x:DataType="commands:CommandPaletteRow">
+                <Grid
+                    AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                    AutomationProperties.Name="{x:Bind AutomationName}"
+                    ColumnSpacing="{StaticResource SpacingRowGap}"
+                    MinHeight="{StaticResource DensityRowHeight}"
+                    Padding="{StaticResource SpacingRowContent}"
+                    ToolTipService.ToolTip="{x:Bind Title}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="{x:Bind StateMarker}"
+                        VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock
+                            FontSize="{StaticResource TypographyBodySize}"
+                            Foreground="{StaticResource TextPrimaryBrush}"
+                            Text="{x:Bind Title}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap" />
+                        <TextBlock
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Text="{x:Bind Target}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap" />
+                    </StackPanel>
+                    <TextBlock
+                        Grid.Column="2"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="{x:Bind Reason}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
+                    <Border
+                        Grid.Column="3"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="{StaticResource BorderKeyCapThickness}"
+                        CornerRadius="{StaticResource RadiusKeyCap}"
+                        Padding="{StaticResource SpacingKeyCap}"
+                        VerticalAlignment="Center">
                         <TextBlock
                             FontFamily="{StaticResource TypographyMonospaceFamily}"
                             FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                            TextLineBounds="Tight"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                </DataTemplate>
+                            Foreground="{StaticResource TextKeyHintBrush}"
+                            Text="{x:Bind Shortcut}" />
+                    </Border>
+                </Grid>
+            </DataTemplate>
 
-                <DataTemplate
-                    x:Key="CommandPaletteRowTemplate"
-                    x:DataType="commands:CommandPaletteRow">
-                    <Grid
-                        AutomationProperties.AutomationId="{x:Bind AutomationId}"
-                        AutomationProperties.Name="{x:Bind AutomationName}"
-                        ColumnSpacing="{StaticResource SpacingRowGap}"
-                        MinHeight="{StaticResource DensityRowHeight}"
-                        Padding="{StaticResource SpacingRowContent}"
-                        ToolTipService.ToolTip="{x:Bind Title}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Foreground="{StaticResource StatusWarningBrush}"
-                            Text="{x:Bind StateMarker}"
-                            VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock
-                                FontSize="{StaticResource TypographyBodySize}"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                Text="{x:Bind Title}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap" />
-                            <TextBlock
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                Text="{x:Bind Target}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap" />
-                        </StackPanel>
-                        <TextBlock
-                            Grid.Column="2"
-                            Foreground="{StaticResource StatusWarningBrush}"
-                            Text="{x:Bind Reason}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Center" />
-                        <Border
-                            Grid.Column="3"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
-                            BorderThickness="{StaticResource BorderKeyCapThickness}"
-                            CornerRadius="{StaticResource RadiusKeyCap}"
-                            Padding="{StaticResource SpacingKeyCap}"
-                            VerticalAlignment="Center">
-                            <TextBlock
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextKeyHintBrush}"
-                                Text="{x:Bind Shortcut}" />
-                        </Border>
-                    </Grid>
-                </DataTemplate>
+            <DataTemplate x:Key="ProgressSegmentTemplate">
+                <Rectangle
+                    Fill="{Binding BrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                    Height="{StaticResource DensityProgressSegmentSize}"
+                    Width="{StaticResource DensityProgressSegmentSize}" />
+            </DataTemplate>
 
-                <DataTemplate x:Key="ProgressSegmentTemplate">
-                    <Rectangle
-                        Fill="{Binding BrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
-                        Height="{StaticResource DensityProgressSegmentSize}"
-                        Width="{StaticResource DensityProgressSegmentSize}" />
-                </DataTemplate>
+            <DataTemplate
+                x:Key="SettingsSchemeOptionTemplate"
+                x:DataType="settings:SettingsColorSchemeOption">
+                <RadioButton
+                    Checked="OnSettingsSchemeChecked"
+                    Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                    GroupName="SettingsColorSchemes"
+                    IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+            </DataTemplate>
 
-                <DataTemplate
-                    x:Key="SettingsSchemeOptionTemplate"
-                    x:DataType="settings:SettingsColorSchemeOption">
-                    <RadioButton
-                        Checked="OnSettingsSchemeChecked"
-                        Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                        GroupName="SettingsColorSchemes"
-                        IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
-                </DataTemplate>
+            <DataTemplate x:Key="BookmarkCategoryOptionTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
+                <TextBlock Text="{x:Bind DisplayText}" TextTrimming="CharacterEllipsis" />
+            </DataTemplate>
 
-                <DataTemplate x:Key="BookmarkCategoryOptionTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
-                    <TextBlock Text="{x:Bind DisplayText}" TextTrimming="CharacterEllipsis" />
-                </DataTemplate>
+            <DataTemplate x:Key="BookmarkRowTemplate" x:DataType="bookmarks:BookmarkRow">
+                <Grid ColumnSpacing="{StaticResource SpacingRowGap}" Padding="{StaticResource SpacingRowContent}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind PathText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind CategoryText}" />
+                    <TextBlock Grid.Column="3" FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{Binding ShortcutLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                </Grid>
+            </DataTemplate>
 
-                <DataTemplate x:Key="BookmarkRowTemplate" x:DataType="bookmarks:BookmarkRow">
-                    <Grid ColumnSpacing="{StaticResource SpacingRowGap}" Padding="{StaticResource SpacingRowContent}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind PathText}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="2" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind CategoryText}" />
-                        <TextBlock Grid.Column="3" FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{Binding ShortcutLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
-                    </Grid>
-                </DataTemplate>
+            <DataTemplate x:Key="LocationRowTemplate" x:DataType="locations:LocationRow">
+                <Grid
+                    AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                    AutomationProperties.Name="{x:Bind AutomationName}"
+                    ColumnSpacing="{StaticResource SpacingRowGap}"
+                    Padding="{StaticResource SpacingRowContent}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind DetailText}" TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </DataTemplate>
 
-                <DataTemplate x:Key="LocationRowTemplate" x:DataType="locations:LocationRow">
-                    <Grid
-                        AutomationProperties.AutomationId="{x:Bind AutomationId}"
-                        AutomationProperties.Name="{x:Bind AutomationName}"
-                        ColumnSpacing="{StaticResource SpacingRowGap}"
-                        Padding="{StaticResource SpacingRowContent}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind DetailText}" TextTrimming="CharacterEllipsis" />
-                    </Grid>
-                </DataTemplate>
+            <DataTemplate x:Key="BookmarkShortcutOptionTemplate" x:DataType="bookmarks:BookmarkShortcutOption">
+                <TextBlock Text="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+            </DataTemplate>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-                <DataTemplate x:Key="BookmarkShortcutOptionTemplate" x:DataType="bookmarks:BookmarkShortcutOption">
-                    <TextBlock Text="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
-                </DataTemplate>
-            </Grid.Resources>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <Grid ColumnSpacing="{StaticResource SpacingPaneGap}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Border
-                    x:Name="LeftPaneBorder"
-                    x:Uid="LeftPaneRegion"
-                    Grid.Column="0"
-                    AutomationProperties.AutomationId="LeftPaneBorder"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderActivePaneThickness}"
-                    CornerRadius="{StaticResource RadiusPane}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Border
-                            x:Name="LeftPaneHeader"
-                            BorderBrush="{StaticResource FocusRingBrush}"
-                            BorderThickness="{StaticResource BorderPaneHeaderThickness}"
-                            Height="{StaticResource DensityPaneHeaderHeight}"
-                            Padding="{StaticResource SpacingPaneHeader}">
-                            <Grid ColumnSpacing="{StaticResource SpacingPaneHeaderGap}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Border
-                                    x:Name="LeftPaneNumberSurface"
-                                    Background="{StaticResource FocusRingBrush}"
-                                    Padding="{StaticResource SpacingPaneNumber}"
-                                    VerticalAlignment="Center">
-                                    <TextBlock
-                                        x:Name="LeftPaneNumber"
-                                        x:Uid="LeftPaneNumber"
-                                        FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                        FontSize="{StaticResource TypographyMonospaceSize}"
-                                        FontWeight="Bold"
-                                        Foreground="{StaticResource SurfacePaneBrush}" />
-                                </Border>
-                                <TextBox
-                                    x:Name="LeftAddress"
-                                    Grid.Column="1"
-                                    AutomationProperties.AutomationId="LeftAddress"
-                                    FontSize="{StaticResource TypographyMonospaceSize}"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                    GotFocus="OnAddressGotFocus"
-                                    LostFocus="OnAddressLostFocus"
-                                    Style="{StaticResource PlainTextEditorStyle}" />
-                                <TextBlock
-                                    x:Name="LeftStatus"
-                                    Grid.Column="2"
-                                    AutomationProperties.AutomationId="LeftStatus"
-                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                    FontSize="{StaticResource TypographyMonospaceSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-                        <ListView
-                            x:Name="LeftFileList"
-                            Grid.Row="1"
-                            AutomationProperties.AutomationId="LeftFileList"
-                            ItemContainerStyle="{StaticResource PaneRowContainerStyle}"
-                            ItemTemplate="{StaticResource PaneRowTemplate}"
-                            Padding="{StaticResource SpacingPaneList}"
-                            SelectionMode="Single" />
-                    </Grid>
-                </Border>
-
-                <Border
-                    x:Name="RightPaneBorder"
-                    x:Uid="RightPaneRegion"
-                    Grid.Column="1"
-                    AutomationProperties.AutomationId="RightPaneBorder"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource BorderSubtleBrush}"
-                    BorderThickness="{StaticResource BorderPassivePaneThickness}"
-                    CornerRadius="{StaticResource RadiusPane}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Border
-                            x:Name="RightPaneHeader"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
-                            BorderThickness="{StaticResource BorderPaneHeaderThickness}"
-                            Height="{StaticResource DensityPaneHeaderHeight}"
-                            Padding="{StaticResource SpacingPaneHeader}">
-                            <Grid ColumnSpacing="{StaticResource SpacingPaneHeaderGap}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Border
-                                    x:Name="RightPaneNumberSurface"
-                                    Background="{StaticResource BorderSubtleBrush}"
-                                    Padding="{StaticResource SpacingPaneNumber}"
-                                    VerticalAlignment="Center">
-                                    <TextBlock
-                                        x:Name="RightPaneNumber"
-                                        x:Uid="RightPaneNumber"
-                                        FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                        FontSize="{StaticResource TypographyMonospaceSize}"
-                                        FontWeight="Bold"
-                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                                </Border>
-                                <TextBox
-                                    x:Name="RightAddress"
-                                    Grid.Column="1"
-                                    AutomationProperties.AutomationId="RightAddress"
-                                    FontSize="{StaticResource TypographyMonospaceSize}"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                    GotFocus="OnAddressGotFocus"
-                                    LostFocus="OnAddressLostFocus"
-                                    Style="{StaticResource PlainTextEditorStyle}" />
-                                <TextBlock
-                                    x:Name="RightStatus"
-                                    Grid.Column="2"
-                                    AutomationProperties.AutomationId="RightStatus"
-                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                    FontSize="{StaticResource TypographyMonospaceSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-                        <ListView
-                            x:Name="RightFileList"
-                            Grid.Row="1"
-                            AutomationProperties.AutomationId="RightFileList"
-                            ItemContainerStyle="{StaticResource PaneRowContainerStyle}"
-                            ItemTemplate="{StaticResource PaneRowTemplate}"
-                            Padding="{StaticResource SpacingPaneList}"
-                            SelectionMode="Single" />
-                    </Grid>
-                </Border>
-            </Grid>
+        <Grid ColumnSpacing="{StaticResource SpacingPaneGap}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
             <Border
-                x:Name="ConflictModal"
-                Grid.Row="0"
-                AutomationProperties.AutomationId="TransferConflictModal"
+                x:Name="LeftPaneBorder"
+                x:Uid="LeftPaneRegion"
+                Grid.Column="0"
+                AutomationProperties.AutomationId="LeftPaneBorder"
                 Background="{StaticResource SurfacePaneBrush}"
                 BorderBrush="{StaticResource FocusRingBrush}"
                 BorderThickness="{StaticResource BorderActivePaneThickness}"
-                CornerRadius="{StaticResource RadiusPane}"
-                HorizontalAlignment="Center"
-                Padding="{StaticResource SpacingOperationBar}"
-                VerticalAlignment="Center"
-                Visibility="Collapsed">
-                <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                    <TextBlock x:Uid="ConflictModalTitle" FontSize="{StaticResource TypographyBodySize}" />
-                    <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                    <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                    <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                    <CheckBox x:Name="ConflictApplyToAll" x:Uid="ConflictApplyToAll" IsChecked="False" />
-                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                        <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" />
-                        <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" />
-                        <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <Border
-                x:Name="SettingsWarning"
-                Grid.Row="1"
-                AutomationProperties.AutomationId="SettingsWarning"
-                Background="{StaticResource StatusWarningSurfaceBrush}"
-                BorderBrush="{StaticResource StatusWarningBrush}"
-                BorderThickness="{StaticResource BorderOperationBarThickness}"
-                CornerRadius="{StaticResource RadiusOperationBar}"
-                Padding="{StaticResource SpacingOperationBar}"
-                Visibility="Collapsed">
-                <TextBlock
-                    x:Name="SettingsWarningText"
-                    Foreground="{StaticResource StatusWarningBrush}"
-                    TextWrapping="Wrap" />
-            </Border>
-
-            <Grid
-                x:Name="SettingsOverlay"
-                Grid.RowSpan="3"
-                Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                Visibility="Collapsed"
-                Canvas.ZIndex="10">
-                <Border
-                    AutomationProperties.AutomationId="SettingsModal"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    MinWidth="{StaticResource DensityNameEntryWidth}"
-                    Padding="{StaticResource SpacingWindowOuter}"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                    <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                        <TextBlock
-                            x:Uid="SettingsTitle"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            FontWeight="Bold" />
-                        <TextBlock
-                            x:Uid="SettingsAutoSaveExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="SettingsShowHiddenAtLaunch"
-                            x:Uid="SettingsShowHiddenAtLaunch"
-                            AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
-                            Checked="OnSettingsShowHiddenChanged"
-                            Unchecked="OnSettingsShowHiddenChanged" />
-                        <TextBlock
-                            x:Uid="SettingsHiddenCurrentPaneExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            x:Uid="SettingsColorSchemeLabel"
-                            FontWeight="Bold" />
-                        <ItemsControl
-                            x:Name="SettingsSchemeOptions"
-                            AutomationProperties.AutomationId="SettingsSchemeOptions"
-                            ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}" />
-                        <TextBlock
-                            x:Name="SettingsSaveStatus"
-                            AutomationProperties.AutomationId="SettingsSaveStatus"
-                            Foreground="{StaticResource TextSecondaryBrush}" />
-                        <Button
-                            x:Name="SettingsClose"
-                            x:Uid="SettingsClose"
-                            AutomationProperties.AutomationId="SettingsClose"
-                            Click="OnSettingsClose"
-                            HorizontalAlignment="Right" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <Grid
-                x:Name="BookmarkOverlay"
-                Grid.RowSpan="3"
-                Background="{StaticResource SurfaceWindowBrush}"
-                Visibility="Collapsed"
-                Canvas.ZIndex="11">
-                <Border
-                    AutomationProperties.AutomationId="BookmarkManagerModal"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    Padding="{StaticResource SpacingWindowOuter}">
-                    <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid ColumnSpacing="{StaticResource SpacingPaneGap}">
+                CornerRadius="{StaticResource RadiusPane}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border
+                        x:Name="LeftPaneHeader"
+                        BorderBrush="{StaticResource FocusRingBrush}"
+                        BorderThickness="{StaticResource BorderPaneHeaderThickness}"
+                        Height="{StaticResource DensityPaneHeaderHeight}"
+                        Padding="{StaticResource SpacingPaneHeader}">
+                        <Grid ColumnSpacing="{StaticResource SpacingPaneHeaderGap}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Uid="BookmarkManagerTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" VerticalAlignment="Center" />
-                            <TextBox
-                                x:Name="BookmarkSearch"
-                                x:Uid="BookmarkSearch"
-                                Grid.Column="1"
-                                AutomationProperties.AutomationId="BookmarkSearch" />
-                        </Grid>
-                        <StackPanel Grid.Row="1" Spacing="{StaticResource SpacingOperationBarGap}">
-                            <TextBlock
-                                x:Name="BookmarkStatus"
-                                AutomationProperties.AutomationId="BookmarkStatus"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                            <TextBlock
-                                x:Name="BookmarkSaveStatus"
-                                AutomationProperties.AutomationId="BookmarkSaveStatus"
-                                Foreground="{StaticResource TextSecondaryBrush}" />
-                        </StackPanel>
-                        <Border
-                            x:Name="BookmarkWarning"
-                            Grid.Row="2"
-                            BorderBrush="{StaticResource StatusWarningBrush}"
-                            BorderThickness="{StaticResource BorderOperationBarThickness}"
-                            CornerRadius="{StaticResource RadiusOperationBar}"
-                            Padding="{StaticResource SpacingOperationBar}"
-                            Visibility="Collapsed">
-                            <TextBlock x:Name="BookmarkWarningText" Foreground="{StaticResource StatusWarningBrush}" TextWrapping="Wrap" />
-                        </Border>
-
-                        <Grid x:Name="BookmarkBrowseBody" Grid.Row="3" ColumnSpacing="{StaticResource SpacingPaneGap}">
-                            <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <TextBlock x:Uid="BookmarkCategoryActionsHeader" FontWeight="Bold" />
-                                <ListView
-                                    x:Name="BookmarkCategories"
-                                    Grid.Row="1"
-                                    AutomationProperties.AutomationId="BookmarkCategories"
-                                    ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
-                                <StackPanel Grid.Row="2" Spacing="{StaticResource SpacingOperationBarGap}">
-                                    <Button x:Name="BookmarkAddCategory" x:Uid="BookmarkAddCategory" />
-                                    <Button x:Name="BookmarkRenameCategory" x:Uid="BookmarkRenameCategory" />
-                                    <Button x:Name="BookmarkDeleteCategory" x:Uid="BookmarkDeleteCategory" />
-                                </StackPanel>
-                            </Grid>
-                            <Grid Grid.Column="1">
-                                <ListView
-                                    x:Name="BookmarkRows"
-                                    AutomationProperties.AutomationId="BookmarkRows"
-                                    ItemTemplate="{StaticResource BookmarkRowTemplate}"
-                                    IsDoubleTapEnabled="True" />
+                            <Border
+                                x:Name="LeftPaneNumberSurface"
+                                Background="{StaticResource FocusRingBrush}"
+                                Padding="{StaticResource SpacingPaneNumber}"
+                                VerticalAlignment="Center">
                                 <TextBlock
-                                    x:Name="BookmarkEmptyContent"
-                                    AutomationProperties.AutomationId="BookmarkEmptyContent"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    HorizontalAlignment="Center"
-                                    TextAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    VerticalAlignment="Center"
-                                    Visibility="Collapsed" />
-                            </Grid>
-                        </Grid>
-
-                        <ScrollViewer x:Name="BookmarkDraftBody" Grid.Row="3" Visibility="Collapsed">
-                            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                                <TextBlock x:Name="BookmarkDraftTitle" FontWeight="Bold" />
-                                <TextBlock x:Uid="BookmarkNameLabel" />
-                                <TextBox x:Name="BookmarkName" AutomationProperties.AutomationId="BookmarkName" MaxLength="128" />
-                                <TextBlock x:Uid="BookmarkPathLabel" />
-                                <TextBox x:Name="BookmarkPath" AutomationProperties.AutomationId="BookmarkPath" MaxLength="32767" />
-                                <TextBlock x:Uid="BookmarkCategoryLabel" />
-                                <ComboBox x:Name="BookmarkDraftCategory" ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
-                                <TextBlock x:Uid="BookmarkShortcutLabel" />
-                                <ComboBox x:Name="BookmarkDraftShortcut" ItemTemplate="{StaticResource BookmarkShortcutOptionTemplate}" />
-                            </StackPanel>
-                        </ScrollViewer>
-
-                        <StackPanel x:Name="BookmarkCategoryDraftBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
-                            <TextBlock x:Name="BookmarkCategoryDraftTitle" FontWeight="Bold" />
-                            <TextBlock x:Uid="BookmarkCategoryNameLabel" />
-                            <TextBox x:Name="BookmarkCategoryName" AutomationProperties.AutomationId="BookmarkCategoryName" MaxLength="64" />
-                        </StackPanel>
-
-                        <StackPanel x:Name="BookmarkCategoryDeleteBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
-                            <TextBlock x:Uid="BookmarkCategoryDeleteTitle" FontWeight="Bold" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteExplanation" TextWrapping="Wrap" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteCategoryLabel" />
-                            <TextBlock x:Name="BookmarkCategoryDeleteCategory" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteCountLabel" />
-                            <TextBlock x:Name="BookmarkCategoryDeleteCount" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteDestinationLabel" />
-                            <TextBlock x:Name="BookmarkCategoryDeleteDestination" />
-                        </StackPanel>
-
-                        <StackPanel x:Name="BookmarkBrowseFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right">
-                            <Button x:Name="BookmarkMove" x:Uid="BookmarkMove" />
-                            <Button x:Name="BookmarkAdd" x:Uid="BookmarkAdd" />
-                            <Button x:Name="BookmarkEdit" x:Uid="BookmarkEdit" />
-                            <Button x:Name="BookmarkDelete" x:Uid="BookmarkDelete" />
-                            <Button x:Name="BookmarkClose" x:Uid="BookmarkClose" />
-                        </StackPanel>
-                        <StackPanel x:Name="BookmarkDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
-                            <Button x:Name="BookmarkSave" x:Uid="BookmarkSave" />
-                            <Button x:Name="BookmarkDraftCancel" x:Uid="BookmarkCancel" />
-                        </StackPanel>
-                        <StackPanel x:Name="BookmarkCategoryDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
-                            <Button x:Name="BookmarkCategorySave" x:Uid="BookmarkSave" />
-                            <Button x:Name="BookmarkCategoryCancel" x:Uid="BookmarkCancel" />
-                        </StackPanel>
-                        <StackPanel x:Name="BookmarkCategoryDeleteFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
-                            <Button x:Name="BookmarkCategoryDeleteConfirm" x:Uid="BookmarkCategoryDeleteConfirm" />
-                            <Button x:Name="BookmarkCategoryDeleteCancel" x:Uid="BookmarkCancel" />
-                        </StackPanel>
-                        <StackPanel x:Name="BookmarkNavigationFailedFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
-                            <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />
-                            <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkNavigationBack" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <Border
-                x:Name="OperationBar"
-                Grid.Row="2"
-                AutomationProperties.AutomationId="OperationBar"
-                Background="{StaticResource SurfacePaneBrush}"
-                BorderBrush="{StaticResource BorderSubtleBrush}"
-                BorderThickness="{StaticResource BorderOperationBarThickness}"
-                CornerRadius="{StaticResource RadiusOperationBar}"
-                Height="{StaticResource DensityOperationBarHeight}"
-                Padding="{StaticResource SpacingOperationBar}">
-                <Grid
-                    x:Name="OperationContent"
-                    AutomationProperties.LabeledBy="{Binding ElementName=OperationStatus}"
-                    ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource SpacingOperationBarGap}"
-                        VerticalAlignment="Center">
-                        <Path
-                            x:Name="OperationWarningIcon"
-                            Data="M9,2.5 L16.5,15.5 L1.5,15.5 Z M9,6.8 L9,10.8 M9,12.8 L9,13.4"
-                            Height="{StaticResource DensityOperationIconSize}"
-                            StrokeLineJoin="Round"
-                            StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                            VerticalAlignment="Center"
-                            Visibility="Collapsed"
-                            Width="{StaticResource DensityOperationIconSize}" />
-                        <Path
-                            x:Name="OperationNameEntryIcon"
-                            Data="M3,15 L6.2,15 L15,6.2 L11.8,3 L3,11.8 Z M10,4.8 L13.2,8"
-                            Height="{StaticResource DensityOperationIconSize}"
-                            StrokeLineJoin="Round"
-                            StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                            VerticalAlignment="Center"
-                            Visibility="Collapsed"
-                            Width="{StaticResource DensityOperationIconSize}" />
-                        <TextBlock
-                            x:Name="OperationStatus"
-                            AutomationProperties.AutomationId="OperationStatus"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{StaticResource TextPrimaryBrush}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel
-                        Grid.Column="1"
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource SpacingOperationDetailGap}"
-                        VerticalAlignment="Center">
-                        <Border
-                            x:Name="NameEntryFrame"
-                            Background="{StaticResource SurfaceFieldBrush}"
-                            BorderBrush="{StaticResource FocusRingBrush}"
-                            BorderThickness="{StaticResource BorderNameEntryThickness}"
-                            CornerRadius="{StaticResource RadiusNameEntry}"
-                            Height="{StaticResource DensityNameEntryHeight}"
-                            Padding="{StaticResource SpacingNameEntry}"
-                            VerticalAlignment="Center"
-                            Visibility="Collapsed"
-                            Width="{StaticResource DensityNameEntryWidth}">
+                                    x:Name="LeftPaneNumber"
+                                    x:Uid="LeftPaneNumber"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    FontWeight="Bold"
+                                    Foreground="{StaticResource SurfacePaneBrush}" />
+                            </Border>
                             <TextBox
-                                x:Name="NameEntry"
-                                AutomationProperties.AutomationId="NameEntry"
-                                FontSize="{StaticResource TypographyBodySize}"
+                                x:Name="LeftAddress"
+                                Grid.Column="1"
+                                AutomationProperties.AutomationId="LeftAddress"
+                                FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                GotFocus="OnAddressGotFocus"
+                                LostFocus="OnAddressLostFocus"
                                 Style="{StaticResource PlainTextEditorStyle}" />
-                        </Border>
-                        <StackPanel
-                            x:Name="TransferResultSegments"
-                            Orientation="Horizontal"
-                            Spacing="{StaticResource SpacingOperationDetailGap}"
-                            Visibility="Collapsed">
-                            <TextBlock x:Uid="TransferResultNotTransferred" />
-                            <TextBlock x:Name="TransferResultNotTransferredCount" />
-                            <TextBlock x:Uid="TransferResultCopied" />
-                            <TextBlock x:Name="TransferResultCopiedCount" />
-                            <TextBlock x:Uid="TransferResultVerified" />
-                            <TextBlock x:Name="TransferResultVerifiedCount" />
-                            <TextBlock x:Uid="TransferResultSourceDeleted" />
-                            <TextBlock x:Name="TransferResultSourceDeletedCount" />
-                            <TextBlock x:Uid="TransferResultSourcePartiallyDeleted" />
-                            <TextBlock x:Name="TransferResultSourcePartiallyDeletedCount" />
-                        </StackPanel>
-                        <ItemsControl
-                            x:Name="OperationProgressSegments"
-                            AutomationProperties.AutomationId="OperationProgressSegments"
-                            ItemTemplate="{StaticResource ProgressSegmentTemplate}"
-                            VerticalAlignment="Center">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingProgressSegmentGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock
-                                x:Name="OperationDetailCount"
-                                AutomationProperties.AutomationId="OperationDetail"
+                                x:Name="LeftStatus"
+                                Grid.Column="2"
+                                AutomationProperties.AutomationId="LeftStatus"
                                 FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextPrimaryBrush}" />
-                            <TextBlock
-                                x:Name="OperationProgressSeparator"
-                                AutomationProperties.AutomationId="OperationProgressSeparator"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextPrimaryBrush}" />
-                            <TextBlock
-                                x:Name="OperationTotal"
-                                AutomationProperties.AutomationId="OperationTotal"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextPrimaryBrush}" />
-                        </StackPanel>
-                        <ItemsControl
-                            x:Name="OperationKeyHints"
-                            AutomationProperties.AutomationId="OperationKeyHints"
-                            ItemTemplate="{StaticResource KeyHintTemplate}"
-                            VerticalAlignment="Center">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingOperationDetailGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </StackPanel>
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ListView
+                        x:Name="LeftFileList"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="LeftFileList"
+                        ItemContainerStyle="{StaticResource PaneRowContainerStyle}"
+                        ItemTemplate="{StaticResource PaneRowTemplate}"
+                        Padding="{StaticResource SpacingPaneList}"
+                        SelectionMode="Single" />
                 </Grid>
             </Border>
 
-            <Grid
-                x:Name="CommandPaletteOverlay"
-                Grid.RowSpan="3"
-                AutomationProperties.AutomationId="CommandPaletteOverlay"
-                Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                Canvas.ZIndex="20"
-                Visibility="Collapsed">
-                <Border
-                    x:Name="CommandPaletteSurface"
-                    AutomationProperties.AutomationId="CommandPaletteSurface"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    HorizontalAlignment="Stretch"
-                    Padding="{StaticResource SpacingWindowOuter}"
-                    VerticalAlignment="Top">
-                    <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock
-                            x:Name="CommandPaletteContext"
-                            AutomationProperties.AutomationId="CommandPaletteContext"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <TextBox
-                            x:Name="CommandPaletteSearch"
-                            x:Uid="CommandPaletteSearch"
-                            Grid.Row="1"
-                            AutomationProperties.AutomationId="CommandPaletteSearch"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyBodySize}" />
-                        <ListView
-                            x:Name="CommandPaletteCandidateList"
-                            x:Uid="CommandPaletteCandidateList"
-                            Grid.Row="2"
-                            AutomationProperties.AutomationId="CommandPaletteCandidateList"
-                            IsItemClickEnabled="True"
-                            ItemContainerStyle="{StaticResource CommandPaletteRowContainerStyle}"
-                            ItemTemplate="{StaticResource CommandPaletteRowTemplate}"
-                            SelectionMode="Single">
-                            <ListView.Resources>
-                                <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="SelectionSurfaceBrush" />
-                                <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="SelectionSurfaceBrush" />
-                                <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="SelectionSurfaceBrush" />
-                                <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="SelectionMarkBrush" />
-                                <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="SelectionMarkBrush" />
-                                <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="SelectionMarkBrush" />
-                            </ListView.Resources>
-                        </ListView>
-                        <TextBlock
-                            x:Name="CommandPaletteZeroResults"
-                            x:Uid="CommandPaletteZeroResults"
-                            Grid.Row="3"
-                            AutomationProperties.AutomationId="CommandPaletteZeroResults"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            HorizontalAlignment="Center"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                        <Border
-                            Grid.Row="4"
-                            AutomationProperties.AutomationId="CommandPaletteDetailBar"
-                            Background="{StaticResource SurfaceFieldBrush}"
-                            BorderBrush="{StaticResource BorderSubtleBrush}"
-                            BorderThickness="{StaticResource BorderOperationBarThickness}"
-                            CornerRadius="{StaticResource RadiusOperationBar}"
-                            Padding="{StaticResource SpacingOperationBar}">
-                            <TextBlock
-                                x:Name="CommandPaletteDetail"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </Border>
-                        <ItemsControl
-                            x:Name="CommandPaletteKeyHints"
-                            Grid.Row="5"
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource KeyHintTemplate}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingOperationDetailGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <Grid
-                x:Name="LocationsOverlay"
-                Grid.RowSpan="3"
-                AutomationProperties.AutomationId="LocationsOverlay"
-                Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                Canvas.ZIndex="20"
-                Visibility="Collapsed">
-                <Border
-                    x:Name="LocationsModal"
-                    AutomationProperties.AutomationId="LocationsModal"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    HorizontalAlignment="Stretch"
-                    Padding="{StaticResource SpacingWindowOuter}"
-                    VerticalAlignment="Top">
-                    <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock x:Uid="LocationsTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" />
-                        <TextBlock
-                            x:Name="LocationsStatus"
-                            Grid.Row="1"
-                            AutomationProperties.AutomationId="LocationsStatus"
-                            AutomationProperties.LiveSetting="Polite"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                        <TextBlock
-                            x:Name="LocationsDrivesStatus"
-                            Grid.Row="2"
-                            AutomationProperties.AutomationId="LocationsDrivesStatus"
-                            Foreground="{StaticResource StatusWarningBrush}"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                        <TextBlock
-                            x:Name="LocationsWslStatus"
-                            Grid.Row="3"
-                            AutomationProperties.AutomationId="LocationsWslStatus"
-                            Foreground="{StaticResource StatusWarningBrush}"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                        <ListView
-                            x:Name="LocationsList"
-                            x:Uid="LocationsList"
-                            Grid.Row="4"
-                            AutomationProperties.AutomationId="LocationsList"
-                            IsItemClickEnabled="True"
-                            ItemTemplate="{StaticResource LocationRowTemplate}"
-                            SelectionMode="Single" />
-                        <ItemsControl
-                            x:Name="LocationsKeyHints"
-                            Grid.Row="5"
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource KeyHintTemplate}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingOperationDetailGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <Grid
-                x:Name="KeyboardHelpOverlay"
-                Grid.RowSpan="3"
-                AutomationProperties.AutomationId="KeyboardHelpOverlay"
-                Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                Canvas.ZIndex="22"
-                Padding="{StaticResource SpacingWindowOuter}"
-                Visibility="Collapsed">
-                <Border
-                    x:Name="KeyboardHelpSurface"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    HorizontalAlignment="Center"
-                    Padding="{StaticResource SpacingWindowOuter}"
-                    VerticalAlignment="Center">
-                    <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock
-                            x:Name="KeyboardHelpTitle"
-                            x:Uid="KeyboardHelpTitle"
-                            AutomationProperties.AccessibilityView="Raw"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            FontWeight="Bold"
-                            Foreground="{StaticResource TextPrimaryBrush}"
-                            Margin="{StaticResource SpacingWindowOuter}" />
-                        <ScrollViewer
-                            x:Name="KeyboardHelp"
-                            Grid.Row="1"
-                            AutomationProperties.AutomationId="KeyboardHelp"
-                            HorizontalScrollBarVisibility="Disabled"
-                            IsTabStop="True"
-                            VerticalScrollBarVisibility="Auto">
-                            <Grid x:Name="KeyboardHelpColumns">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <ItemsControl
-                                    x:Name="KeyboardHelpPrimaryGroups"
-                                    IsTabStop="False"
-                                    ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
-                                    Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
-                                <ItemsControl
-                                    x:Name="KeyboardHelpSecondaryGroups"
-                                    Grid.Column="1"
-                                    IsTabStop="False"
-                                    ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
-                                    Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
-                            </Grid>
-                        </ScrollViewer>
-                        <TextBlock
-                            x:Uid="KeyboardHelpCloseNote"
-                            Grid.Row="2"
-                            AutomationProperties.AccessibilityView="Raw"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Margin="{StaticResource SpacingWindowOuter}" />
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <Grid
-                x:Name="WindowAdjustmentOverlay"
-                Grid.RowSpan="3"
-                AutomationProperties.AutomationId="WindowAdjustmentOverlay"
-                Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                Canvas.ZIndex="21"
-                Padding="{StaticResource SpacingWindowOuter}"
-                Visibility="Collapsed">
-                <Border
-                    x:Name="WindowAdjustmentSurface"
-                    AutomationProperties.AutomationId="WindowAdjustmentSurface"
-                    Background="{StaticResource SurfacePaneBrush}"
-                    BorderBrush="{StaticResource FocusRingBrush}"
-                    BorderThickness="{StaticResource BorderOperationBarThickness}"
-                    CornerRadius="{StaticResource RadiusPane}"
-                    HorizontalAlignment="Center"
-                    Margin="{StaticResource SpacingWindowOuter}"
-                    Padding="{StaticResource SpacingOperationBar}"
-                    VerticalAlignment="Top">
-                    <StackPanel
-                        Padding="{StaticResource SpacingWindowOuter}"
-                        Spacing="{StaticResource SpacingOperationBarGap}">
-                        <Grid ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
+            <Border
+                x:Name="RightPaneBorder"
+                x:Uid="RightPaneRegion"
+                Grid.Column="1"
+                AutomationProperties.AutomationId="RightPaneBorder"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderThickness="{StaticResource BorderPassivePaneThickness}"
+                CornerRadius="{StaticResource RadiusPane}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border
+                        x:Name="RightPaneHeader"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="{StaticResource BorderPaneHeaderThickness}"
+                        Height="{StaticResource DensityPaneHeaderHeight}"
+                        Padding="{StaticResource SpacingPaneHeader}">
+                        <Grid ColumnSpacing="{StaticResource SpacingPaneHeaderGap}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel
-                                Orientation="Horizontal"
-                                Spacing="{StaticResource SpacingKeyHintGap}"
+                            <Border
+                                x:Name="RightPaneNumberSurface"
+                                Background="{StaticResource BorderSubtleBrush}"
+                                Padding="{StaticResource SpacingPaneNumber}"
                                 VerticalAlignment="Center">
-                                <Grid>
-                                    <ContentControl
-                                        x:Name="WindowAdjustmentHelper"
-                                        AutomationProperties.AutomationId="WindowAdjustmentHelper"
-                                        AutomationProperties.LiveSetting="Polite"
-                                        IsTabStop="True"
-                                        UseSystemFocusVisuals="False"
-                                        Visibility="Collapsed" />
-                                    <Path
-                                        AutomationProperties.AccessibilityView="Raw"
-                                        Data="M2,3.5 L16,3.5 L16,14.5 L2,14.5 Z M2,6.5 L16,6.5"
-                                        Height="{StaticResource DensityOperationIconSize}"
-                                        Stroke="{StaticResource FocusRingBrush}"
-                                        StrokeLineJoin="Round"
-                                        StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                                        VerticalAlignment="Center"
-                                        Width="{StaticResource DensityOperationIconSize}" />
-                                </Grid>
                                 <TextBlock
-                                    x:Name="WindowAdjustmentTitle"
-                                    AutomationProperties.AccessibilityView="Raw"
-                                    FontSize="{StaticResource TypographyBodySize}"
+                                    x:Name="RightPaneNumber"
+                                    x:Uid="RightPaneNumber"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
                                     FontWeight="Bold"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                    VerticalAlignment="Center" />
-                            </StackPanel>
-                            <TextBlock
-                                x:Name="WindowAdjustmentOutcome"
+                                    Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Border>
+                            <TextBox
+                                x:Name="RightAddress"
                                 Grid.Column="1"
-                                AutomationProperties.AccessibilityView="Raw"
+                                AutomationProperties.AutomationId="RightAddress"
+                                FontSize="{StaticResource TypographyMonospaceSize}"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                GotFocus="OnAddressGotFocus"
+                                LostFocus="OnAddressLostFocus"
+                                Style="{StaticResource PlainTextEditorStyle}" />
+                            <TextBlock
+                                x:Name="RightStatus"
+                                Grid.Column="2"
+                                AutomationProperties.AutomationId="RightStatus"
                                 FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                TextWrapping="Wrap"
                                 VerticalAlignment="Center" />
                         </Grid>
-                        <ItemsControl
-                            x:Name="WindowAdjustmentKeyHints"
-                            AutomationProperties.AccessibilityView="Raw"
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <views:KeyHintWrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-            </Grid>
+                    </Border>
+                    <ListView
+                        x:Name="RightFileList"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="RightFileList"
+                        ItemContainerStyle="{StaticResource PaneRowContainerStyle}"
+                        ItemTemplate="{StaticResource PaneRowTemplate}"
+                        Padding="{StaticResource SpacingPaneList}"
+                        SelectionMode="Single" />
+                </Grid>
+            </Border>
         </Grid>
+
+        <Border
+            x:Name="ConflictModal"
+            Grid.Row="0"
+            AutomationProperties.AutomationId="TransferConflictModal"
+            Background="{StaticResource SurfacePaneBrush}"
+            BorderBrush="{StaticResource FocusRingBrush}"
+            BorderThickness="{StaticResource BorderActivePaneThickness}"
+            CornerRadius="{StaticResource RadiusPane}"
+            HorizontalAlignment="Center"
+            Padding="{StaticResource SpacingOperationBar}"
+            VerticalAlignment="Center"
+            Visibility="Collapsed">
+            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                <TextBlock x:Uid="ConflictModalTitle" FontSize="{StaticResource TypographyBodySize}" />
+                <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                <CheckBox x:Name="ConflictApplyToAll" x:Uid="ConflictApplyToAll" IsChecked="False" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
+                    <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" />
+                    <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" />
+                    <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="SettingsWarning"
+            Grid.Row="1"
+            AutomationProperties.AutomationId="SettingsWarning"
+            Background="{StaticResource StatusWarningSurfaceBrush}"
+            BorderBrush="{StaticResource StatusWarningBrush}"
+            BorderThickness="{StaticResource BorderOperationBarThickness}"
+            CornerRadius="{StaticResource RadiusOperationBar}"
+            Padding="{StaticResource SpacingOperationBar}"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="SettingsWarningText"
+                Foreground="{StaticResource StatusWarningBrush}"
+                TextWrapping="Wrap" />
+        </Border>
+
+        <Grid
+            x:Name="SettingsOverlay"
+            Grid.RowSpan="3"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="10">
+            <Border
+                AutomationProperties.AutomationId="SettingsModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                MinWidth="{StaticResource DensityNameEntryWidth}"
+                Padding="{StaticResource SpacingWindowOuter}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                    <TextBlock
+                        x:Uid="SettingsTitle"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold" />
+                    <TextBlock
+                        x:Uid="SettingsAutoSaveExplanation"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <CheckBox
+                        x:Name="SettingsShowHiddenAtLaunch"
+                        x:Uid="SettingsShowHiddenAtLaunch"
+                        AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
+                        Checked="OnSettingsShowHiddenChanged"
+                        Unchecked="OnSettingsShowHiddenChanged" />
+                    <TextBlock
+                        x:Uid="SettingsHiddenCurrentPaneExplanation"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Uid="SettingsColorSchemeLabel"
+                        FontWeight="Bold" />
+                    <ItemsControl
+                        x:Name="SettingsSchemeOptions"
+                        AutomationProperties.AutomationId="SettingsSchemeOptions"
+                        ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}" />
+                    <TextBlock
+                        x:Name="SettingsSaveStatus"
+                        AutomationProperties.AutomationId="SettingsSaveStatus"
+                        Foreground="{StaticResource TextSecondaryBrush}" />
+                    <Button
+                        x:Name="SettingsClose"
+                        x:Uid="SettingsClose"
+                        AutomationProperties.AutomationId="SettingsClose"
+                        Click="OnSettingsClose"
+                        HorizontalAlignment="Right" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="BookmarkOverlay"
+            Grid.RowSpan="3"
+            Background="{StaticResource SurfaceWindowBrush}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="11">
+            <Border
+                AutomationProperties.AutomationId="BookmarkManagerModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                Padding="{StaticResource SpacingWindowOuter}">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="{StaticResource SpacingPaneGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Uid="BookmarkManagerTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" VerticalAlignment="Center" />
+                        <TextBox
+                            x:Name="BookmarkSearch"
+                            x:Uid="BookmarkSearch"
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="BookmarkSearch" />
+                    </Grid>
+                    <StackPanel Grid.Row="1" Spacing="{StaticResource SpacingOperationBarGap}">
+                        <TextBlock
+                            x:Name="BookmarkStatus"
+                            AutomationProperties.AutomationId="BookmarkStatus"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Name="BookmarkSaveStatus"
+                            AutomationProperties.AutomationId="BookmarkSaveStatus"
+                            Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                    <Border
+                        x:Name="BookmarkWarning"
+                        Grid.Row="2"
+                        BorderBrush="{StaticResource StatusWarningBrush}"
+                        BorderThickness="{StaticResource BorderOperationBarThickness}"
+                        CornerRadius="{StaticResource RadiusOperationBar}"
+                        Padding="{StaticResource SpacingOperationBar}"
+                        Visibility="Collapsed">
+                        <TextBlock x:Name="BookmarkWarningText" Foreground="{StaticResource StatusWarningBrush}" TextWrapping="Wrap" />
+                    </Border>
+
+                    <Grid x:Name="BookmarkBrowseBody" Grid.Row="3" ColumnSpacing="{StaticResource SpacingPaneGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Uid="BookmarkCategoryActionsHeader" FontWeight="Bold" />
+                            <ListView
+                                x:Name="BookmarkCategories"
+                                Grid.Row="1"
+                                AutomationProperties.AutomationId="BookmarkCategories"
+                                ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
+                            <StackPanel Grid.Row="2" Spacing="{StaticResource SpacingOperationBarGap}">
+                                <Button x:Name="BookmarkAddCategory" x:Uid="BookmarkAddCategory" />
+                                <Button x:Name="BookmarkRenameCategory" x:Uid="BookmarkRenameCategory" />
+                                <Button x:Name="BookmarkDeleteCategory" x:Uid="BookmarkDeleteCategory" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <ListView
+                                x:Name="BookmarkRows"
+                                AutomationProperties.AutomationId="BookmarkRows"
+                                ItemTemplate="{StaticResource BookmarkRowTemplate}"
+                                IsDoubleTapEnabled="True" />
+                            <TextBlock
+                                x:Name="BookmarkEmptyContent"
+                                AutomationProperties.AutomationId="BookmarkEmptyContent"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+
+                    <ScrollViewer x:Name="BookmarkDraftBody" Grid.Row="3" Visibility="Collapsed">
+                        <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                            <TextBlock x:Name="BookmarkDraftTitle" FontWeight="Bold" />
+                            <TextBlock x:Uid="BookmarkNameLabel" />
+                            <TextBox x:Name="BookmarkName" AutomationProperties.AutomationId="BookmarkName" MaxLength="128" />
+                            <TextBlock x:Uid="BookmarkPathLabel" />
+                            <TextBox x:Name="BookmarkPath" AutomationProperties.AutomationId="BookmarkPath" MaxLength="32767" />
+                            <TextBlock x:Uid="BookmarkCategoryLabel" />
+                            <ComboBox x:Name="BookmarkDraftCategory" ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
+                            <TextBlock x:Uid="BookmarkShortcutLabel" />
+                            <ComboBox x:Name="BookmarkDraftShortcut" ItemTemplate="{StaticResource BookmarkShortcutOptionTemplate}" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel x:Name="BookmarkCategoryDraftBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                        <TextBlock x:Name="BookmarkCategoryDraftTitle" FontWeight="Bold" />
+                        <TextBlock x:Uid="BookmarkCategoryNameLabel" />
+                        <TextBox x:Name="BookmarkCategoryName" AutomationProperties.AutomationId="BookmarkCategoryName" MaxLength="64" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="BookmarkCategoryDeleteBody" Grid.Row="3" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                        <TextBlock x:Uid="BookmarkCategoryDeleteTitle" FontWeight="Bold" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteExplanation" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteCategoryLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteCategory" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteCountLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteCount" />
+                        <TextBlock x:Uid="BookmarkCategoryDeleteDestinationLabel" />
+                        <TextBlock x:Name="BookmarkCategoryDeleteDestination" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="BookmarkBrowseFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right">
+                        <Button x:Name="BookmarkMove" x:Uid="BookmarkMove" />
+                        <Button x:Name="BookmarkAdd" x:Uid="BookmarkAdd" />
+                        <Button x:Name="BookmarkEdit" x:Uid="BookmarkEdit" />
+                        <Button x:Name="BookmarkDelete" x:Uid="BookmarkDelete" />
+                        <Button x:Name="BookmarkClose" x:Uid="BookmarkClose" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkSave" x:Uid="BookmarkSave" />
+                        <Button x:Name="BookmarkDraftCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkCategoryDraftFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkCategorySave" x:Uid="BookmarkSave" />
+                        <Button x:Name="BookmarkCategoryCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkCategoryDeleteFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkCategoryDeleteConfirm" x:Uid="BookmarkCategoryDeleteConfirm" />
+                        <Button x:Name="BookmarkCategoryDeleteCancel" x:Uid="BookmarkCancel" />
+                    </StackPanel>
+                    <StackPanel x:Name="BookmarkNavigationFailedFooter" Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" Visibility="Collapsed">
+                        <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />
+                        <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkNavigationBack" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border
+            x:Name="OperationBar"
+            Grid.Row="2"
+            AutomationProperties.AutomationId="OperationBar"
+            Background="{StaticResource SurfacePaneBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="{StaticResource BorderOperationBarThickness}"
+            CornerRadius="{StaticResource RadiusOperationBar}"
+            Height="{StaticResource DensityOperationBarHeight}"
+            Padding="{StaticResource SpacingOperationBar}">
+            <Grid
+                x:Name="OperationContent"
+                AutomationProperties.LabeledBy="{Binding ElementName=OperationStatus}"
+                ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="{StaticResource SpacingOperationBarGap}"
+                    VerticalAlignment="Center">
+                    <Path
+                        x:Name="OperationWarningIcon"
+                        Data="M9,2.5 L16.5,15.5 L1.5,15.5 Z M9,6.8 L9,10.8 M9,12.8 L9,13.4"
+                        Height="{StaticResource DensityOperationIconSize}"
+                        StrokeLineJoin="Round"
+                        StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        Width="{StaticResource DensityOperationIconSize}" />
+                    <Path
+                        x:Name="OperationNameEntryIcon"
+                        Data="M3,15 L6.2,15 L15,6.2 L11.8,3 L3,11.8 Z M10,4.8 L13.2,8"
+                        Height="{StaticResource DensityOperationIconSize}"
+                        StrokeLineJoin="Round"
+                        StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        Width="{StaticResource DensityOperationIconSize}" />
+                    <TextBlock
+                        x:Name="OperationStatus"
+                        AutomationProperties.AutomationId="OperationStatus"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="{StaticResource SpacingOperationDetailGap}"
+                    VerticalAlignment="Center">
+                    <Border
+                        x:Name="NameEntryFrame"
+                        Background="{StaticResource SurfaceFieldBrush}"
+                        BorderBrush="{StaticResource FocusRingBrush}"
+                        BorderThickness="{StaticResource BorderNameEntryThickness}"
+                        CornerRadius="{StaticResource RadiusNameEntry}"
+                        Height="{StaticResource DensityNameEntryHeight}"
+                        Padding="{StaticResource SpacingNameEntry}"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        Width="{StaticResource DensityNameEntryWidth}">
+                        <TextBox
+                            x:Name="NameEntry"
+                            AutomationProperties.AutomationId="NameEntry"
+                            FontSize="{StaticResource TypographyBodySize}"
+                            Foreground="{StaticResource TextPrimaryBrush}"
+                            Style="{StaticResource PlainTextEditorStyle}" />
+                    </Border>
+                    <StackPanel
+                        x:Name="TransferResultSegments"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource SpacingOperationDetailGap}"
+                        Visibility="Collapsed">
+                        <TextBlock x:Uid="TransferResultNotTransferred" />
+                        <TextBlock x:Name="TransferResultNotTransferredCount" />
+                        <TextBlock x:Uid="TransferResultCopied" />
+                        <TextBlock x:Name="TransferResultCopiedCount" />
+                        <TextBlock x:Uid="TransferResultVerified" />
+                        <TextBlock x:Name="TransferResultVerifiedCount" />
+                        <TextBlock x:Uid="TransferResultSourceDeleted" />
+                        <TextBlock x:Name="TransferResultSourceDeletedCount" />
+                        <TextBlock x:Uid="TransferResultSourcePartiallyDeleted" />
+                        <TextBlock x:Name="TransferResultSourcePartiallyDeletedCount" />
+                    </StackPanel>
+                    <ItemsControl
+                        x:Name="OperationProgressSegments"
+                        AutomationProperties.AutomationId="OperationProgressSegments"
+                        ItemTemplate="{StaticResource ProgressSegmentTemplate}"
+                        VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingProgressSegmentGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock
+                            x:Name="OperationDetailCount"
+                            AutomationProperties.AutomationId="OperationDetail"
+                            FontFamily="{StaticResource TypographyMonospaceFamily}"
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock
+                            x:Name="OperationProgressSeparator"
+                            AutomationProperties.AutomationId="OperationProgressSeparator"
+                            FontFamily="{StaticResource TypographyMonospaceFamily}"
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock
+                            x:Name="OperationTotal"
+                            AutomationProperties.AutomationId="OperationTotal"
+                            FontFamily="{StaticResource TypographyMonospaceFamily}"
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextPrimaryBrush}" />
+                    </StackPanel>
+                    <ItemsControl
+                        x:Name="OperationKeyHints"
+                        AutomationProperties.AutomationId="OperationKeyHints"
+                        ItemTemplate="{StaticResource KeyHintTemplate}"
+                        VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid
+            x:Name="CommandPaletteOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="CommandPaletteOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="20"
+            Visibility="Collapsed">
+            <Border
+                x:Name="CommandPaletteSurface"
+                AutomationProperties.AutomationId="CommandPaletteSurface"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Stretch"
+                Padding="{StaticResource SpacingWindowOuter}"
+                VerticalAlignment="Top">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        x:Name="CommandPaletteContext"
+                        AutomationProperties.AutomationId="CommandPaletteContext"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <TextBox
+                        x:Name="CommandPaletteSearch"
+                        x:Uid="CommandPaletteSearch"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="CommandPaletteSearch"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyBodySize}" />
+                    <ListView
+                        x:Name="CommandPaletteCandidateList"
+                        x:Uid="CommandPaletteCandidateList"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="CommandPaletteCandidateList"
+                        IsItemClickEnabled="True"
+                        ItemContainerStyle="{StaticResource CommandPaletteRowContainerStyle}"
+                        ItemTemplate="{StaticResource CommandPaletteRowTemplate}"
+                        SelectionMode="Single">
+                        <ListView.Resources>
+                            <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="SelectionMarkBrush" />
+                        </ListView.Resources>
+                    </ListView>
+                    <TextBlock
+                        x:Name="CommandPaletteZeroResults"
+                        x:Uid="CommandPaletteZeroResults"
+                        Grid.Row="3"
+                        AutomationProperties.AutomationId="CommandPaletteZeroResults"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        HorizontalAlignment="Center"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <Border
+                        Grid.Row="4"
+                        AutomationProperties.AutomationId="CommandPaletteDetailBar"
+                        Background="{StaticResource SurfaceFieldBrush}"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="{StaticResource BorderOperationBarThickness}"
+                        CornerRadius="{StaticResource RadiusOperationBar}"
+                        Padding="{StaticResource SpacingOperationBar}">
+                        <TextBlock
+                            x:Name="CommandPaletteDetail"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                    </Border>
+                    <ItemsControl
+                        x:Name="CommandPaletteKeyHints"
+                        Grid.Row="5"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="LocationsOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="LocationsOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="20"
+            Visibility="Collapsed">
+            <Border
+                x:Name="LocationsModal"
+                AutomationProperties.AutomationId="LocationsModal"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Stretch"
+                Padding="{StaticResource SpacingWindowOuter}"
+                VerticalAlignment="Top">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Uid="LocationsTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" />
+                    <TextBlock
+                        x:Name="LocationsStatus"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="LocationsStatus"
+                        AutomationProperties.LiveSetting="Polite"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="LocationsDrivesStatus"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="LocationsDrivesStatus"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="LocationsWslStatus"
+                        Grid.Row="3"
+                        AutomationProperties.AutomationId="LocationsWslStatus"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <ListView
+                        x:Name="LocationsList"
+                        x:Uid="LocationsList"
+                        Grid.Row="4"
+                        AutomationProperties.AutomationId="LocationsList"
+                        IsItemClickEnabled="True"
+                        ItemTemplate="{StaticResource LocationRowTemplate}"
+                        SelectionMode="Single" />
+                    <ItemsControl
+                        x:Name="LocationsKeyHints"
+                        Grid.Row="5"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="KeyboardHelpOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="KeyboardHelpOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="22"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed">
+            <Border
+                x:Name="KeyboardHelpSurface"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Center"
+                Padding="{StaticResource SpacingWindowOuter}"
+                VerticalAlignment="Center">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        x:Name="KeyboardHelpTitle"
+                        x:Uid="KeyboardHelpTitle"
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Margin="{StaticResource SpacingWindowOuter}" />
+                    <ScrollViewer
+                        x:Name="KeyboardHelp"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="KeyboardHelp"
+                        HorizontalScrollBarVisibility="Disabled"
+                        IsTabStop="True"
+                        VerticalScrollBarVisibility="Auto">
+                        <Grid x:Name="KeyboardHelpColumns">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ItemsControl
+                                x:Name="KeyboardHelpPrimaryGroups"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                            <ItemsControl
+                                x:Name="KeyboardHelpSecondaryGroups"
+                                Grid.Column="1"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                        </Grid>
+                    </ScrollViewer>
+                    <TextBlock
+                        x:Uid="KeyboardHelpCloseNote"
+                        Grid.Row="2"
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingWindowOuter}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="WindowAdjustmentOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="WindowAdjustmentOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="21"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed">
+            <Border
+                x:Name="WindowAdjustmentSurface"
+                AutomationProperties.AutomationId="WindowAdjustmentSurface"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Center"
+                Margin="{StaticResource SpacingWindowOuter}"
+                Padding="{StaticResource SpacingOperationBar}"
+                VerticalAlignment="Top">
+                <StackPanel
+                    Padding="{StaticResource SpacingWindowOuter}"
+                    Spacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="{StaticResource SpacingKeyHintGap}"
+                            VerticalAlignment="Center">
+                            <Grid>
+                                <ContentControl
+                                    x:Name="WindowAdjustmentHelper"
+                                    AutomationProperties.AutomationId="WindowAdjustmentHelper"
+                                    AutomationProperties.LiveSetting="Polite"
+                                    IsTabStop="True"
+                                    UseSystemFocusVisuals="False"
+                                    Visibility="Collapsed" />
+                                <Path
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    Data="M2,3.5 L16,3.5 L16,14.5 L2,14.5 Z M2,6.5 L16,6.5"
+                                    Height="{StaticResource DensityOperationIconSize}"
+                                    Stroke="{StaticResource FocusRingBrush}"
+                                    StrokeLineJoin="Round"
+                                    StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                                    VerticalAlignment="Center"
+                                    Width="{StaticResource DensityOperationIconSize}" />
+                            </Grid>
+                            <TextBlock
+                                x:Name="WindowAdjustmentTitle"
+                                AutomationProperties.AccessibilityView="Raw"
+                                FontSize="{StaticResource TypographyBodySize}"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="WindowAdjustmentOutcome"
+                            Grid.Column="1"
+                            AutomationProperties.AccessibilityView="Raw"
+                            FontFamily="{StaticResource TypographyMonospaceFamily}"
+                            FontSize="{StaticResource TypographyMonospaceSize}"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                    <ItemsControl
+                        x:Name="WindowAdjustmentKeyHints"
+                        AutomationProperties.AccessibilityView="Raw"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <views:KeyHintWrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
     </Grid>
 </Window>

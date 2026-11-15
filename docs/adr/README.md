@@ -18,6 +18,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0078: Remove the system title bar and draw one caption bar](0078-frameless-window-caption-bar.md)
+
 - [ADR-0077: Move through the settings editor with the pane movement keys](0077-settings-editor-keyboard.md)
 
 - [ADR-0076: Show the canonical key map in a session-owned help surface](0076-keyboard-help-surface.md)

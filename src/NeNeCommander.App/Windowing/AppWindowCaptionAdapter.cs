@@ -1,9 +1,11 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using NeNeCommander.Application.Windowing;
 using NeNeCommander.Infrastructure.Windows.Windowing;
 using Windows.Foundation;
 using Windows.Graphics;
@@ -22,21 +24,30 @@ internal sealed class AppWindowCaptionAdapter
     private readonly AppWindow _window;
     private readonly FrameworkElement _dragArea;
     private readonly FrameworkElement _buttons;
+    private readonly Action<Exception> _defectObserver;
     private readonly double _resizeBorder;
     private readonly double _resizeCorner;
+    private XamlRoot? _observedRoot;
 
     /// <summary>Initializes the adapter over one window and the two parts of its caption bar.</summary>
     /// <param name="window">The application window whose frame and presenter are used.</param>
     /// <param name="dragArea">Caption-bar part that moves the window and opens the system menu.</param>
     /// <param name="buttons">Caption-bar part that holds the three caption buttons.</param>
-    internal AppWindowCaptionAdapter(AppWindow window, FrameworkElement dragArea, FrameworkElement buttons)
+    /// <param name="defectObserver">Host callback that publishes an unexpected platform defect.</param>
+    internal AppWindowCaptionAdapter(
+        AppWindow window,
+        FrameworkElement dragArea,
+        FrameworkElement buttons,
+        Action<Exception> defectObserver)
     {
         ArgumentNullException.ThrowIfNull(window);
         ArgumentNullException.ThrowIfNull(dragArea);
         ArgumentNullException.ThrowIfNull(buttons);
+        ArgumentNullException.ThrowIfNull(defectObserver);
         _window = window;
         _dragArea = dragArea;
         _buttons = buttons;
+        _defectObserver = defectObserver;
         _resizeBorder = Token("DensityCaptionResizeBorder");
         _resizeCorner = Token("DensityCaptionResizeCorner");
     }
@@ -44,16 +55,20 @@ internal sealed class AppWindowCaptionAdapter
     /// <summary>Occurs after the presenter state may have changed, so the caption glyph is read again.</summary>
     internal event EventHandler? PresenterChanged;
 
-    /// <summary>Gets whether the presenter reports the maximized state now.</summary>
-    internal bool IsMaximized => Presenter.State == OverlappedPresenterState.Maximized;
+    /// <summary>Gets the presenter state the window reports now; it is read, never stored.</summary>
+    internal WindowPresenterState State => _window.Presenter is OverlappedPresenter presenter
+        ? AppWindowPlacementAdapter.TranslateState(presenter.State)
+        : WindowPresenterState.NotOverlapped;
 
     private OverlappedPresenter Presenter => _window.Presenter as OverlappedPresenter ??
         throw new InvalidOperationException("The caption bar requires the overlapped presenter.");
 
     /// <summary>
     /// Keeps the resize border, shadow, Snap and animations, and removes the system title bar with
-    /// its caption buttons. Extending content into the title bar lets the drawn caption bar start at
-    /// the top of the client area and lets the region declarations below take effect.
+    /// its caption buttons (ADR-0078). Extending content into the title bar lets the drawn caption
+    /// bar start at the top of the client area and lets the region declarations below take effect.
+    /// The subscriptions are never detached: the adapter, the window and its caption bar elements
+    /// share one lifetime, and the process ends when that window closes (ADR-0071).
     /// </summary>
     internal void Attach()
     {
@@ -68,39 +83,81 @@ internal sealed class AppWindowCaptionAdapter
     /// <summary>Minimizes through the presenter.</summary>
     internal void Minimize()
     {
+        Run(MinimizePresenter);
+    }
+
+    private void MinimizePresenter()
+    {
         Presenter.Minimize();
     }
 
     /// <summary>Maximizes or restores according to the state the presenter reports now.</summary>
     internal void ToggleMaximize()
     {
-        OverlappedPresenter presenter = Presenter;
-        if (presenter.State == OverlappedPresenterState.Maximized)
+        Run(() =>
         {
-            presenter.Restore();
-            return;
-        }
-        presenter.Maximize();
+            OverlappedPresenter presenter = Presenter;
+            if (presenter.State == OverlappedPresenterState.Maximized)
+            {
+                presenter.Restore();
+                return;
+            }
+            presenter.Maximize();
+        });
     }
 
-    /// <summary>Enters the system close path; the cancellable <c>AppWindow.Closing</c> follows.</summary>
+    /// <summary>
+    /// Enters the system close path, the same <c>SC_CLOSE</c> as Alt+F4; the cancellable
+    /// <c>AppWindow.Closing</c> and ADR-0071's drain follow. It never closes the window itself.
+    /// </summary>
     internal void RequestClose()
     {
-        if (!WindowsSystemCloseRequest.Post(Win32Interop.GetWindowFromWindowId(_window.Id)))
+        Run(() =>
         {
-            throw new InvalidOperationException("The system refused the window close request.");
+            if (!WindowsSystemCloseRequest.Post(Win32Interop.GetWindowFromWindowId(_window.Id)))
+            {
+                throw new InvalidOperationException("The system refused the window close request.");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Runs one platform call; a failure is a defect, reported through the existing observer like
+    /// every other host defect (the same rule as <see cref="WindowAdjustmentRoute"/>).
+    /// </summary>
+    private void Run(Action call)
+    {
+        try
+        {
+            call();
+        }
+        catch (COMException defect)
+        {
+            _defectObserver(defect);
+        }
+        catch (InvalidOperationException defect)
+        {
+            _defectObserver(defect);
+        }
+        catch (ArgumentException defect)
+        {
+            _defectObserver(defect);
         }
     }
 
+    /// <summary>Observes the rasterization scale of the current root once, however often Loaded runs.</summary>
     private void OnDragAreaLoaded(object sender, RoutedEventArgs args)
     {
         _ = sender;
         _ = args;
-        if (_dragArea.XamlRoot is XamlRoot root)
+        XamlRoot? root = _dragArea.XamlRoot;
+        if (!ReferenceEquals(root, _observedRoot))
         {
-            root.Changed += OnXamlRootChanged;
+            _observedRoot?.Changed -= OnXamlRootChanged;
+            _observedRoot = root;
+            _observedRoot?.Changed += OnXamlRootChanged;
         }
-        DeclareRegions();
+        Run(DeclareRegions);
     }
 
     private void OnWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
@@ -108,7 +165,7 @@ internal sealed class AppWindowCaptionAdapter
         _ = sender;
         if (args.DidPresenterChange || args.DidSizeChange)
         {
-            DeclareRegions();
+            Run(DeclareRegions);
             PresenterChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -117,16 +174,15 @@ internal sealed class AppWindowCaptionAdapter
     {
         _ = sender;
         _ = args;
-        DeclareRegions();
+        Run(DeclareRegions);
     }
 
     private void OnXamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args)
     {
         _ = sender;
         _ = args;
-        DeclareRegions();
+        Run(DeclareRegions);
     }
-
     /// <summary>
     /// Declares the drag area as the caption. While restored it also declares resize edges at the
     /// top of the caption bar: a top strip across the whole bar, including over the buttons, and a
@@ -138,7 +194,8 @@ internal sealed class AppWindowCaptionAdapter
     /// no system resize frame outside the window, so these declarations are the only top resize
     /// targets (NeNeNib's lesson: buttons must not cover them). A maximized window declares no
     /// resize edge. The buttons stay ordinary client content below the strip. Rectangles are
-    /// client-relative physical pixels.
+    /// client-relative physical pixels. Product code never reads the declarations back:
+    /// <c>GetRegionRects</c> throws <c>E_POINTER</c> for a kind without one (ADR-0078).
     /// </summary>
     private void DeclareRegions()
     {
@@ -151,7 +208,7 @@ internal sealed class AppWindowCaptionAdapter
         RectInt32 drag = PhysicalRect(_dragArea, scale);
         RectInt32 buttons = PhysicalRect(_buttons, scale);
         source.SetRegionRects(NonClientRegionKind.Caption, [drag]);
-        if (IsMaximized)
+        if (State == WindowPresenterState.Maximized)
         {
             source.ClearRegionRects(NonClientRegionKind.TopBorder);
             source.ClearRegionRects(NonClientRegionKind.LeftBorder);

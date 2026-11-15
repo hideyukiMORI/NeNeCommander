@@ -7,31 +7,29 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Windowing;
+using NeNeCommander.Presentation.WinUI.Windowing;
 
 namespace NeNeCommander.App.Views;
 
 /// <summary>
-/// Renders the drawn caption bar (Issue #379, direction A): the application name, the three
-/// caption buttons and their pointer and activation states, and the maximize or restore glyph read
-/// from the presenter. It owns no window state; every command goes to
+/// Renders the drawn caption bar (ADR-0078): the application name, the three caption buttons in
+/// their pointer and activation states, and the maximize or restore glyph and name read from the
+/// presenter each time it may have changed. Every appearance comes from
+/// <see cref="CaptionBarPresenter"/>; this view only applies it and forwards each button to
 /// <see cref="AppWindowCaptionAdapter"/>. Every brush is a shared scheme brush, so a scheme switch
-/// repaints the bar without a render.
+/// repaints the bar without a render. Its subscriptions share the window's lifetime.
 /// </summary>
 internal sealed class CaptionBarView
 {
-    private const string RestSurface = "SurfaceWindowBrush";
-    private const string HoveredSurface = "SurfacePaneBrush";
-    private const string PressedSurface = "BorderSubtleBrush";
     private readonly Grid _bar;
+    private readonly ResourceLoader _resources;
     private readonly AppWindowCaptionAdapter _adapter;
-    private readonly string _maximizeName;
-    private readonly string _restoreName;
     private readonly TextBlock _title;
     private readonly Button _maximize;
     private readonly Path _maximizeGlyph;
     private readonly Path _restoreGlyph;
     private readonly CaptionButtonPart[] _parts;
-    private bool _active = true;
+    private WindowActivity _activity = WindowActivity.Active;
 
     internal CaptionBarView(Grid bar, ResourceLoader resources, AppWindowCaptionAdapter adapter)
     {
@@ -39,9 +37,8 @@ internal sealed class CaptionBarView
         ArgumentNullException.ThrowIfNull(resources);
         ArgumentNullException.ThrowIfNull(adapter);
         _bar = bar;
+        _resources = resources;
         _adapter = adapter;
-        _maximizeName = resources.GetString("CaptionMaximizeName");
-        _restoreName = resources.GetString("CaptionRestoreName");
         _title = Find<TextBlock>("CaptionTitle");
         _title.Text = resources.GetString("CommanderWindowTitle");
         _maximize = Find<Button>("CaptionMaximize");
@@ -62,65 +59,63 @@ internal sealed class CaptionBarView
         }
         _adapter.PresenterChanged += OnPresenterChanged;
         _adapter.Attach();
-        RenderPresenter();
+        Render();
     }
 
     /// <summary>Renders the active or inactive appearance the window's activation reports.</summary>
     /// <param name="state">Activation state from <c>Window.Activated</c>.</param>
     internal void RenderActivation(WindowActivationState state)
     {
-        _active = state != WindowActivationState.Deactivated;
-        _title.Foreground = Brush(_active ? "TextSecondaryBrush" : "TextHiddenBrush");
+        _activity = state == WindowActivationState.Deactivated ? WindowActivity.Inactive : WindowActivity.Active;
+        Render();
+    }
+
+    private void Attach(CaptionButtonPart part)
+    {
+        part.Button.PointerEntered += (_, _) => Update(part, CaptionButtonPointer.Hovered);
+        part.Button.PointerExited += (_, _) => Update(part, CaptionButtonPointer.Rest);
+        part.Button.PointerCaptureLost += (_, _) => Update(part, CaptionButtonPointer.Rest);
+        // The button marks presses handled, so the handlers also run for handled events.
+        part.Button.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((_, _) => Update(part, CaptionButtonPointer.Pressed)), true);
+        part.Button.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler((_, _) => Update(part, CaptionButtonPointer.Hovered)), true);
+    }
+
+    private void Update(CaptionButtonPart part, CaptionButtonPointer pointer)
+    {
+        part.Pointer = pointer;
+        RenderPart(part);
+    }
+
+    private void Render()
+    {
+        CaptionBarPresentation presentation = CaptionBarPresenter.Present(_adapter.State, _activity);
+        _title.Foreground = Brush(presentation.TitleBrushResourceKey);
+        bool restore = presentation.MiddleButton == CaptionMiddleButton.Restore;
+        _maximizeGlyph.Visibility = restore ? Visibility.Collapsed : Visibility.Visible;
+        _restoreGlyph.Visibility = restore ? Visibility.Visible : Visibility.Collapsed;
+        AutomationProperties.SetName(_maximize, _resources.GetString(presentation.MiddleButton.NameResourceKey));
         foreach (CaptionButtonPart part in _parts)
         {
             RenderPart(part);
         }
     }
 
-    private void Attach(CaptionButtonPart part)
-    {
-        part.Button.PointerEntered += (_, _) => Update(part, HoveredSurface);
-        part.Button.PointerExited += (_, _) => Update(part, RestSurface);
-        part.Button.PointerCaptureLost += (_, _) => Update(part, RestSurface);
-        part.Button.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((_, _) => Update(part, PressedSurface)), true);
-        part.Button.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler((_, _) => Update(part, HoveredSurface)), true);
-    }
-
-    private void Update(CaptionButtonPart part, string surfaceKey)
-    {
-        part.SurfaceKey = surfaceKey;
-        RenderPart(part);
-    }
-
-    /// <summary>
-    /// Pressed uses the border surface, hover the pane surface; both show the primary text color.
-    /// At rest the glyph uses the key-hint color, or the hidden color while the window is inactive.
-    /// The close button follows the same rule as the others (hide's decision of 2026-11-15).
-    /// </summary>
     private void RenderPart(CaptionButtonPart part)
     {
-        part.Button.Background = Brush(part.SurfaceKey);
-        bool atRest = string.Equals(part.SurfaceKey, RestSurface, StringComparison.Ordinal);
-        Brush stroke = Brush(!atRest ? "TextPrimaryBrush" : _active ? "TextKeyHintBrush" : "TextHiddenBrush");
+        CaptionButtonAppearance appearance = CaptionBarPresenter.PresentButton(part.Pointer, _activity);
+        part.Button.Background = Brush(appearance.SurfaceBrushResourceKey);
+        Brush stroke = Brush(appearance.GlyphBrushResourceKey);
         foreach (Path glyph in part.Glyphs)
         {
             glyph.Stroke = stroke;
         }
     }
 
-    private void RenderPresenter()
-    {
-        bool maximized = _adapter.IsMaximized;
-        _maximizeGlyph.Visibility = maximized ? Visibility.Collapsed : Visibility.Visible;
-        _restoreGlyph.Visibility = maximized ? Visibility.Visible : Visibility.Collapsed;
-        AutomationProperties.SetName(_maximize, maximized ? _restoreName : _maximizeName);
-    }
-
     private void OnPresenterChanged(object? sender, EventArgs args)
     {
         _ = sender;
         _ = args;
-        RenderPresenter();
+        Render();
     }
 
     private void OnMinimizeClick(object sender, RoutedEventArgs args)
@@ -157,7 +152,7 @@ internal sealed class CaptionBarView
             : throw new InvalidOperationException($"Caption bar element '{name}' is missing.");
     }
 
-    /// <summary>One caption button, its glyphs, and the surface its pointer state selects.</summary>
+    /// <summary>One caption button, its glyphs, and the pointer state it shows.</summary>
     private sealed class CaptionButtonPart
     {
         internal CaptionButtonPart(Button button, Path[] glyphs)
@@ -170,6 +165,6 @@ internal sealed class CaptionBarView
 
         internal Path[] Glyphs { get; }
 
-        internal string SurfaceKey { get; set; } = RestSurface;
+        internal CaptionButtonPointer Pointer { get; set; } = CaptionButtonPointer.Rest;
     }
 }

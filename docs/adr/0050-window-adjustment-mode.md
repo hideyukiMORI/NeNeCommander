@@ -229,7 +229,10 @@ first as its own Issue; this ADR is accepted on the condition that after both ch
   areas with a gap between them, such as a taskbar docked at the bottom of the upper display, are
   not continuous: no placement whose caption row lies within one step above the gap is
   acceptable, and one step cannot clear both that band and the gap, so the mode does not carry
-  the window across such a seam. hide accepted this on 2026-10-07; the refusal names the caption,
+  the window across such a seam. Since ADR-0078 the window draws its own 32 DIP caption bar at the top of
+  the client area, and the window has no system frame above it, so the top edge row of the window
+  bounds is that bar's top row and one 32 DIP step covers the bar: the rule keeps the drawn caption
+  bar reachable exactly as it kept the system caption. hide accepted this on 2026-10-07; the refusal names the caption,
   the operating system's own commands still move the window there, and a rule that jumps the gap
   would be a separate decision. A move
   whose target fails the caption rule is refused with `CaptionWouldLeaveDesktop`; a move whose

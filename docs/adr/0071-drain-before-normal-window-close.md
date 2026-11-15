@@ -73,6 +73,8 @@ Cancellation requests completion; it does not prove completion.
   the dispatcher are not a promise of awaited cleanup. Production's explicit
   `Window.Close` is restricted to the final callback above. No OS session-ending
   handler, new prompt, partial-copy deletion, or interrupted-file recovery is added.
+  Ordinary system-affordance close includes the application's own caption-bar close
+  button, which posts the system close command and so reaches AppWindow.Closing`n  like the title-bar close it replaces (ADR-0078).
 
 ## Framework evidence
 

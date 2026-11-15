@@ -29,6 +29,10 @@
     "settingsModal": "SettingsModal",
     "transferConflictModal": "TransferConflictModal",
     "settingsEntry": "SettingsEntryHint",
+    "captionTitle": "CaptionTitle",
+    "captionMinimize": "CaptionMinimize",
+    "captionMaximize": "CaptionMaximize",
+    "captionClose": "CaptionClose",
     "focusedRow": { "automationIdPrefix": "FileListRow_", "scope": [ "LeftFileList", "RightFileList" ], "note": "Append the exact entry name and match within its owning file list. The identifier is on the row container, is independent of focus and order, and is not a persistent filesystem identity. Live UIA exposure is not yet verified." },
     "deletionConfirmation": { "automationId": "DeletionConfirmation", "scope": "OperationBar", "note": "Declared on the existing operation content grid only while permanent deletion awaits confirmation. This declaration does not enable F8 input; live UIA exposure is not yet verified." }
   },
@@ -43,7 +47,11 @@
       "LeftFileList",
       "RightFileList",
       "OperationBar",
-      "OperationKeyHints"
+      "OperationKeyHints",
+      "CaptionTitle",
+      "CaptionMinimize",
+      "CaptionMaximize",
+      "CaptionClose"
     ],
     "disjointPairs": [
       [ "LeftPaneBorder", "RightPaneBorder" ],
@@ -52,7 +60,14 @@
       [ "LeftAddress", "LeftStatus" ],
       [ "RightAddress", "RightStatus" ],
       [ "LeftAddress", "LeftFileList" ],
-      [ "RightAddress", "RightFileList" ]
+      [ "RightAddress", "RightFileList" ],
+      [ "CaptionTitle", "CaptionMinimize" ],
+      [ "CaptionMinimize", "CaptionMaximize" ],
+      [ "CaptionMaximize", "CaptionClose" ],
+      [ "CaptionTitle", "LeftPaneBorder" ],
+      [ "CaptionMinimize", "RightPaneBorder" ],
+      [ "CaptionMaximize", "RightPaneBorder" ],
+      [ "CaptionClose", "RightPaneBorder" ]
     ],
     "containedIn": [
       [ "LeftAddress", "LeftPaneBorder" ],
