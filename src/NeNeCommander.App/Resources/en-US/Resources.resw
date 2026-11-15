@@ -5,6 +5,10 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="CommanderWindowTitle" xml:space="preserve"><value>NeNe Commander</value></data>
+  <data name="CaptionMinimize.AutomationProperties.Name" xml:space="preserve"><value>Minimize</value></data>
+  <data name="CaptionMaximizeName" xml:space="preserve"><value>Maximize</value></data>
+  <data name="CaptionRestoreName" xml:space="preserve"><value>Restore</value></data>
+  <data name="CaptionClose.AutomationProperties.Name" xml:space="preserve"><value>Close</value></data>
   <data name="PaneStatusNoListing" xml:space="preserve"><value>No location listed</value></data>
   <data name="PaneStatusLoading" xml:space="preserve"><value>Reading…</value></data>
   <data name="PaneStatusComplete" xml:space="preserve"><value>Listing complete</value></data>

@@ -131,7 +131,8 @@ internal sealed class AppWindowPlacementAdapter
             : WindowSizeConstraint.Create(rasterizationScale, 0, 0);
     }
 
-    private static WindowPresenterState TranslateState(OverlappedPresenterState state)
+    /// <summary>Translates the framework presenter state; the one mapping the caption bar also reads.</summary>
+    internal static WindowPresenterState TranslateState(OverlappedPresenterState state)
     {
         return state switch
         {
