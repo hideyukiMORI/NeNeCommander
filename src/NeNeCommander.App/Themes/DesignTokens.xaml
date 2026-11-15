@@ -57,6 +57,6 @@
     <x:Double x:Key="DensityCaptionGlyphSize">10</x:Double>
     <x:Double x:Key="DensityCaptionGlyphStrokeThickness">1</x:Double>
     <x:Double x:Key="DensityCaptionResizeBorder">4</x:Double>
-    <x:Double x:Key="DensityCaptionButtonResizeBorder">2</x:Double>
+    <x:Double x:Key="DensityCaptionResizeCorner">8</x:Double>
     <Duration x:Key="MotionStandardDuration">0:0:0.160</Duration>
 </ResourceDictionary>

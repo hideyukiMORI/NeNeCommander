@@ -23,7 +23,7 @@ internal sealed class AppWindowCaptionAdapter
     private readonly FrameworkElement _dragArea;
     private readonly FrameworkElement _buttons;
     private readonly double _resizeBorder;
-    private readonly double _buttonResizeBorder;
+    private readonly double _resizeCorner;
 
     /// <summary>Initializes the adapter over one window and the two parts of its caption bar.</summary>
     /// <param name="window">The application window whose frame and presenter are used.</param>
@@ -38,7 +38,7 @@ internal sealed class AppWindowCaptionAdapter
         _dragArea = dragArea;
         _buttons = buttons;
         _resizeBorder = Token("DensityCaptionResizeBorder");
-        _buttonResizeBorder = Token("DensityCaptionButtonResizeBorder");
+        _resizeCorner = Token("DensityCaptionResizeCorner");
     }
 
     /// <summary>Occurs after the presenter state may have changed, so the caption glyph is read again.</summary>
@@ -128,11 +128,17 @@ internal sealed class AppWindowCaptionAdapter
     }
 
     /// <summary>
-    /// Declares the drag area as the caption and, while restored, a top resize strip over the
-    /// caption bar that is thinner over the buttons, so the buttons stay pressable while the top
-    /// edge above them still resizes (NeNeNib's lesson). A maximized window has no resize strip.
-    /// The buttons themselves stay ordinary client content. Rectangles are client-relative
-    /// physical pixels.
+    /// Declares the drag area as the caption. While restored it also declares resize edges at the
+    /// top of the caption bar: a top strip across the whole bar, including over the buttons, and a
+    /// strip down each side of the bar, all <c>DensityCaptionResizeBorder</c> deep. The side strips
+    /// replace the system's default side declarations, which also cover only the caption height.
+    /// The system answers a top-left or top-right corner where a top rectangle overlaps a side
+    /// rectangle (Issue #379 measurement of 2026-11-15), so a top and a side rectangle of the same
+    /// <c>DensityCaptionResizeCorner</c> square make each top corner that square. The top edge has
+    /// no system resize frame outside the window, so these declarations are the only top resize
+    /// targets (NeNeNib's lesson: buttons must not cover them). A maximized window declares no
+    /// resize edge. The buttons stay ordinary client content below the strip. Rectangles are
+    /// client-relative physical pixels.
     /// </summary>
     private void DeclareRegions()
     {
@@ -142,28 +148,43 @@ internal sealed class AppWindowCaptionAdapter
         }
         double scale = root.RasterizationScale;
         InputNonClientPointerSource source = InputNonClientPointerSource.GetForWindowId(_window.Id);
-        source.SetRegionRects(NonClientRegionKind.Caption, [PhysicalRect(_dragArea, scale, _dragArea.ActualHeight)]);
+        RectInt32 drag = PhysicalRect(_dragArea, scale);
+        RectInt32 buttons = PhysicalRect(_buttons, scale);
+        source.SetRegionRects(NonClientRegionKind.Caption, [drag]);
         if (IsMaximized)
         {
             source.ClearRegionRects(NonClientRegionKind.TopBorder);
+            source.ClearRegionRects(NonClientRegionKind.LeftBorder);
+            source.ClearRegionRects(NonClientRegionKind.RightBorder);
             return;
         }
+        int edge = Physical(_resizeBorder, scale);
+        int corner = Physical(_resizeCorner, scale);
+        int right = buttons.X + buttons.Width;
+        RectInt32 leftCorner = new(drag.X, drag.Y, corner, corner);
+        RectInt32 rightCorner = new(right - corner, drag.Y, corner, corner);
         source.SetRegionRects(NonClientRegionKind.TopBorder,
-        [
-            PhysicalRect(_dragArea, scale, _resizeBorder),
-            PhysicalRect(_buttons, scale, _buttonResizeBorder),
-        ]);
+            [new RectInt32(drag.X, drag.Y, right - drag.X, edge), leftCorner, rightCorner]);
+        source.SetRegionRects(NonClientRegionKind.LeftBorder,
+            [leftCorner, new RectInt32(drag.X, drag.Y, edge, drag.Height)]);
+        source.SetRegionRects(NonClientRegionKind.RightBorder,
+            [rightCorner, new RectInt32(right - edge, buttons.Y, edge, buttons.Height)]);
     }
 
-    private static RectInt32 PhysicalRect(FrameworkElement element, double scale, double height)
+    private static RectInt32 PhysicalRect(FrameworkElement element, double scale)
     {
         GeneralTransform transform = element.TransformToVisual(null);
         Point origin = transform.TransformPoint(new Point(0, 0));
         return new RectInt32(
-            (int)Math.Round(origin.X * scale),
-            (int)Math.Round(origin.Y * scale),
-            (int)Math.Round(element.ActualWidth * scale),
-            (int)Math.Round(height * scale));
+            Physical(origin.X, scale),
+            Physical(origin.Y, scale),
+            Physical(element.ActualWidth, scale),
+            Physical(element.ActualHeight, scale));
+    }
+
+    private static int Physical(double logical, double scale)
+    {
+        return (int)Math.Round(logical * scale);
     }
 
     private static double Token(string resourceKey)
