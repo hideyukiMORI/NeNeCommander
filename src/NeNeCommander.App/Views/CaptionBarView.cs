@@ -2,7 +2,7 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -72,17 +72,18 @@ internal sealed class CaptionBarView
 
     private void Attach(CaptionButtonPart part)
     {
-        part.Button.PointerEntered += (_, _) => Update(part, CaptionButtonPointer.Hovered);
-        part.Button.PointerExited += (_, _) => Update(part, CaptionButtonPointer.Rest);
-        part.Button.PointerCaptureLost += (_, _) => Update(part, CaptionButtonPointer.Rest);
-        // The button marks presses handled, so the handlers also run for handled events.
-        part.Button.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((_, _) => Update(part, CaptionButtonPointer.Pressed)), true);
-        part.Button.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler((_, _) => Update(part, CaptionButtonPointer.Hovered)), true);
+        // The button's own pressed and pointer-over properties are the record of its pointer state.
+        // They already account for pointer capture: a press dragged off the button and released
+        // outside ends as neither pressed nor pointer-over, which separate pointer events misread.
+        _ = part.Button.RegisterPropertyChangedCallback(ButtonBase.IsPressedProperty, (_, _) => Update(part));
+        _ = part.Button.RegisterPropertyChangedCallback(ButtonBase.IsPointerOverProperty, (_, _) => Update(part));
     }
 
-    private void Update(CaptionButtonPart part, CaptionButtonPointer pointer)
+    private void Update(CaptionButtonPart part)
     {
-        part.Pointer = pointer;
+        part.Pointer = part.Button.IsPressed
+            ? CaptionButtonPointer.Pressed
+            : part.Button.IsPointerOver ? CaptionButtonPointer.Hovered : CaptionButtonPointer.Rest;
         RenderPart(part);
     }
 
