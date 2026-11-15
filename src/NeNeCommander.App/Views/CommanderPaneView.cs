@@ -35,6 +35,7 @@ internal sealed class CommanderPaneView
         _address = Find<TextBox>(prefix + "Address");
         _status = Find<TextBlock>(prefix + "Status");
         _fileList = Find<ListView>(prefix + "FileList");
+        RowAutomationIdentity.Attach<PaneRow>(_fileList, row => row.AutomationId, row => row.Entry.Name);
         _border = Find<Border>(prefix + "PaneBorder");
         _header = Find<Border>(prefix + "PaneHeader");
         _numberSurface = Find<Border>(prefix + "PaneNumberSurface");

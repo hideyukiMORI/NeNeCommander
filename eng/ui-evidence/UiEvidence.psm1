@@ -44,6 +44,9 @@ $script:FocusOwnerIds = @(
     'NameEntry', 'CommandPaletteSearch', 'SettingsModal', 'BookmarkManagerModal',
     'TransferConflictModal')
 
+$script:FileListIds = @('LeftFileList', 'RightFileList')
+$script:FileListRowPrefix = 'FileListRow_'
+
 $script:NativeLoaded = $false
 
 #region Pure decisions (no Win32, no UI Automation)
@@ -678,6 +681,32 @@ function Get-ElementRect {
     return $record
 }
 
+function Get-SelectedFileRow {
+    <#
+      The first file-list row that UIA reports as selected, with its owning list. The product
+      renders its focus row as the list selection, so this needs neither foreground nor input.
+    #>
+    param([Parameter(Mandatory)] $Window)
+
+    foreach ($listId in $script:FileListIds) {
+        $list = Find-OwnedElement -Window $Window -AutomationId $listId
+        if ($null -eq $list) {
+            continue
+        }
+        $pattern = $null
+        if (-not $list.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern, [ref] $pattern)) {
+            continue
+        }
+        foreach ($row in @($pattern.Current.GetSelection())) {
+            $id = [string] $row.Current.AutomationId
+            if ($id.StartsWith($script:FileListRowPrefix, [System.StringComparison]::Ordinal)) {
+                return @{ List = $listId; AutomationId = $id; Rect = Get-ElementRect -Element $row }
+            }
+        }
+    }
+    return @{ List = $null; AutomationId = $null; Rect = $null }
+}
+
 function Get-FocusOwner {
     <# The focused element and the nearest ancestor-or-self whose AutomationId is a known owner. #>
     param()
@@ -1121,17 +1150,33 @@ function Get-LayoutMeasurement {
         $elements[[string] $id] = if ($null -ne $element) { Get-ElementRect -Element $element } else { $null }
     }
     $focus = Get-FocusOwner
+    $focusRowSource = 'none'
+    $focusRowList = $null
+    $focusRowId = $null
     if ($focus.ProcessId -eq $Owned.Process.Id -and $null -ne $focus.Rect) {
         $elements['@focusedRow'] = $focus.Rect
+        $focusRowSource = 'uia-focus'
+        if ($null -ne $focus.AutomationId -and $focus.AutomationId -in $script:FileListIds) {
+            $focusRowList = $focus.AutomationId
+        }
     }
     else {
-        $elements['@focusedRow'] = $null
+        # Observe never takes the foreground, so the system focus usually belongs to another
+        # process. The product shows its focus row as the file list's selection, which UIA
+        # reports without foreground; measure that row instead (Issue #358).
+        $selected = Get-SelectedFileRow -Window $Owned.Window
+        $elements['@focusedRow'] = $selected.Rect
+        if ($null -ne $selected.Rect) {
+            $focusRowSource = 'list-selection'
+            $focusRowList = $selected.List
+            $focusRowId = $selected.AutomationId
+        }
     }
     $window = Get-ElementRect -Element $Owned.Window
     $required = @(@($Layout.elements) | ForEach-Object { [string] $_ }) + @('@focusedRow')
     $contained = @(@($Layout.containedIn) | ForEach-Object { , @([string] $_[0], [string] $_[1]) })
-    if ($null -ne $focus.AutomationId -and $focus.AutomationId -in @('LeftFileList', 'RightFileList')) {
-        $contained += , @('@focusedRow', $focus.AutomationId)
+    if ($null -ne $focusRowList) {
+        $contained += , @('@focusedRow', $focusRowList)
     }
     $verdict = Test-LayoutVerdict -Elements $elements -Window $window -Required $required `
         -DisjointPairs @(@($Layout.disjointPairs) | ForEach-Object { , @([string] $_[0], [string] $_[1]) }) `
@@ -1140,6 +1185,7 @@ function Get-LayoutMeasurement {
         Window = $window
         Elements = $elements
         Focus = [ordered]@{ AutomationId = $focus.AutomationId; RawAutomationId = $focus.RawAutomationId; ProcessId = $focus.ProcessId; Rect = $focus.Rect }
+        FocusRow = [ordered]@{ Source = $focusRowSource; List = $focusRowList; AutomationId = $focusRowId }
         NotExposed = @($Layout.notExposed)
         Pass = $verdict.Pass
         Failures = $verdict.Failures
