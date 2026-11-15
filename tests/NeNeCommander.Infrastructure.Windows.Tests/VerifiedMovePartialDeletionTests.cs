@@ -15,14 +15,18 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class VerifiedMovePartialDeletionTests
 {
-    /// <summary>Proves late changes stop after truthful partial effects, without sweeping unknown entries.</summary>
+    /// <summary>
+    /// Proves late changes to the recorded tree stop after truthful partial effects, without sweeping unknown
+    /// entries. The former <c>external-parent</c> row moved to
+    /// <see cref="ExecuteAsyncWhenFileIsWrittenNextToSourceRootAfterFirstLeafDeletionCompletesMove"/>, because
+    /// the parent of the operation root is an external ancestor compared by object component since Issue #388.
+    /// </summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-007")]
     [DataRow("sibling")]
     [DataRow("new-child")]
     [DataRow("reanchor-failure")]
-    [DataRow("external-parent")]
     [DataRow("untouched-root")]
     [DataRow("untouched-sibling")]
     public async Task ExecuteAsyncWhenSourceChangesAfterFirstLeafDeletionReportsPartialSource(string change)
@@ -62,6 +66,58 @@ public sealed class VerifiedMovePartialDeletionTests
 
         Assert.IsTrue(changed);
         AssertPartialWslSource(fixture, outcome, change);
+    }
+
+    /// <summary>
+    /// Proves the rule that replaced the <c>external-parent</c> rejection of Issues #348/#349. ADR-0069, revised
+    /// for Issue #388, compares the parent of the operation root, like every external ancestor, by object
+    /// component only. A file written next to the source root after the first leaf deletion, with the parent's
+    /// change time reported as advanced, no longer stops the move. The recorded tree is still fully revalidated
+    /// and its changes keep stopping, as the rows of
+    /// <see cref="ExecuteAsyncWhenSourceChangesAfterFirstLeafDeletionReportsPartialSource"/> prove.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-007")]
+    public async Task ExecuteAsyncWhenFileIsWrittenNextToSourceRootAfterFirstLeafDeletionCompletesMove()
+    {
+        const string change = "external-parent";
+        Action<string> inspect = _ => { };
+        bool changed = false;
+        using WslToWindowsTransferFixture fixture = VerifiedMoveTestContext.Tree(path =>
+        {
+            inspect(path);
+            WslHandleFacts facts = OwnedWslNamespace.ReadFacts(path);
+            return changed && VerifiedMoveTestContext.ReportsChangedDirectoryTime(change, path)
+                ? VerifiedMoveTestContext.ChangedTime(facts) : facts;
+        });
+        StepHookPort port = new(fixture.Router)
+        {
+            AfterVerify = _ =>
+            {
+                inspect = path =>
+                {
+                    if (!changed && !File.Exists(fixture.Root.Resolve("wsl\\directory\\nested\\a.txt")) &&
+                        path.EndsWith("\\nested", StringComparison.Ordinal))
+                    {
+                        changed = true;
+                        VerifiedMoveTestContext.ApplyLateChange(fixture, change);
+                    }
+                };
+                return Task.CompletedTask;
+            },
+        };
+        using FileOperationGateway gateway = new(port);
+
+        FileOperationOutcome outcome = await VerifiedMoveTestContext.MoveAsync(gateway, fixture);
+
+        Assert.IsTrue(changed);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.IsTrue(outcome.Effects.Any(effect => effect.Kind == FileOperationEffectKind.SourceDeleted));
+        Assert.IsFalse(Directory.Exists(fixture.Root.Resolve("wsl\\directory")));
+        Assert.AreEqual("update", File.ReadAllText(fixture.Root.Resolve("wsl\\outside.txt")));
+        Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\nested\\a.txt")));
+        Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\nested\\b.txt")));
     }
 
     /// <summary>Proves a later ctime change is not accepted solely because a touched directory retains its inode.</summary>
