@@ -33,7 +33,7 @@
     "captionMinimize": "CaptionMinimize",
     "captionMaximize": "CaptionMaximize",
     "captionClose": "CaptionClose",
-    "focusedRow": { "automationIdPrefix": "FileListRow_", "scope": [ "LeftFileList", "RightFileList" ], "note": "Append the exact entry name and match within its owning file list. The identifier is on the row container, is independent of focus and order, and is not a persistent filesystem identity. Live UIA exposure is not yet verified." },
+    "focusedRow": { "automationIdPrefix": "FileListRow_", "scope": [ "LeftFileList", "RightFileList" ], "note": "Append the exact entry name and match within its owning file list. The identifier is on the row container, is independent of focus and order, and is not a persistent filesystem identity. Observe measures the row that its file list reports as selected, because the product shows its focus row as the list selection and Observe never takes the foreground. Live UIA exposure was verified on 2026-11-16 (Issue #358)." },
     "deletionConfirmation": { "automationId": "DeletionConfirmation", "scope": "OperationBar", "note": "Declared on the existing operation content grid only while permanent deletion awaits confirmation. This declaration does not enable F8 input; live UIA exposure is not yet verified." }
   },
   "layout": {
