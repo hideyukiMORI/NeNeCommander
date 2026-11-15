@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
+using NeNeCommander.Presentation.WinUI.Panes;
 using NeNeCommander.Presentation.WinUI.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
@@ -44,7 +45,12 @@ public sealed class BookmarkManagerPresenterTests
         Assert.AreEqual("KeyLabelCtrl2", presentation.Browse.Rows[0].ShortcutLabelResourceKey);
         Assert.IsTrue(presentation.Browse.Rows[0].IsSelected);
         Assert.AreSame(presentation.Browse.Rows[0], presentation.Browse.SelectedRow);
-        Assert.AreSame(BookmarkManagerFocusTarget.Search, presentation.Details.InitialFocus);
+        Assert.AreSame(BookmarkManagerFocusTarget.BookmarkList, presentation.Details.InitialFocus);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, presentation.Browse.Rows[0].Mark);
+        Assert.AreSame(PaneRowMark.FocusInActivePane, presentation.Browse.Categories[0].Mark);
+        Assert.AreSame(PaneRowMark.Unmarked, presentation.Browse.Categories[2].Mark);
+        Assert.AreEqual("BookmarkRow_Repository", presentation.Browse.Rows[0].AutomationId);
+        Assert.AreEqual("BookmarkCategory_Work", presentation.Browse.Categories[2].AutomationId);
         Assert.AreSame(SettingsSaveStatus.Succeeded, presentation.Persistence.SaveStatus);
     }
 

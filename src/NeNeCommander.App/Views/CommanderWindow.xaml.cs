@@ -314,6 +314,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return _paletteView.Forward(paletteAction.Action);
         }
+        if (outcome is MappedBookmarkManagerAction bookmarkAction)
+        {
+            return _bookmarkView.Forward(bookmarkAction.Action);
+        }
         if (outcome is MappedKeyboardIntent setting &&
             SettingsOverlay.Visibility == Visibility.Visible &&
             _settingsKeyboardView.Forward(setting.Intent))
@@ -412,6 +416,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
+    private void OnBookmarkKeyHintClick(object sender, RoutedEventArgs args)
+    {
+        _bookmarkView.Invoke(sender);
+    }
+
     private void OnSettingsClose(object _, RoutedEventArgs args)
     {
         ForwardIntent(UserIntent.Escape);
@@ -480,7 +489,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         if (_operationContext == KeyboardContext.Modal)
         {
-            return KeyboardContext.Modal;
+            return _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal;
         }
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
         return ReferenceEquals(focused, LeftAddress) || ReferenceEquals(focused, RightAddress)

@@ -195,6 +195,12 @@ public sealed class KeyboardIntentMapper
     public static IReadOnlyList<WindowAdjustmentKeyBinding> WindowAdjustmentBindings { get; } =
         DeclaredWindowBindings;
 
+    /// <summary>
+    /// Gets the keys owned by the bookmark manager's browse and search-field contexts in declaration
+    /// order (ADR-0079). The list is the same data <see cref="Map"/> consults.
+    /// </summary>
+    public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
+
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
@@ -236,6 +242,7 @@ public sealed class KeyboardIntentMapper
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
+            KeyboardContext context when BookmarkManagerKeyMap.Owns(context) => BookmarkManagerKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
             _ => MapDeclaredKey(input),

@@ -22,6 +22,7 @@ public sealed class KeyboardHelpTests
         "KeyboardHelpGroupWindowAdjustment",
         "KeyboardHelpGroupLocations",
         "KeyboardHelpGroupSettings",
+        "KeyboardHelpGroupBookmarks",
         "KeyboardHelpGroupCommandPalette",
         "KeyboardHelpGroupHelp",
     ];
@@ -37,6 +38,20 @@ public sealed class KeyboardHelpTests
         "KeyboardHelpClose",
     ];
     private static readonly string[] CloseCaps = ["KeyLabelEscape", "KeyLabelF1"];
+    private static readonly string[] BookmarkHelpLabels =
+    [
+        "IntentLabelMoveNext",
+        "IntentLabelMovePrevious",
+        "BookmarkHelpActivate",
+        "BookmarkHelpSearch",
+        "BookmarkHelpSwitch",
+        "BookmarkHelpAdd",
+        "BookmarkHelpEdit",
+        "BookmarkHelpDelete",
+        "BookmarkHintClose",
+        "BookmarkHelpLeaveSearch",
+    ];
+    private static readonly string[] BookmarkLeaveCaps = ["KeyLabelEscape", "KeyLabelDown", "KeyLabelEnter"];
 
     /// <summary>Proves F1 maps to OpenHelp in the admitted contexts and passes through in text contexts.</summary>
     [TestMethod]
@@ -143,19 +158,43 @@ public sealed class KeyboardHelpTests
         CollectionAssert.AreEquivalent(
             KeyboardIntentMapper.BindingsFor(KeyboardContext.Settings).Select(binding => binding.KeyLabelResourceKey).ToArray(),
             groups[2].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
-        Assert.HasCount(palette.Count, groups[3].Rows);
+        Assert.HasCount(palette.Count, groups[4].Rows);
         CollectionAssert.AreEqual(
             palette.Select(hint => hint.KeyLabelResourceKey).ToArray(),
-            groups[3].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
-        CollectionAssert.AreEqual(
-            HelpLabels,
-            groups[4].Rows.Select(row => row.ActionLabelResourceKey).ToArray());
-        CollectionAssert.AreEquivalent(
-            KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp).Select(binding => binding.KeyLabelResourceKey).ToArray(),
             groups[4].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
         CollectionAssert.AreEqual(
+            HelpLabels,
+            groups[5].Rows.Select(row => row.ActionLabelResourceKey).ToArray());
+        CollectionAssert.AreEquivalent(
+            KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp).Select(binding => binding.KeyLabelResourceKey).ToArray(),
+            groups[5].Rows.SelectMany(row => row.KeyLabelResourceKeys).ToArray());
+        CollectionAssert.AreEqual(
             CloseCaps,
-            groups[4].Rows[4].KeyLabelResourceKeys.ToArray());
+            groups[5].Rows[4].KeyLabelResourceKeys.ToArray());
+    }
+
+    /// <summary>
+    /// Proves the bookmark group shows every key of the canonical bookmark table under one row per
+    /// action, so a declared key cannot be missing from the help (ADR-0079).
+    /// </summary>
+    [TestMethod]
+    public void PresentWhenBookmarkManagerIsProjectedShowsEveryDeclaredKeyPerAction()
+    {
+        KeyboardHelpGroup bookmarks = KeyboardHelpPresenter.Present().SecondaryGroups[3];
+
+        CollectionAssert.AreEqual(BookmarkHelpLabels, bookmarks.Rows.Select(row => row.ActionLabelResourceKey).ToArray());
+        foreach (BookmarkManagerKeyBinding binding in KeyboardIntentMapper.BookmarkManagerBindings)
+        {
+            Assert.IsTrue(
+                bookmarks.Rows.Any(row => row.KeyLabelResourceKeys.Contains(binding.KeyLabelResourceKey)),
+                binding.KeyLabelResourceKey);
+        }
+        CollectionAssert.AreEqual(
+            BookmarkLeaveCaps,
+            bookmarks.Rows[^1].KeyLabelResourceKeys.ToArray());
+        Assert.AreEqual(
+            KeyboardIntentMapper.BookmarkManagerBindings.Count,
+            bookmarks.Rows.Sum(row => row.KeyLabelResourceKeys.Count));
     }
 
     private static int IndexOf(KeyboardHelpGroup group, string actionLabel)

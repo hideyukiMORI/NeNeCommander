@@ -30,7 +30,7 @@ internal sealed class BookmarkDetailsView
     private readonly TextBlock _deleteCategoryName;
     private readonly TextBlock _deleteCount;
     private readonly TextBlock _deleteDestination;
-    private readonly StackPanel _browseFooter;
+    private readonly ItemsControl _browseFooter;
     private readonly StackPanel _draftFooter;
     private readonly StackPanel _categoryDraftFooter;
     private readonly StackPanel _categoryDeleteFooter;
@@ -66,7 +66,7 @@ internal sealed class BookmarkDetailsView
         _deleteCategoryName = Find<TextBlock>("BookmarkCategoryDeleteCategory");
         _deleteCount = Find<TextBlock>("BookmarkCategoryDeleteCount");
         _deleteDestination = Find<TextBlock>("BookmarkCategoryDeleteDestination");
-        _browseFooter = Find<StackPanel>("BookmarkBrowseFooter");
+        _browseFooter = Find<ItemsControl>("BookmarkBrowseFooter");
         _draftFooter = Find<StackPanel>("BookmarkDraftFooter");
         _categoryDraftFooter = Find<StackPanel>("BookmarkCategoryDraftFooter");
         _categoryDeleteFooter = Find<StackPanel>("BookmarkCategoryDeleteFooter");

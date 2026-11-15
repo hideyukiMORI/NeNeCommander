@@ -186,14 +186,6 @@
   <data name="BookmarkAllCategories" xml:space="preserve"><value>All bookmarks</value></data>
   <data name="BookmarkUncategorized" xml:space="preserve"><value>Uncategorized</value></data>
   <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>Categories</value></data>
-  <data name="BookmarkAddCategory.Content" xml:space="preserve"><value>Add category</value></data>
-  <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>Rename category</value></data>
-  <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>Delete category</value></data>
-  <data name="BookmarkMove.Content" xml:space="preserve"><value>Move</value></data>
-  <data name="BookmarkAdd.Content" xml:space="preserve"><value>Add current folder</value></data>
-  <data name="BookmarkEdit.Content" xml:space="preserve"><value>Edit</value></data>
-  <data name="BookmarkDelete.Content" xml:space="preserve"><value>Delete</value></data>
-  <data name="BookmarkClose.Content" xml:space="preserve"><value>Close</value></data>
   <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>Add bookmark</value></data>
   <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>Edit bookmark</value></data>
   <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>Name</value></data>
@@ -224,7 +216,7 @@
   <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>The bookmarked folder was not found. The current folder was kept.</value></data>
   <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>The bookmark provider is unavailable. The current folder was kept.</value></data>
   <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>Moving to this bookmark was cancelled. The current folder was kept.</value></data>
-  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>There are no bookmarks yet. Add one with “Add current folder”.</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>There are no bookmarks yet. Press a to add the current folder.</value></data>
   <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>No bookmarks match the current search and category.</value></data>
   <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>Back to list</value></data>
   <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>Enter a valid name.</value></data>
@@ -352,4 +344,35 @@
   <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Press Esc or F1 to close</value></data>
   <data name="KeyboardHelpName" xml:space="preserve"><value>Keyboard shortcut list</value></data>
   <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>Settings (Ctrl+,)</value></data>
+  <data name="KeyLabelA" xml:space="preserve"><value>a</value></data>
+  <data name="KeyLabelE" xml:space="preserve"><value>e</value></data>
+  <data name="KeyLabelSlash" xml:space="preserve"><value>/</value></data>
+  <data name="BookmarkManagerRegion.AutomationProperties.Name" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="BookmarkCategoriesRegion.AutomationProperties.Name" xml:space="preserve"><value>Categories</value></data>
+  <data name="BookmarkRowsRegion.AutomationProperties.Name" xml:space="preserve"><value>Bookmark list</value></data>
+  <data name="BookmarkKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>Key hints</value></data>
+  <data name="BookmarkCountFormat" xml:space="preserve"><value>{0} items</value></data>
+  <data name="BookmarkColumnSlot.Text" xml:space="preserve"><value>Slot</value></data>
+  <data name="BookmarkColumnName.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="BookmarkColumnPath.Text" xml:space="preserve"><value>Location</value></data>
+  <data name="BookmarkHintMove" xml:space="preserve"><value>Move</value></data>
+  <data name="BookmarkHintOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="BookmarkHintToList" xml:space="preserve"><value>To list</value></data>
+  <data name="BookmarkHintSearch" xml:space="preserve"><value>Search</value></data>
+  <data name="BookmarkHintSwitch" xml:space="preserve"><value>Switch</value></data>
+  <data name="BookmarkHintAddBookmark" xml:space="preserve"><value>Add</value></data>
+  <data name="BookmarkHintEditBookmark" xml:space="preserve"><value>Edit</value></data>
+  <data name="BookmarkHintDeleteBookmark" xml:space="preserve"><value>Delete</value></data>
+  <data name="BookmarkHintAddCategory" xml:space="preserve"><value>Add category</value></data>
+  <data name="BookmarkHintRenameCategory" xml:space="preserve"><value>Rename</value></data>
+  <data name="BookmarkHintDeleteCategory" xml:space="preserve"><value>Delete category</value></data>
+  <data name="BookmarkHintClose" xml:space="preserve"><value>Close</value></data>
+  <data name="BookmarkHelpActivate" xml:space="preserve"><value>Open (categories: go to the list)</value></data>
+  <data name="BookmarkHelpSearch" xml:space="preserve"><value>Focus search</value></data>
+  <data name="BookmarkHelpSwitch" xml:space="preserve"><value>Switch between categories and list</value></data>
+  <data name="BookmarkHelpAdd" xml:space="preserve"><value>Add the current folder (categories: add a category)</value></data>
+  <data name="BookmarkHelpEdit" xml:space="preserve"><value>Edit (categories: rename)</value></data>
+  <data name="BookmarkHelpDelete" xml:space="preserve"><value>Delete (categories: confirm deletion)</value></data>
+  <data name="BookmarkHelpLeaveSearch" xml:space="preserve"><value>Leave search for the list</value></data>
+  <data name="KeyboardHelpGroupBookmarks" xml:space="preserve"><value>Bookmarks (Ctrl+B)</value></data>
 </root>

@@ -341,8 +341,8 @@ public sealed class WindowAdjustmentKeyboardTests
             }
         }
 
-        Assert.HasCount(45, keys);
-        Assert.AreEqual((44 * 4) - 14, consumed);
+        Assert.HasCount(48, keys);
+        Assert.AreEqual((47 * 4) - 14, consumed);
         _ = Assert.IsInstanceOfType<KeyboardConsumed>(
             mapper.Map(Input(KeyboardKey.F8, KeyboardModifier.None, KeyboardContext.WindowAdjustment)));
         _ = Assert.IsInstanceOfType<KeyboardConsumed>(

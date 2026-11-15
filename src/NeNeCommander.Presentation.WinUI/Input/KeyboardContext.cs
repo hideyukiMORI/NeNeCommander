@@ -36,6 +36,18 @@ public abstract record KeyboardContext
     /// <summary>Gets the keyboard help context that owns scrolling and closing the help (ADR-0076).</summary>
     public static KeyboardContext KeyboardHelp { get; } = new KeyboardHelpContext();
 
+    /// <summary>
+    /// Gets the bookmark manager's browse context that owns movement, region switching, the row and
+    /// category commands and closing (ADR-0079).
+    /// </summary>
+    public static KeyboardContext Bookmarks { get; } = new BookmarksContext();
+
+    /// <summary>
+    /// Gets the bookmark manager's search-field context: text passes to the field and only the keys
+    /// that return to the bookmark list are owned (ADR-0079).
+    /// </summary>
+    public static KeyboardContext BookmarkSearch { get; } = new BookmarkSearchContext();
+
     private KeyboardContext()
     {
     }
@@ -95,6 +107,18 @@ public abstract record KeyboardContext
         }
     }
     private sealed record KeyboardHelpContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BookmarksContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BookmarkSearchContext : KeyboardContext
     {
         private protected override void RestrictDerivation()
         {

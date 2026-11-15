@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
@@ -11,7 +14,11 @@ using Windows.System;
 
 namespace NeNeCommander.App.Views;
 
-/// <summary>Renders the BookmarkBrowseView controls and forwards typed bookmark actions.</summary>
+/// <summary>
+/// Renders the bookmark manager's browse controls (search, category column, bookmark list and
+/// count), forwards their native changes as typed bookmark actions, and keeps keyboard focus on the
+/// list that held it when a render replaces its rows (ADR-0079).
+/// </summary>
 internal sealed class BookmarkBrowseView
 {
     private readonly Grid _root;
@@ -19,18 +26,10 @@ internal sealed class BookmarkBrowseView
     private readonly Action<UserIntent> _forward;
     private readonly Func<bool> _isRendering;
     private BookmarkBrowsePresentation? _renderedBrowse;
-    private readonly TextBox _search;
     private readonly ListView _categories;
     private readonly ListView _rows;
     private readonly TextBlock _emptyContent;
-    private readonly Button _addCategory;
-    private readonly Button _renameCategory;
-    private readonly Button _deleteCategory;
-    private readonly Button _move;
-    private readonly Button _add;
-    private readonly Button _edit;
-    private readonly Button _delete;
-    private readonly Button _close;
+    private readonly TextBlock _count;
 
     internal BookmarkBrowseView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Func<bool> isRendering)
     {
@@ -42,101 +41,165 @@ internal sealed class BookmarkBrowseView
         _resources = resources;
         _forward = forward;
         _isRendering = isRendering;
-        _search = Find<TextBox>("BookmarkSearch");
+        Search = Find<TextBox>("BookmarkSearch");
         _categories = Find<ListView>("BookmarkCategories");
         _rows = Find<ListView>("BookmarkRows");
         _emptyContent = Find<TextBlock>("BookmarkEmptyContent");
-        _addCategory = Find<Button>("BookmarkAddCategory");
-        _renameCategory = Find<Button>("BookmarkRenameCategory");
-        _deleteCategory = Find<Button>("BookmarkDeleteCategory");
-        _move = Find<Button>("BookmarkMove");
-        _add = Find<Button>("BookmarkAdd");
-        _edit = Find<Button>("BookmarkEdit");
-        _delete = Find<Button>("BookmarkDelete");
-        _close = Find<Button>("BookmarkClose");
+        _count = Find<TextBlock>("BookmarkCount");
+        RowAutomationIdentity.Attach<BookmarkRow>(_rows, row => row.AutomationId, row => row.NameText);
+        RowAutomationIdentity.Attach<BookmarkCategoryOption>(
+            _categories,
+            option => option.AutomationId,
+            option => option.DisplayText);
         AttachHandlers();
     }
+
+    /// <summary>Occurs when the category column or the bookmark list receives focus.</summary>
+    internal event EventHandler<BookmarkManagerRegion>? RegionFocused;
+
+    /// <summary>Gets the search field, whose text composition the window consults.</summary>
+    internal TextBox Search { get; }
+
+    /// <summary>Gets the bookmark row the list shows as selected.</summary>
+    internal BookmarkRow? SelectedRow => _rows.SelectedItem as BookmarkRow;
+
+    /// <summary>Gets the category option the column shows as selected.</summary>
+    internal BookmarkCategoryOption? SelectedCategory => _categories.SelectedItem as BookmarkCategoryOption;
+
+    /// <summary>Gets whether the search field holds focus.</summary>
+    internal bool SearchHasFocus => _root.XamlRoot is XamlRoot xamlRoot &&
+        ReferenceEquals(FocusManager.GetFocusedElement(xamlRoot), Search);
 
     internal void Render(BookmarkManagerPresentation presentation)
     {
         BookmarkBrowsePresentation browse = presentation.Browse;
-        if (_search.Text != browse.SearchText)
+        if (Search.Text != browse.SearchText)
         {
-            _search.Text = browse.SearchText;
+            Search.Text = browse.SearchText;
         }
-        RenderCategories(browse);
-        RenderRows(browse);
+        RenderList(_categories, browse.Categories, SelectedOption(browse), _renderedBrowse?.Categories);
+        RenderList(_rows, browse.Rows, browse.SelectedRow, _renderedBrowse?.Rows);
         _emptyContent.Visibility = browse.EmptyContent == BookmarkEmptyContent.Hidden
             ? Visibility.Collapsed
             : Visibility.Visible;
         _emptyContent.Text = _resources.GetString(browse.EmptyContent.ResourceKey);
-        RenderAvailability(presentation.Details, browse);
+        _count.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            _resources.GetString("BookmarkCountFormat"),
+            browse.Rows.Count);
+        bool editable = presentation.Details.IsBrowsing;
+        Search.IsEnabled = editable;
+        _categories.IsEnabled = editable;
+        _rows.IsEnabled = editable;
         _renderedBrowse = browse;
     }
 
-    private void RenderCategories(BookmarkBrowsePresentation browse)
+    /// <summary>Moves the selection of one region by one step and keeps focus on that region.</summary>
+    /// <param name="region">Region that holds focus.</param>
+    /// <param name="step">One for the next item, minus one for the previous item.</param>
+    internal void Move(BookmarkManagerRegion region, int step)
     {
-        bool categoriesChanged = _renderedBrowse is null ||
-            !_renderedBrowse.Categories.SequenceEqual(browse.Categories);
-        if (categoriesChanged)
+        ListView list = ListOf(region);
+        int next = BookmarkManagerKeyboard.Move(list.SelectedIndex, list.Items.Count, step);
+        if (next >= 0 && next != list.SelectedIndex)
         {
-            _categories.ItemsSource = browse.Categories;
+            list.SelectedIndex = next;
         }
-        BookmarkCategoryOption? selectedCategory = SelectedCategory(browse);
-        if (categoriesChanged ||
-            (_categories.SelectedItem as BookmarkCategoryOption)?.Filter != selectedCategory?.Filter)
+        Focus(region);
+    }
+
+    /// <summary>Moves keyboard focus to the selected item of one region once its rows are realized.</summary>
+    /// <param name="region">Region that receives focus.</param>
+    internal void Focus(BookmarkManagerRegion region)
+    {
+        FocusWhenRealized(ListOf(region));
+    }
+
+    internal void FocusSearch()
+    {
+        _ = Search.Focus(FocusState.Keyboard);
+        Search.SelectAll();
+    }
+
+    internal void NavigateSelected()
+    {
+        if (_rows.SelectedItem is BookmarkRow row)
         {
-            _categories.SelectedItem = selectedCategory;
+            _forward(UserIntent.NavigateBookmark(row.Selection));
         }
     }
 
-    private void RenderRows(BookmarkBrowsePresentation browse)
+    private void RenderList<TItem>(
+        ListView list,
+        IReadOnlyList<TItem> items,
+        TItem? selected,
+        IReadOnlyList<TItem>? rendered)
+        where TItem : class
     {
-        bool rowsChanged = _renderedBrowse is null ||
-            !_renderedBrowse.Rows.SequenceEqual(browse.Rows);
-        if (rowsChanged)
+        if (rendered is not null && rendered.SequenceEqual(items))
         {
-            _rows.ItemsSource = browse.Rows;
+            if (!Equals(list.SelectedItem, selected))
+            {
+                list.SelectedItem = selected;
+            }
+            return;
         }
-        if (rowsChanged ||
-            (_rows.SelectedItem as BookmarkRow)?.Selection != browse.SelectedRow?.Selection)
+        bool heldFocus = HoldsFocus(list);
+        list.ItemsSource = items;
+        list.SelectedItem = selected;
+        if (heldFocus)
         {
-            _rows.SelectedItem = browse.SelectedRow;
+            FocusWhenRealized(list);
         }
     }
 
-    private void RenderAvailability(BookmarkEditorDetails details, BookmarkBrowsePresentation browse)
+    private static void FocusWhenRealized(ListView list)
     {
-        bool editable = details.IsBrowsing;
-        _search.IsEnabled = editable;
-        _categories.IsEnabled = editable;
-        _rows.IsEnabled = editable;
-        _addCategory.IsEnabled = editable;
-        _add.IsEnabled = editable;
-        _close.IsEnabled = editable;
-        _move.IsEnabled = editable && browse.SelectedRow is not null;
-        _edit.IsEnabled = editable && browse.SelectedRow is not null;
-        _delete.IsEnabled = editable && browse.SelectedRow is not null;
-        BookmarkCategoryOption? category = _categories.SelectedItem as BookmarkCategoryOption;
-        _renameCategory.IsEnabled = editable && category?.Selection is not null;
-        _deleteCategory.IsEnabled = editable && category?.Selection is not null;
+        _ = list.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            if (list.SelectedItem is object selected)
+            {
+                list.ScrollIntoView(selected);
+            }
+            bool focused = list.ContainerFromIndex(list.SelectedIndex) is Control container &&
+                container.Focus(FocusState.Keyboard);
+            if (!focused)
+            {
+                _ = list.Focus(FocusState.Keyboard);
+            }
+        });
+    }
+
+    private bool HoldsFocus(ListView list)
+    {
+        DependencyObject? element = _root.XamlRoot is XamlRoot xamlRoot
+            ? FocusManager.GetFocusedElement(xamlRoot) as DependencyObject
+            : null;
+        while (element is not null)
+        {
+            if (ReferenceEquals(element, list))
+            {
+                return true;
+            }
+            element = VisualTreeHelper.GetParent(element);
+        }
+        return false;
+    }
+
+    private ListView ListOf(BookmarkManagerRegion region)
+    {
+        return region == BookmarkManagerRegion.Categories ? _categories : _rows;
     }
 
     private void AttachHandlers()
     {
-        _search.TextChanged += OnSearchChanged;
+        Search.TextChanged += OnSearchChanged;
         _categories.SelectionChanged += OnCategorySelectionChanged;
+        _categories.GotFocus += (_, _) => RegionFocused?.Invoke(this, BookmarkManagerRegion.Categories);
         _rows.SelectionChanged += OnRowSelectionChanged;
+        _rows.GotFocus += (_, _) => RegionFocused?.Invoke(this, BookmarkManagerRegion.Bookmarks);
         _rows.DoubleTapped += OnRowsDoubleTapped;
         _rows.KeyDown += OnRowsKeyDown;
-        _addCategory.Click += (_, _) => Submit(BookmarkEditorAction.BeginAddCategory);
-        _renameCategory.Click += (_, _) => SubmitSelectedCategory(BookmarkEditorAction.BeginRenameCategory);
-        _deleteCategory.Click += (_, _) => SubmitSelectedCategory(BookmarkEditorAction.BeginDeleteCategory);
-        _move.Click += (_, _) => NavigateSelected();
-        _add.Click += (_, _) => Submit(BookmarkEditorAction.BeginAddBookmark);
-        _edit.Click += (_, _) => SubmitSelectedBookmark(BookmarkEditorAction.BeginEditBookmark);
-        _delete.Click += (_, _) => SubmitSelectedBookmark(BookmarkEditorAction.DeleteBookmark);
-        _close.Click += (_, _) => Submit(BookmarkEditorAction.Cancel);
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs args)
@@ -145,7 +208,7 @@ internal sealed class BookmarkBrowseView
         _ = args;
         if (!_isRendering())
         {
-            Submit(BookmarkEditorAction.Search(_search.Text));
+            Submit(BookmarkEditorAction.Search(Search.Text));
         }
     }
 
@@ -186,36 +249,12 @@ internal sealed class BookmarkBrowseView
         }
     }
 
-    internal void NavigateSelected()
-    {
-        if (_rows.SelectedItem is BookmarkRow row)
-        {
-            _forward(UserIntent.NavigateBookmark(row.Selection));
-        }
-    }
-
-    private void SubmitSelectedBookmark(Func<BookmarkSelection, BookmarkEditorAction> action)
-    {
-        if (_rows.SelectedItem is BookmarkRow row)
-        {
-            Submit(action(row.Selection));
-        }
-    }
-
-    private void SubmitSelectedCategory(Func<BookmarkCategorySelection, BookmarkEditorAction> action)
-    {
-        if (_categories.SelectedItem is BookmarkCategoryOption { Selection: not null } option)
-        {
-            Submit(action(option.Selection));
-        }
-    }
-
     private void Submit(BookmarkEditorAction action)
     {
         _forward(UserIntent.ManageBookmarks(action));
     }
 
-    private static BookmarkCategoryOption? SelectedCategory(BookmarkBrowsePresentation browse)
+    private static BookmarkCategoryOption? SelectedOption(BookmarkBrowsePresentation browse)
     {
         return browse.Categories.FirstOrDefault(category => category.IsSelected);
     }
@@ -226,10 +265,5 @@ internal sealed class BookmarkBrowseView
         return _root.FindName(name) is T control
             ? control
             : throw new InvalidOperationException($"Bookmark manager control '{name}' is missing.");
-    }
-
-    internal void FocusSearch()
-    {
-        _ = _search.Focus(FocusState.Programmatic);
     }
 }

@@ -1,15 +1,21 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
+using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.App.Views;
 
-/// <summary>Renders the BookmarkManagerView controls and forwards typed bookmark actions.</summary>
+/// <summary>
+/// Renders the bookmark manager on its transparent scrim, forwards typed bookmark actions, and
+/// owns the scrim: a tap outside the panel takes the existing <c>Escape</c> route once, a tap inside
+/// does nothing (ADR-0079).
+/// </summary>
 internal sealed class BookmarkManagerView
 {
     private readonly Grid _root;
@@ -23,6 +29,8 @@ internal sealed class BookmarkManagerView
     private readonly Button _cancelNavigation;
     private readonly BookmarkBrowseView _browse;
     private readonly BookmarkDetailsView _details;
+    private readonly BookmarkKeyboardView _keyboard;
+    private BookmarkEditorDetails? _renderedDetails;
     private Type? _renderedStateType;
     private bool _rendering;
 
@@ -42,11 +50,21 @@ internal sealed class BookmarkManagerView
         _cancelNavigation = Find<Button>("BookmarkNavigationCancel");
         _browse = new BookmarkBrowseView(root, resources, forward, () => _rendering);
         _details = new BookmarkDetailsView(root, resources, forward, () => _rendering);
+        _keyboard = new BookmarkKeyboardView(_browse, Find<ItemsControl>("BookmarkBrowseFooter"), forward);
         _retryNavigation.Click += (_, _) => _browse.NavigateSelected();
         _cancelNavigation.Click += (_, _) => Submit(BookmarkEditorAction.Cancel);
+        Find<Border>("BookmarkManagerSurface").Tapped += OnSurfaceTapped;
+        _root.Tapped += OnScrimTapped;
     }
 
     internal bool IsOpen => _root.Visibility == Visibility.Visible;
+
+    /// <summary>
+    /// Gets the keyboard context the manager owns now: <c>Bookmarks</c> or <c>BookmarkSearch</c>
+    /// while browsing, otherwise <see langword="null"/> so the shared modal context applies.
+    /// </summary>
+    internal KeyboardContext? OwnedKeyboardContext =>
+        IsOpen && _renderedDetails is BookmarkEditorDetails details ? _keyboard.ContextFor(details) : null;
 
     internal void Render(SettingsSnapshot snapshot)
     {
@@ -62,12 +80,39 @@ internal sealed class BookmarkManagerView
         _status.Text = _resources.GetString(presentation.Details.StatusResourceKey);
         _details.Render(presentation.Details, _renderedStateType, snapshot.BookmarksEditor.GetType());
         RenderPersistence(presentation.Persistence);
+        _renderedDetails = presentation.Details;
         _rendering = false;
         if (presentation.IsOpen && stateChanged)
         {
             Focus(presentation.Details.InitialFocus);
         }
         _renderedStateType = snapshot.BookmarksEditor.GetType();
+    }
+
+    /// <summary>
+    /// Applies one action the bookmark-manager key map produced, unless the search field is
+    /// composing text through an input method, in which case the key stays with the field.
+    /// </summary>
+    /// <param name="action">Mapped action.</param>
+    /// <returns>Whether the manager handled the key.</returns>
+    internal bool Forward(BookmarkManagerKeyAction action)
+    {
+        if (_keyboard.IsComposing)
+        {
+            return false;
+        }
+        _keyboard.Forward(action);
+        return true;
+    }
+
+    /// <summary>Applies the action of one pressed key hint button.</summary>
+    /// <param name="sender">Hint button whose data context is the pressed hint.</param>
+    internal void Invoke(object sender)
+    {
+        if (sender is FrameworkElement { DataContext: BookmarkManagerKeyHint hint })
+        {
+            _keyboard.Invoke(hint);
+        }
     }
 
     private void RenderPersistence(BookmarkPersistencePresentation persistence)
@@ -94,7 +139,28 @@ internal sealed class BookmarkManagerView
             _ = _retryNavigation.Focus(FocusState.Programmatic);
             return;
         }
+        if (target == BookmarkManagerFocusTarget.BookmarkList)
+        {
+            _keyboard.FocusBookmarkList();
+            return;
+        }
         _browse.FocusSearch();
+    }
+
+    private void OnScrimTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        if (IsOpen)
+        {
+            _forward(UserIntent.Escape);
+        }
+    }
+
+    private void OnSurfaceTapped(object sender, TappedRoutedEventArgs args)
+    {
+        _ = sender;
+        args.Handled = true;
     }
 
     private void Submit(BookmarkEditorAction action)

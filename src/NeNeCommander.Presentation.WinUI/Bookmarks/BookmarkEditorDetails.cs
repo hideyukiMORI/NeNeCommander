@@ -75,6 +75,7 @@ public sealed record BookmarkEditorDetails
     /// <summary>Gets the native control that receives focus on a new substate.</summary>
     public BookmarkManagerFocusTarget InitialFocus => _state switch
     {
+        BookmarksBrowsing => BookmarkManagerFocusTarget.BookmarkList,
         BookmarkDrafting => BookmarkManagerFocusTarget.BookmarkName,
         BookmarkCategoryDrafting => BookmarkManagerFocusTarget.CategoryName,
         BookmarkCategoryDeleteConfirmation => BookmarkManagerFocusTarget.CancelCategoryDelete,

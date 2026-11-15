@@ -126,11 +126,46 @@ scheme is saved when `Space` or `Enter` selects it. A repeated `Space` or `Enter
 held key changes a setting at most once. Undeclared keys, including `Tab` and `Shift+Tab`, reach
 the native controls.
 
+## Bookmark manager
+
+`Ctrl+B` opens the session-owned bookmark manager (ADR-0041). While its browse state is shown the
+host's keyboard context is `Bookmarks`, or `BookmarkSearch` while the search field holds focus
+(ADR-0079). Both are declared in the bookmark table of the canonical key map
+(`BookmarkManagerKeyMap`, published through `KeyboardIntentMapper.BookmarkManagerBindings`). The
+browse state has two focus regions, the category column and the bookmark list; the list holds
+focus when the manager opens or returns to browsing.
+
+| Input | Action in the bookmark list | Action in the category column |
+|---|---|---|
+| `j` or `Down` | select the next bookmark; stops at the last | select the next category, which filters the list; stops at the last |
+| `k` or `Up` | select the previous bookmark; stops at the first | select the previous category, which filters the list; stops at the first |
+| `Enter` | navigate to the selected bookmark (the existing manager navigation) | move focus to the bookmark list |
+| `Tab` or `Shift+Tab` | move focus to the category column | move focus to the bookmark list |
+| `a` | register the current folder (the existing add draft) | add a category (the existing category draft) |
+| `e` | edit the selected bookmark | rename the selected user category |
+| `d` | delete the selected bookmark | delete the selected user category through its confirmation |
+| `/` | move focus to the search field | move focus to the search field |
+| `Escape` | close the manager through the existing `Escape` route | close the manager through the existing `Escape` route |
+
+In `BookmarkSearch`, `Escape`, `Down` and `Enter` return focus to the bookmark list without closing
+the manager; every other key, including printable letters and `j`/`k`, reaches the search field
+(KBD-001), and no key is mapped while an input method is composing. Letters and `/` are produced
+characters with Control and Alt absent (KBD-003); a declared key under a modifier, and every
+undeclared key, pass through as in the settings context. Movement repeats; a held `Enter`, `Tab`,
+`a`, `e`, `d`, `/` or `Escape` acts once and its repeats are consumed, so a held `Escape` that left
+the search field does not also close the manager. An `e` or `d` with nothing selected, and an `e`
+or `d` on All bookmarks or Uncategorized, are consumed and do nothing, exactly where the removed
+buttons were disabled. Moving in the category column only changes the displayed filter and saves
+nothing. The bookmark drafts, the category draft, the category-delete confirmation and failed
+navigation keep the shared `Modal` context unchanged. The band at the bottom of the manager shows
+these keys for the focused region from the same table, and tapping the scrim outside the panel
+takes the `Escape` route once.
+
 ## Keyboard help
 
 `F1` opens one session-owned keyboard help (ADR-0076) under the same admission as the window
 adjustment mode. It lists the bindings of the file list, window adjustment mode, Locations picker,
-settings editor, command palette and the help itself, generated from the canonical key map; aliases of one action
+settings editor, bookmark manager, command palette and the help itself, generated from the canonical key map; aliases of one action
 share a row, `gg` is shown before `G`, and the nine bookmark slots share one row. The panes stay
 visible behind a transparent scrim and are frozen. While it is open the host's keyboard context is
 `KeyboardHelp`, declared in the canonical table of `KeyboardIntentMapper`:
@@ -183,7 +218,7 @@ Movement changes the focus item and preserves explicit selection. File commands 
 - Status: **active**
 - Enforcement: key-map uniqueness test.
 
-No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. Hint wording, both the key cap and the intent, comes from localization resources.
+No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0079). Hint wording, both the key cap and the intent, comes from localization resources.
 
 ## Accessibility
 

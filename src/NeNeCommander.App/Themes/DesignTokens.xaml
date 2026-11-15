@@ -27,6 +27,8 @@
     <Thickness x:Key="BorderOperationBarThickness">1</Thickness>
     <Thickness x:Key="BorderKeyCapThickness">1</Thickness>
     <Thickness x:Key="BorderNameEntryThickness">1</Thickness>
+    <Thickness x:Key="BorderBookmarkCategoryColumnThickness">0,0,1,0</Thickness>
+    <Thickness x:Key="BorderBookmarkFooterThickness">0,1,0,0</Thickness>
     <CornerRadius x:Key="RadiusPane">3</CornerRadius>
     <CornerRadius x:Key="RadiusOperationBar">3</CornerRadius>
     <CornerRadius x:Key="RadiusNameEntry">3</CornerRadius>
@@ -58,5 +60,11 @@
     <x:Double x:Key="DensityCaptionGlyphStrokeThickness">1</x:Double>
     <x:Double x:Key="DensityCaptionResizeBorder">4</x:Double>
     <x:Double x:Key="DensityCaptionResizeCorner">8</x:Double>
+    <x:Double x:Key="DensityBookmarkManagerMaxWidth">820</x:Double>
+    <x:Double x:Key="DensityBookmarkManagerMaxHeight">540</x:Double>
+    <x:Double x:Key="DensityBookmarkCategoryColumnWidth">180</x:Double>
+    <x:Double x:Key="DensityBookmarkSlotColumnWidth">48</x:Double>
+    <x:Double x:Key="DensityBookmarkNameColumnWidth">200</x:Double>
+    <x:Double x:Key="DensityBookmarkSearchWidth">300</x:Double>
     <Duration x:Key="MotionStandardDuration">0:0:0.160</Duration>
 </ResourceDictionary>

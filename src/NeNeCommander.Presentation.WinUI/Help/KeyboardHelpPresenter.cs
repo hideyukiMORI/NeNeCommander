@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Presentation.WinUI.Bookmarks;
 using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Windowing;
@@ -24,7 +25,8 @@ public static class KeyboardHelpPresenter
 
     /// <summary>
     /// Gets the help in display order: the file list in the first column, then window adjustment,
-    /// Locations, settings, the command palette and the help itself in the second column.
+    /// Locations, settings, the bookmark manager, the command palette and the help itself in the
+    /// second column.
     /// </summary>
     /// <returns>The two-column help content.</returns>
     public static KeyboardHelpPresentation Present()
@@ -35,6 +37,7 @@ public static class KeyboardHelpPresenter
             new("KeyboardHelpGroupWindowAdjustment", WindowAdjustmentRows()),
             new("KeyboardHelpGroupLocations", ContextRows(KeyboardContext.Locations, LabelOf)),
             new("KeyboardHelpGroupSettings", ContextRows(KeyboardContext.Settings, LabelOf)),
+            new("KeyboardHelpGroupBookmarks", BookmarkManagerRows()),
             new("KeyboardHelpGroupCommandPalette", CommandPaletteRows()),
             new("KeyboardHelpGroupHelp", ContextRows(KeyboardContext.KeyboardHelp, HelpLabelOf)),
         ];
@@ -78,6 +81,16 @@ public static class KeyboardHelpPresenter
             .Select(hint => new KeyboardHelpRow(hint.KeyLabelResourceKeys, hint.IntentLabelResourceKey))
             .ToList()
             .AsReadOnly();
+    }
+
+    private static ReadOnlyCollection<KeyboardHelpRow> BookmarkManagerRows()
+    {
+        RowBuilder rows = new();
+        foreach (BookmarkManagerKeyBinding binding in KeyboardIntentMapper.BookmarkManagerBindings)
+        {
+            rows.Add(BookmarkManagerKeyHintPresenter.HelpLabelOf(binding.Action), binding.KeyLabelResourceKey);
+        }
+        return rows.Build();
     }
 
     private static ReadOnlyCollection<KeyboardHelpRow> CommandPaletteRows()

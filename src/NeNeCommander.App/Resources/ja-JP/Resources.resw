@@ -186,14 +186,6 @@
   <data name="BookmarkAllCategories" xml:space="preserve"><value>すべてのブックマーク</value></data>
   <data name="BookmarkUncategorized" xml:space="preserve"><value>未分類</value></data>
   <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>カテゴリ</value></data>
-  <data name="BookmarkAddCategory.Content" xml:space="preserve"><value>カテゴリを追加</value></data>
-  <data name="BookmarkRenameCategory.Content" xml:space="preserve"><value>カテゴリ名を変更</value></data>
-  <data name="BookmarkDeleteCategory.Content" xml:space="preserve"><value>カテゴリを削除</value></data>
-  <data name="BookmarkMove.Content" xml:space="preserve"><value>移動</value></data>
-  <data name="BookmarkAdd.Content" xml:space="preserve"><value>現在フォルダーを登録</value></data>
-  <data name="BookmarkEdit.Content" xml:space="preserve"><value>編集</value></data>
-  <data name="BookmarkDelete.Content" xml:space="preserve"><value>削除</value></data>
-  <data name="BookmarkClose.Content" xml:space="preserve"><value>閉じる</value></data>
   <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>ブックマークを追加</value></data>
   <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>ブックマークを編集</value></data>
   <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>名前</value></data>
@@ -224,7 +216,7 @@
   <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>ブックマーク先のフォルダーが見つかりません。現在のフォルダーを維持しています。</value></data>
   <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>ブックマーク先のプロバイダーを利用できません。現在のフォルダーを維持しています。</value></data>
   <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>ブックマークへの移動をキャンセルしました。現在のフォルダーを維持しています。</value></data>
-  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>ブックマークはまだありません。「現在フォルダーを登録」から追加できます。</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>ブックマークはまだありません。a で現在フォルダーを登録できます。</value></data>
   <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>現在の検索とカテゴリに一致するブックマークはありません。</value></data>
   <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>一覧に戻る</value></data>
   <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>有効な名前を入力してください。</value></data>
@@ -352,4 +344,35 @@
   <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Esc または F1 で閉じる</value></data>
   <data name="KeyboardHelpName" xml:space="preserve"><value>キー操作の一覧</value></data>
   <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>設定（Ctrl+,）</value></data>
+  <data name="KeyLabelA" xml:space="preserve"><value>a</value></data>
+  <data name="KeyLabelE" xml:space="preserve"><value>e</value></data>
+  <data name="KeyLabelSlash" xml:space="preserve"><value>/</value></data>
+  <data name="BookmarkManagerRegion.AutomationProperties.Name" xml:space="preserve"><value>ブックマーク</value></data>
+  <data name="BookmarkCategoriesRegion.AutomationProperties.Name" xml:space="preserve"><value>カテゴリ</value></data>
+  <data name="BookmarkRowsRegion.AutomationProperties.Name" xml:space="preserve"><value>ブックマークの一覧</value></data>
+  <data name="BookmarkKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>キー操作の案内</value></data>
+  <data name="BookmarkCountFormat" xml:space="preserve"><value>{0} 件</value></data>
+  <data name="BookmarkColumnSlot.Text" xml:space="preserve"><value>枠</value></data>
+  <data name="BookmarkColumnName.Text" xml:space="preserve"><value>名前</value></data>
+  <data name="BookmarkColumnPath.Text" xml:space="preserve"><value>場所</value></data>
+  <data name="BookmarkHintMove" xml:space="preserve"><value>移動</value></data>
+  <data name="BookmarkHintOpen" xml:space="preserve"><value>開く</value></data>
+  <data name="BookmarkHintToList" xml:space="preserve"><value>一覧へ</value></data>
+  <data name="BookmarkHintSearch" xml:space="preserve"><value>検索</value></data>
+  <data name="BookmarkHintSwitch" xml:space="preserve"><value>切り替え</value></data>
+  <data name="BookmarkHintAddBookmark" xml:space="preserve"><value>登録</value></data>
+  <data name="BookmarkHintEditBookmark" xml:space="preserve"><value>編集</value></data>
+  <data name="BookmarkHintDeleteBookmark" xml:space="preserve"><value>削除</value></data>
+  <data name="BookmarkHintAddCategory" xml:space="preserve"><value>カテゴリを追加</value></data>
+  <data name="BookmarkHintRenameCategory" xml:space="preserve"><value>名前を変更</value></data>
+  <data name="BookmarkHintDeleteCategory" xml:space="preserve"><value>カテゴリを削除</value></data>
+  <data name="BookmarkHintClose" xml:space="preserve"><value>閉じる</value></data>
+  <data name="BookmarkHelpActivate" xml:space="preserve"><value>開く（カテゴリでは一覧へ）</value></data>
+  <data name="BookmarkHelpSearch" xml:space="preserve"><value>検索欄へ</value></data>
+  <data name="BookmarkHelpSwitch" xml:space="preserve"><value>カテゴリと一覧を切り替え</value></data>
+  <data name="BookmarkHelpAdd" xml:space="preserve"><value>現在フォルダーを登録（カテゴリでは追加）</value></data>
+  <data name="BookmarkHelpEdit" xml:space="preserve"><value>編集（カテゴリでは名前を変更）</value></data>
+  <data name="BookmarkHelpDelete" xml:space="preserve"><value>削除（カテゴリでは削除の確認）</value></data>
+  <data name="BookmarkHelpLeaveSearch" xml:space="preserve"><value>検索欄から一覧へ</value></data>
+  <data name="KeyboardHelpGroupBookmarks" xml:space="preserve"><value>ブックマーク（Ctrl+B）</value></data>
 </root>

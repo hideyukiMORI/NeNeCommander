@@ -8,6 +8,8 @@ public abstract record BookmarkManagerFocusTarget
 
     /// <summary>Gets the browse search target.</summary>
     public static BookmarkManagerFocusTarget Search { get; } = new SearchTarget();
+    /// <summary>Gets the bookmark-list target that receives focus while browsing (ADR-0079).</summary>
+    public static BookmarkManagerFocusTarget BookmarkList { get; } = new BookmarkListTarget();
     /// <summary>Gets the bookmark-name draft target.</summary>
     public static BookmarkManagerFocusTarget BookmarkName { get; } = new BookmarkNameTarget();
     /// <summary>Gets the category-name draft target.</summary>
@@ -23,6 +25,12 @@ public abstract record BookmarkManagerFocusTarget
     }
 
     private sealed record SearchTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BookmarkListTarget : BookmarkManagerFocusTarget
     {
         private protected override void RestrictDerivation()
         {

@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
@@ -29,4 +30,8 @@ public sealed record BookmarkCategoryOption
     public BookmarkCategorySelection? Selection { get; }
     /// <summary>Gets whether this option matches the session-owned filter.</summary>
     public bool IsSelected { get; }
+    /// <summary>Gets the category-column mark: the file list's focus mark for the selected filter, otherwise unmarked.</summary>
+    public PaneRowMark Mark => IsSelected ? PaneRowMark.FocusInActivePane : PaneRowMark.Unmarked;
+    /// <summary>Gets the automation identifier of the category-column container.</summary>
+    public string AutomationId => "BookmarkCategory_" + DisplayText;
 }

@@ -58,7 +58,10 @@ internal static class KeyboardInputTranslator
     {
         KeyboardKey key = character switch
         {
+            'a' => KeyboardKey.A,
             'd' or '\u0004' => KeyboardKey.D,
+            'e' => KeyboardKey.E,
+            '/' => KeyboardKey.Slash,
             'b' or '\u0002' => KeyboardKey.B,
             'G' => KeyboardKey.UpperG,
             'g' or '\u0007' => KeyboardKey.LowerG,
