@@ -374,6 +374,34 @@ public sealed class CommanderSessionTests
         Assert.HasCount(1, left.Requests);
     }
 
+    /// <summary>
+    /// Proves a read that ends by throwing cancellation still settles the manager as a cancelled
+    /// navigation to the selected target before the cancellation reaches the caller.
+    /// </summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenManagerBookmarkReadThrowsCancellationRecordsCancelledTargetAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        _ = left.EnqueuePending().TrySetCanceled();
+        BookmarkEntry entry = Entry("Target", "C:\\target", null);
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSessionWithCatalog(left, right, gateway, Catalog(entry));
+        RecordingCommanderObserver observer = new();
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        _ = await Assert.ThrowsExactlyAsync<TaskCanceledException>(() => session.HandleAsync(
+            UserIntent.NavigateBookmark(new BookmarkSelection(entry)),
+            observer,
+            CancellationToken.None));
+
+        BookmarkNavigationFailed failed = Assert.IsInstanceOfType<BookmarkNavigationFailed>(
+            session.Current.Settings.BookmarksEditor);
+        PaneReadCancelled reason = Assert.IsInstanceOfType<PaneReadCancelled>(failed.Reason);
+        Assert.AreEqual("C:\\target", reason.Target.CanonicalText);
+        Assert.AreEqual(entry, failed.Selection.Entry);
+    }
+
     /// <summary>Proves browse ignores unrelated commands and Escape closes the bookmark modal.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenBookmarksBrowseOwnsInputAcceptsOnlyItsClosedActionsAsync()
@@ -445,6 +473,32 @@ public sealed class CommanderSessionTests
             atRoot.Current.Settings.BookmarksEditor);
         Assert.AreEqual(string.Empty, rootDraft.Draft.Name);
         Assert.AreEqual("C:\\", rootDraft.Draft.Path);
+    }
+
+    /// <summary>Proves a UNC share root offers its share name, the last segment before the trailing separator.</summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenCurrentPaneIsUncShareRootDefaultsToTheShareNameAsync()
+    {
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(Listing("\\\\server\\share\\", "item.txt"), null));
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(
+            left,
+            ScriptedDirectoryReadPort.Create(),
+            gateway,
+            new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, ParsePath("\\\\server\\share\\"), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        _ = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.BeginAddBookmark),
+            observer,
+            CancellationToken.None);
+
+        BookmarkDrafting draft = Assert.IsInstanceOfType<BookmarkDrafting>(session.Current.Settings.BookmarksEditor);
+        Assert.AreEqual("share", draft.Draft.Name);
+        Assert.AreEqual("\\\\server\\share\\", draft.Draft.Path);
     }
 
     /// <summary>Proves a stale displayed key cannot be rebound to a replacement path.</summary>

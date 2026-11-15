@@ -56,6 +56,66 @@ public sealed class DualPaneConflictSessionTests
         Assert.HasCount(1, completed.Outcome.NotTransferred);
         Assert.IsEmpty(completed.Outcome.Effects);
         Assert.AreEqual(1, fixture.Port.Calls.Count(call => call.StartsWith("Inspect:", StringComparison.Ordinal)));
+        Assert.HasCount(2, fixture.Left.Requests);
+        Assert.HasCount(2, fixture.Right.Requests);
+    }
+
+    /// <summary>
+    /// Proves Escape while a resumed transfer runs reaches no cancellation source left over from the
+    /// paused first run, so the resume completes and both panes refresh.
+    /// </summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenEscapeArrivesDuringResumeCompletesTheResumedTransfer()
+    {
+        DualPaneSessionTestContext? owner = null;
+        bool armed = false;
+        Task<DualPaneSnapshot>? duringResume = null;
+        using DualPaneSessionTestContext fixture = DualPaneSessionTestContext.Create(
+            ScriptedCallbackPoint.AfterPreflight,
+            () =>
+            {
+                if (armed)
+                {
+                    armed = false;
+                    duringResume = owner!.Panes.HandleAsync(
+                        UserIntent.Escape,
+                        RecordingDualPaneObserver.Create(),
+                        CancellationToken.None);
+                }
+            });
+        owner = fixture;
+        DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing rightListing = DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
+        TransferConflict conflict = TransferConflict.Create(
+            inspection.Snapshot,
+            rightListing.Entries[0].Path,
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+        fixture.Port.EnqueueInspection(inspection);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+        _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
+            TransferPlanEntry.Skip(
+                conflict.Source.WithConflictChoice(TransferConflictChoice.Create(conflict, TransferConflictDecision.Skip)),
+                conflict.ExistingTarget)]));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        armed = true;
+
+        DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
+            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
+            RecordingDualPaneObserver.Create(),
+            CancellationToken.None);
+
+        Assert.IsNotNull(duringResume);
+        _ = Assert.IsInstanceOfType<OperationRunning>((await duringResume).Operation);
+        OperationCompleted completed = Assert.IsInstanceOfType<OperationCompleted>(completedSnapshot.Operation);
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, completed.Outcome.Completion);
+        Assert.HasCount(1, completed.Outcome.NotTransferred);
+        Assert.HasCount(2, fixture.Left.Requests);
+        Assert.HasCount(2, fixture.Right.Requests);
     }
 
     /// <summary>Proves Escape consumes and cancels a conflict continuation without a filesystem effect.</summary>

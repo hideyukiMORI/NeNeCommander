@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Domain.Paths;
@@ -63,6 +64,24 @@ public sealed class FileSystemPathIdentityComparerTests
         Assert.AreEqual(comparer.GetHashCode(path), comparer.GetHashCode(distroCaseVariant));
         Assert.IsFalse(comparer.Equals(path, pathCaseVariant));
         Assert.IsFalse(comparer.Equals(path, otherDistro));
+    }
+
+    /// <summary>Proves each provider spreads distinct identities over more than one hash code instead of one constant bucket.</summary>
+    [TestMethod]
+    [DataRow("C:\\alpha", "C:\\beta", "C:\\gamma", "D:\\delta")]
+    [DataRow("\\\\server\\share\\alpha", "\\\\server\\share\\beta", "\\\\server\\other\\gamma", "\\\\host\\share\\delta")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu\\alpha", "\\\\wsl.localhost\\Ubuntu\\beta", "\\\\wsl.localhost\\Debian\\gamma", "\\\\wsl.localhost\\Ubuntu\\Alpha")]
+    public void GetHashCodeWhenIdentitiesDifferDoesNotCollapseToOneValue(string first, string second, string third, string fourth)
+    {
+        FileSystemPathIdentityComparer comparer = FileSystemPathIdentityComparer.Instance;
+        HashSet<int> hashes = [];
+
+        foreach (string input in new[] { first, second, third, fourth })
+        {
+            _ = hashes.Add(comparer.GetHashCode(ParsePath(input)));
+        }
+
+        Assert.IsGreaterThan(1, hashes.Count);
     }
 
     /// <summary>Proves absent identities compare safely and cannot be hashed.</summary>
