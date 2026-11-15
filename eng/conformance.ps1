@@ -217,7 +217,7 @@ jobs:
       - name: Install pinned .NET SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: 10.0.403
+          dotnet-version: 10.0.404
 
       - name: Run the explicitly requested full canonical gate
         shell: pwsh
@@ -351,12 +351,12 @@ if ($ruleDeclarations.Count -lt 40) {
 $globalJsonPath = Join-Path $root 'global.json'
 if (Test-Path -LiteralPath $globalJsonPath -PathType Leaf) {
     $globalSettings = Get-Content -LiteralPath $globalJsonPath -Raw | ConvertFrom-Json
-    if ($globalSettings.sdk.version -ne '10.0.403' -or $globalSettings.sdk.rollForward -ne 'disable' -or $globalSettings.sdk.allowPrerelease -ne $false) {
-        Add-Violation -Rule 'CFG-001' -Message 'global.json must pin stable SDK 10.0.403 with rollForward disabled.'
+    if ($globalSettings.sdk.version -ne '10.0.404' -or $globalSettings.sdk.rollForward -ne 'disable' -or $globalSettings.sdk.allowPrerelease -ne $false) {
+        Add-Violation -Rule 'CFG-001' -Message 'global.json must pin stable SDK 10.0.404 with rollForward disabled.'
     }
 
-    if ($globalSettings.'msbuild-sdks'.'MSTest.Sdk' -ne '4.5.2') {
-        Add-Violation -Rule 'CFG-002' -Message 'global.json must pin MSTest.Sdk 4.5.2.'
+    if ($globalSettings.'msbuild-sdks'.'MSTest.Sdk' -ne '4.5.3') {
+        Add-Violation -Rule 'CFG-002' -Message 'global.json must pin MSTest.Sdk 4.5.3.'
     }
 }
 
