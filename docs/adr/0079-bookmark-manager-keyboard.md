@@ -108,7 +108,9 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
 
 ## Rejected alternatives
 
-- **Direction B (a right-side drawer) and direction C (a compact top sheet).** hide chose A.
+- **Direction B (a single column like the command palette, categories as headings inside the
+  list) and direction C (the former two-column layout and its buttons inside a panel, adding only
+  the scrim and `j`/`k`).** hide chose A.
 - **Keeping the eight browse buttons next to the band.** Two visible controls per action would
   duplicate the band and crowd the panel; the hint buttons keep the pointer route without it.
 - **Moving category editing to the command palette.** hide chose to keep it in the manager; the
@@ -125,8 +127,9 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
 ## Consequences
 
 - Two new contexts, one dedicated bookmark table of fourteen entries, three new key identities
-  (`a`, `e`, `/`), Presentation decision and projection types and one App view. The bookmark
-  session, actions, catalog and save path are unchanged.
+  (`a`, `e`, `/`), Presentation decision and projection types and two App views. The catalog, its
+  schema and the save path are unchanged; the bookmark session changes only by the deletion
+  confirmation below.
 - `d` and the Delete hint never delete at once: bookmarks and categories are both deleted only
   from their confirmation. One new editor state and two actions replace the immediate action.
 - The panes stay visible behind the manager. Pointer input cannot reach them.
