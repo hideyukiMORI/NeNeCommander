@@ -32,15 +32,15 @@ public sealed record BookmarkCategoryName
 
     internal static BookmarkTextFailureKind? Validate(string value, int maximumLength)
     {
-        return value.Length > maximumLength
-            ? BookmarkTextFailureKind.TooLong
-            : !string.Equals(value, value.Trim(), StringComparison.Ordinal)
-                ? BookmarkTextFailureKind.SurroundingWhitespace
-                : value.Any(char.IsControl)
-                    ? BookmarkTextFailureKind.ControlCharacter
-                    : HasInvalidSurrogate(value)
-                        ? BookmarkTextFailureKind.InvalidUnicode
-                        : null;
+        return value switch
+        {
+            _ when value.Length > maximumLength => BookmarkTextFailureKind.TooLong,
+            _ when !string.Equals(value, value.Trim(), StringComparison.Ordinal) =>
+                BookmarkTextFailureKind.SurroundingWhitespace,
+            _ when value.Any(char.IsControl) => BookmarkTextFailureKind.ControlCharacter,
+            _ when HasInvalidSurrogate(value) => BookmarkTextFailureKind.InvalidUnicode,
+            _ => null,
+        };
     }
 
     internal static bool HasInvalidSurrogate(string value)

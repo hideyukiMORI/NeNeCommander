@@ -42,30 +42,58 @@ public sealed record BookmarkCatalog
     {
         ArgumentNullException.ThrowIfNull(categories);
         ArgumentNullException.ThrowIfNull(bookmarks);
-        if (categories.Count > MaximumCategoryCount)
+        BookmarkCatalogFailureKind? shapeFailure = ShapeFailureOf(categories, bookmarks);
+        if (shapeFailure is not null)
         {
-            return new BookmarkCatalogRejected(BookmarkCatalogFailureKind.TooManyCategories);
+            return new BookmarkCatalogRejected(shapeFailure);
         }
-        if (bookmarks.Count > MaximumBookmarkCount)
+        List<BookmarkEntry>? normalized = NormalizeCategories(categories, bookmarks);
+        return normalized is null
+            ? new BookmarkCatalogRejected(BookmarkCatalogFailureKind.InvalidCategoryReference)
+            : CreateWithoutDuplicates(categories, normalized);
+    }
+
+    private static BookmarkCatalogCreationOutcome CreateWithoutDuplicates(
+        IReadOnlyList<BookmarkCategoryName> categories,
+        List<BookmarkEntry> normalized)
+    {
+        return HasDuplicateBookmarks(normalized)
+            ? new BookmarkCatalogRejected(BookmarkCatalogFailureKind.DuplicateBookmark)
+            : HasDuplicateSlots(normalized)
+                ? new BookmarkCatalogRejected(BookmarkCatalogFailureKind.DuplicateShortcutSlot)
+                : new BookmarkCatalogAccepted(new BookmarkCatalog(categories, normalized));
+    }
+
+    /// <summary>Names the first count, element or category-list failure, or null when there is none.</summary>
+    private static BookmarkCatalogFailureKind? ShapeFailureOf(
+        IReadOnlyList<BookmarkCategoryName> categories,
+        IReadOnlyList<BookmarkEntry> bookmarks)
+    {
+        return categories switch
         {
-            return new BookmarkCatalogRejected(BookmarkCatalogFailureKind.TooManyBookmarks);
-        }
-        if (ContainsNull(categories) || ContainsNull(bookmarks))
-        {
-            return new BookmarkCatalogRejected(BookmarkCatalogFailureKind.InvalidElement);
-        }
-        if (HasDuplicateCategories(categories))
-        {
-            return new BookmarkCatalogRejected(BookmarkCatalogFailureKind.DuplicateCategory);
-        }
+            _ when categories.Count > MaximumCategoryCount => BookmarkCatalogFailureKind.TooManyCategories,
+            _ when bookmarks.Count > MaximumBookmarkCount => BookmarkCatalogFailureKind.TooManyBookmarks,
+            _ when ContainsNull(categories) || ContainsNull(bookmarks) => BookmarkCatalogFailureKind.InvalidElement,
+            _ when HasDuplicateCategories(categories) => BookmarkCatalogFailureKind.DuplicateCategory,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Rebinds every bookmark to the catalog's own spelling of its category, or returns null when a
+    /// bookmark references a category the catalog does not declare.
+    /// </summary>
+    private static List<BookmarkEntry>? NormalizeCategories(
+        IReadOnlyList<BookmarkCategoryName> categories,
+        IReadOnlyList<BookmarkEntry> bookmarks)
+    {
         List<BookmarkEntry> normalized = [];
         foreach (BookmarkEntry bookmark in bookmarks)
         {
             BookmarkCategoryName? category = ResolveCategory(categories, bookmark.Category);
             if (bookmark.Category is not null && category is null)
             {
-                return new BookmarkCatalogRejected(
-                    BookmarkCatalogFailureKind.InvalidCategoryReference);
+                return null;
             }
             normalized.Add(category is null
                 ? bookmark
@@ -75,11 +103,7 @@ public sealed record BookmarkCatalog
                     category,
                     bookmark.ShortcutSlot));
         }
-        return HasDuplicateBookmarks(normalized)
-            ? new BookmarkCatalogRejected(BookmarkCatalogFailureKind.DuplicateBookmark)
-            : HasDuplicateSlots(normalized)
-                ? new BookmarkCatalogRejected(BookmarkCatalogFailureKind.DuplicateShortcutSlot)
-                : new BookmarkCatalogAccepted(new BookmarkCatalog(categories, normalized));
+        return normalized;
     }
 
     /// <summary>Finds the bookmark assigned to one slot in the current immutable catalog.</summary>

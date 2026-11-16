@@ -143,6 +143,29 @@ public sealed class PaneSession
         {
             return Task.FromResult(Current);
         }
+        Task<PaneSnapshot>? external = StartExternalAction(listed, intent, cancellationToken);
+        if (external is not null)
+        {
+            return external;
+        }
+
+        PaneState next = PaneReducer.Apply(listed.State, intent);
+        if (!ReferenceEquals(next, listed.State))
+        {
+            Current = PaneSnapshot.IdleWith(new PaneContentListed(next, listed.Listing, listed.DriveKind));
+        }
+        return Task.FromResult(Current);
+    }
+
+    /// <summary>
+    /// Starts the read or file handoff an intent requests, or returns null when the intent only
+    /// changes pane state.
+    /// </summary>
+    private Task<PaneSnapshot>? StartExternalAction(
+        PaneContentListed listed,
+        UserIntent intent,
+        CancellationToken cancellationToken)
+    {
         if (intent == UserIntent.OpenFocused)
         {
             return OpenFocusedAsync(listed, cancellationToken);
@@ -166,21 +189,11 @@ public sealed class PaneSession
                     PaneNavigationAction.Append,
                     cancellationToken);
         }
-        if (intent == UserIntent.NavigateBack)
-        {
-            return NavigateHistoryAsync(listed, PaneNavigationAction.Back, cancellationToken);
-        }
-        if (intent == UserIntent.NavigateForward)
-        {
-            return NavigateHistoryAsync(listed, PaneNavigationAction.Forward, cancellationToken);
-        }
-
-        PaneState next = PaneReducer.Apply(listed.State, intent);
-        if (!ReferenceEquals(next, listed.State))
-        {
-            Current = PaneSnapshot.IdleWith(new PaneContentListed(next, listed.Listing, listed.DriveKind));
-        }
-        return Task.FromResult(Current);
+        return intent == UserIntent.NavigateBack
+            ? NavigateHistoryAsync(listed, PaneNavigationAction.Back, cancellationToken)
+            : intent == UserIntent.NavigateForward
+                ? NavigateHistoryAsync(listed, PaneNavigationAction.Forward, cancellationToken)
+                : null;
     }
 
     private Task<PaneSnapshot> OpenFocusedAsync(PaneContentListed listed, CancellationToken cancellationToken)
