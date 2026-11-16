@@ -20,6 +20,22 @@ public sealed class WslPathTests
     [DataRow("home/name ", "Incompatible")]
     [DataRow("home./file.txt", "Incompatible")]
     [DataRow("home /file.txt", "Incompatible")]
+    [DataRow("home/a:b.txt", "Incompatible")]
+    [DataRow("home/a?b.txt", "Incompatible")]
+    [DataRow("home/a*b.txt", "Incompatible")]
+    [DataRow("home/a\"b.txt", "Incompatible")]
+    [DataRow("home/a<b.txt", "Incompatible")]
+    [DataRow("home/a>b.txt", "Incompatible")]
+    [DataRow("home/a|b.txt", "Incompatible")]
+    public void HasWindowsCompatibleNamesWhenPathIsClassifiedPreservesWslText(string relative, string expected)
+    {
+        AssertClassification(relative, expected);
+    }
+
+    /// <summary>Proves only the exact Windows device-name stems make a segment incompatible.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-019")]
     [DataRow("home/CON.txt", "Incompatible")]
     [DataRow("home/nul/file.txt", "Incompatible")]
     [DataRow("home/LPT1", "Incompatible")]
@@ -35,14 +51,12 @@ public sealed class WslPathTests
     [DataRow("home/COM¹x", "Compatible")]
     [DataRow("home/LPT⁴.txt", "Compatible")]
     [DataRow("home/COM１", "Compatible")]
-    [DataRow("home/a:b.txt", "Incompatible")]
-    [DataRow("home/a?b.txt", "Incompatible")]
-    [DataRow("home/a*b.txt", "Incompatible")]
-    [DataRow("home/a\"b.txt", "Incompatible")]
-    [DataRow("home/a<b.txt", "Incompatible")]
-    [DataRow("home/a>b.txt", "Incompatible")]
-    [DataRow("home/a|b.txt", "Incompatible")]
-    public void HasWindowsCompatibleNamesWhenPathIsClassifiedPreservesWslText(string relative, string expected)
+    public void HasWindowsCompatibleNamesWhenSegmentResemblesDeviceNamePreservesWslText(string relative, string expected)
+    {
+        AssertClassification(relative, expected);
+    }
+
+    private static void AssertClassification(string relative, string expected)
     {
         ArgumentNullException.ThrowIfNull(relative);
         string original = "\\\\wsl.localhost\\Ubuntu\\" + relative.Replace('/', '\\');
