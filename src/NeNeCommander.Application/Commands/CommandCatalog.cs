@@ -61,13 +61,12 @@ public static class CommandCatalog
         PaneContentListed active,
         PaneSnapshot passive)
     {
-        CommandUnavailableReason? reason = EntryReasonOf(intent, active.State, passive) ??
-            NavigationReasonOf(intent, active.State);
+        CommandUnavailableReason? reason = UnavailableReasonOf(intent, active.State, passive);
         return reason is null ? CommandAvailability.Available : new CommandUnavailable(reason);
     }
 
-    /// <summary>Names why a command that acts on entries cannot run, or null when it can.</summary>
-    private static CommandUnavailableReason? EntryReasonOf(UserIntent intent, PaneState active, PaneSnapshot passive)
+    /// <summary>Names why a command cannot run, or null when it can.</summary>
+    private static CommandUnavailableReason? UnavailableReasonOf(UserIntent intent, PaneState active, PaneSnapshot passive)
     {
         bool hasFocus = active.FocusItem is not null;
         bool hasSource = active.Selection.Count > 0 || hasFocus;
@@ -82,7 +81,7 @@ public static class CommandCatalog
             _ when transfers && passive.Content is not PaneContentListed =>
                 CommandUnavailableReason.PassivePaneUnavailable,
             _ when intent == UserIntent.Delete && !hasSource => CommandUnavailableReason.SourceRequired,
-            _ => null,
+            _ => NavigationReasonOf(intent, active),
         };
     }
 
