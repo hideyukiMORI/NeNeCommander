@@ -148,37 +148,6 @@ public sealed class CommanderSession
             return await BeginAddressEditAsync(focusedAddress.Side, observer, cancellationToken)
                 .ConfigureAwait(false);
         }
-        if (intent == UserIntent.OpenSettings)
-        {
-            if (!PaneInteractionIsFrozen())
-            {
-                _ = _settings.Open();
-            }
-            return Current;
-        }
-        if (intent == UserIntent.OpenBookmarks)
-        {
-            if (!BookmarkInteractionIsFrozen())
-            {
-                _ = _settings.OpenBookmarks();
-            }
-            return Current;
-        }
-        if (intent == UserIntent.OpenCommandPalette)
-        {
-            OpenCommandPalette();
-            return Current;
-        }
-        if (intent == UserIntent.OpenWindowAdjustment)
-        {
-            OpenWindowAdjustment();
-            return Current;
-        }
-        if (intent == UserIntent.OpenHelp)
-        {
-            OpenKeyboardHelp();
-            return Current;
-        }
         if (intent == UserIntent.OpenLocations)
         {
             DualPaneSnapshot panes = _panes.Current;
@@ -186,7 +155,44 @@ public sealed class CommanderSession
                 .ConfigureAwait(false);
             return Current;
         }
-        return await DispatchPaneIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+        return OpenScope(intent)
+            ? Current
+            : await DispatchPaneIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens the scope an intent names without waiting for anything, and reports whether the intent
+    /// named one. A frozen interaction leaves the settings editor and the bookmark manager closed.
+    /// </summary>
+    private bool OpenScope(UserIntent intent)
+    {
+        Action? open = intent switch
+        {
+            _ when intent == UserIntent.OpenSettings => OpenSettingsEditor,
+            _ when intent == UserIntent.OpenBookmarks => OpenBookmarkManager,
+            _ when intent == UserIntent.OpenCommandPalette => OpenCommandPalette,
+            _ when intent == UserIntent.OpenWindowAdjustment => OpenWindowAdjustment,
+            _ when intent == UserIntent.OpenHelp => OpenKeyboardHelp,
+            _ => null,
+        };
+        open?.Invoke();
+        return open is not null;
+    }
+
+    private void OpenSettingsEditor()
+    {
+        if (!PaneInteractionIsFrozen())
+        {
+            _ = _settings.Open();
+        }
+    }
+
+    private void OpenBookmarkManager()
+    {
+        if (!BookmarkInteractionIsFrozen())
+        {
+            _ = _settings.OpenBookmarks();
+        }
     }
 
     private async Task<CommanderSnapshot> DispatchPaneIntentAsync(
@@ -261,7 +267,7 @@ public sealed class CommanderSession
         {
             _ = _settings.ApplyBookmarkEditorAction(
                 BookmarkEditorAction.Cancel,
-                CurrentBookmarkDefaults(),
+                ActivePaneBookmarkDefaults.From(_panes.Current),
                 observer,
                 cancellationToken);
             return Current;
@@ -270,7 +276,7 @@ public sealed class CommanderSession
         {
             _ = _settings.ApplyBookmarkEditorAction(
                 submission.Action,
-                CurrentBookmarkDefaults(),
+                ActivePaneBookmarkDefaults.From(_panes.Current),
                 observer,
                 cancellationToken);
             return Current;
@@ -365,29 +371,6 @@ public sealed class CommanderSession
     private bool TryBeginBookmarkNavigation()
     {
         return Interlocked.CompareExchange(ref _bookmarkNavigationInProgress, 1, 0) == 0;
-    }
-
-    private BookmarkRegistrationDefaults CurrentBookmarkDefaults()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        PaneSnapshot pane = panes.Of(panes.ActiveSide);
-        if (pane.Content is not PaneContentListed listed)
-        {
-            return new BookmarkRegistrationDefaults(string.Empty, string.Empty);
-        }
-        string path = listed.Listing.Location.CanonicalText;
-        string candidate = LeafName(path);
-        string name = BookmarkDisplayName.Parse(candidate) is BookmarkDisplayNameAccepted accepted
-            ? accepted.Name.Value
-            : string.Empty;
-        return new BookmarkRegistrationDefaults(name, path);
-    }
-
-    private static string LeafName(string path)
-    {
-        string withoutTrailingSeparator = path.TrimEnd('\\');
-        int separator = withoutTrailingSeparator.LastIndexOf('\\');
-        return separator < 0 ? string.Empty : withoutTrailingSeparator[(separator + 1)..];
     }
 
     private bool PaneInteractionIsFrozen()
