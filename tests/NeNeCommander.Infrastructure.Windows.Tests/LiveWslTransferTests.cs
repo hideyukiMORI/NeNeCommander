@@ -98,8 +98,7 @@ public sealed class LiveWslTransferTests
             RecordOutcome(context, "move", outcome);
 
             root.AdoptMovedTree(
-                "move-source",
-                "move-destination/move-source",
+                LiveWslTreeMove.Create("move-source", "move-destination/move-source"),
                 [string.Empty, "nested", "nested/payload.bin", "top.bin"],
                 outcome,
                 source);

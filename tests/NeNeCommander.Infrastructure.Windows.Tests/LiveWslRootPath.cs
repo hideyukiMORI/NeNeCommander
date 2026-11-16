@@ -30,4 +30,9 @@ internal static class LiveWslRootPath
             ? child
             : throw new InvalidOperationException("The live fixture child name is invalid.");
     }
+
+    internal static WslPath Parent(WslPath path)
+    {
+        return (WslPath)(path.Parent ?? throw new InvalidOperationException("The live entry has no parent."));
+    }
 }

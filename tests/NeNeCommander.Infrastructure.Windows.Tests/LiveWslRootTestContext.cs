@@ -54,10 +54,11 @@ internal static class LiveWslRootTestContext
         return LiveWslTestRoot.Open(
             Admission(ConfiguredWslText()),
             [WslRoot(DistributionName)],
-            new WindowsWslFileSystem(Resolved, ReadProviderShapedFacts),
-            Resolved,
-            CreateLink,
-            unlinkEntry);
+            LiveWslRootMechanism.Create(
+                new WindowsWslFileSystem(Resolved, ReadProviderShapedFacts),
+                Resolved,
+                CreateLink,
+                unlinkEntry));
     }
 
     /// <summary>
