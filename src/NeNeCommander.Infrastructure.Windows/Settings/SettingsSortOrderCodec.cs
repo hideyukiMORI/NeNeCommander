@@ -88,11 +88,14 @@ internal static class SettingsSortOrderCodec
 
     private static string KeyText(SortKey key)
     {
-        return key == SortKey.Name ? "name"
-            : key == SortKey.Extension ? "extension"
-            : key == SortKey.Size ? "size"
-            : key == SortKey.Modified ? "modified"
-            : throw new InvalidOperationException("The sort key is not a declared choice.");
+        return key switch
+        {
+            _ when key == SortKey.Name => "name",
+            _ when key == SortKey.Extension => "extension",
+            _ when key == SortKey.Size => "size",
+            _ when key == SortKey.Modified => "modified",
+            _ => throw new InvalidOperationException("The sort key is not a declared choice."),
+        };
     }
 
     private static string DirectionText(SortDirection direction)

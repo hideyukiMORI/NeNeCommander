@@ -245,13 +245,14 @@ public static class PaneReducer
     /// </summary>
     internal static SortKey? SortKeyRequestedBy(UserIntent intent)
     {
-        return intent == UserIntent.SortByName
-            ? SortKey.Name
-            : intent == UserIntent.SortByExtension
-                ? SortKey.Extension
-                : intent == UserIntent.SortBySize
-                    ? SortKey.Size
-                    : intent == UserIntent.SortByModified ? SortKey.Modified : null;
+        return intent switch
+        {
+            _ when intent == UserIntent.SortByName => SortKey.Name,
+            _ when intent == UserIntent.SortByExtension => SortKey.Extension,
+            _ when intent == UserIntent.SortBySize => SortKey.Size,
+            _ when intent == UserIntent.SortByModified => SortKey.Modified,
+            _ => null,
+        };
     }
 
     private static int GetMovementOffset(PaneState state, UserIntent intent)

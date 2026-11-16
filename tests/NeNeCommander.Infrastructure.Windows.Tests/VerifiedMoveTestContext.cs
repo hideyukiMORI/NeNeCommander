@@ -47,7 +47,8 @@ internal static class VerifiedMoveTestContext
     /// <summary>
     /// Names the directory whose injected change time advances after the late change. The external
     /// parent is included because a mapped NTFS directory timestamp shares one system clock tick with
-    /// the fixture's earlier writes, so the real write alone is not deterministically observable.
+    /// the fixture's earlier writes, so the real write alone is not deterministically observable; since
+    /// Issue #388 that parent's advanced change time must not stop the move.
     /// </summary>
     internal static bool ReportsChangedDirectoryTime(string change, string path)
     {

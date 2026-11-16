@@ -97,9 +97,15 @@ internal sealed class VerifiedTreeAccess
         return ancestors.AsReadOnly();
     }
 
+    /// <summary>
+    /// Requires each external ancestor to remain the same non-link directory object (ADR-0069, revised for
+    /// Issue #388). Only the provider's object component is compared, so sibling activity that changes an
+    /// ancestor's timestamps, link count or size does not stop a transfer; recorded tree entries keep full identity.
+    /// </summary>
     internal bool MatchesAncestors(IReadOnlyList<VerifiedEntrySnapshot> entries)
     {
-        return entries.All(entry => Find(entry.Path) is DirectoryInfo && Capture(entry.Path) == entry);
+        return entries.All(entry => Find(entry.Path) is DirectoryInfo &&
+            Capture(entry.Path).ObjectIdentity == entry.ObjectIdentity);
     }
 
     internal void Delete(FileSystemPath path)

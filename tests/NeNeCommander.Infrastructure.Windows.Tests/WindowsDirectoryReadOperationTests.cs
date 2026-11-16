@@ -36,6 +36,27 @@ public sealed class WindowsDirectoryReadOperationTests
         Assert.AreEqual(0, invocationCount);
     }
 
+    /// <summary>Proves an already cancelled read never observes the drive kind either.</summary>
+    [TestMethod]
+    public void ReadWhenCancelledBeforeEnumerationDoesNotObserveDriveKind()
+    {
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
+        int observations = 0;
+
+        DirectoryReadOutcome outcome = new WindowsDirectoryReadOperation(
+            () => [],
+            WindowsDirectoryReadOperation.ClassifyByAttributes,
+            () =>
+            {
+                observations++;
+                return DriveKind.Fixed;
+            }).Read(Request(), cancellation.Token);
+
+        _ = Assert.IsInstanceOfType<DirectoryReadCancelled>(outcome);
+        Assert.AreEqual(0, observations);
+    }
+
     /// <summary>A cancelled drive observation never begins directory enumeration.</summary>
     [TestMethod]
     public void ReadWhenCancelledDuringDriveObservationSkipsEnumeration()
