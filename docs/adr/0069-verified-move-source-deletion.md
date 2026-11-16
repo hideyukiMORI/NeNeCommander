@@ -67,12 +67,15 @@ provider router, shared tree engine and source-provider deletion owners.
   query or comparison stops with the already completed partial effect. Files
   retain their original full identity and content checks; target evidence never
   changes. An inode/object component alone is not a lifetime identity.
-- External source and target ancestors retain their original full identities
-  throughout verification and deletion. They are never reanchored by this
-  operation. Unrelated sibling activity that changes an ancestor's metadata
-  can therefore conservatively stop a transfer; it must not weaken admission
-  to an object component alone. Owned-fixture tests that require a stable shared
-  temporary ancestor run without competing fixture mutations.
+- External source and target ancestors — every directory from the parent of
+  the operation root up to the provider root — are matched by their object
+  component throughout verification and deletion, and each must still be a
+  non-link directory. Their mutable metadata (timestamps, link count, size) is
+  not compared, so an unrelated entry created, removed or renamed in an
+  ancestor does not stop a transfer. They are never reanchored by this
+  operation. Every recorded entry inside the operation tree keeps the full
+  identity and content rules above. Revised on 2026-11-15; see "Revision
+  2026-11-15" below for the reason and the residual scope.
 - Windows object identity comes from the existing no-follow volume/file-id
   query. WSL object identity is composed by `WindowsFileIdentifier` from the same
   guarded 9P facts as its full identity: distribution, inode, kind and reparse
@@ -122,6 +125,70 @@ privileged mount/FUSE and clock scope remains unchanged. Tests using mapped
 NTFS namespaces prove deterministic algorithm behavior, not real 9P exclusion.
 Stronger handle-relative or transactional mutation would require a separate
 capability design and real provider proof; this ADR does not claim it.
+
+## Revision 2026-11-15 (Issue #388): external ancestors match by object component
+
+Decided by hide on 2026-11-15. The original rule kept each external ancestor's
+full identity, so "unrelated sibling activity that changes an ancestor's
+metadata can conservatively stop a transfer", and forbade weakening ancestor
+admission to an object component alone.
+
+Evidence that the rule was wrong for ancestors:
+
+- A directory's last-write time (and on WSL its change time and link count)
+  changes whenever any entry is created, removed or renamed directly inside it.
+  The ancestors of a real transfer include directories that other programs
+  write to all the time: a downloads folder, a user profile, a temporary folder.
+- The comparison window is per requested item, from the start of its
+  verification to the deletion of its last entry. For a large tree that is
+  minutes. During that window one unrelated file created in any source or
+  target ancestor stopped the item: `Verification` during verification, or
+  `IdentityChanged` with `SourcePartiallyDeleted` during deletion. The source
+  was kept, so nothing was lost, but the user's move or copy stopped for a
+  change that had nothing to do with it.
+- The same cause made the verified-move tests nondeterministic. Their fixtures
+  live under the shared temporary directory, which is therefore an ancestor.
+  On main `e2750be` the Infrastructure test suite failed 8 of 30 runs, and one
+  scenario run alone 1,000 times diverged 6 times. Making another process
+  change the temporary directory after verification reproduced the failure
+  200 of 200 times. The clause "owned-fixture tests ... run without competing
+  fixture mutations" could not be honored, because the operating system and
+  other processes write there too.
+
+What an ancestor comparison has to detect is that the path to the operation
+root now leads somewhere else: an ancestor was replaced by another directory,
+or became a link. The object component detects both. It names the object
+(Windows volume and file identifier; WSL distribution, inode, kind and reparse
+tag), and the non-link check is unchanged. Sibling activity in an ancestor
+does not change which objects the recorded entries are.
+
+The earlier concern, that an object component alone is not a lifetime
+identity, is about reuse of an inode after deletion. It still governs every
+directory inside the operation tree, where this operation itself deletes and
+a replacement could reuse the component. For an external ancestor the residual
+case is narrower: an ancestor removed and recreated with a reused object
+component is not detected at the ancestor. The recorded entries below it are
+still revalidated with their full identities and content evidence immediately
+before each effect, so a different tree placed under the recreated ancestor is
+refused there. This residual case is accepted and is additional to the
+residual races already listed under Consequences.
+
+The parent of the operation root is an external ancestor like the others. A
+file written next to the source root, as in the `external-parent` case of
+Issue #348, no longer stops the transfer; a change to any recorded entry of
+the tree still does.
+
+Proof for this revision: the adversarial cases keep rejecting a replaced
+ancestor and an ancestor that became a link, on both the source and the target
+side, during verification and during deletion; new cases prove that creating,
+removing and renaming an unrelated entry in a source or target ancestor during
+verification and during deletion does not stop the transfer; the
+`external-parent` case is rewritten to state the new rule
+(`VerifiedMoveAncestorTests`, `VerifiedTreeBoundaryTests`,
+`VerifiedMovePartialDeletionTests`); and the
+Infrastructure test suite is repeated to show that the intermittent failures
+are gone, with the count recorded in the PR. Because this changes a shared
+destructive trust boundary, one deep review is requested under ADR-0061.
 
 ## Migration and removal
 
