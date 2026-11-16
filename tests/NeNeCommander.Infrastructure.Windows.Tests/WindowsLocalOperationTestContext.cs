@@ -35,6 +35,14 @@ internal static class WindowsLocalOperationTestContext
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
     }
 
+    internal static FileEntrySnapshot LocalSnapshot(string text)
+    {
+        WindowsLocalPath path = Assert.IsInstanceOfType<WindowsLocalPath>(ParsePath(text));
+        System.IO.FileSystemInfo entry = WindowsLocalEntryIdentity.Find(path) ??
+            throw new AssertFailedException("The owned entry is absent.");
+        return FileEntrySnapshot.Create(path, WindowsLocalEntryIdentity.Describe(entry), DeletionCapability.PermanentOnly);
+    }
+
     internal static FileSystemPath ParsePath(string input)
     {
         return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(input)).Path;
