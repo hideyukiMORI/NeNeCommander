@@ -82,6 +82,8 @@
   <data name="OperationStatusDeleteRequestRejected" xml:space="preserve"><value>Delete request is not valid</value></data>
   <data name="LeftPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>Left pane</value></data>
   <data name="RightPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>Right pane</value></data>
+  <data name="OperationBarRegion.AutomationProperties.Name" xml:space="preserve"><value>Operation bar</value></data>
+  <data name="OperationKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>Key hints</value></data>
   <data name="LeftPaneNumber.Text" xml:space="preserve"><value>1</value></data>
   <data name="RightPaneNumber.Text" xml:space="preserve"><value>2</value></data>
   <data name="EntryKindDirectoryLabel" xml:space="preserve"><value>DIR</value></data>

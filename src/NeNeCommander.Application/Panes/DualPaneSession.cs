@@ -247,10 +247,12 @@ public sealed class DualPaneSession
         _operation = new OperationRunning(
             awaiting.Kind,
             FileOperationProgress.Create(0, awaiting.Continuation.Sources.Count));
-        FileOperationOutcome outcome = await _gateway.ResumeAsync(
-            awaiting.Continuation,
-            response,
-            new ProgressRelay(this, awaiting.Kind, observer),
+        FileOperationOutcome outcome = await RunCancellableAsync(
+            token => _gateway.ResumeAsync(
+                awaiting.Continuation,
+                response,
+                new ProgressRelay(this, awaiting.Kind, observer),
+                token),
             cancellationToken);
         if (outcome.Conflicts is ConflictSet conflicts)
         {
@@ -306,24 +308,9 @@ public sealed class DualPaneSession
 
         FileOperationRequest request = ((FileOperationRequestAccepted)creation).Request;
         _operation = new OperationRunning(kind, FileOperationProgress.Create(0, request.Sources.Count));
-        FileOperationOutcome outcome;
-        using (CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-        {
-            try
-            {
-                _cancelRunningOperation = owned.Cancel;
-                outcome = await _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), owned.Token);
-            }
-            catch
-            {
-                _operation = OperationActivity.Idle;
-                throw;
-            }
-            finally
-            {
-                _cancelRunningOperation = CancelNothingAction;
-            }
-        }
+        FileOperationOutcome outcome = await RunCancellableAsync(
+            token => _gateway.ExecuteAsync(request, new ProgressRelay(this, kind, observer), token),
+            cancellationToken);
         if (request is DeleteRequest unconfirmed && outcome.Failure == FileOperationFailureKind.ConfirmationRequired)
         {
             _operation = new OperationAwaitingConfirmation(unconfirmed);
@@ -369,6 +356,31 @@ public sealed class DualPaneSession
             RenameRequest renamed => renamed.Target,
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// Runs one gateway attempt under a session-owned cancellation source so Escape can cancel it,
+    /// and leaves no running activity behind when the attempt throws.
+    /// </summary>
+    private async Task<FileOperationOutcome> RunCancellableAsync(
+        Func<CancellationToken, Task<FileOperationOutcome>> attempt,
+        CancellationToken cancellationToken)
+    {
+        using CancellationTokenSource owned = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        try
+        {
+            _cancelRunningOperation = owned.Cancel;
+            return await attempt(owned.Token);
+        }
+        catch
+        {
+            _operation = OperationActivity.Idle;
+            throw;
+        }
+        finally
+        {
+            _cancelRunningOperation = CancelNothingAction;
+        }
     }
 
     private static void CancelNothing()

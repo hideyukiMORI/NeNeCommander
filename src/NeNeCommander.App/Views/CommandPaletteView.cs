@@ -42,6 +42,8 @@ internal sealed class CommandPaletteView
         _commandPaletteSurface = Find<Border>("CommandPaletteSurface");
         _commandPaletteSearch = Find<TextBox>("CommandPaletteSearch");
         _commandPaletteCandidateList = Find<ListView>("CommandPaletteCandidateList");
+        RowAutomationIdentity.Attach<CommandPaletteRow>(
+            _commandPaletteCandidateList, row => row.AutomationId, row => row.AutomationName);
         _commandPaletteContext = Find<TextBlock>("CommandPaletteContext");
         _commandPaletteZeroResults = Find<TextBlock>("CommandPaletteZeroResults");
         _commandPaletteDetail = Find<TextBlock>("CommandPaletteDetail");

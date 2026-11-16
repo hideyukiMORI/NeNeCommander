@@ -82,6 +82,8 @@
   <data name="OperationStatusDeleteRequestRejected" xml:space="preserve"><value>削除の要求が無効です</value></data>
   <data name="LeftPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>左ペイン</value></data>
   <data name="RightPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>右ペイン</value></data>
+  <data name="OperationBarRegion.AutomationProperties.Name" xml:space="preserve"><value>操作バー</value></data>
+  <data name="OperationKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>キー操作の案内</value></data>
   <data name="LeftPaneNumber.Text" xml:space="preserve"><value>1</value></data>
   <data name="RightPaneNumber.Text" xml:space="preserve"><value>2</value></data>
   <data name="EntryKindDirectoryLabel" xml:space="preserve"><value>DIR</value></data>
