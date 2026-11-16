@@ -26,12 +26,12 @@ public sealed class ProviderDirectoryReadPortTests
         DirectoryReadOutcome localOutcome = await router.ReadAsync(
             Request("C:\\"),
             CancellationToken.None);
-        AssertInvocations(windowsLocal, windowsUnc, wsl, 1, 0, 0);
+        AssertInvocations(RecordingReaders.Create(windowsLocal, windowsUnc, wsl), 1, 0, 0);
 
         DirectoryReadOutcome uncOutcome = await router.ReadAsync(
             Request("\\\\server\\share\\root"),
             CancellationToken.None);
-        AssertInvocations(windowsLocal, windowsUnc, wsl, 1, 1, 0);
+        AssertInvocations(RecordingReaders.Create(windowsLocal, windowsUnc, wsl), 1, 1, 0);
 
         DirectoryReadOutcome wslOutcome = await router.ReadAsync(
             Request("\\\\wsl.localhost\\Ubuntu\\home"),
@@ -40,7 +40,7 @@ public sealed class ProviderDirectoryReadPortTests
         _ = Assert.IsInstanceOfType<DirectoryReadSucceeded>(localOutcome);
         _ = Assert.IsInstanceOfType<DirectoryReadSucceeded>(uncOutcome);
         _ = Assert.IsInstanceOfType<DirectoryReadSucceeded>(wslOutcome);
-        AssertInvocations(windowsLocal, windowsUnc, wsl, 1, 1, 1);
+        AssertInvocations(RecordingReaders.Create(windowsLocal, windowsUnc, wsl), 1, 1, 1);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class ProviderDirectoryReadPortTests
         _ = await router.ReadAsync(Request("\\\\wsl$\\Ubuntu\\home"), CancellationToken.None);
         _ = await router.ReadAsync(Request("\\\\WSL.LOCALHOST\\Ubuntu\\"), CancellationToken.None);
 
-        AssertInvocations(windowsLocal, windowsUnc, wsl, 0, 0, 2);
+        AssertInvocations(RecordingReaders.Create(windowsLocal, windowsUnc, wsl), 0, 0, 2);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public sealed class ProviderDirectoryReadPortTests
         Assert.AreSame(
             FileOperationFailureKind.AccessDenied,
             Assert.IsInstanceOfType<DirectoryReadFailed>(outcome).Failure);
-        AssertInvocations(windowsLocal, windowsUnc, wsl, 0, 1, 0);
+        AssertInvocations(RecordingReaders.Create(windowsLocal, windowsUnc, wsl), 0, 1, 0);
     }
 
     /// <summary>
@@ -119,16 +119,14 @@ public sealed class ProviderDirectoryReadPortTests
     }
 
     private static void AssertInvocations(
-        RecordingDirectoryReadPort windowsLocal,
-        RecordingDirectoryReadPort windowsUnc,
-        RecordingDirectoryReadPort wsl,
+        RecordingReaders readers,
         int expectedLocal,
         int expectedUnc,
         int expectedWsl)
     {
-        Assert.AreEqual(expectedLocal, windowsLocal.InvocationCount);
-        Assert.AreEqual(expectedUnc, windowsUnc.InvocationCount);
-        Assert.AreEqual(expectedWsl, wsl.InvocationCount);
+        Assert.AreEqual(expectedLocal, readers.WindowsLocal.InvocationCount);
+        Assert.AreEqual(expectedUnc, readers.WindowsUnc.InvocationCount);
+        Assert.AreEqual(expectedWsl, readers.Wsl.InvocationCount);
     }
 
     private static DirectoryReadRequest Request(string text)
@@ -136,6 +134,33 @@ public sealed class ProviderDirectoryReadPortTests
         FileSystemPath path = Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path;
         DirectoryReadRequestCreation creation = DirectoryReadRequest.Create(path, 8);
         return Assert.IsInstanceOfType<DirectoryReadRequestAccepted>(creation).Request;
+    }
+
+    private sealed class RecordingReaders
+    {
+        private RecordingReaders(
+            RecordingDirectoryReadPort windowsLocal,
+            RecordingDirectoryReadPort windowsUnc,
+            RecordingDirectoryReadPort wsl)
+        {
+            WindowsLocal = windowsLocal;
+            WindowsUnc = windowsUnc;
+            Wsl = wsl;
+        }
+
+        internal RecordingDirectoryReadPort WindowsLocal { get; }
+
+        internal RecordingDirectoryReadPort WindowsUnc { get; }
+
+        internal RecordingDirectoryReadPort Wsl { get; }
+
+        internal static RecordingReaders Create(
+            RecordingDirectoryReadPort windowsLocal,
+            RecordingDirectoryReadPort windowsUnc,
+            RecordingDirectoryReadPort wsl)
+        {
+            return new RecordingReaders(windowsLocal, windowsUnc, wsl);
+        }
     }
 
     private sealed class RecordingDirectoryReadPort : IDirectoryReadPort

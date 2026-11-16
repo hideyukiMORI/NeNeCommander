@@ -298,23 +298,29 @@ public sealed class LiveWslTransferTests
                 [string.Empty, "foo.", "sub.", "sub./inner"],
                 outcome,
                 source);
-            CollectionAssert.AreEqual(
-                declaredSource.ToArray(),
-                root.ReadDeclaredTree("dot-destination/dot-source").ToArray());
-            CollectionAssert.AreEqual(
-                expectedNames,
-                await ListNamesAsync(root.OwnedPath("dot-destination/dot-source")));
-            Assert.IsFalse(root.Exists("dot-destination/dot-source/foo"));
-            Assert.IsFalse(root.Exists("dot-destination/dot-source/sub"));
-            CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-destination/dot-source/foo."));
-            CollectionAssert.AreEqual(new byte[] { 7, 7 }, root.ReadFile("dot-destination/dot-source/sub./inner"));
-            CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-source/foo."));
+            await AssertTrailingDotTreeKeptAsync(root, declaredSource, expectedNames);
         }
         finally
         {
             cleanup = LiveWslRunFixture.Close(context, root);
         }
         LiveWslRunFixture.RequireCleanup(cleanup);
+    }
+
+    private static async Task AssertTrailingDotTreeKeptAsync(
+        LiveWslTestRoot root, IReadOnlyList<LiveWslDeclaredEntry> declaredSource, string[] expectedNames)
+    {
+        CollectionAssert.AreEqual(
+            declaredSource.ToArray(),
+            root.ReadDeclaredTree("dot-destination/dot-source").ToArray());
+        CollectionAssert.AreEqual(
+            expectedNames,
+            await ListNamesAsync(root.OwnedPath("dot-destination/dot-source")));
+        Assert.IsFalse(root.Exists("dot-destination/dot-source/foo"));
+        Assert.IsFalse(root.Exists("dot-destination/dot-source/sub"));
+        CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-destination/dot-source/foo."));
+        CollectionAssert.AreEqual(new byte[] { 7, 7 }, root.ReadFile("dot-destination/dot-source/sub./inner"));
+        CollectionAssert.AreEqual(new byte[] { 4, 2, 0 }, root.ReadFile("dot-source/foo."));
     }
 
     private static async Task<string[]> ListNamesAsync(WslPath location)

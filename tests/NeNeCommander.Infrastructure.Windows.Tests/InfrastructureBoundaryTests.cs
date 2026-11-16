@@ -141,6 +141,12 @@ public sealed class InfrastructureBoundaryTests
     [TestProperty("ThreatId", "ADV-012")]
     public void ValidateWhenSettingsAreHostileReturnsExactTypedRejections()
     {
+        AssertHostileEnvelopeFailures();
+        AssertHostilePropertyFailures();
+    }
+
+    private static void AssertHostileEnvelopeFailures()
+    {
         AssertSettingsFailure(null, SettingsReadFailureKind.Empty);
         AssertSettingsFailure("   ", SettingsReadFailureKind.Empty);
         AssertSettingsFailure(new string('x', 65537), SettingsReadFailureKind.TooLarge);
@@ -162,6 +168,10 @@ public sealed class InfrastructureBoundaryTests
                                  /*lang=json,strict*/
                                  "{\"schemaVersion\":\"1\",\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
             SettingsReadFailureKind.Malformed);
+    }
+
+    private static void AssertHostilePropertyFailures()
+    {
         AssertSettingsFailure(
                                  /*lang=json,strict*/
                                  "{\"schemaVersion\":1,\"unexpected\":true,\"showHiddenItems\":true,\"colorScheme\":\"nene-dark\"}",
