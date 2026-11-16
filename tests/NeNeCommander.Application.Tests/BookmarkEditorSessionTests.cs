@@ -433,32 +433,76 @@ public sealed class BookmarkEditorSessionTests
         Assert.AreSame(BookmarkShortcutSlot.Two, changed.Catalog.Bookmarks[0].ShortcutSlot);
     }
 
-    /// <summary>Proves deleting a current bookmark succeeds while a replaced selection is stale.</summary>
+    /// <summary>
+    /// Proves deleting a bookmark first asks (ADR-0079): the question changes neither the catalog
+    /// nor the saved settings, and only the confirmation deletes, exactly once.
+    /// </summary>
     [TestMethod]
-    public void ApplyWhenDeletingBookmarkRequiresTheDisplayedCompleteEntry()
+    public void ApplyWhenDeletingBookmarkAsksBeforeOneCatalogChange()
     {
         BookmarkEntry displayed = Entry("Repo", "C:\\old", null);
         BookmarkSelection selection = new(displayed);
         BookmarkCatalog initial = Catalog([], [displayed]);
-        BookmarkEditorSession success = OpenEditor();
+        BookmarkEditorSession editor = OpenEditor();
+
+        _ = Assert.IsInstanceOfType<BookmarkEditorTransition.StateChanged>(
+            editor.Apply(BookmarkEditorAction.BeginDeleteBookmark(selection), initial, EmptyDefaults()));
+        BookmarkDeleteConfirmation confirmation =
+            Assert.IsInstanceOfType<BookmarkDeleteConfirmation>(editor.Current);
+        Assert.AreSame(displayed, confirmation.Selection.Entry);
+        Assert.HasCount(1, initial.Bookmarks);
 
         BookmarkEditorTransition.CatalogChanged changed =
             Assert.IsInstanceOfType<BookmarkEditorTransition.CatalogChanged>(
-                success.Apply(
-                    BookmarkEditorAction.DeleteBookmark(selection),
-                    initial,
-                    EmptyDefaults()));
+                editor.Apply(BookmarkEditorAction.ConfirmDeleteBookmark, initial, EmptyDefaults()));
         Assert.IsEmpty(changed.Catalog.Bookmarks);
+        _ = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current);
+        _ = Assert.IsInstanceOfType<BookmarkEditorTransition.StateChanged>(
+            editor.Apply(BookmarkEditorAction.ConfirmDeleteBookmark, changed.Catalog, EmptyDefaults()));
+    }
 
+    /// <summary>Proves cancelling the bookmark deletion question returns to the unchanged browse state.</summary>
+    [TestMethod]
+    public void ApplyWhenBookmarkDeletionIsCancelledRestoresBrowsingWithoutChange()
+    {
+        BookmarkEntry displayed = Entry("Repo", "C:\\old", null);
+        BookmarkCatalog catalog = Catalog([], [displayed]);
+        BookmarkEditorSession editor = OpenEditor();
+        _ = editor.Apply(BookmarkEditorAction.Search("rep"), catalog, EmptyDefaults());
+        BookmarksBrowsing before = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current);
+        _ = editor.Apply(BookmarkEditorAction.BeginDeleteBookmark(new BookmarkSelection(displayed)), catalog, EmptyDefaults());
+
+        _ = Assert.IsInstanceOfType<BookmarkEditorTransition.StateChanged>(
+            editor.Apply(BookmarkEditorAction.Cancel, catalog, EmptyDefaults()));
+
+        BookmarksBrowsing after = Assert.IsInstanceOfType<BookmarksBrowsing>(editor.Current);
+        Assert.AreEqual(before.Context, after.Context);
+        Assert.IsNull(after.Problem);
+        Assert.HasCount(1, catalog.Bookmarks);
+    }
+
+    /// <summary>Proves a bookmark replaced before the question or before confirmation is rejected as stale.</summary>
+    [TestMethod]
+    public void ApplyWhenBookmarkDeletionTargetChangesRejectsItAsStale()
+    {
+        BookmarkEntry displayed = Entry("Repo", "C:\\old", null);
+        BookmarkSelection selection = new(displayed);
         BookmarkCatalog replaced = Catalog([], [Entry("Repo", "C:\\new", null)]);
-        BookmarkEditorSession stale = OpenEditor();
-        _ = stale.Apply(
-            BookmarkEditorAction.DeleteBookmark(selection),
-            replaced,
-            EmptyDefaults());
+        BookmarkEditorSession early = OpenEditor();
+        _ = early.Apply(BookmarkEditorAction.BeginDeleteBookmark(selection), replaced, EmptyDefaults());
         Assert.AreSame(
             BookmarkEditorProblem.StaleSelection,
-            Assert.IsInstanceOfType<BookmarksBrowsing>(stale.Current).Problem);
+            Assert.IsInstanceOfType<BookmarksBrowsing>(early.Current).Problem);
+
+        BookmarkEditorSession late = OpenEditor();
+        _ = late.Apply(BookmarkEditorAction.BeginDeleteBookmark(selection), Catalog([], [displayed]), EmptyDefaults());
+        _ = Assert.IsInstanceOfType<BookmarkDeleteConfirmation>(late.Current);
+        _ = Assert.IsInstanceOfType<BookmarkEditorTransition.StateChanged>(
+            late.Apply(BookmarkEditorAction.ConfirmDeleteBookmark, replaced, EmptyDefaults()));
+        Assert.AreSame(
+            BookmarkEditorProblem.StaleSelection,
+            Assert.IsInstanceOfType<BookmarksBrowsing>(late.Current).Problem);
+        Assert.HasCount(1, replaced.Bookmarks);
     }
 
     /// <summary>Proves successful category deletion moves entries and the active filter together.</summary>
@@ -794,7 +838,11 @@ public sealed class BookmarkEditorSessionTests
         BookmarkEditorSession editor = new();
 
         _ = editor.Apply(
-            BookmarkEditorAction.DeleteBookmark(new BookmarkSelection(entry)),
+            BookmarkEditorAction.BeginDeleteBookmark(new BookmarkSelection(entry)),
+            catalog,
+            EmptyDefaults());
+        _ = editor.Apply(
+            BookmarkEditorAction.ConfirmDeleteBookmark,
             catalog,
             EmptyDefaults());
         _ = editor.Apply(

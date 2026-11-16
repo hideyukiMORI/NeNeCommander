@@ -26,7 +26,7 @@ public sealed class BookmarkManagerKeyboardTests
         Assert.AreEqual(UserIntent.NavigateBookmark(row.Selection), Resolve(list, BookmarkManagerKeyAction.Activate, row, category).Intent);
         Assert.AreEqual(Manage(BookmarkEditorAction.BeginAddBookmark), Resolve(list, BookmarkManagerKeyAction.Add, row, category).Intent);
         Assert.AreEqual(Manage(BookmarkEditorAction.BeginEditBookmark(row.Selection)), Resolve(list, BookmarkManagerKeyAction.Edit, row, category).Intent);
-        Assert.AreEqual(Manage(BookmarkEditorAction.DeleteBookmark(row.Selection)), Resolve(list, BookmarkManagerKeyAction.Delete, row, category).Intent);
+        Assert.AreEqual(Manage(BookmarkEditorAction.BeginDeleteBookmark(row.Selection)), Resolve(list, BookmarkManagerKeyAction.Delete, row, category).Intent);
         Assert.AreEqual(Manage(BookmarkEditorAction.BeginAddBookmark), Resolve(list, BookmarkManagerKeyAction.Add, null, null).Intent);
         Assert.AreSame(BookmarkManagerCommand.None, Resolve(list, BookmarkManagerKeyAction.Activate, null, category));
         Assert.AreSame(BookmarkManagerCommand.None, Resolve(list, BookmarkManagerKeyAction.Edit, null, category));

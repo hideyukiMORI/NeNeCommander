@@ -143,7 +143,7 @@ focus when the manager opens or returns to browsing.
 | `Tab` or `Shift+Tab` | move focus to the category column | move focus to the bookmark list |
 | `a` | register the current folder (the existing add draft) | add a category (the existing category draft) |
 | `e` | edit the selected bookmark | rename the selected user category |
-| `d` | delete the selected bookmark | delete the selected user category through its confirmation |
+| `d` | ask to delete the selected bookmark through its confirmation | ask to delete the selected user category through its confirmation |
 | `/` | move focus to the search field | move focus to the search field |
 | `Escape` | close the manager through the existing `Escape` route | close the manager through the existing `Escape` route |
 
@@ -156,7 +156,9 @@ undeclared key, pass through as in the settings context. Movement repeats; a hel
 the search field does not also close the manager. An `e` or `d` with nothing selected, and an `e`
 or `d` on All bookmarks or Uncategorized, are consumed and do nothing, exactly where the removed
 buttons were disabled. Moving in the category column only changes the displayed filter and saves
-nothing. The bookmark drafts, the category draft, the category-delete confirmation and failed
+nothing. Neither `d` deletes at once: the bookmark-delete confirmation starts on Cancel, so an
+`Enter` right after `d` deletes nothing, and `Escape` or a scrim tap returns to browsing.
+The bookmark drafts, the category draft, both delete confirmations and failed
 navigation keep the shared `Modal` context unchanged. The band at the bottom of the manager shows
 these keys for the focused region from the same table, and tapping the scrim outside the panel
 takes the `Escape` route once.

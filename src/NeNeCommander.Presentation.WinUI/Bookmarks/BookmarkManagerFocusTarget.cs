@@ -17,6 +17,9 @@ public abstract record BookmarkManagerFocusTarget
     /// <summary>Gets the default-safe category-delete Cancel target.</summary>
     public static BookmarkManagerFocusTarget CancelCategoryDelete { get; } =
         new CancelCategoryDeleteTarget();
+    /// <summary>Gets the default-safe bookmark-delete Cancel target (ADR-0079).</summary>
+    public static BookmarkManagerFocusTarget CancelBookmarkDelete { get; } =
+        new CancelBookmarkDeleteTarget();
     /// <summary>Gets the failed-navigation Retry target.</summary>
     public static BookmarkManagerFocusTarget RetryNavigation { get; } = new RetryNavigationTarget();
 
@@ -49,6 +52,12 @@ public abstract record BookmarkManagerFocusTarget
         }
     }
     private sealed record CancelCategoryDeleteTarget : BookmarkManagerFocusTarget
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CancelBookmarkDeleteTarget : BookmarkManagerFocusTarget
     {
         private protected override void RestrictDerivation()
         {

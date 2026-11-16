@@ -40,8 +40,9 @@ internal sealed class BookmarkEditorSession
             BookmarkEditorAction.BeginRenameCategoryAction rename =>
                 BeginRenameCategory(rename.Selection, catalog),
             BookmarkEditorAction.UpdateCategoryAction update => UpdateCategory(update.Name),
-            BookmarkEditorAction.DeleteBookmarkAction delete =>
-                DeleteBookmark(delete.Selection, catalog),
+            BookmarkEditorAction.BeginDeleteBookmarkAction delete =>
+                BeginDeleteBookmark(delete.Selection, catalog),
+            BookmarkEditorAction.ConfirmDeleteBookmarkAction => ConfirmDeleteBookmark(catalog),
             BookmarkEditorAction.BeginDeleteCategoryAction delete =>
                 BeginDeleteCategory(delete.Selection, catalog),
             BookmarkEditorAction.ConfirmDeleteCategoryAction => ConfirmDeleteCategory(catalog),
@@ -234,16 +235,28 @@ internal sealed class BookmarkEditorSession
         return Changed();
     }
 
-    private BookmarkEditorTransition DeleteBookmark(
+    private BookmarkEditorTransition.StateChanged BeginDeleteBookmark(
         BookmarkSelection selection,
         BookmarkCatalog catalog)
     {
-        return Current is not BookmarksBrowsing browsing
-            ? Changed()
-            : ApplyMutationResult(BookmarkEditorMutator.DeleteBookmark(
-                browsing.Context,
-                selection,
-                catalog));
+        if (Current is BookmarksBrowsing browsing)
+        {
+            BookmarkSelection? current = catalog.Select(selection.Key);
+            Current = current is not null && catalog.Matches(selection)
+                ? new BookmarkDeleteConfirmation(browsing.Context, current)
+                : Browse(browsing.Context, BookmarkEditorProblem.StaleSelection);
+        }
+        return Changed();
+    }
+
+    private BookmarkEditorTransition ConfirmDeleteBookmark(BookmarkCatalog catalog)
+    {
+        return Current is BookmarkDeleteConfirmation confirmation
+            ? ApplyMutationResult(BookmarkEditorMutator.DeleteBookmark(
+                confirmation.ReturnContext,
+                confirmation.Selection,
+                catalog))
+            : Changed();
     }
 
     private BookmarkEditorTransition.StateChanged BeginDeleteCategory(
@@ -279,6 +292,9 @@ internal sealed class BookmarkEditorSession
                 return Changed();
             case BookmarkCategoryDeleteConfirmation confirmation:
                 Current = Browse(confirmation.ReturnContext);
+                return Changed();
+            case BookmarkDeleteConfirmation deletion:
+                Current = Browse(deletion.ReturnContext);
                 return Changed();
             case BookmarkNavigationFailed failed:
                 Current = Browse(failed.ReturnContext);

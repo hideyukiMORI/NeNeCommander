@@ -41,6 +41,7 @@ internal sealed class BookmarkDetailsView
     private readonly Button _categoryCancel;
     private readonly Button _confirmCategoryDelete;
     private readonly Button _cancelCategoryDelete;
+    private readonly BookmarkDeleteConfirmationView _deletion;
 
     internal BookmarkDetailsView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Func<bool> isRendering)
     {
@@ -77,6 +78,7 @@ internal sealed class BookmarkDetailsView
         _categoryCancel = Find<Button>("BookmarkCategoryCancel");
         _confirmCategoryDelete = Find<Button>("BookmarkCategoryDeleteConfirm");
         _cancelCategoryDelete = Find<Button>("BookmarkCategoryDeleteCancel");
+        _deletion = new BookmarkDeleteConfirmationView(root, forward);
         AttachHandlers();
     }
 
@@ -86,7 +88,8 @@ internal sealed class BookmarkDetailsView
         _stateChanged = previousStateType != currentStateType;
         _browseBody.Visibility = details.IsBookmarkDrafting ||
             details.IsCategoryDrafting ||
-            details.IsCategoryDeleteConfirmation
+            details.IsCategoryDeleteConfirmation ||
+            details.IsBookmarkDeleteConfirmation
             ? Visibility.Collapsed
             : Visibility.Visible;
         _draftBody.Visibility = details.IsBookmarkDrafting ? Visibility.Visible : Visibility.Collapsed;
@@ -105,6 +108,7 @@ internal sealed class BookmarkDetailsView
             : Visibility.Collapsed;
         RenderBookmarkDraft(details);
         RenderCategoryState(details);
+        _deletion.Render(details);
     }
 
     private void RenderBookmarkDraft(BookmarkEditorDetails details)
@@ -216,6 +220,7 @@ internal sealed class BookmarkDetailsView
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.BookmarkName => _name,
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CategoryName => _categoryName,
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CancelCategoryDelete => _cancelCategoryDelete,
+            BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CancelBookmarkDelete => _deletion.Cancel,
             _ => null,
         };
         if (control is null)

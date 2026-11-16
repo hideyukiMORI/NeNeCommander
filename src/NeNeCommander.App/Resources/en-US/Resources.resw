@@ -372,7 +372,13 @@
   <data name="BookmarkHelpSwitch" xml:space="preserve"><value>Switch between categories and list</value></data>
   <data name="BookmarkHelpAdd" xml:space="preserve"><value>Add the current folder (categories: add a category)</value></data>
   <data name="BookmarkHelpEdit" xml:space="preserve"><value>Edit (categories: rename)</value></data>
-  <data name="BookmarkHelpDelete" xml:space="preserve"><value>Delete (categories: confirm deletion)</value></data>
+  <data name="BookmarkHelpDelete" xml:space="preserve"><value>Delete after confirmation (categories too)</value></data>
   <data name="BookmarkHelpLeaveSearch" xml:space="preserve"><value>Leave search for the list</value></data>
   <data name="KeyboardHelpGroupBookmarks" xml:space="preserve"><value>Bookmarks (Ctrl+B)</value></data>
+  <data name="BookmarkDeleteTitle.Text" xml:space="preserve"><value>Delete this bookmark?</value></data>
+  <data name="BookmarkDeleteExplanation.Text" xml:space="preserve"><value>Deleting removes this bookmark and its shortcut from the list.</value></data>
+  <data name="BookmarkDeleteNameLabel.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="BookmarkDeletePathLabel.Text" xml:space="preserve"><value>Location</value></data>
+  <data name="BookmarkDeleteConfirm.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="BookmarkStatusConfirmBookmarkDelete" xml:space="preserve"><value>Check the bookmark before deleting it.</value></data>
 </root>

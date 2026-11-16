@@ -372,7 +372,13 @@
   <data name="BookmarkHelpSwitch" xml:space="preserve"><value>カテゴリと一覧を切り替え</value></data>
   <data name="BookmarkHelpAdd" xml:space="preserve"><value>現在フォルダーを登録（カテゴリでは追加）</value></data>
   <data name="BookmarkHelpEdit" xml:space="preserve"><value>編集（カテゴリでは名前を変更）</value></data>
-  <data name="BookmarkHelpDelete" xml:space="preserve"><value>削除（カテゴリでは削除の確認）</value></data>
+  <data name="BookmarkHelpDelete" xml:space="preserve"><value>削除の確認（カテゴリも同じ）</value></data>
   <data name="BookmarkHelpLeaveSearch" xml:space="preserve"><value>検索欄から一覧へ</value></data>
   <data name="KeyboardHelpGroupBookmarks" xml:space="preserve"><value>ブックマーク（Ctrl+B）</value></data>
+  <data name="BookmarkDeleteTitle.Text" xml:space="preserve"><value>ブックマークを削除しますか？</value></data>
+  <data name="BookmarkDeleteExplanation.Text" xml:space="preserve"><value>削除すると、このブックマークとその割り当てが一覧から無くなります。</value></data>
+  <data name="BookmarkDeleteNameLabel.Text" xml:space="preserve"><value>名前</value></data>
+  <data name="BookmarkDeletePathLabel.Text" xml:space="preserve"><value>場所</value></data>
+  <data name="BookmarkDeleteConfirm.Content" xml:space="preserve"><value>削除</value></data>
+  <data name="BookmarkStatusConfirmBookmarkDelete" xml:space="preserve"><value>削除するブックマークを確認してください。</value></data>
 </root>

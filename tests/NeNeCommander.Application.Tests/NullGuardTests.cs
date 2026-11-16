@@ -679,6 +679,8 @@ public sealed class NullGuardTests
         AssertNullGuard(() => _ = new BookmarkCategoryDrafting(context, null, null!, null));
         AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(null!, categorySelection));
         AssertNullGuard(() => _ = new BookmarkCategoryDeleteConfirmation(context, null!));
+        AssertNullGuard(() => _ = new BookmarkDeleteConfirmation(null!, selection));
+        AssertNullGuard(() => _ = new BookmarkDeleteConfirmation(context, null!));
         AssertNullGuard(() => _ = new BookmarkNavigationPending(null!, selection));
         AssertNullGuard(() => _ = new BookmarkNavigationPending(context, null!));
         AssertNullGuard(() => _ = new BookmarkNavigationFailed(
@@ -696,7 +698,7 @@ public sealed class NullGuardTests
         AssertNullGuard(() => _ = BookmarkEditorAction.UpdateBookmark(null!));
         AssertNullGuard(() => _ = BookmarkEditorAction.BeginRenameCategory(null!));
         AssertNullGuard(() => _ = BookmarkEditorAction.UpdateCategory(null!));
-        AssertNullGuard(() => _ = BookmarkEditorAction.DeleteBookmark(null!));
+        AssertNullGuard(() => _ = BookmarkEditorAction.BeginDeleteBookmark(null!));
         AssertNullGuard(() => _ = BookmarkEditorAction.BeginDeleteCategory(null!));
     }
 

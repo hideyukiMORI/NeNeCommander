@@ -99,7 +99,7 @@ public static class BookmarkManagerKeyboard
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Edit =>
                 Submit(BookmarkEditorAction.BeginEditBookmark(selection)),
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Delete =>
-                Submit(BookmarkEditorAction.DeleteBookmark(selection)),
+                Submit(BookmarkEditorAction.BeginDeleteBookmark(selection)),
             _ => BookmarkManagerCommand.None,
         };
     }

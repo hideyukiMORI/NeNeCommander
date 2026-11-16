@@ -18,7 +18,10 @@ structure and proportions.
 2. Status line under the header: the existing manager status or problem text, and the existing
    persistence warning when saving failed.
 3. Category column (`DensityBookmarkCategoryColumnWidth`): header `カテゴリ`, then All bookmarks,
-   Uncategorized and the user categories in catalog order.
+   Uncategorized and the user categories in catalog order. Each row shows at its right, in
+   monospace secondary text, the number of its bookmarks: every bookmark for All, those without a
+   category for Uncategorized, the category's entries otherwise. The count ignores the search
+   text, while the header count shows the rows the current search and filter leave.
 4. Bookmark list: column headers `枠` / `名前` / `場所`, then one row per shown bookmark with the
    canonical slot label (`Ctrl+1`–`Ctrl+9` or empty), the name and the location in monospace.
 5. Bottom band: the key hints of the focused region and, at the right, the save status.
@@ -48,6 +51,10 @@ with an ellipsis; long category names are trimmed in the column.
   visual.
 - **Searching.** Text goes to the field; `Escape`, `Down` and `Enter` return to the list without
   closing. Input-method composition is never interpreted.
+- **Bookmark deletion confirmation.** `d` or the Delete hint in the list opens it in the panel:
+  title `ブックマークを削除しますか？`, an explanation, the name and the location (monospace), and
+  `削除` / `キャンセル` buttons (`BookmarkDeleteConfirm` / `BookmarkDeleteCancel`). Focus starts
+  on Cancel; `Escape` and a scrim tap return to browsing. Nothing changes or saves until Delete.
 - **Bookmark draft, category draft, category-delete confirmation, failed navigation.** The existing
   forms and their buttons replace the browse body and the band; keyboard behavior is unchanged.
 - **Navigation pending.** The browse body stays visible but disabled.

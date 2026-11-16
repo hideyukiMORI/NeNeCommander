@@ -340,7 +340,7 @@ public sealed class CommanderSessionTests
         Assert.HasCount(2, left.Requests);
 
         CommanderSnapshot craftedDelete = await session.HandleAsync(
-            UserIntent.ManageBookmarks(BookmarkEditorAction.DeleteBookmark(new BookmarkSelection(entry))),
+            UserIntent.ManageBookmarks(BookmarkEditorAction.BeginDeleteBookmark(new BookmarkSelection(entry))),
             observer,
             CancellationToken.None);
 
@@ -530,6 +530,45 @@ public sealed class CommanderSessionTests
         _ = Assert.IsInstanceOfType<BookmarksBrowsing>(rejected.Settings.BookmarksEditor);
     }
 
+    /// <summary>
+    /// Proves the bookmark deletion question writes nothing and the confirmation queues exactly one
+    /// complete catalog without the entry (ADR-0079).
+    /// </summary>
+    [TestMethod]
+    public async Task HandleAsyncWhenBookmarkDeletionIsConfirmedQueuesOneCatalogOnlyAfterTheQuestionAsync()
+    {
+        BookmarkEntry entry = Entry("Target", "C:\\target", null);
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
+        using FileOperationGateway gateway = CreateGateway();
+        CommanderSession session = CreateSession(left, right, gateway, store, SettingsReadOutcome.Read(UserSettings.Create(
+            ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, Catalog(entry), PaneSortPreferences.Default)));
+        RecordingCommanderObserver observer = new();
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+        BookmarkCatalog before = session.Current.Settings.Settings.Bookmarks;
+
+        CommanderSnapshot asking = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.BeginDeleteBookmark(new BookmarkSelection(entry))),
+            observer,
+            CancellationToken.None);
+
+        _ = Assert.IsInstanceOfType<BookmarkDeleteConfirmation>(asking.Settings.BookmarksEditor);
+        Assert.AreSame(before, asking.Settings.Settings.Bookmarks);
+        Assert.IsEmpty(store.Writes);
+
+        CommanderSnapshot deleted = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.ConfirmDeleteBookmark),
+            observer,
+            CancellationToken.None);
+
+        Assert.HasCount(1, store.Writes);
+        Assert.IsEmpty(store.Writes[0].Bookmarks.Bookmarks);
+        Assert.IsEmpty(deleted.Settings.Settings.Bookmarks.Bookmarks);
+        _ = Assert.IsInstanceOfType<BookmarksBrowsing>(deleted.Settings.BookmarksEditor);
+        write.SetResult(SettingsWriteOutcome.Succeeded());
+    }
     /// <summary>Proves bookmark Save uses pane-derived defaults and the sole settings queue.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenBookmarkDraftIsSavedQueuesOneCompleteCatalogAsync()

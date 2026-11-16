@@ -532,6 +532,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Rectangle
                         Fill="{Binding Mark.MarkerBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
@@ -542,6 +543,14 @@
                         Foreground="{StaticResource TextPrimaryBrush}"
                         Text="{x:Bind DisplayText}"
                         TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
+                    <TextBlock
+                        Grid.Column="2"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{x:Bind EntryCountText}"
                         TextWrapping="NoWrap"
                         VerticalAlignment="Center" />
                 </Grid>
@@ -1058,6 +1067,15 @@
                         <TextBlock x:Name="BookmarkCategoryDeleteDestination" />
                     </StackPanel>
 
+                    <StackPanel x:Name="BookmarkDeleteBody" Grid.Row="2" Padding="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                        <TextBlock x:Uid="BookmarkDeleteTitle" FontWeight="Bold" />
+                        <TextBlock x:Uid="BookmarkDeleteExplanation" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="BookmarkDeleteNameLabel" />
+                        <TextBlock x:Name="BookmarkDeleteName" AutomationProperties.AutomationId="BookmarkDeleteName" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="BookmarkDeletePathLabel" />
+                        <TextBlock x:Name="BookmarkDeletePath" AutomationProperties.AutomationId="BookmarkDeletePath" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                    </StackPanel>
+
                     <Border
                         Grid.Row="3"
                         BorderBrush="{StaticResource BorderSubtleBrush}"
@@ -1093,6 +1111,10 @@
                             <StackPanel x:Name="BookmarkCategoryDeleteFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
                                 <Button x:Name="BookmarkCategoryDeleteConfirm" x:Uid="BookmarkCategoryDeleteConfirm" />
                                 <Button x:Name="BookmarkCategoryDeleteCancel" x:Uid="BookmarkCancel" />
+                            </StackPanel>
+                            <StackPanel x:Name="BookmarkDeleteFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
+                                <Button x:Name="BookmarkDeleteConfirm" x:Uid="BookmarkDeleteConfirm" AutomationProperties.AutomationId="BookmarkDeleteConfirm" />
+                                <Button x:Name="BookmarkDeleteCancel" x:Uid="BookmarkCancel" AutomationProperties.AutomationId="BookmarkDeleteCancel" />
                             </StackPanel>
                             <StackPanel x:Name="BookmarkNavigationFailedFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
                                 <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />

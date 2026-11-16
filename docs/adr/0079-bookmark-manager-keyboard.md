@@ -5,8 +5,8 @@ Status: accepted
 Date: 2026-11-16
 
 Accepted for Issue #398. This ADR amends the overlay layout and the keyboard of the bookmark
-manager accepted in ADR-0041; the bookmark session, its actions, the catalog, its schema and
-saving, `Ctrl+B` and `Ctrl+1` to `Ctrl+9` are unchanged. The design handoff is
+manager accepted in ADR-0041, and puts bookmark deletion behind a confirmation. The catalog, its
+schema and saving, `Ctrl+B` and `Ctrl+1` to `Ctrl+9` are unchanged. The design handoff is
 [`docs/design/2026-11-16-bookmark-manager-handoff.md`](../design/2026-11-16-bookmark-manager-handoff.md).
 
 ## Context
@@ -42,13 +42,24 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   draft or a deletion confirmation. A tap inside the panel is handled by the panel and does
   nothing. No second way to close is added.
 - **Browse layout.** The header holds the title, the shown bookmark count and the search field.
-  The category column is the existing `BookmarkCategories` list; the bookmark list shows the slot,
+  The category column is the existing `BookmarkCategories` list, and each category shows, in
+  monospace secondary text, the number of its bookmarks: every bookmark for All, those without a
+  category for Uncategorized, the category's entries otherwise, independent of the search text; the bookmark list shows the slot,
   name and location (monospace) at the file list's row height with the file list's 2 px left mark
   for the selected item, and both lists show the system focus visual on the focused item. The
   bottom band shows the key hints and the save status. The eight browse buttons are removed; each
   hint except movement is a flat button that runs exactly the action of its key in the focused
   region, so pointer-only use keeps a route. The hint buttons are not tab stops and do not take
   focus, like the caption buttons.
+- **Bookmark deletion asks first.** hide approved the canvas proposal "`d` 削除（確認あり）", so
+  deleting a bookmark opens a session-owned `BookmarkDeleteConfirmation` in the same panel, shaped
+  like the category-delete confirmation: a title, the bookmark's name and location, and Delete
+  and Cancel buttons. `BookmarkEditorAction.BeginDeleteBookmark` replaces the former immediate
+  `DeleteBookmark` and validates the displayed entry; `ConfirmDeleteBookmark` takes the existing
+  catalog deletion and save path once and returns to browsing with focus on the list. Until then
+  the catalog is unchanged and nothing is saved; an entry changed meanwhile is rejected as stale.
+  The question uses the shared `Modal` context and starts on Cancel, so `Enter` right after
+  `d` deletes nothing; `Escape` and a scrim tap cancel it back to browsing without closing.
 - **Other states keep their forms.** The bookmark draft, the category draft, the category-delete
   confirmation and failed navigation show their existing forms and buttons inside the same panel,
   keep the shared `Modal` context and behave as before, because their text editors need raw keys.
@@ -116,10 +127,10 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
 - Two new contexts, one dedicated bookmark table of fourteen entries, three new key identities
   (`a`, `e`, `/`), Presentation decision and projection types and one App view. The bookmark
   session, actions, catalog and save path are unchanged.
-- `d` in the list deletes the selected bookmark at once, as the removed Delete button did;
-  category deletion still goes through its confirmation.
+- `d` and the Delete hint never delete at once: bookmarks and categories are both deleted only
+  from their confirmation. One new editor state and two actions replace the immediate action.
 - The panes stay visible behind the manager. Pointer input cannot reach them.
-- `CommanderWindow` grows by four logical lines over its pre-existing CS-013 type-size finding.
+- `CommanderWindow` grows by four logical lines (320 to 324) over its pre-existing CS-013 type-size finding.
 
 ## Migration and removal
 
@@ -130,7 +141,7 @@ keys and the band. The empty-catalog guidance names `a` instead of the removed b
 
 Mapper tests for both contexts, repeats, modifiers and pass-through; table conformance (each
 declaration maps to its action once); translator tests for `a`, `e` and `/`; decision tests for
-every action in both regions, including the unavailable cases; movement end tests; band projection
+every action in both regions, including the unavailable cases; session tests that the deletion question changes neither catalog nor saved settings, that Cancel restores browsing, that confirmation deletes and saves once and that a changed target is rejected; presenter tests for the question and the category counts; movement end tests; band projection
 tests for both regions; keyboard help conformance including the bookmark group; the presenter's
 row and category marks and automation identifiers; the architecture ownership test for the new
 view; the App Release build; and hide's on-screen confirmation of layout, focus movement, the
