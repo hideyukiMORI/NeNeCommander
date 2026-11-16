@@ -17,6 +17,8 @@ hide の「日報と引き継ぎ書を読んで状況を把握して。これか
 | 260 文字を超える path の entry を、host の設定に依らず検査できるようにする | [#404](https://github.com/hideyukiMORI/NeNeCommander/issues/404) / [#406](https://github.com/hideyukiMORI/NeNeCommander/pull/406) | 修正前 3 件失敗 → Infrastructure 842 件 0 失敗 | `e60ee35` |
 | keep-both の候補名の 255 文字の境界を実ファイルのテストで固定する（テストだけ） | [#407](https://github.com/hideyukiMORI/NeNeCommander/issues/407) / [#408](https://github.com/hideyukiMORI/NeNeCommander/pull/408) | Infrastructure 844 件 0 失敗。mutation は流していない | `8a32d6e` |
 | Application の小さい CS-013 の残件 5 件を無くす（挙動は変えない） | [#410](https://github.com/hideyukiMORI/NeNeCommander/issues/410) / [#411](https://github.com/hideyukiMORI/NeNeCommander/pull/411) | Application 738・Architecture 21、Inspect 91 → 86 件、絞った mutation で新しい生き残り無し | `b180f86` |
+| 設定保存の責務を分けて CS-013 の Settings 系 14 件を無くす（挙動は変えない） | [#409](https://github.com/hideyukiMORI/NeNeCommander/issues/409) / [#413](https://github.com/hideyukiMORI/NeNeCommander/pull/413) | 順序の trace 5187 行が一致、Infrastructure 850 件 0 失敗、deep review run 43793338605 成功 | `d4c4e1d` |
+| `CommanderSession` の CS-013 の 3 件を無くす（挙動は変えない） | [#414](https://github.com/hideyukiMORI/NeNeCommander/issues/414) / [#415](https://github.com/hideyukiMORI/NeNeCommander/pull/415) | Application 738・Architecture 21、絞った mutation の生き残りは基準と同じ 26 個 | `43502da` |
 
 deep review（run 43780626571、head `1beadfb`）の mutation score: Domain 97.47 %、Application 96.66 %、
 Infrastructure.Windows 91.89 %、Presentation.WinUI 94.86 %。gate・adversarial ×3・CodeQL も成功。
@@ -29,7 +31,6 @@ SDK は #381 で修正済みの 10.0.404）。
 
 | 内容 | Issue / PR | 状態 |
 |---|---|---|
-| 設定保存の責務を分ける（CS-013 の Settings 系 14 件） | [#409](https://github.com/hideyukiMORI/NeNeCommander/issues/409) | 実装の席が作業中（本書の時点）。merge の前に CI の deep review を通す |
 | ブックマーク管理モーダル（方向 A） | [#398](https://github.com/hideyukiMORI/NeNeCommander/issues/398) / [#402](https://github.com/hideyukiMORI/NeNeCommander/pull/402) | draft。hide の実機の確認待ち |
 
 ## 判断と経緯
@@ -66,6 +67,22 @@ SDK は #381 で修正済みの 10.0.404）。
   `First()` → `FirstOrDefault()` は、CI では 2 つのテストに倒され、ローカルでは生き残った。不変条件の下では
   結果を変えないはずの mutant なので、CI のその 2 つのテストが mutation の実行中に不安定な可能性がある。
   調べていない。
+- **#409 の確かめ方**: 設定の書き込みは、検査と test hook の間に競合を挟むテストで守られている。順序が
+  1 つでも変わると、テストは通っても意味が変わる。実装の席は一時のテストで、drive の admission・test hook・
+  identifier の取得・結果・終わった時のファイルの一覧を記録し、7 つの場面で、到達できるすべての位置に故障
+  （drive の付け替え、`IOException`、`UnauthorizedAccessException`、cancel）を入れて、`main` と branch で
+  突き合わせた。5187 行が byte で一致した。`Find`・`Describe`・`FileStream` は直接は記録しておらず、
+  コードを読んで確かめた（実装の席と設計リナ）。refactor だけでは Settings の mutation が基準を割った
+  （87.90 %、基準 88.49 %）ので、各検査が先に拒否することを固定するテストを 6 件足した（89.60 %）。
+  deep review（run 43793338605、head `cbf8974`）は成功: Domain 97.47 %、Application 96.59 %、
+  Infrastructure.Windows 92.30 %、Presentation.WinUI 94.94 %。
+- **CS-013 の残り**: `main` `d4c4e1d` で 69 件（朝は 91 件）。製品の残りは 8 件で、`TransientScopeOwners` と
+  `TransientScopeSnapshot` の引数 5 個（ADR-0051 の形の判断が要る）、App の `CommanderWindow.xaml.cs` と
+  `KeyboardHelpView`、Presentation の `KeyboardHelpPresenter` と `KeyboardInputTranslator`（#402 が近くを
+  触っているので、その merge の後）。テストの 61 件は未着手。
+- **#410 で書いた「CI が不安定かもしれない」は当たっていなかった**: CI の 2 つの run の Application の report を
+  突き合わせると、違いは Timeout が絡む 2 個だけで、問題の mutant は両方の run で Killed だった。CI では
+  安定して倒れ、ローカルの絞った実行では生き残る。原因は調べていない（Issue #410 に追記した）。
 - **本物の WSL の live tier**: #391 の head（`5aeaf6b`）で 13 cell PASS。recycle の live tier は、hide の
   本物のごみ箱に触れるので流していない（#391 は recycle の経路に触れていない）。
 - **#358 の原因は 3 つ**（入力を送らない UIA の探査で確かめた）:
@@ -111,6 +128,9 @@ SDK は #381 で修正済みの 10.0.404）。
   解釈された。`--body-file` で書き直した。
 - **`main` の取り込みで `PROJECT_STATE.md` に古い行が残った**（#406）: 衝突の印だけを機械的に消したので、
   #388 の merge 前の Session 2026-11-15 の行が二重に残った。差分を見て気付き、`main` の行だけにした。
+- **style の規則（IDE0046）で build が止まった**（#410、#409 の席も同じ）: `if` で順に返す形は error になる。
+  この repository の書き方（`switch` 式と `_ when`）に合わせた。
+- **refactor が等価な mutant を 1 個作った**（#410）: `??` の左右の入れ替え。`??` を使わない形に直した。
 - **#394 の close の文に、見ていないことを 1 つ書いた**: 「#382 と同じ理由」と書いたが、#382 の close の
   コメントは読んでいない（引き継ぎ書の記述による）。理由そのものは #394 のコメントに独立して書いてある。
 
