@@ -105,6 +105,19 @@ public sealed class FileSystemPathChildTests
         Assert.AreSame(PathParseFailureKind.TooLong, Assert.IsInstanceOfType<PathParseFailure>(outcome).Kind);
     }
 
+    /// <summary>Proves a root child joins without a second separator, so a name that exactly fills the boundary is accepted.</summary>
+    [TestMethod]
+    public void ChildWhenRootChildExactlyFillsPathBoundaryAccepted()
+    {
+        const int MaximumPathLength = 32767;
+        string name = new('a', MaximumPathLength - "C:\\".Length);
+
+        FileSystemPath child = RequireChild(ParsePath("C:\\"), name);
+
+        Assert.AreEqual(MaximumPathLength, child.CanonicalText.Length);
+        Assert.AreEqual("C:\\" + name, child.CanonicalText);
+    }
+
     private static FileSystemPath RequireChild(FileSystemPath location, string name)
     {
         return Assert.IsInstanceOfType<PathParseSuccess>(location.Child(name)).Path;

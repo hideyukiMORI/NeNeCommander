@@ -81,10 +81,38 @@ Dependabot の #376 と、#377 の merge 後に出し直された #382 は、置
   入れていない。
 - 後片付けの結果は引き継ぎ書に書いた。
 
+## 区切りの後の追加作業
+
+日報（#389 / #390）の merge 後、hide の「対応を続けて」で #388 に着手し、deep review の待ちの間に hide の
+「ちょっと一旦止めて」で止めた。
+
+- **ADR-0069 の改訂**: 操作 root の親から provider の root までの「外の祖先」は、object component
+  （Windows は volume と file id、WSL は distribution・inode・種類・reparse tag）と「リンクでない
+  ディレクトリであること」だけを照合する。更新時刻・link 数・サイズは見ない。ツリーの中の記録済み
+  エントリは、今までどおり完全な identity と内容の証拠で照合する。操作 root の親も外の祖先として扱う。
+  受け入れた残りの場合: 祖先が削除され、同じ object component を再利用して作り直された場合は、祖先では
+  検出しない。その下のエントリは各 effect の直前に完全に照合するので、別のツリーはそこで拒否される。
+- **実装**（[#391](https://github.com/hideyukiMORI/NeNeCommander/pull/391)、`084746e`）: 製品コードの変更は
+  `VerifiedTreeAccess.MatchesAncestors` の 1 行。既存の `VerifiedEntrySnapshot.ObjectIdentity` を比べる。
+  新しい identity の仕組みは作っていない。
+- **テスト**: 祖先の差し替えとリンク化の拒否（移動元／移動先 × verify 中／delete 中、8 件）、無関係な
+  エントリの作成・削除・名前変更で止まらないこと（12 件）、`external-parent`（#349）の書き直し
+  （移動元 root の隣への書き込みでは止まらない。ツリーの中の変化では止まる）。製品の 1 行を旧い比較に
+  戻すと、止まらない側の 15 件が失敗することを確かめた。
+- **検証**: Infrastructure.Windows.Tests 全体を単独で 30 回反復し、失敗 0（修正前の `main` `e2750be` は
+  30 回中 8 回失敗）。ローカルの full gate は 1 回目で PASS（1948 件中 1932 成功・0 失敗・16 スキップ、
+  coverage は Domain 100.00 %、Application 100.00 %、Infrastructure.Windows 92.39 %、
+  Presentation.WinUI 94.45 %）。
+- **止めた時点の状態**: PR #391 は Ready、未 merge。exact-head の deep review
+  （run 43724920547、23:32 JST 起動）は実行中で、**結論は確認していない**。本物の WSL（9P）と recycle の
+  経路では実行していない。作業ツリー `D:/NeNeCommander/worktrees/issue-388` と
+  `D:/NeNeCommander/outputs/issue-388/` を残した。
+
 ## 残件
 
-- [#388](https://github.com/hideyukiMORI/NeNeCommander/issues/388): 祖先の照合を object identity だけにする
-  （hide の決定済み、未着手）。それまで full gate は verified move 系のテストでときどき止まる。
+- [#388](https://github.com/hideyukiMORI/NeNeCommander/issues/388): PR #391 の deep review の結論を確認して
+  merge する（引き継ぎ書の「#388 の続き」）。merge されるまで、`main` の full gate は verified move 系の
+  テストでときどき止まる。
 - [#387](https://github.com/hideyukiMORI/NeNeCommander/issues/387): Domain と Application の mutation score に
   余裕が無い。
 - [#386](https://github.com/hideyukiMORI/NeNeCommander/issues/386): Microsoft.NET.Test.Sdk を Dependabot の

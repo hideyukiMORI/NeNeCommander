@@ -141,8 +141,6 @@
             </Style>
 
             <Style x:Key="PaneRowContainerStyle" TargetType="ListViewItem">
-                <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
-                <Setter Property="AutomationProperties.Name" Value="{Binding Entry.Name}" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="UseSystemFocusVisuals" Value="False" />
                 <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -167,12 +165,9 @@
                 x:Key="CommandPaletteRowContainerStyle"
                 BasedOn="{StaticResource DefaultListViewItemStyle}"
                 TargetType="ListViewItem">
-                <Setter Property="AutomationProperties.AutomationId" Value="{Binding AutomationId}" />
-                <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="MinHeight" Value="{StaticResource DensityRowHeight}" />
                 <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
-                <Setter Property="ToolTipService.ToolTip" Value="{Binding Title}" />
                 <Setter Property="VerticalContentAlignment" Value="Stretch" />
             </Style>
 
@@ -906,6 +901,7 @@
 
         <Border
             x:Name="OperationBar"
+            x:Uid="OperationBarRegion"
             Grid.Row="2"
             AutomationProperties.AutomationId="OperationBar"
             Background="{StaticResource SurfacePaneBrush}"
@@ -1027,6 +1023,7 @@
                     </StackPanel>
                     <ItemsControl
                         x:Name="OperationKeyHints"
+                        x:Uid="OperationKeyHintsRegion"
                         AutomationProperties.AutomationId="OperationKeyHints"
                         ItemTemplate="{StaticResource KeyHintTemplate}"
                         VerticalAlignment="Center">
