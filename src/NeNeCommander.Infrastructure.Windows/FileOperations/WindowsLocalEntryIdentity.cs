@@ -12,6 +12,8 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// </summary>
 public static class WindowsLocalEntryIdentity
 {
+    private const string ExtendedLengthPrefix = @"\\?\";
+
     /// <summary>Finds the current file or directory at a location.</summary>
     /// <param name="path">Validated Windows local path.</param>
     /// <returns>The entry, or absence when nothing exists there.</returns>
@@ -33,15 +35,27 @@ public static class WindowsLocalEntryIdentity
     public static FileIdentity Describe(FileSystemInfo entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
-        return Compose(entry, WindowsFileIdentifier.Describe(entry.FullName));
+        return Compose(entry, WindowsFileIdentifier.Describe(ExtendedLength(entry.FullName)));
     }
 
     /// <summary>Captures full and stable identities using the same native object observation.</summary>
     internal static VerifiedEntrySnapshot Capture(WindowsLocalPath path, FileSystemInfo entry)
     {
         entry.Refresh();
-        string objectIdentity = WindowsFileIdentifier.Describe(@"\\?\" + path.CanonicalText);
+        string objectIdentity = WindowsFileIdentifier.Describe(ExtendedLength(path.CanonicalText));
         return VerifiedEntrySnapshot.Create(path, Compose(entry, objectIdentity), FileObjectIdentity.Create(objectIdentity));
+    }
+
+    /// <summary>
+    /// Returns the extended-length form of a full local path so the native open does not depend on
+    /// the host's long-path setting. A path that already starts with two separators, which is the
+    /// extended-length form or a network path, is returned unchanged.
+    /// </summary>
+    private static string ExtendedLength(string fullPath)
+    {
+        return fullPath.StartsWith(@"\\", StringComparison.Ordinal)
+            ? fullPath
+            : ExtendedLengthPrefix + fullPath;
     }
 
     private static FileIdentity Compose(FileSystemInfo entry, string objectIdentity)
