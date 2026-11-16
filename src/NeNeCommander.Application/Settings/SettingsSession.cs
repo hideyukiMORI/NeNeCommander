@@ -313,7 +313,11 @@ public sealed class SettingsSession
         _persistence = SettingsPersistenceState.Pending;
         long revision = ++_revision;
         Task predecessor = _writeTail;
-        Task write = PersistAfterAsync(predecessor, settings, revision, observer, cancellationToken);
+        Task write = PersistAfterAsync(
+            predecessor,
+            new QueuedRevision(settings, revision),
+            observer,
+            cancellationToken);
         _writeTail = ObserveCompletion(write);
         return write;
     }
@@ -340,8 +344,7 @@ public sealed class SettingsSession
 
     private async Task PersistAfterAsync(
         Task predecessor,
-        UserSettings settings,
-        long revision,
+        QueuedRevision queued,
         ISettingsProgressObserver observer,
         CancellationToken cancellationToken)
     {
@@ -352,11 +355,11 @@ public sealed class SettingsSession
         SettingsWriteOutcome outcome;
         try
         {
-            outcome = await _store.WriteAsync(settings, cancellationToken).ConfigureAwait(false);
+            outcome = await _store.WriteAsync(queued.Settings, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            CompleteRevision(revision, SettingsPersistenceState.Cancelled);
+            CompleteRevision(queued.Revision, SettingsPersistenceState.Cancelled);
             observer.SettingsProgressed(Current);
             throw;
         }
@@ -364,7 +367,7 @@ public sealed class SettingsSession
         SettingsPersistenceState persistence = outcome is SettingsWriteRejected rejected
             ? SettingsPersistenceState.Failed(rejected)
             : SettingsPersistenceState.Succeeded;
-        CompleteRevision(revision, persistence);
+        CompleteRevision(queued.Revision, persistence);
         observer.SettingsProgressed(Current);
     }
 
@@ -388,6 +391,20 @@ public sealed class SettingsSession
     private SettingsSnapshot Snapshot()
     {
         return new SettingsSnapshot(_settings, _editor, _bookmarkEditor.Current, _persistence);
+    }
+
+    /// <summary>One queued selection and the revision number that may still complete it.</summary>
+    private sealed record QueuedRevision
+    {
+        internal QueuedRevision(UserSettings settings, long revision)
+        {
+            Settings = settings;
+            Revision = revision;
+        }
+
+        internal UserSettings Settings { get; }
+
+        internal long Revision { get; }
     }
 
 }

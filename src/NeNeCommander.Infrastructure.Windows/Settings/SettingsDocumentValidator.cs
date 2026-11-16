@@ -114,16 +114,20 @@ public static class SettingsDocumentValidator
                 conflictingDuplicate = true;
             }
         }
-        return count == 0
-            ? SettingsReadFailureKind.Incomplete
-            : conflictingDuplicate
-                ? SettingsReadFailureKind.UnexpectedProperty
-                : versionElement.ValueKind != JsonValueKind.Number
-                    ? SettingsReadFailureKind.Malformed
-                    : !versionElement.TryGetInt32(out version) ||
-                        version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SupportedSchemaVersion
-                        ? SettingsReadFailureKind.UnknownVersion
-                        : null;
+        return count == 0 ? SettingsReadFailureKind.Incomplete
+            : conflictingDuplicate ? SettingsReadFailureKind.UnexpectedProperty
+            : ReadVersionNumber(versionElement, out version);
+    }
+
+    private static SettingsReadFailureKind? ReadVersionNumber(JsonElement versionElement, out int version)
+    {
+        version = 0;
+        return versionElement.ValueKind != JsonValueKind.Number
+            ? SettingsReadFailureKind.Malformed
+            : !versionElement.TryGetInt32(out version) ||
+                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SupportedSchemaVersion
+                ? SettingsReadFailureKind.UnknownVersion
+                : null;
     }
 
     private static bool VersionsMatch(JsonElement first, JsonElement second)
@@ -330,6 +334,14 @@ public static class SettingsDocumentValidator
             }
             preferences = parsed;
         }
+        return ReadDisplayPreferences(root, catalog, preferences);
+    }
+
+    private static SettingsReadOutcome ReadDisplayPreferences(
+        JsonElement root,
+        BookmarkCatalog catalog,
+        PaneSortPreferences preferences)
+    {
         JsonElement hiddenItems = root.GetProperty(HiddenItemsName);
         JsonElement colorScheme = root.GetProperty(ColorSchemeName);
         HiddenItemVisibility? visibility = hiddenItems.ValueKind == JsonValueKind.True
