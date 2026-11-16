@@ -72,19 +72,8 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         const string Original =
             "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
         string documentPath = root.WriteFile(DocumentName, Original);
-        WindowsLocalSettingsStore interruptedStore = CreateStore(
-            root,
-            new ScriptedSettingsWriteTestHook
-            {
-                OnTemporaryClosed = _ => throw new InvalidOperationException("Injected interruption after flush."),
-            });
-        _ = Assert.IsInstanceOfType<SettingsRead>(
-            await interruptedStore.ReadAsync(CancellationToken.None));
-        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => interruptedStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+        byte[] leftoverBytes = await InterruptReplaceAfterFlushAsync(root);
         string leftoverPath = root.Resolve(DocumentName + TemporarySuffix);
-        byte[] leftoverBytes = File.ReadAllBytes(leftoverPath);
-        Assert.IsGreaterThan(0, leftoverBytes.Length);
         Assert.AreEqual(Original, File.ReadAllText(documentPath));
         WindowsLocalSettingsStore recoveredStore = CreateStore(
             root,
@@ -129,6 +118,23 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         _ = Assert.IsInstanceOfType<SettingsRead>(
             await CreateStore(root).ReadAsync(CancellationToken.None));
+    }
+
+    private static async Task<byte[]> InterruptReplaceAfterFlushAsync(TestOwnedTemporaryRoot root)
+    {
+        WindowsLocalSettingsStore interruptedStore = CreateStore(
+            root,
+            new ScriptedSettingsWriteTestHook
+            {
+                OnTemporaryClosed = _ => throw new InvalidOperationException("Injected interruption after flush."),
+            });
+        _ = Assert.IsInstanceOfType<SettingsRead>(
+            await interruptedStore.ReadAsync(CancellationToken.None));
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => interruptedStore.WriteAsync(UserSettings.Default, CancellationToken.None));
+        byte[] leftoverBytes = File.ReadAllBytes(root.Resolve(DocumentName + TemporarySuffix));
+        Assert.IsGreaterThan(0, leftoverBytes.Length);
+        return leftoverBytes;
     }
 
     private static WindowsLocalSettingsStore CreateStore(TestOwnedTemporaryRoot root)

@@ -43,15 +43,9 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
                             StringComparison.Ordinal) &&
                         File.Exists(temporaryPath),
             });
-        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
-        otherScheduler.ExecuteAll();
-        _ = Assert.IsInstanceOfType<SettingsAbsent>(await otherRead);
+        _ = await ReadThroughSchedulerAsync<SettingsAbsent>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? otherWrite = null;
-        UserSettings otherValue = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Shown,
-            BookmarkCatalog.Empty,
-            PaneSortPreferences.Default);
+        UserSettings otherValue = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default);
         WindowsLocalSettingsStore staleStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -71,11 +65,7 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, stale.Failure);
         Assert.AreSame(SettingsWriteEffect.None, stale.TemporaryEffect);
         Assert.IsTrue(distinctCandidatesCoexisted);
-        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
-            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(otherWrite));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
-        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(root.Resolve(DocumentName)));
+        await AssertOtherWritePublishedAsync(root, otherWrite);
     }
 
     /// <summary>Proves a stale replace rejects another store's completed replacement.</summary>
@@ -87,21 +77,15 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         const string Original =
             "{\"schemaVersion\":1,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"}";
-        string documentPath = root.WriteFile(DocumentName, Original);
+        _ = root.WriteFile(DocumentName, Original);
         ManualIoScheduler otherScheduler = new();
         WindowsLocalSettingsStore otherStore = new(
             ParseChild(root, DocumentName),
             new WindowsLocalIoExecutionBoundary(otherScheduler),
             new DeterministicIdentifierSource(first: 2));
-        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
-        otherScheduler.ExecuteAll();
-        _ = Assert.IsInstanceOfType<SettingsRead>(await otherRead);
+        _ = await ReadThroughSchedulerAsync<SettingsRead>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? otherWrite = null;
-        UserSettings otherValue = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Hidden,
-            BookmarkCatalog.Empty,
-            PaneSortPreferences.Default);
+        UserSettings otherValue = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default);
         WindowsLocalSettingsStore staleStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -120,11 +104,7 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, stale.Failure);
         Assert.AreSame(SettingsWriteEffect.None, stale.TemporaryEffect);
-        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
-            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(otherWrite));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
-        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
-        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(documentPath));
+        await AssertOtherWritePublishedAsync(root, otherWrite);
     }
 
     /// <summary>Proves equal candidate tokens cannot mutate the first store's owned temporary.</summary>
@@ -139,16 +119,10 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
             ParseChild(root, DocumentName),
             new WindowsLocalIoExecutionBoundary(otherScheduler),
             new DeterministicIdentifierSource());
-        Task<SettingsReadOutcome> otherRead = otherStore.ReadAsync(CancellationToken.None);
-        otherScheduler.ExecuteAll();
-        _ = Assert.IsInstanceOfType<SettingsAbsent>(await otherRead);
+        _ = await ReadThroughSchedulerAsync<SettingsAbsent>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? competingWrite = null;
         byte[]? ownerBytesAfterCollision = null;
-        UserSettings competingValue = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Shown,
-            BookmarkCatalog.Empty,
-            PaneSortPreferences.Default);
+        UserSettings competingValue = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default);
         WindowsLocalSettingsStore ownerStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -175,6 +149,25 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
             File.ReadAllBytes(root.Resolve(DocumentName)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
+    }
+
+    private static async Task<TRead> ReadThroughSchedulerAsync<TRead>(
+        WindowsLocalSettingsStore store, ManualIoScheduler scheduler)
+        where TRead : SettingsReadOutcome
+    {
+        Task<SettingsReadOutcome> read = store.ReadAsync(CancellationToken.None);
+        scheduler.ExecuteAll();
+        return Assert.IsInstanceOfType<TRead>(await read);
+    }
+
+    private static async Task AssertOtherWritePublishedAsync(
+        TestOwnedTemporaryRoot root, Task<SettingsWriteOutcome>? otherWrite)
+    {
+        _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
+            await Assert.IsInstanceOfType<Task<SettingsWriteOutcome>>(otherWrite));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
+        Assert.IsFalse(File.Exists(root.Resolve(DocumentName + SecondTemporarySuffix)));
+        Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(root.Resolve(DocumentName)));
     }
 
     private static WindowsLocalSettingsStore CreateStore(
