@@ -61,28 +61,42 @@ public static class CommandCatalog
         PaneContentListed active,
         PaneSnapshot passive)
     {
-        bool hasFocus = active.State.FocusItem is not null;
-        bool hasSource = active.State.Selection.Count > 0 || hasFocus;
+        CommandUnavailableReason? reason = UnavailableReasonOf(intent, active.State, passive);
+        return reason is null ? CommandAvailability.Available : new CommandUnavailable(reason);
+    }
+
+    /// <summary>Names why a command cannot run, or null when it can.</summary>
+    private static CommandUnavailableReason? UnavailableReasonOf(UserIntent intent, PaneState active, PaneSnapshot passive)
+    {
+        bool hasFocus = active.FocusItem is not null;
+        bool hasSource = active.Selection.Count > 0 || hasFocus;
+        bool transfers = intent == UserIntent.Copy || intent == UserIntent.Move;
         return intent switch
         {
             _ when (intent == UserIntent.OpenFocused ||
                     intent == UserIntent.Rename ||
                     intent == UserIntent.ToggleSelection) && !hasFocus =>
-                new CommandUnavailable(CommandUnavailableReason.FocusRequired),
-            _ when (intent == UserIntent.Copy || intent == UserIntent.Move) && !hasSource =>
-                new CommandUnavailable(CommandUnavailableReason.SourceRequired),
-            _ when (intent == UserIntent.Copy || intent == UserIntent.Move) &&
-                passive.Content is not PaneContentListed =>
-                new CommandUnavailable(CommandUnavailableReason.PassivePaneUnavailable),
-            _ when intent == UserIntent.Delete && !hasSource =>
-                new CommandUnavailable(CommandUnavailableReason.SourceRequired),
-            _ when intent == UserIntent.NavigateParent && active.State.Location.Parent is null =>
-                new CommandUnavailable(CommandUnavailableReason.ParentUnavailable),
-            _ when intent == UserIntent.NavigateBack && active.State.NavigationHistory.BackTarget is null =>
-                new CommandUnavailable(CommandUnavailableReason.BackUnavailable),
-            _ when intent == UserIntent.NavigateForward && active.State.NavigationHistory.ForwardTarget is null =>
-                new CommandUnavailable(CommandUnavailableReason.ForwardUnavailable),
-            _ => CommandAvailability.Available,
+                CommandUnavailableReason.FocusRequired,
+            _ when transfers && !hasSource => CommandUnavailableReason.SourceRequired,
+            _ when transfers && passive.Content is not PaneContentListed =>
+                CommandUnavailableReason.PassivePaneUnavailable,
+            _ when intent == UserIntent.Delete && !hasSource => CommandUnavailableReason.SourceRequired,
+            _ => NavigationReasonOf(intent, active),
+        };
+    }
+
+    /// <summary>Names why a navigation command has no target, or null when it has one.</summary>
+    private static CommandUnavailableReason? NavigationReasonOf(UserIntent intent, PaneState active)
+    {
+        return intent switch
+        {
+            _ when intent == UserIntent.NavigateParent && active.Location.Parent is null =>
+                CommandUnavailableReason.ParentUnavailable,
+            _ when intent == UserIntent.NavigateBack && active.NavigationHistory.BackTarget is null =>
+                CommandUnavailableReason.BackUnavailable,
+            _ when intent == UserIntent.NavigateForward && active.NavigationHistory.ForwardTarget is null =>
+                CommandUnavailableReason.ForwardUnavailable,
+            _ => null,
         };
     }
 }
