@@ -103,24 +103,41 @@ public sealed class WslToWindowsBoundaryTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WslToWindowsTransfer(execution, null!));
         foreach (MethodInfo method in typeof(IFileOperationPort).GetMethods())
         {
-            ParameterInfo[] parameters = method.GetParameters();
-            object?[] arguments = new object?[parameters.Length];
-            for (int index = 0; index < arguments.Length; index++)
-            {
-                Type type = parameters[index].ParameterType;
-                arguments[index] = type == typeof(CancellationToken) ? CancellationToken.None
-                    : type == typeof(FileEntrySnapshot) ? source
-                    : type == typeof(FileSystemPath) ? path
-                    : type == typeof(DeletionExecutionMode) ? DeletionExecutionMode.Permanent
-                    : new[] { source };
-            }
-            for (int index = 0; index < arguments.Length - 1; index++)
-            {
-                object?[] supplied = (object?[])arguments.Clone();
-                supplied[index] = null;
-                TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(() => method.Invoke(transfer, supplied));
-                _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-            }
+            AssertEachReferenceArgumentRejected(transfer, method, CreateArguments(method, source, path));
+        }
+    }
+
+    private static object?[] CreateArguments(MethodInfo method, FileEntrySnapshot source, FileSystemPath path)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+        object?[] arguments = new object?[parameters.Length];
+        for (int index = 0; index < arguments.Length; index++)
+        {
+            arguments[index] = ArgumentFor(parameters[index].ParameterType, source, path);
+        }
+        return arguments;
+    }
+
+    private static object ArgumentFor(Type type, FileEntrySnapshot source, FileSystemPath path)
+    {
+        return type switch
+        {
+            _ when type == typeof(CancellationToken) => CancellationToken.None,
+            _ when type == typeof(FileEntrySnapshot) => source,
+            _ when type == typeof(FileSystemPath) => path,
+            _ when type == typeof(DeletionExecutionMode) => DeletionExecutionMode.Permanent,
+            _ => new[] { source },
+        };
+    }
+
+    private static void AssertEachReferenceArgumentRejected(WslToWindowsTransfer transfer, MethodInfo method, object?[] arguments)
+    {
+        for (int index = 0; index < arguments.Length - 1; index++)
+        {
+            object?[] supplied = (object?[])arguments.Clone();
+            supplied[index] = null;
+            TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(() => method.Invoke(transfer, supplied));
+            _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
         }
     }
 

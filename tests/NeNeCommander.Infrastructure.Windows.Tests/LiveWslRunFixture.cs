@@ -2,6 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Wsl;
+using NeNeCommander.Infrastructure.Windows.FileOperations;
+using NeNeCommander.Infrastructure.Windows.Paths;
+using NeNeCommander.Infrastructure.Windows.Wsl;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
@@ -23,7 +27,7 @@ internal static class LiveWslRunFixture
             Parameter(context, RootParameterName),
             Parameter(context, HomeFactParameterName),
             Parameter(context, MountFactParameterName));
-        LiveWslRootOpenOutcome outcome = await LiveWslTestRoot.OpenAsync(admission, CancellationToken.None);
+        LiveWslRootOpenOutcome outcome = await OpenProductionRootAsync(admission, CancellationToken.None);
         if (outcome is LiveWslRootOpenRejected { Failure: var failure })
         {
             if (failure == LiveWslRootFailureKind.Unexecuted)
@@ -72,6 +76,37 @@ internal static class LiveWslRunFixture
             Assert.Fail("LiveWsl:CleanupRejected:" + rejected.Failure.GetType().Name);
         }
         _ = Assert.IsInstanceOfType<LiveWslRootCleanupCompleted>(cleanup);
+    }
+
+    private static async Task<LiveWslRootOpenOutcome> OpenProductionRootAsync(
+        LiveWslRootAdmission admission,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(admission);
+        if (admission.ConfiguredRoot is null)
+        {
+            return new LiveWslRootOpenRejected(LiveWslRootFailureKind.Unexecuted);
+        }
+        if (!admission.IsComplete)
+        {
+            return new LiveWslRootOpenRejected(LiveWslRootFailureKind.InvalidConfiguration);
+        }
+
+        WslDistributionCatalogOutcome discovery = await new WslDistributionCatalog().DiscoverAsync(cancellationToken);
+
+        // The live run uses the production WSL file system exactly as the composition root does:
+        // the extended-length namespace mapping of ADR-0060 and the ADR-0049 9P-guarded
+        // handle-facts reader.
+        return discovery is WslDistributionCatalogSucceeded succeeded
+            ? LiveWslTestRoot.Open(
+                admission,
+                succeeded.Roots,
+                LiveWslRootMechanism.Create(
+                    new WindowsWslFileSystem(),
+                    WslWin32PathText.Resolve,
+                    LiveWslLinkFixture.Create,
+                    LiveWslLinkFixture.Unlink))
+            : new LiveWslRootOpenRejected(LiveWslRootFailureKind.DistributionUnavailable);
     }
 
     private static string? Parameter(TestContext context, string name)
