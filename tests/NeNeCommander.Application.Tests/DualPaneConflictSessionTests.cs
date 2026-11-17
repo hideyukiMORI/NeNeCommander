@@ -85,24 +85,7 @@ public sealed class DualPaneConflictSessionTests
                 }
             });
         owner = fixture;
-        DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
-        DirectoryListing rightListing = DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
-        await fixture.ListBothAsync(leftListing, rightListing);
-        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        TransferConflict conflict = TransferConflict.Create(
-            inspection.Snapshot,
-            rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
-        fixture.Port.EnqueueInspection(inspection);
-        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
-        _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
-            TransferPlanEntry.Skip(
-                conflict.Source.WithConflictChoice(TransferConflictChoice.Create(conflict, TransferConflictDecision.Skip)),
-                conflict.ExistingTarget)]));
-        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
-        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
+        await PrepareResumedSkipAsync(fixture);
         armed = true;
 
         DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
@@ -199,6 +182,28 @@ public sealed class DualPaneConflictSessionTests
         Assert.AreSame(FileOperationCompletionKind.Cancelled, completed.Outcome.Completion);
         Assert.IsEmpty(completed.Outcome.Effects);
         Assert.HasCount(2, fixture.Port.Calls);
+    }
+
+    private static async Task PrepareResumedSkipAsync(DualPaneSessionTestContext fixture)
+    {
+        DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
+        DirectoryListing rightListing = DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
+        await fixture.ListBothAsync(leftListing, rightListing);
+        FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(
+            DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
+        TransferConflict conflict = TransferConflict.Create(
+            inspection.Snapshot,
+            rightListing.Entries[0].Path,
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+        fixture.Port.EnqueueInspection(inspection);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
+        _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
+            TransferPlanEntry.Skip(
+                conflict.Source.WithConflictChoice(TransferConflictChoice.Create(conflict, TransferConflictDecision.Skip)),
+                conflict.ExistingTarget)]));
+        fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
+        fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
     }
 
     private static async Task AssertConflictFreezesPanesAsync(DualPaneSessionTestContext fixture, DualPaneSnapshot awaitingSnapshot)
