@@ -32,8 +32,8 @@ public sealed class CommanderSessionLocationsTests
         Assert.IsFalse(opening.IsCompleted);
         LocationsLoading loading = Assert.IsInstanceOfType<LocationsLoading>(fixture.Session.Current.Scopes.Locations);
         Assert.AreSame(PaneSide.Right, loading.ActiveSide);
-        fixture.Drives.Complete(LocationsSessionTests.DrivesOf(LocationsSessionTests.Drive("C:\\", DriveKind.Fixed, null)));
-        fixture.WslRoots.Complete(LocationsSessionTests.RootsOf("Ubuntu"));
+        fixture.Drives.Complete(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)));
+        fixture.WslRoots.Complete(LocationsCatalogTestData.RootsOf("Ubuntu"));
         CommanderSnapshot opened = await opening;
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(opened.Scopes.Locations);
         Assert.AreSame(PaneSide.Right, open.ActiveSide);
@@ -154,34 +154,8 @@ public sealed class CommanderSessionLocationsTests
         using Fixture fixture = phase == "open" ? await Fixture.ListedWithCatalogsAsync() : await Fixture.ListedAsync();
         Task<CommanderSnapshot> opening = fixture.HandleAsync(UserIntent.OpenLocations);
         CommanderSnapshot before = phase == "open" ? await opening : fixture.Session.Current;
-        UserIntent[] intents =
-        [
-            UserIntent.ActivateOtherPane,
-            UserIntent.ToggleHiddenItems,
-            UserIntent.Refresh,
-            UserIntent.OpenFocused,
-            UserIntent.NavigateParent,
-            UserIntent.Copy,
-            UserIntent.Delete,
-            UserIntent.Rename,
-            UserIntent.SortByName,
-            UserIntent.OpenSettings,
-            UserIntent.OpenBookmarks,
-            UserIntent.OpenCommandPalette,
-            UserIntent.OpenWindowAdjustment,
-            UserIntent.OpenLocations,
-            UserIntent.FocusAddress,
-            UserIntent.BeginAddressEdit(PaneSide.Left),
-            UserIntent.BookmarkSlotOne,
-            UserIntent.Escape,
-            UserIntent.Confirm,
-        ];
 
-        foreach (UserIntent intent in intents)
-        {
-            CommanderSnapshot after = await fixture.HandleAsync(intent);
-            Fixture.AssertUnchanged(before, after);
-        }
+        await AssertFrozenIntentsAsync(fixture, before);
         CommanderSnapshot navigated = await fixture.Session.NavigateAsync(
             PaneSide.Left,
             ParsePath("C:\\elsewhere"),
@@ -192,8 +166,8 @@ public sealed class CommanderSessionLocationsTests
         Assert.HasCount(1, fixture.Right.Requests);
         if (phase == "loading")
         {
-            fixture.Drives.Complete(LocationsSessionTests.DrivesOf());
-            fixture.WslRoots.Complete(LocationsSessionTests.RootsOf());
+            fixture.Drives.Complete(LocationsCatalogTestData.DrivesOf());
+            fixture.WslRoots.Complete(LocationsCatalogTestData.RootsOf());
             _ = await opening;
         }
     }
@@ -271,6 +245,38 @@ public sealed class CommanderSessionLocationsTests
         Assert.AreSame(LocationsState.Closed, cancelled.Scopes.Locations);
         Assert.AreSame(opened.Panes.Left, cancelled.Panes.Left);
         Assert.HasCount(1, fixture.Left.Requests);
+    }
+
+    private static async Task AssertFrozenIntentsAsync(Fixture fixture, CommanderSnapshot before)
+    {
+        UserIntent[] intents =
+        [
+            UserIntent.ActivateOtherPane,
+            UserIntent.ToggleHiddenItems,
+            UserIntent.Refresh,
+            UserIntent.OpenFocused,
+            UserIntent.NavigateParent,
+            UserIntent.Copy,
+            UserIntent.Delete,
+            UserIntent.Rename,
+            UserIntent.SortByName,
+            UserIntent.OpenSettings,
+            UserIntent.OpenBookmarks,
+            UserIntent.OpenCommandPalette,
+            UserIntent.OpenWindowAdjustment,
+            UserIntent.OpenLocations,
+            UserIntent.FocusAddress,
+            UserIntent.BeginAddressEdit(PaneSide.Left),
+            UserIntent.BookmarkSlotOne,
+            UserIntent.Escape,
+            UserIntent.Confirm,
+        ];
+
+        foreach (UserIntent intent in intents)
+        {
+            CommanderSnapshot after = await fixture.HandleAsync(intent);
+            Fixture.AssertUnchanged(before, after);
+        }
     }
 
     private static DirectoryListing Listing(string location, string name)
@@ -366,8 +372,8 @@ public sealed class CommanderSessionLocationsTests
         internal static async Task<Fixture> ListedWithCatalogsAsync()
         {
             Fixture fixture = await ListedAsync();
-            fixture.Drives.Complete(LocationsSessionTests.DrivesOf(LocationsSessionTests.Drive("D:\\", DriveKind.Fixed, "Data")));
-            fixture.WslRoots.Complete(LocationsSessionTests.RootsOf("Ubuntu"));
+            fixture.Drives.Complete(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("D:\\", DriveKind.Fixed, "Data")));
+            fixture.WslRoots.Complete(LocationsCatalogTestData.RootsOf("Ubuntu"));
             return fixture;
         }
 

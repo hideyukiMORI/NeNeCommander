@@ -18,8 +18,8 @@ public sealed class LocationsModelTests
     [TestMethod]
     public void ConstructorsWhenComponentIsNullThrowArgumentNullException()
     {
-        DriveSection drives = DriveSection.Of(LocationsSessionTests.DrivesOf(LocationsSessionTests.Drive("C:\\", DriveKind.Fixed, null)));
-        WslRootSection wslRoots = WslRootSection.Of(LocationsSessionTests.RootsOf("Ubuntu"));
+        DriveSection drives = DriveSection.Of(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)));
+        WslRootSection wslRoots = WslRootSection.Of(LocationsCatalogTestData.RootsOf("Ubuntu"));
         LocationsOpen open = new(PaneSide.Left, drives, wslRoots, 0);
         FileSystemPath target = open.Items[0].Location;
 
@@ -44,11 +44,11 @@ public sealed class LocationsModelTests
     [TestMethod]
     public void EntriesWhenProjectedNameTheirRootAndQualifiedIntentsKeepTheirState()
     {
-        DriveLocation drive = LocationsSessionTests.Drive("C:\\", DriveKind.Fixed, "System");
+        DriveLocation drive = LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, "System");
         LocationsOpen open = new(
             PaneSide.Right,
             DriveSection.Of(DriveCatalogOutcome.Succeeded([drive], 0)),
-            WslRootSection.Of(LocationsSessionTests.RootsOf("Ubuntu")),
+            WslRootSection.Of(LocationsCatalogTestData.RootsOf("Ubuntu")),
             0);
 
         LocationSelection selection = Assert.IsInstanceOfType<LocationSelection>(
