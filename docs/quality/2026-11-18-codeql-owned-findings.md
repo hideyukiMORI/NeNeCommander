@@ -49,9 +49,21 @@ src/tests-only containment for an internal `..` path.
 An independent read-only review found no required code correction. Its record
 contains the original and reviewed blob IDs. Exact arguments, timing, exits, raw
 logs, self-proof JSON, Inspect output, original inputs and review are retained
-under `D:/NeNeCommander/evidence/issue-433/`; TRX is under the corresponding task
-output until archived. No GUI, user-data operation or unrelated test ran.
+under `D:/NeNeCommander/evidence/issue-433/`; the TRX and 95 meaningful tool
+artifacts have been archived and hash-verified there. No GUI or user-data operation ran.
 
-CodeQL workflow success and closure of alerts are separate conditions. The
-post-analysis branch/main alert API result and release evidence remain pending;
-this local verification does not claim zero open alerts or a completed release.
+## Final CodeQL acceptance
+
+PR437 integrated the correction as main `860e61d`. The release deep review
+44221900660 at accepted source `46f1a82` succeeded, including the actual CodeQL
+workflow step. Analysis 2192418870 has that exact source, zero results, empty
+error/warning fields and 914/914 C# files scanned. At 12:19:04 JST on 2026-11-18,
+the separate open-alert API read returned zero alerts and zero owned alerts.
+Raw analysis/readback and the successful deep-review evidence are preserved in
+`D:/NeNeCommander/evidence/issue-434/`; the release quality record owns full metrics.
+This establishes the previously pending acceptance without dismissals or suppression.
+
+The #433 worktree was removed after integration, clean/untracked/ignored review,
+preservation and reference/link checks. Its one temporary output (theme TRX) is
+archived, but directory deletion was rejected before launch (`blocked by policy`).
+It remains in the prepared user cleanup list; no alternate deletion was retried.

@@ -89,3 +89,46 @@ Killedなら最初の個別失敗、注入control/active ID、runtime/runner差�
 この結果をrelease deep review、全層mutation score、元batchの原因確定に読み替えない。
 
 ローカルの追加worktreeは未統合中保持する。push/PR/main/CI実行、全体docs、最終整理はrootが担当する。
+
+## CI comparison — 2026-11-18
+
+PR #441 integrated the tool as `43e857e342dfb20c33f89a82d5d7db87dfc2ef97` after
+successful dependency review run 44221977999. The manual comparison was dispatched
+**once**, run [44222206602](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44222206602).
+It compared the fixed source `b5d9af8dcf0c04622be517aaa3ce6bf0390e8b3e`, not the
+current product source or the Preview package.
+
+- The 424 input hashes matched before and after; both original assemblies were
+  restored byte-for-byte and Git status was clean. Restore, tool restore and
+  original build returned 0.
+- One target mutant, active ID1813, was **Survived**, matching local #429.
+  Initial, coverage and mutant phases each executed exactly the selected 31 IDs;
+  all 93 individual results were Passed, without failed/killed IDs.
+- All 15 captured injections match the normalized reference and the active
+  RunSettings control. The downloaded evidence reader independently accepts the
+  fixed source/test/injection scope. No Stryker or test was rerun during readback.
+- The child and wrapper's recorded final exit are 2, because the unchanged 95%
+  threshold applies to one survivor. GitHub's enclosing shell reports exit1 and
+  the workflow is failure; this is not reported as a successful CI gate or crash.
+  The preserve-artifact step succeeded.
+- Artifact14391551154 was downloaded as a raw ZIP and extracted files. The ZIP
+  matches the service SHA-256 `ad7bf1d6a86a6220cbcc0ae1da5f67dad74a188b5cb0ff7311c3cc4690caec21`.
+  All 35 recorded content hashes match, including the hidden file (36 files with
+  the hash inventory itself). The service expiry does not control the permanent
+  copy under `D:/NeNeCommander/evidence/issue-439/`.
+
+The wrapper uses `environment.json` both for the initial environment metadata and
+for the `environment` command journal. The latter overwrote the former in this
+run. Dedicated CPU-count/culture/UI-culture/timezone metadata therefore was not
+preserved; full environmental equality cannot be claimed. Raw CI and dotnet logs remain. Independent raw-log comparison confirms SDK
+`10.0.404`, testhost `18.10.2` and runtime `.NET 10.0.15` match. CI reports Windows
+Server2025 `10.0.26100` / image `windows-2025-vs2026 20261103.298.1`; local reports
+Windows `10.0.26300`. These environments are distinct. Issue #443 / PR444 subsequently assigns the initial metadata the distinct name
+`environment-details.json`, verified with a logging-only fixture. This one-time
+CI comparison is not rerun and its missing metadata remains missing. This evidence limitation does not invalidate the verified fixed source,
+mutant, exact test IDs, injection or restoration and does not prompt a retry.
+
+The observed local/hosted single-mutant outcomes now agree. The historical full
+batch's Killed cause remains unestablished; its runner image, batch history and
+surrounding mutations were not reproduced. Stop at this comparison: no automatic
+retry, full-layer expansion, score correction or release-proof substitution.
