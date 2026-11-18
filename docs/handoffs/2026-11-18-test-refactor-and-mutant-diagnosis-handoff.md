@@ -4,7 +4,26 @@
 通常本体は`C:/Users/info/WORKS/NeNeCommander`。Folioは作業対象外。
 この継続でhideは「おしまいと言うまでCommanderを続ける」「サブエージェントもいっぱい使う」と指定し、
 公開できる区切りでタグ/release、11:03には帰宅後の実機確認より先にPreviewを公開するよう依頼した。
-完了の宣言はまだ受けていない。
+その継続は13:50 JSTの「区切りのいいところで止めて日報と引き継ぎ書を書いて」で終了した。
+実行中だった限定診断と記録を仕上げて停止。明示の再開依頼まで新しい作業を始めない。
+
+## 再開時に先に見ること（終了記録 #451）
+
+1. 現在のhide指示とGitHub/local状態を照合する。停止前mainはPR450=`2e4570a`、最後は#451の文書PR。
+   最終commit/作業木整理は`D:/NeNeCommander/evidence/issue-451/completion.json`。通常Releaseはsource `6b0d231`で、以後の文書変更は再build不要。
+2. F6の終了はリソースキーの実例外を修正済み、15対象test/5gate fixture成功。ただしhideの使用exe/版/端末と実画面での解消は未確認。
+   通常起動用は`C:/Users/info/WORKS/NeNeCommander/src/NeNeCommander.App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe`。
+   公開beta.1 ZIPには修正が入っていない。初回Previewだけの#94前公開許可を、新版への許可に広げない。
+3. 一般的な遅さは原因未確定。100/1000/10000行のmemory-only診断は完了し、1万行の移動p95 1.8561ms、最大31.9371ms。
+   [診断記録](../quality/2026-11-18-pane-latency-diagnostic.md)と`D:/NeNeCommander/evidence/latency-20261118/`に原本。
+   WinUI/input/I/O/AVを含まないので、実画面の応答やAV原因の証拠には使わない。次は使用exe/端末と「どの操作が何秒か」を確認し、対象を決める。
+4. PR402の実機受理、#94の表示確認、#386/PR420、#397、ADR0051の5引数判断はそのまま待つ。
+   作業の継続許可だけで明示条件を外さない。成功済み証拠は入力が変わらなければ再利用する。
+5. 削除拒否は下記15対象。診断出力40fileはZIP内entryまでhash一致で保存済み。master cleanup commandは更新し構文解析済み、実行していない。
+   既存拒否も新規拒否も別手段で再試行しない。#451の文書作業木は統合後の安全確認を通して整理する。
+
+日報・現在欄・品質記録の更新は文書だけ。新しい製品変更・公開・GUI入力・CI・全件試験は行わない。
+追加waiver、schema、依存pin、gate変更なし。後述の過去形の「進行中」より、この終了記録を優先する。
 
 ## 12時台の公開完了
 
@@ -112,7 +131,7 @@ GitHub connectorのPR作成は403（integration権限不足）だったため、
 
 ## ! hide実行待ち：後片付け
 
-以下14対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
+以下15対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
 Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
 公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
 main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
@@ -129,6 +148,7 @@ Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#43
 - `D:/NeNeCommander/outputs/issue-439`
 - `D:/NeNeCommander/outputs/issue-443`
 - `D:/NeNeCommander/outputs/issue-448`
+- `D:/NeNeCommander/outputs/latency-20261118`
 - `D:/NeNeCommander/outputs/issue-433`
 - `D:/NeNeCommander/outputs/issue-434`
 - `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`
@@ -143,6 +163,7 @@ pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-request
 対象一覧は`cleanup-targets.json`、保全/拒否の原本は`D:/NeNeCommander/evidence/`内の
 各Issueとsessionのフォルダへ保存。Commanderのscriptは固定対象のinventory、Git状態、
 参照/リンクを照合し、保存済みhash証拠を再利用してdirectory単位のnative削除だけを行う。
-4scriptは構文解析成功、実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
+既存scriptの成功記録を再利用し、終了時に更新したmasterと診断用helperの2scriptも構文解析成功。
+いずれも実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
 ブランチ/commit/恒久証拠/公開shipping/候補03/実機用fixture/未完了PR402の作業木は保持する。
 hideの実行報告と不在確認まで後片付けは未完了。
