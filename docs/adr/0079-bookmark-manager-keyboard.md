@@ -92,10 +92,20 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   - `Escape` in `Bookmarks` closes through the existing `Escape` route.
   - A held `Enter`, `Tab`, `a`, `e`, `d`, `/` or `Escape` acts once; its repeats are consumed.
     Undeclared keys and declared keys under a modifier pass through, as in the `Settings` context.
+    Issue #430 restores this contract across ownership changes: the mapper's existing palette
+    execution repeat guard also retains accepted non-repeating bookmark presses until the next
+    initial event for the same identified key. Search and drafts cannot receive the opening
+    character's repeats, and completed navigation cannot leak a held `Enter` into `OpenFocused`.
+    Other keys and raw `Other` events do not release the guard. IME composition bypasses mapping
+    before a press can arm or consume a guard; ordinary text input and movement retain their rules.
 - **Decisions live in Presentation.** `BookmarkManagerKeyboard` decides the owned context, what
   each action does in each region and where movement lands; `BookmarkManagerKeyHintPresenter`
   projects the band and the help rows. The App's `BookmarkKeyboardView` only remembers the focused
   region and applies the resolved `BookmarkManagerCommand`.
+  The browse view owns its deferred focus request through the internal, framework-free
+  `BookmarkFocusRestoration`. A later search focus, native region focus, requested region or exit
+  from browsing invalidates the older request before its queued callback may apply focus. The
+  view still supplies scheduling and native controls; no session or asynchronous-work owner moves.
 - **Key band.** The band is generated from the bookmark table for the focused region: movement
   (`j`/`k`), `Enter`, `/`, `Tab`, `a`, `e`, `d` and `Esc`, with region-specific wording from
   resources.
