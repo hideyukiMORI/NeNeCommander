@@ -183,3 +183,16 @@ review run 44221900660 was requested once on this exact source; its result,
 CodeQL API readback and publication are pending at this checkpoint. The later
 #439 / PR441 main commit `43e857e` is not part of the shipping source and does not
 change its product inputs. No duplicate quality run was requested.
+
+## Failed-candidate preservation
+
+Candidate01's one file and candidate02's 531 files were archived under
+`D:/NeNeCommander/evidence/issue-434/` as separate ZIPs. Every archive entry's bytes
+and SHA-256 match the source inventory; per-file sizes, hashes and modification
+times are retained in their `candidate-20261118-0N-archive.json` records. The final
+console projection of ordered dictionaries printed null columns; the persisted
+records were read back and summarized separately. No source directory was deleted
+by that archival operation. Preserve the directories until release acceptance
+and the cleanup preflight. Candidate03 remains referenced by the earlier #94
+manual-check request, so retain it until that request is resolved; the final
+shipping folder is the authoritative public-package source.

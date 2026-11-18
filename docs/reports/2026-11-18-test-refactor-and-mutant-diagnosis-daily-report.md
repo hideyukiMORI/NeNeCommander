@@ -108,11 +108,21 @@ artifact14391551154のraw ZIPはservice digest `ad7bf1d6a86a6220cbcc0ae1da5f67da
 最終比較の独立レビューと原本は `D:/NeNeCommander/evidence/issue-439/`、公開用証拠は `issue-434/`。
 PR402は引き続きDraftの実機確認待ちで今回のPreviewに含まない。
 
+## 環境記録の保存名修正
+
+#443 / PR444はmain `43f3f26`へ統合。初期環境をenvironment-details.jsonへ保存する1行を変更し、
+command journalのenvironment.json/logと分離した。実際のwrapperの記録blockとcommand writerを使った局所proofは、
+旧版でmetadata消失・新版でhash保持、両方のjournal完了/exit0を確認。parser・通常hookも成功。
+過去CIの欠損値は復元せず、Stryker/製品試験/CIを再実行していない。公開source46f1a82には含まれない。
+作業木は整理済み、証拠5fileは恒久保存/照合済み、一時出力の削除だけは後述の拒否で保持。
+
 ## ! hide実行待ち：後片付け
 
 同じ日のFolio作業整理で、サナ所有物の削除は自動承認審査に起動前に拒否された。
-返された理由は `blocked by policy` のみ。別手段で再試行しない。10:25の読み取り確認では以下6対象が残る。
-Commanderの正常完了した整理とは別件。Folioのmain・ブランチ・Issue935・リナの作業・実data・通常exeを対象にしない。
+返された理由は `blocked by policy` のみ。別手段で再試行しない。Folioの6対象は10:25に残存確認。
+11:28にはCommander #439の2対象も、取込7file・保存399file照合・未保存/稼働参照/リンクなしを確認した後、
+同じ理由で起動前に拒否された。11:44に#443の作業木はgitで削除できたが、保存済み5fileの一時出力削除は同じ理由で起動前拒否。以下9対象を保持する。
+FolioとCommander #439は別々の拒否記録。Folioのmain・ブランチ・Issue935・リナの作業・実data・通常exeを対象にしない。
 
 - `D:/NeNeFolio/worktrees/935-window-width`
 - `D:/NeNeFolio/outputs/935-window-width`
@@ -120,12 +130,16 @@ Commanderの正常完了した整理とは別件。Folioのmain・ブランチ�
 - `D:/NeNeFolio/agents/window-width-20261118`
 - `D:/NeNeFolio/design/20261118-search-explanation`
 - `D:/NeNeFolio/agents/session-20261118-sana`
+- `D:/NeNeCommander/worktrees/issue-439`
+- `D:/NeNeCommander/outputs/issue-439`
+- `D:/NeNeCommander/outputs/issue-443`
 
 準備済みの検査付きコマンド（対象が既に無い場合も扱う。サナは実行していない）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118-sana/folio-cleanup-requested.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-requested.ps1
 ```
 
-保全と拒否の原本は `D:/NeNeCommander/evidence/session-20261118-sana/`。
+保全と拒否の原本は `D:/NeNeCommander/evidence/session-20261118-sana/` と `D:/NeNeCommander/evidence/issue-439/`、`issue-443/`。
+統合コマンドと#439/#443の個別scriptは構文解析のみ成功、拒否された削除は未実行。
 後片付けはhideの実行報告と不在確認まで未完了とする。

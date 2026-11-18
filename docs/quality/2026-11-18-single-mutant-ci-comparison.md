@@ -123,9 +123,9 @@ run. Dedicated CPU-count/culture/UI-culture/timezone metadata therefore was not
 preserved; full environmental equality cannot be claimed. Raw CI and dotnet logs remain. Independent raw-log comparison confirms SDK
 `10.0.404`, testhost `18.10.2` and runtime `.NET 10.0.15` match. CI reports Windows
 Server2025 `10.0.26100` / image `windows-2025-vs2026 20261103.298.1`; local reports
-Windows `10.0.26300`. These environments are distinct. A future explicitly requested
-reuse must give the initial metadata a distinct filename such as
-`environment-details.json`; this one-time comparison is not rerun to repair it. This evidence limitation does not invalidate the verified fixed source,
+Windows `10.0.26300`. These environments are distinct. Issue #443 / PR444 subsequently assigns the initial metadata the distinct name
+`environment-details.json`, verified with a logging-only fixture. This one-time
+CI comparison is not rerun and its missing metadata remains missing. This evidence limitation does not invalidate the verified fixed source,
 mutant, exact test IDs, injection or restoration and does not prompt a retry.
 
 The observed local/hosted single-mutant outcomes now agree. The historical full

@@ -40,3 +40,8 @@ No Stryker, product restore/build/tests, CI replay or release rebuild is selecte
 The old hosted environment values are not reconstructed or declared recovered.
 
 Rules: QLT-009/012/015, SEC-011, GIT-001–004, ADR-0061. Waivers: none.
+
+Integration: normal conformance/security/commit-message hooks passed at `307899c`,
+and PR444 merged as `43f3f26`. The five proof output files were archived with
+matching hashes. Git removed the worktree; output deletion was rejected before
+launch (`blocked by policy`) and is left for hide through the prepared command.
