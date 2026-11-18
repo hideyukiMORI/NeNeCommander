@@ -88,9 +88,9 @@ internal static class FlowMetricProof
     private static void PartialRecursion(MetricFixture fixture)
     {
         string[] sources = ["partial class F { partial void R() { R(); } }", "partial class F { partial void R(); }"];
-        foreach (string[] ordered in new[] { sources, sources.Reverse().ToArray() })
+        foreach (MetricAnalysis result in new[] { sources, sources.Reverse().ToArray() }
+            .Select(ordered => fixture.Measure(ordered)))
         {
-            MetricAnalysis result = fixture.Measure(ordered);
             MetricFixture.Equal(1, result.Members.Count(member => member.Recursive), "partial implementation cycle");
             MetricFixture.Equal(1, result.Members.Sum(member => member.Cognitive), "partial recursion once");
         }

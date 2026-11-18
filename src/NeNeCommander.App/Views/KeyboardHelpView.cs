@@ -84,11 +84,23 @@ internal sealed class KeyboardHelpView
             return;
         }
         double halfPage = _scroll.ViewportHeight / 2;
-        double delta = intent == UserIntent.MoveNext ? _lineStep
-            : intent == UserIntent.MovePrevious ? -_lineStep
-            : intent == UserIntent.MoveHalfPageDown ? halfPage
-            : intent == UserIntent.MoveHalfPageUp ? -halfPage
-            : 0;
+        double delta = 0;
+        if (intent == UserIntent.MoveNext)
+        {
+            delta = _lineStep;
+        }
+        else if (intent == UserIntent.MovePrevious)
+        {
+            delta = -_lineStep;
+        }
+        else if (intent == UserIntent.MoveHalfPageDown)
+        {
+            delta = halfPage;
+        }
+        else if (intent == UserIntent.MoveHalfPageUp)
+        {
+            delta = -halfPage;
+        }
         _ = _scroll.ChangeView(null, _scroll.VerticalOffset + delta, null, true);
     }
 

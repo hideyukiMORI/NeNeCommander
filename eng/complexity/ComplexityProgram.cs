@@ -30,9 +30,11 @@ internal static class ComplexityProgram
             MetricAnalysis analysis = new(projects, references);
             return WriteReport(analysis, projects, output);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+            ArgumentException or InvalidOperationException or JsonException or KeyNotFoundException or
+            BadImageFormatException or NotSupportedException)
         {
-            File.WriteAllText(Path.Combine(output, "result.json"), JsonSerializer.Serialize(new
+            File.WriteAllText(Path.Join(output, "result.json"), JsonSerializer.Serialize(new
             {
                 status = "error",
                 metricVersion = "cs013-v1",
@@ -58,7 +60,7 @@ internal static class ComplexityProgram
             members = analysis.Members,
             findings,
         };
-        File.WriteAllText(Path.Combine(output, "result.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(Path.Join(output, "result.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine($"[CS-013] Types {analysis.Types.Count}; members {analysis.Members.Count}; findings {findings.Length}; unresolved invocations {analysis.UnresolvedInvocations}.");
         foreach (IGrouping<string, MetricFinding> group in findings.GroupBy(finding => finding.Metric).OrderBy(group => group.Key, StringComparer.Ordinal))
         {

@@ -17,10 +17,11 @@ public sealed class LiveWslRootAdmissionTests
         LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
             LiveWslRootAdmission.Create(null, null, null),
             [],
-            LiveWslRootTestContext.RejectingFileSystem(),
-            LiveWslRootTestContext.RejectResolution,
-            LiveWslRootTestContext.RejectLinkCreation,
-            LiveWslRootTestContext.RejectUnlink);
+            LiveWslRootMechanism.Create(
+                LiveWslRootTestContext.RejectingFileSystem(),
+                LiveWslRootTestContext.RejectResolution,
+                LiveWslRootTestContext.RejectLinkCreation,
+                LiveWslRootTestContext.RejectUnlink));
 
         LiveWslRootOpenRejected rejected = Assert.IsInstanceOfType<LiveWslRootOpenRejected>(outcome);
         Assert.AreSame(LiveWslRootFailureKind.Unexecuted, rejected.Failure);
@@ -34,24 +35,27 @@ public sealed class LiveWslRootAdmissionTests
         LiveWslRootOpenOutcome malformed = LiveWslTestRoot.Open(
             LiveWslRootTestContext.Admission("C:\\temp"),
             registered,
-            LiveWslRootTestContext.RejectingFileSystem(),
-            LiveWslRootTestContext.RejectResolution,
-            LiveWslRootTestContext.RejectLinkCreation,
-            LiveWslRootTestContext.RejectUnlink);
+            LiveWslRootMechanism.Create(
+                LiveWslRootTestContext.RejectingFileSystem(),
+                LiveWslRootTestContext.RejectResolution,
+                LiveWslRootTestContext.RejectLinkCreation,
+                LiveWslRootTestContext.RejectUnlink));
         LiveWslRootOpenOutcome unsafeRoot = LiveWslTestRoot.Open(
             LiveWslRootTestContext.Admission("\\\\wsl.localhost\\Ubuntu\\home\\NeNeCommander-Live-Proof"),
             registered,
-            LiveWslRootTestContext.RejectingFileSystem(),
-            LiveWslRootTestContext.RejectResolution,
-            LiveWslRootTestContext.RejectLinkCreation,
-            LiveWslRootTestContext.RejectUnlink);
+            LiveWslRootMechanism.Create(
+                LiveWslRootTestContext.RejectingFileSystem(),
+                LiveWslRootTestContext.RejectResolution,
+                LiveWslRootTestContext.RejectLinkCreation,
+                LiveWslRootTestContext.RejectUnlink));
         LiveWslRootOpenOutcome unregistered = LiveWslTestRoot.Open(
             LiveWslRootTestContext.Admission("\\\\wsl.localhost\\Debian\\tmp\\NeNeCommander-Live-Proof"),
             registered,
-            LiveWslRootTestContext.RejectingFileSystem(),
-            LiveWslRootTestContext.RejectResolution,
-            LiveWslRootTestContext.RejectLinkCreation,
-            LiveWslRootTestContext.RejectUnlink);
+            LiveWslRootMechanism.Create(
+                LiveWslRootTestContext.RejectingFileSystem(),
+                LiveWslRootTestContext.RejectResolution,
+                LiveWslRootTestContext.RejectLinkCreation,
+                LiveWslRootTestContext.RejectUnlink));
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,
@@ -79,10 +83,11 @@ public sealed class LiveWslRootAdmissionTests
         LiveWslRootOpenOutcome outcome = LiveWslTestRoot.Open(
             admission,
             [LiveWslRootTestContext.WslRoot(LiveWslRootTestContext.DistributionName)],
-            LiveWslRootTestContext.RejectingFileSystem(),
-            LiveWslRootTestContext.RejectResolution,
-            LiveWslRootTestContext.RejectLinkCreation,
-            LiveWslRootTestContext.RejectUnlink);
+            LiveWslRootMechanism.Create(
+                LiveWslRootTestContext.RejectingFileSystem(),
+                LiveWslRootTestContext.RejectResolution,
+                LiveWslRootTestContext.RejectLinkCreation,
+                LiveWslRootTestContext.RejectUnlink));
 
         Assert.AreSame(
             LiveWslRootFailureKind.InvalidConfiguration,

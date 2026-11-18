@@ -17,16 +17,20 @@ internal static class RecordClosureProgram
         {
             throw new ArgumentException("Expected mode, SDK reference directory, output directory and production assemblies.");
         }
+        if (arguments[0] != "SelfTest" && arguments[0] != "Product")
+        {
+            throw new ArgumentException("Unknown record-closure mode.");
+        }
         MetadataReference[] framework = [.. Directory.GetFiles(arguments[1], "*.dll").Order(StringComparer.Ordinal)
             .Select(path => MetadataReference.CreateFromFile(path))];
-        string output = Path.Combine(arguments[2], arguments[0]);
+        string output = Path.Join(arguments[2], arguments[0]);
         RecordClosureCompiler compiler = new(framework, output);
         if (arguments[0] == "SelfTest")
         {
             RecordClosureSelfTest.Run(compiler, output);
             return 0;
         }
-        if (arguments[0] != "Product" || arguments.Length != 7)
+        if (arguments.Length != 7)
         {
             throw new ArgumentException("Product mode requires the four non-host production assemblies.");
         }
@@ -58,7 +62,7 @@ internal static class RecordClosureProgram
         {
             failures.Add("No externally visible abstract records were discovered.");
         }
-        File.WriteAllText(Path.Combine(output, "result.json"), JsonSerializer.Serialize(new
+        File.WriteAllText(Path.Join(output, "result.json"), JsonSerializer.Serialize(new
         {
             abstractRecords = roots.Length,
             publicRoots = accepted.Count + failures.Count,

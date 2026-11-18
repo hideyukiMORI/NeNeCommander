@@ -91,7 +91,7 @@ public sealed class FileSystemPathTests
         Assert.AreSame(PathParseFailureKind.ParentTraversal, wsl.Kind);
     }
 
-    /// <summary>Proves ambiguous and illegal path forms have typed rejections.</summary>
+    /// <summary>Proves ambiguous roots and forbidden namespaces have typed rejections.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-015")]
@@ -106,6 +106,19 @@ public sealed class FileSystemPathTests
     [DataRow("\\\\server \\share", "InvalidRoot")]
     [DataRow("\\\\server\\share.", "InvalidRoot")]
     [DataRow("\\\\server\\share ", "InvalidRoot")]
+    [DataRow("\\\\?\\C:\\unsafe", "DeviceNamespace")]
+    [DataRow("\\\\.\\PhysicalDrive0", "DeviceNamespace")]
+    [DataRow("\\\\wsl.localhost\\-unsafe\\home", "InvalidDistribution")]
+    [DataRow("\\\\wsl.localhost\\Ubuntu;shutdown\\home", "InvalidDistribution")]
+    public void ParseWhenRootIsAmbiguousOrIllegalTypedFailure(string input, string expectedKind)
+    {
+        AssertTypedFailure(input, expectedKind);
+    }
+
+    /// <summary>Proves illegal path segments have typed rejections.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-015")]
     [DataRow("C:\\NUL.txt", "InvalidSegment")]
     [DataRow("C:\\CON", "InvalidSegment")]
     [DataRow("C:\\PRN", "InvalidSegment")]
@@ -128,15 +141,9 @@ public sealed class FileSystemPathTests
     [DataRow("C:\\trailing. ", "InvalidSegment")]
     [DataRow("C:\\trailing ", "InvalidSegment")]
     [DataRow("C:\\trailing.", "InvalidSegment")]
-    [DataRow("\\\\?\\C:\\unsafe", "DeviceNamespace")]
-    [DataRow("\\\\.\\PhysicalDrive0", "DeviceNamespace")]
-    [DataRow("\\\\wsl.localhost\\-unsafe\\home", "InvalidDistribution")]
-    [DataRow("\\\\wsl.localhost\\Ubuntu;shutdown\\home", "InvalidDistribution")]
-    public void ParseWhenPathIsAmbiguousOrIllegalTypedFailure(string input, string expectedKind)
+    public void ParseWhenSegmentIsIllegalTypedFailure(string input, string expectedKind)
     {
-        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
-
-        Assert.AreEqual(expectedKind, failure.Kind.GetType().Name.Replace("Failure", string.Empty));
+        AssertTypedFailure(input, expectedKind);
     }
 
     /// <summary>Proves names outside the exact Windows device-name set remain usable.</summary>
@@ -356,5 +363,12 @@ public sealed class FileSystemPathTests
     {
         return outcome as PathParseFailure ??
             throw new AssertFailedException($"Expected {nameof(PathParseFailure)}, received {outcome.GetType().Name}.");
+    }
+
+    private static void AssertTypedFailure(string input, string expectedKind)
+    {
+        PathParseFailure failure = RequireFailure(FileSystemPath.Parse(input));
+
+        Assert.AreEqual(expectedKind, failure.Kind.GetType().Name.Replace("Failure", string.Empty));
     }
 }

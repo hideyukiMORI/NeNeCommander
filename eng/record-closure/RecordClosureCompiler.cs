@@ -39,7 +39,7 @@ internal sealed class RecordClosureCompiler
         {
             throw new InvalidOperationException(name + " unexpectedly rejected: " + Describe(errors));
         }
-        return MetadataReference.CreateFromFile(Path.Combine(_output, name + ".dll"));
+        return MetadataReference.CreateFromFile(ProbePath(name) + ".dll");
     }
 
     internal void Reject(string name, string source, string[] allowedErrors)
@@ -58,7 +58,7 @@ internal sealed class RecordClosureCompiler
     internal RecordClosureCompiler With(MetadataReference reference)
     {
         string label = Path.GetFileNameWithoutExtension(reference.Display ?? throw new InvalidOperationException("Fixture reference has no path."));
-        return new RecordClosureCompiler(_references.Add(reference), Path.Combine(_output, label));
+        return new RecordClosureCompiler(_references.Add(reference), ProbePath(label));
     }
 
     internal ImmutableArray<INamedTypeSymbol> Types(MetadataReference reference)
@@ -70,7 +70,7 @@ internal sealed class RecordClosureCompiler
 
     private ImmutableArray<Diagnostic> Emit(string name, string source)
     {
-        string prefix = Path.Combine(_output, name);
+        string prefix = ProbePath(name);
         File.Delete(prefix + ".dll");
         File.WriteAllText(prefix + ".cs", source);
         using MemoryStream binary = new();
@@ -81,6 +81,16 @@ internal sealed class RecordClosureCompiler
             File.WriteAllBytes(prefix + ".dll", binary.ToArray());
         }
         return [.. result.Diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)];
+    }
+
+    private string ProbePath(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name is "." or ".." || Path.IsPathRooted(name) ||
+            name.IndexOfAny(['/', '\\', ':']) >= 0 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("A probe name must be one direct filename.", nameof(name));
+        }
+        return Path.Join(_output, name);
     }
 
     private static IEnumerable<INamedTypeSymbol> NamespaceTypes(INamespaceSymbol space)

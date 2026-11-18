@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,10 +17,10 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     public async Task InspectAsyncWhenProviderIsSupportedDelegatesToItsOnlyAdapter()
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingFileOperationPort());
 
         _ = await router.InspectAsync(Path("C:\\item.txt"), CancellationToken.None);
         Assert.AreEqual(1, windowsLocal.InspectionCount);
@@ -42,10 +41,10 @@ public sealed class ProviderFileOperationPortTests
     [DataRow("Debian")]
     public async Task MutationMembersWhenPairIsSameProviderDelegateToThatAdapter(string destinationDistribution)
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingFileOperationPort());
         FileEntrySnapshot local = Snapshot("C:\\item.txt", "local");
         FileEntrySnapshot linux = Snapshot(
             "\\\\wsl.localhost\\Ubuntu\\home\\item.txt",
@@ -69,10 +68,10 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     public async Task MutationMembersWhenPairIsWindowsLocalToWslRouteTransfersToCrossTransfer()
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        RecordingPort wslToWindows = new();
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        RecordingFileOperationPort wslToWindows = new();
         ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, wslToWindows);
         FileEntrySnapshot source = Snapshot("C:\\item.txt", "first");
         FileEntrySnapshot second = Snapshot("D:\\other.txt", "other");
@@ -91,10 +90,10 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     public async Task MutationMembersWhenPairIsWslToWindowsRouteTransfersToCrossTransfer()
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        RecordingPort wslToWindows = new();
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        RecordingFileOperationPort wslToWindows = new();
         ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, wslToWindows);
         FileEntrySnapshot source = Snapshot("\\\\wsl.localhost\\Ubuntu\\item.txt", "first");
         FileEntrySnapshot second = Snapshot("\\\\wsl.localhost\\ubuntu\\other.txt", "other");
@@ -164,10 +163,10 @@ public sealed class ProviderFileOperationPortTests
         string sourceText,
         string destinationText)
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingFileOperationPort());
         FileEntrySnapshot source = Snapshot(sourceText, "source");
         FileSystemPath destination = Path(destinationText);
 
@@ -199,16 +198,26 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     public async Task OperationsWhenProviderIsUnsupportedOrBatchIsMixedFailClosedWithoutDelegation()
     {
-        RecordingPort windowsLocal = new();
-        RecordingPort wsl = new();
-        RecordingPort windowsLocalToWsl = new();
-        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingPort());
+        RecordingFileOperationPort windowsLocal = new();
+        RecordingFileOperationPort wsl = new();
+        RecordingFileOperationPort windowsLocalToWsl = new();
+        ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingFileOperationPort());
         FileSystemPath unc = Path("\\\\server\\share\\item");
+
+        await AssertInspectionAndBatchesFailClosedAsync(router, unc);
+        await AssertUnsupportedSourceStepsFailClosedAsync(router, unc);
+
+        Assert.HasCount(0, windowsLocal.Calls);
+        Assert.HasCount(0, wsl.Calls);
+        Assert.HasCount(0, windowsLocalToWsl.Calls);
+    }
+
+    private static async Task AssertInspectionAndBatchesFailClosedAsync(ProviderFileOperationPort router, FileSystemPath unc)
+    {
         FileSystemPath ubuntuDestination = Path("\\\\wsl.localhost\\Ubuntu\\destination");
         FileEntrySnapshot local = Snapshot("C:\\item", "local");
         FileEntrySnapshot ubuntu = Snapshot("\\\\wsl.localhost\\Ubuntu\\item", "ubuntu");
         FileEntrySnapshot debian = Snapshot("\\\\wsl.localhost\\Debian\\item", "debian");
-        FileEntrySnapshot uncSource = Snapshot("\\\\server\\share\\item", "unc");
 
         FileInspectionOutcome inspection = await router.InspectAsync(unc, CancellationToken.None);
         TransferPreflightOutcome empty = await router.PreflightTransferAsync(
@@ -223,6 +232,21 @@ public sealed class ProviderFileOperationPortTests
             [ubuntu, debian], ubuntuDestination, CancellationToken.None);
         TransferPreflightOutcome mixedReverseDistribution = await router.PreflightTransferAsync(
             [ubuntu, debian], Path("C:\\destination"), CancellationToken.None);
+
+        Assert.AreSame(
+            FileOperationFailureKind.ProviderUnavailable,
+            Assert.IsInstanceOfType<FileInspectionFailed>(inspection).Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, empty.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProvider.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProviderReversed.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedDistribution.Failure);
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedReverseDistribution.Failure);
+    }
+
+    private static async Task AssertUnsupportedSourceStepsFailClosedAsync(ProviderFileOperationPort router, FileSystemPath unc)
+    {
+        FileEntrySnapshot uncSource = Snapshot("\\\\server\\share\\item", "unc");
+
         ProviderStepOutcome unsupportedDelete = await router.DeleteAsync(
             uncSource,
             DeletionExecutionMode.Permanent,
@@ -236,36 +260,38 @@ public sealed class ProviderFileOperationPortTests
             unc,
             CancellationToken.None);
 
-        Assert.AreSame(
-            FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<FileInspectionFailed>(inspection).Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, empty.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProvider.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedProviderReversed.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedDistribution.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, mixedReverseDistribution.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedDelete.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedCreate.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupportedRename.Failure);
-        Assert.HasCount(0, windowsLocal.Calls);
-        Assert.HasCount(0, wsl.Calls);
-        Assert.HasCount(0, windowsLocalToWsl.Calls);
     }
 
     /// <summary>Proves required router arguments reject defects synchronously.</summary>
     [TestMethod]
     public void BoundariesWhenArgumentIsNullRejectDefect()
     {
-        RecordingPort port = new();
+        RecordingFileOperationPort port = new();
         ProviderFileOperationPort router = new(port, port, port, port);
         FileEntrySnapshot source = Snapshot("C:\\item", "source");
         FileSystemPath target = Path("C:\\target");
 
+        AssertConstructorsRejectNull(port);
+        AssertTransferMembersRejectNull(router, source, target);
+        AssertSourceOwnedMembersRejectNull(router, source, target);
+        Assert.HasCount(0, port.Calls);
+    }
+
+    private static void AssertConstructorsRejectNull(RecordingFileOperationPort port)
+    {
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, port, port, port));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!, port, port));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, null!, port));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, port, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!));
+    }
+
+    private static void AssertTransferMembersRejectNull(
+        ProviderFileOperationPort router, FileEntrySnapshot source, FileSystemPath target)
+    {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.InspectAsync(null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
@@ -288,6 +314,11 @@ public sealed class ProviderFileOperationPortTests
             () => router.VerifyCopyAsync(null!, target, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.VerifyCopyAsync(source, null!, CancellationToken.None));
+    }
+
+    private static void AssertSourceOwnedMembersRejectNull(
+        ProviderFileOperationPort router, FileEntrySnapshot source, FileSystemPath target)
+    {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.DeleteAsync(null!, DeletionExecutionMode.Permanent, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
@@ -300,7 +331,6 @@ public sealed class ProviderFileOperationPortTests
             () => router.RenameAsync(null!, target, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.RenameAsync(source, null!, CancellationToken.None));
-        Assert.HasCount(0, port.Calls);
     }
 
     private static async Task InvokeEveryMemberAsync(
@@ -317,7 +347,6 @@ public sealed class ProviderFileOperationPortTests
         _ = await router.CreateDirectoryAsync(source, destination, CancellationToken.None);
         _ = await router.RenameAsync(source, destination, CancellationToken.None);
     }
-
 
     private static FileSystemPath Path(string text)
     {
@@ -343,91 +372,5 @@ public sealed class ProviderFileOperationPortTests
     private static string[] ExpectedSourceOwnedCalls()
     {
         return ["delete", "create", "rename"];
-    }
-
-    private sealed class RecordingPort : IFileOperationPort
-    {
-        internal int InspectionCount { get; private set; }
-
-        internal List<string> Calls { get; } = [];
-
-        public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
-        {
-            InspectionCount++;
-            return Task.FromResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
-        }
-
-        public Task<TransferPreflightOutcome> PreflightTransferAsync(
-            IReadOnlyList<FileEntrySnapshot> sources,
-            FileSystemPath destination,
-            CancellationToken cancellationToken)
-        {
-            Calls.Add("preflight");
-            return Task.FromResult(TransferPreflightOutcome.Succeeded([]));
-        }
-
-        public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
-            FileEntrySnapshot source,
-            FileSystemPath destination,
-            CancellationToken cancellationToken)
-        {
-            Calls.Add("capability");
-            return Task.FromResult(AtomicMoveCapabilityOutcome.Unsupported);
-        }
-
-        public Task<ProviderStepOutcome> MoveAsync(
-            FileEntrySnapshot source,
-            FileSystemPath destination,
-            CancellationToken cancellationToken)
-        {
-            return Step("move");
-        }
-
-        public Task<ProviderStepOutcome> CopyAsync(
-            FileEntrySnapshot source,
-            FileSystemPath destination,
-            CancellationToken cancellationToken)
-        {
-            return Step("copy");
-        }
-
-        public Task<CopyVerificationOutcome> VerifyCopyAsync(
-            FileEntrySnapshot source,
-            FileSystemPath destination,
-            CancellationToken cancellationToken)
-        {
-            Calls.Add("verify");
-            return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Succeeded(), source, destination));
-        }
-
-        public Task<ProviderStepOutcome> DeleteAsync(
-            FileEntrySnapshot source,
-            DeletionExecutionMode mode,
-            CancellationToken cancellationToken)
-        {
-            return Step("delete");
-        }
-
-        public Task<ProviderStepOutcome> CreateDirectoryAsync(
-            FileEntrySnapshot location,
-            FileSystemPath target,
-            CancellationToken cancellationToken)
-        {
-            return Step("create");
-        }
-
-        public Task<ProviderStepOutcome> RenameAsync(
-            FileEntrySnapshot source,
-            FileSystemPath target,
-            CancellationToken cancellationToken)
-        {
-            return Step("rename");
-        }
-
-        private Task<ProviderStepOutcome> Step(string name)
-        {
-            Calls.Add(name);
-            return Task.FromResult(ProviderStepOutcome.Succeeded());
-        }
     }
 }

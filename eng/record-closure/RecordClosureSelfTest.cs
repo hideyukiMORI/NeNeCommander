@@ -65,7 +65,7 @@ internal static class RecordClosureSelfTest
         {
             RecordClosureProbe.Verify(root, closedCompiler);
         }
-        Assembly fixture = Assembly.Load(File.ReadAllBytes(Path.Combine(output, "FixtureClosed.dll")));
+        Assembly fixture = Assembly.Load(File.ReadAllBytes(Path.Join(output, "FixtureClosed.dll")));
         MethodInfo check = fixture.GetType("CopyProof", true)?.GetMethod("Check") ?? throw new InvalidOperationException("Copy proof is absent.");
         _ = check.Invoke(null, null);
         _ = closedCompiler.Accept("FriendProbe", FriendSource());
@@ -76,8 +76,9 @@ internal static class RecordClosureSelfTest
         AssertReopened(compiler, "FixtureProtectedAbstract", ClosedSource.Replace("private protected", "protected", StringComparison.Ordinal));
         AssertWrongDiagnostic(closedCompiler);
         AssertNoStaleBinary(closedCompiler);
-        File.WriteAllText(Path.Combine(output, "result.json"), "{\"closedRoots\":2,\"reopenedHierarchiesRejected\":3,\"unrelatedDiagnosticRejected\":true,\"friendAccepted\":true,\"knownCopyRuntimePassed\":true,\"staleBinaryRemoved\":true}");
-        Console.WriteLine("[CS-002] Self-proof passed: two closed roots, three rejected reopenings, wrong-diagnostic refusal, friend scope, runtime copy/equality/payload and stale-binary removal.");
+        RecordClosurePathProof.Run(compiler, output);
+        File.WriteAllText(Path.Join(output, "result.json"), "{\"closedRoots\":2,\"reopenedHierarchiesRejected\":3,\"unrelatedDiagnosticRejected\":true,\"friendAccepted\":true,\"knownCopyRuntimePassed\":true,\"staleBinaryRemoved\":true,\"probePathRejected\":true}");
+        Console.WriteLine("[CS-002] Self-proof passed: two closed roots, three rejected reopenings, wrong-diagnostic refusal, friend scope, runtime copy/equality/payload, stale-binary removal and probe-path rejection.");
     }
 
     private static void AssertReopened(RecordClosureCompiler compiler, string label, string source)

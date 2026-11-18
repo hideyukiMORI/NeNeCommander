@@ -11,7 +11,6 @@ using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Application.Wsl;
-using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Tests;
 
@@ -43,10 +42,10 @@ public sealed class LocationsSessionTests
         Assert.AreEqual(cancellation.Token, wslRoots.ObservedToken);
         LocationsLoading loading = Assert.IsInstanceOfType<LocationsLoading>(session.Current);
         Assert.AreSame(PaneSide.Right, loading.ActiveSide);
-        drives.Complete(DrivesOf(Drive("C:\\", DriveKind.Fixed, "System")));
+        drives.Complete(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, "System")));
         Assert.IsFalse(opening.IsCompleted);
         Assert.AreSame(loading, session.Current);
-        wslRoots.Complete(RootsOf("Ubuntu"));
+        wslRoots.Complete(LocationsCatalogTestData.RootsOf("Ubuntu"));
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(await opening);
         Assert.AreSame(open, session.Current);
         Assert.AreSame(PaneSide.Right, open.ActiveSide);
@@ -82,8 +81,8 @@ public sealed class LocationsSessionTests
         LocationsState loading = session.Current;
 
         LocationsState whileLoading = await session.OpenAsync(panes, InteractionOwnership.ScopeOwnsInput, CancellationToken.None);
-        drives.Complete(DrivesOf());
-        wslRoots.Complete(RootsOf());
+        drives.Complete(LocationsCatalogTestData.DrivesOf());
+        wslRoots.Complete(LocationsCatalogTestData.RootsOf());
         LocationsState open = await opening;
         LocationsState whileOpen = await session.OpenAsync(panes, InteractionOwnership.ScopeOwnsInput, CancellationToken.None);
 
@@ -104,13 +103,13 @@ public sealed class LocationsSessionTests
     [DataRow("failed", "failed")]
     public async Task OpenAsyncWhenSectionsSettleDecidesEachIndependentlyAsync(string driveResult, string wslResult)
     {
-        DriveLocation fixedDrive = Drive("C:\\", DriveKind.Fixed, "System");
-        DriveLocation removable = Drive("E:\\", DriveKind.Removable, null);
+        DriveLocation fixedDrive = LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, "System");
+        DriveLocation removable = LocationsCatalogTestData.Drive("E:\\", DriveKind.Removable, null);
         DriveCatalogOutcome driveOutcome = driveResult == "listed"
             ? DriveCatalogOutcome.Succeeded([fixedDrive, removable], 1)
             : DriveCatalogOutcome.Failed(DriveCatalogFailureKind.AccessDenied);
         WslDistributionCatalogOutcome wslOutcome = wslResult == "listed"
-            ? RootsOf("Ubuntu")
+            ? LocationsCatalogTestData.RootsOf("Ubuntu")
             : WslDistributionCatalogOutcome.Failed(WslDistributionCatalogFailureKind.MalformedOutput);
 
         LocationsOpen open = await OpenAsync(driveOutcome, wslOutcome);
@@ -159,13 +158,13 @@ public sealed class LocationsSessionTests
         {
             "cancelled" => DriveCatalogOutcome.Cancelled(),
             "failed" => DriveCatalogOutcome.Failed(DriveCatalogFailureKind.ProviderUnavailable),
-            _ => DrivesOf(Drive("C:\\", DriveKind.Fixed, null)),
+            _ => LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)),
         };
         WslDistributionCatalogOutcome wslOutcome = wslResult switch
         {
             "cancelled" => WslDistributionCatalogOutcome.Cancelled(),
             "failed" => WslDistributionCatalogOutcome.Failed(WslDistributionCatalogFailureKind.ProviderUnavailable),
-            _ => RootsOf("Ubuntu"),
+            _ => LocationsCatalogTestData.RootsOf("Ubuntu"),
         };
         LocationsSession session = new(
             ScriptedDriveCatalog.Completed(driveOutcome),
@@ -184,7 +183,7 @@ public sealed class LocationsSessionTests
     [TestMethod]
     public async Task ValidateWhenNothingIsListedKeepsTheStateOnEveryMoveAsync()
     {
-        LocationsSession session = await OpenedAsync(DrivesOf(), RootsOf());
+        LocationsSession session = await OpenedAsync(LocationsCatalogTestData.DrivesOf(), LocationsCatalogTestData.RootsOf());
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
 
         _ = session.Validate(UserIntent.MoveNext, InteractionOwnership.ScopeOwnsInput);
@@ -202,8 +201,8 @@ public sealed class LocationsSessionTests
     public async Task ValidateWhenFocusMovesStopsAtBothBoundariesAsync()
     {
         LocationsSession session = await OpenedAsync(
-            DrivesOf(Drive("C:\\", DriveKind.Fixed, null)),
-            RootsOf("Ubuntu"));
+            LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)),
+            LocationsCatalogTestData.RootsOf("Ubuntu"));
         LocationsOpen first = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
 
         _ = session.Validate(UserIntent.MovePrevious, InteractionOwnership.ScopeOwnsInput);
@@ -231,8 +230,8 @@ public sealed class LocationsSessionTests
     public async Task ValidateWhenSelectionIsQualifiedClosesAndNamesTheTargetAsync()
     {
         LocationsSession session = await OpenedAsync(
-            DrivesOf(Drive("C:\\", DriveKind.Fixed, null)),
-            RootsOf("Ubuntu"),
+            LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)),
+            LocationsCatalogTestData.RootsOf("Ubuntu"),
             PaneSide.Right);
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
         LocationItem wsl = open.Items[1];
@@ -255,13 +254,13 @@ public sealed class LocationsSessionTests
     public async Task ValidateWhenSelectionIsStaleOrForeignChangesNothingAsync()
     {
         LocationsSession session = await OpenedAsync(
-            DrivesOf(Drive("C:\\", DriveKind.Fixed, null), Drive("D:\\", DriveKind.Fixed, null)),
-            RootsOf());
+            LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null), LocationsCatalogTestData.Drive("D:\\", DriveKind.Fixed, null)),
+            LocationsCatalogTestData.RootsOf());
         LocationsOpen stale = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
         _ = session.Validate(UserIntent.MoveNext, InteractionOwnership.ScopeOwnsInput);
         LocationsOpen current = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
         LocationsOpen other = Assert.IsInstanceOfType<LocationsOpen>(
-            (await OpenedAsync(DrivesOf(Drive("Z:\\", DriveKind.Network, null)), RootsOf())).Current);
+            (await OpenedAsync(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("Z:\\", DriveKind.Network, null)), LocationsCatalogTestData.RootsOf())).Current);
 
         LocationsValidation staleSelection = session.Validate(
             UserIntent.SelectLocation(stale, stale.Items[0]),
@@ -283,7 +282,7 @@ public sealed class LocationsSessionTests
     [TestMethod]
     public async Task ValidateWhenOwnershipIsLostClosesWithoutRouteAsync()
     {
-        LocationsSession session = await OpenedAsync(DrivesOf(Drive("C:\\", DriveKind.Fixed, null)), RootsOf());
+        LocationsSession session = await OpenedAsync(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)), LocationsCatalogTestData.RootsOf());
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
 
         LocationsValidation validation = session.Validate(
@@ -298,7 +297,7 @@ public sealed class LocationsSessionTests
     [TestMethod]
     public async Task ValidateWhenCancellationIsQualifiedClosesAsync()
     {
-        LocationsSession session = await OpenedAsync(DrivesOf(Drive("C:\\", DriveKind.Fixed, null)), RootsOf());
+        LocationsSession session = await OpenedAsync(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)), LocationsCatalogTestData.RootsOf());
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
 
         LocationsValidation validation = session.Validate(
@@ -314,8 +313,8 @@ public sealed class LocationsSessionTests
     public async Task ValidateWhenIntentIsNotAPickerIntentChangesNothingAsync()
     {
         LocationsSession session = await OpenedAsync(
-            DrivesOf(Drive("C:\\", DriveKind.Fixed, null), Drive("D:\\", DriveKind.Fixed, null)),
-            RootsOf());
+            LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null), LocationsCatalogTestData.Drive("D:\\", DriveKind.Fixed, null)),
+            LocationsCatalogTestData.RootsOf());
         LocationsOpen open = Assert.IsInstanceOfType<LocationsOpen>(session.Current);
 
         foreach (UserIntent intent in new[] { UserIntent.Escape, UserIntent.Confirm, UserIntent.FocusLast, UserIntent.OpenLocations })
@@ -334,7 +333,7 @@ public sealed class LocationsSessionTests
         ScriptedWslDistributionCatalog wslRoots = new();
         LocationsSession session = new(drives, wslRoots);
         LocationsOpen foreign = Assert.IsInstanceOfType<LocationsOpen>(
-            (await OpenedAsync(DrivesOf(Drive("C:\\", DriveKind.Fixed, null)), RootsOf())).Current);
+            (await OpenedAsync(LocationsCatalogTestData.DrivesOf(LocationsCatalogTestData.Drive("C:\\", DriveKind.Fixed, null)), LocationsCatalogTestData.RootsOf())).Current);
 
         LocationsValidation whileClosed = session.Validate(
             UserIntent.SelectLocation(foreign, foreign.Items[0]),
@@ -353,8 +352,8 @@ public sealed class LocationsSessionTests
         Assert.AreSame(LocationsValidation.NothingToRoute, whileLoading);
         Assert.AreSame(LocationsValidation.NothingToRoute, cancelWhileLoading);
         Assert.AreSame(loading, session.Current);
-        drives.Complete(DrivesOf());
-        wslRoots.Complete(RootsOf());
+        drives.Complete(LocationsCatalogTestData.DrivesOf());
+        wslRoots.Complete(LocationsCatalogTestData.RootsOf());
         _ = await opening;
     }
 
@@ -374,26 +373,6 @@ public sealed class LocationsSessionTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Validate(null!, InteractionOwnership.ScopeOwnsInput));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Validate(UserIntent.Escape, null!));
         Assert.AreSame(LocationsState.Closed, session.Current);
-    }
-
-    internal static DriveLocation Drive(string root, DriveKind kind, string? label)
-    {
-        return DriveLocation.Create(Assert.IsInstanceOfType<WindowsLocalPath>(Parse(root)), kind, label);
-    }
-
-    internal static DriveCatalogOutcome DrivesOf(params DriveLocation[] drives)
-    {
-        return DriveCatalogOutcome.Succeeded(drives, 0);
-    }
-
-    internal static WslDistributionCatalogOutcome RootsOf(params string[] names)
-    {
-        WslPath[] roots = new WslPath[names.Length];
-        for (int index = 0; index < names.Length; index++)
-        {
-            roots[index] = Assert.IsInstanceOfType<WslPath>(Parse("\\\\wsl.localhost\\" + names[index]));
-        }
-        return WslDistributionCatalogOutcome.Succeeded(roots);
     }
 
     private static async Task<LocationsOpen> OpenAsync(
@@ -440,8 +419,4 @@ public sealed class LocationsSessionTests
             : await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
     }
 
-    private static FileSystemPath Parse(string text)
-    {
-        return Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(text)).Path;
-    }
 }
