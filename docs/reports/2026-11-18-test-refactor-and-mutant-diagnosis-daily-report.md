@@ -116,13 +116,38 @@ command journalのenvironment.json/logと分離した。実際のwrapperの記�
 過去CIの欠損値は復元せず、Stryker/製品試験/CIを再実行していない。公開source46f1a82には含まれない。
 作業木は整理済み、証拠5fileは恒久保存/照合済み、一時出力の削除だけは後述の拒否で保持。
 
+## 12時台の公開完了
+
+#434の[0.1.0-beta.1 Preview](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.1)を
+12:24:04 JSTに公開。注釈付きtagはsource `46f1a82db62e2e28accf6bec3eb81a67f1d85a5a`を指す。
+12:25:30に公開3assetを認証なしHTTPSで取り直し、全サイズ/SHA256/service digestが一致した。
+配布物の起動・#94のDPI/high contrast/手動キー確認は未実施のまま、Preview説明に明記した。
+
+公開前のdeep review44221900660は12:17:20に成功。正典checkを内包し、2032成功/0失敗/16 opt-in skip、
+coverageはDomain/Application100%、Infrastructure94.48%、Presentation94.45%。
+mutationは97.47/96.59/92.30/94.86%、adversarial3周成功、依存脆弱性0、19内部check成功。
+実行中のjob log取得は一度404/BlobNotFoundだったが、完了後に原本を保存した。gate再試行なし。
+CodeQLの実workflow stepも成功し、analysis2192418870は同source・結果0・error/warning空・C#914/914。
+12:19:04の別API照合でopen/owned alertとも0を確認し、#433の未完条件を満たした。
+
+raw artifact14394166939のZIP/service digest一致、4層mutation report・raw log・CodeQL API・公開結果・
+tag・公開再取得の証拠を`D:/NeNeCommander/evidence/issue-434/`へ保存。
+失敗候補01/02は各archiveの全entryサイズ/hashを照合して保全。112 tool outputも保全済み。
+候補03と#94実機用fixtureは既存の確認依頼から参照されるため保持。
+最終文書は品質記録2件、現在欄、日報、引き継ぎへ反映。文書だけなので新たなCI/製品試験は実行せず、
+text/diff/link照合と通常commit hookを用いた。新waiver、設定schema、依存pinの変更なし。
+
+PR402の実機受理、#94、#386/397とADR0051の5引数判断は未完了。過去full batchのKilled原因も未確定。
+#434の記録用作業木はPR統合後に整理し、その結果は`issue-434/final-completion.json`で確定する。
+
 ## ! hide実行待ち：後片付け
 
-同じ日のFolio作業整理で、サナ所有物の削除は自動承認審査に起動前に拒否された。
-返された理由は `blocked by policy` のみ。別手段で再試行しない。Folioの6対象は10:25に残存確認。
-11:28にはCommander #439の2対象も、取込7file・保存399file照合・未保存/稼働参照/リンクなしを確認した後、
-同じ理由で起動前に拒否された。11:44に#443の作業木はgitで削除できたが、保存済み5fileの一時出力削除は同じ理由で起動前拒否。以下9対象を保持する。
-FolioとCommander #439は別々の拒否記録。Folioのmain・ブランチ・Issue935・リナの作業・実data・通常exeを対象にしない。
+以下13対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
+Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
+公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
+main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
+Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#434の112fileと
+失敗候補01/02を恒久証拠へ保全しhash照合済み。#433/#443の作業木は削除済み。
 
 - `D:/NeNeFolio/worktrees/935-window-width`
 - `D:/NeNeFolio/outputs/935-window-width`
@@ -133,13 +158,20 @@ FolioとCommander #439は別々の拒否記録。Folioのmain・ブランチ・I
 - `D:/NeNeCommander/worktrees/issue-439`
 - `D:/NeNeCommander/outputs/issue-439`
 - `D:/NeNeCommander/outputs/issue-443`
+- `D:/NeNeCommander/outputs/issue-433`
+- `D:/NeNeCommander/outputs/issue-434`
+- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`
+- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-02`
 
-準備済みの検査付きコマンド（対象が既に無い場合も扱う。サナは実行していない）:
+hide実行用の準備済みコマンド（既に無い対象は許容。サナは実行していない）:
 
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-requested.ps1
 ```
 
-保全と拒否の原本は `D:/NeNeCommander/evidence/session-20261118-sana/` と `D:/NeNeCommander/evidence/issue-439/`、`issue-443/`。
-統合コマンドと#439/#443の個別scriptは構文解析のみ成功、拒否された削除は未実行。
-後片付けはhideの実行報告と不在確認まで未完了とする。
+対象一覧は`cleanup-targets.json`、保全/拒否の原本は`D:/NeNeCommander/evidence/`内の
+各Issueとsessionのフォルダへ保存。Commanderのscriptは固定対象のinventory、Git状態、
+参照/リンクを照合し、保存済みhash証拠を再利用してdirectory単位のnative削除だけを行う。
+4scriptは構文解析成功、実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
+ブランチ/commit/恒久証拠/公開shipping/候補03/実機用fixture/未完了PR402の作業木は保持する。
+hideの実行報告と不在確認まで後片付けは未完了。

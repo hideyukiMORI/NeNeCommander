@@ -1,11 +1,11 @@
 # First beta packaging — Issue #434
 
-Status: candidate packaging verified; Preview publication authorized by hide; final release proof pending.
+Status: Preview published and all three public assets verified on 2026-11-18; manual #94 remains open.
 
 At 11:03 JST on 2026-11-18 hide requested publication as a Preview before returning
 home for the manual check. ADR-0079 records this scoped permission. #94 remains open
-and unperformed. Final shipping artifact verification, deep review and CodeQL
-readback still precede publication. PR #402 remains excluded.
+and unperformed. Shipping verification, deep review and CodeQL readback completed
+before publication. PR #402 remains excluded. Final evidence is recorded below.
 
 hide requested a release at a usable checkpoint on 2026-11-18. The preparation
 starts from main `97d8a12` after #428/PR #432 and includes the accepted #433 CodeQL
@@ -146,11 +146,12 @@ own source and is not relabeled as a later commit. Root creates the shipping
 package from accepted source after integration and reuses the unchanged applicable
 proof under ADR-0061. No application was launched by this task.
 
-## Remaining release work
+## Limits of candidate proof
 
-The resulting package is not evidence of launch, #94 screen checks, all provider
+The candidate alone is not evidence of launch, #94 screen checks, all provider
 environments, CodeQL alert closure, fresh deep review, signing or public hosting.
-Those remain separate recorded conditions. Microsoft package license/notice
+The final automated/publication evidence follows below; launch, #94, environmental
+checks and signing remain unperformed. Microsoft package license/notice
 files are retained from the exact resolved inputs. The Windows SDK's URL-only
 license now has a verified original document and fixed retrieval metadata; the
 distribution guide requires acceptance of applicable component terms before use.
@@ -179,8 +180,8 @@ byte sequences checked in the shipping PRI. The source checkout remained clean.
 
 Raw command/result, shipping proof and locale reuse records are under the task's
 permanent evidence directory. The application was not launched. Release deep
-review run 44221900660 was requested once on this exact source; its result,
-CodeQL API readback and publication are pending at this checkpoint. The later
+review run 44221900660 was requested once on this exact source. Its successful
+result, CodeQL API readback and publication are recorded below. The later
 #439 / PR441 main commit `43e857e` is not part of the shipping source and does not
 change its product inputs. No duplicate quality run was requested.
 
@@ -192,7 +193,67 @@ and SHA-256 match the source inventory; per-file sizes, hashes and modification
 times are retained in their `candidate-20261118-0N-archive.json` records. The final
 console projection of ordered dictionaries printed null columns; the persisted
 records were read back and summarized separately. No source directory was deleted
-by that archival operation. Preserve the directories until release acceptance
-and the cleanup preflight. Candidate03 remains referenced by the earlier #94
+by that archival operation. After release acceptance and preflight, their
+directory-removal request was rejected before launch (`blocked by policy`).
+The directories remain in the explicit user cleanup list; no retry was made. Candidate03 remains referenced by the earlier #94
 manual-check request, so retain it until that request is resolved; the final
 shipping folder is the authoritative public-package source.
+
+## Final automated acceptance and publication
+
+The single [deep review 44221900660](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44221900660)
+at shipping source `46f1a82db62e2e28accf6bec3eb81a67f1d85a5a` completed successfully
+at 12:17:20 JST, within 96 hours of publication. It ran `pwsh -NoProfile -File
+./eng/deep-review.ps1`, including the canonical `eng/check.ps1`: all 19 internal
+checks passed, with 2,032 tests passed, zero failures and 16 live opt-in skips.
+The three adversarial rounds passed and the dependency audit found no vulnerabilities.
+Coverage was Domain/Application 100%, Infrastructure 94.48%, Presentation 94.45%.
+Mutation was Domain 97.47%, Application 96.59%, Infrastructure 92.30%, Presentation 94.86%.
+No additional quality run or repeated successful suite was requested.
+
+The separate actual CodeQL workflow step also succeeded. Analysis 2192418870
+identifies the same source, reports zero results, empty error/warning fields and
+914/914 C# files scanned. The 12:19:04 JST API readback returned zero open alerts,
+including zero owned alerts. Analysis success and alert closure were checked
+separately; no dismissal, suppression, exclusion or baseline was added.
+
+The raw artifact ZIP (14394166939) matches service digest
+`a1524cf21232f1affd8e86e8efbbf14ba840d9aa5515d8df7e32c5c02cf06f19`.
+The run JSON, complete raw log, deep-review JSON, four mutation reports, CodeQL
+analyses and open-alert response are preserved under `D:/NeNeCommander/evidence/issue-434/`.
+A log-read request while the job was running returned BlobNotFound/404; the
+completed log was subsequently retrieved. No gate retry resulted from that read failure.
+
+At 12:24:04 JST the annotated tag `v0.1.0-beta.1` and
+[NeNe Commander 0.1.0-beta.1 Preview](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.1)
+were published (release 449483714, prerelease true, draft false).
+The remote tag peels to the shipping source. At 12:25:30 JST all three assets
+were downloaded through anonymous HTTPS, without an authentication header.
+Each size and SHA-256 matched both its local shipping original and service digest:
+
+| Asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| NeNeCommander-0.1.0-beta.1-win-x64.zip | 113730832 | `c4dad8d8007948ba5455950b9f653853e5971512dcb093e83c73622961910e69` |
+| release-manifest.json | 346162 | `42fe0f937e1604ea2d2c99f501252c5c1975c75e1b6a26d36e46f63206b8c7d7` |
+| SHA256SUMS.txt | 193 | `036158fe680cba6083560774eb1326f50192822f6d4de1144d63d335b8051d80` |
+
+The exact publication result, release-note body, remote tag, public-release JSON
+and `public-download-proof.json` are preserved. This verification does not claim
+the downloaded package was launched. #94 remains open/unperformed, including
+DPI/high contrast and manual keyboard/modal confirmation; the unsigned status
+and limitations are explicit in the published description. #402 remains Draft
+and excluded. Later tooling commits #439/#443 are also outside the release source.
+
+## Completion and retained output
+
+Documentation-only finalization reuses these successful unchanged inputs under
+ADR-0061 and runs text/diff/link review plus normal commit hooks only.
+The shipping folder is permanent. Candidate03 and the manual UI fixture are
+retained because the outstanding #94 request references them. The 112 temporary
+tool-output files were copied and hash-verified under `issue-434/tool-outputs`.
+Deletion of that output directory and failed candidates 01/02 was rejected
+before launch; their exact targets and the prepared user-only command are in the
+daily report/handoff. No rejected deletion was retried. The publication-record
+worktree is eligible for native removal only after this PR is integrated;
+`issue-434/final-completion.json` records that separate outcome. Branches, commits,
+permanent evidence and the public shipping artifacts remain retained.
