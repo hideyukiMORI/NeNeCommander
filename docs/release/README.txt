@@ -1,0 +1,55 @@
+NeNe Commander beta — Windows 11 x64
+
+Start
+1. Extract the whole ZIP into a folder where this account can read and run files.
+2. Keep every extracted file and folder together.
+3. Open NeNeCommander.App.exe. There is no installer and no administrator access is required.
+
+The .NET runtime and Windows App SDK runtime are included. Windows 11 x64
+(build 22000 or later) is required. This package has not been prepared for ARM64.
+The NeNe Commander executable is unsigned. Windows may show an unrecognized-app
+warning; verify the download source and the published SHA-256 before deciding to run it.
+The package does not install a certificate or change Windows security settings.
+
+Use
+- Tab switches the active pane. h/j/k/l and the arrow keys navigate.
+- F5 copies, F6 moves, F2 renames, F7 creates a folder, and F8 deletes.
+  Read the confirmation: recycle-bin support depends on the selected provider
+  and entry. Some operations require explicit permanent-deletion confirmation.
+- Escape cancels or abandons the current interaction where supported.
+- Ctrl+P opens the command palette; Ctrl+G opens drives and WSL roots.
+- Ctrl+B opens bookmarks; Ctrl+, opens settings; Ctrl+W adjusts the window.
+- F1 opens the in-app keyboard help with the full current key map.
+
+Scope
+Dual panes, address/history navigation, selection, sort order, hidden entries,
+file operations, progress, error feedback and settings are included.
+Windows local files support navigation, operations and Windows association launch.
+WSL distributions support their declared reads, operations and transfers, including
+Windows/WSL and cross-distribution transfers. A registered WSL distribution is
+required only for WSL features. UNC shares support directory reads and compatible
+Windows association launch. UNC mutations and mapped-network-drive mutations are
+not supported. WSL/UNC launch rejects incompatible names and paths of 260 or more
+UTF-16 code units. Provider capabilities and failures are reported by the app.
+There is no embedded editor, terminal, archive tool, FTP client or cloud protocol.
+
+Settings and updates
+Settings are saved in %LOCALAPPDATA%\NeNeCommander\settings.json, separately from
+this folder. Current writes use schema version 3; valid older versions 1 and 2 are
+read without a startup rewrite. Older development binaries may reject version 3.
+Different copies run by the same Windows account share this settings file.
+To update, close the app and extract the new ZIP into a new folder. There is no
+automatic updater. Deleting an extracted application folder leaves settings intact.
+
+Version and notices
+RELEASE.txt identifies this build and source commit. The download's accompanying
+release-manifest.json and SHA256SUMS.txt record its contents and checksums.
+Third-party components retain their own license terms. Read licenses/index.json
+and the accompanying unmodified license/notice files before using the bundled
+components. Do not use those components unless their applicable terms are accepted.
+The original package metadata and URLs are retained; the Windows SDK license
+document accompanies packages that supply its URL without local license text.
+The index also includes resolved build-time packages, which does not mean their
+tools are shipped as executable parts of the application.
+
+Project and issue reports: https://github.com/hideyukiMORI/NeNeCommander
