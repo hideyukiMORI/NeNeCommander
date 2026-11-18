@@ -85,7 +85,7 @@ try {
     & dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
 
-    foreach ($required in @('NeNeCommander.App.exe', 'NeNeCommander.App.dll', 'NeNeCommander.App.runtimeconfig.json', 'coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'Microsoft.UI.Xaml.dll', 'resources.pri')) {
+    foreach ($required in @('NeNeCommander.App.exe', 'NeNeCommander.App.dll', 'NeNeCommander.App.runtimeconfig.json', 'coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'Microsoft.UI.Xaml.dll', 'NeNeCommander.App.pri')) {
         if (-not (Test-Path -LiteralPath (Join-Path $payload $required) -PathType Leaf)) { throw "Published runtime file is absent: $required." }
     }
     $runtimeConfig = Get-Content -LiteralPath (Join-Path $payload 'NeNeCommander.App.runtimeconfig.json') -Raw | ConvertFrom-Json -AsHashtable

@@ -27,7 +27,11 @@ of that project. Both evaluate `Release`, `SelfContained=true` and
 override: referenced libraries keep their existing RID-independent locks. The
 existing project already sets
 `WindowsAppSDKSelfContained=true`, unpackaged output, untrimmed publishing and
-Release ReadyToRun. No installer, MSIX, single-file extraction, new package,
+Release ReadyToRun. `EnableMsixTooling=true` enables the pinned SDK's existing PRI
+publish target; `WindowsPackageType=None` still disables MSIX generation. The
+SDK-generated `NeNeCommander.App.pri` includes the compiled XAML resources and is
+published by the standard .NET item pipeline. No separate resource-copy target is
+added. No installer, MSIX, single-file extraction, new package,
 certificate or signature is added. Publish uses at most four MSBuild workers.
 
 The package contains the full publish folder, the distribution README, build

@@ -81,6 +81,28 @@ four libraries an empty RID / `IsRidAgnostic=true` (`rid-evaluation.json`). No
 project declaration or lock policy changed to accommodate the publisher.
 Actual corrected restore/publish and Architecture lock impact remain pending.
 
+Candidate 02 on `7143a76` passed locked restore for all five production projects
+and official publish, including Release ReadyToRun. The publisher's required-file
+check then stopped on `resources.pri`, so it created no ZIP or success manifest.
+The SDK's actual unpackaged filename is `NeNeCommander.App.pri`; that file was
+also absent from publish although present in the build output. The build/publish
+inventory difference was that PRI plus eleven loose XBF files. `makepri dump`
+confirmed the eleven application XBF resources are already `EmbeddedData` in the
+PRI, and independent review matched all eleven complete XBF byte sequences inside
+it. Loose XBF files therefore are not missing runtime content once the PRI ships.
+
+The existing `EnableMsixTooling=false` selected MRT Core generation, which does not
+add its PRI to .NET publish. The pinned SDK already supplies
+`AddProjectPriToResolvedFileToPublish` in `Microsoft.Windows.SDK.BuildTools.MSIX.Pri.targets`.
+The App now enables that tooling and keeps `WindowsPackageType=None`; independent
+property evaluation confirms `AppxPackage`, `GenerateAppxPackageOnBuild`,
+`PublishAppxPackage` and `_GenerateMsixPackage` remain false. The required-file
+check uses the actual `NeNeCommander.App.pri` name. No custom target, bin-directory
+copy, loose-XBF duplication, new package or alternate resource generation is added.
+Candidate 02 and its log, inventory difference, PRI dump and embedded-resource
+summary remain in external evidence. The changed project configuration requires
+one corrected publish; ordinary product tests are not repeated for this metadata.
+
 ## Remaining release work
 
 The resulting package is not evidence of launch, #94 screen checks, all provider
