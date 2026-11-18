@@ -53,6 +53,18 @@ only its fixed source/length/hash metadata; the original remains in external
 evidence. Publishing retrieves or reuses that exact original and fails on a
 missing or changed source. No whitespace rule, exclusion or binary attribute changed.
 
+The independent review found that the final `git status` exit code was not checked:
+a failed command with empty stdout could be mistaken for a clean checkout. The
+publisher now rejects that failure before file inventory, ZIP or manifest creation.
+`prove-publish-status.ps1` executes the unmodified status-check block extracted
+from the old and corrected scripts with controlled Git exit/stdout. The old block
+proceeds on exit 128/empty stdout; the correction rejects it with its specific
+verification error. Dirty status and changed input hashes also reject, while a
+successful empty status with unchanged inputs proceeds (4/4 corrected cases).
+The changed publisher script parses with zero errors. This proof runs no restore,
+build or publish. The proof script and `publish-status-proof.json` are preserved
+in the task's evidence directory.
+
 ## Remaining release work
 
 The resulting package is not evidence of launch, #94 screen checks, all provider

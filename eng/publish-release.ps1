@@ -100,8 +100,10 @@ try {
     [System.IO.File]::WriteAllText((Join-Path $payload 'RELEASE.txt'), "NeNe Commander $version`n$($binaryVersion.LegalCopyright)`nSource: $commit`nPlatform: Windows 11 x64`nApplication signature: unsigned`n")
 
     $after = @(Get-ReleaseInputs -RepositoryRoot $root)
+    $afterStatus = (& git status --porcelain=v1 --untracked-files=all) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify the source checkout after publish.' }
     if (($before | ConvertTo-Json -Compress) -cne ($after | ConvertTo-Json -Compress) -or
-        ((& git status --porcelain=v1 --untracked-files=all) -join "`n").Length -ne 0) {
+        $afterStatus.Length -ne 0) {
         throw 'Publish changed tracked inputs or the source checkout.'
     }
     $entries = @(Get-ChildItem -LiteralPath $payload -Recurse -Force)
