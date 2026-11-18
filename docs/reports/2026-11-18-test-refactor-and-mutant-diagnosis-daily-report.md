@@ -88,6 +88,26 @@ hideは「おしまいと言うまでCommanderを続ける」「サブエージ�
 #398/#430/#431はPR402がmain未統合のため、#433/#434/#439は最終受理/証拠収載前のため作業木を保持。
 配布候補3つと実機用fixtureも保持する。追加waiverなし、製品設定schema変更なし。
 
+## 公開用sourceの確定とCI比較結果
+
+#434 / PR440はmain `46f1a82`へ統合、依存review44221630000は成功。
+最終shippingはこのsourceで正典publishを実行してexit0、警告/エラーなし。
+586 payload/ZIP・1295入力・10lock・51原文noticeを照合し、PRIと日英source blobの一致で既存の各348文字列の証拠を再利用。
+ZIPは113730832 bytes、SHA256 `c4dad8d8007948ba5455950b9f653853e5971512dcb093e83c73622961910e69`。
+場所は `D:/NeNeCommander/releases/0.1.0-beta.1/shipping-20261118/`。
+アプリは起動していない。公開用deep review44221900660は同sourceで1回実行中、CodeQL照合と公開は未完了。
+#94のIssue本文もADR0079へ合わせ、未実施/openを維持した。
+
+#439 / PR441はその後のmain `43e857e`へ統合、依存review44221977999は成功。
+固定source `b5d9af8`のmanual比較44222206602を1回実行し、対象1813はローカル同様Survived。
+初期/coverage/mutantの各31 exact IDが全Passed、15注入は正規化一致、424入力と2DLLの復帰が一致。
+raw子exit2・wrapper記録final2、外側shell表示exit1/workflow failureを区別する。成功gateとは呼ばない。
+artifact14391551154のraw ZIPはservice digest `ad7bf1d6a86a6220cbcc0ae1da5f67dad74a188b5cb0ff7311c3cc4690caec21` と一致し、35内容hash（隠しfile含む36files）も全一致。
+環境allowlist JSONは同名のcommand journalで上書きされたためCPU/culture/timezoneは未保存。OSも異なり、全環境一致を主張しない。
+固定条件比較は成立し、過去full batchのKilled原因は未確定。再実行・全層展開・score訂正はしない。
+最終比較の独立レビューと原本は `D:/NeNeCommander/evidence/issue-439/`、公開用証拠は `issue-434/`。
+PR402は引き続きDraftの実機確認待ちで今回のPreviewに含まない。
+
 ## ! hide実行待ち：後片付け
 
 同じ日のFolio作業整理で、サナ所有物の削除は自動承認審査に起動前に拒否された。

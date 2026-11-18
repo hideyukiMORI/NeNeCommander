@@ -154,3 +154,32 @@ Those remain separate recorded conditions. Microsoft package license/notice
 files are retained from the exact resolved inputs. The Windows SDK's URL-only
 license now has a verified original document and fixed retrieval metadata; the
 distribution guide requires acceptance of applicable component terms before use.
+
+## Accepted-source shipping package
+
+PR #440 integrated the preparation as `46f1a82db62e2e28accf6bec3eb81a67f1d85a5a`.
+Its dependency review run 44221630000 succeeded. The final Preview-policy review
+found no remaining required correction at `9aa473d`; the old release-note wording
+was corrected before acceptance. #94 remains open under ADR-0079.
+
+The accepted source produced the shipping package with exit 0 and no warnings/errors:
+
+```powershell
+pwsh -NoProfile -File ./eng/publish-release.ps1 -OutputDirectory D:/NeNeCommander/releases/0.1.0-beta.1/shipping-20261118 -WindowsSdkLicensePath D:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf
+```
+
+`verify-candidate.ps1` independently matched all 586 payload and ZIP files, all
+1,295 source inputs, 10 locks and 51 original package notice files. The binary is
+AMD64, FileVersion `0.1.0.0`, ProductVersion `0.1.0-beta.1+46f1a82db62e2e28accf6bec3eb81a67f1d85a5a`.
+The ZIP is 113,730,832 bytes, SHA-256
+`c4dad8d8007948ba5455950b9f653853e5971512dcb093e83c73622961910e69`.
+The PRI and both source locale blobs equal candidate03 exactly; the 348/348
+Japanese and 348/348 English string proof is reused, with all 11 embedded XBF
+byte sequences checked in the shipping PRI. The source checkout remained clean.
+
+Raw command/result, shipping proof and locale reuse records are under the task's
+permanent evidence directory. The application was not launched. Release deep
+review run 44221900660 was requested once on this exact source; its result,
+CodeQL API readback and publication are pending at this checkpoint. The later
+#439 / PR441 main commit `43e857e` is not part of the shipping source and does not
+change its product inputs. No duplicate quality run was requested.
