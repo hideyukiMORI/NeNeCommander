@@ -5,7 +5,7 @@ Status: approved direction A for Issue #398
 Date: 2026-11-16
 
 This handoff records the bookmark manager layout and keyboard decided in
-[ADR-0079](../adr/0079-bookmark-manager-keyboard.md). Engineering owns the content, behavior,
+[ADR-0080](../adr/0080-bookmark-manager-keyboard.md). Engineering owns the content, behavior,
 accessibility and integration constraints below. The visual direction is chosen by hide; final
 token values follow [DESIGN_HANDOFF.md](../DESIGN_HANDOFF.md). The reference mock is the design
 canvas `bookmarks/project/Main.dc.html` (direction A); its colors are not copied, only its

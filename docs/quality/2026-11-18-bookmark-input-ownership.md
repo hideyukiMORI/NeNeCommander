@@ -5,7 +5,7 @@ Base: `db8fcc72ee342885185b789bd7ac2b72ed1b0f2e`.
 
 ## Contract and scope
 
-The accepted ADR-0079 contract consumes a held single-shot key once. Previously the bookmark
+The accepted ADR-0080 contract consumes a held single-shot key once. Previously the bookmark
 table checked repeats only in its current context: opening search or a draft exposed the same
 press to text input, and completed navigation exposed Enter to the file list. The correction
 extends the canonical mapper's existing palette guard rather than adding another guard path.
@@ -20,7 +20,7 @@ another request supersedes it. The queued callback rechecks that ownership befor
 native focus action. This is a framework focus lifetime change, not a new navigation route.
 
 Rules: ARC-001 / ARC-004, CMD-009, KBD-001 / KBD-003 / KBD-005, QLT-005 / QLT-015,
-TST-003 / TST-006, ADR-0061 / ADR-0079. Waivers: none. No schema, provider, persistence,
+TST-003 / TST-006, ADR-0061 / ADR-0080. Waivers: none. No schema, provider, persistence,
 destructive-confirmation, dependency, gate or threshold changes.
 
 ## Selected verification

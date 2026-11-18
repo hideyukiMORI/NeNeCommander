@@ -130,7 +130,7 @@ the native controls.
 
 `Ctrl+B` opens the session-owned bookmark manager (ADR-0041). While its browse state is shown the
 host's keyboard context is `Bookmarks`, or `BookmarkSearch` while the search field holds focus
-(ADR-0079). Both are declared in the bookmark table of the canonical key map
+(ADR-0080). Both are declared in the bookmark table of the canonical key map
 (`BookmarkManagerKeyMap`, published through `KeyboardIntentMapper.BookmarkManagerBindings`). The
 browse state has two focus regions, the category column and the bookmark list; the list holds
 focus when the manager opens or returns to browsing.
@@ -230,7 +230,7 @@ Movement changes the focus item and preserves explicit selection. File commands 
 - Status: **active**
 - Enforcement: key-map uniqueness test.
 
-No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0079). Hint wording, both the key cap and the intent, comes from localization resources.
+No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0080). Hint wording, both the key cap and the intent, comes from localization resources.
 
 ## Accessibility
 
