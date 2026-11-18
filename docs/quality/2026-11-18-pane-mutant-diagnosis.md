@@ -1,5 +1,8 @@
 # PaneReducerの単一変異の局所診断（#424）
 
+This record describes #424's source-only experiment. The subsequent pinned
+Stryker/VSTest experiment is recorded in [Issue #429](2026-11-18-single-stryker-diagnosis.md).
+
 ## 結果
 
 `GetFocusIndex`の`First`を`FirstOrDefault`へ置き換えた単一ソース変異では、
