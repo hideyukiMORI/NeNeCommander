@@ -4,7 +4,7 @@ using NeNeCommander.Application.Input;
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
 /// <summary>
-/// The one effect a bookmark-manager key or key hint has in the focused region (ADR-0079): forward
+/// The one effect a bookmark-manager key or key hint has in the focused region (ADR-0080): forward
 /// one existing intent to the session, move within the region, focus a region, focus the search
 /// field, or nothing. The view applies it without deciding anything.
 /// </summary>

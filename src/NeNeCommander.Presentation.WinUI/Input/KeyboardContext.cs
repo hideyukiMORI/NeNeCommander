@@ -38,13 +38,13 @@ public abstract record KeyboardContext
 
     /// <summary>
     /// Gets the bookmark manager's browse context that owns movement, region switching, the row and
-    /// category commands and closing (ADR-0079).
+    /// category commands and closing (ADR-0080).
     /// </summary>
     public static KeyboardContext Bookmarks { get; } = new BookmarksContext();
 
     /// <summary>
     /// Gets the bookmark manager's search-field context: text passes to the field and only the keys
-    /// that return to the bookmark list are owned (ADR-0079).
+    /// that return to the bookmark list are owned (ADR-0080).
     /// </summary>
     public static KeyboardContext BookmarkSearch { get; } = new BookmarkSearchContext();
 

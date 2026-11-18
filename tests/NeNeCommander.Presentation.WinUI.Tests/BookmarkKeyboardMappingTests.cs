@@ -6,7 +6,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
 /// <summary>
-/// Proves the bookmark manager's canonical key table (ADR-0079): the browse context owns movement,
+/// Proves the bookmark manager's canonical key table (ADR-0080): the browse context owns movement,
 /// region switching, activation, search, the three commands and closing; the search context owns
 /// only the keys that return to the list; held commands act once and undeclared keys pass through.
 /// </summary>

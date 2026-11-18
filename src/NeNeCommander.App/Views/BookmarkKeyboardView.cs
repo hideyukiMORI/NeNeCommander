@@ -7,7 +7,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.App.Views;
 
 /// <summary>
-/// Applies the bookmark manager's mapped keys and pressed key hints (ADR-0079). It remembers which
+/// Applies the bookmark manager's mapped keys and pressed key hints (ADR-0080). It remembers which
 /// region holds focus, asks <see cref="BookmarkManagerKeyboard"/> what one action does there, and
 /// applies the answer: an existing intent goes to the session, movement and focus go to the browse
 /// controls. The key band is the region's projection from <see cref="BookmarkManagerKeyHintPresenter"/>.

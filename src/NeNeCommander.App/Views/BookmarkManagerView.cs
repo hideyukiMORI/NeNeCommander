@@ -14,7 +14,7 @@ namespace NeNeCommander.App.Views;
 /// <summary>
 /// Renders the bookmark manager on its transparent scrim, forwards typed bookmark actions, and
 /// owns the scrim: a tap outside the panel takes the existing <c>Escape</c> route once, a tap inside
-/// does nothing (ADR-0079).
+/// does nothing (ADR-0080).
 /// </summary>
 internal sealed class BookmarkManagerView
 {

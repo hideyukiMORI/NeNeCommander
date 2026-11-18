@@ -18,7 +18,7 @@ None.
 
 ## Accepted decisions
 
-- [ADR-0079: Show the bookmark manager on the scrim and drive it with the pane movement keys](0079-bookmark-manager-keyboard.md)
+- [ADR-0080: Show the bookmark manager on the scrim and drive it with the pane movement keys](0080-bookmark-manager-keyboard.md)
 
 - [ADR-0078: Remove the system title bar and draw one caption bar](0078-frameless-window-caption-bar.md)
 

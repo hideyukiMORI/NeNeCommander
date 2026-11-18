@@ -7,7 +7,7 @@ namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
 /// <summary>
 /// Projects the bookmark manager's key band and its keyboard-help rows from the canonical bookmark
-/// table only (ADR-0079, KBD-005). It owns order and wording, never a binding: every key cap is
+/// table only (ADR-0080, KBD-005). It owns order and wording, never a binding: every key cap is
 /// read from <see cref="KeyboardIntentMapper.BookmarkManagerBindings"/>, so a hint can only
 /// advertise a key the mapper performs. The band's wording follows the focused region.
 /// </summary>

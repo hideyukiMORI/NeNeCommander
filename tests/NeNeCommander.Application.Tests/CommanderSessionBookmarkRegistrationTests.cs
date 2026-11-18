@@ -100,7 +100,7 @@ public sealed class CommanderSessionBookmarkRegistrationTests
 
     /// <summary>
     /// Proves the bookmark deletion question writes nothing and the confirmation queues exactly one
-    /// complete catalog without the entry (ADR-0079).
+    /// complete catalog without the entry (ADR-0080).
     /// </summary>
     [TestMethod]
     public async Task HandleAsyncWhenBookmarkDeletionIsConfirmedQueuesOneCatalogOnlyAfterTheQuestionAsync()

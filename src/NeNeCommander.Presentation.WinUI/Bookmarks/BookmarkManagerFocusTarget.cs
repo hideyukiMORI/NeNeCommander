@@ -8,7 +8,7 @@ public abstract record BookmarkManagerFocusTarget
 
     /// <summary>Gets the browse search target.</summary>
     public static BookmarkManagerFocusTarget Search { get; } = new SearchTarget();
-    /// <summary>Gets the bookmark-list target that receives focus while browsing (ADR-0079).</summary>
+    /// <summary>Gets the bookmark-list target that receives focus while browsing (ADR-0080).</summary>
     public static BookmarkManagerFocusTarget BookmarkList { get; } = new BookmarkListTarget();
     /// <summary>Gets the bookmark-name draft target.</summary>
     public static BookmarkManagerFocusTarget BookmarkName { get; } = new BookmarkNameTarget();
@@ -17,7 +17,7 @@ public abstract record BookmarkManagerFocusTarget
     /// <summary>Gets the default-safe category-delete Cancel target.</summary>
     public static BookmarkManagerFocusTarget CancelCategoryDelete { get; } =
         new CancelCategoryDeleteTarget();
-    /// <summary>Gets the default-safe bookmark-delete Cancel target (ADR-0079).</summary>
+    /// <summary>Gets the default-safe bookmark-delete Cancel target (ADR-0080).</summary>
     public static BookmarkManagerFocusTarget CancelBookmarkDelete { get; } =
         new CancelBookmarkDeleteTarget();
     /// <summary>Gets the failed-navigation Retry target.</summary>

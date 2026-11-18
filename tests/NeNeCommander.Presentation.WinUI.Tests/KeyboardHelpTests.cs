@@ -175,7 +175,7 @@ public sealed class KeyboardHelpTests
 
     /// <summary>
     /// Proves the bookmark group shows every key of the canonical bookmark table under one row per
-    /// action, so a declared key cannot be missing from the help (ADR-0079).
+    /// action, so a declared key cannot be missing from the help (ADR-0080).
     /// </summary>
     [TestMethod]
     public void PresentWhenBookmarkManagerIsProjectedShowsEveryDeclaredKeyPerAction()

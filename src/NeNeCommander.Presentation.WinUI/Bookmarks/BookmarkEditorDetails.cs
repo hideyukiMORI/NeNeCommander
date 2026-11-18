@@ -37,7 +37,7 @@ public sealed record BookmarkEditorDetails
     public bool IsCategoryDrafting => _state is BookmarkCategoryDrafting;
     /// <summary>Gets whether category deletion awaits explicit confirmation.</summary>
     public bool IsCategoryDeleteConfirmation => _state is BookmarkCategoryDeleteConfirmation;
-    /// <summary>Gets whether bookmark deletion awaits explicit confirmation (ADR-0079).</summary>
+    /// <summary>Gets whether bookmark deletion awaits explicit confirmation (ADR-0080).</summary>
     public bool IsBookmarkDeleteConfirmation => _state is BookmarkDeleteConfirmation;
     /// <summary>Gets the unchanged bookmark awaiting deletion confirmation.</summary>
     public BookmarkSelection? BookmarkDeleteSelection => (_state as BookmarkDeleteConfirmation)?.Selection;

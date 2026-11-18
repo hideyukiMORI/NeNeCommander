@@ -1,7 +1,7 @@
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
-/// Names the closed Presentation-owned action of one bookmark-manager key (ADR-0079). An action is
+/// Names the closed Presentation-owned action of one bookmark-manager key (ADR-0080). An action is
 /// region-neutral: what it does depends on whether the category column or the bookmark list holds
 /// focus, which <c>BookmarkManagerKeyboard</c> decides.
 /// </summary>

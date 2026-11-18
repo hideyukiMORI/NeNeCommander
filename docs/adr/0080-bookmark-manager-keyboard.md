@@ -1,8 +1,13 @@
-# ADR-0079: Show the bookmark manager on the scrim and drive it with the pane movement keys
+# ADR-0080: Show the bookmark manager on the scrim and drive it with the pane movement keys
 
 Status: accepted
 
 Date: 2026-11-16
+
+Identifier correction (2026-11-18, Issue #445): this bookmark decision was
+formerly numbered ADR-0079 on the feature branch. It is ADR-0080 because the
+accepted and published main assigns ADR-0079 to the first Preview's timing.
+The decision, acceptance date and required manual screen confirmation are unchanged.
 
 Accepted for Issue #398. This ADR amends the overlay layout and the keyboard of the bookmark
 manager accepted in ADR-0041, and puts bookmark deletion behind a confirmation. The catalog, its

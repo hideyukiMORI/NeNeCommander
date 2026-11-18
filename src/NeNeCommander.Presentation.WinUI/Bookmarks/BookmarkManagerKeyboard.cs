@@ -6,7 +6,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
 /// <summary>
-/// Decides the bookmark manager's keyboard behavior (ADR-0079): which context owns input, what one
+/// Decides the bookmark manager's keyboard behavior (ADR-0080): which context owns input, what one
 /// action does in the focused region, and where movement lands. The row and category commands
 /// submit exactly the existing actions of the buttons they replace and stay unavailable where
 /// those buttons were disabled, so no second route to an operation exists.

@@ -8,7 +8,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
 /// <summary>
-/// Proves the bookmark manager's key band (ADR-0079): every cap comes from the canonical bookmark
+/// Proves the bookmark manager's key band (ADR-0080): every cap comes from the canonical bookmark
 /// table, the wording follows the focused region, and only the movement hint cannot be pressed.
 /// </summary>
 [TestClass]
