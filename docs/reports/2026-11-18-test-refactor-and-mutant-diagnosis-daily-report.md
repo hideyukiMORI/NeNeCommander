@@ -184,9 +184,21 @@ App/対象testのRelease buildは警告/エラー0。Windows実移動7件、選�
 一般的な遅さ、AVの関与、hideの画面での再現解消は未確認。全件gate/CI/coverage/mutationはADR0061で選ばず、
 対象検証と通常hookを使う。公開beta.1の差し替え、PR402受理、#94の完了は行っていない。waiverなし。
 
+## #448の統合と反映（13時台）
+
+PR449をmain `6b0d231`へ統合。通常起動用のRelease buildへ反映し、警告/エラー0。
+exeのProductVersionは`0.1.0-beta.1+6b0d2316101614ab8bc1cb4a979816e5a98416eb`。
+アプリは起動していない。公開beta.1のZIPは旧版のまま。
+作業木は削除済み。出力11ファイルは全て保全/hash一致後、削除の自動承認審査が起動前に
+`blocked by policy`で拒否したため保持。再試行なし。MSBuildの自作業用serverは正常終了。
+後で同じPIDが別のcmakeに再利用されたため、古いPIDだけで停止/稼働判定しない。
+既存13対象に`D:/NeNeCommander/outputs/issue-448`を追加し、後片付けscriptを構文解析だけ実施。
+GitHub connectorのPR作成は403（integration権限不足）だったため、既存ghで作成・統合した。
+最終状態は`D:/NeNeCommander/evidence/issue-448/completion.json`。追加waiverなし。
+
 ## ! hide実行待ち：後片付け
 
-以下13対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
+以下14対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
 Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
 公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
 main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
@@ -202,6 +214,7 @@ Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#43
 - `D:/NeNeCommander/worktrees/issue-439`
 - `D:/NeNeCommander/outputs/issue-439`
 - `D:/NeNeCommander/outputs/issue-443`
+- `D:/NeNeCommander/outputs/issue-448`
 - `D:/NeNeCommander/outputs/issue-433`
 - `D:/NeNeCommander/outputs/issue-434`
 - `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`

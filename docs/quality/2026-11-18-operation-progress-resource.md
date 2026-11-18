@@ -97,3 +97,16 @@ No live UI sequence, general latency measurement, antivirus attribution, or
 claim of zero partially completed file effects is made. The gateway is started
 before the initial render. Issue #94 and PR402's separate screen acceptance
 remain open. Waivers: none.
+
+## Integration and reflection
+
+PR449 merged to `6b0d2316101614ab8bc1cb4a979816e5a98416eb`. The normal App
+Release restore/build passed with zero warnings/errors and its ProductVersion
+ends in that commit. Main is clean and its tree equals the tested task branch.
+The app was not launched; the public beta.1 archive was not replaced.
+The extra task worktree was removed after source/ignored-file/link/process
+checks. All 11 output files were preserved and hash-verified; automatic approval
+rejected output deletion before process launch (`blocked by policy`). No retry
+was attempted. The prepared user cleanup command owns this new pending target.
+`normal-after.json`, `cleanup-pending.json` and `completion.json` retain exact
+paths, hashes, publication limits and cleanup status.
