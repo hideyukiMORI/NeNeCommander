@@ -102,7 +102,10 @@ Live WSL, UNC, removable-drive, high-DPI, high-contrast, and packaged-app checks
 
 The Windows UI release confirmation is defined by ADR-0054: hide uses the product daily at the development scale and, before a release is declared, on a day hide is present, sets one monitor to 100 or 200 percent and switches high contrast on once, exercises the panes, address, status, key hints, the `Ctrl+W` helper, and the `F2`/`F7`/`F8` modals, and restores the settings. Issue #94 tracks that single confirmation. When evidence is recorded it is taken with `eng/ui-evidence/Invoke-UiEvidence.ps1` in `-Mode Observe`, which sends no input; the launcher is not part of `eng/check.ps1` or CI, never establishes merge readiness, and records every skipped cell with its reason (ADR-0052). Narrator speech evidence, 150 and 300 percent cells, the taskbar seam, the eight-scheme matrix at every scale, and a dedicated environment are not release requirements.
 
+For the first public Preview only, ADR-0079 records hide's 2026-11-18 permission to publish before #94. The check remains unperformed and is disclosed in the package and release notes; automatic release requirements remain unchanged.
+
 ### QLT-010 — Greenfield means no baseline
+
 
 - Status: **active**
 - Enforcement: repository scan.

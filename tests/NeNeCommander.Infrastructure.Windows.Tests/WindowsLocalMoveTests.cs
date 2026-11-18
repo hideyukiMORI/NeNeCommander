@@ -12,6 +12,31 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 [TestClass]
 public sealed class WindowsLocalMoveTests
 {
+    /// <summary>Proves a two-file batch preserves both contents when moved into a nested destination.</summary>
+    [TestMethod]
+    public async Task ExecuteAsyncWhenTwoSelectedFilesMoveToNestedDirectoryPreservesBothContents()
+    {
+        using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
+        _ = root.CreateDirectory("Downloads");
+        FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("Works\\Project"));
+        FileSystemPath sql = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("Downloads\\query.sql", "SELECT 1;"));
+        FileSystemPath text = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("Downloads\\notes.txt", "notes\r\nsecond line"));
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
+        MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
+            Assert.IsInstanceOfType<FileOperationRequestAccepted>(MoveRequest.Create([sql, text], destination)).Request);
+
+        FileOperationOutcome outcome = await gateway.ExecuteAsync(request, IgnoredFileOperationProgress.Create(), CancellationToken.None);
+
+        Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
+        Assert.HasCount(2, outcome.Effects);
+        Assert.AreSame(FileOperationEffectKind.AtomicallyMoved, outcome.Effects[0].Kind);
+        Assert.AreSame(FileOperationEffectKind.AtomicallyMoved, outcome.Effects[1].Kind);
+        Assert.IsFalse(File.Exists(root.Resolve("Downloads\\query.sql")));
+        Assert.IsFalse(File.Exists(root.Resolve("Downloads\\notes.txt")));
+        Assert.AreEqual("SELECT 1;", File.ReadAllText(root.Resolve("Works\\Project\\query.sql")));
+        Assert.AreEqual("notes\r\nsecond line", File.ReadAllText(root.Resolve("Works\\Project\\notes.txt")));
+    }
+
     /// <summary>Proves a same-volume gateway move is one atomic provider effect rather than a composite copy.</summary>
     [TestMethod]
     public async Task ExecuteAsyncWhenGatewayMovesFileThroughAdapterSourceIsGoneAndTargetIsVerified()

@@ -2,6 +2,8 @@
 
 Status: normative
 
+- [ADR-0079: Publish the first Preview before the screen confirmation](0079-first-preview-before-screen-confirmation.md)
+
 - [ADR-0066: Reuse the WSL transfer for different distributions](0066-wsl-cross-distribution-transfer.md)
 
 - [ADR-0063: Recycle Windows entries through the existing deletion gateway](0063-windows-recycle-boundary.md)
@@ -17,6 +19,8 @@ An ADR is required for project-graph changes, a new dependency, a canonical-mech
 None.
 
 ## Accepted decisions
+
+- [ADR-0081: Check literal localization keys against shipped catalogs](0081-check-literal-localization-keys.md)
 
 - [ADR-0080: Show the bookmark manager on the scrim and drive it with the pane movement keys](0080-bookmark-manager-keyboard.md)
 

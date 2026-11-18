@@ -4,7 +4,7 @@ param(
     [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
 
     [Parameter()]
-    [ValidateSet('All', 'QLT-015', 'CS-010', 'CS-002')]
+    [ValidateSet('All', 'QLT-015', 'CS-010', 'CS-002', 'CS-023')]
     [string] $Rule = 'All'
 )
 
@@ -269,8 +269,46 @@ function Assert-VerificationCadenceProof {
 
 }
 
+function Assert-LocalizedResourceProof {
+    Assert-ConformanceSuccess -Name 'existing-localized-literal' -Validate {
+        param($caseRoot)
+    }
+    Assert-ConformanceFailure -Name 'missing-localization-catalogs' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $resourceRoot = Join-Path $caseRoot 'src/NeNeCommander.App/Resources'
+        foreach ($resourceFile in (Get-ChildItem -LiteralPath $resourceRoot -Filter '*.resw' -File -Recurse)) {
+            Remove-Item -LiteralPath $resourceFile.FullName
+        }
+    }
+    Assert-ConformanceFailure -Name 'unknown-localized-literal' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/OperationBarView.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('GetString("OperationProgressSeparator")', 'GetString("_operationProgressSeparator")') -NoNewline
+    }
+    Assert-ConformanceFailure -Name 'case-mismatched-localized-literal' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/OperationBarView.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('GetString("OperationProgressSeparator")', 'GetString("operationProgressSeparator")') -NoNewline
+    }
+    Assert-ConformanceFailure -Name 'missing-translated-literal' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Resources/en-US/Resources.resw'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('name="OperationProgressSeparator"', 'name="RemovedProgressSeparator"') -NoNewline
+    }
+}
+
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    if ($Rule -eq 'All' -or $Rule -eq 'CS-023') {
+        Assert-LocalizedResourceProof
+        if ($Rule -eq 'CS-023') {
+            Write-Host 'Gate proofs passed: CS-023 literal localization references, including missing and case-mismatched keys.'
+            return
+        }
+    }
     if ($Rule -eq 'All' -or $Rule -eq 'CS-002') {
         & pwsh -NoProfile -File (Join-Path $root 'eng/verify-record-closure.ps1') -RepositoryRoot $root -Mode SelfTest
         if ($LASTEXITCODE -ne 0) { throw '[CS-002] Record-closure checker self-proof failed.' }

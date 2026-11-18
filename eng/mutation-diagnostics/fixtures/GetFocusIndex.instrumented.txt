@@ -1,0 +1,13 @@
+    private static int GetFocusIndex(PaneState state)
+{if(StrykerFixture.MutantControl.IsActive(1812))    {}
+else    {
+        return (StrykerFixture.MutantControl.IsActive(1813)?state.VisibleEntries
+            .Index()
+            .FirstOrDefault(item => FileSystemPathIdentityComparer.Instance.Equals(item.Item.Path, state.FocusItem))
+:state.VisibleEntries
+            .Index()
+            .First(item => FileSystemPathIdentityComparer.Instance.Equals(item.Item.Path, state.FocusItem))
+)
+            .Index;
+    }
+return default(int);}
