@@ -1,5 +1,18 @@
 # 2026-11-18 テスト整理と単一変異の診断
 
+## 終了時点（13:50の停止依頼、#451）
+
+hideの「区切りのいいところで止めて日報と引き継ぎ書を書いて」を受け、実行中だった限定診断と記録を仕上げて終了。
+明示の再開依頼まで新しい作業を始めない。Folioへの実装変更はしていない。
+
+- 初回Preview `v0.1.0-beta.1`は12:24に公開済み。deep review2032成功・CodeQL0・公開3asset照合済み。#94の実機確認は未実施。
+- F6移動の進捗表示で存在しないリソース名を読む不具合は#448/PR449で修正し、main `6b0d231`から通常起動用Release buildへ反映。対象15試験・5検査fixture成功。実画面の再現解消や一般的な遅さは未確認。公開ZIPはこの修正前のまま。
+- 完了記録PR450=`2e4570a`も統合済み。PR402はDraftのまま、#398/#430/#431を含むブックマーク画面の実機受理を待つ。
+- #386/#397とADR0051の5引数判断、過去full-batch mutationのKilled原因は未解決。保留条件を外していない。
+- 終了記録はIssue #451の文書PR。現在欄・本日報・引き継ぎ・診断記録だけを変更し、文書確認と通常hookを用いる。schema/依存/pin/閾値/waiver変更なし。
+
+以下は時刻ごとの経過。再開条件の正本は[引き継ぎ](../handoffs/2026-11-18-test-refactor-and-mutant-diagnosis-handoff.md)。
+
 hideの「未完了から。サブエージェントたくさん使っていい」を受け、Commanderの未完了を進めた。
 主担当が#417の受理・統合を行い、独立レビュー2席の確認後、#421/#422の分割と#424の局所診断を分担した。
 build/test/Inspectは一つずつ実行した。PR #402の実機確認待ちの領域には触れなかった。
@@ -196,9 +209,32 @@ exeのProductVersionは`0.1.0-beta.1+6b0d2316101614ab8bc1cb4a979816e5a98416eb`�
 GitHub connectorのPR作成は403（integration権限不足）だったため、既存ghで作成・統合した。
 最終状態は`D:/NeNeCommander/evidence/issue-448/completion.json`。追加waiverなし。
 
+## 停止直前の限定診断と記録（#451）
+
+「全体に遅い」の切り分けとして、キーの移動/Spaceは既存のPaneSession・reducerを通り、
+通常の移動/選択ではdirectoryの再読込や設定保存を行わないことをソースで確認した。
+実行中だった診断を完了し、100/1000/10000行、移動/選択の6条件を各50warmup後300回観測した。
+既存の増分presenterをdelegateで呼び、各回の行source再利用と同snapshotの再投影再利用を確認。
+directory portはmemory-onlyで各条件1回、file launcherは呼ぶと失敗するfixture。実ファイルや画面は操作していない。
+
+1万行末尾付近の移動は中央値1.2115ms、p95 1.8561ms、最大31.9371ms。
+選択変更のp95は0.0044ms。初回projectionはJIT等を分離していない単発値で、比較の根拠にしない。
+WinUI描画・入力配送・OS schedulingの内訳・I/O・AV・hideの使用exe/端末は未測定。
+数秒の体感遅延を再現したとも、この処理時間が実画面の応答時間だとも主張しない。
+詳しい条件・全数値・判断は[診断記録](../quality/2026-11-18-pane-latency-diagnostic.md)へ。
+
+診断buildは警告/エラー0、実行exit0。参照3assemblyの前後hash一致、Previewから対象3層のsource差分0。
+全40出力fileはZIPの各entryサイズ/hash照合まで保全したが、削除は自動承認審査が起動前に
+`blocked by policy`で拒否。再試行せず15個目の保持対象に追加。新旧master/helperの2scriptは構文解析のみ。
+再開時のFolio current/status読取、存在しないCommander todoパス、rgのliteral wildcard、
+IFileLauncherの誤ったfolder指定は読取だけで終了した。実在pathで読み直し、リポジトリを変更していない。
+Issue451の最初の本文に概算値を転記したため、JSON原本の正確な小数へ訂正した。再測定はしていない。
+GitHub検索の反映前にPR450が見つからず、CLIで既存Draftを確認した。重複PRは作っていない。
+最終統合と作業木整理は`D:/NeNeCommander/evidence/issue-451/completion.json`で確定する。
+
 ## ! hide実行待ち：後片付け
 
-以下14対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
+以下15対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
 Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
 公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
 main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
@@ -215,6 +251,7 @@ Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#43
 - `D:/NeNeCommander/outputs/issue-439`
 - `D:/NeNeCommander/outputs/issue-443`
 - `D:/NeNeCommander/outputs/issue-448`
+- `D:/NeNeCommander/outputs/latency-20261118`
 - `D:/NeNeCommander/outputs/issue-433`
 - `D:/NeNeCommander/outputs/issue-434`
 - `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`
@@ -229,6 +266,7 @@ pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-request
 対象一覧は`cleanup-targets.json`、保全/拒否の原本は`D:/NeNeCommander/evidence/`内の
 各Issueとsessionのフォルダへ保存。Commanderのscriptは固定対象のinventory、Git状態、
 参照/リンクを照合し、保存済みhash証拠を再利用してdirectory単位のnative削除だけを行う。
-4scriptは構文解析成功、実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
+既存scriptの成功記録を再利用し、終了時に更新したmasterと診断用helperの2scriptも構文解析成功。
+いずれも実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
 ブランチ/commit/恒久証拠/公開shipping/候補03/実機用fixture/未完了PR402の作業木は保持する。
 hideの実行報告と不在確認まで後片付けは未完了。
