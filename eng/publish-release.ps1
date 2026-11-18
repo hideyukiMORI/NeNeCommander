@@ -69,9 +69,15 @@ try {
     [void] [System.IO.Directory]::CreateDirectory($destination)
     Start-Transcript -LiteralPath (Join-Path $destination 'publish.log') | Out-Null
     $transcriptStarted = $true
-    $properties = @('-p:Configuration=Release', '-p:RuntimeIdentifier=win-x64', '-p:SelfContained=true', '-p:ContinuousIntegrationBuild=true')
+    $properties = @('-p:Configuration=Release', '-p:SelfContained=true', '-p:ContinuousIntegrationBuild=true')
+    $evaluationArguments = @('msbuild', $project, '-nologo', '-getProperty:RuntimeIdentifier') + $properties
     $restoreArguments = @('restore', $project, '--locked-mode', '--disable-parallel') + $properties
     $publishArguments = @('publish', $project, '--no-restore', '-maxcpucount:4', '-o', $payload, "-p:SourceRevisionId=$commit") + $properties
+    Write-Host ('dotnet ' + ($evaluationArguments -join ' '))
+    $evaluatedRuntime = (& dotnet @evaluationArguments) -join "`n"
+    if ($LASTEXITCODE -ne 0 -or $evaluatedRuntime.Trim() -cne $runtime) {
+        throw 'The App project must evaluate to the supported win-x64 runtime.'
+    }
     Write-Host ('dotnet ' + ($restoreArguments -join ' '))
     & dotnet @restoreArguments
     if ($LASTEXITCODE -ne 0) { throw 'Locked release restore failed.' }
@@ -138,6 +144,7 @@ try {
         operatingSystem = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
         frameworkPacks = $runtimeConfig.runtimeOptions.includedFrameworks
         commands = @(
+            [ordered]@{ executable = 'dotnet'; arguments = $evaluationArguments }
             [ordered]@{ executable = 'dotnet'; arguments = $restoreArguments }
             [ordered]@{ executable = 'dotnet'; arguments = $publishArguments }
         )

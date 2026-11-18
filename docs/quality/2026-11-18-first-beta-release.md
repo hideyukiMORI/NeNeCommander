@@ -28,8 +28,8 @@ project-dependency lock; inspect the actual restore result rather than assuming
 no lock difference. No unrelated product tests or mutation run is selected for
 packaging tooling. Root coordinates the final release deep review separately.
 
-The heavy restore/build/publish slot has not yet been granted. Packaging validation
-is still pending. The following tool-specific checks ran before that slot:
+The following tool-specific checks ran before the shared restore/build/publish
+slot was granted:
 
 | Check | Result |
 | --- | --- |
@@ -64,6 +64,22 @@ successful empty status with unchanged inputs proceeds (4/4 corrected cases).
 The changed publisher script parses with zero errors. This proof runs no restore,
 build or publish. The proof script and `publish-status-proof.json` are preserved
 in the task's evidence directory.
+
+## Candidate attempts
+
+The accepted main `860e61d` (#433 included) was merged through the normal commit
+hook as `c93492f`. Candidate 01 on that source failed during locked restore with
+four NU1004 errors: a command-line `RuntimeIdentifier=win-x64` also reached the
+four RID-independent library projects and disagreed with their existing locks.
+No build or ZIP ran; all source and lock files remained unchanged. The failed
+candidate directory and `candidate-01-command.log` are retained.
+
+The publisher now evaluates the App project's existing runtime declaration and
+requires `win-x64`; it passes no global RID override. Under the corrected argument
+set, property evaluation reports App RID `win-x64` / `IsRidAgnostic=false` and all
+four libraries an empty RID / `IsRidAgnostic=true` (`rid-evaluation.json`). No
+project declaration or lock policy changed to accommodate the publisher.
+Actual corrected restore/publish and Architecture lock impact remain pending.
 
 ## Remaining release work
 

@@ -20,9 +20,12 @@ version metadata; publishing records both rather than adding a manifest generato
 The App project's copyright is retained in executable metadata and `RELEASE.txt`.
 Internal library versions are not independently released.
 
-The entry point performs one locked restore and one official `dotnet publish` of
-the existing App project. Both evaluate `Release`, `win-x64`, `SelfContained=true`
-and `ContinuousIntegrationBuild=true`. The existing project already sets
+The entry point first evaluates the App project's existing runtime declaration and
+requires `win-x64`, then performs one locked restore and one official `dotnet publish`
+of that project. Both evaluate `Release`, `SelfContained=true` and
+`ContinuousIntegrationBuild=true`. The runtime is not a global command-line
+override: referenced libraries keep their existing RID-independent locks. The
+existing project already sets
 `WindowsAppSDKSelfContained=true`, unpackaged output, untrimmed publishing and
 Release ReadyToRun. No installer, MSIX, single-file extraction, new package,
 certificate or signature is added. Publish uses at most four MSBuild workers.
