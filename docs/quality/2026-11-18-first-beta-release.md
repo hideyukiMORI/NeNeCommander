@@ -1,10 +1,10 @@
 # First beta packaging — Issue #434
 
-Status: implementation; release not yet approved or published.
+Status: candidate packaging verified; release not yet approved or published.
 
 hide requested a release at a usable checkpoint on 2026-11-18. The preparation
-starts from main `97d8a12` after #428/PR #432. Root owns the separate #433 CodeQL
-correction, integration, final release evidence, #94 confirmation and publication.
+starts from main `97d8a12` after #428/PR #432 and includes the accepted #433 CodeQL
+correction. Root owns integration, final release evidence, #94 confirmation and publication.
 This change does not include the pending bookmark PR #402.
 
 ## Invariant and change
@@ -78,8 +78,7 @@ The publisher now evaluates the App project's existing runtime declaration and
 requires `win-x64`; it passes no global RID override. Under the corrected argument
 set, property evaluation reports App RID `win-x64` / `IsRidAgnostic=false` and all
 four libraries an empty RID / `IsRidAgnostic=true` (`rid-evaluation.json`). No
-project declaration or lock policy changed to accommodate the publisher.
-Actual corrected restore/publish and Architecture lock impact remain pending.
+RID declaration or lock policy changed to accommodate the publisher.
 
 Candidate 02 on `7143a76` passed locked restore for all five production projects
 and official publish, including Release ReadyToRun. The publisher's required-file
@@ -102,6 +101,45 @@ copy, loose-XBF duplication, new package or alternate resource generation is add
 Candidate 02 and its log, inventory difference, PRI dump and embedded-resource
 summary remain in external evidence. The changed project configuration requires
 one corrected publish; ordinary product tests are not repeated for this metadata.
+
+## Verified candidate 03
+
+Source `00ae7205c6548397e491e6e73be56d0c567b0fbb` produced candidate 03 through:
+
+```powershell
+pwsh -NoProfile -File ./eng/publish-release.ps1 -OutputDirectory D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-03 -WindowsSdkLicensePath D:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf
+```
+
+The runtime evaluation, locked restore, official publish with four MSBuild workers,
+post-publish checks, notice collection and ZIP creation all return success. No build
+warning or error was emitted. The manifest retains the exact argument arrays and
+all input/file hashes. The standard SDK publishes `NeNeCommander.App.pri`; no MSIX
+or loose application XBF files are produced in the candidate.
+
+| Verification | Result |
+| --- | --- |
+| External `verify-candidate.ps1` | All 586 payload files and 586 ZIP entries match the manifest's size/SHA-256; no missing, unexpected or duplicate ZIP files |
+| Source and dependency inputs | All 1,294 tracked input hashes match after publish, including all 10 lock files; checkout clean |
+| Component notices | 21 package/pack records; all 51 package notice/manifest files match the restored originals; SDK RTF matches its fixed hash |
+| Executable metadata | AMD64; ProductVersion `0.1.0-beta.1+00ae7205c6548397e491e6e73be56d0c567b0fbb`; FileVersion `0.1.0.0`; copyright `© 2026 HideyukiMORI`; unsigned |
+| Runtime composition | Self-contained `.NET 10.0.15`, Windows App SDK native files present; no external framework requirement in runtimeconfig |
+| PRI | SHA-256 `1c4db89ea63222b40e17af99071ba3c71fbef27ef1284200c0ef93b257eadb6f` matches the SDK build original and the ZIP; all 11 application XBF byte sequences are embedded |
+| External `verify-pri-locales.ps1` with pinned `makepri dump /dt detailed` | Every `en-US` string (348/348) and `ja-JP` string (348/348) matches the source `.resw` value |
+| `dotnet restore tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj --locked-mode --disable-parallel -p:Configuration=Release` | Exit 0; all 10 lock hashes remain unchanged, checkout clean |
+
+The candidate ZIP is 113,730,670 bytes with SHA-256
+`1a3911183835cabdeb10b037f48ab84b86003fa955c00dd7a71c34913750adef`.
+The stable Win32 side-by-side identity remains `1.0.0.0`, separately recorded from
+the executable's product/file versions. The evidence directory retains
+`candidate-03-command.log`, `candidate-03-proof.json`, `candidate-03-pri-locales.json`,
+`architecture-lock-proof.json`, the proof scripts and the PRI dump. The independent
+resource-path review is `pri-review.md`. Every source commit used the normal
+conformance/security/commit-message hooks; no hook or gate was bypassed.
+
+This final record update changes documentation only. Candidate 03 identifies its
+own source and is not relabeled as a later commit. Root creates the shipping
+package from accepted source after integration and reuses the unchanged applicable
+proof under ADR-0061. No application was launched by this task.
 
 ## Remaining release work
 
