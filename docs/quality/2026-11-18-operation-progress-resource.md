@@ -42,6 +42,8 @@ observations do not establish the environment in which hide encountered the cras
 
 The production change is one resource-key literal in `OperationBarView`.
 No exception is swallowed and no alternate progress or operation path is added.
+[ADR-0081](../adr/0081-check-literal-localization-keys.md) records the added gate;
+its policy record was added during final review before integration.
 The CS-023 check in `eng/conformance.ps1` compares direct, simple identifier
 literals passed to `GetString` against each shipped `.resw` catalog with ordinal
 case. It is a constrained source scan, not a semantic C# parser; dynamic keys,
@@ -87,7 +89,9 @@ Both changed C# files passed whitespace verification without edits. The first
 App formatter invocation reported a design-time workspace warning despite exit0;
 the diagnostic invocation with `Configuration=Release` passed with no such warning
 and changed no files. This additional invocation investigated that specific warning.
-Normal commit checks remain to be recorded.
+Normal commit checks passed: conformance (112 rules), security (24 registered
+adversarial cases), Commit mode and the commit-message validator. Documentation-only
+completion/ADR updates reuse the unchanged product and focused gate evidence.
 
 No live UI sequence, general latency measurement, antivirus attribution, or
 claim of zero partially completed file effects is made. The gateway is started
