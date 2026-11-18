@@ -132,7 +132,7 @@ internal sealed class OperationBarView
             case OperationProgressDetail progress:
                 _operationProgressSegments.ItemsSource = progress.Segments;
                 _operationDetailCount.Text = progress.Completed.ToString(CultureInfo.CurrentCulture);
-                _operationProgressSeparator.Text = _resources.GetString("_operationProgressSeparator");
+                _operationProgressSeparator.Text = _resources.GetString("OperationProgressSeparator");
                 _operationTotal.Text = progress.Total.ToString(CultureInfo.CurrentCulture);
                 break;
             case TransferResultDetail result:

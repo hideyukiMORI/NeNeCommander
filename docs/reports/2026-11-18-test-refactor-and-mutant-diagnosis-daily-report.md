@@ -162,6 +162,28 @@ feature用`D:/NeNeCommander/worktrees/issue-445`はPR402未受理のため保持
 main記録用`D:/NeNeCommander/worktrees/issue-445-main-record`は文書統合後に整理し、結果をcompletion.jsonへ保存する。
 既存の削除拒否13対象はそのまま、追加の拒否/再試行はしていない。waiverなし。
 
+## F6移動時の終了を調査・修正（#448）
+
+hideから、SpaceでSQL/TXTの2ファイルを選択し、Downloadsからユーザー配下のWorks内の
+プロジェクトへF6で移すと、数秒固まって終了するとの報告を受けた。全体の遅さとAV干渉の質問も受領。
+使用exe・版・端末は確認待ち。作業PCの直近3時間に該当クラッシュeventはなく、dump/WERは11月15日分。
+McAfeeとDefenderの登録はあるが干渉の根拠にはしていない。保護設定・実ファイルは変更していない。
+
+`OperationBarView`の進捗表示が、存在しない`_operationProgressSeparator`を読み出していた。
+公開Previewの実ResourceLoader/PRIで0x80073B17を再現し、正しい`OperationProgressSeparator`では成功。
+製品変更はこの1文字列だけ。失敗を握りつぶさず既存の表示経路を修正した。
+新CS023検査は旧コードでja/enの2違反を検出し、修正後はbaseline・全catalog欠落・誤綴り・case違い・英語欠落の最終5proof成功。
+App/対象testのRelease buildは警告/エラー0。Windows実移動7件、選択session5件、進捗3件は全成功。
+新しい2file試験は専用rootだけでSQL/TXTを移し、両方の内容とsource不在を確認した。UI入力の再現とは区別する。
+独立の読み取りレビューは例外の伝播を確認し、gate registryへの追記1点を要求。対応済み。
+
+初回probeのPowerShell構文誤りは子処理前に失敗し、保存したscriptで修正して実行した。
+途中、別案件のカテゴリ移動を進捗として誤報したため直後に訂正。Folioは読み取りだけで編集していない。
+新test説明の「Unicode」は実fixtureと不一致のため削除した。実行コード不変につき成功証拠は再利用。
+原本・全command・結果・input hashは`D:/NeNeCommander/evidence/issue-448/`、詳細は[品質記録](../quality/2026-11-18-operation-progress-resource.md)。
+一般的な遅さ、AVの関与、hideの画面での再現解消は未確認。全件gate/CI/coverage/mutationはADR0061で選ばず、
+対象検証と通常hookを使う。公開beta.1の差し替え、PR402受理、#94の完了は行っていない。waiverなし。
+
 ## ! hide実行待ち：後片付け
 
 以下13対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
