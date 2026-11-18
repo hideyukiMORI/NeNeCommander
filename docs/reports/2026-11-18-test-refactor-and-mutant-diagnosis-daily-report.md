@@ -140,6 +140,28 @@ text/diff/link照合と通常commit hookを用いた。新waiver、設定schema�
 PR402の実機受理、#94、#386/397とADR0051の5引数判断は未完了。過去full batchのKilled原因も未確定。
 #434の記録用作業木はPR統合後に整理し、その結果は`issue-434/final-completion.json`で確定する。
 
+## ブックマーク設計の番号訂正（#445）
+
+公開後のopen Issue照合で、mainのADR-0079（初回Preview公開時期）とPR402のADR-0079
+（ブックマーク設計）が同じ番号を別の意味に使っていることを発見した。
+#445 / PR446をfeature `8c1c551c8c3083fbc0267216c19390a27ba8f5bb`へ統合し、後者をADR-0080へ訂正。
+公開tagとmainのADR-0079は維持し、mainのADR一覧に0080を予約して次の採番との再衝突を防ぐ。
+
+Markdown11ファイルの現在の参照を更新。過去の日報は元の記述と訂正注記を両方残した。
+文書だけの照合後、全tracked検索でソース/テストの説明コメントにも旧番号が見つかり、26 C#ファイルを追加訂正。
+ADR全文は番号と注記以外同一、C#は`///`行の番号だけで逆変換が元の全文と一致する。
+main/featureを合わせた81番号に衝突0、変更文書の241 local linkが存在、diff checkと通常hook成功。
+実行部分・依存・tooling・schemaは不変。ADR0061により成功済みquality44217730539を再利用し、build/test/CIを追加していない。
+Issue398の「未着手」、Issue430とPR402の旧参照/未実行full gate表記を現在の証拠へ合わせた。
+PR402はDraft、hideの画面受理前にmainへmergeしない。公開範囲にも加えていない。
+
+全試行と原本は`D:/NeNeCommander/evidence/issue-445/`、[品質記録](https://github.com/hideyukiMORI/NeNeCommander/blob/8c1c551c8c3083fbc0267216c19390a27ba8f5bb/docs/quality/2026-11-18-bookmark-adr-number.md)。
+最初のconnector検索の未対応引数、推測したADRファイル名、rgのliteral wildcardは読取エラーで終わり、
+実在ファイルの一覧を読み直してから編集した。失敗した読取による変更はない。
+feature用`D:/NeNeCommander/worktrees/issue-445`はPR402未受理のため保持し、build出力は無い。
+main記録用`D:/NeNeCommander/worktrees/issue-445-main-record`は文書統合後に整理し、結果をcompletion.jsonへ保存する。
+既存の削除拒否13対象はそのまま、追加の拒否/再試行はしていない。waiverなし。
+
 ## ! hide実行待ち：後片付け
 
 以下13対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
