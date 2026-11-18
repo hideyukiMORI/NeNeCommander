@@ -5,7 +5,7 @@ using System.Linq;
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
-/// Holds the bookmark manager's part of the canonical key map (ADR-0079). It is consulted only by
+/// Holds the bookmark manager's part of the canonical key map (ADR-0080). It is consulted only by
 /// <see cref="KeyboardIntentMapper.Map"/> and published only through
 /// <see cref="KeyboardIntentMapper.BookmarkManagerBindings"/>, so the declarations exist once and
 /// every displayed bookmark hint reads them (KBD-005).

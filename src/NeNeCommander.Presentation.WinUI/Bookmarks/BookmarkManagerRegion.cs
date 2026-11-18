@@ -1,7 +1,7 @@
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
 /// <summary>
-/// Identifies the closed focus region of the bookmark manager's browse state (ADR-0079): the
+/// Identifies the closed focus region of the bookmark manager's browse state (ADR-0080): the
 /// category column or the bookmark list. Movement and the row and category commands act on the
 /// region that holds focus.
 /// </summary>

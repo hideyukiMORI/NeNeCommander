@@ -6,7 +6,7 @@ using NeNeCommander.Presentation.WinUI.Bookmarks;
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
 /// <summary>
-/// Proves the bookmark deletion question and the category counts of the manager (ADR-0079): the
+/// Proves the bookmark deletion question and the category counts of the manager (ADR-0080): the
 /// question replaces browsing, starts on Cancel and keeps the shared modal context, and each
 /// category counts its bookmarks regardless of the search text.
 /// </summary>

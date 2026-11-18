@@ -18,7 +18,8 @@ so commit-specific historical citations remain explainable.
 Issue398's obsolete "direction undecided, implementation not started" state and
 Issue430/PR402's current ADR references are updated after feature integration.
 PR402 remains Draft and cannot merge into main until hide's screen acceptance.
-No product, test, build, dependency, schema, threshold, waiver or gate changes.
+XML documentation comments in source and tests receive the same number correction.
+No executable product/test text, build, dependency, schema, threshold, waiver or gate changes.
 
 Rules: ARC-001, QLT-001/015, GIT-001–004, ADR-0061 and the ADR index's number
 allocation rule. Waivers: none.
@@ -30,10 +31,11 @@ The external `renumber.py` compares the complete ADR text before/after: removing
 the correction note and restoring the title number reproduces the original
 exactly. The combined current-main/feature ADR filenames have no number mapping
 to two decisions after renumbering. All local links in changed documents resolve;
-every changed tracked path is under docs and ends in `.md`.
+every non-Markdown change replaces the identifier only on a line beginning `///`.
+Reversing those comment identifiers reproduces each original C# file exactly.
 
-Successful quality run44217730539 at `275b464` is reused because every executable,
-test, dependency and tooling input is unchanged. No build, product test, CI,
+Successful quality run44217730539 at `275b464` is reused because executable product
+and test text, dependencies and tooling are unchanged. No build, product test, CI,
 mutation, GUI input or user-data operation was requested. Main is not merged
 into the feature by this correction, so no unrelated integration is implied.
 
@@ -44,7 +46,12 @@ ADR to published main revealed this collision. An initial connector search with
 unsupported `per_page` was rejected; the supported search succeeded. A guessed
 Preview ADR filename and a literal rg wildcard path failed to resolve; the
 tracked-file inventory supplied the exact paths before editing. Neither failed
-read changed files. The correction ran once from a clean feature-based worktree.
+read changed files. The document correction ran once from a clean feature-based
+worktree. The first document-only proof passed 241 local links; a subsequent
+whole-repository reference scan found old identifiers in XML documentation
+comments. Those were then corrected with exact reversible-text proof before
+opening the PR. The first normal commit hook passed; the completed change keeps
+the same ordinary hook and does not broaden product verification.
 
 Original ADR, precise correction script, identifier/link/diff proof and ordinary
 hook logs are retained under `D:/NeNeCommander/evidence/issue-445/`.

@@ -9,7 +9,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
 /// <summary>
-/// Proves the bookmark manager's keyboard decisions (ADR-0079): each action resolves to the existing
+/// Proves the bookmark manager's keyboard decisions (ADR-0080): each action resolves to the existing
 /// action of the button it replaces in the focused region, is unavailable exactly where that button
 /// was disabled, and movement stops at both ends.
 /// </summary>

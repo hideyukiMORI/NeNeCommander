@@ -6,7 +6,7 @@ using NeNeCommander.Presentation.WinUI.Input;
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
 /// <summary>
-/// One hint of the bookmark manager's key band (ADR-0079): the key caps from the canonical key map,
+/// One hint of the bookmark manager's key band (ADR-0080): the key caps from the canonical key map,
 /// the localized label for the focused region, and the action a pointer press on the hint runs.
 /// The movement hint only explains its keys and cannot be pressed.
 /// </summary>

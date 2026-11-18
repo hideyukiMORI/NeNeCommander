@@ -3,7 +3,7 @@ using System;
 namespace NeNeCommander.Application.Bookmarks;
 
 /// <summary>
-/// Represents the dedicated bookmark deletion confirmation (ADR-0079). The catalog is unchanged
+/// Represents the dedicated bookmark deletion confirmation (ADR-0080). The catalog is unchanged
 /// and nothing is saved until the deletion is confirmed.
 /// </summary>
 public sealed record BookmarkDeleteConfirmation : BookmarksEditorState

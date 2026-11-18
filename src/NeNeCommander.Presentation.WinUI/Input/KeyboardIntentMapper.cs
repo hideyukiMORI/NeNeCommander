@@ -197,7 +197,7 @@ public sealed class KeyboardIntentMapper
 
     /// <summary>
     /// Gets the keys owned by the bookmark manager's browse and search-field contexts in declaration
-    /// order (ADR-0079). The list is the same data <see cref="Map"/> consults.
+    /// order (ADR-0080). The list is the same data <see cref="Map"/> consults.
     /// </summary>
     public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
 

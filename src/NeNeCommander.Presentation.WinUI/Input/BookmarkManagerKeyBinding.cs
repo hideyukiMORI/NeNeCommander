@@ -3,7 +3,7 @@ using System;
 namespace NeNeCommander.Presentation.WinUI.Input;
 
 /// <summary>
-/// Declares one key owned by the bookmark manager (ADR-0079): the context that owns it, the
+/// Declares one key owned by the bookmark manager (ADR-0080): the context that owns it, the
 /// layout-translated key and the single action it emits. Every bookmark-manager key is declared
 /// with no modifier; the same key under a modifier is not declared.
 /// </summary>

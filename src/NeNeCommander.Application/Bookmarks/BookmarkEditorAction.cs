@@ -17,7 +17,7 @@ public abstract record BookmarkEditorAction
     /// <summary>Gets the action that confirms the visible category deletion question.</summary>
     public static BookmarkEditorAction ConfirmDeleteCategory { get; } =
         new ConfirmDeleteCategoryAction();
-    /// <summary>Gets the action that confirms the visible bookmark deletion question (ADR-0079).</summary>
+    /// <summary>Gets the action that confirms the visible bookmark deletion question (ADR-0080).</summary>
     public static BookmarkEditorAction ConfirmDeleteBookmark { get; } =
         new ConfirmDeleteBookmarkAction();
     /// <summary>Gets the action that cancels the deepest visible manager state.</summary>

@@ -17,7 +17,7 @@ namespace NeNeCommander.App.Views;
 /// <summary>
 /// Renders the bookmark manager's browse controls (search, category column, bookmark list and
 /// count), forwards their native changes as typed bookmark actions, and keeps keyboard focus on the
-/// list that held it when a render replaces its rows (ADR-0079).
+/// list that held it when a render replaces its rows (ADR-0080).
 /// </summary>
 internal sealed class BookmarkBrowseView
 {

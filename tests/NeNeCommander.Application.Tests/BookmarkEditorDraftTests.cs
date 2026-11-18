@@ -168,7 +168,7 @@ public sealed class BookmarkEditorDraftTests
     }
 
     /// <summary>
-    /// Proves deleting a bookmark first asks (ADR-0079): the question changes neither the catalog
+    /// Proves deleting a bookmark first asks (ADR-0080): the question changes neither the catalog
     /// nor the saved settings, and only the confirmation deletes, exactly once.
     /// </summary>
     [TestMethod]

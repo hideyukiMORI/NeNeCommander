@@ -9,7 +9,7 @@ namespace NeNeCommander.App.Views;
 
 /// <summary>
 /// Renders the bookmark deletion question inside the manager panel and forwards its two buttons as
-/// the existing typed actions (ADR-0079). It owns no editor state.
+/// the existing typed actions (ADR-0080). It owns no editor state.
 /// </summary>
 internal sealed class BookmarkDeleteConfirmationView
 {
