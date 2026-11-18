@@ -86,6 +86,18 @@ feature用`D:/NeNeCommander/worktrees/issue-445`はPR402未受理のため保持
 main記録用`D:/NeNeCommander/worktrees/issue-445-main-record`は文書統合後に整理し、結果をcompletion.jsonへ保存する。
 既存の削除拒否13対象はそのまま、追加の拒否/再試行はしていない。waiverなし。
 
+## 最新: F6移動時の終了（#448）
+
+hideの条件はDownloads→ユーザー配下Works/ProjectへSQL/TXT2file、Spaceで選択してF6。
+使用exe・版・端末は未回答。`OperationBarView`の`_operationProgressSeparator`誤記を
+正しい`OperationProgressSeparator`へ修正。公開PRIの旧キーで実COM例外0x80073B17、正キー成功。
+例外の伝播は読み取りレビュー済み。一般的な遅さやAV原因、実画面での解消までは断定しない。
+App/対象test build成功、Windows move7/session5/progress3成功、CS023の最終5fixture成功。
+正本は[品質記録](../quality/2026-11-18-operation-progress-resource.md)、証拠は`D:/NeNeCommander/evidence/issue-448/`。
+作業木`D:/NeNeCommander/worktrees/issue-448`とoutput同名は統合・必要反映・証拠保全後に整理する。
+最終状態はIssue PRとcompletion.jsonで確認。公開beta.1は旧artifactで、PR402と#94の受理条件は維持。
+Folioへ戻る指示は無い。カテゴリ移動を進捗として一度誤報したが訂正済み、編集はしていない。
+
 ## ! hide実行待ち：後片付け
 
 以下13対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。

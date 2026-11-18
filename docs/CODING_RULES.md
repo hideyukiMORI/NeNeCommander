@@ -209,6 +209,13 @@ Code-behind may initialize components, maintain framework-required view referenc
 
 User-facing text is referenced from localization resources. Colors, brushes, spacing, typography, corner radii, control density, and motion are referenced through semantic design resources. Hard-coded visual constants in views are prohibited except values explicitly documented as framework geometry.
 
+Issue #448 adds a conformance check for direct `GetString("Key")` calls in App C#:
+each simple literal key must exist, with exact case, in every shipped `.resw`
+catalog. The source scan covers ASCII identifier literals; it does not resolve
+dynamic keys, aliases, escaped strings, or comments as C# syntax. Existing typed
+presentation-key tests remain necessary. `eng/prove-gates.ps1 -Rule CS-023`
+proves a valid catalog, absent catalogs, a misspelled key, wrong case, and a missing translation.
+
 ## Dependencies and documentation
 
 ### CS-024 — Dependencies are allowlisted and pinned

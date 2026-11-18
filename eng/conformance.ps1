@@ -800,6 +800,30 @@ function Get-ResourceKeys {
     return , $keys
 }
 
+# CS-023 / #448: a misspelled literal reached ResourceLoader only after an operation started.
+# This is a constrained source scan of direct literal calls, not C# semantic analysis.
+$appSourceFiles = @(Get-RepositoryFiles -Extensions @('.cs') -Roots @('src/NeNeCommander.App'))
+$localizationFiles = @(Get-RepositoryFiles -Extensions @('.resw') -Roots @('src/NeNeCommander.App/Resources'))
+if ($appSourceFiles.Count -gt 0 -and $localizationFiles.Count -eq 0) {
+    Add-Violation -Rule 'CS-023' -Message 'App ResourceLoader calls require shipped localization catalogs.'
+}
+foreach ($localizationFile in $localizationFiles) {
+    [xml] $catalog = Get-Content -LiteralPath $localizationFile.FullName -Raw
+    $localizedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($node in $catalog.SelectNodes('/root/data')) {
+        [void] $localizedKeys.Add($node.GetAttribute('name'))
+    }
+    foreach ($appSourceFile in $appSourceFiles) {
+        $appSource = Get-Content -LiteralPath $appSourceFile.FullName -Raw
+        foreach ($reference in [regex]::Matches($appSource, '\.GetString\s*\(\s*"(?<key>[A-Za-z_][A-Za-z0-9_]*)"\s*\)')) {
+            $key = $reference.Groups['key'].Value
+            if (-not $localizedKeys.Contains($key)) {
+                Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $appSourceFile.FullName) requests undefined localized resource '$key' in $(Get-RelativePath -Path $localizationFile.FullName)."
+            }
+        }
+    }
+}
+
 $designTokensPath = Join-Path $root 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
 $schemeRoot = Join-Path $root 'src/NeNeCommander.App/Themes/Schemes'
 $colorSchemeSourcePath = Join-Path $root 'src/NeNeCommander.Application/Settings/ColorScheme.cs'
