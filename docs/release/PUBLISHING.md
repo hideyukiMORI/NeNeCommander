@@ -61,10 +61,12 @@ leaves its output/log for diagnosis and does not produce a success claim. Record
 any candidate retry separately; do not remove evidence to hide the failed attempt.
 
 Packaging is not release approval. Before creating the tag and GitHub prerelease,
-the release owner verifies the final source and assets, the extracted application,
+the release owner verifies the final source and assets, the extracted payload,
 applicable deep-review evidence within 96 hours (QLT-013/SEC-009), successful CodeQL
 analysis plus zero open owned alerts (SEC-008/ADR-0031), dependency audit and the
-one-time hide-owned screen check in #94/ADR-0054. Record every unrun environmental
+one-time hide-owned screen check in #94/ADR-0054. ADR-0079 permits the first Preview
+to be published before that screen check, with its unperformed status disclosed;
+this does not change the automatic release requirements. Record every unrun environmental
 tier honestly. Reuse unchanged applicable evidence under ADR-0061 and do not run
 a second full quality workflow when deep review already includes it.
 

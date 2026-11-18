@@ -1,4 +1,9 @@
-NeNe Commander beta — Windows 11 x64
+NeNe Commander Preview — Windows 11 x64
+
+This is an early prerelease. The release screen confirmation at another display
+scale and in high contrast has not run yet (Issue #94). Launch and all live provider
+environments have not been verified for this shipping package. Report problems
+through the project issue tracker.
 
 Start
 1. Extract the whole ZIP into a folder where this account can read and run files.

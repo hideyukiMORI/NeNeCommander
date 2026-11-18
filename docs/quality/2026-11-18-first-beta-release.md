@@ -1,6 +1,11 @@
 # First beta packaging — Issue #434
 
-Status: candidate packaging verified; release not yet approved or published.
+Status: candidate packaging verified; Preview publication authorized by hide; final release proof pending.
+
+At 11:03 JST on 2026-11-18 hide requested publication as a Preview before returning
+home for the manual check. ADR-0079 records this scoped permission. #94 remains open
+and unperformed. Final shipping artifact verification, deep review and CodeQL
+readback still precede publication. PR #402 remains excluded.
 
 hide requested a release at a usable checkpoint on 2026-11-18. The preparation
 starts from main `97d8a12` after #428/PR #432 and includes the accepted #433 CodeQL
