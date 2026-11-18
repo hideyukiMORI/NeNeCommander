@@ -48,7 +48,7 @@ try {
         timeZone = (Get-TimeZone).Id; imageOS = $env:ImageOS; imageVersion = $env:ImageVersion;
         runnerOS = $env:RUNNER_OS; runnerArchitecture = $env:RUNNER_ARCH; powershell = $PSVersionTable.PSVersion.ToString()
     }
-    $environment | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $evidence 'environment.json') -Encoding utf8
+    $environment | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $evidence 'environment-details.json') -Encoding utf8
     $env:TEMP = Join-Path $output 'tmp'
     $env:TMP = $env:TEMP
     $env:DOTNET_CLI_HOME = Join-Path $output 'cli'
