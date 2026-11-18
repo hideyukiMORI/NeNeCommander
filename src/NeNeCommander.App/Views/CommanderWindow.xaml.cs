@@ -140,7 +140,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         KeyboardContext context = GetKeyboardContext();
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
-        if (context == KeyboardContext.CommandPalette && _paletteView.IsComposing)
+        if (IsTextComposing)
         {
             return;
         }
@@ -161,8 +161,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return;
         }
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateCharacter(args, GetKeyboardContext());
-        args.Handled = ForwardOutcome(_keyboardIntentMapper.Map(input));
+        args.Handled = !IsTextComposing && ForwardOutcome(_keyboardIntentMapper.Map(input));
     }
+
+    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing;
 
     private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {

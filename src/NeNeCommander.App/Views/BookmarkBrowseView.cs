@@ -25,6 +25,7 @@ internal sealed class BookmarkBrowseView
     private readonly ResourceLoader _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Func<bool> _isRendering;
+    private readonly BookmarkFocusRestoration _focus;
     private BookmarkBrowsePresentation? _renderedBrowse;
     private readonly ListView _categories;
     private readonly ListView _rows;
@@ -41,6 +42,8 @@ internal sealed class BookmarkBrowseView
         _resources = resources;
         _forward = forward;
         _isRendering = isRendering;
+        _focus = new BookmarkFocusRestoration(callback =>
+            _ = root.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => callback()));
         Search = Find<TextBox>("BookmarkSearch");
         _categories = Find<ListView>("BookmarkCategories");
         _rows = Find<ListView>("BookmarkRows");
@@ -92,6 +95,10 @@ internal sealed class BookmarkBrowseView
         _categories.IsEnabled = editable;
         _rows.IsEnabled = editable;
         _renderedBrowse = browse;
+        if (!editable)
+        {
+            _focus.Cancel();
+        }
     }
 
     /// <summary>Moves the selection of one region by one step and keeps focus on that region.</summary>
@@ -117,6 +124,7 @@ internal sealed class BookmarkBrowseView
 
     internal void FocusSearch()
     {
+        _focus.Cancel();
         _ = Search.Focus(FocusState.Keyboard);
         Search.SelectAll();
     }
@@ -149,25 +157,27 @@ internal sealed class BookmarkBrowseView
         list.SelectedItem = selected;
         if (heldFocus)
         {
-            FocusWhenRealized(list);
+            _focus.Restore(() => FocusList(list));
         }
     }
 
-    private static void FocusWhenRealized(ListView list)
+    private void FocusWhenRealized(ListView list)
     {
-        _ = list.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        _focus.Request(() => FocusList(list));
+    }
+
+    private static void FocusList(ListView list)
+    {
+        if (list.SelectedItem is object selected)
         {
-            if (list.SelectedItem is object selected)
-            {
-                list.ScrollIntoView(selected);
-            }
-            bool focused = list.ContainerFromIndex(list.SelectedIndex) is Control container &&
-                container.Focus(FocusState.Keyboard);
-            if (!focused)
-            {
-                _ = list.Focus(FocusState.Keyboard);
-            }
-        });
+            list.ScrollIntoView(selected);
+        }
+        bool focused = list.ContainerFromIndex(list.SelectedIndex) is Control container &&
+            container.Focus(FocusState.Keyboard);
+        if (!focused)
+        {
+            _ = list.Focus(FocusState.Keyboard);
+        }
     }
 
     private bool HoldsFocus(ListView list)
@@ -194,12 +204,22 @@ internal sealed class BookmarkBrowseView
     private void AttachHandlers()
     {
         Search.TextChanged += OnSearchChanged;
+        Search.GotFocus += (_, _) => _focus.Cancel();
         _categories.SelectionChanged += OnCategorySelectionChanged;
-        _categories.GotFocus += (_, _) => RegionFocused?.Invoke(this, BookmarkManagerRegion.Categories);
+        _categories.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Categories);
         _rows.SelectionChanged += OnRowSelectionChanged;
-        _rows.GotFocus += (_, _) => RegionFocused?.Invoke(this, BookmarkManagerRegion.Bookmarks);
+        _rows.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Bookmarks);
         _rows.DoubleTapped += OnRowsDoubleTapped;
         _rows.KeyDown += OnRowsKeyDown;
+    }
+
+    private void OnRegionFocused(BookmarkManagerRegion region)
+    {
+        if (!_isRendering())
+        {
+            _focus.Cancel();
+        }
+        RegionFocused?.Invoke(this, region);
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs args)

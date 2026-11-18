@@ -59,6 +59,8 @@ internal sealed class BookmarkManagerView
 
     internal bool IsOpen => _root.Visibility == Visibility.Visible;
 
+    internal bool IsComposing => IsOpen && _keyboard.IsComposing;
+
     /// <summary>
     /// Gets the keyboard context the manager owns now: <c>Bookmarks</c> or <c>BookmarkSearch</c>
     /// while browsing, otherwise <see langword="null"/> so the shared modal context applies.
@@ -97,7 +99,7 @@ internal sealed class BookmarkManagerView
     /// <returns>Whether the manager handled the key.</returns>
     internal bool Forward(BookmarkManagerKeyAction action)
     {
-        if (_keyboard.IsComposing)
+        if (IsComposing)
         {
             return false;
         }

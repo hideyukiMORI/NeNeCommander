@@ -163,7 +163,7 @@ public sealed class KeyboardIntentMapper
 
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
-    private bool _paletteEnterRepeatGuardActive;
+    private readonly KeyboardRepeatGuard _repeatGuard = new();
 
     /// <summary>Initializes the mapper with a monotonic clock used only for chord expiry.</summary>
     /// <param name="clock">Monotonic clock.</param>
@@ -216,20 +216,19 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Key == KeyboardKey.Enter &&
-            input.RepeatState == KeyRepeatState.Repeated &&
-            _paletteEnterRepeatGuardActive)
+        if (_repeatGuard.Consumes(input))
         {
-            _pendingChordStartedAt = null;
+            if (input.Key == KeyboardKey.Enter || IsDeclaredInContext(input))
+            {
+                _pendingChordStartedAt = null;
+            }
             return new KeyboardConsumed();
         }
-        if (input.Key == KeyboardKey.Enter && input.RepeatState == KeyRepeatState.Initial)
-        {
-            _paletteEnterRepeatGuardActive = false;
-        }
-        return input.Context == KeyboardContext.FileList || input.Context == KeyboardContext.NavigationSurface
+        KeyboardMappingOutcome outcome = input.Context == KeyboardContext.FileList || input.Context == KeyboardContext.NavigationSurface
             ? MapPaneKey(input)
             : MapContextKey(input);
+        _repeatGuard.Observe(input, outcome);
+        return outcome;
     }
 
     private KeyboardMappingOutcome MapContextKey(KeyboardInput input)
@@ -237,7 +236,7 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         return input.Context switch
         {
-            KeyboardContext context when context == KeyboardContext.CommandPalette => MapPaletteKey(input),
+            KeyboardContext context when context == KeyboardContext.CommandPalette => MapCommandPaletteKey(input),
             KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
@@ -247,17 +246,6 @@ public sealed class KeyboardIntentMapper
                 MapOwnedKey(input),
             _ => MapDeclaredKey(input),
         };
-    }
-
-    private KeyboardMappingOutcome MapPaletteKey(KeyboardInput input)
-    {
-        KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
-        if (outcome is MappedCommandPaletteAction mapped &&
-            mapped.Action == CommandPaletteKeyAction.Execute)
-        {
-            _paletteEnterRepeatGuardActive = true;
-        }
-        return outcome;
     }
 
     private KeyboardMappingOutcome MapPaneKey(KeyboardInput input)

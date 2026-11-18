@@ -153,7 +153,12 @@ the manager; every other key, including printable letters and `j`/`k`, reaches t
 characters with Control and Alt absent (KBD-003); a declared key under a modifier, and every
 undeclared key, pass through as in the settings context. Movement repeats; a held `Enter`, `Tab`,
 `a`, `e`, `d`, `/` or `Escape` acts once and its repeats are consumed, so a held `Escape` that left
-the search field does not also close the manager. An `e` or `d` with nothing selected, and an `e`
+the search field does not also close the manager. The mapper's existing palette execution repeat
+guard also retains each accepted non-repeating bookmark press across input-owner changes: the
+opening `/`, `a` or `e` cannot become text in the search or draft, and navigation's `Enter` cannot
+open a file after the manager closes. Only a new initial event for the same identified key releases
+its guard; other keys and raw `Other` events do not. IME composition stays outside mapping, and
+ordinary text presses and repeating movement acquire no such guard. An `e` or `d` with nothing selected, and an `e`
 or `d` on All bookmarks or Uncategorized, are consumed and do nothing, exactly where the removed
 buttons were disabled. Moving in the category column only changes the displayed filter and saves
 nothing. Neither `d` deletes at once: the bookmark-delete confirmation starts on Cancel, so an
@@ -162,6 +167,11 @@ The bookmark drafts, the category draft, both delete confirmations and failed
 navigation keep the shared `Modal` context unchanged. The band at the bottom of the manager shows
 these keys for the focused region from the same table, and tapping the scrim outside the panel
 takes the `Escape` route once.
+
+The browse view owns one current deferred focus request. A later search focus, native region
+focus, another requested region, or leaving browsing invalidates an earlier queued request. A
+callback may focus its list only while that request remains current; delayed list realization
+cannot take focus back from a newer owner.
 
 ## Keyboard help
 
