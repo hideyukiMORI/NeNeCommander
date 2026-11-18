@@ -11,19 +11,20 @@ internal static class SourceCatalog
     internal static IReadOnlyList<SourceProject> Read(string root)
     {
         RejectLink(root);
-        string manifestPath = Path.Combine(root, "eng", "architecture.json");
+        string manifestPath = Path.Join(root, "eng", "architecture.json");
         RejectAncestors(root, manifestPath);
         using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
         List<SourceProject> projects = [];
         HashSet<string> admitted = new(StringComparer.OrdinalIgnoreCase);
         HashSet<string> directories = new(StringComparer.OrdinalIgnoreCase);
-        foreach (JsonElement entry in manifest.RootElement.GetProperty("projects").EnumerateArray())
+        IEnumerable<SourceProject> declared = manifest.RootElement.GetProperty("projects").EnumerateArray()
+            .Select(entry => ReadProject(root, entry, directories));
+        foreach (SourceProject project in declared)
         {
-            SourceProject project = ReadProject(root, entry, directories);
             Admit(project, admitted);
             projects.Add(project);
         }
-        SourceFile[] engineering = [.. Enumerate(Path.Combine(root, "eng"), null).Select(path => ReadFile(root, "Engineering", path))];
+        SourceFile[] engineering = [.. Enumerate(Path.Join(root, "eng"), null).Select(path => ReadFile(root, "Engineering", path))];
         if (projects.Count == 0 || engineering.Length == 0) { throw Input("Empty source catalog."); }
         projects.Add(new SourceProject("Engineering", [], engineering));
         VerifyAllSources(root, admitted, directories);
@@ -57,7 +58,7 @@ internal static class SourceCatalog
     {
         foreach (string scope in new[] { "src", "tests" })
         {
-            string directory = Path.Combine(root, scope);
+            string directory = Path.Join(root, scope);
             if (!Directory.Exists(directory)) { throw Input("Missing scope: " + scope); }
             RejectLink(directory);
             foreach (string child in Directory.GetDirectories(directory))
@@ -123,7 +124,8 @@ internal static class SourceCatalog
 
     private static string Contained(string root, string relative)
     {
-        string path = Path.GetFullPath(Path.Combine(root, relative));
+        if (Path.IsPathRooted(relative)) { throw Input("Project path must be relative to the repository."); }
+        string path = Path.GetFullPath(Path.Join(root, relative));
         string prefix = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { throw Input("Project path escapes the repository."); }
         if (!relative.Replace('\\', '/').StartsWith("src/", StringComparison.Ordinal) &&

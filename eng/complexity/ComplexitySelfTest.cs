@@ -15,7 +15,7 @@ internal static class ComplexitySelfTest
         NativeSignatureProof.Run(fixture);
         CompilationCatalogProof.Run(fixture, references);
         SourceCatalogProof.Run(fixture, output);
-        File.WriteAllText(Path.Combine(output, "result.json"), JsonSerializer.Serialize(new
+        File.WriteAllText(Path.Join(output, "result.json"), JsonSerializer.Serialize(new
         {
             status = "passed",
             metricVersion = "cs013-v1",
