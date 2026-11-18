@@ -30,9 +30,8 @@ internal sealed class RecursionGraph
     {
         IEnumerable<InvocationExpressionSyntax> invocations = member.Node.DescendantNodes(
             node => ReferenceEquals(node, member.Node) || !CallableNodes.Contains(node)).OfType<InvocationExpressionSyntax>();
-        foreach (InvocationExpressionSyntax invocation in invocations)
+        foreach (SymbolInfo info in invocations.Select(invocation => member.Model.GetSymbolInfo(invocation)))
         {
-            SymbolInfo info = member.Model.GetSymbolInfo(invocation);
             if (info.Symbol is IMethodSymbol method) { AddTarget(member, method); }
             else
             {

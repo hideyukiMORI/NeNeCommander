@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using NeNeCommander.Application.Settings;
@@ -49,16 +50,14 @@ public static class ColorSchemeResources
     {
         ArgumentNullException.ThrowIfNull(selected);
         ArgumentNullException.ThrowIfNull(merged);
-        foreach (KeyValuePair<object, object> entry in selected)
+        foreach (KeyValuePair<object, object> entry in selected.Where(entry => entry.Value is SolidColorBrush))
         {
-            if (entry.Value is SolidColorBrush source)
-            {
-                SolidColorBrush target = merged.TryGetValue(entry.Key, out object? existing) &&
-                    existing is SolidColorBrush brush
-                        ? brush
-                        : throw new InvalidOperationException("The merged scheme dictionary lacks a declared brush.");
-                target.Color = source.Color;
-            }
+            SolidColorBrush source = (SolidColorBrush)entry.Value;
+            SolidColorBrush target = merged.TryGetValue(entry.Key, out object? existing) &&
+                existing is SolidColorBrush brush
+                    ? brush
+                    : throw new InvalidOperationException("The merged scheme dictionary lacks a declared brush.");
+            target.Color = source.Color;
         }
     }
 
