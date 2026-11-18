@@ -2,6 +2,8 @@
 
 Status: normative
 
+- [ADR-0079: Publish the first Preview before the screen confirmation](0079-first-preview-before-screen-confirmation.md)
+
 - [ADR-0066: Reuse the WSL transfer for different distributions](0066-wsl-cross-distribution-transfer.md)
 
 - [ADR-0063: Recycle Windows entries through the existing deletion gateway](0063-windows-recycle-boundary.md)

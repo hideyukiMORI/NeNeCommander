@@ -13,6 +13,13 @@ The repository is in its implementation stage; production code is permitted. Mos
 
 Not yet on `main`: UNC mutations, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
 
+## Beta packaging
+
+The Windows 11 x64 beta uses one unpackaged, self-contained folder distribution.
+See [publishing instructions](docs/release/PUBLISHING.md) and the
+[distribution guide](docs/release/README.txt). Preparing a ZIP does not declare
+that the separate release checks or public release have completed.
+
 ## Repository layout
 
 - `src/` holds the five projects in dependency order: `Domain`, `Application`, `Infrastructure.Windows`, `Presentation.WinUI`, and the `App` host. Direction and ownership are law in the [architecture constitution](docs/ARCHITECTURE_CONSTITUTION.md) and the [project layout](docs/PROJECT_LAYOUT.md).

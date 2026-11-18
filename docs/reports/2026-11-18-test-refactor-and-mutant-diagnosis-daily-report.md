@@ -74,3 +74,38 @@ hideは「おしまいと言うまでCommanderを続ける」「サブエージ�
 恒久証拠は`D:/NeNeCommander/evidence/issue-428/`、`issue-429/`、
 `issue-386/`、`release-readiness-20261118/`。#430/#431/#433/#434は進行中で、成功未確認を完了に数えない。
 この時点で公開・タグ作成・display設定変更はしていない。追加waiverなし。
+
+## 11時台の統合とPreviewの指定
+
+- #429 / PR435はmain `c938274`へ統合し、証拠保全後に作業木と一時出力を整理済み。
+- #433 / PR437はmain `860e61d`へ統合。CodeQLの37件に対応する局所変形、対象build・試験・format・通常hookと独立レビューが成功。Inspectの28 findingsは前後同一。CodeQL APIゼロは未確認なので#433は再openして保持する。
+- #430 / PR436は`d31248c`、#431 / PR438は`e3c8f4f`としてブックマークfeatureへ統合。101ケースと分割した110ケース、独立レビューが成功。mainを取り込んだfeature `275b464`のquality run 44217730539は成功（全2087、成功2071、live opt-in skip16、失敗0）。coverageはDomain/Application100%、Infrastructure94.48%、Presentation94.49%。PR402は引き続きDraftでhideの画面確認前にmergeしない。
+- #434の候補1はglobal RIDがlibrary lockと不一致でNU1004、候補2はpublishにApp PRIが欠けて停止。SDK既存のPRI publish経路を有効にした候補3は586ファイルのZIP/原本hash、1294入力、10lock、51原文notice、11 embedded XBF、日英各348文字列を照合して成功。全失敗ログと試行を保存。版は0.1.0-beta.1、未署名Win11 x64 self-contained。最終配布はmain統合後の正典publishで作る。
+- 11:03、hideは実機確認が帰宅後になるためPreviewとして先に公開するよう依頼した。ADR0079にその範囲を記録し、#94は未実施のまま公開説明へ明記する。公開前の自動deep review、CodeQL API照合、配布物照合は維持する。この時点では公開/タグ作成は未実施。
+- #439の固定424入力・1mutant・31 IDをCIで比較するmanual workflowは実装・tool38チェック・保存済み実ログ照合・独立レビュー済み。実CIは未実行。今回のPreview sourceから分離し、main受理後1回だけ比較する。元のKilled原因を断定せず、全層mutationへ広げない。
+
+恒久証拠: `D:/NeNeCommander/evidence/issue-430/`、`issue-431/`、`issue-433/`、`issue-434/`、`issue-439/`。
+#398/#430/#431はPR402がmain未統合のため、#433/#434/#439は最終受理/証拠収載前のため作業木を保持。
+配布候補3つと実機用fixtureも保持する。追加waiverなし、製品設定schema変更なし。
+
+## ! hide実行待ち：後片付け
+
+同じ日のFolio作業整理で、サナ所有物の削除は自動承認審査に起動前に拒否された。
+返された理由は `blocked by policy` のみ。別手段で再試行しない。10:25の読み取り確認では以下6対象が残る。
+Commanderの正常完了した整理とは別件。Folioのmain・ブランチ・Issue935・リナの作業・実data・通常exeを対象にしない。
+
+- `D:/NeNeFolio/worktrees/935-window-width`
+- `D:/NeNeFolio/outputs/935-window-width`
+- `D:/NeNeFolio/agents/935-window-width`
+- `D:/NeNeFolio/agents/window-width-20261118`
+- `D:/NeNeFolio/design/20261118-search-explanation`
+- `D:/NeNeFolio/agents/session-20261118-sana`
+
+準備済みの検査付きコマンド（対象が既に無い場合も扱う。サナは実行していない）:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118-sana/folio-cleanup-requested.ps1
+```
+
+保全と拒否の原本は `D:/NeNeCommander/evidence/session-20261118-sana/`。
+後片付けはhideの実行報告と不在確認まで未完了とする。
