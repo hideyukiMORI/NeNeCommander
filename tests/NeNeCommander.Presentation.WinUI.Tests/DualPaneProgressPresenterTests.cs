@@ -137,6 +137,7 @@ public sealed class DualPaneProgressPresenterTests
             duringProgress.Detail);
         Assert.AreSame(beforeProgress.Left.Rows, duringProgress.Left.Rows);
         Assert.AreSame(beforeProgress.Right.Rows, duringProgress.Right.Rows);
+        Assert.AreSame(beforeProgress.KeyHints, duringProgress.KeyHints);
         Assert.AreEqual(1, detail.Completed);
         Assert.AreEqual(2, detail.Total);
         Assert.AreSame(ProgressSegment.Filled, detail.Segments[5]);
