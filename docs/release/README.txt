@@ -1,9 +1,10 @@
 NeNe Commander Preview — Windows 11 x64
 
-This is an early prerelease. The release screen confirmation at another display
-scale and in high contrast has not run yet (Issue #94). Launch and all live provider
-environments have not been verified for this shipping package. Report problems
-through the project issue tracker.
+This is an early prerelease. The one-time display, keyboard and high-contrast
+confirmation was reported complete by the maintainer on 2026-11-19 (Issue #94).
+The exact selected display scale and independent captures were not recorded.
+Launch and all live provider environments have not been verified for this shipping
+package. Report problems through the project issue tracker.
 
 Start
 1. Extract the whole ZIP into a folder where this account can read and run files.
@@ -25,6 +26,8 @@ Use
 - Ctrl+P opens the command palette; Ctrl+G opens drives and WSL roots.
 - Ctrl+B opens bookmarks; Ctrl+, opens settings; Ctrl+W adjusts the window.
 - F1 opens the in-app keyboard help with the full current key map.
+- The footer wraps to the available width. Settings can hide normal key hints;
+  F1 and the confirmation/name-entry Enter/Escape guidance remain visible.
 
 Scope
 Dual panes, address/history navigation, selection, sort order, hidden entries,
@@ -40,8 +43,10 @@ There is no embedded editor, terminal, archive tool, FTP client or cloud protoco
 
 Settings and updates
 Settings are saved in %LOCALAPPDATA%\NeNeCommander\settings.json, separately from
-this folder. Current writes use schema version 3; valid older versions 1 and 2 are
-read without a startup rewrite. Older development binaries may reject version 3.
+this folder. Current writes use schema version 4; valid older versions 1, 2 and 3
+are read without a startup rewrite. A later accepted settings change saves version 4.
+The beta.1 and older binaries reject version 4, show their settings warning and
+use defaults without overwriting the rejected document. No downgrade is provided.
 Different copies run by the same Windows account share this settings file.
 To update, close the app and extract the new ZIP into a new folder. There is no
 automatic updater. Deleting an extracted application folder leaves settings intact.

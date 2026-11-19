@@ -72,6 +72,11 @@ After process exit, the original 218 bytes were restored with SHA-256
 hashes; normal process 38360 remained running. No latency, DPI or Narrator claim
 is inferred. hide's separate PR402 screen acceptance is still required.
 
+The subsequent sync of main `555704e` changes only the App version and release
+documents; its sole conflict is the leading PROJECT_STATE records, retained from
+both branches. Production/test C# and XAML inputs are unchanged from the combined
+proof above. Under ADR-0061 that proof is reused without another build or test run.
+
 ## Resumed native walk, 11:07–11:20 JST
 
 Candidate `95549f5` used App DLL SHA-256
