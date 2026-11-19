@@ -76,6 +76,31 @@ Tabで保存と取消へ到達しEnterで取消できることを確認した。
 拒否された範囲外drag・反映の遅い取得も品質記録へ残した。サイズ調整後のfocusをpointerで確立したため、
 窓のサイズ変更までキーだけで完結した証拠にはしない。保存はせず、設定は終了後も完全一致した。
 
+## 12:33以降の追加確認と入力所有権
+
+専用窓の失敗画面でEscapeによる一覧復帰、Enterによる再失敗、専用ディレクトリ作成後の
+Enterだけの再試行成功を分離して確認した。819×658ピクセルで実データ行・ブックマーク削除確認・
+カテゴリ入力・カテゴリ削除確認が収まり、Cancel初期focusからEnterで取消できた。削除はしない。
+検索欄でも実IMEの候補表示、Enter確定、次の変換だけをEscapeで取消する動作を観測した。
+12:40に専用窓を終了し、専用1登録/1カテゴリと想定schema移行だけの差分を確認して元設定へ復元した。
+
+速い連続入力にはfocusの時点が不確かな試行が残った。独立したsource reviewで、実際の文字入力や
+IME開始後も古いfocus予約が残る経路を確認した。元のnative症状の原因確定とは分けている。
+既存mapperがnativeへ渡すと判定した入力を、実focus中のBookmark入力欄だけで観測し、
+既存の2つの予約を取り消す修正を行った。mapped操作・確認前Enterの保護とraw文字repeatの判断は維持する。
+
+修正後App/test buildは警告/エラー0、関連Presentation27件とview所有権24件が全成功。
+1,034入力のhashが検証前後で一致し、書式確認も成功。Inspectは既存7件のまま
+（windowは305→311 logical lines）。実差分の独立レビューにも必須修正なし。
+12:51〜12:54の専用窓で名前/パス/カテゴリ名の連続入力、検索入力の維持、検索IME、
+検索Enter→一覧→Aを確認した。高速Escape/slash/X/YはSearchの`/xy`として保持されたが、
+slash時点の一覧復帰完了や予約callbackの実行順は証明していない。
+物理長押しは操作ツール非対応のため未確認。試験窓は終了し、保存はせず元設定は完全一致した。
+正確なコマンド・全試行・証拠の限界は品質記録と`native-input/`に残した。
+
+Preview beta.2は12:19に公開済みで、公開asset照合と記録はmain `5b54b0a`まで統合済み。
+今回のBookmarkはPR402の別途画面受理前で、main/Previewには含めない。停止指示はなく作業を継続する。
+
 ## ! hide実行待ち：後片付け
 
 従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
@@ -85,9 +110,15 @@ D:/NeNeCommander/evidence/footer-20261119へ保全してhash一致。しかし11
 
 - D:/NeNeCommander/worktrees/issue-454
 - D:/NeNeCommander/outputs/footer-20261119
+- D:/NeNeCommander/worktrees/issue-459
+- D:/NeNeCommander/outputs/release-beta2-20261119
+
+#459の後半2対象も、4出力ファイルの保全と展開版586ファイルの照合、取込/未保存/リンク/稼働参照を
+確認した後、12:29の自動承認レビューが削除を起動前に`blocked by policy`で拒否した。
+こちらも削除を実行せず再試行していない。公開candidateと恒久証拠は保持する。
 
 hide実行用（対象外のbranch/commit/恒久証拠は保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-for-hide.ps1
 ```

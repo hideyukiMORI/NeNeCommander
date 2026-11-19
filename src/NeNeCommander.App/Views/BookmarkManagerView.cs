@@ -53,7 +53,7 @@ internal sealed class BookmarkManagerView
         _browse = new BookmarkBrowseView(root, resources, forward, () => _rendering);
         _details = new BookmarkDetailsView(root, resources, forward, () => _rendering);
         _keyboard = new BookmarkKeyboardView(_browse, Find<ItemsControl>("BookmarkBrowseFooter"), forward);
-        _input = new BookmarkInputOwnership(root);
+        _input = new BookmarkInputOwnership(root, CancelPendingFocus);
         _retryNavigation.Click += (_, _) => _browse.NavigateSelected();
         _cancelNavigation.Click += (_, _) => Submit(BookmarkEditorAction.Cancel);
         Find<Border>("BookmarkManagerSurface").Tapped += OnSurfaceTapped;
@@ -66,6 +66,15 @@ internal sealed class BookmarkManagerView
     internal bool IsComposing => IsOpen && _input.IsComposing;
 
     internal bool HasOpenSelector => IsOpen && _input.HasOpenSelector;
+
+    /// <summary>Preserves the current field after the key map yields actual input to it.</summary>
+    internal void ObserveNativeInput()
+    {
+        if (IsOpen)
+        {
+            _input.ObserveNativeInput();
+        }
+    }
 
     /// <summary>Lets later native focus navigation supersede queued focus and guards pending confirmation.</summary>
     internal bool ObserveInput(KeyboardInput input)

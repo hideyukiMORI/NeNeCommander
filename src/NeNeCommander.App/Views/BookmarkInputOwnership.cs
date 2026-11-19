@@ -10,17 +10,22 @@ namespace NeNeCommander.App.Views;
 internal sealed class BookmarkInputOwnership
 {
     private readonly Grid _root;
+    private readonly Action _cancelPendingFocus;
+    private readonly HashSet<TextBox> _fields = [];
     private readonly HashSet<TextBox> _composing = [];
     private readonly ComboBox _category;
     private readonly ComboBox _shortcut;
 
-    internal BookmarkInputOwnership(Grid root)
+    internal BookmarkInputOwnership(Grid root, Action cancelPendingFocus)
     {
         ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(cancelPendingFocus);
         _root = root;
+        _cancelPendingFocus = cancelPendingFocus;
         foreach (string name in new[] { "BookmarkSearch", "BookmarkName", "BookmarkPath", "BookmarkCategoryName" })
         {
             TextBox field = Find<TextBox>(name);
+            _ = _fields.Add(field);
             field.TextCompositionStarted += OnCompositionStarted;
             field.TextCompositionEnded += OnCompositionEnded;
             field.LostFocus += (_, _) => _ = _composing.Remove(field);
@@ -34,10 +39,20 @@ internal sealed class BookmarkInputOwnership
 
     internal bool HasOpenSelector => _category.IsDropDownOpen || _shortcut.IsDropDownOpen;
 
+    internal void ObserveNativeInput()
+    {
+        if (_root.XamlRoot is XamlRoot xamlRoot &&
+            FocusManager.GetFocusedElement(xamlRoot) is TextBox field && _fields.Contains(field))
+        {
+            _cancelPendingFocus();
+        }
+    }
+
     private void OnCompositionStarted(TextBox sender, TextCompositionStartedEventArgs args)
     {
         _ = args;
         _ = _composing.Add(sender);
+        ObserveNativeInput();
     }
 
     private void OnCompositionEnded(TextBox sender, TextCompositionEndedEventArgs args)
