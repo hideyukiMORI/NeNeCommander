@@ -284,10 +284,11 @@ public sealed class FileOperationGateway : IDisposable
             FileInspectionOutcome inspection = await _port.InspectAsync(source, purpose, cancellationToken);
             switch (inspection)
             {
-                case FileInspectionSucceeded succeeded when purpose == FileInspectionPurpose.Deletion &&
-                    !succeeded.Snapshot.DeletionCapability.IsInspected:
-                    return InspectionBatch.Failed(FileOperationFailureKind.Inspection);
                 case FileInspectionSucceeded succeeded:
+                    if (purpose == FileInspectionPurpose.Deletion && !succeeded.Snapshot.DeletionCapability.IsInspected)
+                    {
+                        return InspectionBatch.Failed(FileOperationFailureKind.Inspection);
+                    }
                     snapshots.Add(succeeded.Snapshot);
                     break;
                 case FileInspectionFailed failed:

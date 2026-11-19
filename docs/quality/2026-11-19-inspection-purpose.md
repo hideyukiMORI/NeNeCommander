@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; selected local proof complete; deep review and integration pending.
+Status: implemented; initial deep review failed; dispatch simplification passes local coverage; corrected deep review and integration pending.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -89,7 +89,8 @@ pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect
 - The existing WSL-to-Windows reflection null-guard fixture did not supply the new purpose type.
   Adding that argument restores its original check of every required reference parameter.
 - The first commit hook rejected a boolean mode parameter in the new confirmation test under
-  CS-002. The two test rows now name Confirmed/Unconfirmed explicitly; no rule was weakened.
+  CS-002. The two test rows now name Confirmed/Unconfirmed explicitly; both pass after their
+  zero-warning/error rebuild. No rule was weakened. Exact commands/exits are in `candidate.json`.
 - An over-broad `dotnet format` attempt included semantic analyzers rather than the canonical
   whitespace command. It reported new-file CRLF mismatches and unchanged XAML-wired callback
   IDE0051/IDE0060 findings. The full failed log is retained. New C# line endings were normalized;
@@ -102,7 +103,113 @@ pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect
   created #476; connector reads work. This is not automatic approval rejection. No credential was
   read or recorded. Write operations use that established CLI fallback.
 
-## State and limits
+## Bounded comparison of the changed boundary
+
+The predeclared `comparison-plan.md` uses baseline main9268717 and candidate733fb31, both Release
+IL built with the same pinned SDK/configuration. This does not compare the previous beta.2
+ReadyToRun payload with an IL build. Baseline's449 exported source/config/lock files still match
+its retained Git archive after compilation. Candidate's1013 verification inputs are unchanged.
+All six selected product DLL hashes are recorded in `comparison/product-binaries.json`; source
+path/newline/debug metadata can differ between builds, so binary equality is not claimed for
+unchanged source. There is no product instrumentation or source change for this diagnostic.
+
+The established #470 recorder/typed Move/owned-fixture/safety/no-other-operation/self-proof is
+reused. Its only adaptations are the explicitly forwarded Inspect purpose for the changed
+contract, dedicated output root, fixed block selector and sample count. The two standalone
+diagnostic builds have zero warnings/errors and both forwarding self-proofs pass. Each fresh
+process performs one excluded warmup and three measured moves in the fixed ABBA order below.
+Six measured samples per variant and four warmups were planned before running; none were added
+or retried after seeing results. Each uses fresh tiny SQL/TXT source pairs and an empty target
+on D, with the same contents/hashes as #470. Preparation hashes and selection are outside timing.
+
+| Block | Sample | Complete non-UI Move/refresh ms | Both Inspect calls ms |
+| --- | --- | ---: | ---: |
+| control-01 | sample-01 | 44.5223 | 37.5152 |
+| control-01 | sample-02 | 44.4178 | 36.9129 |
+| control-01 | sample-03 | 46.6596 | 38.9394 |
+| changed-01 | sample-01 | 8.4309 | 0.1786 |
+| changed-01 | sample-02 | 7.5380 | 0.1291 |
+| changed-01 | sample-03 | 7.6367 | 0.1449 |
+| changed-02 | sample-01 | 7.6621 | 0.1128 |
+| changed-02 | sample-02 | 8.0437 | 0.1787 |
+| changed-02 | sample-03 | 7.6971 | 0.1498 |
+| control-02 | sample-01 | 46.4428 | 37.5887 |
+| control-02 | sample-02 | 44.9760 | 37.3662 |
+| control-02 | sample-03 | 46.1333 | 39.2614 |
+
+Whole-call medians are45.55465ms and7.67960ms; Inspect medians are37.55195ms and0.14735ms.
+Warmup whole-call values in block order are126.0293,42.2046,40.6307 and129.0716ms and are excluded.
+All16 moves require two atomic effects, no not-transferred item, source0/target2, left0/right2,
+two progress points and both final hashes. An independent Python pass verifies original integer
+ticks, raw/final equality, exact order/outcomes, disjoint/contained spans, progress position,
+four distinct process IDs, all144 spans/32 progress points/32 target hashes. It succeeds without
+editing the captured data. Per-phase min/median/max and all rows are in `comparison/analysis.json`.
+
+These observations support less work in this non-UI Inspect boundary for this fixture. ABBA
+does not control all JIT/cache/OS/background contention. The diagnostic excludes physical input,
+CommanderSession/dispatcher/presentation/XAML/display and uses warm, tiny same-volume data.
+It establishes no percentile, CPU cost, inner-API contribution, capture overhead subtraction,
+cold/cross-volume/large-tree/network/WSL behavior or cause/resolution of hide's reported pause.
+Do not subtract #470/#473 observations or add phase medians. #453 remains open.
+
+Commands, all exit0:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/inspection-purpose-20261119/comparison/prepare-build.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/inspection-purpose-20261119/comparison/run-measure.ps1
+python D:/NeNeCommander/evidence/inspection-purpose-20261119/comparison/analyze.py
+```
+
+The build driver exports the three baseline projects/configuration from9268717, performs their
+locked restore/Release build, builds the two package-free diagnostic projects, runs self-proof,
+and creates only the16 declared fixtures. The measurement driver invokes `dotnet <variant>/
+PhaseProbe.dll measure <block>` once per block and stops on any failure. Full commands/exits and
+input hashes are preserved beside the drivers. No UI tool or settings restoration was needed.
+At15:39 JST the four probes4900/14260/42628/12068 had ended, normal38360 remained and the original
+218-byte settings SHA256 still equaled `ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`.
+All36 frozen diagnostic files remained byte-identical. At15:40, all682 output files/65,022,426 bytes
+were copied into the permanent `runs/` archive with size/SHA256 equality. An initial aggregate
+byte-count field was null; independent summation corrected only that summary, retaining the first
+record. The individual file checks and captured measurement were unaffected.
+
+## Initial deep-review failure and dispatch correction
+
+Run44473140316 failed at15:50:44 JST; the complete workflow ended at15:54:04. Its test run
+passed2094 cases with16 explicitly unexecuted live skips and no failed test. Domain branch
+coverage passed100%; Application reported99.92657856%, below its unchanged100% threshold.
+The gate stopped there, so later coverage/adversarial/mutation success is not claimed. CodeQL's
+workflow step completed separately; its results still require inspection. The failed log and
+downloaded `deep-review.json` are retained in `ci-first/` and `deep-review-failed.log`.
+
+A local Application-only coverage run reproduced the single missing branch at InspectAllAsync's
+switch dispatch. The two arms tested FileInspectionSucceeded twice, one with a guard. The
+generated dispatch included the unknown-outcome fallback; all declared success/failure,
+purpose and capability combinations were already exercised. The success arms now form one
+case with the identical purpose/capability guard inside it. This removes duplicate type
+dispatch without loosening batch admission, changing the closed variants, adding a forged
+outcome test or excluding code. The existing unknown-outcome exception remains.
+
+`pwsh -NoProfile -File <evidence>/run-coverage-correction.ps1` rebuilds Application tests with
+zero warnings/errors, passes757 cases and Application branch coverage100%, then verifies the
+changed C# whitespace. Each exit is0. `pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect`
+returns1 with exactly the same26 existing path/metric/value/limit findings. The XML reports,
+commands, times and comparison are retained. Of1013 frozen inputs, only FileOperationGateway.cs
+changed; `inputs-corrected.json` owns the new candidate. A corrected deep review is required
+because the initial full gate failed and the production input changed; no quality workflow
+or unrelated local suite is added.
+
+The bounded timing table above remains an observation of733fb31 before this dispatch correction.
+Its raw samples are retained unchanged. It is not a timing claim for the final corrected binary;
+no repeated benchmark is needed to establish the unchanged identity/deletion contract.
+
+## Integration state and limits
+
+Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) contains733fb31. Its normal
+112-rule/24-adversarial-registration/security/commit-message hooks passed. The one
+[deep review44473140316](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44473140316)
+was dispatched at15:34:22 JST on that candidate and failed as recorded above. The subsequent
++comparison edits were documentation only; the later dispatch correction changes one of1013
++proof inputs. Corrected deep-review acceptance is pending; no CI success is claimed.
 
 The dedicated worktree is `D:/NeNeCommander/worktrees/issue-476`; its disposable output is
 `D:/NeNeCommander/outputs/inspection-purpose-20261119`. Inputs/logs and later CI artifacts belong
