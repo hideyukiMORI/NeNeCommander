@@ -19,6 +19,14 @@ updates:
       time: '04:41'
       timezone: Asia/Tokyo
     open-pull-requests-limit: 5
+    ignore:
+      # ADR-0048: align this package only when updating the pinned MSTest.Sdk.
+      # Ignore version updates only; security updates remain eligible.
+      - dependency-name: Microsoft.NET.Test.Sdk
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
     groups:
       nuget-production:
         dependency-type: production
