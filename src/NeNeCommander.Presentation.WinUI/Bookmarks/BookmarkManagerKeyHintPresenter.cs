@@ -46,6 +46,26 @@ public static class BookmarkManagerKeyHintPresenter
         return hints.AsReadOnly();
     }
 
+    /// <summary>Projects only the keys that leave the search field without activating a result.</summary>
+    public static IReadOnlyList<BookmarkManagerKeyHint> PresentSearch()
+    {
+        return Array.AsReadOnly<BookmarkManagerKeyHint>(
+        [
+            new(
+                KeyboardIntentMapper.BookmarkManagerBindings
+                    .Where(binding => binding.Context == KeyboardContext.BookmarkSearch)
+                    .Select(binding => binding.KeyLabelResourceKey).ToList(),
+                "BookmarkHintToList",
+                BookmarkManagerKeyAction.LeaveSearch,
+                "BookmarkHintLeaveSearch"),
+        ]);
+    }
+
+    /// <summary>Gets the draft save key from the same declaration used by the mapper.</summary>
+    public static string SaveKeyLabelResourceKey => KeyboardIntentMapper.BookmarkManagerBindings
+        .Single(binding => binding.Context == KeyboardContext.BookmarkDraft &&
+            binding.Action == BookmarkManagerKeyAction.Save).KeyLabelResourceKey;
+
     /// <summary>Gets the region-neutral keyboard-help label of one action.</summary>
     /// <param name="action">Declared bookmark-manager action.</param>
     /// <returns>The localized label resource.</returns>
@@ -53,6 +73,7 @@ public static class BookmarkManagerKeyHintPresenter
     {
         return action switch
         {
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Save => "BookmarkHelpSaveDraft",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.MoveNext => "IntentLabelMoveNext",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.MovePrevious => "IntentLabelMovePrevious",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Activate => "BookmarkHelpActivate",
@@ -61,26 +82,35 @@ public static class BookmarkManagerKeyHintPresenter
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Add => "BookmarkHelpAdd",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Edit => "BookmarkHelpEdit",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Delete => "BookmarkHelpDelete",
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Close => "BookmarkHintClose",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Close => "BookmarkHelpCloseOrCancel",
             _ => "BookmarkHelpLeaveSearch",
         };
     }
 
     private static string BandLabel(BookmarkManagerRegion region, BookmarkManagerKeyAction action)
     {
-        bool categories = region == BookmarkManagerRegion.Categories;
+        return region == BookmarkManagerRegion.Categories ? CategoryBandLabel(action) : action switch
+        {
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Activate => "BookmarkHintOpen",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Add => "BookmarkHintAddBookmark",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Edit => "BookmarkHintEditBookmark",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Delete => "BookmarkHintDeleteBookmark",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.FocusSearch => "BookmarkHintSearch",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.SwitchRegion => "BookmarkHintToCategories",
+            _ => "BookmarkHintClose",
+        };
+    }
+
+    private static string CategoryBandLabel(BookmarkManagerKeyAction action)
+    {
         return action switch
         {
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Activate =>
-                categories ? "BookmarkHintToList" : "BookmarkHintOpen",
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Add =>
-                categories ? "BookmarkHintAddCategory" : "BookmarkHintAddBookmark",
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Edit =>
-                categories ? "BookmarkHintRenameCategory" : "BookmarkHintEditBookmark",
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Delete =>
-                categories ? "BookmarkHintDeleteCategory" : "BookmarkHintDeleteBookmark",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Activate => "BookmarkHintToList",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Add => "BookmarkHintAddCategory",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Edit => "BookmarkHintRenameCategory",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Delete => "BookmarkHintDeleteCategory",
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.FocusSearch => "BookmarkHintSearch",
-            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.SwitchRegion => "BookmarkHintSwitch",
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.SwitchRegion => "BookmarkHintToList",
             _ => "BookmarkHintClose",
         };
     }

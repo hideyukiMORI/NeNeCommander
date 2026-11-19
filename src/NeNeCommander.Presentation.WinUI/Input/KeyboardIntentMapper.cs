@@ -201,6 +201,13 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
 
+    /// <summary>Retains native Enter/Escape ownership until the next physical press.</summary>
+    internal void ObserveNativeInput(KeyboardInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        _repeatGuard.ObserveNative(input);
+    }
+
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {

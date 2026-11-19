@@ -24,4 +24,6 @@ public sealed record BookmarkShortcutOption
     public string LabelResourceKey { get; }
     /// <summary>Gets whether this option matches the session-owned draft.</summary>
     public bool IsSelected { get; }
+    /// <summary>Gets the current assignment, including the edited bookmark itself, when occupied.</summary>
+    public string? AssignedBookmarkName { get; internal init; }
 }

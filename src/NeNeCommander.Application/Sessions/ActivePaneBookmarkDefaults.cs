@@ -29,6 +29,6 @@ internal static class ActivePaneBookmarkDefaults
     {
         string withoutTrailingSeparator = path.TrimEnd('\\');
         int separator = withoutTrailingSeparator.LastIndexOf('\\');
-        return separator < 0 ? string.Empty : withoutTrailingSeparator[(separator + 1)..];
+        return separator < 0 ? path : withoutTrailingSeparator[(separator + 1)..];
     }
 }

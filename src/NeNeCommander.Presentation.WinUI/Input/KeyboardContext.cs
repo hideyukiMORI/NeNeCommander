@@ -48,6 +48,9 @@ public abstract record KeyboardContext
     /// </summary>
     public static KeyboardContext BookmarkSearch { get; } = new BookmarkSearchContext();
 
+    /// <summary>Gets the bookmark draft context with explicit save and cancel keys.</summary>
+    public static KeyboardContext BookmarkDraft { get; } = new BookmarkDraftContext();
+
     private KeyboardContext()
     {
     }
@@ -119,6 +122,12 @@ public abstract record KeyboardContext
         }
     }
     private sealed record BookmarkSearchContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record BookmarkDraftContext : KeyboardContext
     {
         private protected override void RestrictDerivation()
         {

@@ -1,5 +1,6 @@
 using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -30,6 +31,7 @@ internal sealed class BookmarkManagerView
     private readonly BookmarkBrowseView _browse;
     private readonly BookmarkDetailsView _details;
     private readonly BookmarkKeyboardView _keyboard;
+    private readonly BookmarkInputOwnership _input;
     private BookmarkEditorDetails? _renderedDetails;
     private Type? _renderedStateType;
     private bool _rendering;
@@ -51,19 +53,37 @@ internal sealed class BookmarkManagerView
         _browse = new BookmarkBrowseView(root, resources, forward, () => _rendering);
         _details = new BookmarkDetailsView(root, resources, forward, () => _rendering);
         _keyboard = new BookmarkKeyboardView(_browse, Find<ItemsControl>("BookmarkBrowseFooter"), forward);
+        _input = new BookmarkInputOwnership(root);
         _retryNavigation.Click += (_, _) => _browse.NavigateSelected();
         _cancelNavigation.Click += (_, _) => Submit(BookmarkEditorAction.Cancel);
         Find<Border>("BookmarkManagerSurface").Tapped += OnSurfaceTapped;
         _root.Tapped += OnScrimTapped;
+        _root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnPointerPressed), true);
     }
 
     internal bool IsOpen => _root.Visibility == Visibility.Visible;
 
-    internal bool IsComposing => IsOpen && _keyboard.IsComposing;
+    internal bool IsComposing => IsOpen && _input.IsComposing;
+
+    internal bool HasOpenSelector => IsOpen && _input.HasOpenSelector;
+
+    /// <summary>Lets later native focus navigation supersede queued focus and guards pending confirmation.</summary>
+    internal bool ObserveInput(KeyboardInput input)
+    {
+        if (!IsOpen)
+        {
+            return false;
+        }
+        if (input.Key == KeyboardKey.Tab && input.RepeatState == KeyRepeatState.Initial)
+        {
+            CancelPendingFocus();
+        }
+        return input.Key == KeyboardKey.Enter && _details.IsFocusPending;
+    }
 
     /// <summary>
-    /// Gets the keyboard context the manager owns now: <c>Bookmarks</c> or <c>BookmarkSearch</c>
-    /// while browsing, otherwise <see langword="null"/> so the shared modal context applies.
+    /// Gets the browse, search or draft context the manager owns now; confirmation and navigation
+    /// failures return <see langword="null"/> so the shared modal context applies.
     /// </summary>
     internal KeyboardContext? OwnedKeyboardContext =>
         IsOpen && _renderedDetails is BookmarkEditorDetails details ? _keyboard.ContextFor(details) : null;
@@ -79,7 +99,7 @@ internal sealed class BookmarkManagerView
         _rendering = true;
         _root.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         _browse.Render(presentation);
-        _status.Text = _resources.GetString(presentation.Details.StatusResourceKey);
+        RenderStatus(_status, presentation.Details.StatusResourceKey);
         _details.Render(presentation.Details, _renderedStateType, snapshot.BookmarksEditor.GetType());
         RenderPersistence(presentation.Persistence);
         _renderedDetails = presentation.Details;
@@ -92,8 +112,8 @@ internal sealed class BookmarkManagerView
     }
 
     /// <summary>
-    /// Applies one action the bookmark-manager key map produced, unless the search field is
-    /// composing text through an input method, in which case the key stays with the field.
+    /// Applies one action the bookmark-manager key map produced, unless a bookmark field is
+    /// composing text through an input method, in which case the key stays with that field.
     /// </summary>
     /// <param name="action">Mapped action.</param>
     /// <returns>Whether the manager handled the key.</returns>
@@ -119,15 +139,29 @@ internal sealed class BookmarkManagerView
 
     private void RenderPersistence(BookmarkPersistencePresentation persistence)
     {
-        _saveStatus.Text = _resources.GetString(persistence.SaveStatus.ResourceKey);
+        RenderStatus(_saveStatus, persistence.SaveStatus.ResourceKey);
         if (persistence.Warning.IsVisible)
         {
             _warning.Visibility = Visibility.Visible;
-            _warningText.Text = _resources.GetString(persistence.Warning.ResourceKey);
+            RenderStatus(_warningText, persistence.Warning.ResourceKey);
             return;
         }
         _warning.Visibility = Visibility.Collapsed;
         _warningText.Text = string.Empty;
+    }
+
+    private void RenderStatus(TextBlock control, string resourceKey)
+    {
+        string text = _resources.GetString(resourceKey);
+        if (control.Text == text)
+        {
+            return;
+        }
+        control.Text = text;
+        if (IsOpen && text.Length > 0)
+        {
+            FrameworkElementAutomationPeer.FromElement(control)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+        }
     }
 
     private void Focus(BookmarkManagerFocusTarget target)
@@ -163,6 +197,19 @@ internal sealed class BookmarkManagerView
     {
         _ = sender;
         args.Handled = true;
+    }
+
+    private void OnPointerPressed(object sender, PointerRoutedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        CancelPendingFocus();
+    }
+
+    private void CancelPendingFocus()
+    {
+        _browse.CancelPendingFocus();
+        _details.CancelPendingFocus();
     }
 
     private void Submit(BookmarkEditorAction action)

@@ -41,7 +41,7 @@ public sealed class CommanderSessionBookmarkRegistrationTests
         Assert.IsEmpty(right.Requests);
     }
 
-    /// <summary>Proves registration defaults do not invent names without one valid pane leaf.</summary>
+    /// <summary>Proves an absent location stays empty and a drive root uses its canonical path as its name.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenCurrentPaneHasNoValidLeafKeepsRegistrationDefaultsEmptyAsync()
     {
@@ -72,7 +72,7 @@ public sealed class CommanderSessionBookmarkRegistrationTests
             CancellationToken.None);
         BookmarkDrafting rootDraft = Assert.IsInstanceOfType<BookmarkDrafting>(
             atRoot.Current.Settings.BookmarksEditor);
-        Assert.AreEqual(string.Empty, rootDraft.Draft.Name);
+        Assert.AreEqual("C:\\", rootDraft.Draft.Name);
         Assert.AreEqual("C:\\", rootDraft.Draft.Path);
     }
 

@@ -10,7 +10,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
-using Windows.System;
 
 namespace NeNeCommander.App.Views;
 
@@ -27,6 +26,8 @@ internal sealed class BookmarkBrowseView
     private readonly Func<bool> _isRendering;
     private readonly BookmarkFocusRestoration _focus;
     private BookmarkBrowsePresentation? _renderedBrowse;
+    private BookmarkManagerRegion? _focusedRegion = BookmarkManagerRegion.Bookmarks;
+    private bool _renderingFocus;
     private readonly ListView _categories;
     private readonly ListView _rows;
     private readonly TextBlock _emptyContent;
@@ -49,7 +50,11 @@ internal sealed class BookmarkBrowseView
         _rows = Find<ListView>("BookmarkRows");
         _emptyContent = Find<TextBlock>("BookmarkEmptyContent");
         _count = Find<TextBlock>("BookmarkCount");
-        RowAutomationIdentity.Attach<BookmarkRow>(_rows, row => row.AutomationId, row => row.NameText);
+        RowAutomationIdentity.Attach<BookmarkRow>(
+            _rows,
+            row => row.AutomationId,
+            row => row.NameText + " · " + row.CategoryText,
+            row => row.PathText + " " + _resources.GetString(row.ShortcutLabelResourceKey));
         RowAutomationIdentity.Attach<BookmarkCategoryOption>(
             _categories,
             option => option.AutomationId,
@@ -80,8 +85,7 @@ internal sealed class BookmarkBrowseView
         {
             Search.Text = browse.SearchText;
         }
-        RenderList(_categories, browse.Categories, SelectedOption(browse), _renderedBrowse?.Categories);
-        RenderList(_rows, browse.Rows, browse.SelectedRow, _renderedBrowse?.Rows);
+        RenderLists(browse);
         _emptyContent.Visibility = browse.EmptyContent == BookmarkEmptyContent.Hidden
             ? Visibility.Collapsed
             : Visibility.Visible;
@@ -94,7 +98,6 @@ internal sealed class BookmarkBrowseView
         Search.IsEnabled = editable;
         _categories.IsEnabled = editable;
         _rows.IsEnabled = editable;
-        _renderedBrowse = browse;
         if (!editable)
         {
             _focus.Cancel();
@@ -119,7 +122,9 @@ internal sealed class BookmarkBrowseView
     /// <param name="region">Region that receives focus.</param>
     internal void Focus(BookmarkManagerRegion region)
     {
-        FocusWhenRealized(ListOf(region));
+        ShowFocus(region);
+        ListView list = ListOf(region);
+        FocusWhenRealized(list);
     }
 
     internal void FocusSearch()
@@ -127,6 +132,11 @@ internal sealed class BookmarkBrowseView
         _focus.Cancel();
         _ = Search.Focus(FocusState.Keyboard);
         Search.SelectAll();
+    }
+
+    internal void CancelPendingFocus()
+    {
+        _focus.Cancel();
     }
 
     internal void NavigateSelected()
@@ -166,17 +176,18 @@ internal sealed class BookmarkBrowseView
         _focus.Request(() => FocusList(list));
     }
 
-    private static void FocusList(ListView list)
+    private void FocusList(ListView list)
     {
+        SelectForFocus(list);
         if (list.SelectedItem is object selected)
         {
             list.ScrollIntoView(selected);
         }
         bool focused = list.ContainerFromIndex(list.SelectedIndex) is Control container &&
             container.Focus(FocusState.Keyboard);
-        if (!focused)
+        if (!focused && !list.Focus(FocusState.Keyboard))
         {
-            _ = list.Focus(FocusState.Keyboard);
+            FocusSearch();
         }
     }
 
@@ -204,29 +215,69 @@ internal sealed class BookmarkBrowseView
     private void AttachHandlers()
     {
         Search.TextChanged += OnSearchChanged;
-        Search.GotFocus += (_, _) => _focus.Cancel();
+        Search.GotFocus += (_, _) =>
+        {
+            _focus.CancelRestoration();
+            ShowFocus(null);
+        };
         _categories.SelectionChanged += OnCategorySelectionChanged;
         _categories.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Categories);
         _rows.SelectionChanged += OnRowSelectionChanged;
         _rows.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Bookmarks);
         _rows.DoubleTapped += OnRowsDoubleTapped;
-        _rows.KeyDown += OnRowsKeyDown;
     }
 
     private void OnRegionFocused(BookmarkManagerRegion region)
     {
+        if (_renderingFocus)
+        {
+            return;
+        }
         if (!_isRendering())
         {
-            _focus.Cancel();
+            _focus.CancelRestoration();
+            SelectForFocus(ListOf(region));
         }
+        ShowFocus(region);
         RegionFocused?.Invoke(this, region);
+    }
+
+    private void ShowFocus(BookmarkManagerRegion? region)
+    {
+        if (_focusedRegion == region)
+        {
+            return;
+        }
+        _focusedRegion = region;
+        if (_renderedBrowse is BookmarkBrowsePresentation browse)
+        {
+            _renderingFocus = true;
+            RenderLists(browse);
+            _renderingFocus = false;
+        }
+    }
+
+    private void RenderLists(BookmarkBrowsePresentation source)
+    {
+        BookmarkBrowsePresentation browse = BookmarkBrowseFocusPresenter.Present(source, _focusedRegion);
+        RenderList(_categories, browse.Categories, SelectedOption(browse), _renderedBrowse?.Categories);
+        RenderList(_rows, browse.Rows, browse.SelectedRow, _renderedBrowse?.Rows);
+        _categories.BorderBrush = RegionBrush(BookmarkManagerRegion.Categories);
+        _rows.BorderBrush = RegionBrush(BookmarkManagerRegion.Bookmarks);
+        _renderedBrowse = browse;
+    }
+
+    private Brush RegionBrush(BookmarkManagerRegion region)
+    {
+        string key = _focusedRegion == region ? "FocusRingBrush" : "SurfacePaneBrush";
+        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[key];
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs args)
     {
         _ = sender;
         _ = args;
-        if (!_isRendering())
+        if (!_isRendering() && !_renderingFocus)
         {
             Submit(BookmarkEditorAction.Search(Search.Text));
         }
@@ -236,7 +287,7 @@ internal sealed class BookmarkBrowseView
     {
         _ = sender;
         _ = args;
-        if (!_isRendering() && _categories.SelectedItem is BookmarkCategoryOption option)
+        if (!_isRendering() && !_renderingFocus && _categories.SelectedItem is BookmarkCategoryOption option)
         {
             Submit(BookmarkEditorAction.Filter(option.Filter));
         }
@@ -246,7 +297,7 @@ internal sealed class BookmarkBrowseView
     {
         _ = sender;
         _ = args;
-        if (!_isRendering())
+        if (!_isRendering() && !_renderingFocus)
         {
             Submit(BookmarkEditorAction.Select((_rows.SelectedItem as BookmarkRow)?.Selection));
         }
@@ -259,13 +310,12 @@ internal sealed class BookmarkBrowseView
         NavigateSelected();
     }
 
-    private void OnRowsKeyDown(object sender, KeyRoutedEventArgs args)
+    private static void SelectForFocus(ListView list)
     {
-        _ = sender;
-        if (args.Key == VirtualKey.Enter)
+        int selected = BookmarkManagerKeyboard.Move(list.SelectedIndex, list.Items.Count, 0);
+        if (list.IsEnabled && selected >= 0 && selected != list.SelectedIndex)
         {
-            NavigateSelected();
-            args.Handled = true;
+            list.SelectedIndex = selected;
         }
     }
 

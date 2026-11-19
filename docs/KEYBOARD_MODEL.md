@@ -130,7 +130,7 @@ the native controls.
 
 `Ctrl+B` opens the session-owned bookmark manager (ADR-0041). While its browse state is shown the
 host's keyboard context is `Bookmarks`, or `BookmarkSearch` while the search field holds focus
-(ADR-0080). Both are declared in the bookmark table of the canonical key map
+(ADR-0080). Drafts use `BookmarkDraft`. All three are declared in the bookmark table of the canonical key map
 (`BookmarkManagerKeyMap`, published through `KeyboardIntentMapper.BookmarkManagerBindings`). The
 browse state has two focus regions, the category column and the bookmark list; the list holds
 focus when the manager opens or returns to browsing.
@@ -157,16 +157,36 @@ the search field does not also close the manager. The mapper's existing palette 
 guard also retains each accepted non-repeating bookmark press across input-owner changes: the
 opening `/`, `a` or `e` cannot become text in the search or draft, and navigation's `Enter` cannot
 open a file after the manager closes. Only a new initial event for the same identified key releases
-its guard; other keys and raw `Other` events do not. IME composition stays outside mapping, and
+its guard; other keys and raw `Other` events do not. IME composition stays outside action mapping, and
+native composition or an open category/slot selector retains an `Enter` or `Escape` press in the
+same guard until its next initial event. Finishing composition or closing a selector therefore
+cannot turn a held key into save, cancel or navigation. All four bookmark text fields use this
+ownership boundary; an unfocused field cannot block the current owner.
 ordinary text presses and repeating movement acquire no such guard. An `e` or `d` with nothing selected, and an `e`
 or `d` on All bookmarks or Uncategorized, are consumed and do nothing, exactly where the removed
 buttons were disabled. Moving in the category column only changes the displayed filter and saves
 nothing. Neither `d` deletes at once: the bookmark-delete confirmation starts on Cancel, so an
 `Enter` right after `d` deletes nothing, and `Escape` or a scrim tap returns to browsing.
-The bookmark drafts, the category draft, both delete confirmations and failed
-navigation keep the shared `Modal` context unchanged. The band at the bottom of the manager shows
-these keys for the focused region from the same table, and tapping the scrim outside the panel
-takes the `Escape` route once.
+`BookmarkDraft` owns `Ctrl+Enter` to submit the existing `BookmarkEditorAction.Save`, and
+unmodified `Escape` to cancel through the existing route. Ordinary `Enter`, arrows, text and
+Tab remain native control input. An open ComboBox keeps its keys, including `Escape` to close
+the popup; a fresh `Escape` after it closes cancels the draft. A held save cannot reach the list
+that replaces the draft. Both delete confirmations and failed navigation retain `Modal`;
+confirmation starts on Cancel and receives no draft-save binding.
+
+The panel cycles native Tab/Shift+Tab inside its visible controls. Browsing still uses the two
+region switch above. Entering a list preserves its visible selected row, or selects the first
+row through the existing Select action. A zero-row list receives focus itself; if the framework
+cannot focus it, search receives focus. Selecting a row saves nothing. Search Enter/Down/Escape
+keeps the query and enters the list; a second, fresh Enter opens the selected result. Search
+has its own three-key hint, and browse Tab hints name the destination.
+
+Successful bookmark save clears the query, preserves All or selects the saved entry's category,
+and selects the saved entry for continued editing/navigation. The status explains this query
+reset; the separate persistence status still reports disk saving/failure. Cancel preserves the
+return context. Registration at a drive root offers its canonical path as the initial name;
+initial name text is selected so typing replaces it. Slot choices show their current assignment
+without changing collision validation. Tapping the scrim takes the Escape route once.
 
 The browse view owns one current deferred focus request. A later search focus, native region
 focus, another requested region, or leaving browsing invalidates an earlier queued request. A

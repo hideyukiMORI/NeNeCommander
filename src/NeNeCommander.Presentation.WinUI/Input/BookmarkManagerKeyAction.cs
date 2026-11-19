@@ -7,6 +7,16 @@ namespace NeNeCommander.Presentation.WinUI.Input;
 /// </summary>
 public abstract record BookmarkManagerKeyAction
 {
+    /// <summary>Gets the action that saves the current bookmark or category draft.</summary>
+    public static BookmarkManagerKeyAction Save { get; } = new SaveAction();
+
+    private sealed record SaveAction : BookmarkManagerKeyAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
     private protected abstract void RestrictDerivation();
 

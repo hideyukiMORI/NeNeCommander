@@ -22,8 +22,8 @@ public sealed class BookmarkManagerPresenterTests
         BookmarkCatalog catalog = BookmarkPresenterTestContext.Catalog([work], [notes, repository]);
         BookmarkBrowseContext context = new("repo", BookmarkCategoryFilter.All, new BookmarkSelection(repository));
         BookmarksEditorState state = BookmarkPresenterTestContext.Construct<BookmarksBrowsing>(
-            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)],
-            [context, null]);
+            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem), typeof(BookmarkSelection)],
+            [context, null, null]);
 
         BookmarkManagerPresentation presentation = BookmarkPresenterTestContext.Present(catalog, state);
 

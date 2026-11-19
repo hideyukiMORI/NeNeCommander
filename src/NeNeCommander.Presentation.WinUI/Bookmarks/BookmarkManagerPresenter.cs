@@ -42,7 +42,7 @@ public static class BookmarkManagerPresenter
             draftCategories
                 .Where(option => option.Filter is not BookmarkAllCategoryFilter)
                 .ToList(),
-            CreateShortcutOptions(state),
+            CreateShortcutOptions(state, catalog),
             StatusResourceKey(state));
         BookmarkPersistencePresentation persistence = new(
             SettingsPresenter.PresentSaveStatus(snapshot.Persistence),
@@ -170,7 +170,7 @@ public static class BookmarkManagerPresenter
             categoryText.Contains(context.SearchText, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static List<BookmarkShortcutOption> CreateShortcutOptions(BookmarksEditorState state)
+    private static List<BookmarkShortcutOption> CreateShortcutOptions(BookmarksEditorState state, BookmarkCatalog catalog)
     {
         BookmarkShortcutSlot? selected = (state as BookmarkDrafting)?.Draft.Shortcut;
         List<BookmarkShortcutOption> options =
@@ -189,7 +189,10 @@ public static class BookmarkManagerPresenter
                 ShortcutLabel(slot),
                 selected == slot
                     ? BookmarkOptionSelection.Selected
-                    : BookmarkOptionSelection.NotSelected));
+                    : BookmarkOptionSelection.NotSelected)
+            {
+                AssignedBookmarkName = catalog.Bookmarks.FirstOrDefault(entry => entry.ShortcutSlot == slot)?.Name.Value,
+            });
         }
         return options;
     }
@@ -220,6 +223,7 @@ public static class BookmarkManagerPresenter
             ? ProblemResourceKey(problem)
             : state switch
             {
+                BookmarksBrowsing { SavedSelection: not null } => "BookmarkStatusSavedSelection",
                 BookmarkDrafting draft => draft.Original is null
                     ? "BookmarkStatusAdding"
                     : "BookmarkStatusEditing",

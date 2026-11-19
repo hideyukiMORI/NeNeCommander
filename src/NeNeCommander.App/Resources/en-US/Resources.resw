@@ -381,4 +381,10 @@
   <data name="BookmarkDeletePathLabel.Text" xml:space="preserve"><value>Location</value></data>
   <data name="BookmarkDeleteConfirm.Content" xml:space="preserve"><value>Delete</value></data>
   <data name="BookmarkStatusConfirmBookmarkDelete" xml:space="preserve"><value>Check the bookmark before deleting it.</value></data>
+  <data name="KeyLabelCtrlEnter" xml:space="preserve"><value>Ctrl+Enter</value></data>
+  <data name="BookmarkHelpSaveDraft" xml:space="preserve"><value>Save bookmark or category draft</value></data>
+  <data name="BookmarkHintToCategories" xml:space="preserve"><value>Categories</value></data>
+  <data name="BookmarkStatusSavedSelection" xml:space="preserve"><value>Bookmark updated. Search cleared and updated bookmark selected.</value></data>
+  <data name="BookmarkHelpCloseOrCancel" xml:space="preserve"><value>Close / cancel draft</value></data>
+  <data name="BookmarkPersistenceLabel.Text" xml:space="preserve"><value>Settings:</value></data>
 </root>

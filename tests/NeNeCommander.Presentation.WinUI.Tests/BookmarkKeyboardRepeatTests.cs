@@ -97,7 +97,7 @@ public sealed class BookmarkKeyboardRepeatTests
             }
             KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
             _ = Assert.IsInstanceOfType<MappedBookmarkManagerAction>(
-                mapper.Map(KeyboardMappingTestContext.Input(binding.Key, binding.Context)));
+                mapper.Map(KeyboardMappingTestContext.Input(binding.Key, binding.Modifier, binding.Context)));
 
             _ = Assert.IsInstanceOfType<KeyboardConsumed>(
                 mapper.Map(KeyboardMappingTestContext.Repeated(binding.Key, KeyboardContext.TextEntry)),

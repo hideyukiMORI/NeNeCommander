@@ -7,7 +7,12 @@ Date: 2026-11-16
 Identifier correction (2026-11-18, Issue #445): this bookmark decision was
 formerly numbered ADR-0079 on the feature branch. It is ADR-0080 because the
 accepted and published main assigns ADR-0079 to the first Preview's timing.
-The decision, acceptance date and required manual screen confirmation are unchanged.
+The decision, acceptance date and required manual screen confirmation are unchanged by that correction.
+
+Amended 2026-11-19 for Issue #457 under hide's request for keyboard-only usability, multiple
+expert reviews and design consultation with NeNe Commanderリナ. The approved Direction A remains;
+the draft-save, native-input ownership, browse-return and focus details below are updated.
+This amendment does not claim hide's separate on-screen acceptance of PR402.
 
 Accepted for Issue #398. This ADR amends the overlay layout and the keyboard of the bookmark
 manager accepted in ADR-0041, and puts bookmark deletion behind a confirmation. The catalog, its
@@ -65,10 +70,12 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   the catalog is unchanged and nothing is saved; an entry changed meanwhile is rejected as stale.
   The question uses the shared `Modal` context and starts on Cancel, so `Enter` right after
   `d` deletes nothing; `Escape` and a scrim tap cancel it back to browsing without closing.
-- **Other states keep their forms.** The bookmark draft, the category draft, the category-delete
-  confirmation and failed navigation show their existing forms and buttons inside the same panel,
-  keep the shared `Modal` context and behave as before, because their text editors need raw keys.
-- **Two new keyboard contexts.** While browsing, the host reports `Bookmarks`, or `BookmarkSearch`
+- **Forms keep native input.** Bookmark/category drafts use `BookmarkDraft`: Ctrl+Enter saves
+  through the existing Save action and Escape cancels. Ordinary Enter, arrows, text and Tab stay
+  native. Both delete confirmations and failed navigation keep `Modal`; no save binding applies
+  there. The panel cycles native Tab/Shift+Tab. All draft and confirmation bodies can scroll
+  vertically, while their action buttons stay in the footer.
+- **Three bookmark keyboard contexts.** While browsing, the host reports `Bookmarks`, or `BookmarkSearch`
   while the search field holds focus. Their keys are one dedicated table of Presentation actions
   (`BookmarkManagerKeyAction`), like the command palette and window adjustment tables, held in the
   internal `BookmarkManagerKeyMap` that only `KeyboardIntentMapper.Map` consults and that is
@@ -92,17 +99,21 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
     or Uncategorized selected).
   - `/` moves focus to the search field and selects its text. In `BookmarkSearch` every key except
     `Escape`, `Down` and `Enter` reaches the field, and those three return focus to the list;
-    there `Escape` does not close the manager. While an input method composes in the field no key
-    is mapped, the same guard the command palette search uses.
+    there `Escape` does not close the manager. The query stays, the visible selection or first
+    result receives focus, and only a new Enter opens it. Search shows only these three hints.
+    While an input method composes in any bookmark text field no key is mapped.
   - `Escape` in `Bookmarks` closes through the existing `Escape` route.
   - A held `Enter`, `Tab`, `a`, `e`, `d`, `/` or `Escape` acts once; its repeats are consumed.
-    Undeclared keys and declared keys under a modifier pass through, as in the `Settings` context.
+    Undeclared key/modifier combinations pass through, as in the `Settings` context. Ctrl+Enter
+    is declared only for bookmark/category drafts and shown on their Save buttons and in F1 help.
     Issue #430 restores this contract across ownership changes: the mapper's existing palette
     execution repeat guard also retains accepted non-repeating bookmark presses until the next
     initial event for the same identified key. Search and drafts cannot receive the opening
     character's repeats, and completed navigation cannot leak a held `Enter` into `OpenFocused`.
-    Other keys and raw `Other` events do not release the guard. IME composition bypasses mapping
-    before a press can arm or consume a guard; ordinary text input and movement retain their rules.
+    Other keys and raw `Other` events do not release the guard. Issue #457 also retains native
+    Enter/Escape ownership while IME composition or an open ComboBox bypasses action mapping.
+    When composition ends or the popup closes, repeats cannot save/cancel/activate the next
+    owner; ordinary text input and movement retain their rules.
 - **Decisions live in Presentation.** `BookmarkManagerKeyboard` decides the owned context, what
   each action does in each region and where movement lands; `BookmarkManagerKeyHintPresenter`
   projects the band and the help rows. The App's `BookmarkKeyboardView` only remembers the focused
@@ -111,6 +122,16 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   `BookmarkFocusRestoration`. A later search focus, native region focus, requested region or exit
   from browsing invalidates the older request before its queued callback may apply focus. The
   view still supplies scheduling and native controls; no session or asynchronous-work owner moves.
+  First-row selection is deferred with focus so it submits through Select after the command
+  that opened the manager releases the work owner. The former ListView Enter handler is removed;
+  modifier-aware mapping is the only keyboard navigation path. Double-tap retains its pointer path.
+- **Selection and focus.** The focused region uses existing active-pane markers and an outline;
+  the other region retains its selected item with passive-pane markers. Search leaves both
+  passive. Empty lists retain the region outline. On successful bookmark save, the query is
+  cleared, All is preserved or the saved category is selected, and the saved entry is selected.
+  A status notice explains the query reset independently of persistence results. Cancel retains
+  its return context. A drive root defaults its name to the canonical path; names select all on
+  entry. Slot choices show existing assignments, and duplicate-slot validation stays unchanged.
 - **Key band.** The band is generated from the bookmark table for the focused region: movement
   (`j`/`k`), `Enter`, `/`, `Tab`, `a`, `e`, `d` and `Esc`, with region-specific wording from
   resources.
@@ -120,6 +141,10 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   exposed. Row and category containers receive `BookmarkRow_<name>` and `BookmarkCategory_<name>`
   identifiers and their names through `RowAutomationIdentity`. The band is `BookmarkKeyHints` and
   each hint button has a stable `BookmarkHint*` identifier.
+  Input labels are associated with their controls. Row names include category to distinguish
+  identical names, with full path and slot in HelpText. Important changed status text raises one
+  live-region event; unchanged text is not announced again. Native screen-reader behavior remains
+  a separate environmental check.
 
 ## Rejected alternatives
 
@@ -141,10 +166,10 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
 
 ## Consequences
 
-- Two new contexts, one dedicated bookmark table of fourteen entries, three new key identities
+- Three bookmark contexts, one dedicated bookmark table of sixteen entries, three new key identities
   (`a`, `e`, `/`), Presentation decision and projection types and two App views. The catalog, its
-  schema and the save path are unchanged; the bookmark session changes only by the deletion
-  confirmation below.
+  schema and the save path are unchanged; the bookmark session owns deletion confirmation and
+  the saved entry's return context.
 - `d` and the Delete hint never delete at once: bookmarks and categories are both deleted only
   from their confirmation. One new editor state and two actions replace the immediate action.
 - The panes stay visible behind the manager. Pointer input cannot reach them.

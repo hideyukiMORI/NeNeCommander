@@ -23,6 +23,7 @@ public sealed class ViewCompositionOwnershipTests
     [DataRow("BookmarkManagerView")]
     [DataRow("BookmarkKeyboardView")]
     [DataRow("BookmarkDeleteConfirmationView")]
+    [DataRow("BookmarkInputOwnership")]
     [DataRow("CaptionBarView")]
     public void VisualPartWhenComposedRetainsNoSessionOrAsyncWork(string name)
     {
@@ -46,6 +47,7 @@ public sealed class ViewCompositionOwnershipTests
     [DataRow("BookmarkManagerView")]
     [DataRow("BookmarkKeyboardView")]
     [DataRow("BookmarkDeleteConfirmationView")]
+    [DataRow("BookmarkInputOwnership")]
     [DataRow("CaptionBarView")]
     public void VisualPartWhenCreatedStaysWithinParameterLimit(string name)
     {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Presentation.WinUI.Bookmarks;
 using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Help;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -48,8 +49,9 @@ public sealed class KeyboardHelpTests
         "BookmarkHelpAdd",
         "BookmarkHelpEdit",
         "BookmarkHelpDelete",
-        "BookmarkHintClose",
+        "BookmarkHelpCloseOrCancel",
         "BookmarkHelpLeaveSearch",
+        "BookmarkHelpSaveDraft",
     ];
     private static readonly string[] BookmarkLeaveCaps = ["KeyLabelEscape", "KeyLabelDown", "KeyLabelEnter"];
 
@@ -191,9 +193,11 @@ public sealed class KeyboardHelpTests
         }
         CollectionAssert.AreEqual(
             BookmarkLeaveCaps,
-            bookmarks.Rows[^1].KeyLabelResourceKeys.ToArray());
+            bookmarks.Rows.Single(row => row.ActionLabelResourceKey == "BookmarkHelpLeaveSearch").KeyLabelResourceKeys.ToArray());
         Assert.AreEqual(
-            KeyboardIntentMapper.BookmarkManagerBindings.Count,
+            KeyboardIntentMapper.BookmarkManagerBindings
+                .Select(binding => new { Label = BookmarkManagerKeyHintPresenter.HelpLabelOf(binding.Action), binding.KeyLabelResourceKey })
+                .Distinct().Count(),
             bookmarks.Rows.Sum(row => row.KeyLabelResourceKeys.Count));
     }
 
