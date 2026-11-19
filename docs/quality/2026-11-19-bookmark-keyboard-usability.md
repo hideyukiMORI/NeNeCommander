@@ -24,6 +24,44 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Native hint clicks and scrim cancellation, 18:49–18:52 JST
+
+The unchanged combined App on feature63f4769 receives one bounded pointer/keyboard walk in
+owned process21396/window32837434. `pointer-walk/prepare.py` verifies all1,061 inputs and the
+existing App DLL, preserves the original218 bytes, and seeds only NN Pointer Group/Item/slot1
+and one77-byte sentinel. This JSON preparation is not native registration proof.
+
+A screenshot-derived Search hint click focuses the search field; typing Pointer filters the
+owned entry. Enter returns to the list. The Category hint transfers input ownership: two Down
+events visit empty Uncategorized, then NN Pointer Group. The List hint returns focus to the row.
+The Edit hint opens its current values with the name selected. Typing NN Pointer Unsaved then
+clicking the scrim returns to browsing with Pointer, the original item and slot1 intact. The
+Delete hint opens the exact name/path confirmation with Cancel visibly focused; another scrim
+click cancels without deleting. Tab and its screenshot verify NN Pointer Group remains selected.
+A final browse scrim click closes the manager and leaves the original pane paths/left focus.
+No Save or Delete confirmation is submitted, and no filesystem command is dispatched.
+
+The first AX-index Search click reports `coordinate input geometry is unavailable`; no result
+is claimed. A fresh screenshot supports the successful coordinate click. Several immediate AX
+states retain the preceding hints or omit list children; subsequent images/input results are
+used for settled-state claims. AX still reports the initial address as Focused element, so it
+is not used alone as focus proof. The first close inventory still lists the window; subsequent
+window/process inventories establish ordinary exit. The initial restoration script fails on
+Windows cp932 decoding of a UTF-8 window inventory, before writing settings. Explicit UTF-8
+decoding corrects that diagnostic-only helper; the final invocation exits0.
+
+The prepared409-byte settings are byte-identical after native use. Exact fixture-difference,
+owned-process/window absence and77-byte sentinel/hash checks pass before restoration at18:52:34.
+Original218 bytes/SHA256 are restored, normal38360 remains, and the sentinel is preserved.
+Permanent `pointer-walk/` contains17 action/error records (16 completed inputs and one failed
+index attempt),15 AX states,12 screenshots, preparation/restoration data and failure details.
+`python <evidence>/pointer-walk/prepare.py`, corrected `restore.py` and `record.py` exit0.
+All1,061 inputs remain unchanged; no product edit/build/test/CI/latency claim is added. This
+observes the stated hint/scrim paths at the existing desktop size, not physical held keys,
+fast focus races, all hints/states/scales, DPI/HC/Narrator or hide's separate screen acceptance.
+PR402 remains Draft. Main's later changes since imported1cc5d75 are seven progress documents
+only; they do not invalidate the unchanged product inputs or require an additional build.
+
 ## Native confirmed deletion and restart, 17:28–17:31 JST
 
 The unchanged combined App on source2dae669 receives one bounded keyboard-only deletion walk.
