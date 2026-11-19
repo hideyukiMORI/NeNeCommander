@@ -24,6 +24,35 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Native shortcut collision and restart, 15:47–15:54 JST
+
+The unchanged combined source9006020/App DLL SHA256
+`3C65F5877ABC06A8CF67887C930E18C0A2CA41578B207EC64F5678E7461FAC1A` was used with a
+dedicated empty `slot-restart/target-one` and `target-two`. The planned keyboard walk assigned
+Ctrl+1 to NN Slot One. Assigning the same slot to NN Slot Two displayed the occupied-slot
+failure, retained its name/path draft and kept the saved count at1. Choosing slot2 and
+Ctrl+Enter then saved both entries, whose row descriptions expose Ctrl+1 and Ctrl+2.
+
+After closing that owned window and observing its absence, a fresh process read the517-byte
+schema4 settings. Ctrl+1 changed the left active pane to target-one while the right remained
+at its starting path. Tab followed by Ctrl+2 changed the right pane to target-two and retained
+the left target. Both lists completed loading. The before-restart and after-navigation
+settings bytes are equal and contain exactly those two names, paths and slots, with no categories.
+This establishes persistence and routing for these two numbered shortcuts, not all nine slots,
+physical held keys, repeated activation or every filesystem provider.
+
+The final owned window exited. At15:54:19, comparison against the saved original established
+only the two owned registrations and expected schema4/default-hints migration. The original218
+bytes were restored with SHA256 `ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`.
+Normal process38360 remains. No deletion was submitted and no product/settings rule changed.
+`slot-restart/baseline.json`, `actions.json`, state text/images, both saved settings snapshots
+and `restoration.json` retain the plan and observations. The immediate first-close inventory
+still showed the window; the later inventory confirmed exit before restarting or restoring.
+
+This is a documentation-only record of unchanged product inputs; existing selected build/test
+evidence is reused. No additional build, product test or CI is required. PR402 remains Draft
+and hide's screen acceptance is still required before integration into main or a Preview.
+
 ## Native accessibility readback, 14:17–14:23 JST
 
 The unchanged combined source `277a003` and App DLL below ran as owned process35744/window27856424.
