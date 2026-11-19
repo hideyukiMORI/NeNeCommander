@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; final deep review accepted with zero CodeQL results/open alerts; integration and cleanup pending.
+Status: implemented, accepted and integrated; issue-476 worktree/output cleanup complete.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -292,7 +292,36 @@ No extra quality workflow or rerun is added. Live WSL/UNC/mapped-drive/native re
 end-to-end UI latency limits remain as stated above. PR477 may now become review-ready and
 integrate; the later integration and cleanup must still be observed separately.
 
-## Integration state and limits
+## Integration and cleanup completed, 17:22 JST
+
+PR477 merged normally at17:21:47 JST as `7bcf6de`; accepted head `1b64453` and the squash
+have identical Git trees. The local main advanced by fast-forward and remains synchronized.
+All1013 verified source inputs remain unchanged; no build/test/CI is repeated for integration
+or these documentation-only records. The first reused byte-hash checker stopped at.editorconfig
+because the established main checkout uses LF for15 inputs while the former task checkout used
+CRLF. A bounded comparison confirms those15 differ only in line endings, the remaining998
+match byte-for-byte, and all1013 match the accepted Git source. No implementation was edited
+to satisfy the checker. The successful document check covers12 numerical rows and285 links.
+
+The first normal merge was blocked by the required review-thread resolution rule. The sole
+thread was the already-corrected CodeQL153 test-code finding. Final analysis2203448014 and
+both open-alert queries had already established clearance. Resolving only that thread changed
+mergeStateStatus from BLOCKED to CLEAN, and the normal expected-head squash then succeeded.
+The connector could read the thread but its resolution returned Resource not accessible by
+integration; authenticated `gh api graphql` performed the same authorized resolution. There
+was no review dismissal, admin bypass, rule change or additional approval requirement.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/inspection-purpose-20261119/cleanup-completed.ps1
+-ExpectedHead 1b644538bb59ef17817e301757adf6e5cf09695e` exited0 at17:22:00 JST. Its bounded
+preflight confirmed the exact resolved paths, accepted/clean worktree, only reviewed regenerable
+ignored files, no live references or links, and the complete684-file/65,022,521-byte archive.
+Prior full hash equality was reused with unchanged file-set/size/timestamps. The issue-476
+worktree and inspection-purpose output are both absent; branches, commits and permanent evidence
+remain. Four older automatically rejected cleanup targets remain untouched and pending.
+The published beta.2 and normal application remain unchanged. #453 stays open; PR402 still
+requires hide's separate screen acceptance.
+
+## Earlier integration state and limits
 
 Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) now contains568371f.
 Its normal112-rule/24-adversarial-registration/security/commit-message hooks passed.

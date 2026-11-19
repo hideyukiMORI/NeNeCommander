@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・引き継ぎ
 
-Status: final deep review accepted; integration and cleanup pending; continue until hide stops.
+Status: accepted and integrated; issue-476 cleanup complete; continue until hide stops.
 
 1. #476、ADR-0083。唯一のInspectAsyncに閉じた目的を必須化。IdentityOnlyでもidentityは検査し、
    削除能力はNotRequested。通常Deleteは既知能力の全batchが揃うまでeffect/progressを始めない。
@@ -67,6 +67,20 @@ da42786と検証SHAの差は文書4つのみ。今回の受理記録でもコー
 PR477のReady/統合と今回worktree/outputの整理を続ける。PR402は7a10707で候補を先行結合し、
 限定build/4試験成功・1061入力を固定したが、hideの画面受理は引き続き別途必要。
 通常app/public beta.2不変、#453の総UI時間・原因は未確定。成功済みCIを重ねて実行しない。
+
+## 17:22時点のmain統合・今回分整理完了
+
+PR477は17:21:47 JSTに通常のsquashで`7bcf6de`へ統合した。受理head`1b64453`とtree一致、
+local mainはfast-forward済み。最終1013検証入力も不変で、成功済み試験・CIを再実行していない。
+初回mergeは修正済みCodeQL153の未解決review threadで停止した。最終解析0件とopen alert0件を
+根拠にその1threadを解決し、BLOCKEDからCLEANとなって通常mergeに成功した。規則変更・迂回なし。
+connectorの解決操作は権限不足で失敗し、既存gh経路で同じ解決を行ったことも記録した。
+
+17:22:00に`cleanup-completed.ps1 -ExpectedHead 1b644538bb59ef17817e301757adf6e5cf09695e`がexit0。
+絶対path・受理/clean・未追跡/無視物・参照/link・684file/65,022,521byte保全を確認して、
+`D:/NeNeCommander/worktrees/issue-476`と`D:/NeNeCommander/outputs/inspection-purpose-20261119`を削除した。
+両方の不在を確認。branch/commit/恒久証拠を保持し、以前に拒否された4対象は再試行していない。
+公開beta.2と通常appは不変。#453は未解決、PR402はhideの画面受理待ち。
 
 ## ! hide実行待ち：後片付け
 
