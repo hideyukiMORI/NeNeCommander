@@ -678,9 +678,11 @@
                                 x:Name="LeftAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="LeftAddress"
+                                AllowFocusOnInteraction="False"
+                                IsReadOnly="True"
+                                IsTabStop="False"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                GotFocus="OnAddressGotFocus"
                                 LostFocus="OnAddressLostFocus"
                                 Style="{StaticResource PlainTextEditorStyle}" />
                             <TextBlock
@@ -748,9 +750,11 @@
                                 x:Name="RightAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="RightAddress"
+                                AllowFocusOnInteraction="False"
+                                IsReadOnly="True"
+                                IsTabStop="False"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                GotFocus="OnAddressGotFocus"
                                 LostFocus="OnAddressLostFocus"
                                 Style="{StaticResource PlainTextEditorStyle}" />
                             <TextBlock

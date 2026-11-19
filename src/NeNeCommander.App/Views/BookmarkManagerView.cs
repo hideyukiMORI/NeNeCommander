@@ -22,6 +22,7 @@ internal sealed class BookmarkManagerView
     private readonly Grid _root;
     private readonly ResourceLoader _resources;
     private readonly Action<UserIntent> _forward;
+    private readonly Action _restoreFileListFocus;
     private readonly TextBlock _status;
     private readonly TextBlock _saveStatus;
     private readonly Border _warning;
@@ -36,14 +37,16 @@ internal sealed class BookmarkManagerView
     private Type? _renderedStateType;
     private bool _rendering;
 
-    internal BookmarkManagerView(Grid root, ResourceLoader resources, Action<UserIntent> forward)
+    internal BookmarkManagerView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action restoreFileListFocus)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
         ArgumentNullException.ThrowIfNull(forward);
+        ArgumentNullException.ThrowIfNull(restoreFileListFocus);
         _root = root;
         _resources = resources;
         _forward = forward;
+        _restoreFileListFocus = restoreFileListFocus;
         _status = Find<TextBlock>("BookmarkStatus");
         _saveStatus = Find<TextBlock>("BookmarkSaveStatus");
         _warning = Find<Border>("BookmarkWarning");
@@ -106,6 +109,10 @@ internal sealed class BookmarkManagerView
             _resources.GetString("BookmarkUncategorized"));
         bool stateChanged = _renderedStateType != snapshot.BookmarksEditor.GetType();
         _rendering = true;
+        if (!presentation.IsOpen && IsOpen)
+        {
+            _restoreFileListFocus();
+        }
         _root.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         _browse.Render(presentation);
         RenderStatus(_status, presentation.Details.StatusResourceKey);

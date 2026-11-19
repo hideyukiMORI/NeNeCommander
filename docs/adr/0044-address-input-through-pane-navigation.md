@@ -27,6 +27,11 @@ after their respective canonical changes are ready.
 
 ## Decision
 
+Revision accepted by hide on 2026-11-20 for Issue #495: the pane paths are read-only
+location displays until the explicit `Ctrl+L` command opens the active address editor.
+Incidental native focus and pointer clicks no longer start editing. This supersedes the
+original native-focus entry rule and preserves the existing validation/navigation owner.
+
 - **`AddressEditorSession` owns address-editor state, admission, and submission validation, and
   `CommanderSession` remains the sole owner of address navigation.** This ownership sentence is
   superseded by ADR-0051; every other sentence of this ADR stays in force.
@@ -38,7 +43,7 @@ after their respective canonical changes are ready.
   first presentation restores the exact submitted text without lossy repair, while later renders of
   that same state do not overwrite subsequent native edits.
 - **Every entry route uses the same start command.** `Ctrl+L` targets the current active side.
-  Native focus on either existing address control submits that exact side. `CommanderSession`
+  Native focus does not start an editor; only the explicit command does. `CommanderSession`
   admits the request only when no settings modal, file-operation modal or running operation, or
   pane read owns interaction. When the requested side is passive, the session first uses the
   existing `DualPaneSession` activation intent, then captures that side and its listed location.
@@ -74,8 +79,8 @@ after their respective canonical changes are ready.
   to a file list or another control discards the edit and restores the original canonical text,
   but it preserves the focus destination the user chose. Departure submits the exact editor-state
   instance that owned the old control; the session closes only when that instance is still current.
-  If focus moves directly between the two addresses, the new address start may occur before or
-  after the old address departure without the stale departure closing the new editor. Enter and
+  The passive read-only address does not start another edit through incidental focus or a click.
+  A stale departure still cannot close a newer explicitly opened editor. Enter and
   Escape use the same internal close transition with an explicit file-list focus disposition;
   ordinary focus departure uses the no-focus disposition. No general focus engine is introduced.
 - **Focus effects occur once per state transition.** Presentation carries the exact source editor

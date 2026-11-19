@@ -146,6 +146,18 @@ buttons. The settings editor (ADR-0077), the Locations picker (ADR-0055) and the
   live-region event; unchanged text is not announced again. Native screen-reader behavior remains
   a separate environmental check.
 
+### Browse update refinement (Issue #495, 2026-11-20)
+
+The existing browse view binds each list once to its own read-only observable source, maintained
+by `BookmarkBrowseRows` in Presentation. A render replaces only changed display/capture rows,
+adds new rows and removes obsolete tail rows; it never resets either source. Full category
+membership captures remain part of comparison even when labels and counts are unchanged.
+Non-selected rows ignore invisible focus-region marks. The view selects objects from the retained
+sources, suppresses synchronous native-event reentry while updating them, and keeps deferred focus
+under the existing owner. When actual search text/IME input cancels deferred restoration, its
+visible focus marks follow Search. Closing the manager restores the active file list before
+collapsing the focused overlay. This changes no filter, selection, save or navigation policy.
+
 ## Rejected alternatives
 
 - **Direction B (a single column like the command palette, categories as headings inside the

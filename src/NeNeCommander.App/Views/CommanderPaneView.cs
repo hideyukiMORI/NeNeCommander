@@ -46,6 +46,9 @@ internal sealed class CommanderPaneView
     {
         bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
             editingSide == _side;
+        _address.IsReadOnly = !isEditingAddress;
+        _address.IsTabStop = isEditingAddress;
+        _address.AllowFocusOnInteraction = isEditingAddress;
         if (!isEditingAddress)
         {
             _address.Text = presentation.AddressText;

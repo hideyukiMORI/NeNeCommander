@@ -71,7 +71,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _resources = new ResourceLoader();
         _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         InitializeComponent();
-        _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent);
+        _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent,
+            () => FocusFileList(_session.Current.Panes.ActiveSide));
         _windowAdjustmentView = new WindowAdjustmentView(
             WindowAdjustmentOverlay,
             _resources,
@@ -115,6 +116,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
+        FocusFileList(_session.Current.Panes.ActiveSide);
         _ = _paneWork.TryStart(cancellationToken => RenderAfterAsync(LoadInitialLocationsAsync(cancellationToken)));
     }
 
@@ -332,7 +334,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox focusedAddress)
+        if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox { IsReadOnly: false } focusedAddress)
         {
             focusedAddress.SelectAll();
             return;
@@ -353,27 +355,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
                     : intent;
     }
 
-    private void OnAddressGotFocus(object sender, RoutedEventArgs args)
-    {
-        _ = args;
-        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
-        {
-            return;
-        }
-        AddressEditorState current = _session.Current.Scopes.AddressEditor;
-        if (EditorOwnsSide(current, side))
-        {
-            SetAddressOwner(side, current);
-            return;
-        }
-        bool started = _paneWork.TryStart(cancellationToken =>
-            RenderAfterAddressFocusAsync(side, cancellationToken));
-        if (!started)
-        {
-            FocusFileList(_session.Current.Panes.ActiveSide);
-        }
-    }
-
     private void OnAddressLostFocus(object sender, RoutedEventArgs args)
     {
         _ = args;
@@ -386,21 +367,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (owner is not null && ReferenceEquals(owner, _session.Current.Scopes.AddressEditor))
         {
             ForwardIntent(UserIntent.LeaveAddress(owner));
-        }
-    }
-
-    private async Task RenderAfterAddressFocusAsync(PaneSide side, CancellationToken cancellationToken)
-    {
-        Task<CommanderSnapshot> work = _session.HandleAsync(
-            UserIntent.BeginAddressEdit(side),
-            this,
-            cancellationToken);
-        RenderSession(_session.Current);
-        CommanderSnapshot snapshot = await work;
-        RenderSession(snapshot);
-        if (!EditorOwnsSide(snapshot.Scopes.AddressEditor, side))
-        {
-            FocusFileList(snapshot.Panes.ActiveSide);
         }
     }
 
@@ -449,33 +415,25 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private KeyboardContext GetKeyboardContext()
     {
-        if (_session.Current.Scopes.WindowAdjustment is WindowAdjustmentOpen)
+        return _session.Current.Scopes switch
         {
-            return KeyboardContext.WindowAdjustment;
-        }
-        if (_session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen)
-        {
-            return KeyboardContext.KeyboardHelp;
-        }
-        if (_session.Current.Scopes.Locations is not LocationsClosed)
-        {
-            return KeyboardContext.Locations;
-        }
-        if (CommandPaletteOverlay.Visibility == Visibility.Visible)
-        {
-            return KeyboardContext.CommandPalette;
-        }
-        if (SettingsOverlay.Visibility == Visibility.Visible)
-        {
-            return KeyboardContext.Settings;
-        }
-        if (_operationContext == KeyboardContext.Modal)
-        {
-            return _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal;
-        }
+            { WindowAdjustment: WindowAdjustmentOpen } => KeyboardContext.WindowAdjustment,
+            { KeyboardHelp: KeyboardHelpOpen } => KeyboardContext.KeyboardHelp,
+            { Locations: not LocationsClosed } => KeyboardContext.Locations,
+            _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
+            _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
+            _ when _operationContext == KeyboardContext.Modal => _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal,
+            _ => GetFocusedControlContext(),
+        };
+    }
+
+    private KeyboardContext GetFocusedControlContext()
+    {
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
         return ReferenceEquals(focused, LeftAddress) || ReferenceEquals(focused, RightAddress)
-            ? KeyboardContext.AddressEntry
+            ? _addressPresentation?.EditingSide is PaneSide side && ReferenceEquals(focused, AddressOf(side))
+                ? KeyboardContext.AddressEntry
+                : KeyboardContext.FileList
             : focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
                 ? KeyboardContext.TextEntry
                 : KeyboardContext.FileList;
@@ -532,18 +490,15 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private static bool EditorOwnsSide(AddressEditorState state, PaneSide side)
-    {
-        return (state is AddressEditing editing && editing.Side == side) ||
-            (state is AddressInputRejected rejected && rejected.Side == side);
-    }
-
     private void FocusFileList(PaneSide side)
     {
         ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
         Control target = fileList.SelectedItem is object selected && fileList.ContainerFromItem(selected) is ListViewItem row
             ? row
             : fileList;
-        _ = target.Focus(FocusState.Programmatic);
+        if (!target.Focus(FocusState.Programmatic))
+        {
+            _ = fileList.Focus(FocusState.Programmatic);
+        }
     }
 }

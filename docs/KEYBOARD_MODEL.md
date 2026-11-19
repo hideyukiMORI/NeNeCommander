@@ -69,6 +69,13 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
+The two pane paths are read-only location displays until `Ctrl+L` explicitly opens the active
+pane's address editor (ADR-0044, Issue #495). Incidental native focus or a click does not start
+editing. Only the open address editor owns `AddressEntry`; a focused read-only path retains the
+file-list context. Repeating `Ctrl+L` within the editor selects its current text without replacing
+it. Startup and leaving the bookmark manager return focus through the existing active-file-list
+route; other text editors, IME and modal owners retain their existing precedence.
+
 The command palette also opens Bookmarks and window adjustment (ADR-0068), using the same owners
 as `Ctrl+B` and `Ctrl+W`. Its existing twenty entries keep their order; Bookmarks and Window
 adjustment follow them, and Help follows Window adjustment (ADR-0076). A qualified selection closes
