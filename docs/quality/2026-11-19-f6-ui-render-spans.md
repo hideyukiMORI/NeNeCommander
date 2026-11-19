@@ -1,6 +1,6 @@
 # F6 host render spans and completion handshake — 2026-11-19
 
-Status: native collection and arithmetic complete; documentation integration/cleanup pending.
+Status: PR483 integrated; this task's worktree/output cleanup complete. #453 remains open.
 
 [Issue #482](https://github.com/hideyukiMORI/NeNeCommander/issues/482) continues the open
 [#453](https://github.com/hideyukiMORI/NeNeCommander/issues/453) investigation from accepted
@@ -192,9 +192,27 @@ correction to the numerical or observer-order claims. It explicitly separated th
 QLT-014 correction; the completed restore/binary/documentation comparison above closes that
 local proof item. No review re-executed the product or native trials.
 
-Documentation lives in `D:/NeNeCommander/worktrees/issue-482`; disposable output is
-`D:/NeNeCommander/outputs/f6-ui-render-spans-20261119`. Only after integration, clean/untracked/
-ignored/link/live-reference checks and complete preservation may these exact two paths be
-removed. Branches, commits, permanent evidence and unfinished Bookmark work remain. Four
+Documentation used `D:/NeNeCommander/worktrees/issue-482`; disposable output was
+`D:/NeNeCommander/outputs/f6-ui-render-spans-20261119`. Integration, clean/untracked/
+ignored/link/live-reference checks and complete preservation were verified before these exact
+two paths were removed. Branches, commits, permanent evidence and unfinished Bookmark work remain. Four
 older rejected cleanup targets are not retried. See the [progress report](../reports/2026-11-19-f6-ui-render-spans-progress-report.md)
 and [handoff](../handoffs/2026-11-19-f6-ui-render-spans-handoff.md).
+
+
+## Integration and task cleanup completed
+
+[PR483](https://github.com/hideyukiMORI/NeNeCommander/pull/483) merged by normal expected-head
+squash at18:42:16 JST as57da22f. Accepted f348661 and the squash have identical tree
+41d4bcdce783c7965b703c941d9ca5861861275d; local main advanced by fast-forward. Requested
+reviews, unresolved threads and failed checks were absent. Twelve numerical rows,208 relative
+links and ordinary112-rule/24-adversarial-registration/security/commit-message checks passed.
+No product tests or CI were added after proof input equivalence was established.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/f6-ui-render-spans-20261119/cleanup-completed.ps1
+-ExpectedHead f348661c350be62ab4d05c42ec5825af332f5ef7 -PrNumber 483` exited0 at18:42:53 JST.
+Both exact task targets are absent. Preflight verified resolved absolute targets, accepted
+candidate/squash trees, clean/untracked/ignored state, no active process references or links,
+both unchanged archive hashes, full2,029-file/188,600,262-byte coverage and unchanged current
+file-set/size/timestamps. Prior complete content hash verification was reused. Branches,
+commits and permanent evidence remain; four previously rejected targets were not retried.

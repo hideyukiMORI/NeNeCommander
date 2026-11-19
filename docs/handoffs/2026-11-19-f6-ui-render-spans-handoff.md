@@ -1,6 +1,6 @@
 # 2026-11-19 F6描画区間と完了合図・引き継ぎ
 
-Status: #482の予定観測・検算完了。文書統合・今回の整理は未完了。hide停止まで継続。
+Status: #482/PR483統合・今回の整理完了。hide停止まで継続。
 
 1. #453はOPEN。主経路と安全確認は変更せず、受理main d0023d6のD診断コピーで4外側点と
    既存の初回/進捗描画3区間を観測。host観測・診断資源所有とcomposition解放1行以外の
@@ -21,11 +21,12 @@ Status: #482の予定観測・検算完了。文書統合・今回の整理は�
    QLT-014の明示Release restore/build成功、警告/error0。355配布file中354件は完全一致。
    差は生成API説明XMLの7項目のみ、実行DLL/EXE/PDB/resource等は一致してnative証拠を再利用。
    最初の全件一致assert失敗と両XMLを保存。生成出力8件の別zipを加え現在2,029file/188,600,262byteを
-   全保全した。native再測定も製品test/CI/coverage/mutation追加も不要。文書統合へ進める。
+   全保全した。native再測定も製品test/CI/coverage/mutation追加も不要。PR483統合済み。
 6. 全source/raw/patch/commands/AX/画像/記録は`D:/NeNeCommander/evidence/f6-ui-render-spans-20261119/`。
    observer exit0、専用32792終了、通常38360と元218byte設定/hash一致。復元不要。
    作業木`D:/NeNeCommander/worktrees/issue-482`、出力`D:/NeNeCommander/outputs/f6-ui-render-spans-20261119`は
-   統合・保全・clean/未追跡/ignored/参照/link確認後にのみ削除。branch/commit/恒久証拠は保持。
+   PR483/57da22f（18:42:16、受理f348661と同じtree）統合と保全・clean/未追跡/ignored/参照0/link0を
+   確認後、18:42:53に削除し不在確認済み。12数値行/208link/通常hook合格、branch/commit/恒久証拠を保持。
 7. PR402は63f4769のDraftでhide画面受理待ち。公開beta.2と通常appは不変。次の調査は残り区間を
    さらに識別できる根拠がある場合に限定し、現時点で製品修正の原因を推測しない。
    正確な境界・全数値・コマンドは[品質記録](../quality/2026-11-19-f6-ui-render-spans.md)。
