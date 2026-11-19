@@ -13,8 +13,7 @@ internal sealed class CommanderPaneView
 {
     private readonly FrameworkElement _root;
     private readonly ResourceLoader _resources;
-    private readonly PaneSide _side;
-    private readonly TextBox _address;
+    private readonly TextBlock _address;
     private readonly TextBlock _status;
     private readonly ListView _fileList;
     private readonly Border _border;
@@ -30,9 +29,8 @@ internal sealed class CommanderPaneView
         ArgumentNullException.ThrowIfNull(side);
         _root = root;
         _resources = resources;
-        _side = side;
         string prefix = side == PaneSide.Left ? "Left" : "Right";
-        _address = Find<TextBox>(prefix + "Address");
+        _address = Find<TextBlock>(prefix + "Address");
         _status = Find<TextBlock>(prefix + "Status");
         _fileList = Find<ListView>(prefix + "FileList");
         RowAutomationIdentity.Attach<PaneRow>(_fileList, row => row.AutomationId, row => row.Entry.Name);
@@ -42,17 +40,9 @@ internal sealed class CommanderPaneView
         _number = Find<TextBlock>(prefix + "PaneNumber");
     }
 
-    internal void Render(PanePresentation presentation, PaneFrame frame, AddressEditorPresentation? addressPresentation)
+    internal void Render(PanePresentation presentation, PaneFrame frame)
     {
-        bool isEditingAddress = addressPresentation is { EditingSide: PaneSide editingSide } &&
-            editingSide == _side;
-        _address.IsReadOnly = !isEditingAddress;
-        _address.IsTabStop = isEditingAddress;
-        _address.AllowFocusOnInteraction = isEditingAddress;
-        if (!isEditingAddress)
-        {
-            _address.Text = presentation.AddressText;
-        }
+        _address.Text = presentation.AddressText;
         if (!ReferenceEquals(_fileList.ItemsSource, presentation.Rows))
         {
             _fileList.ItemsSource = presentation.Rows;
@@ -62,12 +52,8 @@ internal sealed class CommanderPaneView
         {
             _fileList.ScrollIntoView(presentation.FocusRow);
         }
-        PaneStatus paneStatus = isEditingAddress &&
-            addressPresentation is { Status: PaneStatus addressStatus }
-                ? addressStatus
-                : presentation.Status;
         _status.Text = PaneStatusLine.Compose(
-            paneStatus, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
+            presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
     }

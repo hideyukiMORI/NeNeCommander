@@ -3,7 +3,7 @@ using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Input;
 
-/// <summary>Requests address editing for the pane whose native control received focus.</summary>
+/// <summary>Requests explicit address editing for the captured pane.</summary>
 public sealed record AddressFocusSubmission : UserIntent
 {
     private protected override void RestrictDerivation()
@@ -16,6 +16,6 @@ public sealed record AddressFocusSubmission : UserIntent
         Side = side;
     }
 
-    /// <summary>Gets the exact pane side whose address received focus.</summary>
+    /// <summary>Gets the exact pane side for the requested address edit.</summary>
     public PaneSide Side { get; }
 }

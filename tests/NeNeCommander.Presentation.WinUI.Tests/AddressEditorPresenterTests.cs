@@ -75,7 +75,7 @@ public sealed class AddressEditorPresenterTests
         Assert.AreSame(secondState, second.SourceState);
     }
 
-    /// <summary>Proves explicit close focus and ordinary focus departure remain distinct.</summary>
+    /// <summary>Proves explicit dismissal requests captured list focus while the initial closed state does not.</summary>
     [TestMethod]
     public void PresentWhenEditorClosesProjectsOnlyCapturedFocusDisposition()
     {

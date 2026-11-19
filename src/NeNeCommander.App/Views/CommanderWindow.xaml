@@ -674,17 +674,16 @@
                                     FontWeight="Bold"
                                     Foreground="{StaticResource SurfacePaneBrush}" />
                             </Border>
-                            <TextBox
+                            <TextBlock
                                 x:Name="LeftAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="LeftAddress"
-                                AllowFocusOnInteraction="False"
-                                IsReadOnly="True"
-                                IsTabStop="False"
+                                PointerPressed="OnPathDisplayPointerPressed"
+                                FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                LostFocus="OnAddressLostFocus"
-                                Style="{StaticResource PlainTextEditorStyle}" />
+                                TextTrimming="CharacterEllipsis"
+                                VerticalAlignment="Center" />
                             <TextBlock
                                 x:Name="LeftStatus"
                                 Grid.Column="2"
@@ -746,17 +745,16 @@
                                     FontWeight="Bold"
                                     Foreground="{StaticResource TextSecondaryBrush}" />
                             </Border>
-                            <TextBox
+                            <TextBlock
                                 x:Name="RightAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="RightAddress"
-                                AllowFocusOnInteraction="False"
-                                IsReadOnly="True"
-                                IsTabStop="False"
+                                PointerPressed="OnPathDisplayPointerPressed"
+                                FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                LostFocus="OnAddressLostFocus"
-                                Style="{StaticResource PlainTextEditorStyle}" />
+                                TextTrimming="CharacterEllipsis"
+                                VerticalAlignment="Center" />
                             <TextBlock
                                 x:Name="RightStatus"
                                 Grid.Column="2"
@@ -1318,6 +1316,62 @@
                 </ItemsControl>
             </StackPanel>
         </Border>
+
+        <Grid
+            x:Name="AddressEditorOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="AddressEditorOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Canvas.ZIndex="20"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed">
+            <Border
+                x:Name="AddressEditorModal"
+                AutomationProperties.AutomationId="AddressEditorModal"
+                AutomationProperties.LabeledBy="{Binding ElementName=AddressEditorTitle}"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                HorizontalAlignment="Stretch"
+                Padding="{StaticResource SpacingWindowOuter}"
+                TabFocusNavigation="Cycle"
+                VerticalAlignment="Center">
+                <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                    <TextBlock
+                        x:Name="AddressEditorTitle"
+                        x:Uid="AddressEditorTitle"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        FontWeight="Bold" />
+                    <TextBox
+                        x:Name="AddressEditorInput"
+                        x:Uid="AddressEditorInput"
+                        AutomationProperties.AutomationId="AddressEditorInput"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False" />
+                    <TextBlock
+                        x:Name="AddressEditorStatus"
+                        AutomationProperties.AutomationId="AddressEditorStatus"
+                        AutomationProperties.LiveSetting="Polite"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <ItemsControl
+                        x:Name="AddressEditorKeyHints"
+                        AutomationProperties.AutomationId="AddressEditorKeyHints"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyHintTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <Grid
             x:Name="CommandPaletteOverlay"

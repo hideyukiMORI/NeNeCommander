@@ -104,7 +104,7 @@ public sealed class NullGuardTests
             typeof(UserIntent),
             nameof(UserIntent.SubmitAddress),
             [AddressEditorState.Closed, null]);
-        NullGuardAssertions.AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.LeaveAddress), [null]);
+        NullGuardAssertions.AssertStaticNullGuard(typeof(UserIntent), nameof(UserIntent.CancelAddress), [null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(DeleteRequest), nameof(DeleteRequest.Create), [null, null]);
         NullGuardAssertions.AssertStaticNullGuard(
             typeof(PermanentDeletionConfirmation),

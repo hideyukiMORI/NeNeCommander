@@ -49,6 +49,18 @@ public sealed class KeyHintPresenterTests
         Assert.IsTrue(hints.All(hint => hint.AutomationId == string.Empty));
     }
 
+    /// <summary>Proves the address modal retains its declared hints even with the ordinary footer hidden.</summary>
+    [TestMethod]
+    public void PresentWhenContextIsAddressEntryShowsConfirmAndCancelFromItsBindings()
+    {
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.AddressEntry, KeyHintVisibility.Hidden);
+
+        Assert.HasCount(2, hints);
+        AssertHint(hints[0], "KeyLabelEnter", "IntentLabelConfirm");
+        AssertHint(hints[1], "KeyLabelEscape", "IntentLabelEscape");
+        AssertLabelsComeFromBindings(KeyboardContext.AddressEntry);
+    }
+
     /// <summary>Proves a context with no declared projection shows nothing.</summary>
     [TestMethod]
     public void PresentWhenContextDeclaresNoProjectionShowsNoHints()

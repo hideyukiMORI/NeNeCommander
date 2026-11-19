@@ -1,6 +1,6 @@
 # 2026-11-20 Bookmark navigation stability — Issue #495
 
-Status: focused source verification complete; native acceptance pending. Source baseline 76a281a.
+Status: selected source and native proof complete; PR402 hide screen acceptance remains. Source baseline 76a281a.
 
 ## Authorized work and invariant
 
@@ -169,3 +169,124 @@ The next action is the bounded native matrix above after hide unlocks the deskto
 and resolves the retained old process. Keep this worktree and its build output;
 they contain an unfinished acceptance candidate. The separate older four rejected
 cleanup targets are carried in the [handoff](../handoffs/2026-11-20-bookmark-navigation-stability-handoff.md).
+
+## Native pass and design steering (08:15 JST)
+
+hide explicitly authorized ending necessary test-launched processes at08:03.
+With exact path/start-time checks, the old comparison6760 ended at08:04:43.
+A first guard stopped harmlessly because string conversion lost timestamp precision;
+typed comparison confirmed identity. No termination workaround preceded the new authority.
+
+Owned candidate8336 then ran the bounded native pass. Startup j/Tab, category
+movement, Search native text/clear/return, close followed by j/k, explicit Ctrl+L
+editing, real Japanese IME composition/native Enter commit, Escape restoration and
+readonly address click were observed. Some immediate captures showed a prior frame;
+settled snapshots and actual text effects are distinct. The accessibility focused
+field remained LeftAddress even during verified Search/RightAddress input, so that
+field alone does not prove native focus. The unsupported Zenkaku_Hankaku attempt is
+recorded; documented Alt+grave enabled actual composition. No latency claim is made.
+
+At08:14 hide requested display-only path components and an explicit shortcut-opened
+path input modal. This supersedes the inline-editor direction. Reuse the existing
+AddressEditorState and navigation owner, with Enter navigation, Escape cancellation
+and list-focus restoration; amend ADR0044 and validate the changed view boundary.
+The current source proof remains evidence for unchanged row behavior, not proof of
+the forthcoming modal. PR496 stays Draft.
+
+The native journal and two images are preserved with hash-checked transfer into
+permanent evidence. Candidate8336 ended at08:15:31 under hide's test-process authority;
+settings remain428bytes with the identical resume SHA256. No settings restoration
+was required. The four older filesystem cleanup rejections remain separate.
+
+## Explicit address modal implementation and first native finding (08:29 JST)
+
+The existing address owner and mapper now drive one `AddressEditorView`. Permanent
+paths are TextBlocks. Per-pane editor owners, native LostFocus cancellation and
+address-transition focus suppression are removed. Expected-state `CancelAddress`
+replaces the old focus-departure intent, preserving stale-state refusal and
+requesting the captured list on actual cancellation. Validation errors and native
+IME stay in the modal; hints come from the existing address bindings.
+
+Before implementation, the cancellation-focus and address-hint assertions each
+failed once with successful Release builds (`run-modal-red.ps1`). Afterward,
+`run-modal-green.ps1` built App and its affected consumers with zero warnings and
+errors, then passed 13 Application, 34 Presentation and 26 ownership cases. The
+initial Application filter's `NullGuardTests.UserIntent` term matched no test;
+that updated guard case therefore remains to run by its actual method name.
+The separate unchanged bookmark row proof is reused, not repeated.
+
+The independent read-only modal review found no required source correction and
+requested the KEYBOARD_MODEL wording update, now made. Its result does not cover
+native focus behavior. Candidate16540 initially confirms display-only paths,
+startup j, Ctrl+L initial selection and native text entry. Tab then suppresses
+further text; the same sequence reproduces twice, while Shift+Tab or clicking the
+input restores typing. The initial journal and image preserve this failed proof.
+Inspection found the new hint ItemsControl lacked the IsTabStop=False declaration
+already used by the other hint bands. That declaration is now added; the selected
+App rebuild and native recheck follow. No performance or complete native pass is
+claimed from this first attempt. Owned16540 ended under hide's 08:03 authority.
+
+Framework references: Microsoft's [focus navigation guidance](https://learn.microsoft.com/en-us/windows/apps/develop/input/focus-navigation)
+and [WinUI focus design note](https://github.com/microsoft/microsoft-ui-xaml/blob/main/docs/design-notes/focus.md)
+distinguish the native focus mechanics from the displayed/accessibility focus.
+The diagnosis above is based on the observed input effect and this source change,
+not on the stale accessibility focused-element field alone.
+
+## Final modal proof and pointer boundary (08:47 JST)
+
+The hint Tab-stop correction passes native Tab/Shift+Tab followed by actual j/k
+text entry. Invalid Enter keeps the exact input and localized error; Ctrl+L
+selects that current text. Real Japanese IME Enter commits composition without
+navigation; composition Escape cancels composition without closing the modal.
+A fresh Escape closes it and j moves the original list. Tab to the right, Ctrl+L,
+absolute C:\ submission and j then navigate/move only the captured right pane.
+`modal-tabfix-journal.json` and `modal-ime-composition.png` preserve this pass.
+
+That pass also exposed a display-path click that left keyboard events outside
+the file list. The first Tapped handler built successfully but independent review
+identified that unconditional list focus would steal F2/F7 name input. It was
+not accepted. The subsequent `AllowFocusOnInteraction=False`-only candidate also
+built but failed native j and Ctrl+L after a path click; the failed journal is
+retained. This property describes element focus, but it did not establish the
+required native routing in this host (Microsoft [API reference](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.frameworkelement.allowfocusoninteraction)).
+
+The final two TextBlocks consume PointerPressed and call the existing
+`FocusActiveFileListWhenIdle()`. This retains the sole context/focus decision and
+does not add focus state. Owned candidate36428 verifies passive-path click then j,
+Ctrl+L opening, scrim dismissal, F7 opening, active-path click while entering a
+name, actual `focus-only` text, Escape cancellation without creation, and k back
+in the list. One initial indexed click returned a geometry error; a fresh screenshot
+preceded the successful coordinate click. The eleven observations and final image
+are archived with hash verification. The native focused-element field remained
+stale in several observations; actual text/list changes establish the outcomes.
+Independent read-only re-review at08:46:55 closes the F2/F7 finding with no required
+correction. F2 shares the checked name-entry owner; a separate F2 native run is not
+claimed. No latency or subjective flicker acceptance is inferred.
+
+The updated factory null guard ran by its actual method name and passed one case
+(`modal-null-guard.log`), completing the modal's selected74 cases:13 Application,
+34 Presentation,26 ownership and one null-guard case. Earlier unaffected bookmark
+proof is reused; these counts are not added as disjoint tests. Final App Release
+build (`modal-pointer-build.log`) has zero warnings/errors. Changed C# whitespace
+verification exits0 with the existing workspace-loading warning; its complete
+argument list is `modal-final-format-command.json`. CS-013 inspection retains the
+same five unrelated findings. The final two XML-comment corrections only replace
+obsolete native-focus wording and do not invalidate behavior/build proof.
+
+All candidate processes were bounded by exact path/start-time checks under hide's
+08:03 test-process authority. The last candidate36428 received termination at
+08:46:02 and the subsequent read found no NeNeCommander.App process. Settings
+remain428 bytes with SHA256
+`7EA7AB2FB5B06A68D6015500A227BA7AEA3B7F1DA322430834B4B1361B2630EF`.
+The checked App DLL SHA256 is
+`A4301CDBEBD68AA29725F4BB69A5639AD984331D9832E3F584EBA1D415F2E58B`.
+`modal-final-inputs.json` freezes the final1061 relevant inputs; differences from
+the Tab-fix candidate are the two path-click files and XML comments only.
+Commit-mode policy results and publication are recorded after execution below.
+No main/Preview/release integration, settings restoration or full CI is claimed.
+
+At08:49 the final `pwsh -NoProfile -File eng/check.ps1 -Mode Commit` exits0:
+112 conformance rules, security conformance and Git whitespace pass. The24
+registered adversarial mappings are not claimed as executed behavior tests.
+The independent final review accepts the bounded pointer fix. All relevant
+source/consumer/native proof above is retained for publication without repetition.

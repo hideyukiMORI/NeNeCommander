@@ -57,7 +57,7 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F6` | move selection, or the focus item when selection is empty, to the passive pane |
 | `F7` | create a directory in the active pane |
 | `F8` | request deletion under the provider's declared delete policy |
-| `Ctrl+L` | focus and select the active pane address input |
+| `Ctrl+L` | open the active pane path-input modal and select its current location |
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
 | `Ctrl+,` | open the session-owned settings editor from the file list or navigation surface |
 | `Ctrl+P` | open the session-owned command palette from the file list or navigation surface |
@@ -69,12 +69,16 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
 
-The two pane paths are read-only location displays until `Ctrl+L` explicitly opens the active
-pane's address editor (ADR-0044, Issue #495). Incidental native focus or a click does not start
-editing. Only the open address editor owns `AddressEntry`; a focused read-only path retains the
-file-list context. Repeating `Ctrl+L` within the editor selects its current text without replacing
-it. Startup and leaving the bookmark manager return focus through the existing active-file-list
-route; other text editors, IME and modal owners retain their existing precedence.
+The two pane paths are always display-only `TextBlock` controls. `Ctrl+L` opens one path-input
+modal for the active pane through the existing address owner (ADR-0044, Issue #495). A click on
+a displayed path does not open editing. The open modal owns `AddressEntry`; native Tab/Shift+Tab
+cycle within its input controls, while noninteractive key hints are excluded from the tab order.
+Repeating `Ctrl+L` selects the current native text without replacing it. Enter submits the exact
+text to the existing parser/navigation route; invalid input remains in the modal with its error.
+Escape or an outside scrim tap cancels the captured state and returns focus to its file list.
+Native focus changes and temporary window deactivation preserve the draft. IME composition keeps
+its Enter/Escape until composition ends. Startup and leaving the bookmark manager still restore
+the active file list; other text editors and modal owners retain their existing precedence.
 
 The command palette also opens Bookmarks and window adjustment (ADR-0068), using the same owners
 as `Ctrl+B` and `Ctrl+W`. Its existing twenty entries keep their order; Bookmarks and Window

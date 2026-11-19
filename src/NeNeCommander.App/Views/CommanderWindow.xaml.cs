@@ -41,14 +41,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderPaneView _leftPaneView;
     private readonly CommanderPaneView _rightPaneView;
     private readonly EntryMetadataFormat _metadataFormat;
-    private AddressEditorPresentation? _addressPresentation;
-    private AddressEditorState? _defaultFileListFocusSuppressedState;
-    private AddressEditorState? _leftAddressOwner;
-    private AddressEditorState? _rightAddressOwner;
+    private readonly AddressEditorView _addressView;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
-    private bool _renderingAddressTransition;
     private bool _stopping;
 
     /// <summary>Initializes the shell with the sole keyboard mapping and pane coordination mechanisms.</summary>
@@ -88,6 +84,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _resources,
             new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons, dependencies.DefectObserver));
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
+        _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
         _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right);
@@ -174,7 +171,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing;
+    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing;
 
     private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
@@ -195,34 +192,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
-        AddressEditorPresentation? previousAddress = _addressPresentation;
-        AddressEditorPresentation address = AddressEditorPresenter.Present(
-            snapshot.Scopes.AddressEditor,
-            previousAddress);
-        bool addressChanged = !ReferenceEquals(address, previousAddress);
-        _addressPresentation = address;
-        if (addressChanged)
-        {
-            _defaultFileListFocusSuppressedState = previousAddress is not null &&
-                address.EditingSide is null
-                    ? address.SourceState
-                    : null;
-        }
-        if (snapshot.Settings.Editor == SettingsEditorState.Open ||
-            snapshot.Panes.Operation is OperationAwaitingConfirmation or OperationAwaitingName or
-                OperationAwaitingConflict)
-        {
-            _defaultFileListFocusSuppressedState = null;
-        }
-        _renderingAddressTransition = addressChanged;
         RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
-        _renderingAddressTransition = false;
         RenderSettingsSurfaces(snapshot.Settings);
-        if (addressChanged)
-        {
-            RenderAddressTransition(address);
-        }
         _paletteView.Render(snapshot);
+        _addressView.Render(snapshot.Scopes.AddressEditor);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         _keyboardHelpView.Render();
@@ -248,36 +221,13 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation, keyHintVisibility);
         _presentation = presentation;
-        _leftPaneView.Render(presentation.Left, presentation.LeftFrame, _addressPresentation);
-        _rightPaneView.Render(presentation.Right, presentation.RightFrame, _addressPresentation);
+        _leftPaneView.Render(presentation.Left, presentation.LeftFrame);
+        _rightPaneView.Render(presentation.Right, presentation.RightFrame);
         _operationView.Render(presentation);
         _operationContext = presentation.InputContext;
-        if (!_renderingAddressTransition && ShouldScheduleFileListFocus())
+        if (GetKeyboardContext() == KeyboardContext.FileList)
         {
             _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
-        }
-    }
-
-    private void RenderAddressTransition(AddressEditorPresentation presentation)
-    {
-        if (presentation.EditingSide is PaneSide side)
-        {
-            TextBox address = AddressOf(side);
-            SetAddressOwner(side, presentation.SourceState);
-            if (presentation.ReplacementText is string replacement)
-            {
-                address.Text = replacement;
-            }
-            _ = address.Focus(FocusState.Programmatic);
-            if (presentation.SelectAll)
-            {
-                address.SelectAll();
-            }
-            return;
-        }
-        if (presentation.FileListFocusSide is PaneSide fileListSide)
-        {
-            FocusFileList(fileListSide);
         }
     }
 
@@ -334,9 +284,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
-        if (intent == UserIntent.FocusAddress && FocusedAddress() is TextBox { IsReadOnly: false } focusedAddress)
+        if (intent == UserIntent.FocusAddress && _addressView.IsOpen)
         {
-            focusedAddress.SelectAll();
+            _addressView.FocusAndSelectAll();
             return;
         }
         UserIntent forwarded = CreateForwardedIntent(intent);
@@ -346,28 +296,18 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private UserIntent CreateForwardedIntent(UserIntent intent)
     {
-        return intent == UserIntent.Confirm && FocusedAddressSide() is PaneSide side &&
-            AddressOwnerOf(side) is AddressEditorState owner &&
-            ReferenceEquals(owner, _session.Current.Scopes.AddressEditor)
-                ? UserIntent.SubmitAddress(owner, AddressOf(side).Text)
-                : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
-                    ? UserIntent.SubmitName(NameEntry.Text)
-                    : intent;
+        return _addressView.IsOpen
+            ? _addressView.Qualify(intent)
+            : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
+                ? UserIntent.SubmitName(NameEntry.Text)
+                : intent;
     }
 
-    private void OnAddressLostFocus(object sender, RoutedEventArgs args)
+    private void OnPathDisplayPointerPressed(object sender, PointerRoutedEventArgs args)
     {
-        _ = args;
-        if (sender is not TextBox address || SideOf(address) is not PaneSide side)
-        {
-            return;
-        }
-        AddressEditorState? owner = AddressOwnerOf(side);
-        SetAddressOwner(side, null);
-        if (owner is not null && ReferenceEquals(owner, _session.Current.Scopes.AddressEditor))
-        {
-            ForwardIntent(UserIntent.LeaveAddress(owner));
-        }
+        _ = sender;
+        args.Handled = true;
+        FocusActiveFileListWhenIdle();
     }
 
     private void OnBookmarkKeyHintClick(object sender, RoutedEventArgs args)
@@ -423,6 +363,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
             _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
             _ when _operationContext == KeyboardContext.Modal => _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal,
+            { AddressEditor: not AddressEditorClosed } => KeyboardContext.AddressEntry,
             _ => GetFocusedControlContext(),
         };
     }
@@ -430,64 +371,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private KeyboardContext GetFocusedControlContext()
     {
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        return ReferenceEquals(focused, LeftAddress) || ReferenceEquals(focused, RightAddress)
-            ? _addressPresentation?.EditingSide is PaneSide side && ReferenceEquals(focused, AddressOf(side))
-                ? KeyboardContext.AddressEntry
-                : KeyboardContext.FileList
-            : focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
-                ? KeyboardContext.TextEntry
-                : KeyboardContext.FileList;
-    }
-
-    private bool ShouldScheduleFileListFocus()
-    {
-        return _addressPresentation?.EditingSide is null &&
-            !ReferenceEquals(
-                _addressPresentation?.SourceState,
-                _defaultFileListFocusSuppressedState);
-    }
-
-    private TextBox? FocusedAddress()
-    {
-        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        return ReferenceEquals(focused, LeftAddress)
-            ? LeftAddress
-            : ReferenceEquals(focused, RightAddress) ? RightAddress : null;
-    }
-
-    private PaneSide? FocusedAddressSide()
-    {
-        TextBox? address = FocusedAddress();
-        return address is null ? null : SideOf(address);
-    }
-
-    private PaneSide? SideOf(TextBox address)
-    {
-        return ReferenceEquals(address, LeftAddress)
-            ? PaneSide.Left
-            : ReferenceEquals(address, RightAddress) ? PaneSide.Right : null;
-    }
-
-    private TextBox AddressOf(PaneSide side)
-    {
-        return side == PaneSide.Left ? LeftAddress : RightAddress;
-    }
-
-    private AddressEditorState? AddressOwnerOf(PaneSide side)
-    {
-        return side == PaneSide.Left ? _leftAddressOwner : _rightAddressOwner;
-    }
-
-    private void SetAddressOwner(PaneSide side, AddressEditorState? owner)
-    {
-        if (side == PaneSide.Left)
-        {
-            _leftAddressOwner = owner;
-        }
-        else
-        {
-            _rightAddressOwner = owner;
-        }
+        return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
+            ? KeyboardContext.TextEntry
+            : KeyboardContext.FileList;
     }
 
     private void FocusFileList(PaneSide side)

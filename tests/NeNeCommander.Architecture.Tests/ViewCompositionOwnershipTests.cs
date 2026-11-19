@@ -15,6 +15,7 @@ public sealed class ViewCompositionOwnershipTests
 {
     /// <summary>Proves extracted visual parts cannot acquire session or background-work ownership.</summary>
     [TestMethod]
+    [DataRow("AddressEditorView")]
     [DataRow("CommandPaletteView")]
     [DataRow("OperationBarView")]
     [DataRow("SettingsEditorView")]
@@ -41,6 +42,7 @@ public sealed class ViewCompositionOwnershipTests
 
     /// <summary>Proves visual composition does not move excessive parameter lists into extracted constructors.</summary>
     [TestMethod]
+    [DataRow("AddressEditorView")]
     [DataRow("CommandPaletteView")]
     [DataRow("OperationBarView")]
     [DataRow("SettingsEditorView")]
