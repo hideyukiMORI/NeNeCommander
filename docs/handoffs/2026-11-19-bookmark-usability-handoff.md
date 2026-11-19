@@ -96,6 +96,15 @@ Bookmark固有実装、入力/focus、Application/provider/依存は不変。App
 現在sourceのApp buildはissue-398にあり、hashは品質記録参照。通常実行中binary/public beta.2は変更なし。
 main側#467のworktree/outputは保全後削除済み。未受理Bookmarkの作業木/証拠は保持する。
 
+## 14:23時点のアクセシビリティ情報確認
+
+feature `277a003`/結合Appを専用process35744で起動し、入力5項目のラベルと、別カテゴリの同名2行の
+カテゴリ付きaccessible name/完全path descriptionを確認した。証拠は`accessibility-readback/`、
+詳細と失敗したsetup試行は品質記録。Narrator発話、物理held入力、DPI/HCの証明にはしない。
+専用窓は終了し、元設定との差分が専用2カテゴリ/2登録と想定schema移行だけと照合して218byteへ復元。
+14:23:44の復元hashは上記baselineと一致し、通常38360/他案件Chromeを保持。製品変更・再build/test/CIなし。
+PR402はDraftのまま。issue-398作業木は未受理featureを保持するので削除しない。
+
 ## ! hide実行待ち：後片付け
 
 旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。

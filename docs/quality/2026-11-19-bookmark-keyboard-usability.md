@@ -24,6 +24,37 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Native accessibility readback, 14:17–14:23 JST
+
+The unchanged combined source `277a003` and App DLL below ran as owned process35744/window27856424.
+The existing UI Automation surface exposes the four form labels: name, path, category and shortcut,
+and category-name on its separate form. Two owned categories, 確認カテゴリA/B, each received a
+bookmark named 同名確認 at the same owned empty `accessibility-target`. In the realized list,
+the accessible names are `同名確認 · 確認カテゴリA` and `同名確認 · 確認カテゴリB`, and both
+descriptions contain the complete target path. This verifies actual native peer information,
+not Narrator speech, announcement timing, unique automation IDs or visual category columns.
+The two rows intentionally share the documented `BookmarkRow_同名確認` automation identifier.
+
+This bounded readback uses native keys and targeted field-value setup; it is not an additional
+keyboard-only end-to-end claim. One incorrectly escaped setup string was corrected and read back
+before saving. A ComboBox element click returned `coordinate input geometry is unavailable`;
+a fresh screenshot and Tab/End/Alt+Down recovered selection through the keyboard. The immediate
+Return/Ctrl+Enter observation still showed the draft; the later Tab/Ctrl+Enter and settled readback
+showed two saved entries. No timing or dropped-input cause is inferred from that sequence.
+`second-saved.txt` is the earlier draft observation, not proof of the final saved state;
+`two-names-readback.txt` and `two-names.jpg` own that proof. No deletion or navigation was submitted.
+
+After Escape/Alt+F4, a subsequent window inventory confirmed that only the normal app and the
+unrelated Chrome window remained. The settings difference was exactly the two owned categories,
+two bookmarks, and expected schema4/default-hints migration. At14:23:44 the original218 bytes
+were restored with SHA256 `ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`;
+normal process38360 remained. `accessibility-readback/baseline.json`, form-label/row text,
+the observed settings bytes and `restoration.json` retain the evidence.
+
+This documentation-only addition reuses the unchanged build and selected-test evidence below.
+No extra build, product test, CI, release, physical key-hold, DPI, high-contrast or Narrator proof
+is claimed. hide's separate PR402 screen acceptance remains pending.
+
 ## Shared footer integration, 14:09–14:11 JST
 
 Main `3865060` brings the accepted #467 unchanged-hint reuse and #465/#467 records into the
