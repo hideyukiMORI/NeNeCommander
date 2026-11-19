@@ -67,3 +67,16 @@ complete before integration; no full or deep-review workflow is dispatched.
 The normal commit hook will perform its prescribed policy check. Its result,
 Draft/Ready transition, dependency check, squash merge and cleanup are recorded
 below after observation.
+
+## Hosted result and integration readiness
+
+Draft PR497 was marked Ready after the final configuration review. Its sole
+selected hosted dependency-review44641407948 completed successfully on03ad94b.
+The run and complete log are preserved as dependency-review-result.json and
+dependency-review.log. No full/deep workflow was dispatched. Both ordinary commit
+hooks passed; the later commit changed only current-status prose. The eight-line
+YAML and all dependency pins remain exactly the verified candidate.
+
+Normal squash integration and bounded cleanup follow this accepted result. The
+quality record intentionally does not claim that a future Dependabot scheduled
+update has run. Permanent evidence and branches/commits will be retained.
