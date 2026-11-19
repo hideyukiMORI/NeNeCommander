@@ -24,6 +24,109 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Resumed native walk, 11:07–11:20 JST
+
+Candidate `95549f5` used App DLL SHA-256
+`A90C60C728D42182851AFBB8CF206EBF580F8044D3A556F293280397B8BB21DA`.
+The test-owned D process was PID 4952, window 331598. The normal C process 38360
+and the unrelated Chrome window were preserved. `native-final-baseline.json`,
+`final-*.txt` and `final-*.jpg` retain the raw observations.
+
+| Native observation | Result and boundary |
+|---|---|
+| Empty manager → A → name input; Escape → A again | Draft opened twice; an X key replaced the selected default name without a click |
+| Ctrl+Enter save; E after save | One owned bookmark persisted and the selected row opened for editing |
+| Empty-name validation | Error displayed; name/path draft remained; Escape cancelled |
+| Search A → Enter → E | Search stayed in the manager, Enter selected a result, E edited that row |
+| Tab through name/path/category/slot to Save; ordinary Enter | Save button had visible focus; changed name persisted, search cleared, row selected |
+| Category and slot native dropdowns | Category Escape closed only the popup; category/slot Enter closed the popup and retained the draft; slot 1 was saved |
+| Actual Japanese composition in name, path and category-name fields | K/A produced an underlined Japanese character and native candidates; Escape/Enter retained the form. Unicode value setting was not used as IME proof |
+| Category-name Tab cycle; category-delete Tab cycle | Focus returned within the form/confirmation; confirmation initially focused Cancel |
+| Category and bookmark deletion confirmation | Target name/path or category/count/destination visible; ordinary Enter on focused Cancel retained the entries. No deletion was submitted |
+| Empty category → A | Add draft opened from a filtered zero-row list and retained that category on save |
+| Missing owned destination and later retry | Failure preserved the original pane and showed retry/back. After creating only the owned destination, a later readback confirmed navigation there. Return and pointer attempts overlapped delayed observations, so keyboard-only retry success is not isolated |
+
+The tool initially reported no targetable window while the app remained running.
+The complete inventory subsequently returned the owned window, so this is not a
+confirmed application startup failure. Some immediate AX results and screenshots
+preceded later UI updates; the reported focused-element field also remained the
+initial address. A CUA timeout reset the session during path composition; the next
+inventory and screenshot confirmed the same owned draft and actual composition.
+The apparent retry failure was withdrawn after the successful destination readback.
+No retry code change is justified by that ambiguous interval alone.
+
+After navigation to the empty destination, reopening from the keyboard was not
+established; clicking the populated pane allowed the remaining confirmation check.
+This candidate does not yet contain #454's accepted main-side file-list focus fix.
+Reuse that canonical fix when synchronizing the feature instead of adding a second
+focus path. The saved-selection notice also returned to the ordinary browse text
+before another deliberate action. The bounded correction below covers redundant
+Select, Search and Filter notifications; the precise native event remains unknown.
+
+The app exited normally through Alt+F4. Settings contained exactly two owned
+bookmarks and one owned category, with all other JSON values unchanged. After the
+process exited, the original 218 bytes were restored and SHA-256 matched
+`ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`.
+`native-final-restoration.json` records the checks. No ordinary app was closed.
+
+Remaining limits: physical held keys, fast Tab/pointer races, search-field IME in
+this walk, independently isolated retry/back, narrow-window/DPI/high-contrast and
+Narrator checks. The observed window was 2291×1234 pixels; no DPI value is inferred.
+These observations improve technical evidence but do not replace hide's PR402 acceptance.
+
+## Saved-selection notice lifetime correction
+
+Independent source review confirmed that all three browse actions discarded the
+receipt even when their effective input was unchanged. `BookmarkEditorSession`
+now retains the context and saved selection for an unchanged search, resolved
+category or selected entry, while clearing an earlier problem as before. Category
+resolution and complete selection metadata validation precede the equality check.
+Actual changes, explicit selection clearing and rejected stale inputs end the notice.
+The existing action path is unchanged; no timer or native-event suppression was added.
+
+Twelve new cases cover repeated inputs after adding/editing (six), actual changes
+(four), replaced metadata and a removed category (two). Against the previous
+Application assembly, the six repeated-input cases failed and the other six passed.
+After the correction, all 28 selected notice/editor/return/persistence cases passed.
+The independent final review found no required correction. This establishes the
+state contract; it does not identify the original native event or alone prove the
+final on-screen notice lifetime.
+
+Commands in the same worktree:
+
+```powershell
+dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore -m:1 -nr:false -p:BuildProjectReferences=false
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~BookmarkSavedNoticeTests'
+dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore -m:1 -nr:false
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~BookmarkSavedNoticeTests|FullyQualifiedName~BookmarkEditorSessionTests|FullyQualifiedName~BookmarkEditorReturnTests|FullyQualifiedName~BookmarkBrowsePersistenceTests'
+```
+
+The first build intentionally reused the old product assembly for red proof. Both
+builds passed with zero warnings/errors; the red test exit was 2 and the green exit
+was 0. Separate `build-saved-notice-{red,green}.log` and
+`test-saved-notice-{red,green}.log` preserve the results. Previously successful
+Presentation and view-ownership evidence remains applicable to their unchanged inputs.
+
+The final App build (`dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj
+-c Release --no-restore -m:1 -nr:false`) passed with zero warnings/errors in 59.67s.
+`pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` still reports the
+same seven existing findings (exit 1), with none added. The two changed C# files
+pass the changed-file whitespace command above (exit 0, no edits); its design-time
+workspace warnings remain separate from the successful Release build.
+
+At 11:31–11:33 JST, the rebuilt App DLL SHA-256 was
+`FADBF8A61FA4B2BF453E93C93871E0257893C39DBE9587AD349EDAB97A05183F`.
+An owned window added only `__NeNe457_Notice` at `C:\` using Ctrl+Enter. The immediate
+AX observation and the subsequent screenshot/AX observation about 69 seconds
+later both retained the updated-bookmark/search-cleared notice and selected row,
+with no intervening app input. This is a bounded native confirmation of the fix;
+it is not an event trace identifying the old trigger. `notice-after-save.txt`,
+`notice-idle.txt` and `notice-idle.jpg` preserve the observations.
+The app exited through Alt+F4, only the owned bookmark was found in the settings
+diff, and the original 218 bytes were restored with the same baseline SHA-256.
+`native-notice-baseline.json` and `native-notice-restoration.json` record the
+assembly, settings hashes, 68.59-second observation interval and retained normal app.
+
 ## Behavioral evidence
 
 | Case | Result |

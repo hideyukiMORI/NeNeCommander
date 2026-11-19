@@ -1,94 +1,69 @@
 # 2026-11-19 Bookmark操作性改善の引き継ぎ
 
-Status: ongoing; Issue #457, draft implementation and interrupted native proof
+Status: ongoing; Issue #457 / PR458, technical proof being finalized
 
-hideは外出中も停止指示まで継続するよう依頼している。現在の優先順はBookmark、#454、#453。
-単体実装が既定で、今回の複数専門家は明示依頼に沿う読み取り専用レビュー。
-NeNe Commanderリナへの実相談、合意と制限は[デザイン記録](../design/2026-11-19-bookmark-keyboard-review.md)。
+hideの停止指示まで継続する依頼が有効。追加依頼のPreviewは#459で公開前deep review中。
+単体実装が既定。今回の複数専門家は明示依頼に沿う読み取り専用レビュー。
+実際のNeNe Commanderリナへの相談と合意は[デザイン記録](../design/2026-11-19-bookmark-keyboard-review.md)。
 
-## 実装候補と証拠
+## 現在の候補と証拠
 
-- mainは`189bb61`、PR402は機能`8c1c551`で未受理。作業木は
-  `D:/NeNeCommander/worktrees/issue-457`、branchは`fix/457-bookmark-keyboard-usability`。
-  基点`eadeda9`でmainの修正を取り込んだ。Issue PRはこの機能ブランチ向けのDraftとし、
-  main／Previewへの統合は行わない。
-- 正典はKeyboardIntentMapper/BookmarkManagerKeyboard、BookmarkEditorActionから
-  SettingsSession、既存のCommanderSessionナビゲーション。別の実行経路は追加していない。
-- Ctrl+Enter、検索hint、保存後の選択・検索解除通知、active/passive表示、入力ラベル、
-  割当済み枠、IME／popup所有を実装。通常Enter長押しは独立レビュー後にred/green修正。
-- 実起動エラーと空一覧・切替focusの再現を受け、ListViewをtab stopにし、
-  BookmarkFocusRestorationで明示要求と行再生成復元を区別した。
-  draft／確認画面も同じ遅延機構を使う。後続pointer（handledを含む）とinitial Tabは両queueを取消す。
-  details初期focus予約中のEnterは消費し、IME／開いたselectorのnative分岐ではEnterを維持する。
-- [品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)が対象試験、試行、失敗、
-  修正、正確な最終コマンドと再利用条件を所有する。UIAのfocus欄は初期アドレスを示したままだったため、
-  実表示と次のキー結果を照合した。直後のAX値が表示より遅れたケースもあり、成功を推測しない。
+- mainは#454/PR460を統合した`c25dc30`。PR402の機能`8c1c551`はhideの画面受理前。
+  作業木は`D:/NeNeCommander/worktrees/issue-457`、branchは`fix/457-bookmark-keyboard-usability`。
+  PR458はPR402の機能ブランチ向け。main/Previewへは統合しない。
+- 正典はKeyboardIntentMapper/BookmarkManagerKeyboard、BookmarkEditorActionからSettingsSession、
+  既存CommanderSessionナビゲーション。別の実行経路は追加していない。
+- Ctrl+Enter、検索専用案内、保存後の選択と検索解除通知、active/passive表示、入力ラベル、
+  割当済み枠、全入力欄のIMEとpopup所有を実装。通常Enter反復はred/green修正済み。
+- 実起動リソース例外、空一覧と画面切替のfocus不良を修正。既存BookmarkFocusRestorationで
+  明示要求と受動的な復元を区別し、draft/確認の初期focusも所有する。後続pointer/Tabは取消し、
+  初期focus予約中のEnterは消費。IMEと開いたselectorはnative入力を維持する。
+- 保存案内の消失は同値Select/Search/Filterがreceiptを捨てることをsource reviewで確認。
+  完全stale検査とカテゴリ解決を先行したまま、同値入力はcontext/receiptを保ち問題表示を解除する。
+  新規12件は旧製品で6失敗/6成功、修正後の関連28件は全成功。独立reviewに必須指摘なし。
+  元のnativeイベントの特定はしていない。
+- [品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)が正確なコマンド・試行・再利用条件を所有する。
+  Appの修正後buildは警告/エラー0。Inspectは既存7件で追加なし。
 
-## 次の実機確認
+## 実機観測と残る範囲
 
-Computer Useが`foreground window did not report a process id`を返し、再接続後も失敗した。
-この状態では最終のnative受理を行わない。環境が復帰したら、現在の窓を再発見する。
-古いPIDやhandleを流用しない。通常mainのアプリとNibのChromeには入力しない。
+11:07〜11:20のcandidate95549f5で空一覧からの登録/再登録、Ctrl+Enterと保存ボタンEnter、
+検索から一覧/編集、検証拒否、カテゴリと枠popup、名前/パス/カテゴリ名の実IME、フォームと
+確認のTab循環、両削除確認のCancel初期focusを観測。削除本体は送信していない。
+移動失敗は元フォルダーを保持し、専用target作成後に移動成功を読み取ったが、Return/pointerの
+試行と観測遅延が重なったためキーだけのretry成功は分離できない。誤った失敗推測は撤回した。
+AXのfocus欄は初期addressのままなので、実際の入力先・caret・次のキー結果を照合する。
 
-1. 現在の設定を読み直し、新しい試験前コピーを保存する。今回の基準hashは
-   `ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`で終了時も同一。
-   今後異なる場合はその新しい設定を保護し、古いbackupで上書きしない。
-2. 対象worktreeのReleaseアプリを起動。空一覧からCtrl+B→Aで名前欄へ入力、Escape後にAで
-   再登録できること、検索0件でも一覧へ戻れることを確認する。入力ツールの実用キー名は
-   `CTRL+B`、`A`等。modifierや小文字表記の差を製品不具合と混同しない。
-3. `__NeNe457_`を接頭辞とする自分の登録だけで、名前／パス／カテゴリ／枠、Ctrl+Enter、
-   検証拒否、検索後の保存／取消、先頭選択、J/K、Tab、通常Enterを確認する。
-   専用targetはoutputs内fixture/target-aとtarget-b。存在しない専用pathで失敗／再試行を確認する。
-4. popupのEnter／Escape、実IMEの確定／取消、全フォームと確認のTab循環、後続Tab／clickによる
-   初期focus予約取消を確認する。文字列のUnicode入力だけをIME証明にしない。
-   キー保持時間指定はこのComputer Useでは未対応で、物理長押しの証明は残る。
-5. 削除は対象とCancel初期focusを確認して取消す。削除本体は既存Application試験で検証済み。
-   Narrator、狭幅、倍率は未実施。DPIやセキュリティ設定を勝手に変更しない。
-6. アプリ終了後、設定差分が自分の試験項目だけであることを確かめてから、新しい試験前内容へ戻しhash照合。
-   予期しない変更があれば保持して調査する。最新の実画像を専門家／リナの相談へ追加する。
+試験窓だけAlt+F4で閉じ、差分が専用2登録/1カテゴリだけであることを確認して元の218byteへ復元。
+SHA-256は`ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`。
+通常Cアプリと他案件Chromeを保持。保存案内修正後も専用1登録で約69秒の無操作後に
+通知と選択の維持をAX/画像で確認し、終了後の元設定復元とhash一致まで完了した。
+毎回直前の設定を保全し、終了後に自分の変更だけであることを検証して復元する。
 
-今回のowned test processは設定不変確認後に終了済みで、保存した試験登録は0。
-raw情報は`D:/NeNeCommander/evidence/bookmark-ux-20261119/`。
-worktreeとoutputsは未完了のため保持し、既存15対象の拒否済み削除とは混同しない。
-公開beta.1、#386/#397、ADR0051の判断、通常アプリが参照するF6 fixtureは別件。
-以下の既存cleanup保留を再試行せず持ち越す。
+残る範囲は物理長押し、速いTab/pointer競合、今回の検索欄IME、分離したretry/back、狭幅/DPI/HC/Narrator。
+空ペインへの移動後の復帰は、この候補に未取込のmain #454の既存focus修正を同期して確認する。
+新しいfocus経路を追加しない。これらの技術証拠はhideのPR402画面受理を代替しない。
 
+次は保存案内修正の証拠/書式/commitを確定してPR458を機能ブランチへ統合し、mainを同期する。
+#459のdeep reviewが成功したらaccepted mainから公式publish、独立展開照合、公開/匿名再取得照合へ進む。
+既存公開beta.1と通常稼働アプリはそのまま。#453の遅延調査は未解決。
+
+恒久証拠は`D:/NeNeCommander/evidence/bookmark-ux-20261119/`。
+未完了の作業木`D:/NeNeCommander/worktrees/issue-457`と出力`D:/NeNeCommander/outputs/bookmark-ux-20261119`
+は保持する。PR402と他の未完了作業、通常アプリが参照するF6 fixtureも保持する。
 
 ## ! hide実行待ち：後片付け
 
-以下15対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
-Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
-公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
-main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
-Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#434の112fileと
-失敗候補01/02を恒久証拠へ保全しhash照合済み。#433/#443の作業木は削除済み。
+旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。
+#454完了分は取込/未保存/ignored/唯一成果物/リンク/稼働参照を確認し、出力15ファイルと検査結果を
+恒久証拠へ保全してhash一致。11:05の自動承認レビューが次の2対象の削除を起動前に
+`blocked by policy`で拒否した。削除は実行されず、別手段で再試行していない。
 
-- `D:/NeNeFolio/worktrees/935-window-width`
-- `D:/NeNeFolio/outputs/935-window-width`
-- `D:/NeNeFolio/agents/935-window-width`
-- `D:/NeNeFolio/agents/window-width-20261118`
-- `D:/NeNeFolio/design/20261118-search-explanation`
-- `D:/NeNeFolio/agents/session-20261118-sana`
-- `D:/NeNeCommander/worktrees/issue-439`
-- `D:/NeNeCommander/outputs/issue-439`
-- `D:/NeNeCommander/outputs/issue-443`
-- `D:/NeNeCommander/outputs/issue-448`
-- `D:/NeNeCommander/outputs/latency-20261118`
-- `D:/NeNeCommander/outputs/issue-433`
-- `D:/NeNeCommander/outputs/issue-434`
-- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`
-- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-02`
+- `D:/NeNeCommander/worktrees/issue-454`
+- `D:/NeNeCommander/outputs/footer-20261119`
 
-hide実行用の準備済みコマンド（既に無い対象は許容。サナは実行していない）:
+hide実行用（branch/commit/恒久証拠を保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-requested.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
 ```
-
-対象一覧は`cleanup-targets.json`、保全/拒否の原本は`D:/NeNeCommander/evidence/`内の
-各Issueとsessionのフォルダへ保存。Commanderのscriptは固定対象のinventory、Git状態、
-参照/リンクを照合し、保存済みhash証拠を再利用してdirectory単位のnative削除だけを行う。
-既存scriptの成功記録を再利用し、終了時に更新したmasterと診断用helperの2scriptも構文解析成功。
-いずれも実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
-ブランチ/commit/恒久証拠/公開shipping/候補03/実機用fixture/未完了PR402の作業木は保持する。
-hideの実行報告と不在確認まで後片付けは未完了。

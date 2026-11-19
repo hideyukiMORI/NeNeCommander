@@ -29,59 +29,44 @@ App Release build、view所有権20件、変更ファイルの書式確認が成
 [品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)へ残した。
 無関係な全件回帰、coverage、mutation、hosted CIは実行していない。
 
-## 現在の制限
+## 再開した実機確認
 
-最後の実画面操作は`foreground window did not report a process id`で失敗し、
-対象の再発見・再接続後も継続できなかった。修正後の初期focus、取消、保存、IME、
-native popup、削除確認の安全な初期focus、狭幅、Narratorは未確認のまま。
-試験用アプリだけを終了し、通常mainの画面は残した。設定ファイルのhashは試験前と一致し、
-ブックマークを保存していないため復元操作も不要だった。
+11:07〜11:20にcandidate95549f5を専用プロセスで確認した。空一覧からの登録、取消後の再登録、
+Ctrl+Enterと保存ボタンのEnter、検索から先頭選択・編集、空の名前の検証拒否、カテゴリ/枠の
+popup、3入力欄の実IME、カテゴリフォームと確認画面のTab循環、両削除のCancel初期focusを観測した。
+削除は実行していない。移動失敗では元フォルダーを保持し、専用移動先を作った後の再試行で
+実際の移動を確認した。ただしReturnとpointer試行の間で取得が遅れ、キーだけの成功は分離できない。
 
-Issue #457のPRとPR402はDraftを維持する。hideのPR402画面受理を代替しない。
-次は残る実機確認を可能な時点で再開し、独立した#454のフッター改善、#453のF6計測へ進む。
-作業は継続中であり、この記録を停止依頼として扱わない。
+操作ツールの窓検出・状態取得の遅れとtimeoutを記録し、後続観測で否定された起動/再試行の
+失敗推測は撤回した。空ペイン移動後の復帰には既にmainへ入った#454の正典focus修正を取り込む。
+保存後の案内が通常案内へ戻る点は、同値のSelect/Search/Filterが通知を捨てることを独立reviewで確認した。
+既存state ownerで同値入力の選択と通知を維持し、カテゴリ解決と完全なstale検査を先行させた。
+新規12件は修正前6失敗/6成功、修正後は関連28件すべて成功。追加reviewで必須修正はなかった。
+元のnativeイベントの特定はしていない。
+修正後の専用窓ではCtrl+Enter保存の約69秒後も通知と選択が残ることをAX/画像で確認した。
+App buildは警告/エラー0、Inspect既存7件で追加なし、変更C#書式確認も成功。
+専用1登録のみの差分を確認して終了後に元設定へ復元し、hash一致。通常アプリは保持した。
+詳細と未観測項目は[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)。
 
-`D:/NeNeCommander/worktrees/issue-457`は未受理の候補として保持する。
-`D:/NeNeCommander/outputs/bookmark-ux-20261119/`の入力原稿・進捗・空の試験fixtureも未完了のため保持。
-恒久証拠は`D:/NeNeCommander/evidence/bookmark-ux-20261119/`。
-既存の拒否済み削除対象は以下へ引き継ぎ、再試行していない。
+試験アプリはAlt+F4で終了。設定の差分は専用登録2件/カテゴリ1件だけと確認し、元の218byteへ
+復元してSHA-256一致。通常Cアプリは保持した。PR458とPR402はDraftのまま、main/Preview外。
+hideの別途画面受理を代替しない。#459のPreview beta.2公開用deep reviewは別の受理済みmainで実行中。
 
+未完了のD:/NeNeCommander/worktrees/issue-457とoutputs/bookmark-ux-20261119は保持する。
+恒久証拠はD:/NeNeCommander/evidence/bookmark-ux-20261119。停止指示はなく、作業は継続中。
 
 ## ! hide実行待ち：後片付け
 
-以下15対象の削除は自動承認審査が起動前に拒否したため保持する。理由は `blocked by policy` のみ。
-Folio6対象、11:28のCommander #439の2対象、11:44の#443出力、12:26の#433出力、
-公開後の#434出力と失敗候補01/02が対象。別手段で再試行しない。
-main取込、未保存物、ignored出力、唯一の成果物、稼働参照、リンクを確認済み。
-Commanderは#439の399file、#443の5file、#433のTRXと95 tool artifacts、#434の112fileと
-失敗候補01/02を恒久証拠へ保全しhash照合済み。#433/#443の作業木は削除済み。
+従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
+今回の#454完了分2対象は統合/未保存/ignored/リンク/稼働参照を確認し、出力15ファイルと検査結果を
+D:/NeNeCommander/evidence/footer-20261119へ保全してhash一致。しかし11:05の自動承認レビューが
+削除を起動前に `blocked by policy` で拒否した。削除は実行されず、別手段で再試行していない。
 
-- `D:/NeNeFolio/worktrees/935-window-width`
-- `D:/NeNeFolio/outputs/935-window-width`
-- `D:/NeNeFolio/agents/935-window-width`
-- `D:/NeNeFolio/agents/window-width-20261118`
-- `D:/NeNeFolio/design/20261118-search-explanation`
-- `D:/NeNeFolio/agents/session-20261118-sana`
-- `D:/NeNeCommander/worktrees/issue-439`
-- `D:/NeNeCommander/outputs/issue-439`
-- `D:/NeNeCommander/outputs/issue-443`
-- `D:/NeNeCommander/outputs/issue-448`
-- `D:/NeNeCommander/outputs/latency-20261118`
-- `D:/NeNeCommander/outputs/issue-433`
-- `D:/NeNeCommander/outputs/issue-434`
-- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-01`
-- `D:/NeNeCommander/releases/0.1.0-beta.1/candidate-20261118-02`
+- D:/NeNeCommander/worktrees/issue-454
+- D:/NeNeCommander/outputs/footer-20261119
 
-hide実行用の準備済みコマンド（既に無い対象は許容。サナは実行していない）:
+hide実行用（対象外のbranch/commit/恒久証拠は保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/session-20261118/cleanup-requested.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
 ```
-
-対象一覧は`cleanup-targets.json`、保全/拒否の原本は`D:/NeNeCommander/evidence/`内の
-各Issueとsessionのフォルダへ保存。Commanderのscriptは固定対象のinventory、Git状態、
-参照/リンクを照合し、保存済みhash証拠を再利用してdirectory単位のnative削除だけを行う。
-既存scriptの成功記録を再利用し、終了時に更新したmasterと診断用helperの2scriptも構文解析成功。
-いずれも実行はしていない。Folioの検査付きscriptを呼ぶ経路は維持した。
-ブランチ/commit/恒久証拠/公開shipping/候補03/実機用fixture/未完了PR402の作業木は保持する。
-hideの実行報告と不在確認まで後片付けは未完了。
