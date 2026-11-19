@@ -155,3 +155,11 @@ equality, clean and untracked state, the preserved1556 generated ignored files a
 no links/live references, archive hash and unchanged file sets/sizes/mtimes. Complete prior content
 hash verification was reused. Branches/commits/permanent evidence remain; four old rejections
 were not retried.
+
+
+The initial post-merge record checker stopped at raw input hashes: the main checkout has
+12 LF/CRLF differences among 1,011 proof inputs, while 999 files match byte for byte.
+`main-checkout-equivalence.json` compares every differing file with the accepted Git blob,
+proves the tested hash is its LF or CRLF encoding, and proves no other byte changes.
+The integration checker now applies this explicit equivalence and retains the mismatch list;
+this changes only evidence tooling outside the product. No behavior tests were repeated.
