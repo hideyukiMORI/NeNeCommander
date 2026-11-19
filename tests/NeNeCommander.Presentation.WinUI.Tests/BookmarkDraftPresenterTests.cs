@@ -142,8 +142,8 @@ public sealed class BookmarkDraftPresenterTests
         foreach ((BookmarkEditorProblem problem, string resourceKey) in cases)
         {
             BookmarksEditorState state = BookmarkPresenterTestContext.Construct<BookmarksBrowsing>(
-                [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)],
-                [new BookmarkBrowseContext("", BookmarkCategoryFilter.All, null), problem]);
+                [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem), typeof(BookmarkSelection)],
+                [new BookmarkBrowseContext("", BookmarkCategoryFilter.All, null), problem, null]);
 
             BookmarkManagerPresentation presentation = BookmarkPresenterTestContext.Present(BookmarkCatalog.Empty, state);
 

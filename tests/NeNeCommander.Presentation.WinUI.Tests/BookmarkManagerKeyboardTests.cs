@@ -99,8 +99,8 @@ public sealed class BookmarkManagerKeyboardTests
 
         Assert.AreSame(KeyboardContext.Bookmarks, BookmarkManagerKeyboard.ContextFor(browsing.Details, BookmarkManagerFocusTarget.BookmarkList));
         Assert.AreSame(KeyboardContext.BookmarkSearch, BookmarkManagerKeyboard.ContextFor(browsing.Details, BookmarkManagerFocusTarget.Search));
-        Assert.IsNull(BookmarkManagerKeyboard.ContextFor(drafting.Details, BookmarkManagerFocusTarget.BookmarkList));
-        Assert.IsNull(BookmarkManagerKeyboard.ContextFor(drafting.Details, BookmarkManagerFocusTarget.Search));
+        Assert.AreSame(KeyboardContext.BookmarkDraft, BookmarkManagerKeyboard.ContextFor(drafting.Details, BookmarkManagerFocusTarget.BookmarkList));
+        Assert.AreSame(KeyboardContext.BookmarkDraft, BookmarkManagerKeyboard.ContextFor(drafting.Details, BookmarkManagerFocusTarget.Search));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => BookmarkManagerKeyboard.ContextFor(null!, BookmarkManagerFocusTarget.Search));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => BookmarkManagerKeyboard.ContextFor(browsing.Details, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => Resolve(null!, BookmarkManagerKeyAction.Add, null, null));

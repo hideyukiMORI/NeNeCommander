@@ -96,14 +96,15 @@ public sealed class BookmarkKeyboardMappingTests
         KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
         HashSet<string> keystrokes = [];
 
-        Assert.HasCount(14, bindings);
+        Assert.HasCount(16, bindings);
         Assert.AreEqual(11, bindings.Count(binding => binding.Context == KeyboardContext.Bookmarks));
         Assert.AreEqual(3, bindings.Count(binding => binding.Context == KeyboardContext.BookmarkSearch));
         foreach (BookmarkManagerKeyBinding binding in bindings)
         {
             Assert.IsTrue(keystrokes.Add(binding.Context.GetType().Name + " " + binding.KeyLabelResourceKey));
-            Assert.AreSame(binding.Action, Mapped(mapper, binding.Key, binding.Context));
-            Assert.AreEqual(binding.Key.LabelResourceKey, binding.KeyLabelResourceKey);
+            Assert.AreSame(binding.Action, Assert.IsInstanceOfType<MappedBookmarkManagerAction>(mapper.Map(
+                KeyboardMappingTestContext.Input(binding.Key, binding.Modifier, binding.Context))).Action);
+            Assert.AreNotEqual("KeyLabelUnmapped", binding.KeyLabelResourceKey);
         }
         Assert.IsEmpty(KeyboardIntentMapper.BindingsFor(KeyboardContext.Bookmarks));
         Assert.IsEmpty(KeyboardIntentMapper.BindingsFor(KeyboardContext.BookmarkSearch));

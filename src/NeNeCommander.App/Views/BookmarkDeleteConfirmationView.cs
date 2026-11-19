@@ -13,7 +13,7 @@ namespace NeNeCommander.App.Views;
 /// </summary>
 internal sealed class BookmarkDeleteConfirmationView
 {
-    private readonly StackPanel _body;
+    private readonly ScrollViewer _body;
     private readonly StackPanel _footer;
     private readonly TextBlock _name;
     private readonly TextBlock _path;
@@ -22,7 +22,7 @@ internal sealed class BookmarkDeleteConfirmationView
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(forward);
-        _body = Find<StackPanel>(root, "BookmarkDeleteBody");
+        _body = Find<ScrollViewer>(root, "BookmarkDeleteBody");
         _footer = Find<StackPanel>(root, "BookmarkDeleteFooter");
         _name = Find<TextBlock>(root, "BookmarkDeleteName");
         _path = Find<TextBlock>(root, "BookmarkDeletePath");

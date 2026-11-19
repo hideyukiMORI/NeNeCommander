@@ -140,8 +140,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         KeyboardContext context = GetKeyboardContext();
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
-        if (IsTextComposing)
+        bool consumesPendingFocus = _bookmarkView.ObserveInput(input);
+        if (IsTextComposing || _bookmarkView.HasOpenSelector)
         {
+            _keyboardIntentMapper.ObserveNativeInput(input);
             return;
         }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
@@ -150,7 +152,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
-        args.Handled = ForwardOutcome(outcome);
+        args.Handled = consumesPendingFocus || ForwardOutcome(outcome);
     }
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)

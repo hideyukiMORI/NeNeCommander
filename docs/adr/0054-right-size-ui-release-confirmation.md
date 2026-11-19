@@ -2,6 +2,10 @@
 
 Status: accepted
 
+The timing of the first public Preview is superseded narrowly by
+[ADR-0079](0079-first-preview-before-screen-confirmation.md), following hide's
+2026-11-18 instruction. The manual check itself remains open and unperformed.
+
 Date: 2026-10-09
 
 ## Context

@@ -1,0 +1,72 @@
+# 2026-11-19 Bookmark操作性改善・中間記録
+
+Status: ongoing; Issue #457 implementation candidate, native acceptance pending
+
+hideの「止めるまで進める」という依頼で再開した。最優先のBookmarkを、既存PR402の
+キーボード操作から改善している。通常mainと公開Previewには反映していない。
+
+## 変更と検証
+
+- キー操作・画面構成・アクセシビリティの3専門家が、全キーモデル、実装、利用可能な画像を
+  読み取り専用で検討し、相反する案を調整した。実際のNeNe Commanderリナにも相談した。
+  この環境の`/design`はアクセス管理のコマンドだったため、同じClaude環境のデザイン批評・
+  アクセシビリティ・引き継ぎスキルで続けた。クラウド権限は変更していない。
+- 保存は編集画面限定のCtrl+Enter。通常Enterはコントロールへ渡す。検索中は
+  Enter/Down/Escapeが「一覧へ」であることを案内し、次のEnterで開く契約を維持する。
+- 一覧に入ると可視選択または先頭を選び、保存後は検索を解除して保存した項目を選ぶ。
+  取消では元の検索・カテゴリを維持する。閲覧による設定書込みは発生しない。
+- 全Bookmark文字入力のIMEと、開いたカテゴリ／枠の選択肢を保護する。
+  独立レビューで見つかった通常Enter長押しの回帰は、失敗する試験を保存して修正した。
+- アクティブ領域を既存トークンで区別し、入力ラベルと割当済みの枠名を示す。
+  実画像レビューの指摘により、設定の保存状態には「設定:」を添えた。
+- 実起動で保存ボタンのリソース取得エラーを検出して修正。さらに、空一覧と画面切替の
+  フォーカス不良を再現した。既存の遅延処理を拡張し、後続Tab／pointerで予約を取消し、
+  初期focus予約中のEnterを消費する。IME／選択肢のnative入力は維持する。
+
+Applicationの95件と追加1件、Presentationの135件に対する変更後の案内8件・focus8件、
+App Release build、view所有権20件、変更ファイルの書式確認が成功した。
+ビルド失敗、停滞したMSBuildの停止、restore不足、CRLF修正、静的検査の追加指摘と解消も
+[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)へ残した。
+無関係な全件回帰、coverage、mutation、hosted CIは実行していない。
+
+## 再開した実機確認
+
+11:07〜11:20にcandidate95549f5を専用プロセスで確認した。空一覧からの登録、取消後の再登録、
+Ctrl+Enterと保存ボタンのEnter、検索から先頭選択・編集、空の名前の検証拒否、カテゴリ/枠の
+popup、3入力欄の実IME、カテゴリフォームと確認画面のTab循環、両削除のCancel初期focusを観測した。
+削除は実行していない。移動失敗では元フォルダーを保持し、専用移動先を作った後の再試行で
+実際の移動を確認した。ただしReturnとpointer試行の間で取得が遅れ、キーだけの成功は分離できない。
+
+操作ツールの窓検出・状態取得の遅れとtimeoutを記録し、後続観測で否定された起動/再試行の
+失敗推測は撤回した。空ペイン移動後の復帰には既にmainへ入った#454の正典focus修正を取り込む。
+保存後の案内が通常案内へ戻る点は、同値のSelect/Search/Filterが通知を捨てることを独立reviewで確認した。
+既存state ownerで同値入力の選択と通知を維持し、カテゴリ解決と完全なstale検査を先行させた。
+新規12件は修正前6失敗/6成功、修正後は関連28件すべて成功。追加reviewで必須修正はなかった。
+元のnativeイベントの特定はしていない。
+修正後の専用窓ではCtrl+Enter保存の約69秒後も通知と選択が残ることをAX/画像で確認した。
+App buildは警告/エラー0、Inspect既存7件で追加なし、変更C#書式確認も成功。
+専用1登録のみの差分を確認して終了後に元設定へ復元し、hash一致。通常アプリは保持した。
+詳細と未観測項目は[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)。
+
+試験アプリはAlt+F4で終了。設定の差分は専用登録2件/カテゴリ1件だけと確認し、元の218byteへ
+復元してSHA-256一致。通常Cアプリは保持した。PR458とPR402はDraftのまま、main/Preview外。
+hideの別途画面受理を代替しない。#459のPreview beta.2公開用deep reviewは別の受理済みmainで実行中。
+
+未完了のD:/NeNeCommander/worktrees/issue-457とoutputs/bookmark-ux-20261119は保持する。
+恒久証拠はD:/NeNeCommander/evidence/bookmark-ux-20261119。停止指示はなく、作業は継続中。
+
+## ! hide実行待ち：後片付け
+
+従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
+今回の#454完了分2対象は統合/未保存/ignored/リンク/稼働参照を確認し、出力15ファイルと検査結果を
+D:/NeNeCommander/evidence/footer-20261119へ保全してhash一致。しかし11:05の自動承認レビューが
+削除を起動前に `blocked by policy` で拒否した。削除は実行されず、別手段で再試行していない。
+
+- D:/NeNeCommander/worktrees/issue-454
+- D:/NeNeCommander/outputs/footer-20261119
+
+hide実行用（対象外のbranch/commit/恒久証拠は保持）:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
+```

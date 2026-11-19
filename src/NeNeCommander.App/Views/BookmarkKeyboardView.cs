@@ -28,18 +28,9 @@ internal sealed class BookmarkKeyboardView
         _hints = hints;
         _forward = forward;
         _browse.RegionFocused += (_, region) => ShowRegion(region);
-        _browse.Search.TextCompositionStarted += (_, _) => Composing = true;
-        _browse.Search.TextCompositionEnded += (_, _) => Composing = false;
+        _browse.Search.GotFocus += (_, _) => _hints.ItemsSource = BookmarkManagerKeyHintPresenter.PresentSearch();
         RenderHints();
     }
-
-    /// <summary>
-    /// Gets whether the focused search field is composing text through an input method; a
-    /// composition the field lost focus during never blocks the manager's keys.
-    /// </summary>
-    internal bool IsComposing => Composing && _browse.SearchHasFocus;
-
-    private bool Composing { get; set; }
 
     /// <summary>Returns the keyboard context the manager owns for the rendered substate.</summary>
     /// <param name="details">Rendered manager substate.</param>
@@ -100,16 +91,14 @@ internal sealed class BookmarkKeyboardView
 
     private void ShowRegion(BookmarkManagerRegion region)
     {
-        if (region == _region && _hints.ItemsSource is not null)
-        {
-            return;
-        }
         _region = region;
         RenderHints();
     }
 
     private void RenderHints()
     {
-        _hints.ItemsSource = BookmarkManagerKeyHintPresenter.Present(_region);
+        _hints.ItemsSource = _browse.SearchHasFocus
+            ? BookmarkManagerKeyHintPresenter.PresentSearch()
+            : BookmarkManagerKeyHintPresenter.Present(_region);
     }
 }

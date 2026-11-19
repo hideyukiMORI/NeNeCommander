@@ -381,4 +381,10 @@
   <data name="BookmarkDeletePathLabel.Text" xml:space="preserve"><value>場所</value></data>
   <data name="BookmarkDeleteConfirm.Content" xml:space="preserve"><value>削除</value></data>
   <data name="BookmarkStatusConfirmBookmarkDelete" xml:space="preserve"><value>削除するブックマークを確認してください。</value></data>
+  <data name="KeyLabelCtrlEnter" xml:space="preserve"><value>Ctrl+Enter</value></data>
+  <data name="BookmarkHelpSaveDraft" xml:space="preserve"><value>ブックマーク・カテゴリの編集を保存</value></data>
+  <data name="BookmarkHintToCategories" xml:space="preserve"><value>カテゴリへ</value></data>
+  <data name="BookmarkStatusSavedSelection" xml:space="preserve"><value>ブックマークを更新しました。検索を解除し、その項目を選択しています。</value></data>
+  <data name="BookmarkHelpCloseOrCancel" xml:space="preserve"><value>閉じる／編集中は取消</value></data>
+  <data name="BookmarkPersistenceLabel.Text" xml:space="preserve"><value>設定:</value></data>
 </root>

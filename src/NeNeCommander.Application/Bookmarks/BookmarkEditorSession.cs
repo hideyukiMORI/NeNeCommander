@@ -102,7 +102,9 @@ internal sealed class BookmarkEditorSession
     {
         if (Current is BookmarksBrowsing browsing)
         {
-            Current = Browse(new BookmarkBrowseContext(text, browsing.Context.Filter, null));
+            Current = text == browsing.Context.SearchText
+                ? RefreshBrowse(browsing)
+                : Browse(new BookmarkBrowseContext(text, browsing.Context.Filter, null));
         }
         return Changed();
     }
@@ -114,6 +116,11 @@ internal sealed class BookmarkEditorSession
         if (Current is BookmarksBrowsing browsing)
         {
             BookmarkCategoryFilter? current = ResolveFilter(filter, catalog);
+            if (current is not null && current.Equals(browsing.Context.Filter))
+            {
+                Current = RefreshBrowse(browsing);
+                return Changed();
+            }
             Current = current is not null
                 ? Browse(new BookmarkBrowseContext(browsing.Context.SearchText, current, null))
                 : Browse(browsing.Context, BookmarkEditorProblem.InvalidCategory);
@@ -128,12 +135,17 @@ internal sealed class BookmarkEditorSession
         if (Current is BookmarksBrowsing browsing)
         {
             BookmarkSelection? current = selection is null ? null : catalog.Select(selection.Key);
-            Current = selection is null || (current is not null && catalog.Matches(selection))
-                ? Browse(new BookmarkBrowseContext(
+            if (selection is not null && (current is null || !catalog.Matches(selection)))
+            {
+                Current = Browse(browsing.Context, BookmarkEditorProblem.StaleSelection);
+                return Changed();
+            }
+            Current = Equals(current, browsing.Context.Selection)
+                ? RefreshBrowse(browsing)
+                : Browse(new BookmarkBrowseContext(
                     browsing.Context.SearchText,
                     browsing.Context.Filter,
-                    current))
-                : Browse(browsing.Context, BookmarkEditorProblem.StaleSelection);
+                    current));
         }
         return Changed();
     }
@@ -326,6 +338,11 @@ internal sealed class BookmarkEditorSession
         }
         BookmarkCategorySelection? category = catalog.Select(user.Category);
         return category is null ? null : BookmarkCategoryFilter.For(category.Category);
+    }
+
+    private static BookmarksBrowsing RefreshBrowse(BookmarksBrowsing browsing)
+    {
+        return new BookmarksBrowsing(browsing.Context, null, browsing.SavedSelection);
     }
 
     private static BookmarksBrowsing Browse(BookmarkBrowseContext context)

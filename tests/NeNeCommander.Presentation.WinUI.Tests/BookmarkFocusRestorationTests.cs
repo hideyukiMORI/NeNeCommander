@@ -9,6 +9,38 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 [TestClass]
 public sealed class BookmarkFocusRestorationTests
 {
+    /// <summary>Proves automatic focus during layout does not discard a requested state transition.</summary>
+    [TestMethod]
+    public void RequestWhenLayoutTemporarilyFocusesSearchKeepsTheRequestedTarget()
+    {
+        List<Action> queued = [];
+        BookmarkFocusRestoration restoration = new(queued.Add);
+        int focusCount = 0;
+        restoration.Request(() => focusCount++);
+        Assert.IsTrue(restoration.IsPending);
+
+        restoration.CancelRestoration();
+        queued[0]();
+
+        Assert.AreEqual(1, focusCount);
+        Assert.IsFalse(restoration.IsPending);
+    }
+
+    /// <summary>Proves native focus changes still cancel a passive row-regeneration restoration.</summary>
+    [TestMethod]
+    public void RestoreWhenNativeFocusChangesDoesNotTakeFocusBack()
+    {
+        List<Action> queued = [];
+        BookmarkFocusRestoration restoration = new(queued.Add);
+        int focusCount = 0;
+        restoration.Restore(() => focusCount++);
+
+        restoration.CancelRestoration();
+        queued[0]();
+
+        Assert.AreEqual(0, focusCount);
+    }
+
     /// <summary>Proves a later search or close cancels an already-queued list restoration.</summary>
     [TestMethod]
     public void RequestWhenCancelledBeforeDispatchDoesNotRestoreFocus()
@@ -18,6 +50,7 @@ public sealed class BookmarkFocusRestorationTests
         int focusCount = 0;
         restoration.Request(() => focusCount++);
         restoration.Cancel();
+        Assert.IsFalse(restoration.IsPending);
 
         queued[0]();
 

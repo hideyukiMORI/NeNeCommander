@@ -119,7 +119,7 @@ public sealed class BookmarkPresentationBehaviorTests
     private static BookmarksBrowsing Browsing(BookmarkBrowseContext context)
     {
         return Construct<BookmarksBrowsing>(
-            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)], [context, null]);
+            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem), typeof(BookmarkSelection)], [context, null, null]);
     }
 
     private static BookmarkCatalog Catalog(IReadOnlyList<BookmarkCategoryName> categories, IReadOnlyList<BookmarkEntry> entries)

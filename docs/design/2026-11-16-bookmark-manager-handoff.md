@@ -4,6 +4,9 @@ Status: approved direction A for Issue #398
 
 Date: 2026-11-16
 
+Updated 2026-11-19 by [the Issue #457 design review](2026-11-19-bookmark-keyboard-review.md).
+Direction A remains approved; the update does not replace hide's pending screen acceptance.
+
 This handoff records the bookmark manager layout and keyboard decided in
 [ADR-0080](../adr/0080-bookmark-manager-keyboard.md). Engineering owns the content, behavior,
 accessibility and integration constraints below. The visual direction is chosen by hide; final
@@ -48,7 +51,8 @@ with an ellipsis; long category names are trimmed in the column.
   list. `Tab` switches region, `Enter` opens the bookmark or moves from the column to the list,
   `a`/`e`/`d` act on the focused region, `/` focuses the search field, `Escape` closes. The selected
   row and category carry the file list's focus mark; the focused item also shows the system focus
-  visual.
+  visual. Issue #457 uses the existing active mark only in the focused region, with passive
+  selection marks in the other region; an outline also identifies an empty focused list.
 - **Searching.** Text goes to the field; `Escape`, `Down` and `Enter` return to the list without
   closing. Input-method composition is never interpreted.
 - **Bookmark deletion confirmation.** `d` or the Delete hint in the list opens it in the panel:
@@ -56,7 +60,10 @@ with an ellipsis; long category names are trimmed in the column.
   `削除` / `キャンセル` buttons (`BookmarkDeleteConfirm` / `BookmarkDeleteCancel`). Focus starts
   on Cancel; `Escape` and a scrim tap return to browsing. Nothing changes or saves until Delete.
 - **Bookmark draft, category draft, category-delete confirmation, failed navigation.** The existing
-  forms and their buttons replace the browse body and the band; keyboard behavior is unchanged.
+  forms and their buttons replace the browse body and the band. Bookmark/category drafts gain
+  Ctrl+Enter Save, shown on the button from the canonical map. Ordinary Enter stays native;
+  IME and open ComboBoxes own their input. Tab cycles inside the panel. Drafts/confirmations
+  scroll vertically and keep the action footer visible. Confirmations retain Cancel initial focus.
 - **Navigation pending.** The browse body stays visible but disabled.
 - **Empty catalog / no matches.** The existing guidance text; the empty-catalog text names `a`.
 - **Pointer.** Each hint except movement is a flat button running the same action as its key.

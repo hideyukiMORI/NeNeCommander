@@ -21,14 +21,16 @@ public static class BookmarkManagerKeyboard
     /// </param>
     /// <returns>
     /// <see cref="KeyboardContext.BookmarkSearch"/> or <see cref="KeyboardContext.Bookmarks"/> while
-    /// browsing, or <see langword="null"/> when a draft, confirmation or navigation keeps the
-    /// shared modal context.
+    /// browsing, <see cref="KeyboardContext.BookmarkDraft"/> in a draft, or <see langword="null"/>
+    /// when confirmation or navigation keeps the shared modal context.
     /// </returns>
     public static KeyboardContext? ContextFor(BookmarkEditorDetails details, BookmarkManagerFocusTarget focused)
     {
         ArgumentNullException.ThrowIfNull(details);
         ArgumentNullException.ThrowIfNull(focused);
-        return !details.IsBrowsing
+        return details.IsBookmarkDrafting || details.IsCategoryDrafting
+            ? KeyboardContext.BookmarkDraft
+            : !details.IsBrowsing
             ? null
             : focused == BookmarkManagerFocusTarget.Search ? KeyboardContext.BookmarkSearch : KeyboardContext.Bookmarks;
     }
@@ -49,6 +51,8 @@ public static class BookmarkManagerKeyboard
         ArgumentNullException.ThrowIfNull(action);
         return action switch
         {
+            BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.Save =>
+                Submit(BookmarkEditorAction.Save),
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.MoveNext =>
                 BookmarkManagerCommand.Move(1),
             BookmarkManagerKeyAction value when value == BookmarkManagerKeyAction.MovePrevious =>

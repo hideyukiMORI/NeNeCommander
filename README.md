@@ -11,7 +11,14 @@ The repository is in its implementation stage; production code is permitted. Mos
 - Session-owned transient surfaces: settings editor, command palette, bookmarks with fixed slots, window adjustment mode, and a Locations picker for drives and WSL distribution roots. The palette can open settings, Locations, Bookmarks and window adjustment through their existing commands.
 - Providers: Windows local paths (reads, mutations, transfers, launch), WSL distributions reached through `\\wsl.localhost` (reads, mutations and same- or cross-distribution transfers, Windows association launch for compatible names below 260 characters), UNC shares (directory reads and association launch for paths below 260 characters), and copy or move in both directions between a Windows local path and a WSL distribution.
 
-Not yet on `main`: UNC mutations, network-drive-specific provider behavior, and the hand-run on-screen release confirmation defined by ADR-0054. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
+Not yet on `main`: UNC mutations and network-drive-specific provider behavior. On 2026-11-19, hide reported completing the one-time on-screen confirmation defined by ADR-0054; narrow-window footer clipping remains a known finding in Issue #454. See the [manual-check record](docs/quality/2026-11-19-manual-screen-and-f6-check.md) for its scope and limits. The single current truth, including the verified baseline, deep-review scores, and the next focused work, is [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md); numbers are deliberately not repeated here.
+
+## Beta packaging
+
+The Windows 11 x64 beta uses one unpackaged, self-contained folder distribution.
+See [publishing instructions](docs/release/PUBLISHING.md) and the
+[distribution guide](docs/release/README.txt). Preparing a ZIP does not declare
+that the separate release checks or public release have completed.
 
 ## Repository layout
 
