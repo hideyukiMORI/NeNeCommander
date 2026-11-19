@@ -1,6 +1,6 @@
 # 2026-11-19 F6描画区間と完了合図・進捗
 
-Status: 予定した観測と検算を完了。文書統合・今回の作業物整理は未完了。hide停止まで継続。
+Status: PR483統合・今回の作業物整理完了。hide停止まで継続。
 
 Issue #482で、F6処理中の既存の初回描画1回・進捗描画2回を、4つの外側の記録点に加えて
 診断コピー上で区切った。元のmapper/session/gateway/provider/再読込/描画とawait順序は維持。
@@ -39,7 +39,9 @@ percentile、#453解決とは扱わない。24外側tick・18描画span・6total
 正確な境界・全数値・コマンド・制約は[品質記録](../quality/2026-11-19-f6-ui-render-spans.md)。
 全証拠は`D:/NeNeCommander/evidence/f6-ui-render-spans-20261119/`へ保存。PID32792とobserverは
 終了済み、通常38360/元218byte設定/hashは不変。公開beta.2は不変、PR402/63f4769のhide画面受理は別途必要。
-今回のworktree/outputは統合・保全・未保存/未追跡/ignored/参照/link確認後に整理する。
+PR483は18:42:16に57da22fとして通常squash統合し、受理f348661とtree一致。12数値行/208相対linkと
+通常hookが合格。18:42:53に取込/clean/未追跡/ignored/参照0/link0/両archiveと全収載を確認し、
+今回のissue-482作業木と診断outputだけを削除、不在確認済み。branch/commit/恒久証拠は保持。
 
 ## ! hide実行待ち：後片付け
 
