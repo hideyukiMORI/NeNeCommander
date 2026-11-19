@@ -13,12 +13,14 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 internal sealed class RecordingFileOperationPort : IFileOperationPort
 {
     internal int InspectionCount { get; private set; }
+    internal FileInspectionPurpose? LastInspectionPurpose { get; private set; }
 
     internal List<string> Calls { get; } = [];
 
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         InspectionCount++;
+        LastInspectionPurpose = purpose;
         return Task.FromResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
     }
 

@@ -26,6 +26,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
+
 - [ADR-0082: Wrap the footer and persist its normal key-hint visibility](0082-footer-key-hint-visibility.md)
 
 - [ADR-0081: Check literal localization keys against shipped catalogs](0081-check-literal-localization-keys.md)

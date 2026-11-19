@@ -52,6 +52,15 @@ Preflight does not grant permanent trust. Adapters revalidate identity and conta
 
 Windows recycle (ADR-0063, ADV-023) also revalidates source identity, non-link ancestors and the source tree in the Shell pre-delete callback. Mandatory recycle-only flags and a callback requiring the recycle flag prohibit permanent fallback. Completed receipts survive later cancellation or failure in the canonical outcome. Shell still reopens the path after the last check; this is an explicit residual race, not handle-relative deletion. The live proof records source/root identities before effects and restores only its own returned receipt. Unknown or unlocated residue is retained; the user's recycle bin is never enumerated or purged by the proof.
 
+ADR-0083 distinguishes unrequested ordinary-deletion capability from both inspected outcomes.
+Under ADV-008/ADV-018, the gateway rejects a deletion batch containing any `NotRequested` result
+before the first effect or progress notification; explicit confirmation cannot supply missing
+capability evidence. Concrete provider ordinary-delete entry points also reject this state before
+scheduling. Transfers retain the exact frozen capability through conflict/preflight/resume and
+cannot replace it with a newly observed value. Their distinct verified-copy deletion still uses
+the original receipt/identity/content/ancestor checks below. Identity-only inspection changes no
+identity, drive, link, containment, overwrite or effect-boundary admission rule.
+
 ADR-0072 adds fresh drive admission at existing source/destination and recursive-child boundaries,
 including settings capture/publication/cleanup and verified source deletion. It closes observed
 network or unknown mapping changes without inventing SMB identity. A final query-to-path-reopen

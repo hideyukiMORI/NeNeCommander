@@ -67,7 +67,7 @@ public sealed class WindowsRecycleAdmissionTests
         WindowsLocalPath path = WindowsRecycleBinTests.Path(root.WriteFile("source", "owned"));
         ScriptedWindowsRecycleShell shell = new();
         WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(shell));
-        FileInspectionSucceeded inspected = Assert.IsInstanceOfType<FileInspectionSucceeded>(await adapter.InspectAsync(path, CancellationToken.None));
+        FileInspectionSucceeded inspected = Assert.IsInstanceOfType<FileInspectionSucceeded>(await adapter.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None));
         Assert.AreSame(DeletionCapability.Recycle, inspected.Snapshot.DeletionCapability);
         Assert.IsNull((await adapter.DeleteAsync(inspected.Snapshot, DeletionExecutionMode.Recycle, CancellationToken.None)).Failure);
         Assert.AreEqual(1, shell.Operation.PerformCount);

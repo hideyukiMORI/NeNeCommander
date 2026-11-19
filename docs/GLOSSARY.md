@@ -16,6 +16,8 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | intent | A UI-independent request for behavior. |
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
+| inspection purpose | The closed `FileInspectionPurpose` requested by the gateway: `IdentityOnly` for transfer, rename and directory creation, or `Deletion` for identity plus ordinary-deletion capability. The single provider inspection route owns both (ADR-0083). |
+| unrequested deletion capability | `DeletionCapability.NotRequested`: no ordinary-deletion capability was requested or granted. It is distinct from inspected `Recycle` and `PermanentOnly`; ordinary deletion rejects a batch containing it before any effect. Verified-copy deletion retains its separate receipt authority (ADR-0083). |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
 | closed record cases | Known sealed cases whose public abstract root prevents ordinary non-friend external C# code from adding another concrete case through an externally inaccessible abstract member (ADR-0073). External abstract derivation and trusted friend assemblies remain possible; this is not an in-process security sandbox. |
 | entry | One direct child of a read location with its validated path, provider-reported name, closed kind, and entry metadata. |

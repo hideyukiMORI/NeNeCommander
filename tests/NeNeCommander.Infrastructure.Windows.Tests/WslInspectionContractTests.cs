@@ -24,7 +24,7 @@ public sealed class WslInspectionContractTests
         WslFileSystemEntry entry = WslOperationTestContext.Entry(path, "identity-a", DirectoryEntryKind.File);
         fileSystem.Set(entry);
 
-        FileInspectionOutcome outcome = await WslOperationTestContext.Adapter(fileSystem).InspectAsync(path, CancellationToken.None);
+        FileInspectionOutcome outcome = await WslOperationTestContext.Adapter(fileSystem).InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None);
 
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
         Assert.AreEqual(path, snapshot.Path);
@@ -41,10 +41,10 @@ public sealed class WslInspectionContractTests
         ScriptedWslFileSystem missing = new();
         WslPath path = WslOperationTestContext.Wsl("\\\\wsl.localhost\\Ubuntu\\home\\missing");
         FileInspectionFailed absent = Assert.IsInstanceOfType<FileInspectionFailed>(
-            await WslOperationTestContext.Adapter(missing).InspectAsync(path, CancellationToken.None));
+            await WslOperationTestContext.Adapter(missing).InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None));
         ScriptedWslFileSystem denied = new() { Failure = new UnauthorizedAccessException() };
         FileInspectionFailed inaccessible = Assert.IsInstanceOfType<FileInspectionFailed>(
-            await WslOperationTestContext.Adapter(denied).InspectAsync(path, CancellationToken.None));
+            await WslOperationTestContext.Adapter(denied).InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None));
         ScriptedWslFileSystem failedMutation = new();
         WslFileSystemEntry sourceEntry = WslOperationTestContext.Entry(path, "source", DirectoryEntryKind.File);
         failedMutation.Set(sourceEntry);
@@ -60,21 +60,31 @@ public sealed class WslInspectionContractTests
             WslOperationTestContext.Snapshot(sourceEntry),
             DeletionExecutionMode.Permanent,
             CancellationToken.None);
-        FileInspectionFailed unsupported = Assert.IsInstanceOfType<FileInspectionFailed>(
-            await WslOperationTestContext.Adapter(new ScriptedWslFileSystem()).InspectAsync(
-                WslOperationTestContext.Local("C:\\item"),
-                CancellationToken.None));
         ScriptedWslFileSystem unavailable = new() { Failure = new IOException("Synthetic loss.") };
         FileInspectionFailed unavailableInspection = Assert.IsInstanceOfType<FileInspectionFailed>(
-            await WslOperationTestContext.Adapter(unavailable).InspectAsync(path, CancellationToken.None));
+            await WslOperationTestContext.Adapter(unavailable).InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None));
 
         Assert.AreSame(FileOperationFailureKind.NotFound, absent.Failure);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, inaccessible.Failure);
         Assert.AreSame(FileOperationFailureKind.Delete, failed.Failure);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, deniedDelete.Failure);
-        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, unsupported.Failure);
         Assert.AreSame(FileOperationFailureKind.Inspection, unavailableInspection.Failure);
         Assert.HasCount(0, failedMutation.Deleted);
+    }
+
+    /// <summary>Neither inspection purpose admits a foreign provider into the WSL adapter.</summary>
+    [TestMethod]
+    [DataRow("Identity")]
+    [DataRow("Deletion")]
+    public async Task InspectAsyncWhenPathIsNotWslFailsClosed(string choice)
+    {
+        WslFileOperationAdapter adapter = WslOperationTestContext.Adapter(new ScriptedWslFileSystem());
+        FileInspectionPurpose purpose = choice == "Deletion" ? FileInspectionPurpose.Deletion : FileInspectionPurpose.IdentityOnly;
+
+        FileInspectionFailed outcome = Assert.IsInstanceOfType<FileInspectionFailed>(await adapter.InspectAsync(
+            WslOperationTestContext.Local("C:\\item"), purpose, CancellationToken.None));
+
+        Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
     }
 
     /// <summary>Proves required adapter and entry arguments reject defects synchronously.</summary>
@@ -110,7 +120,7 @@ public sealed class WslInspectionContractTests
 
     private static void AssertMutationNullGuards(WslFileOperationAdapter adapter, FileEntrySnapshot snapshot, WslPath path)
     {
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => adapter.InspectAsync(null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => adapter.InspectAsync(null!, FileInspectionPurpose.Deletion, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => adapter.DeleteAsync(null!, DeletionExecutionMode.Permanent, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(

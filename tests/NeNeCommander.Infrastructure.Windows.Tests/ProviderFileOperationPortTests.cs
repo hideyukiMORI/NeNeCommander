@@ -15,23 +15,29 @@ public sealed class ProviderFileOperationPortTests
 {
     /// <summary>Proves local and WSL inspections reach only their matching adapter.</summary>
     [TestMethod]
-    public async Task InspectAsyncWhenProviderIsSupportedDelegatesToItsOnlyAdapter()
+    [DataRow("Identity")]
+    [DataRow("Deletion")]
+    public async Task InspectAsyncWhenProviderIsSupportedDelegatesToItsOnlyAdapter(string choice)
     {
         RecordingFileOperationPort windowsLocal = new();
         RecordingFileOperationPort wsl = new();
         RecordingFileOperationPort windowsLocalToWsl = new();
         ProviderFileOperationPort router = new(windowsLocal, wsl, windowsLocalToWsl, new RecordingFileOperationPort());
+        FileInspectionPurpose purpose = choice == "Deletion" ? FileInspectionPurpose.Deletion : FileInspectionPurpose.IdentityOnly;
 
-        _ = await router.InspectAsync(Path("C:\\item.txt"), CancellationToken.None);
+        _ = await router.InspectAsync(Path("C:\\item.txt"), purpose, CancellationToken.None);
         Assert.AreEqual(1, windowsLocal.InspectionCount);
+        Assert.AreSame(purpose, windowsLocal.LastInspectionPurpose);
         Assert.AreEqual(0, wsl.InspectionCount);
 
         _ = await router.InspectAsync(
             Path("\\\\wsl.localhost\\Ubuntu\\home\\item.txt"),
+            purpose,
             CancellationToken.None);
 
         Assert.AreEqual(1, windowsLocal.InspectionCount);
         Assert.AreEqual(1, wsl.InspectionCount);
+        Assert.AreSame(purpose, wsl.LastInspectionPurpose);
         Assert.AreEqual(0, windowsLocalToWsl.InspectionCount);
     }
 
@@ -219,7 +225,7 @@ public sealed class ProviderFileOperationPortTests
         FileEntrySnapshot ubuntu = Snapshot("\\\\wsl.localhost\\Ubuntu\\item", "ubuntu");
         FileEntrySnapshot debian = Snapshot("\\\\wsl.localhost\\Debian\\item", "debian");
 
-        FileInspectionOutcome inspection = await router.InspectAsync(unc, CancellationToken.None);
+        FileInspectionOutcome inspection = await router.InspectAsync(unc, FileInspectionPurpose.Deletion, CancellationToken.None);
         TransferPreflightOutcome empty = await router.PreflightTransferAsync(
             [],
             ubuntuDestination,
@@ -293,7 +299,7 @@ public sealed class ProviderFileOperationPortTests
         ProviderFileOperationPort router, FileEntrySnapshot source, FileSystemPath target)
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => router.InspectAsync(null!, CancellationToken.None));
+            () => router.InspectAsync(null!, FileInspectionPurpose.Deletion, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.PreflightTransferAsync(null!, target, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(

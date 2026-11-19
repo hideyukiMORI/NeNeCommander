@@ -32,10 +32,11 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         _fileSystem = fileSystem;
     }
 
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        return _executionBoundary.ExecuteAsync(() => Inspect(path));
+        ArgumentNullException.ThrowIfNull(purpose);
+        return _executionBoundary.ExecuteAsync(() => Inspect(path, purpose));
     }
 
     public Task<TransferPreflightOutcome> PreflightTransferAsync(
@@ -101,8 +102,10 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
-        return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
+        return !source.DeletionCapability.IsInspected && mode is not DeletionExecutionMode.VerifiedCopyMode
+            ? Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection))
+            : _executionBoundary.ExecuteAsync(
+                () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
 
     public Task<ProviderStepOutcome> CreateDirectoryAsync(
@@ -127,7 +130,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             () => Guarded(() => Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private FileInspectionOutcome Inspect(FileSystemPath path)
+    private FileInspectionOutcome Inspect(FileSystemPath path, FileInspectionPurpose purpose)
     {
         if (path is not WslPath wsl)
         {
@@ -142,7 +145,9 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
                 : FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(
                     path,
                     entry.Identity,
-                    DeletionCapability.PermanentOnly));
+                    purpose == FileInspectionPurpose.Deletion
+                        ? DeletionCapability.PermanentOnly
+                        : DeletionCapability.NotRequested));
         }
         catch (UnauthorizedAccessException exception)
         {

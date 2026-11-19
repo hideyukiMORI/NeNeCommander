@@ -228,7 +228,7 @@ public sealed class WindowsWslFileSystemTests
         WslFileOperationAdapter adapter = new(new WindowsLocalIoExecutionBoundary(), FileSystem(root));
 
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await adapter.InspectAsync(Wsl("/owned/entry.txt"), CancellationToken.None)).Snapshot;
+            await adapter.InspectAsync(Wsl("/owned/entry.txt"), FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         root.ReplaceFilePreservingMetadata("entry.txt", "replace");
         ProviderStepOutcome outcome = await adapter.RenameAsync(
             snapshot,

@@ -24,6 +24,38 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Inspection candidate combination, 16:40 JST
+
+Feature26dcb52 was combined with PR477 candidate da42786, whose unchanged568371f verification
+inputs are still under deep review44479037554. This is a preparatory combination inside Draft
+PR402, not evidence that PR477 or PR402 has been accepted into main. The new purpose-aware
+Inspect contract is imported unchanged; Bookmark input/edit/persistence/navigation ownership
+does not change. The only merge conflict was PROJECT_STATE's added progress lines, resolved by
+retaining both complete histories. All38 incoming source/test/tool files exactly match the
+candidate, and all84 feature source/test/tool files exactly match the prior feature; the sets
+do not overlap. No C# was manually edited. GLOSSARY and the ADR index merged automatically.
+
+The changed public signature requires compilation of its combined consumers. Release builds
+of Application tests, Presentation tests and App all pass with zero warnings/errors. Four
+focused feature-split cases pass: the two NullGuardTests, palette Delete confirmation target,
+and operation-modal ownership of Bookmark input. These checks exercise the local combination;
+the complete provider/shared-contract deep review remains with PR477. Existing unchanged
+Bookmark and provider evidence is reused rather than repeated. No additional hosted/full suite,
+mutation, complexity scan or native launch was started for this merge.
+
+Exact commands, argument arrays, times, exits and logs are in permanent `inspection-sync/`.
+The driver is `pwsh -NoProfile -File <evidence>/inspection-sync/run.ps1`. Each build uses
+`dotnet build <project> -c Release --no-restore -m:1 -nr:false`; the one Application test command
+uses `dotnet test --project <Application.Tests.csproj> -c Release --no-build --no-restore --
+--filter <four-case-filter>`, recorded exactly in commands.json. The source comparison and
+all1,061 combined verification hashes pass `python <evidence>/inspection-sync/record.py`.
+No dependency/project inputs changed, so the existing locked restore remains applicable.
+
+The newly built combined App DLL SHA256 is `3C0DF6CEDF1ABBE9350538AE0F076CEA41BE8FA5397F3C2EC05F861E2C46A38F`. Earlier native screenshots and
+timings retain their original candidates; this binary has not received a new native walk.
+The normal running app/public beta.2 remain unchanged. PR402 stays Draft for hide's screen
+acceptance; #476's final deep review and main integration remain independently pending.
+
 ## Native category and bookmark renaming, 16:30–16:34 JST
 
 The unchanged featurebad2b03 and the same App DLL SHA256

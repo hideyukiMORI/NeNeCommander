@@ -51,7 +51,7 @@ public sealed class VerifiedAdapterBoundaryTests
         using WslToWindowsTransferFixture fixture = WslToWindowsTransferFixture.Create();
         _ = fixture.Root.WriteFile("wsl\\file.txt", "first");
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(await fixture.Router.InspectAsync(
-            WslToWindowsTransferFixture.Source("file.txt"), CancellationToken.None)).Snapshot;
+            WslToWindowsTransferFixture.Source("file.txt"), FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WslFileOperationAdapter adapter = new(new WindowsLocalIoExecutionBoundary(), fixture.FileSystem);
 
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, DeletionExecutionMode.Recycle, CancellationToken.None);
@@ -89,7 +89,7 @@ public sealed class VerifiedAdapterBoundaryTests
         WindowsLocalIoExecutionBoundary execution = new();
         WslFileOperationAdapter sourceAdapter = new(execution, fileSystem);
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(await sourceAdapter.InspectAsync(
-            WslToWindowsTransferFixture.Source("file.txt"), CancellationToken.None)).Snapshot;
+            WslToWindowsTransferFixture.Source("file.txt"), FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WslToWindowsTransfer transfer = new(execution, fileSystem);
         copying = true;
 

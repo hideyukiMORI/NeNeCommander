@@ -29,7 +29,7 @@ public sealed class WindowsLocalInspectionTests
             new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }),
             new WindowsWslFileSystem(), drives);
 
-        FileInspectionOutcome outcome = await adapter.InspectAsync(path, CancellationToken.None);
+        FileInspectionOutcome outcome = await adapter.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<FileInspectionFailed>(outcome).Failure);
@@ -113,8 +113,8 @@ public sealed class WindowsLocalInspectionTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
 
-        FileInspectionOutcome missing = await adapter.InspectAsync(WindowsLocalOperationTestContext.ParsePath(root.Resolve("missing")), CancellationToken.None);
-        FileInspectionOutcome wsl = await adapter.InspectAsync(WindowsLocalOperationTestContext.ParsePath("\\\\wsl.localhost\\Ubuntu\\home"), CancellationToken.None);
+        FileInspectionOutcome missing = await adapter.InspectAsync(WindowsLocalOperationTestContext.ParsePath(root.Resolve("missing")), FileInspectionPurpose.Deletion, CancellationToken.None);
+        FileInspectionOutcome wsl = await adapter.InspectAsync(WindowsLocalOperationTestContext.ParsePath("\\\\wsl.localhost\\Ubuntu\\home"), FileInspectionPurpose.Deletion, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.NotFound, Assert.IsInstanceOfType<FileInspectionFailed>(missing).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, Assert.IsInstanceOfType<FileInspectionFailed>(wsl).Failure);

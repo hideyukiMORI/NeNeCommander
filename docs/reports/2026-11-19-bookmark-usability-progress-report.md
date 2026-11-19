@@ -147,6 +147,17 @@ PR402はDraft/画面受理待ちを維持する。
 初回状態の記録helper上書きと文書検証の参照番号修正も明記した。入力1040件は不変で再build/test/CIなし。
 PR402はDraftのまま。今回もhideの画面受理を代行せず、未受理fixture/worktreeは保持する。
 
+## 16:40時点の検査契約候補との先行結合
+
+feature26dcb52へPR477候補da42786を先行結合した。main受理ではなく、PR477のdeep reviewは継続中。
+競合はPROJECT_STATE先頭だけで、両方の記録を保持。取込38 source/test/toolファイルは候補と一致、
+feature固有84ファイルは旧featureと一致し、重複なし。C#の手動編集なし。
+App/Application test/Presentation testのRelease buildは警告・error0。feature分割済みのnull guard2件、
+palette Delete確認対象、操作modalのBookmark入力所有の計4件が成功。全1061検証入力は不変。
+正確なcommands/ログと新App DLL hashは品質記録・恒久inspection-sync/へ保存した。
+今回の新しい結合binaryのnative起動はしておらず、前の画面・計測証拠の対象候補を変更しない。
+main/通常app/public beta.2不変。PR402のhide画面受理とPR477の技術受理は別々に未完了。
+
 ## ! hide実行待ち：後片付け
 
 従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
