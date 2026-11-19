@@ -50,15 +50,23 @@ PR402はDraftのまま、説明を最終実装・証拠へ更新済み。hideの
 
 ## ! hide実行待ち：後片付け
 
-旧拒否15対象は10:47の読み取りで不在を確認済み。次の#454完了分2対象は出力15ファイルを
-恒久証拠へ保全・hash照合し、安全確認後の削除が11:05の自動承認レビューにより起動前に
-`blocked by policy`で拒否された。削除は実行されず、別手段で再試行していない。
+旧拒否15対象は10:47の読み取りで不在を確認済み。#454の2対象は11:05、今回の#459の2対象は
+12:29の自動承認レビューにより起動前に`blocked by policy`で拒否された。いずれも削除は未実行で、
+別手段で再試行していない。公開記録はPR462/`31af3de`でmainへ統合済み。
+
+#454は15出力ファイル、#459は4作業ファイルを恒久証拠へ保全・hash照合済み。
+#459の独立展開586ファイルは保持する公式candidateと全size/hash一致。worktreeはclean、
+ignored 803ファイルはbin/obj/artifacts、linksと稼働参照は0だった。
+`D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-preflight.json`、
+`cleanup-preservation-manifest.json`、`cleanup-blocked.json`が詳細を所有する。
 
 - `D:/NeNeCommander/worktrees/issue-454`
 - `D:/NeNeCommander/outputs/footer-20261119`
+- `D:/NeNeCommander/worktrees/issue-459`
+- `D:/NeNeCommander/outputs/release-beta2-20261119`
 
-hide実行用（branch/commit/恒久証拠を保持）:
+hide実行用（branch/commit/恒久証拠/公式candidate/通常アプリ/未完了Bookmarkを保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-for-hide.ps1
 ```

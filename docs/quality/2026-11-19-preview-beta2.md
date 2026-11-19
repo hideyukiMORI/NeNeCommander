@@ -135,3 +135,18 @@ The running normal app, its fixture and unfinished Bookmark work remain preserve
 Completion documentation starts no product tests or CI. Cleanup is evaluated only
 after its records are integrated, with exact paths, ownership, unique evidence,
 ignored/untracked content, links and running references checked first.
+
+## Publication records and cleanup
+
+PR462 integrated these publication records as `31af3de` at 12:28:00 JST. The main
+checkout is clean and synchronized; the documentation tree matches `44d38f9`.
+No executable input or distributed asset changed, so no build/test/CI was repeated.
+
+Cleanup preflight preserved and hash-matched all four task-output files, compared
+all 586 extracted payload files with the retained official candidate, verified a
+clean worktree and classified all 803 ignored files as bin/obj/artifacts. No links
+or running target references were found; normal process 38360 remains preserved.
+The 12:29 cleanup invocation was rejected before CreateProcess with `blocked by
+policy`. Neither target was deleted and no alternative mechanism was attempted.
+The daily report and handoff now carry all four pending #454/#459 targets and one
+inspectable command. Permanent evidence, candidate, branches and commits remain.
