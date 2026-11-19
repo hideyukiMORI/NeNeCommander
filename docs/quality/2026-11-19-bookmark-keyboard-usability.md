@@ -77,6 +77,35 @@ documents; its sole conflict is the leading PROJECT_STATE records, retained from
 both branches. Production/test C# and XAML inputs are unchanged from the combined
 proof above. Under ADR-0061 that proof is reused without another build or test run.
 
+## Narrow-window observation, 12:11–12:16 JST
+
+The unchanged combined App DLL above ran in owned process 39680/window 10030906.
+At an observed 807×658 pixels, the empty browse view showed the category list,
+search, empty state and complete key band inside the modal. A opened the draft;
+all four fields, Save (Ctrl+Enter), Cancel and settings status were visible.
+Four Tabs from the initial name field reached Save with visible focus, the next
+Tab reached Cancel, and Enter returned to the zero-row browse view without saving.
+`narrow-browse`, `narrow-draft`, `narrow-save-focus` and `narrow-cancel-focus` retain
+the available AX/image evidence; `native-narrow-result.json` records the outcome.
+
+Setup used only the owned window: repeated Ctrl+W shrink steps initially made its
+height about 50 pixels, so the height was recovered before assessing the modal.
+The tool's `plus` and Shift+semicolon forms did not enlarge it; Shift+equal did.
+One drag was refused because its endpoint was outside the window; two right-edge
+drags did not resize it. The standard caption menu's Size operation then adjusted
+width separately. Immediate AX/image results sometimes lagged the visible change;
+an apparent failure to open the manager was not sustained by later observations.
+A pointer click reestablished list focus during setup, so this is not proof that
+native sizing preserves keyboard focus. No product change or latency conclusion
+is inferred from these tool/setup attempts.
+
+Escape and Alt+F4 closed the owned window; settings remained byte-identical to the
+original 218-byte baseline and normal process 38360 remained open. The evidence
+covers this narrow empty/draft view only. Populated row columns, deletion and
+category forms at narrow width, explicit DPI/high contrast, Narrator and the other
+previously listed environmental cases remain unobserved. hide acceptance remains
+separate.
+
 ## Resumed native walk, 11:07–11:20 JST
 
 Candidate `95549f5` used App DLL SHA-256

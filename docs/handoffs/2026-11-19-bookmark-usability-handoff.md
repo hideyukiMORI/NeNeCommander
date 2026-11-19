@@ -48,9 +48,13 @@ Inspectは既存7件。競合解消C#8ファイルの書式確認はexit 0（wor
 独立した結合source reviewも必須修正なし。終了後の設定は専用1登録と想定schema移行のみで、
 12:03に元の218byteへ復元してhash一致。これらはhideのPR402画面受理を代替しない。
 
-次はmain同期の記録とcommit/pushを確定し、PR402の説明を最終実装・証拠へ合わせる。
-#459はaccepted mainから公式publish済みで586 payloadとZIP内586ファイルのhash一致。
-独立展開と言語リソースを照合し、deep review/CodeQL成功とalert検査後に公開/匿名再取得照合へ進む。
+main同期は`15bbf77`、版・文書の追加同期は`380739f`でpush済み。PR402説明も最終実装・証拠へ更新。
+12:11〜12:16には807×658ピクセルで空一覧/登録フォームの収まりとTabによる保存/取消への到達、
+Enterによる取消を確認した。保存せず設定は完全一致。寸法調整の試行とpointerでのfocus確立は品質記録参照。
+狭幅の実データ行・削除/カテゴリフォーム、明示DPI/HC/Narrator等は引き続き未観測。
+#459はaccepted mainから公式publishし、586ファイルの独立展開・両言語350項目ずつの照合、
+展開版の起動/ヘルプ/設定表示/終了を確認。deep review/CodeQL成功・open alert 0を確認後、
+12:19:28 JSTにbeta.2をPreview公開した。公開3assetの匿名再取得照合とmain記録の確定を続ける。
 既存公開beta.1と通常稼働アプリはそのまま。#453の遅延調査は未解決。
 
 恒久証拠は`D:/NeNeCommander/evidence/bookmark-ux-20261119/`。
