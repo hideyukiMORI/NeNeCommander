@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・進捗報告
 
-Status: initial deep review failed; corrected local coverage passes; CodeQL test correction verified; final deep review44479037554 running; integration pending. hideの停止指示まで継続。
+Status: final deep review accepted; integration and cleanup pending; continue until hide stops.
 
 #476/ADR-0083で、既存InspectAsyncに検査目的を必須化した。通常削除だけが削除能力を
 取得し、コピー・移動・名前変更・ディレクトリ作成は同じidentity検査を保ちながら
@@ -60,6 +60,19 @@ Application mutation中に中断しており、完全なdeep review成功とし�
 inputs-codeql-corrected.jsonと一致し、今回の文書更新で再試験は増やさない。
 full gate/mutation/CodeQLの受理後にPR477をReadyにし、squash統合と今回分の整理を進める。
 PR402の最新headはbad2b03で、別途hideの画面受理待ちである。
+
+## 17:16時点の最終deep review受理
+
+run44479037554/568371fは17:15:29 JSTに全工程成功。2094試験成功/失敗0/未実行live skip16。
+分岐coverageはDomain100、Application100、Infrastructure94.53、Presentation94.50%。
+mutationは順に97.47/96.41/92.42/94.76%。依存監査と12組のadversarial繰り返しも成功した。
+CodeQL analysis2203448014は結果/error/warning0、repo全体と候補branchのopen alertも各0。
+alert153はmost_recent_instance.state=fixedでdismissなし（top-level state/fixed_atはnull）。
+artifact/log/APIを恒久保全し、accept-final.pyで完全なcheck集合と全1013入力不変を確認した。
+da42786と検証SHAの差は文書4つのみ。今回の受理記録でもコード・試験・依存・toolingは変えない。
+PR477のReady/統合と今回worktree/outputの整理を続ける。PR402は7a10707で候補を先行結合し、
+限定build/4試験成功・1061入力を固定したが、hideの画面受理は引き続き別途必要。
+通常app/public beta.2不変、#453の総UI時間・原因は未確定。成功済みCIを重ねて実行しない。
 
 ## ! hide実行待ち：後片付け
 
