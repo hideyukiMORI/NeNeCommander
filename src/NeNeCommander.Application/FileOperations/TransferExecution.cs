@@ -106,6 +106,7 @@ internal sealed class TransferExecution
         IReadOnlyList<TransferPlanEntry> plan,
         CancellationToken cancellationToken)
     {
+        // Only local capability state continues here; the caller retains effect and progress affinity.
         List<AtomicMoveCapabilityOutcome> capabilities = [];
         foreach (TransferPlanEntry entry in plan)
         {
@@ -119,7 +120,7 @@ internal sealed class TransferExecution
                 ? await _port.GetAtomicMoveCapabilityAsync(
                     entry.Source.WithTransferTarget(entry.Target),
                     _transfer.Destination,
-                    cancellationToken)
+                    cancellationToken).ConfigureAwait(false)
                 : AtomicMoveCapabilityOutcome.Unsupported;
             capabilities.Add(capability);
         }
