@@ -18,18 +18,18 @@ namespace NeNeCommander.App.Views;
 /// </summary>
 internal sealed class SettingsKeyboardView
 {
-    private readonly CheckBox _showHidden;
+    private readonly CheckBox[] _choices;
     private readonly ItemsControl _schemes;
     private readonly Button _close;
     private readonly Func<XamlRoot> _root;
 
-    internal SettingsKeyboardView(CheckBox showHidden, ItemsControl schemes, Button close, Func<XamlRoot> root)
+    internal SettingsKeyboardView(CheckBox[] choices, ItemsControl schemes, Button close, Func<XamlRoot> root)
     {
-        ArgumentNullException.ThrowIfNull(showHidden);
+        ArgumentNullException.ThrowIfNull(choices);
         ArgumentNullException.ThrowIfNull(schemes);
         ArgumentNullException.ThrowIfNull(close);
         ArgumentNullException.ThrowIfNull(root);
-        _showHidden = showHidden;
+        _choices = [.. choices];
         _schemes = schemes;
         _close = close;
         _root = root;
@@ -93,7 +93,7 @@ internal sealed class SettingsKeyboardView
 
     private Control[] Items()
     {
-        return [_showHidden, .. Descendants(_schemes).OfType<RadioButton>(), _close];
+        return [.. _choices, .. Descendants(_schemes).OfType<RadioButton>(), _close];
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

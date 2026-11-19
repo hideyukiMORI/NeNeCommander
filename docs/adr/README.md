@@ -26,6 +26,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0082: Wrap the footer and persist its normal key-hint visibility](0082-footer-key-hint-visibility.md)
+
 - [ADR-0081: Check literal localization keys against shipped catalogs](0081-check-literal-localization-keys.md)
 
 - [ADR-0078: Remove the system title bar and draw one caption bar](0078-frameless-window-caption-bar.md)

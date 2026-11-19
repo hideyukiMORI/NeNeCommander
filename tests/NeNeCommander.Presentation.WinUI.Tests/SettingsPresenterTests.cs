@@ -16,8 +16,7 @@ public sealed class SettingsPresenterTests
     {
         SettingsSnapshot snapshot = Snapshot(
             UserSettings.Create(
-                ColorScheme.Dracula,
-                HiddenItemVisibility.Shown,
+                DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
                 BookmarkCatalog.Empty, PaneSortPreferences.Default),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
@@ -26,6 +25,7 @@ public sealed class SettingsPresenterTests
 
         Assert.IsTrue(presentation.IsOpen);
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
+        Assert.IsTrue(presentation.ShowKeyHints);
         Assert.HasCount(8, presentation.Schemes);
         string[] expectedResourceKeys =
         [
@@ -177,7 +177,7 @@ public sealed class SettingsPresenterTests
     public void SettingsPresentationWhenOptionSourceChangesKeepsOwnedSnapshot()
     {
         SettingsSnapshot source = Snapshot(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
         SettingsColorSchemeOption option = new(ColorScheme.Dracula, "ColorSchemeNameDracula", ColorScheme.Dracula);
@@ -192,6 +192,24 @@ public sealed class SettingsPresenterTests
         Assert.AreSame(option, presentation.Schemes[0]);
         _ = Assert.ThrowsExactly<NotSupportedException>(() =>
             ((System.Collections.Generic.IList<SettingsColorSchemeOption>)presentation.Schemes).Clear());
+    }
+
+    /// <summary>Proves hidden footer hints remain a display choice while a save warning stays visible.</summary>
+    [TestMethod]
+    public void PresentWhenHintsAreHiddenAndSaveFailsRetainsIndependentWarning()
+    {
+        UserSettings settings = UserSettings.Create(
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+        SettingsWriteRejected rejection = Assert.IsInstanceOfType<SettingsWriteRejected>(SettingsWriteOutcome.Rejected(
+            SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None));
+
+        SettingsPresentation presentation = SettingsPresenter.Present(Snapshot(
+            settings, SettingsEditorState.Open, SettingsPersistenceState.Failed(rejection)));
+
+        Assert.IsFalse(presentation.ShowKeyHints);
+        Assert.IsTrue(presentation.Warning.IsVisible);
+        Assert.AreSame(SettingsSaveStatus.Failed, presentation.SaveStatus);
     }
 
     private static SettingsSnapshot Snapshot(

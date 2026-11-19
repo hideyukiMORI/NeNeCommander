@@ -352,4 +352,6 @@
   <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>Press Esc or F1 to close</value></data>
   <data name="KeyboardHelpName" xml:space="preserve"><value>Keyboard shortcut list</value></data>
   <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>Settings (Ctrl+,)</value></data>
+  <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>Show key hints in the footer</value></data>
+  <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>When off, F1 help and Enter/Esc hints for confirmation or name entry remain visible.</value></data>
 </root>

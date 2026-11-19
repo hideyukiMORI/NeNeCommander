@@ -35,8 +35,7 @@ public sealed class CommanderSessionTests
             gateway,
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
@@ -68,8 +67,7 @@ public sealed class CommanderSessionTests
             gateway,
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
 
         CommanderSnapshot unchanged = await session.HandleAsync(
@@ -306,8 +304,7 @@ public sealed class CommanderSessionTests
             gateway,
             store,
             SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
@@ -1036,7 +1033,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Settings.HiddenItemVisibility);
+        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Settings.Display.HiddenItemVisibility);
         PaneContentListed leftContent = Assert.IsInstanceOfType<PaneContentListed>(
             session.Current.Panes.Left.Content);
         Assert.AreSame(HiddenItemVisibility.Hidden, leftContent.State.HiddenItemVisibility);
@@ -1149,14 +1146,14 @@ public sealed class CommanderSessionTests
         Assert.AreSame(SettingsEditorState.Open, ignored.Settings.Editor);
         Assert.IsEmpty(observer.Settings);
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.Display.ColorScheme);
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await store.WaitForWriteCountAsync(2);
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.Display.ColorScheme);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await session.StopAsync();
-        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
-        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].ColorScheme);
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].Display.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].Display.ColorScheme);
     }
 
     /// <summary>Proves the palette exposes only the approved stable intent subset and state reasons.</summary>
@@ -1984,8 +1981,7 @@ public sealed class CommanderSessionTests
             launcher,
             new ScriptedFileLauncher(),
             SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 Catalog(Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default)),
             out _);
         RecordingCommanderObserver observer = new();
@@ -2227,8 +2223,7 @@ public sealed class CommanderSessionTests
             gateway,
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
     }
 

@@ -8,6 +8,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -43,9 +44,9 @@ public sealed class DualPaneDeletionPresenterTests
         }
 
         DualPanePresentation pending = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         AssertPendingDeletion(pending);
         AssertEscapedDeletion(escaped);
@@ -95,7 +96,7 @@ public sealed class DualPaneDeletionPresenterTests
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
 
         DualPanePresentation presentation = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(OperationStatus.DeletePartiallyCompleted, presentation.OperationStatus);
         Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
@@ -127,7 +128,7 @@ public sealed class DualPaneDeletionPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown).OperationStatus;
     }
     private static void AssertPendingDeletion(DualPanePresentation pending)
     {

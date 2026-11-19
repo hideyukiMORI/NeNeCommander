@@ -9,6 +9,7 @@ using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Wsl;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Locations;
 
@@ -52,7 +53,7 @@ public static class LocationsPresenter
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(localize);
-        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations);
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations, KeyHintVisibility.Shown);
         if (state is not LocationsOpen open)
         {
             string status = state is LocationsLoading ? localize("LocationsLoading") : string.Empty;

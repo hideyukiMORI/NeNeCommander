@@ -34,7 +34,7 @@ internal static class DualPaneTestContext
         right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         _ = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
-        return DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
+        return DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
     }
 
     internal static DualPaneSession CreatePanes(

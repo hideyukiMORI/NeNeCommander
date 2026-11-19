@@ -15,6 +15,11 @@ Not yet on `main`: UNC mutations and network-drive-specific provider behavior. O
 
 ## Beta packaging
 
+Issue #454's current candidate adds wrapping footer information and a saved setting for normal key
+hints. Off retains F1 and confirmation/name-entry guidance. It writes settings schema 4; valid older
+settings migrate in memory without a write. Older binaries reject schema 4 rather than overwrite it.
+Native acceptance and main integration are tracked in [project state](docs/PROJECT_STATE.md).
+
 The Windows 11 x64 beta uses one unpackaged, self-contained folder distribution.
 See [publishing instructions](docs/release/PUBLISHING.md) and the
 [distribution guide](docs/release/README.txt). Preparing a ZIP does not declare

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 
@@ -16,12 +18,17 @@ public static class KeyHintPresenter
 {
     /// <summary>Projects the hints of one focus context in the order the design shows them.</summary>
     /// <param name="context">Focus context the operation state imposes.</param>
+    /// <param name="visibility">Normal footer visibility; other contexts retain their required hints.</param>
     /// <returns>The ordered hints; an empty list when the context shows none.</returns>
-    public static IReadOnlyList<KeyHint> Present(KeyboardContext context)
+    public static IReadOnlyList<KeyHint> Present(KeyboardContext context, KeyHintVisibility visibility)
     {
+        ArgumentNullException.ThrowIfNull(visibility);
         IReadOnlyList<KeyBinding> bindings = KeyboardIntentMapper.BindingsFor(context);
         List<KeyHint> hints = [];
-        foreach (UserIntent intent in ResolveIntents(context))
+        IReadOnlyList<UserIntent> intents = context == KeyboardContext.FileList && visibility == KeyHintVisibility.Hidden
+            ? [UserIntent.OpenHelp]
+            : ResolveIntents(context);
+        foreach (UserIntent intent in intents)
         {
             AddHint(hints, bindings, intent);
         }

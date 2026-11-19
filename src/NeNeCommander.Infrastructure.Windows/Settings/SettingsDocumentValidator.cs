@@ -19,7 +19,8 @@ public static class SettingsDocumentValidator
 
     private const int LegacySchemaVersion = 1;
     private const int BookmarkSchemaVersion = 2;
-    private const int SupportedSchemaVersion = 3;
+    private const int SortSchemaVersion = 3;
+    private const int SupportedSchemaVersion = 4;
     private const string SchemaVersionName = "schemaVersion";
     private const string HiddenItemsName = "showHiddenItems";
     private const string ColorSchemeName = "colorScheme";
@@ -125,7 +126,7 @@ public static class SettingsDocumentValidator
         return versionElement.ValueKind != JsonValueKind.Number
             ? SettingsReadFailureKind.Malformed
             : !versionElement.TryGetInt32(out version) ||
-                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SupportedSchemaVersion
+                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SortSchemaVersion and not SupportedSchemaVersion
                 ? SettingsReadFailureKind.UnknownVersion
                 : null;
     }
@@ -155,7 +156,9 @@ public static class SettingsDocumentValidator
             root,
             version == BookmarkSchemaVersion
                 ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName]
-                : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"]);
+                : version == SortSchemaVersion
+                    ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"]
+                    : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints"]);
         if (shapeFailure is not null)
         {
             return SettingsReadOutcome.Rejected(shapeFailure);
@@ -325,7 +328,7 @@ public static class SettingsDocumentValidator
     private static SettingsReadOutcome ReadPreferences(JsonElement root, BookmarkCatalog catalog)
     {
         PaneSortPreferences preferences = PaneSortPreferences.Default;
-        if (root.GetProperty(SchemaVersionName).GetInt32() == SupportedSchemaVersion)
+        if (root.GetProperty(SchemaVersionName).GetInt32() >= SortSchemaVersion)
         {
             SettingsReadFailureKind? failure = SettingsSortOrderCodec.Read(root.GetProperty("paneSortOrders"), out PaneSortPreferences? parsed);
             if (failure is not null || parsed is null)
@@ -342,18 +345,10 @@ public static class SettingsDocumentValidator
         BookmarkCatalog catalog,
         PaneSortPreferences preferences)
     {
-        JsonElement hiddenItems = root.GetProperty(HiddenItemsName);
-        JsonElement colorScheme = root.GetProperty(ColorSchemeName);
-        HiddenItemVisibility? visibility = hiddenItems.ValueKind == JsonValueKind.True
-            ? HiddenItemVisibility.Shown
-            : hiddenItems.ValueKind == JsonValueKind.False
-                ? HiddenItemVisibility.Hidden
-                : null;
-        return visibility is null || colorScheme.ValueKind != JsonValueKind.String
-            ? SettingsReadOutcome.Rejected(SettingsReadFailureKind.Malformed)
-            : ColorScheme.Parse(colorScheme.GetString()) is ColorSchemeAccepted accepted
-                ? SettingsReadOutcome.Read(UserSettings.Create(accepted.Scheme, visibility, catalog, preferences))
-                : SettingsReadOutcome.Rejected(SettingsReadFailureKind.UnknownColorScheme);
+        SettingsReadFailureKind? failure = SettingsDisplayCodec.Read(root, out DisplayPreferences? display);
+        return failure is not null || display is null
+            ? SettingsReadOutcome.Rejected(failure ?? SettingsReadFailureKind.Malformed)
+            : SettingsReadOutcome.Read(UserSettings.Create(display, catalog, preferences));
     }
 
     internal static SettingsReadFailureKind? ValidateExactProperties(

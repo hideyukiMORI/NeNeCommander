@@ -27,7 +27,7 @@ public sealed class WindowsLocalSettingsStoreWriteTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
-        UserSettings settings = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default);
+        UserSettings settings = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(settings, CancellationToken.None);
 
@@ -35,8 +35,8 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         byte[] bytes = File.ReadAllBytes(root.Resolve(DocumentName));
         CollectionAssert.AreEqual(
             Encoding.UTF8.GetBytes(
-                "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
-                "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}"),
+                "{\"schemaVersion\":4,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
+                "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true}"),
             bytes);
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
@@ -52,13 +52,13 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.SolarizedLight, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.SolarizedLight, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.AreEqual(
-            "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"solarized-light\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
+            "{\"schemaVersion\":4,\"showHiddenItems\":false,\"colorScheme\":\"solarized-light\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -94,13 +94,13 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         WindowsLocalSettingsStore store = CreateStore(root);
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);
         Assert.AreEqual(
-            "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
+            "{\"schemaVersion\":4,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true}",
             File.ReadAllText(root.Resolve(DocumentName)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
@@ -174,13 +174,13 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         _ = Assert.IsInstanceOfType<SettingsAbsent>(await store.ReadAsync(CancellationToken.None));
 
         SettingsWriteOutcome first = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
         SettingsWriteOutcome third = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
@@ -194,8 +194,8 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         ];
         CollectionAssert.AreEqual(expectedCandidates, candidates);
         Assert.AreEqual(
-            "{\"schemaVersion\":3,\"showHiddenItems\":false,\"colorScheme\":\"monokai\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
+            "{\"schemaVersion\":4,\"showHiddenItems\":false,\"colorScheme\":\"monokai\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -208,17 +208,17 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         WindowsLocalSettingsStore store = CreateStoreAt(root, NestedDocument);
 
         SettingsWriteOutcome first = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(second);
         Assert.AreEqual(
-            "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}}}",
+            "{\"schemaVersion\":4,\"showHiddenItems\":true,\"colorScheme\":\"dracula\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true}",
             File.ReadAllText(root.Resolve(NestedDocument)));
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
@@ -248,7 +248,7 @@ public sealed class WindowsLocalSettingsStoreWriteTests
         SettingsWriteRejected first = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(UserSettings.Default, CancellationToken.None));
         SettingsWriteOutcome second = await store.WriteAsync(
-            UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             CancellationToken.None);
 
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, first.Failure);

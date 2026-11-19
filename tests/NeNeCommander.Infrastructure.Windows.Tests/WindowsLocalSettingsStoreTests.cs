@@ -75,8 +75,8 @@ public sealed class WindowsLocalSettingsStoreTests
         SettingsReadOutcome outcome = await store.ReadAsync(CancellationToken.None);
 
         UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(outcome).Settings;
-        Assert.AreSame(ColorScheme.Monokai, settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Monokai, settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, settings.Display.HiddenItemVisibility);
     }
 
     /// <summary>Proves a valid UTF-8 document with a byte-order mark is decoded before validation.</summary>
@@ -98,8 +98,8 @@ public sealed class WindowsLocalSettingsStoreTests
         SettingsReadOutcome outcome = await store.ReadAsync(CancellationToken.None);
 
         UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(outcome).Settings;
-        Assert.AreSame(ColorScheme.Dracula, settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, settings.Display.HiddenItemVisibility);
         CollectionAssert.AreEqual(stored, File.ReadAllBytes(documentPath));
     }
 
@@ -230,8 +230,8 @@ public sealed class WindowsLocalSettingsStoreTests
         SettingsReadOutcome outcome = await store.ReadAsync(CancellationToken.None);
 
         UserSettings settings = Assert.IsInstanceOfType<SettingsRead>(outcome).Settings;
-        Assert.AreSame(ColorScheme.NeNeDark, settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Hidden, settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.NeNeDark, settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, settings.Display.HiddenItemVisibility);
     }
 
     /// <summary>Proves a malformed document is rejected without repairing the stored text.</summary>

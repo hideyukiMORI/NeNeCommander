@@ -14,11 +14,11 @@ internal static class SettingsDocumentSerializer
         using (Utf8JsonWriter writer = new(output))
         {
             writer.WriteStartObject();
-            writer.WriteNumber("schemaVersion", 3);
+            writer.WriteNumber("schemaVersion", 4);
             writer.WriteBoolean(
                 "showHiddenItems",
-                settings.HiddenItemVisibility == HiddenItemVisibility.Shown);
-            writer.WriteString("colorScheme", settings.ColorScheme.Identifier);
+                settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown);
+            writer.WriteString("colorScheme", settings.Display.ColorScheme.Identifier);
             writer.WriteStartArray("bookmarkCategories");
             foreach (BookmarkCategoryName category in settings.Bookmarks.Categories)
             {
@@ -32,6 +32,7 @@ internal static class SettingsDocumentSerializer
             }
             writer.WriteEndArray();
             SettingsSortOrderCodec.Write(writer, settings.PaneSortOrders);
+            writer.WriteBoolean("showKeyHints", settings.Display.KeyHintVisibility == KeyHintVisibility.Shown);
             writer.WriteEndObject();
         }
         return output.ToArray();
