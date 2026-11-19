@@ -24,6 +24,35 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Shared footer integration, 14:09–14:11 JST
+
+Main `3865060` brings the accepted #467 unchanged-hint reuse and #465/#467 records into the
+feature. The only merge conflict is the leading PROJECT_STATE entries; both histories remain.
+The only code/test changes from feature `ddc16f4` are main's exact two footer product files
+and two related test files. No bookmark, input/focus, Application, provider, dependency or tooling
+implementation changes. The independent Bookmark key-hint owner remains separate from the normal
+operation footer. This synchronization does not make PR402 accepted or part of public beta.2.
+
+The combined App and Presentation test Release builds pass with zero warnings/errors. Twenty
+focused normal-footer/Bookmark-hint cases pass, zero failures/skips, through:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/bookmark-ux-20261119/footer-sync/verify.ps1
+```
+
+The script runs `dotnet build <App|Presentation tests> -c Release --no-restore -m:1 -nr:false`
+and `dotnet test --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj
+-c Release --no-build --no-restore -- --filter 'FullyQualifiedName~FooterKeyHintTests|FullyQualifiedName~KeyHintPresenterTests|FullyQualifiedName~BookmarkManagerKeyHintTests|FullyQualifiedName~BookmarkPresentationBehaviorTests'`
+with TRX output in `footer-sync/presentation`. `commands.json` records complete arguments and exits.
+All1,040 inputs captured for this bounded run are unchanged; imported files exactly match main.
+The combined App DLL SHA256 is `3C65F5877ABC06A8CF67887C930E18C0A2CA41578B207EC64F5678E7461FAC1A`.
+
+ADR-0061 selects this combined compile and shared-hint boundary proof. Main's #467 render/progress,
+format, complexity, ownership and native evidence and the feature's unchanged input/IME/focus
+proof are reused. No repeat Application/provider/full suite, complexity run, new native walk,
+hosted workflow, release or settings mutation occurs. Existing feature limitations remain.
+Source comparison and proof are in `footer-sync/final-proof.json`; the worktree stays for PR402.
+
 ## Native input ownership follow-up, 12:44–12:54 JST
 
 PR464 was squash-merged into the feature at 12:58:05 JST as `2e644bf`; its complete tree equals

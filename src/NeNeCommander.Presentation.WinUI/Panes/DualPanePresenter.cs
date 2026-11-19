@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
@@ -47,11 +48,20 @@ public static class DualPanePresenter
                 TranslateOperation(snapshot.Operation),
                 TranslateDetail(snapshot.Operation),
                 TranslateTone(snapshot.Operation),
-                KeyHintPresenter.Present(inputContext, keyHintVisibility)),
+                PresentHints(inputContext, keyHintVisibility, previous?.KeyHints)),
             OperationInteractionPresentation.Create(
                 TranslateNameEntry(snapshot.Operation),
                 TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
                 inputContext));
+    }
+
+    private static IReadOnlyList<KeyHint> PresentHints(
+        KeyboardContext context,
+        KeyHintVisibility visibility,
+        IReadOnlyList<KeyHint>? previous)
+    {
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(context, visibility);
+        return previous is not null && previous.SequenceEqual(hints) ? previous : hints;
     }
 
     private static PanePresentation PresentPane(

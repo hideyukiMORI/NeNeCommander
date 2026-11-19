@@ -85,6 +85,17 @@ PR464は12:58:05に`2e644bf`として機能ブランチへ統合済み。検証�
 main5b54b0aの文書同期でも製品/試験/依存/toolingは不変。既存の成功証拠を再利用し、無関係な再検証をしない。
 実機を再起動する場合、issue-457のビルドが今回の修正版である。issue-398の以前のbinは新sourceのbuild証拠ではない。
 
+## 14:11時点のmain同期
+
+main `3865060`の#467フッター再bind削減と#465/#467文書を取り込んだ。PROJECT_STATE先頭だけの
+競合は両方の履歴を保持。feature `ddc16f4`からの製品/試験変更はmainと完全一致する4ファイルのみ。
+Bookmark固有実装、入力/focus、Application/provider/依存は不変。App/Presentation test buildは
+警告・エラー0、通常フッター/Bookmark案内の境界20件が成功。今回記録した1,040入力は全hash不変。
+正確なコマンドと証拠は品質記録のShared footer integrationと`evidence/bookmark-ux-20261119/footer-sync/`。
+この組合せのnative起動は追加せず、既存の影響範囲の証拠を再利用した。PR402はDraftのまま。
+現在sourceのApp buildはissue-398にあり、hashは品質記録参照。通常実行中binary/public beta.2は変更なし。
+main側#467のworktree/outputは保全後削除済み。未受理Bookmarkの作業木/証拠は保持する。
+
 ## ! hide実行待ち：後片付け
 
 旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。

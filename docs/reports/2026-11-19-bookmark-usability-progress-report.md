@@ -105,6 +105,15 @@ PR464は12:58:05に機能ブランチへsquash統合（`2e644bf`）。検証済�
 通常hookは112規則の整合性とsecurity確認を通過した。main `5b54b0a`の追加同期は公開記録4文書だけで、
 PROJECT_STATEの競合はBookmarkと公開履歴の双方を保持した。製品入力不変のため再build/test/CIは行わない。
 
+## 14:11時点のmain同期
+
+main `3865060`のフッター再bind削減と観測/完了文書をBookmarkへ取り込んだ。製品/試験はmainの
+4ファイルそのまま、Bookmark固有の処理は不変。文書競合1か所は双方の履歴を残した。
+App/Presentation試験buildは警告・エラー0、通常フッターとBookmark案内の境界20件成功。
+今回の1,040 inputsはhash不変。既存native/IME/focusとmain側の選択検証を再利用し、
+無関係な試験・full CI・native再起動は追加していない。詳細は品質記録と引き継ぎに記載した。
+PR402のDraft/画面受理条件、通常アプリと公開beta.2は維持する。
+
 ## ! hide実行待ち：後片付け
 
 従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
