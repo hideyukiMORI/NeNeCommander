@@ -1,6 +1,6 @@
 # 2026-11-19 能力確認の継続文脈・引き継ぎ
 
-Status: #488実装・検証済み。統合と今回整理待ち。hide停止まで継続。
+Status: #488/PR489統合・今回整理完了。hide停止まで継続。
 
 1. base4d95310。内部capability awaitだけConfigureAwait(false)。外側awaitは所有文脈を捕捉したまま。
    全能力確認後にだけmutation/progress、安全検査/順序/lease/例外/取消を維持。新port/経路/依存なし。
@@ -12,11 +12,14 @@ Status: #488実装・検証済み。統合と今回整理待ち。hide停止ま�
    初回フォルダー入力の不成立も保存。専用通常終了、通常38360/元218B設定/1,011入力/App DLL一致。
 5. 恒久証拠`D:/NeNeCommander/evidence/capability-continuation-20261119/`。
    作業木`D:/NeNeCommander/worktrees/issue-488`と出力`D:/NeNeCommander/outputs/capability-continuation-20261119`は
-   全保全・技術受理/merge・clean/未追跡/ignored/link/参照を確認してから整理。branch/commitは保持。
+   全保全・技術受理/merge・clean/未追跡/ignored/link/参照を確認して19:49:43に整理、不在確認済み。branch/commit保持。
 6. #453未解決、数値改善/過去gap原因は未証明。PR402 Draft f6859faはhide画面受理待ち。
    公開beta.2と通常appは不変。全詳細は[品質記録](../quality/2026-11-19-capability-continuation.md)。
 
 全1,568成果物/458,189,082B（ignored生成1,556＋出力12）はzipへ全件size/SHA256検証付きで保存した。
+
+PR489は19:49:28にe1ebdf4へ通常squashし、受理0d658adとtree一致。1,011入力/212link/通常hook合格。
+今回の2対象は19:49:43に確認付き整理を完了。branch/commit/恒久証拠は保持し、過去の拒否対象は再試行なし。
 
 ## ! hide実行待ち：後片付け
 
