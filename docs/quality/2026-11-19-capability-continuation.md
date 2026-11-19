@@ -1,6 +1,6 @@
 # Atomic capability continuation ownership — 2026-11-19
 
-Status: implementation and focused/native proof complete; integration and task cleanup pending.
+Status: PR489 integrated; this task worktree/output cleanup complete. #453 remains open.
 
 [Issue #488](https://github.com/hideyukiMORI/NeNeCommander/issues/488) removes an unnecessary
 captured-context dependency inside the existing capability collector. Base is accepted main
@@ -128,7 +128,7 @@ The task worktree is `D:/NeNeCommander/worktrees/issue-488`; disposable output i
 `D:/NeNeCommander/outputs/capability-continuation-20261119`. All1,568 artifacts/458,189,082 bytes (1,556 generated ignored worktree files and12 output files)
 are preserved in task-artifacts.zip with complete entry size/SHA256 verification. The manifest
 also retains each source size/mtime and archive hash. Tracked source remains in commits; red and
-pre-format source snapshots remain in evidence. Before cleanup, verify accepted integration,
+pre-format source snapshots remain in evidence. Cleanup verified accepted integration,
 clean/untracked/ignored state, absolute targets, links, live references and unchanged preservation. Branches,
 commits, permanent evidence and unfinished Bookmark work remain. Four earlier cleanup rejections
 are separate and must not be retried.
@@ -137,3 +137,21 @@ PR402's hide screen acceptance, actual uninstrumented/display latency, broader p
 proof and public release remain outside this change. See the
 [progress report](../reports/2026-11-19-capability-continuation-progress-report.md) and
 [handoff](../handoffs/2026-11-19-capability-continuation-handoff.md).
+
+
+## Integration and cleanup completed
+
+[PR489](https://github.com/hideyukiMORI/NeNeCommander/pull/489) merged by normal expected-head squash
+at19:49:28 JST as e1ebdf4. Accepted0d658ad and the squash share tree
+a4ddb9ba0aac60b9f3b4423da70eb046d2566e0c. Local main advanced by fast-forward; requested reviews,
+unresolved threads and failed checks were absent. All1011 proof inputs and212 relative links
+were checked, and ordinary112-rule/24-adversarial-registration/security/commit-message hooks passed.
+No unchanged product proof was repeated or additional CI requested.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/capability-continuation-20261119/cleanup-completed.ps1
+-ExpectedHead 0d658ad944ab1be00b1d01d82f389f3496547e9c -PrNumber 489` exited0 at19:49:43 JST.
+Both exact targets are absent. Preflight checked absolute/resolved targets, accepted/squash tree
+equality, clean and untracked state, the preserved1556 generated ignored files and12 output files,
+no links/live references, archive hash and unchanged file sets/sizes/mtimes. Complete prior content
+hash verification was reused. Branches/commits/permanent evidence remain; four old rejections
+were not retried.
