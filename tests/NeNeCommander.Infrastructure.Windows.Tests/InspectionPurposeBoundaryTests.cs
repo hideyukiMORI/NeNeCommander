@@ -74,9 +74,8 @@ public sealed class InspectionPurposeBoundaryTests
 
         foreach (IFileOperationPort port in ports)
         {
-            ArgumentNullException failure = Assert.ThrowsExactly<ArgumentNullException>(
-                () => port.InspectAsync(path, null!, CancellationToken.None));
-            Assert.AreEqual("purpose", failure.ParamName);
+            Assert.AreEqual("purpose", Assert.ThrowsExactly<ArgumentNullException>(
+                () => port.InspectAsync(path, null!, CancellationToken.None)).ParamName);
         }
     }
 

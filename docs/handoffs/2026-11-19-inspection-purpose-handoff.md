@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・引き継ぎ
 
-Status: initial deep review failed; local dispatch correction verified; corrected deep review running; native smoke passed; continue until hide stops.
+Status: initial deep review failed; local dispatch correction verified; CodeQL test correction verified; final deep review pending; continue until hide stops.
 
 1. #476、ADR-0083。唯一のInspectAsyncに閉じた目的を必須化。IdentityOnlyでもidentityは検査し、
    削除能力はNotRequested。通常Deleteは既知能力の全batchが揃うまでeffect/progressを始めない。
@@ -31,6 +31,16 @@ Status: initial deep review failed; local dispatch correction verified; correcte
 専用窓終了を確認し、16:08:37に元設定218byte/hash不変、通常38360保持を照合した。
 これは1回の正常系で速度測定ではない。新規fixture2件の保全により全684file/65,022,521byteを保持。
 製品入力は修正版と同一。CI受理前のmerge、PR402のhide受理代行、旧拒否削除の再試行をしない。
+
+## 16:18時点のCodeQL指摘修正
+
+初回CodeQL analysis2203018686のAPI読戻しでalert153（cs/linq/missed-select）を確認。
+5providerのnull目的を検証するforeachで例外を一時変数へ代入していた。返る例外のParamNameを
+直接assertする形へ整理し、同じ5回の呼出・例外型・引数名を維持した。製品変更・抑制・dismissなし。
+対象test buildは警告/error0、該当1caseとformat成功。製品inputは不変でnative F6証拠を再利用する。
+run44476340651には16:18:15にcancel要求を出した。最終候補deep reviewは未受理。
+inputs-codeql-corrected.jsonが1013入力の最終正本。既存deep workflowがCodeQLも含む経路なので、
+今回まだ受理されていない共有/破壊境界の最終候補で再dispatchする。qualityは重ねない。
 
 ## ! hide実行待ち：後片付け
 

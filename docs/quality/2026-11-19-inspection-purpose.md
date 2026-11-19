@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; initial deep review failed; dispatch simplification passes local coverage; corrected deep review running; native F6 smoke passed; integration pending.
+Status: implemented; coverage corrected and native F6 smoke passed; new CodeQL test finding corrected; complete final deep review and integration pending.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -178,7 +178,7 @@ Run44473140316 failed at15:50:44 JST; the complete workflow ended at15:54:04. It
 passed2094 cases with16 explicitly unexecuted live skips and no failed test. Domain branch
 coverage passed100%; Application reported99.92657856%, below its unchanged100% threshold.
 The gate stopped there, so later coverage/adversarial/mutation success is not claimed. CodeQL's
-workflow step completed separately; its results still require inspection. The failed log and
+workflow step completed separately; later API readback found one test-code finding, corrected below. The failed log and
 downloaded `deep-review.json` are retained in `ci-first/` and `deep-review-failed.log`.
 
 A local Application-only coverage run reproduced the single missing branch at InspectAllAsync's
@@ -201,6 +201,34 @@ or unrelated local suite is added.
 The bounded timing table above remains an observation of733fb31 before this dispatch correction.
 Its raw samples are retained unchanged. It is not a timing claim for the final corrected binary;
 no repeated benchmark is needed to establish the unchanged identity/deletion contract.
+
+## CodeQL test-code finding and correction, 16:17–16:18 JST
+
+The initial workflow's CodeQL step success did not mean zero findings. Analysis2203018686
+on733fb31 contained one result. API readback found open alert153, `cs/linq/missed-select`,
+at InspectionPurposeBoundaryTests.cs:75. The loop immediately assigned the exception returned
+by Assert.ThrowsExactly and then checked ParamName. The same finding applies to6499b0a,
+whose test source was unchanged; no result was suppressed or dismissed.
+
+The loop now directly asserts the returned exception's ParamName. It still invokes each of
+the same five providers exactly once, requires ArgumentNullException and the exact `purpose`
+parameter name, and stops on a failed assertion. It introduces no LINQ/deferred execution,
+new test, production change or changed assertion. `run-codeql-correction.ps1` records the
+zero-warning/error Infrastructure test build, the one affected five-provider case passing,
+and changed-file whitespace; every command exits0. The local change shortens one method
+without adding any branch, parameter or nesting, so the prior complexity evidence remains
+applicable without a repeated repository measurement.
+
+At16:18:15, cancellation of ongoing run44476340651 was requested because the final test input
+had changed and its known CodeQL finding remained unresolved. Its eventual partial/terminal
+record must be retained; it is not accepted as a complete successful review. The repository's
+existing deep-review workflow is the required complete-candidate route and includes CodeQL;
+there is no separate CodeQL-only workflow. One final dispatch is needed for this still-unaccepted
+shared/destructive-boundary change. No parallel quality workflow is requested.
+
+Only this test file changed against inputs-corrected.json; inputs-codeql-corrected.json records
+all1013 final inputs. Product source/binaries and the native F6 smoke remain unchanged. The earlier
+bounded timing still belongs to733fb31. CodeQL clearance and final deep-review acceptance are pending.
 
 ## Corrected native F6 smoke, 16:05–16:08 JST
 
@@ -235,7 +263,8 @@ Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) contains73
 was dispatched at15:34:22 JST on that candidate and failed as recorded above. The subsequent
 +comparison edits were documentation only; the later dispatch correction changes one of1013
 +proof inputs. The corrected [deep review44476340651](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44476340651)
-+started at16:00:44 JST on6499b0a and is running. Acceptance is pending; no CI success is claimed.
++started at16:00:44 JST on6499b0a; cancellation was requested at16:18:15 for the test correction
++above. A final complete-candidate dispatch/acceptance is pending; no CI success is claimed.
 
 The dedicated worktree is `D:/NeNeCommander/worktrees/issue-476`; its disposable output is
 `D:/NeNeCommander/outputs/inspection-purpose-20261119`. Inputs/logs and later CI artifacts belong
