@@ -14,9 +14,9 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class CommanderSessionAddressNavigationTests
 {
-    /// <summary>Proves an old control's LostFocus cannot close a newer address editor.</summary>
+    /// <summary>Proves a stale modal dismissal cannot close a newer editor and current dismissal restores its captured list.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenStaleAddressDepartureArrivesKeepsNewEditorAsync()
+    public async Task HandleAsyncWhenStaleAddressCancellationArrivesKeepsNewEditorAsync()
     {
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
@@ -36,19 +36,20 @@ public sealed class CommanderSessionAddressNavigationTests
             observer,
             CancellationToken.None)).Scopes.AddressEditor;
 
-        CommanderSnapshot afterDeparture = await session.HandleAsync(
-            UserIntent.LeaveAddress(oldState),
+        CommanderSnapshot afterCancellation = await session.HandleAsync(
+            UserIntent.CancelAddress(oldState),
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(newState, afterDeparture.Scopes.AddressEditor);
+        Assert.AreSame(newState, afterCancellation.Scopes.AddressEditor);
         Assert.AreSame(PaneSide.Right, Assert.IsInstanceOfType<AddressEditing>(newState).Side);
 
-        CommanderSnapshot departed = await session.HandleAsync(
-            UserIntent.LeaveAddress(newState),
+        CommanderSnapshot cancelled = await session.HandleAsync(
+            UserIntent.CancelAddress(newState),
             observer,
             CancellationToken.None);
-        Assert.AreSame(AddressEditorState.Closed, departed.Scopes.AddressEditor);
+        AddressEditorClosed closed = Assert.IsInstanceOfType<AddressEditorClosed>(cancelled.Scopes.AddressEditor);
+        Assert.AreSame(PaneSide.Right, closed.FileListFocusSide);
     }
 
     /// <summary>Proves provider failure and cancellation retain the listed content and selection.</summary>

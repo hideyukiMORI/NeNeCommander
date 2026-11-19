@@ -15,7 +15,7 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class CommanderSessionAddressEntryTests
 {
-    /// <summary>Proves keyboard and native-focus entry capture the intended listed pane.</summary>
+    /// <summary>Proves explicit address entry captures the intended listed pane.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenAddressEditingStartsCapturesAndActivatesRequestedPaneAsync()
     {
