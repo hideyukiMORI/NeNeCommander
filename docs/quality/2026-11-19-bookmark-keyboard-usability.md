@@ -24,6 +24,43 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Native confirmed deletion and restart, 17:28–17:31 JST
+
+The unchanged combined App on source2dae669 receives one bounded keyboard-only deletion walk.
+`deletion-walk/prepare.py` saves the exact original218-byte settings, checks all1,061 inputs
+and App DLL hash, then seeds only a disposable category and two owned bookmarks/slots1–2.
+Each target contains a distinct77-byte sentinel. Fixture preparation is direct JSON setup,
+not evidence of native registration. No product/build/test/CI change is included.
+
+In owned process39068, Ctrl+B/j/d opens the NN Delete Two confirmation with its exact target-2
+path. The screenshot shows Cancel focus; Tab moves to Delete, and Enter removes that bookmark.
+The remaining NN Delete One/slot1 and category count1 remain. Tab/j/j/d opens category deletion,
+explicitly naming NN Delete Group, one affected bookmark and the Uncategorized destination.
+Again Cancel is initial focus; Tab/Enter confirms. The category disappears while the surviving
+bookmark becomes Uncategorized with the same name/path/slot1. Both post-effect JSON snapshots
+match these exact expected changes. Only synthetic Bookmark metadata is deleted; no filesystem
+deletion command is submitted.
+
+After ordinary Alt+F4 and verified exit, process40864 starts from the saved378-byte settings.
+Ctrl+B shows exactly the surviving uncategorized entry and no deleted category or second entry.
+Escape closes the manager; Ctrl+1 opens target-1 and displays retained.txt. The second ordinary
+close completes, both owned processes/windows are absent, and the378-byte settings remain
+identical across restart/navigation. At17:31:38, `deletion-walk/restore.py` verifies the exact
+settings differences, both77-byte sentinel sizes/hashes and their permanent copies, then restores
+the original218 bytes/SHA256. Normal process38360 remains unchanged.
+
+Permanent evidence includes the predeclared baseline/plan,16 keyboard actions,11 first-process
+AX states, three restart AX states, nine screenshots, settings snapshots, process/window
+inventories and restoration/fixture hashes. `prepare.py`, `restore.py` and `record.py` all exit0.
+Immediate AX occasionally retains the preceding view, temporarily lacks list children or shows
+Search hints after effect; later screenshots and the next observed action/state establish the
+settled result. Initial Focused element remains the old address in AX, so visual focus rings and
+subsequent key effects are used together. Neither capture-call timing nor the transient AX view
+is treated as product timing or a diagnosed defect. The first close inventory still lists the
+window; later inventory/process checks establish exit. No helper error or input retry occurred
+in this walk. It does not establish held-key, all-category/collision, DPI/HC/Narrator or hide's
+separate screen acceptance. PR402 remains Draft; earlier native limits retain their scope.
+
 ## Accepted main synchronization, 17:25 JST
 
 PR477 passed final deep review44479037554 and merged as7bcf6de; completion record PR478
