@@ -81,6 +81,10 @@ format成功、Inspect既存7件。独立した実diff reviewで必須修正な�
 詳細は[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)と
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/native-input/`。今回の対象以外の成功証拠は再利用する。
 
+PR464は12:58:05に`2e644bf`として機能ブランチへ統合済み。検証済み40b4c88と全treeが一致する。
+main5b54b0aの文書同期でも製品/試験/依存/toolingは不変。既存の成功証拠を再利用し、無関係な再検証をしない。
+実機を再起動する場合、issue-457のビルドが今回の修正版である。issue-398の以前のbinは新sourceのbuild証拠ではない。
+
 ## ! hide実行待ち：後片付け
 
 旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。

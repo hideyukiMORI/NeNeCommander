@@ -1,6 +1,6 @@
 # Bookmark keyboard usability proof
 
-Status: Issue #457 follow-up verified locally; PR402 remains Draft and outside main/Preview
+Status: Issue #457 follow-up integrated through PR464; PR402 remains Draft and outside main/Preview
 
 ## Scope and invariant
 
@@ -25,6 +25,14 @@ Raw logs, source-review inputs, consultation results and UI evidence are retaine
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
 ## Native input ownership follow-up, 12:44–12:54 JST
+
+PR464 was squash-merged into the feature at 12:58:05 JST as `2e644bf`; its complete tree equals
+the verified `40b4c88` tree. The normal commit hook passed 112-rule conformance, registered
+24 adversarial cases and secret/workflow checks. Main `5b54b0a` was then synchronized solely
+for the four release-publication/cleanup documents. The one PROJECT_STATE conflict retains
+the new bookmark record and all release/feature history. Product, test, dependency and tooling
+inputs are unchanged by this synchronization, so successful evidence is reused without a
+build/test/CI rerun. The final actual-diff keyboard review found no required correction.
 
 The prior fast-input observations prompted a read-only source review, which found a valid
 ordering even though the observed native sequence was not isolated: an explicit list request

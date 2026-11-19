@@ -101,6 +101,10 @@ slash時点の一覧復帰完了や予約callbackの実行順は証明してい�
 Preview beta.2は12:19に公開済みで、公開asset照合と記録はmain `5b54b0a`まで統合済み。
 今回のBookmarkはPR402の別途画面受理前で、main/Previewには含めない。停止指示はなく作業を継続する。
 
+PR464は12:58:05に機能ブランチへsquash統合（`2e644bf`）。検証済みcommitとの全tree一致を確認した。
+通常hookは112規則の整合性とsecurity確認を通過した。main `5b54b0a`の追加同期は公開記録4文書だけで、
+PROJECT_STATEの競合はBookmarkと公開履歴の双方を保持した。製品入力不変のため再build/test/CIは行わない。
+
 ## ! hide実行待ち：後片付け
 
 従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
