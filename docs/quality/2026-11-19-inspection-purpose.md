@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; coverage corrected and native F6 smoke passed; new CodeQL test finding corrected; final deep review44479037554 running; integration pending.
+Status: implemented, accepted and integrated; issue-476 worktree/output cleanup complete.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -35,7 +35,7 @@ security/filesystem/glossary documents describe the same boundary.
 ADR-0061 shared-port and destructive-admission scope requires one explicitly dispatched deep
 review on the complete candidate. It includes the full canonical gate, record closure, coverage,
 adversarial repetition, mutation and CodeQL. Quality CI must not duplicate it. That wider proof
-is pending here; local focused results do not substitute for it. Rules ARC-001/005/007/009,
+is now accepted in the final-review section; local focused results alone did not substitute for it. Rules ARC-001/005/007/009,
 CMD-004, FS-002/005, SEC-003/011 and CS-002/013 apply. No waiver or threshold change.
 
 | Proof | Observed result |
@@ -255,7 +255,73 @@ unchanged. No restoration, deletion, dependency or product input change was need
 new fixture files are preserved with byte equality, extending the previous682-file archive
 to684 files/65,022,521 bytes; unchanged earlier preservation is reused.
 
-## Integration state and limits
+## Final deep review accepted, 17:16 JST
+
+The final workflow44479037554 finished successfully at17:15:29 JST on568371f.
+Its deep-review script completed at17:12:24; CodeQL and artifact preservation also succeeded.
+The canonical test run has2094 passed, zero failed and16 explicitly unexecuted live opt-in
+skips. The canonical gate, dependency audit, all twelve repeated adversarial project runs
+and all four mutation projects passed; deep-review.json contains19 passing checks plus the
+external CodeQL step. No threshold, exception, suppression or waiver changed.
+
+| Layer | Branch coverage | Mutation score |
+| --- | ---: | ---: |
+| Domain | 100.00% | 97.47% |
+| Application | 100.00% | 96.41% |
+| Infrastructure.Windows | 94.53% | 92.42% |
+| Presentation.WinUI | 94.50% | 94.76% |
+
+CodeQL analysis2203448014 is on that exact source and reports zero results, errors and warnings.
+Separate repository-wide and candidate-branch open-alert queries both return empty arrays.
+Alert153's retained most_recent_instance.state is fixed with no dismissal; its top-level state
+and fixed_at are null, so no stronger top-level status claim is inferred. The zero-result final
+analysis and both open-alert queries are the acceptance evidence.
+
+`gh run download 44479037554 --dir <evidence>/ci-final` preserves the full security-deep-review
+artifact. `gh run view 44479037554 --log` and the JSON run/job readback are retained separately.
+`gh api --method GET repos/hideyukiMORI/NeNeCommander/code-scanning/analyses` with the candidate
+ref, and `/code-scanning/alerts` with state=open (repository and candidate ref), provide the
+independent API records. `python <evidence>/accept-final.py` exits0 at17:16:14, checks the
+workflow/source/complete check set/numerical thresholds/CodeQL records, and confirms all1013
+verification hashes still match. Current da42786 differs from tested568371f only in four
+documents; these final records likewise add no verification input. Successful evidence is reused.
+
+An attempted read of the still-running job log at16:48 returned404 BlobNotFound. That was
+an unavailable log, not a gate failure; final logs were obtained normally after completion.
+No extra quality workflow or rerun is added. Live WSL/UNC/mapped-drive/native recycle and
+end-to-end UI latency limits remain as stated above. PR477 may now become review-ready and
+integrate; the later integration and cleanup must still be observed separately.
+
+## Integration and cleanup completed, 17:22 JST
+
+PR477 merged normally at17:21:47 JST as `7bcf6de`; accepted head `1b64453` and the squash
+have identical Git trees. The local main advanced by fast-forward and remains synchronized.
+All1013 verified source inputs remain unchanged; no build/test/CI is repeated for integration
+or these documentation-only records. The first reused byte-hash checker stopped at.editorconfig
+because the established main checkout uses LF for15 inputs while the former task checkout used
+CRLF. A bounded comparison confirms those15 differ only in line endings, the remaining998
+match byte-for-byte, and all1013 match the accepted Git source. No implementation was edited
+to satisfy the checker. The successful document check covers12 numerical rows and285 links.
+
+The first normal merge was blocked by the required review-thread resolution rule. The sole
+thread was the already-corrected CodeQL153 test-code finding. Final analysis2203448014 and
+both open-alert queries had already established clearance. Resolving only that thread changed
+mergeStateStatus from BLOCKED to CLEAN, and the normal expected-head squash then succeeded.
+The connector could read the thread but its resolution returned Resource not accessible by
+integration; authenticated `gh api graphql` performed the same authorized resolution. There
+was no review dismissal, admin bypass, rule change or additional approval requirement.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/inspection-purpose-20261119/cleanup-completed.ps1
+-ExpectedHead 1b644538bb59ef17817e301757adf6e5cf09695e` exited0 at17:22:00 JST. Its bounded
+preflight confirmed the exact resolved paths, accepted/clean worktree, only reviewed regenerable
+ignored files, no live references or links, and the complete684-file/65,022,521-byte archive.
+Prior full hash equality was reused with unchanged file-set/size/timestamps. The issue-476
+worktree and inspection-purpose output are both absent; branches, commits and permanent evidence
+remain. Four older automatically rejected cleanup targets remain untouched and pending.
+The published beta.2 and normal application remain unchanged. #453 stays open; PR402 still
+requires hide's separate screen acceptance.
+
+## Earlier integration state and limits
 
 Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) now contains568371f.
 Its normal112-rule/24-adversarial-registration/security/commit-message hooks passed.
@@ -271,8 +337,8 @@ was still present in that source. Full logs and artifacts are preserved without 
 the interrupted attempt.
 
 The final [deep review44479037554](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44479037554)
-was dispatched at16:21:56 JST on568371f. Acceptance of its full gate, mutation and CodeQL
-remains pending. The final1013 source/test/tool/dependency inputs are frozen in
+was dispatched at16:21:56 JST on568371f and is accepted as recorded above. The final1013
+source/test/tool/dependency inputs are frozen in
 `inputs-codeql-corrected.json`; these documentation updates do not invalidate them.
 No parallel quality workflow or repeated local suite is added.
 

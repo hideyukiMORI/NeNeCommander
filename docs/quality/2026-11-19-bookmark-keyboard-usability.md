@@ -24,6 +24,27 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Accepted main synchronization, 17:25 JST
+
+PR477 passed final deep review44479037554 and merged as7bcf6de; completion record PR478
+merged as1cc5d75. Draft PR402 now imports that accepted main history. The four conflicts are
+documentation only: PROJECT_STATE retains both histories, while the three inspection-purpose
+records take main's later acceptance/integration/cleanup evidence. There is no source/test/tool
+change against the already-built7a10707 combination. All1,061 verification input hashes and
+the combined App DLL hash remain identical to inspection-sync's successful proof.
+
+The existing App/consumer builds and four focused boundary cases therefore remain applicable;
+no build, product test, hosted CI, complexity scan or native walk is repeated for this history
+synchronization. The accepted provider deep review is preserved in the inspection-purpose
+record; this does not grant PR402 hide's separate screen acceptance. PR402 remains Draft.
+The normal running app and public beta.2 remain unchanged. The issue-476 worktree/output are
+now absent; unfinished Bookmark work and the four previously rejected cleanup targets remain.
+
+Commands: `git merge --no-ff --no-commit 1cc5d75819b8044349c0353e36e28c21c57cba50`,
+the bounded document conflict resolution and input checks in `python <evidence>/inspection-sync/
+accept-main.py`, then normal commit hooks. The first merge returns1 only for the four stated
+document conflicts. `accepted-main.json` records unchanged inputs and document-link checks.
+
 ## Inspection candidate combination, 16:40 JST
 
 Feature26dcb52 was combined with PR477 candidate da42786, whose unchanged568371f verification

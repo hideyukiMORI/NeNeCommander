@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・引き継ぎ
 
-Status: initial deep review failed; local dispatch correction verified; CodeQL test correction verified; final deep review44479037554 running; continue until hide stops.
+Status: accepted and integrated; issue-476 cleanup complete; continue until hide stops.
 
 1. #476、ADR-0083。唯一のInspectAsyncに閉じた目的を必須化。IdentityOnlyでもidentityは検査し、
    削除能力はNotRequested。通常Deleteは既知能力の全batchが揃うまでeffect/progressを始めない。
@@ -54,6 +54,33 @@ Application mutation中に中断しており、完全なdeep review成功とし�
 inputs-codeql-corrected.jsonと一致し、今回の文書更新で再試験は増やさない。
 full gate/mutation/CodeQLの受理後にPR477をReadyにし、squash統合と今回分の整理を進める。
 PR402の最新headはbad2b03で、別途hideの画面受理待ちである。
+
+## 17:16時点の最終deep review受理
+
+run44479037554/568371fは17:15:29 JSTに全工程成功。2094試験成功/失敗0/未実行live skip16。
+分岐coverageはDomain100、Application100、Infrastructure94.53、Presentation94.50%。
+mutationは順に97.47/96.41/92.42/94.76%。依存監査と12組のadversarial繰り返しも成功した。
+CodeQL analysis2203448014は結果/error/warning0、repo全体と候補branchのopen alertも各0。
+alert153はmost_recent_instance.state=fixedでdismissなし（top-level state/fixed_atはnull）。
+artifact/log/APIを恒久保全し、accept-final.pyで完全なcheck集合と全1013入力不変を確認した。
+da42786と検証SHAの差は文書4つのみ。今回の受理記録でもコード・試験・依存・toolingは変えない。
+PR477のReady/統合と今回worktree/outputの整理を続ける。PR402は7a10707で候補を先行結合し、
+限定build/4試験成功・1061入力を固定したが、hideの画面受理は引き続き別途必要。
+通常app/public beta.2不変、#453の総UI時間・原因は未確定。成功済みCIを重ねて実行しない。
+
+## 17:22時点のmain統合・今回分整理完了
+
+PR477は17:21:47 JSTに通常のsquashで`7bcf6de`へ統合した。受理head`1b64453`とtree一致、
+local mainはfast-forward済み。最終1013検証入力も不変で、成功済み試験・CIを再実行していない。
+初回mergeは修正済みCodeQL153の未解決review threadで停止した。最終解析0件とopen alert0件を
+根拠にその1threadを解決し、BLOCKEDからCLEANとなって通常mergeに成功した。規則変更・迂回なし。
+connectorの解決操作は権限不足で失敗し、既存gh経路で同じ解決を行ったことも記録した。
+
+17:22:00に`cleanup-completed.ps1 -ExpectedHead 1b644538bb59ef17817e301757adf6e5cf09695e`がexit0。
+絶対path・受理/clean・未追跡/無視物・参照/link・684file/65,022,521byte保全を確認して、
+`D:/NeNeCommander/worktrees/issue-476`と`D:/NeNeCommander/outputs/inspection-purpose-20261119`を削除した。
+両方の不在を確認。branch/commit/恒久証拠を保持し、以前に拒否された4対象は再試行していない。
+公開beta.2と通常appは不変。#453は未解決、PR402はhideの画面受理待ち。
 
 ## ! hide実行待ち：後片付け
 

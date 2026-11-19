@@ -139,6 +139,15 @@ palette Delete確認対象、操作modalのBookmark入力所有の計4件が成�
 今回の新しい結合binaryのnative起動はしておらず、前の画面・計測証拠の対象候補を変更しない。
 main/通常app/public beta.2不変。PR402のhide画面受理とPR477の技術受理は別々に未完了。
 
+## 17:25時点の受理済みmain同期
+
+PR477/7bcf6deは最終deep review44479037554成功後にmain統合済み。完了記録PR478/1cc5d75も取り込んだ。
+競合4文書はPROJECT_STATEで両履歴を保持し、検査契約のquality/report/handoffはmainの新しい
+受理・統合・整理記録を採用した。製品/source/test/toolは結合済み7a10707から不変。
+全1061入力とApp DLL hashが一致し、既存build/4case証拠を再利用。新規build/test/CI/nativeなし。
+PR402はDraftでhideの画面受理待ち。通常app/公開beta.2は不変。#476の作業用2対象は整理済み、
+未受理Bookmark作業と以前に拒否された4対象は保持する。
+
 ## ! hide実行待ち：後片付け
 
 旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。
