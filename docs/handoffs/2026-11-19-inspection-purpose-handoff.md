@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・引き継ぎ
 
-Status: initial deep review failed; local dispatch correction verified; CodeQL test correction verified; final deep review pending; continue until hide stops.
+Status: initial deep review failed; local dispatch correction verified; CodeQL test correction verified; final deep review44479037554 running; continue until hide stops.
 
 1. #476、ADR-0083。唯一のInspectAsyncに閉じた目的を必須化。IdentityOnlyでもidentityは検査し、
    削除能力はNotRequested。通常Deleteは既知能力の全batchが揃うまでeffect/progressを始めない。
@@ -20,7 +20,7 @@ Status: initial deep review failed; local dispatch correction verified; CodeQL t
    全682outputは恒久runsへ保全済み。
 4. 今回output `D:/NeNeCommander/outputs/inspection-purpose-20261119` は作業中。
    技術受理/main統合/必要反映/恒久証拠保全後、今回分の参照・link・未保存物を検査して整理する。
-   通常app/公開beta.2は不変。PR402 Draft9006020はhideの画面受理待ちで、受理を代行しない。
+   通常app/公開beta.2は不変。PR402 Draftbad2b03はhideの画面受理待ちで、受理を代行しない。
 
 ## 16:08時点の修正版確認
 
@@ -41,6 +41,19 @@ Status: initial deep review failed; local dispatch correction verified; CodeQL t
 run44476340651には16:18:15にcancel要求を出した。最終候補deep reviewは未受理。
 inputs-codeql-corrected.jsonが1013入力の最終正本。既存deep workflowがCodeQLも含む経路なので、
 今回まだ受理されていない共有/破壊境界の最終候補で再dispatchする。qualityは重ねない。
+
+## 16:21時点の最終候補検証
+
+2回目のrun44476340651は16:21:12 JSTにcancelledで終了した。途中のcanonical gate、
+依存監査、12組のadversarial繰り返し、Domain mutation97.47%は成功。2094試験成功/16 live skip、
+分岐はDomain100%、Application100%、Infrastructure94.53%、Presentation94.50%。
+Application mutation中に中断しており、完全なdeep review成功としては扱わない。
+全logとci-second-cancelled/のartifactを保持した。
+
+最終568371fのrun44479037554を16:21:56 JSTに開始した。最終入力1013件は
+inputs-codeql-corrected.jsonと一致し、今回の文書更新で再試験は増やさない。
+full gate/mutation/CodeQLの受理後にPR477をReadyにし、squash統合と今回分の整理を進める。
+PR402の最新headはbad2b03で、別途hideの画面受理待ちである。
 
 ## ! hide実行待ち：後片付け
 

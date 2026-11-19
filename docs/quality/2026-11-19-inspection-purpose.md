@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; coverage corrected and native F6 smoke passed; new CodeQL test finding corrected; complete final deep review and integration pending.
+Status: implemented; coverage corrected and native F6 smoke passed; new CodeQL test finding corrected; final deep review44479037554 running; integration pending.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -257,14 +257,24 @@ to684 files/65,022,521 bytes; unchanged earlier preservation is reused.
 
 ## Integration state and limits
 
-Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) contains733fb31. Its normal
-112-rule/24-adversarial-registration/security/commit-message hooks passed. The one
-[deep review44473140316](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44473140316)
-was dispatched at15:34:22 JST on that candidate and failed as recorded above. The subsequent
-+comparison edits were documentation only; the later dispatch correction changes one of1013
-+proof inputs. The corrected [deep review44476340651](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44476340651)
-+started at16:00:44 JST on6499b0a; cancellation was requested at16:18:15 for the test correction
-+above. A final complete-candidate dispatch/acceptance is pending; no CI success is claimed.
+Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) now contains568371f.
+Its normal112-rule/24-adversarial-registration/security/commit-message hooks passed.
+The initial [deep review44473140316](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44473140316)
+failed as recorded above. The corrected [deep review44476340651](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44476340651)
+ended cancelled at16:21:12 JST after the test-code correction made its inputs obsolete.
+Its retained `ci-second-cancelled/security-deep-review/deep-review.json` records a passing
+canonical gate, dependency audit, twelve adversarial project runs and Domain mutation97.47%.
+The log records2094 passing tests/16 opt-in live skips and branch coverage Domain100%,
+Application100%, Infrastructure94.53%, Presentation94.50%. Application mutation was interrupted;
+this partial result is not a complete accepted review. The same test-code CodeQL finding
+was still present in that source. Full logs and artifacts are preserved without discarding
+the interrupted attempt.
+
+The final [deep review44479037554](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44479037554)
+was dispatched at16:21:56 JST on568371f. Acceptance of its full gate, mutation and CodeQL
+remains pending. The final1013 source/test/tool/dependency inputs are frozen in
+`inputs-codeql-corrected.json`; these documentation updates do not invalidate them.
+No parallel quality workflow or repeated local suite is added.
 
 The dedicated worktree is `D:/NeNeCommander/worktrees/issue-476`; its disposable output is
 `D:/NeNeCommander/outputs/inspection-purpose-20261119`. Inputs/logs and later CI artifacts belong
