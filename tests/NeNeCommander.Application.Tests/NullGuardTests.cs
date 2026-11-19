@@ -143,13 +143,11 @@ public sealed class NullGuardTests
             [new[] { entry }, null]);
         AssertInstanceNullGuard(PaneSortOrder.Default, nameof(PaneSortOrder.Toggle), [null]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
+            [null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
+            [DisplayPreferences.Default, null, PaneSortPreferences.Default]);
         AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null, PaneSortPreferences.Default]);
-        AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, null]);
+            [DisplayPreferences.Default, BookmarkCatalog.Empty, null]);
         AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),
             [null, PaneSortOrder.Default]);
         AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),

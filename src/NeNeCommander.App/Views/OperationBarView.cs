@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -31,7 +32,7 @@ internal sealed class OperationBarView
     private readonly TextBlock _operationStatus;
     private readonly Border _nameEntryFrame;
     private readonly TextBox _nameEntry;
-    private readonly StackPanel _transferResultSegments;
+    private readonly Panel _transferResultSegments;
     private readonly TextBlock _transferResultNotTransferredCount;
     private readonly TextBlock _transferResultCopiedCount;
     private readonly TextBlock _transferResultVerifiedCount;
@@ -41,8 +42,11 @@ internal sealed class OperationBarView
     private readonly TextBlock _operationDetailCount;
     private readonly TextBlock _operationProgressSeparator;
     private readonly TextBlock _operationTotal;
-    private readonly Grid _operationContent;
+    private readonly StackPanel _operationContent;
     private readonly ItemsControl _operationKeyHints;
+    private readonly KeyHintWrapPanel _information;
+    private readonly Grid _statusGroup;
+    private readonly StackPanel _counts;
 
     internal OperationBarView(Grid root, ResourceLoader resources, Action<UserIntent> forward)
     {
@@ -64,7 +68,7 @@ internal sealed class OperationBarView
         _operationStatus = Find<TextBlock>("OperationStatus");
         _nameEntryFrame = Find<Border>("NameEntryFrame");
         _nameEntry = Find<TextBox>("NameEntry");
-        _transferResultSegments = Find<StackPanel>("TransferResultSegments");
+        _transferResultSegments = Find<Panel>("TransferResultSegments");
         _transferResultNotTransferredCount = Find<TextBlock>("TransferResultNotTransferredCount");
         _transferResultCopiedCount = Find<TextBlock>("TransferResultCopiedCount");
         _transferResultVerifiedCount = Find<TextBlock>("TransferResultVerifiedCount");
@@ -74,8 +78,11 @@ internal sealed class OperationBarView
         _operationDetailCount = Find<TextBlock>("OperationDetailCount");
         _operationProgressSeparator = Find<TextBlock>("OperationProgressSeparator");
         _operationTotal = Find<TextBlock>("OperationTotal");
-        _operationContent = Find<Grid>("OperationContent");
+        _operationContent = Find<StackPanel>("OperationContent");
         _operationKeyHints = Find<ItemsControl>("OperationKeyHints");
+        _information = Find<KeyHintWrapPanel>("OperationInformation");
+        _statusGroup = Find<Grid>("OperationStatusGroup");
+        _counts = Find<StackPanel>("OperationCounts");
         Find<Button>("ConflictSkip").Click += OnConflictSkip;
         Find<Button>("ConflictKeepBoth").Click += OnConflictKeepBoth;
         _conflictCancel.Click += OnConflictCancel;
@@ -89,7 +96,18 @@ internal sealed class OperationBarView
         RenderDetail(presentation.Detail);
         _operationKeyHints.ItemsSource = presentation.KeyHints;
         RenderNameEntry(presentation.NameEntry);
+        RenderInformationVisibility();
+        FocusNameEntry();
         RenderConflict(presentation.ConflictModal);
+    }
+
+    private void RenderInformationVisibility()
+    {
+        _statusGroup.Visibility = _operationStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        _counts.Visibility = _operationDetailCount.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        _information.Visibility = _information.Children.Any(static child => child.Visibility == Visibility.Visible)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void RenderTone(OperationBarTone tone)
@@ -118,6 +136,9 @@ internal sealed class OperationBarView
 
     private void RenderDetail(OperationDetail detail)
     {
+        _operationProgressSegments.Visibility = detail is OperationProgressDetail
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         _transferResultSegments.Visibility = detail is TransferResultDetail
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -167,8 +188,15 @@ internal sealed class OperationBarView
             _nameEntry.Text = active.InitialText;
             _nameEntryFrame.Visibility = Visibility.Visible;
         }
-        _ = _nameEntry.Focus(FocusState.Programmatic);
-        _nameEntry.SelectAll();
+    }
+
+    private void FocusNameEntry()
+    {
+        if (_nameEntryFrame.Visibility == Visibility.Visible)
+        {
+            _ = _nameEntry.Focus(FocusState.Programmatic);
+            _nameEntry.SelectAll();
+        }
     }
 
     private void RenderConflict(ConflictModalPresentation conflictModal)

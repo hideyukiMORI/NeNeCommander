@@ -49,7 +49,7 @@ public sealed class SettingsSessionShutdownTests
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await stopping;
 
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Display.ColorScheme);
     }
 
     /// <summary>Proves shutdown observes a faulted tail and still completes without an unobserved task.</summary>

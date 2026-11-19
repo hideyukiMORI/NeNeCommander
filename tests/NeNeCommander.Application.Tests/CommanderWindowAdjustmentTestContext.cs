@@ -42,8 +42,7 @@ internal sealed class CommanderWindowAdjustmentTestContext : System.IDisposable
             new SettingsSession(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Read(UserSettings.Create(
-                    ColorScheme.NeNeDark,
-                    HiddenItemVisibility.Hidden,
+                    DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                     catalog, PaneSortPreferences.Default)),
                 static _ => { }),
             new TransientScopeOwners(

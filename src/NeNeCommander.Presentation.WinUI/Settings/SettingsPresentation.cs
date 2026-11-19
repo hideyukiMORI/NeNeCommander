@@ -21,7 +21,8 @@ public sealed record SettingsPresentation
         ArgumentNullException.ThrowIfNull(saveStatus);
         ArgumentNullException.ThrowIfNull(warning);
         IsOpen = source.Editor == SettingsEditorState.Open;
-        ShowHiddenItemsAtLaunch = source.Settings.HiddenItemVisibility == HiddenItemVisibility.Shown;
+        ShowHiddenItemsAtLaunch = source.Settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown;
+        ShowKeyHints = source.Settings.Display.KeyHintVisibility == KeyHintVisibility.Shown;
         _schemes = new List<SettingsColorSchemeOption>(schemes).AsReadOnly();
         SaveStatus = saveStatus;
         Warning = warning;
@@ -32,6 +33,9 @@ public sealed record SettingsPresentation
 
     /// <summary>Gets the current next-launch hidden-item checkbox value.</summary>
     public bool ShowHiddenItemsAtLaunch { get; }
+
+    /// <summary>Gets the current normal footer hint checkbox value.</summary>
+    public bool ShowKeyHints { get; }
 
     /// <summary>Gets all eight scheme options in canonical order.</summary>
     public IReadOnlyList<SettingsColorSchemeOption> Schemes => _schemes;

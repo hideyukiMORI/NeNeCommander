@@ -9,6 +9,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -30,9 +31,9 @@ public sealed class DualPaneNameEntryPresenterTests
         _ = await panes.NavigateAsync(PaneSide.Right, DualPaneTestContext.ParsePath("C:\\right"), CancellationToken.None);
 
         DualPanePresentation awaiting = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(OperationStatus.CreateDirectoryAwaitingName, awaiting.OperationStatus);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
@@ -81,7 +82,7 @@ public sealed class DualPaneNameEntryPresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(UserIntent.SubmitName("new"), RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
 
@@ -117,7 +118,7 @@ public sealed class DualPaneNameEntryPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.SubmitName(name), RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown).OperationStatus;
     }
 
     /// <summary>Proves the rename name entry is projected as modal input with the focus item's current name.</summary>
@@ -134,9 +135,9 @@ public sealed class DualPaneNameEntryPresenterTests
         _ = await panes.NavigateAsync(PaneSide.Right, DualPaneTestContext.ParsePath("C:\\right"), CancellationToken.None);
 
         DualPanePresentation awaiting = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPanePresentation escaped = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(OperationStatus.RenameAwaitingName, awaiting.OperationStatus);
         Assert.AreEqual(string.Empty, awaiting.DeletionConfirmationAutomationId);
@@ -183,7 +184,7 @@ public sealed class DualPaneNameEntryPresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(UserIntent.SubmitName("b.txt"), RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
 
@@ -219,7 +220,7 @@ public sealed class DualPaneNameEntryPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.SubmitName(name), RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown).OperationStatus;
     }
 
     /// <summary>Proves the active name entry rejects absent initial text.</summary>

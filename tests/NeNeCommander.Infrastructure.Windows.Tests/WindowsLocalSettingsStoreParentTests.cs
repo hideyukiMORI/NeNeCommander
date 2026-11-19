@@ -56,7 +56,7 @@ public sealed class WindowsLocalSettingsStoreParentTests
         Directory.Move(root.Resolve("parked-parent"), root.Resolve("settings-parent"));
         SettingsWriteRejected second = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.UnsafeLocation, second.Failure);

@@ -87,11 +87,11 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             new WindowsIdentifierSource());
         SettingsReadOutcome settingsOutcome = await settingsStore.ReadAsync(cancellationToken).ConfigureAwait(true);
         UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
-        ApplyColorScheme(settings.ColorScheme);
+        ApplyColorScheme(settings.Display.ColorScheme);
         SettingsSession settingsSession = new(settingsStore, settingsOutcome, ReportDefect);
         _window = CreateWindow(settings, ioExecutionBoundary, settingsSession);
         _window.ColorSchemeChanged += OnColorSchemeChanged;
-        ApplyElementTheme(_window, settings.ColorScheme.Appearance);
+        ApplyElementTheme(_window, settings.Display.ColorScheme.Appearance);
         _closeAdapter = new AppWindowCloseAdapter(_window, OnWindowCloseRequested);
         _window.Activate();
     }
@@ -144,9 +144,9 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
         _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
         DualPaneSession panes = new(
             CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
-                capacity, DirectoryListing.EntryBoundaryLimit, settings.HiddenItemVisibility, settings.PaneSortOrders.Left)),
+                capacity, DirectoryListing.EntryBoundaryLimit, settings.Display.HiddenItemVisibility, settings.PaneSortOrders.Left)),
             CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
-                capacity, DirectoryListing.EntryBoundaryLimit, settings.HiddenItemVisibility, settings.PaneSortOrders.Right)),
+                capacity, DirectoryListing.EntryBoundaryLimit, settings.Display.HiddenItemVisibility, settings.PaneSortOrders.Right)),
             _gateway);
         TransientScopeOwners scopes = new(
             new AddressEditorSession(),

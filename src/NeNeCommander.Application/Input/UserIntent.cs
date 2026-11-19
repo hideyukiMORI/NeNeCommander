@@ -238,6 +238,14 @@ public abstract record UserIntent
         return new LaunchHiddenItemVisibilitySelection(visibility);
     }
 
+    /// <summary>Creates an intent selecting the normal footer hint visibility.</summary>
+    /// <param name="visibility">Closed visibility selected by the editor.</param>
+    /// <returns>The typed selection intent.</returns>
+    public static UserIntent SelectKeyHintVisibility(KeyHintVisibility visibility)
+    {
+        return new KeyHintVisibilitySelection(visibility);
+    }
+
     /// <summary>Creates a manager navigation intent from the complete entry the user selected.</summary>
     public static UserIntent NavigateBookmark(BookmarkSelection selection)
     {

@@ -43,7 +43,7 @@ public sealed class SettingsSessionGuardTests
         await pending;
 
         Assert.HasCount(1, observer.Settings);
-        Assert.AreSame(ColorScheme.Monokai, observer.Settings[0].Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Monokai, observer.Settings[0].Settings.Display.ColorScheme);
         _ = Assert.IsInstanceOfType<SettingsPersistenceSucceeded>(observer.Settings[0].Persistence);
     }
 

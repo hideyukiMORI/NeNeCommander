@@ -54,7 +54,7 @@ public sealed class SettingsSessionTests
             CancellationToken.None);
         SettingsSnapshot closed = session.Close();
 
-        Assert.AreSame(ColorScheme.Dracula, closed.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, closed.Settings.Display.ColorScheme);
         Assert.AreSame(SettingsEditorState.Closed, closed.Editor);
         _ = Assert.IsInstanceOfType<SettingsPersistencePending>(closed.Persistence);
         write.SetResult(SettingsWriteOutcome.Succeeded());
@@ -67,8 +67,7 @@ public sealed class SettingsSessionTests
     public async Task SelectLaunchHiddenVisibilityWhenChosenWritesCompleteSettingsAsync()
     {
         UserSettings initial = UserSettings.Create(
-            ColorScheme.Monokai,
-            HiddenItemVisibility.Hidden,
+            DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
@@ -80,10 +79,10 @@ public sealed class SettingsSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(ColorScheme.Monokai, session.Current.Settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Monokai, session.Current.Settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Display.HiddenItemVisibility);
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[0].HiddenItemVisibility);
+        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[0].Display.HiddenItemVisibility);
         write.SetResult(SettingsWriteOutcome.Succeeded());
         await pending;
     }
@@ -102,11 +101,11 @@ public sealed class SettingsSessionTests
         Task second = session.SelectColorSchemeAsync(ColorScheme.NeNeLight, observer, CancellationToken.None);
 
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.Display.ColorScheme);
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await first;
         await store.WaitForWriteCountAsync(2);
-        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.Display.ColorScheme);
         _ = Assert.IsInstanceOfType<SettingsPersistencePending>(session.Current.Persistence);
         secondWrite.SetResult(SettingsWriteOutcome.Rejected(
             SettingsWriteFailureKind.IoFailure,
@@ -114,9 +113,9 @@ public sealed class SettingsSessionTests
             SettingsWriteEffect.None));
         await second;
 
-        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
-        Assert.AreSame(ColorScheme.NeNeLight, store.Writes[1].ColorScheme);
-        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].Display.ColorScheme);
+        Assert.AreSame(ColorScheme.NeNeLight, store.Writes[1].Display.ColorScheme);
+        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.Display.ColorScheme);
         SettingsPersistenceFailed failed = Assert.IsInstanceOfType<SettingsPersistenceFailed>(
             session.Current.Persistence);
         Assert.AreSame(SettingsWriteFailureKind.IoFailure, failed.Rejection.Failure);
@@ -151,7 +150,7 @@ public sealed class SettingsSessionTests
 
         Assert.HasCount(1, observed);
         Assert.AreSame(defect, observed[0]);
-        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.NeNeLight, session.Current.Settings.Display.ColorScheme);
         _ = Assert.IsInstanceOfType<SettingsPersistenceSucceeded>(session.Current.Persistence);
     }
 
@@ -162,8 +161,7 @@ public sealed class SettingsSessionTests
         BookmarkCatalog initialCatalog = Catalog("Initial", "C:\\initial");
         BookmarkCatalog replacementCatalog = Catalog("Replacement", "C:\\replacement");
         UserSettings initial = UserSettings.Create(
-            ColorScheme.Ubuntu,
-            HiddenItemVisibility.Shown,
+            DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
             initialCatalog, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();
@@ -181,15 +179,15 @@ public sealed class SettingsSessionTests
             CancellationToken.None);
 
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[0].HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[0].Display.HiddenItemVisibility);
         Assert.AreSame(replacementCatalog, store.Writes[0].Bookmarks);
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Display.ColorScheme);
         Assert.AreSame(replacementCatalog, session.Current.Settings.Bookmarks);
         catalogWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await first;
         await store.WaitForWriteCountAsync(2);
-        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].Display.ColorScheme);
         Assert.AreSame(replacementCatalog, store.Writes[1].Bookmarks);
         preferenceWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await second;
@@ -217,12 +215,12 @@ public sealed class SettingsSessionTests
 
         Assert.HasCount(1, store.Writes);
         Assert.AreSame(BookmarkCatalog.Empty, store.Writes[0].Bookmarks);
-        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.HiddenItemVisibility);
+        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Display.HiddenItemVisibility);
         Assert.AreSame(replacementCatalog, session.Current.Settings.Bookmarks);
         preferenceWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await first;
         await store.WaitForWriteCountAsync(2);
-        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[1].HiddenItemVisibility);
+        Assert.AreSame(HiddenItemVisibility.Shown, store.Writes[1].Display.HiddenItemVisibility);
         Assert.AreSame(replacementCatalog, store.Writes[1].Bookmarks);
         catalogWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await second;

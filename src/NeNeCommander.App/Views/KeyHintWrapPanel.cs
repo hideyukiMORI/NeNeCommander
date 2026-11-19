@@ -9,7 +9,7 @@ namespace NeNeCommander.App.Views;
 
 /// <summary>
 /// Lays key hints out left to right and wraps them onto another line instead of clipping when the
-/// available width runs out, as the window-adjustment handoff requires. The gaps are read from the
+/// available width runs out, as the footer and window-adjustment handoffs require. The gaps are read from the
 /// semantic spacing resources, so the panel declares no visual constant of its own (CS-023).
 /// </summary>
 public sealed partial class KeyHintWrapPanel : Panel
@@ -22,10 +22,10 @@ public sealed partial class KeyHintWrapPanel : Panel
     /// <returns>The extent of the wrapped hints.</returns>
     protected override Size MeasureOverride(Size availableSize)
     {
-        Size unbounded = new(double.PositiveInfinity, double.PositiveInfinity);
+        Size constraint = new(availableSize.Width, double.PositiveInfinity);
         foreach (UIElement child in Children)
         {
-            child.Measure(unbounded);
+            child.Measure(constraint);
         }
         return ExtentOf(Place(availableSize.Width));
     }
@@ -36,9 +36,10 @@ public sealed partial class KeyHintWrapPanel : Panel
     protected override Size ArrangeOverride(Size finalSize)
     {
         List<Rect> places = Place(finalSize.Width);
-        for (int index = 0; index < places.Count; index++)
+        int index = 0;
+        foreach (UIElement child in VisibleChildren())
         {
-            Children[index].Arrange(places[index]);
+            child.Arrange(places[index++]);
         }
         return finalSize;
     }
@@ -51,7 +52,7 @@ public sealed partial class KeyHintWrapPanel : Panel
         double left = 0d;
         double top = 0d;
         double lineHeight = 0d;
-        foreach (Size desired in Children.Select(static child => child.DesiredSize))
+        foreach (Size desired in VisibleChildren().Select(static child => child.DesiredSize))
         {
             if (left > 0d && left + desired.Width > availableWidth)
             {
@@ -64,6 +65,11 @@ public sealed partial class KeyHintWrapPanel : Panel
             lineHeight = Math.Max(lineHeight, desired.Height);
         }
         return places;
+    }
+
+    private IEnumerable<UIElement> VisibleChildren()
+    {
+        return Children.Where(static child => child.Visibility == Visibility.Visible);
     }
 
     private static Size ExtentOf(List<Rect> places)

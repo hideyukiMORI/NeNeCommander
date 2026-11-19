@@ -10,13 +10,11 @@ namespace NeNeCommander.Application.Settings;
 public sealed record UserSettings
 {
     private UserSettings(
-        ColorScheme colorScheme,
-        HiddenItemVisibility hiddenItemVisibility,
+        DisplayPreferences display,
         BookmarkCatalog bookmarks,
         PaneSortPreferences paneSortOrders)
     {
-        ColorScheme = colorScheme;
-        HiddenItemVisibility = hiddenItemVisibility;
+        Display = display;
         Bookmarks = bookmarks;
         PaneSortOrders = paneSortOrders;
     }
@@ -24,16 +22,12 @@ public sealed record UserSettings
     /// <summary>Gets the settings used when no valid persisted document exists.</summary>
     public static UserSettings Default { get; } =
         new(
-            Settings.ColorScheme.NeNeDark,
-            Settings.HiddenItemVisibility.Hidden,
+            DisplayPreferences.Default,
             BookmarkCatalog.Empty,
             PaneSortPreferences.Default);
 
-    /// <summary>Gets the approved color scheme the host renders.</summary>
-    public ColorScheme ColorScheme { get; }
-
-    /// <summary>Gets the closed visibility of hidden and system entries.</summary>
-    public HiddenItemVisibility HiddenItemVisibility { get; }
+    /// <summary>Gets the complete persisted display choices.</summary>
+    public DisplayPreferences Display { get; }
 
     /// <summary>Gets the complete immutable bookmark catalog.</summary>
     public BookmarkCatalog Bookmarks { get; }
@@ -45,15 +39,13 @@ public sealed record UserSettings
     /// Creates settings from preferences and a catalog already validated at their boundaries.
     /// </summary>
     public static UserSettings Create(
-        ColorScheme colorScheme,
-        HiddenItemVisibility hiddenItemVisibility,
+        DisplayPreferences display,
         BookmarkCatalog bookmarks,
         PaneSortPreferences paneSortOrders)
     {
-        ArgumentNullException.ThrowIfNull(colorScheme);
-        ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
+        ArgumentNullException.ThrowIfNull(display);
         ArgumentNullException.ThrowIfNull(bookmarks);
         ArgumentNullException.ThrowIfNull(paneSortOrders);
-        return new UserSettings(colorScheme, hiddenItemVisibility, bookmarks, paneSortOrders);
+        return new UserSettings(display, bookmarks, paneSortOrders);
     }
 }

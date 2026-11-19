@@ -10,6 +10,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -30,10 +31,10 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         DualPaneSnapshot snapshot = await panes.NavigateAsync(PaneSide.Right, rightListing.Location, CancellationToken.None);
 
-        DualPanePresentation first = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPanePresentation first = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPaneSnapshot activated = await panes.HandleAsync(
             UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation second = DualPanePresenter.Present(activated, TestMetadataFormats.Utc);
+        DualPanePresentation second = DualPanePresenter.Present(activated, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(PaneLocationStatus.NetworkDrive, first.Left.LocationStatus);
         Assert.IsNull(first.Right.LocationStatus);
@@ -53,7 +54,7 @@ public sealed class DualPanePresenterTests
         _ = await panes.NavigateAsync(PaneSide.Left, leftListing.Location, CancellationToken.None);
         DualPaneSnapshot snapshot = await panes.NavigateAsync(PaneSide.Right, DualPaneTestContext.ParsePath("C:\\right"), CancellationToken.None);
 
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(PaneFrame.Active, presentation.LeftFrame);
         Assert.AreSame(PaneFrame.Passive, presentation.RightFrame);
@@ -75,7 +76,7 @@ public sealed class DualPanePresenterTests
         using FileOperationGateway owned = gateway;
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.ActivateOtherPane, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(PaneFrame.Passive, presentation.LeftFrame);
         Assert.AreSame(PaneFrame.Active, presentation.RightFrame);
@@ -91,7 +92,7 @@ public sealed class DualPanePresenterTests
         DualPaneSession panes = DualPaneTestContext.CreatePanes(out _, out _, out FileOperationGateway gateway);
         using FileOperationGateway owned = gateway;
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => DualPanePresenter.Present(panes.Current, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => DualPanePresenter.Present(panes.Current, null!, KeyHintVisibility.Shown));
     }
 
     /// <summary>Proves the presenter rejects an absent snapshot.</summary>
@@ -104,7 +105,7 @@ public sealed class DualPanePresenterTests
             throw new AssertFailedException("The present method was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null, TestMetadataFormats.Utc]));
+            () => method.Invoke(null, [null, TestMetadataFormats.Utc, KeyHintVisibility.Shown]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }

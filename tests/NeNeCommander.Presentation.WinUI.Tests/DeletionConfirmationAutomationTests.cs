@@ -42,9 +42,9 @@ public sealed class DeletionConfirmationAutomationTests
         port.EnqueueStep(ProviderStepOutcome.Succeeded());
 
         DualPanePresentation pending = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPanePresentation completed = DualPanePresenter.Present(
-            await panes.HandleAsync(UserIntent.Confirm, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc);
+            await panes.HandleAsync(UserIntent.Confirm, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreEqual("DeletionConfirmation", pending.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationStatus.DeleteSucceeded, completed.OperationStatus);

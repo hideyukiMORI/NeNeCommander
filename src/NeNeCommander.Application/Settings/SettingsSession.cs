@@ -58,7 +58,7 @@ public sealed class SettingsSession
         }
     }
 
-    /// <summary>Opens the settings modal without changing either preference.</summary>
+    /// <summary>Opens the settings modal without changing any preference.</summary>
     /// <returns>The current open snapshot.</returns>
     public SettingsSnapshot Open()
     {
@@ -110,6 +110,8 @@ public sealed class SettingsSession
                 SelectColorSchemeAsync(selection.Scheme, observer, cancellationToken),
             LaunchHiddenItemVisibilitySelection selection =>
                 SelectLaunchHiddenItemVisibilityAsync(selection.Visibility, observer, cancellationToken),
+            KeyHintVisibilitySelection selection =>
+                SelectKeyHintVisibilityAsync(selection.Visibility, observer, cancellationToken),
             _ => Task.CompletedTask,
         };
     }
@@ -130,7 +132,7 @@ public sealed class SettingsSession
                 ? PaneSortPreferences.Create(order, previous.Right)
                 : PaneSortPreferences.Create(previous.Left, order);
             return QueueWrite(
-                UserSettings.Create(_settings.ColorScheme, _settings.HiddenItemVisibility, _settings.Bookmarks, preferences),
+                UserSettings.Create(_settings.Display, _settings.Bookmarks, preferences),
                 observer,
                 cancellationToken);
         }
@@ -152,7 +154,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(scheme, _settings.HiddenItemVisibility, _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -174,7 +176,31 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(_settings.ColorScheme, visibility, _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
+                observer,
+                cancellationToken);
+        }
+    }
+
+    /// <summary>Selects and queues the normal footer hint visibility without rolling back on failure.</summary>
+    /// <param name="visibility">Closed footer visibility.</param>
+    /// <param name="observer">Receives the state current after this write completes.</param>
+    /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
+    /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
+    public Task SelectKeyHintVisibilityAsync(
+        KeyHintVisibility visibility,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(visibility);
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            DisplayPreferences display = DisplayPreferences.Create(
+                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility);
+            return QueueWrite(
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -197,8 +223,7 @@ public sealed class SettingsSession
         {
             return QueueWrite(
                 UserSettings.Create(
-                    _settings.ColorScheme,
-                    _settings.HiddenItemVisibility,
+                    _settings.Display,
                     catalog, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
@@ -234,8 +259,7 @@ public sealed class SettingsSession
             return transition is BookmarkEditorTransition.CatalogChanged changed
                 ? QueueWrite(
                     UserSettings.Create(
-                        _settings.ColorScheme,
-                        _settings.HiddenItemVisibility,
+                        _settings.Display,
                         changed.Catalog, _settings.PaneSortOrders),
                     observer,
                     cancellationToken)
