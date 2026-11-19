@@ -15,10 +15,8 @@ Status: public Preview verified; continue authorized milestone work until hide s
 
 ## 次の作業と保持対象
 
-1. 公開記録PRを通常hookと文書差分確認でmainへ統合し、clean/synchronized mainを確認する。
-   文書だけなのでproduct build/test/CIは不要。公開済みassetを作り直さない。
-2. 取込・unique evidence・未保存/ignored/untracked・links・稼働参照を確認し、完了した
-   issue-459 worktreeと一時outputを整理する。公式candidateと恒久証拠は保持する。
+1. 公開記録PR462はmainへ31af3deとして統合済み。文書のみの差分でproduct build/test/CIを追加していない。
+2. issue-459の作業コピーと一時outputの削除は実行前に拒否された。末尾の4対象をhide実行待ちとして保持する。
 3. #453はsource調査と計画まで。11:53の自動承認レビューが公式計測CLI取得/展開/helpを
    起動前に拒否したため、同じ操作を別手段で再試行しない。計測値・原因・改善の断定は未成立。
 4. PR402はDraftを維持し、hideの画面受理後だけmainへ統合する。#457/PR458とmainの同期は済み、
@@ -35,14 +33,23 @@ task outputは`D:/NeNeCommander/outputs/release-beta2-20261119/`、worktreeは`D
 
 ## ! hide実行待ち：後片付け
 
-旧15対象は10:47に不在確認済み。#454の2対象は保全と安全確認後、11:05の自動承認レビューに
-起動前に`blocked by policy`で拒否された。未実行であり、別手段で再試行しない。
+旧拒否15対象は10:47の読み取りで不在を確認済み。#454の2対象は11:05、今回の#459の2対象は
+12:29の自動承認レビューにより起動前に`blocked by policy`で拒否された。いずれも削除は未実行で、
+別手段で再試行していない。公開記録はPR462/`31af3de`でmainへ統合済み。
+
+#454は15出力ファイル、#459は4作業ファイルを恒久証拠へ保全・hash照合済み。
+#459の独立展開586ファイルは保持する公式candidateと全size/hash一致。worktreeはclean、
+ignored 803ファイルはbin/obj/artifacts、linksと稼働参照は0だった。
+`D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-preflight.json`、
+`cleanup-preservation-manifest.json`、`cleanup-blocked.json`が詳細を所有する。
 
 - `D:/NeNeCommander/worktrees/issue-454`
 - `D:/NeNeCommander/outputs/footer-20261119`
+- `D:/NeNeCommander/worktrees/issue-459`
+- `D:/NeNeCommander/outputs/release-beta2-20261119`
 
-hide実行用（branch/commit/恒久証拠を保持）:
+hide実行用（branch/commit/恒久証拠/公式candidate/通常アプリ/未完了Bookmarkを保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-for-hide.ps1
 ```
