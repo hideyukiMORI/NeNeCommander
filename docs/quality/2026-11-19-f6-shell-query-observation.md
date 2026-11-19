@@ -1,6 +1,6 @@
 # Read-only Shell query observation — 2026-11-19
 
-Status: measurements complete; documentation integration and task cleanup pending; #453 stays open.
+Status: PR474 integrated and task cleanup complete; #453 stays open.
 
 Issue [#473](https://github.com/hideyukiMORI/NeNeCommander/issues/473) follows the
 [non-UI provider observation](2026-11-19-f6-provider-phases.md). That experiment found a large
@@ -130,3 +130,10 @@ Repository change is documentation only under ADR-0061: ordinary commit hooks, t
 numerical review. No product build/tests, CI, coverage/mutation, dependency/schema, ADR/waiver or
 release change. [Progress](../reports/2026-11-19-f6-shell-query-progress-report.md) and
 [handoff](../handoffs/2026-11-19-f6-shell-query-handoff.md) own integration/cleanup status.
+
+PR474 was squash-merged at14:58:33 JST as `4ee6890`; accepted head `f9f6d5c` has the identical tree.
+All188 relative links/10 numerical rows, diff review and ordinary112-rule/24-case security and
+commit-message hooks passed. No check failure, review request or unresolved thread remained.
+At14:59:05, the exact issue-473 worktree and output root were removed after clean accepted-tree,
+untracked/ignored inventory, no-process-reference/no-link and60-file-preservation checks.
+Both are absent; branches/commits/permanent evidence and the four older rejected targets remain.

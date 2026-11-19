@@ -1,6 +1,6 @@
 # 2026-11-19 Shell問い合わせ計測・進捗
 
-Status: measurements complete; documentation integration and task cleanup pending; continue until hide stops.
+Status: PR474 integrated and task cleanup complete; continue until hide stops.
 
 #473で、移動前Inspectが使うread-only native APIだけを専用D領域の2fileで観測した。
 製品の実行経路・安全性・portは不変。queryのごみ箱件数/容量は保存せず、HRESULTと時刻だけを記録。
@@ -17,7 +17,11 @@ log・結果を保持した。完了継続が同じworkerでself-joinする条�
 probe40872終了、通常38360と元218byte設定/hash不変。全60file/30,267,365byteを
 `D:/NeNeCommander/evidence/f6-shell-query-20261119/runs/`へ保全しサイズ/hash一致。
 文書以外のrepo変更なし。通常hook/links/diff/数値照合のみで製品build/test/CIは追加しない。
-main統合と今回D作業木/output整理は未完了。PR402は9006020のDraftでhideの画面受理待ち。
+PR474は14:58:33にmain `4ee6890`へsquash統合、受理head `f9f6d5c`と全tree一致。
+188相対link/10数値行/diff/通常hook成功、未解決review・依頼・check失敗なし。
+14:59:05にissue-473作業木と今回outputを削除して不在確認済み。取込/clean（未追跡/ignored含む）、
+process参照0/link0、全60file保全を確認して実行した。branch/commit/恒久証拠は保持。
+旧4拒否対象は触れていない。PR402は9006020のDraftでhideの画面受理待ち。
 公開beta.2と通常アプリは不変。今回の知見を安全性を保つ設計検討へ渡す。
 
 ## ! hide実行待ち：後片付け
