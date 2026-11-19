@@ -1,6 +1,6 @@
 # 用途別のファイル検査と削除能力 — 2026-11-19
 
-Status: implemented; initial deep review failed; dispatch simplification passes local coverage; corrected deep review and integration pending.
+Status: implemented; initial deep review failed; dispatch simplification passes local coverage; corrected deep review running; native F6 smoke passed; integration pending.
 
 Issue [#476](https://github.com/hideyukiMORI/NeNeCommander/issues/476) follows the bounded
 [#470](2026-11-19-f6-provider-phases.md)/[#473](2026-11-19-f6-shell-query-observation.md)
@@ -202,6 +202,31 @@ The bounded timing table above remains an observation of733fb31 before this disp
 Its raw samples are retained unchanged. It is not a timing claim for the final corrected binary;
 no repeated benchmark is needed to establish the unchanged identity/deletion contract.
 
+## Corrected native F6 smoke, 16:05–16:08 JST
+
+After the Application-only dispatch correction, the final App Release build succeeded with
+zero warnings/errors. `prepare-native.ps1` records the exact build command,6499b0a source,
+App DLL SHA256 `1BB194243264CEE17AE669D15904A2C7298615DE74312DDCF64C84E5D62F5916`,
+original settings, one46-byte TXT/one49-byte SQL and their initial hashes. A dedicated app
+process11032/window12454356 used the ordinary keyboard/CommanderSession/gateway path.
+
+The first batched address-focus/text/Enter attempt opened an existing C:\BUFFALO location;
+no file effect was submitted there. Subsequent `ctrl+l`, input and Return were separated by
+native readback and established the declared left/right owned directories. This corrects
+setup and does not establish a product defect or attribute a cause to the key spelling.
+Tab/Space/Down/Space selected the owned pair; moving focus with Up exposed both selection
+marks before F6. Native readback then showed source0/target2, both panes loaded and
+`移動が完了しました`. The raw screenshot/AX evidence is retained under `native-smoke/`.
+This is one successful same-volume tiny-file case; no elapsed timing, physical-key fidelity,
+progress-frame visibility, percentile or resolution of #453 is claimed.
+
+After Alt+F4, the immediate inventory still listed the owned window; the subsequent inventory
+confirmed its exit. At16:08:37, both destination sizes/hashes matched, source was empty,
+process11032 was absent, normal38360 remained, and the original218-byte settings/hash were
+unchanged. No restoration, deletion, dependency or product input change was needed. The two
+new fixture files are preserved with byte equality, extending the previous682-file archive
+to684 files/65,022,521 bytes; unchanged earlier preservation is reused.
+
 ## Integration state and limits
 
 Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) contains733fb31. Its normal
@@ -209,7 +234,8 @@ Draft [PR477](https://github.com/hideyukiMORI/NeNeCommander/pull/477) contains73
 [deep review44473140316](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44473140316)
 was dispatched at15:34:22 JST on that candidate and failed as recorded above. The subsequent
 +comparison edits were documentation only; the later dispatch correction changes one of1013
-+proof inputs. Corrected deep-review acceptance is pending; no CI success is claimed.
++proof inputs. The corrected [deep review44476340651](https://github.com/hideyukiMORI/NeNeCommander/actions/runs/44476340651)
++started at16:00:44 JST on6499b0a and is running. Acceptance is pending; no CI success is claimed.
 
 The dedicated worktree is `D:/NeNeCommander/worktrees/issue-476`; its disposable output is
 `D:/NeNeCommander/outputs/inspection-purpose-20261119`. Inputs/logs and later CI artifacts belong

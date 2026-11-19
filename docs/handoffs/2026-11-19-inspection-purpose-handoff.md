@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・引き継ぎ
 
-Status: initial deep review failed; local dispatch correction verified; corrected deep review pending; continue until hide stops.
+Status: initial deep review failed; local dispatch correction verified; corrected deep review running; native smoke passed; continue until hide stops.
 
 1. #476、ADR-0083。唯一のInspectAsyncに閉じた目的を必須化。IdentityOnlyでもidentityは検査し、
    削除能力はNotRequested。通常Deleteは既知能力の全batchが揃うまでeffect/progressを始めない。
@@ -21,6 +21,16 @@ Status: initial deep review failed; local dispatch correction verified; correcte
 4. 今回output `D:/NeNeCommander/outputs/inspection-purpose-20261119` は作業中。
    技術受理/main統合/必要反映/恒久証拠保全後、今回分の参照・link・未保存物を検査して整理する。
    通常app/公開beta.2は不変。PR402 Draft9006020はhideの画面受理待ちで、受理を代行しない。
+
+## 16:08時点の修正版確認
+
+修正版6499b0aのdeep review44476340651を16:00:44に開始し、受理は待機中。
+最終App buildは警告・error0。専用窓11032で通常のF6から46B/49Bの2ファイルを移動し、
+完了表示・両pane再読込・source0/target2・両hash一致を確認。初回のaddress入力setupが
+既存C:\BUFFALOへ移動した試行も品質記録へ残した（そこへのfile effectなし）。
+専用窓終了を確認し、16:08:37に元設定218byte/hash不変、通常38360保持を照合した。
+これは1回の正常系で速度測定ではない。新規fixture2件の保全により全684file/65,022,521byteを保持。
+製品入力は修正版と同一。CI受理前のmerge、PR402のhide受理代行、旧拒否削除の再試行をしない。
 
 ## ! hide実行待ち：後片付け
 

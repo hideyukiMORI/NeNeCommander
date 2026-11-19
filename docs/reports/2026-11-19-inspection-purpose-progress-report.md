@@ -1,6 +1,6 @@
 # 2026-11-19 用途別ファイル検査・進捗報告
 
-Status: initial deep review failed; corrected local coverage passes; revised deep review/integration pending. hideの停止指示まで継続。
+Status: initial deep review failed; corrected local coverage passes; revised deep review running; native smoke passed; integration pending. hideの停止指示まで継続。
 
 #476/ADR-0083で、既存InspectAsyncに検査目的を必須化した。通常削除だけが削除能力を
 取得し、コピー・移動・名前変更・ディレクトリ作成は同じidentity検査を保ちながら
@@ -27,6 +27,16 @@ Inspect2回は36.9129〜39.2614msから0.1128〜0.1787msになった。独立算
 
 恒久証拠: `D:/NeNeCommander/evidence/inspection-purpose-20261119/`。
 今回のworktree/outputは作業中のため保持し、受理・統合・必要反映・証拠保全後に整理する。
+
+## 16:08時点の修正版確認
+
+修正版6499b0aのdeep review44476340651を16:00:44に開始し、受理は待機中。
+最終App buildは警告・error0。専用窓11032で通常のF6から46B/49Bの2ファイルを移動し、
+完了表示・両pane再読込・source0/target2・両hash一致を確認。初回のaddress入力setupが
+既存C:\BUFFALOへ移動した試行も品質記録へ残した（そこへのfile effectなし）。
+専用窓終了を確認し、16:08:37に元設定218byte/hash不変、通常38360保持を照合した。
+これは1回の正常系で速度測定ではない。新規fixture2件の保全により全684file/65,022,521byteを保持。
+製品入力は修正版と同一。CI受理前のmerge、PR402のhide受理代行、旧拒否削除の再試行をしない。
 
 ## ! hide実行待ち：後片付け
 
