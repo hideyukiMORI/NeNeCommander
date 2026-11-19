@@ -1,6 +1,6 @@
 # F6 non-UI provider phase observation — 2026-11-19
 
-Status: bounded diagnostic complete; #453 remains open, native end-to-end latency unmeasured.
+Status: PR471 integrated and task cleanup complete; #453 remains open, native end-to-end latency unmeasured.
 
 Issue [#470](https://github.com/hideyukiMORI/NeNeCommander/issues/470) separates the existing provider
 and directory-read boundaries that the [native XAML observation](2026-11-19-f6-xaml-observation.md)
@@ -84,6 +84,11 @@ query, including for a Move request. The per-call scheduler also creates/initial
 These are source facts; the measured Inspect interval includes all of them plus scheduling. This
 experiment does not isolate the recycle query, apartment startup, metadata/identity I/O or AV cost.
 
+A read-only `wevtutil gp Microsoft-Windows-Shell-Core /ge:true /gm:false` inspection of this host's
+provider manifest finds recycle/purge/copy-engine tasks but no named SHQueryRecycleBin or
+SHCreateItemFromParsingName interval. This is not proof that every relevant ETW provider lacks one;
+no new trace or measurement was started from that lookup. The manifest is preserved locally.
+
 A later investigation can separate those inner contributions and examine whether operation-specific
 capability capture can avoid unrelated work while preserving deletion and transfer safety. No cache,
 lazy capability, weaker identity check, shared Shell worker, new port contract or optimization is
@@ -131,3 +136,12 @@ Repository scope is documentation only under ADR-0061: text/numerical/link/diff 
 commit hooks. No product build/test, full/deep CI, coverage, mutation, dependency/schema, ADR/waiver or
 release change. The [progress report](../reports/2026-11-19-f6-phases-progress-report.md) and
 [handoff](../handoffs/2026-11-19-f6-phases-handoff.md) own integration and cleanup status.
+
+PR471 was squash-merged at14:40:01 JST as `4e7c12c`, whose tree exactly matches accepted head
+`a7e7adb`. All184 relative links/eight numerical rows, diff checks and normal112-rule/24-case
+registration/security/commit-message hooks passed. No requested review, unresolved thread or
+check failure remained; no full CI was requested. At14:41:08, `cleanup-owned.ps1` removed only
+the task worktree `D:/NeNeCommander/worktrees/issue-470` and output `O` after verifying accepted
+integration, clean status including ignored/untracked items, no process references or links,
+and complete66-file preservation. Both are absent. Branches/commits and `E` remain; the four
+older rejected cleanup targets were untouched. The completion update is documentation only.
