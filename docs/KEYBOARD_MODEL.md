@@ -120,7 +120,10 @@ context is `Settings` (ADR-0077), declared in the canonical table of `KeyboardIn
 | `Space` or `Enter` | toggle the focused check box, select the focused color scheme, or close |
 | `Escape` | close the editor |
 
-The items are, in order, the hidden-at-launch check box, each color scheme, and the close button.
+The items are, in order, the hidden-at-launch check box, the footer-key-hint check box, each color
+scheme, and the close button. The footer preference (ADR-0082) changes immediately and saves through
+the same settings queue. Turning it off retains F1 and confirmation/name-entry Enter/Escape hints;
+all commands, warnings, results, progress and other surfaces keep their existing behavior.
 Movement only moves focus: passing over a scheme neither applies nor saves it, and the selected
 scheme is saved when `Space` or `Enter` selects it. A repeated `Space` or `Enter` is consumed so a
 held key changes a setting at most once. Undeclared keys, including `Tab` and `Shift+Tab`, reach

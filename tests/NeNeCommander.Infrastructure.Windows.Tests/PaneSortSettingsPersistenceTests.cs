@@ -33,7 +33,7 @@ public sealed class PaneSortSettingsPersistenceTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = Store(root);
         PaneSortPreferences orders = PaneSortPreferences.Create(Order(choice), Order(7 - choice));
-        UserSettings selected = UserSettings.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, Catalog(), orders);
+        UserSettings selected = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), Catalog(), orders);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(await store.WriteAsync(selected, CancellationToken.None));
         UserSettings restored = Assert.IsInstanceOfType<SettingsRead>(await store.ReadAsync(CancellationToken.None)).Settings;
@@ -45,8 +45,8 @@ public sealed class PaneSortSettingsPersistenceTests
         Assert.AreEqual("C:\\saved", restored.Bookmarks.Bookmarks[0].Path.Value.CanonicalText);
         Assert.AreSame(BookmarkShortcutSlot.One, restored.Bookmarks.Bookmarks[0].ShortcutSlot);
         Assert.AreEqual("Work", restored.Bookmarks.Categories[0].Value);
-        Assert.AreSame(ColorScheme.Dracula, restored.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, restored.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, restored.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, restored.Display.HiddenItemVisibility);
         Assert.IsFalse(File.Exists(root.Resolve(TemporaryName)));
     }
 
@@ -153,7 +153,7 @@ public sealed class PaneSortSettingsPersistenceTests
 
     private static string Document(string orders)
     {
-        return "{\"schemaVersion\":3,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\",\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":" + orders + "}";
+        return "{\"schemaVersion\":4,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\",\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":" + orders + ",\"showKeyHints\":true}";
     }
 
     private static BookmarkCatalog Catalog()

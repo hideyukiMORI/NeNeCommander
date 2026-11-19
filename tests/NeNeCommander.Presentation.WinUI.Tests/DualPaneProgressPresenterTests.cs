@@ -7,6 +7,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -62,7 +63,7 @@ public sealed class DualPaneProgressPresenterTests
         _ = await panes.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
 
         Assert.HasCount(1, observer.Snapshots);
-        DualPanePresentation presentation = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         Assert.AreSame(OperationStatus.Copying, presentation.OperationStatus);
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(presentation.Detail);
         Assert.AreEqual(1, detail.Completed);
@@ -90,7 +91,7 @@ public sealed class DualPaneProgressPresenterTests
         TaskCompletionSource<FileInspectionOutcome> pending = port.EnqueuePendingInspection();
 
         Task<DualPaneSnapshot> running = panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         pending.SetResult(FileInspectionOutcome.Failed(FileOperationFailureKind.NotFound));
         _ = await running;
@@ -127,11 +128,11 @@ public sealed class DualPaneProgressPresenterTests
         port.EnqueueStep(ProviderStepOutcome.Succeeded());
         port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
-        DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc);
+        DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         _ = await panes.HandleAsync(UserIntent.Delete, observer, CancellationToken.None);
 
-        DualPanePresentation duringProgress = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc, beforeProgress);
+        DualPanePresentation duringProgress = DualPanePresenter.Present(observer.Snapshots[0], TestMetadataFormats.Utc, beforeProgress, KeyHintVisibility.Shown);
         OperationProgressDetail detail = Assert.IsInstanceOfType<OperationProgressDetail>(
             duringProgress.Detail);
         Assert.AreSame(beforeProgress.Left.Rows, duringProgress.Left.Rows);

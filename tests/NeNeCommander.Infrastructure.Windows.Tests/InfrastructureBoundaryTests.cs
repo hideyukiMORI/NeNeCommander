@@ -158,7 +158,7 @@ public sealed class InfrastructureBoundaryTests
             SettingsReadFailureKind.Malformed);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
-                                 "{\"schemaVersion\":4,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
+                                 "{\"schemaVersion\":5,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"}",
             SettingsReadFailureKind.UnknownVersion);
         AssertSettingsFailure(
                                  /*lang=json,strict*/
@@ -214,11 +214,11 @@ public sealed class InfrastructureBoundaryTests
                                  "{\"colorScheme\":\"solarized-light\",\"showHiddenItems\":false,\"schemaVersion\":1}");
 
         UserSettings shownSettings = Assert.IsInstanceOfType<SettingsRead>(shown).Settings;
-        Assert.AreSame(ColorScheme.Dracula, shownSettings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, shownSettings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, shownSettings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, shownSettings.Display.HiddenItemVisibility);
         UserSettings hiddenSettings = Assert.IsInstanceOfType<SettingsRead>(hidden).Settings;
-        Assert.AreSame(ColorScheme.SolarizedLight, hiddenSettings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Hidden, hiddenSettings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.SolarizedLight, hiddenSettings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, hiddenSettings.Display.HiddenItemVisibility);
     }
 
     /// <summary>Proves Windows failures normalize without retry or permissive fallback.</summary>

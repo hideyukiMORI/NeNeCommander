@@ -45,10 +45,8 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         _ = Assert.IsInstanceOfType<SettingsAbsent>(
             await recoveredStore.ReadAsync(CancellationToken.None));
         UserSettings replacement = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Shown,
-            BookmarkCatalog.Empty,
-            PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);
 
@@ -58,8 +56,8 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         CollectionAssert.AreEqual(leftoverBytes, File.ReadAllBytes(leftoverPath));
         UserSettings saved = Assert.IsInstanceOfType<SettingsRead>(
             await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
-        Assert.AreSame(ColorScheme.Dracula, saved.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, saved.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, saved.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, saved.Display.HiddenItemVisibility);
     }
 
     /// <summary>Proves a valid document survives an interrupted replace and a new store can save.</summary>
@@ -80,12 +78,10 @@ public sealed class WindowsLocalSettingsStoreResidueTests
             new DeterministicIdentifierSource(first: 2));
         UserSettings oldSettings = Assert.IsInstanceOfType<SettingsRead>(
             await recoveredStore.ReadAsync(CancellationToken.None)).Settings;
-        Assert.AreSame(ColorScheme.Ubuntu, oldSettings.ColorScheme);
+        Assert.AreSame(ColorScheme.Ubuntu, oldSettings.Display.ColorScheme);
         UserSettings replacement = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Hidden,
-            BookmarkCatalog.Empty,
-            PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);
 
@@ -95,8 +91,8 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         Assert.Contains("\"colorScheme\":\"dracula\"", File.ReadAllText(documentPath));
         UserSettings saved = Assert.IsInstanceOfType<SettingsRead>(
             await CreateStore(root).ReadAsync(CancellationToken.None)).Settings;
-        Assert.AreSame(ColorScheme.Dracula, saved.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Hidden, saved.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, saved.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, saved.Display.HiddenItemVisibility);
     }
 
     /// <summary>Proves an old fixed-name temporary remains untouched while a new candidate saves.</summary>

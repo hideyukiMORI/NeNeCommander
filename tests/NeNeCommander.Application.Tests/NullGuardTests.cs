@@ -201,13 +201,11 @@ public sealed class NullGuardTests
     private static void AssertSettingsValueArguments()
     {
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
+            [null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
+            [DisplayPreferences.Default, null, PaneSortPreferences.Default]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, null, PaneSortPreferences.Default]);
-        NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, null]);
+            [DisplayPreferences.Default, BookmarkCatalog.Empty, null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),
             [null, PaneSortOrder.Default]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),

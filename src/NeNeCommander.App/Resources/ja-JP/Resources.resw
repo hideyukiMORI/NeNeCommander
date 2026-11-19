@@ -387,4 +387,6 @@
   <data name="BookmarkStatusSavedSelection" xml:space="preserve"><value>ブックマークを更新しました。検索を解除し、その項目を選択しています。</value></data>
   <data name="BookmarkHelpCloseOrCancel" xml:space="preserve"><value>閉じる／編集中は取消</value></data>
   <data name="BookmarkPersistenceLabel.Text" xml:space="preserve"><value>設定:</value></data>
+  <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>フッターにキー案内を表示</value></data>
+  <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
 </root>

@@ -146,12 +146,13 @@ public sealed class PaneSortPersistenceTests
     {
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         BookmarkCatalog catalog = Catalog();
-        UserSettings initial = UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, catalog, PaneSortPreferences.Default);
+        UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), catalog, PaneSortPreferences.Default);
         SettingsSession settings = new(store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception));
         RecordingCommanderObserver observer = new();
-        TaskCompletionSource<SettingsWriteOutcome>[] writes = [store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite()];
+        TaskCompletionSource<SettingsWriteOutcome>[] writes = [store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite()];
         Task[] pending =
         [
+            settings.SelectKeyHintVisibilityAsync(KeyHintVisibility.Hidden, observer, CancellationToken.None),
             settings.SavePaneSortOrderAsync(PaneSide.Left, Order(3), observer, CancellationToken.None),
             settings.SelectColorSchemeAsync(ColorScheme.Dracula, observer, CancellationToken.None),
             settings.SelectLaunchHiddenItemVisibilityAsync(HiddenItemVisibility.Shown, observer, CancellationToken.None),
@@ -163,17 +164,18 @@ public sealed class PaneSortPersistenceTests
         for (int index = 0; index < writes.Length; index++)
         {
             await store.WaitForWriteCountAsync(index + 1);
-            Assert.AreEqual(Order(3), store.Writes[index].PaneSortOrders.Left);
+            Assert.AreEqual(index == 0 ? PaneSortOrder.Default : Order(3), store.Writes[index].PaneSortOrders.Left);
             Assert.AreSame(catalog, store.Writes[index].Bookmarks);
+            Assert.AreSame(KeyHintVisibility.Hidden, store.Writes[index].Display.KeyHintVisibility);
             writes[index].SetResult(SettingsWriteOutcome.Succeeded());
             await pending[index];
         }
         await stopped;
-        UserSettings last = store.Writes[4];
+        UserSettings last = store.Writes[^1];
         Assert.AreSame(catalog, last.Bookmarks);
         Assert.AreEqual(Order(7), last.PaneSortOrders.Right);
-        Assert.AreSame(ColorScheme.Dracula, last.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, last.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, last.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, last.Display.HiddenItemVisibility);
     }
 
     private static BookmarkCatalog Catalog()
@@ -227,7 +229,7 @@ public sealed class PaneSortPersistenceTests
             VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity;
             PaneSession left = new(Left, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Left));
             PaneSession right = new(Right, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Right));
-            UserSettings initial = UserSettings.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, BookmarkCatalog.Empty, preferences);
+            UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, preferences);
             Session = new CommanderSession(new DualPaneSession(left, right, _gateway),
                 new SettingsSession(Store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception)),
                 new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),

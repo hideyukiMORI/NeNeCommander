@@ -9,6 +9,7 @@ using NeNeCommander.Application.Panes;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -47,7 +48,7 @@ public sealed class DualPaneConflictPresenterTests
             UserIntent.Copy,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         AssertPendingConflict(presentation, source, target, candidate);
     }
@@ -86,13 +87,13 @@ public sealed class DualPaneConflictPresenterTests
             UserIntent.Copy,
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation first = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc);
-        DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, first);
+        DualPanePresentation first = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
+        DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, first, KeyHintVisibility.Shown);
         DualPaneSnapshot racedSnapshot = await panes.HandleAsync(
             UserIntent.ResolveConflict(TransferConflictDecision.KeepBoth, TransferConflictScope.All),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
-        DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, TestMetadataFormats.Utc, repeated);
+        DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, TestMetadataFormats.Utc, repeated, KeyHintVisibility.Shown);
 
         AssertConflictReplaced(first, repeated, raced, racedCandidate);
     }

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Panes;
+using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -15,19 +16,23 @@ public static class DualPanePresenter
     /// <summary>Translates both panes, the active side, and the operation activity without changing any state.</summary>
     /// <param name="snapshot">Current dual-pane snapshot.</param>
     /// <param name="format">Metadata format the host resolved once for both panes' rows.</param>
+    /// <param name="keyHintVisibility">Persisted visibility of normal footer hints.</param>
     /// <returns>A render-ready presentation.</returns>
-    public static DualPanePresentation Present(DualPaneSnapshot snapshot, EntryMetadataFormat format)
+    public static DualPanePresentation Present(
+        DualPaneSnapshot snapshot, EntryMetadataFormat format, KeyHintVisibility keyHintVisibility)
     {
-        return Present(snapshot, format, null);
+        return Present(snapshot, format, null, keyHintVisibility);
     }
 
     internal static DualPanePresentation Present(
         DualPaneSnapshot snapshot,
         EntryMetadataFormat format,
-        DualPanePresentation? previous)
+        DualPanePresentation? previous,
+        KeyHintVisibility keyHintVisibility)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(format);
+        ArgumentNullException.ThrowIfNull(keyHintVisibility);
         PaneFrame leftFrame = snapshot.ActiveSide == PaneSide.Left ? PaneFrame.Active : PaneFrame.Passive;
         PaneFrame rightFrame = snapshot.ActiveSide == PaneSide.Right ? PaneFrame.Active : PaneFrame.Passive;
         KeyboardContext inputContext = snapshot.Operation is OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict
@@ -42,7 +47,7 @@ public static class DualPanePresenter
                 TranslateOperation(snapshot.Operation),
                 TranslateDetail(snapshot.Operation),
                 TranslateTone(snapshot.Operation),
-                KeyHintPresenter.Present(inputContext)),
+                KeyHintPresenter.Present(inputContext, keyHintVisibility)),
             OperationInteractionPresentation.Create(
                 TranslateNameEntry(snapshot.Operation),
                 TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),

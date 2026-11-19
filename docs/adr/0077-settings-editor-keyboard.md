@@ -25,7 +25,8 @@ Locations picker and the keyboard help all move with them.
   repeats. Undeclared keys, including `Tab` and modified letters, pass through so the native
   controls keep their own behavior. The confirmation and conflict modals keep `Modal` unchanged.
 - **Movement moves focus only.** The editor's items in display order are the hidden-at-launch
-  check box, each scheme option in declaration order, and the close button.
+  check box, the footer-key-hint check box added by ADR-0082, each scheme option in declaration
+  order, and the close button.
   `SettingsFocusOrder` decides the next index; movement stops at both ends and never wraps, and an
   unfocused editor starts at the first item. Because the window maps keys in `PreviewKeyDown`,
   the native radio arrows no longer select while moving.

@@ -74,8 +74,7 @@ public sealed class CommanderSessionBookmarkNavigationTests
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         using FileOperationGateway gateway = CommanderSessionTestValues.CreateGateway();
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, store).CreateSession(SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, CommanderSessionTestValues.ParsePath("C:\\left"), CancellationToken.None);

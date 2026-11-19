@@ -1,6 +1,6 @@
 # Bookmark keyboard usability proof
 
-Status: in progress for Issue #457; PR402 remains Draft and outside main/Preview
+Status: Issue #457 integrated into the feature; PR402 remains Draft and outside main/Preview
 
 ## Scope and invariant
 
@@ -23,6 +23,54 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
+
+## Integration with main, 11:38–12:03 JST
+
+PR458 was squash-merged into PR402's feature branch as `9ba489a`. Synchronizing
+main `c25dc30` retains #454's canonical file-list focus restoration and schema-4
+display preferences. Eight conflicts were resolved explicitly: six documentation
+or resource files retain both changes, and the two Application fixtures retain
+the feature's responsibility-specific layout plus main's new settings contract.
+Seven factory calls in six moved/new bookmark fixtures now pass the same default
+DisplayPreferences as main. No second focus or settings execution path was added.
+`sync-conflict-resolution.json` and `sync-fixture-migration.json` record the edits.
+
+| Command in the issue-398 worktree | Result |
+|---|---|
+| `dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore -m:1 -nr:false` | Zero warnings/errors; `sync-build-application.log` |
+| `dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~Bookmark\|FullyQualifiedName~CommanderSession\|FullyQualifiedName~NullGuardTests'` | 206 passed; no failures/skips; `sync-test-application.log` |
+| `dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-restore -m:1 -nr:false` | Zero warnings/errors; `sync-build-presentation.log` |
+| `dotnet test --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~Bookmark\|FullyQualifiedName~FooterKeyHint\|FullyQualifiedName~SettingsPresenter'` | 74 passed; no failures/skips; `sync-test-presentation.log` |
+| `dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore -m:1 -nr:false` | Zero warnings/errors; `sync-build-app.log` |
+| `dotnet build tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj -c Release --no-restore -m:1 -nr:false -p:BuildProjectReferences=false` | Zero warnings/errors; `sync-build-architecture.log` |
+| `dotnet test --project tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~ViewCompositionOwnershipTests'` | 24 passed; no failures/skips; `sync-test-architecture.log` |
+| `dotnet format whitespace NeNeCommander.slnx --no-restore --verify-no-changes --include $files --verbosity minimal` | Eight conflict/migrated C# files; exit 0; workspace-load warning retained in `sync-format.log` |
+| `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` | Exit 1 for the same seven existing findings; `sync-complexity.json` |
+
+Markdown escapes the filter pipes above; the executed filters contain plain `|`.
+Domain and Infrastructure sources are identical to main; bookmark state/presenter
+and dedicated views are identical to the accepted feature commit. Their applicable
+successful evidence is reused. The independent keyboard review found no required
+correction in the combined pending-focus/context ownership; this was source proof.
+
+The combined App DLL SHA-256 was
+`BA0090A543AF38493D61F23BC513F34A79CD2868B2D8060C92830B9CB582A56C`.
+In owned process 12396/window 15666210, Ctrl+B → A opened the empty manager's form,
+typing replaced the selected default name, and Ctrl+Enter saved one owned bookmark.
+Enter navigated to its existing empty target. Without a pointer action, Ctrl+B
+reopened the manager with the saved row selected. This establishes the previously
+missing empty-pane return for this combined build. `sync-saved.txt`,
+`sync-navigated.txt` and `sync-empty-reopen.txt/.jpg` retain the observation.
+The tool's initial no-targetable-window result was followed by successful window
+discovery; delayed immediate AX reads are not counted as application failures.
+
+Escape and Alt+F4 closed only the owned process. The saved settings differed only
+by that bookmark and the expected schema-3 to schema-4 migration/default key hints.
+After process exit, the original 218 bytes were restored with SHA-256
+`ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`.
+`native-sync-baseline.json` and `native-sync-restoration.json` record ownership and
+hashes; normal process 38360 remained running. No latency, DPI or Narrator claim
+is inferred. hide's separate PR402 screen acceptance is still required.
 
 ## Resumed native walk, 11:07–11:20 JST
 

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -17,7 +18,7 @@ public sealed class KeyHintPresenterTests
     [TestMethod]
     public void PresentWhenContextIsFileListShowsTheFileCommandsInOrder()
     {
-        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.FileList);
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.FileList, KeyHintVisibility.Shown);
 
         Assert.HasCount(12, hints);
         AssertHint(hints[0], "KeyLabelF2", "IntentLabelRename");
@@ -40,7 +41,7 @@ public sealed class KeyHintPresenterTests
     [TestMethod]
     public void PresentWhenContextIsModalShowsOnlyConfirmAndEscape()
     {
-        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Modal);
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Modal, KeyHintVisibility.Shown);
 
         Assert.HasCount(2, hints);
         AssertHint(hints[0], "KeyLabelEnter", "IntentLabelConfirm");
@@ -52,16 +53,16 @@ public sealed class KeyHintPresenterTests
     [TestMethod]
     public void PresentWhenContextDeclaresNoProjectionShowsNoHints()
     {
-        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.TextEntry));
-        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.NavigationSurface));
-        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.CommandPalette));
+        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.TextEntry, KeyHintVisibility.Shown));
+        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.NavigationSurface, KeyHintVisibility.Shown));
+        Assert.IsEmpty(KeyHintPresenter.Present(KeyboardContext.CommandPalette, KeyHintVisibility.Shown));
     }
 
     /// <summary>Proves the Locations hint set never exposes the settings entry target.</summary>
     [TestMethod]
     public void PresentWhenContextIsLocationsHasNoSettingsEntryIdentifier()
     {
-        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations);
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations, KeyHintVisibility.Shown);
 
         Assert.HasCount(4, hints);
         Assert.IsTrue(hints.All(hint => hint.AutomationId == string.Empty));
@@ -77,7 +78,7 @@ public sealed class KeyHintPresenterTests
             throw new AssertFailedException("The present method was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
-            () => method.Invoke(null, [null]));
+            () => method.Invoke(null, [null, KeyHintVisibility.Shown]));
 
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }
@@ -119,7 +120,7 @@ public sealed class KeyHintPresenterTests
         {
             _ = declaredLabels.Add(binding.KeyLabelResourceKey);
         }
-        foreach (KeyHint hint in KeyHintPresenter.Present(context))
+        foreach (KeyHint hint in KeyHintPresenter.Present(context, KeyHintVisibility.Shown))
         {
             Assert.Contains(hint.KeyLabelResourceKey, declaredLabels);
         }

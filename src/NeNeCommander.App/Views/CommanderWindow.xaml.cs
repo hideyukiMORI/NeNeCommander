@@ -33,7 +33,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
     private readonly KeyboardHelpView _keyboardHelpView;
-    private readonly SettingsKeyboardView _settingsKeyboardView;
+    private readonly SettingsEditorView _settingsView;
     private readonly CaptionBarView _captionBarView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
@@ -48,7 +48,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
-    private bool _renderingSettings;
     private bool _renderingAddressTransition;
     private bool _stopping;
 
@@ -80,11 +79,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             FocusFileList);
         _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
         _keyboardHelpView = new KeyboardHelpView(KeyboardHelpOverlay, _resources, dependencies.Session, FocusFileList);
-        _settingsKeyboardView = new SettingsKeyboardView(
-            SettingsShowHiddenAtLaunch,
-            SettingsSchemeOptions,
-            SettingsClose,
-            () => Content.XamlRoot);
+        _settingsView = new SettingsEditorView(InputSurface, _resources, ForwardIntent,
+            () => FocusFileList(_session.Current.Panes.ActiveSide));
         Title = _resources.GetString("CommanderWindowTitle");
         _captionBarView = new CaptionBarView(
             CaptionBar,
@@ -94,7 +90,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
         _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right);
-        _renderedScheme = dependencies.Session.Current.Settings.Settings.ColorScheme;
+        _renderedScheme = dependencies.Session.Current.Settings.Settings.Display.ColorScheme;
     }
 
     /// <summary>Occurs when the session selects a scheme for the composition root to apply.</summary>
@@ -103,7 +99,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     /// <inheritdoc />
     public void OperationProgressed(DualPaneSnapshot snapshot)
     {
-        RenderPanes(snapshot);
+        RenderPanes(snapshot, _session.Current.Settings.Settings.Display.KeyHintVisibility);
     }
 
     /// <inheritdoc />
@@ -207,14 +203,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _defaultFileListFocusSuppressedState = null;
         }
         _renderingAddressTransition = addressChanged;
-        RenderPanes(snapshot.Panes);
+        RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
         _renderingAddressTransition = false;
-        RenderSettings(SettingsPresenter.Present(snapshot.Settings));
-        _bookmarkView.Render(snapshot.Settings);
-        if (_bookmarkView.IsOpen)
-        {
-            _operationContext = KeyboardContext.Modal;
-        }
+        RenderSettingsSurfaces(snapshot.Settings);
         if (addressChanged)
         {
             RenderAddressTransition(address);
@@ -223,7 +214,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         _keyboardHelpView.Render();
-        ColorScheme scheme = snapshot.Settings.Settings.ColorScheme;
+        ColorScheme scheme = snapshot.Settings.Settings.Display.ColorScheme;
         if (_renderedScheme != scheme)
         {
             _renderedScheme = scheme;
@@ -231,9 +222,19 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private void RenderPanes(DualPaneSnapshot snapshot)
+    private void RenderSettingsSurfaces(SettingsSnapshot snapshot)
     {
-        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation);
+        _settingsView.Render(SettingsPresenter.Present(snapshot));
+        _bookmarkView.Render(snapshot);
+        if (_bookmarkView.IsOpen || _settingsView.IsOpen)
+        {
+            _operationContext = KeyboardContext.Modal;
+        }
+    }
+
+    private void RenderPanes(DualPaneSnapshot snapshot, KeyHintVisibility keyHintVisibility)
+    {
+        DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation, keyHintVisibility);
         _presentation = presentation;
         _leftPaneView.Render(presentation.Left, presentation.LeftFrame, _addressPresentation);
         _rightPaneView.Render(presentation.Right, presentation.RightFrame, _addressPresentation);
@@ -243,32 +244,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             _ = DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusActiveFileListWhenIdle);
         }
-    }
-
-    private void RenderSettings(SettingsPresentation presentation)
-    {
-        _renderingSettings = true;
-        bool opening = presentation.IsOpen && SettingsOverlay.Visibility != Visibility.Visible;
-        SettingsOverlay.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
-        SettingsShowHiddenAtLaunch.IsChecked = presentation.ShowHiddenItemsAtLaunch;
-        if (opening || SettingsSchemeOptions.ItemsSource is null)
-        {
-            SettingsSchemeOptions.ItemsSource = presentation.Schemes;
-        }
-        SettingsSaveStatus.Text = _resources.GetString(presentation.SaveStatus.ResourceKey);
-        SettingsWarning.Visibility = presentation.Warning.IsVisible
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        SettingsWarningText.Text = _resources.GetString(presentation.Warning.ResourceKey);
-        if (presentation.IsOpen)
-        {
-            _operationContext = KeyboardContext.Modal;
-            if (opening)
-            {
-                _ = SettingsClose.Focus(FocusState.Programmatic);
-            }
-        }
-        _renderingSettings = false;
     }
 
     private void RenderAddressTransition(AddressEditorPresentation presentation)
@@ -302,8 +277,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         if (GetKeyboardContext() == KeyboardContext.FileList)
         {
-            ListView activeList = _session.Current.Panes.ActiveSide == PaneSide.Left ? LeftFileList : RightFileList;
-            _ = activeList.Focus(FocusState.Programmatic);
+            FocusFileList(_session.Current.Panes.ActiveSide);
         }
     }
 
@@ -324,7 +298,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         if (outcome is MappedKeyboardIntent setting &&
             SettingsOverlay.Visibility == Visibility.Visible &&
-            _settingsKeyboardView.Forward(setting.Intent))
+            _settingsView.Forward(setting.Intent))
         {
             return true;
         }
@@ -433,25 +407,19 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private void OnSettingsShowHiddenChanged(object sender, RoutedEventArgs args)
     {
         _ = args;
-        if (_renderingSettings || sender is not CheckBox checkbox || checkbox.IsChecked is null)
-        {
-            return;
-        }
-        HiddenItemVisibility visibility = checkbox.IsChecked is true
-            ? HiddenItemVisibility.Shown
-            : HiddenItemVisibility.Hidden;
-        ForwardIntent(UserIntent.SelectLaunchHiddenItemVisibility(visibility));
+        _settingsView.ShowHiddenChanged(sender);
+    }
+
+    private void OnSettingsShowKeyHintsChanged(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        _settingsView.ShowKeyHintsChanged(sender);
     }
 
     private void OnSettingsSchemeChecked(object sender, RoutedEventArgs args)
     {
         _ = args;
-        if (_renderingSettings ||
-            sender is not RadioButton { IsChecked: true, DataContext: SettingsColorSchemeOption option })
-        {
-            return;
-        }
-        ForwardIntent(UserIntent.SelectColorScheme(option.Scheme));
+        _settingsView.SchemeChecked(sender);
     }
 
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
@@ -563,6 +531,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private void FocusFileList(PaneSide side)
     {
         ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
-        _ = fileList.Focus(FocusState.Programmatic);
+        Control target = fileList.SelectedItem is object selected && fileList.ContainerFromItem(selected) is ListViewItem row
+            ? row
+            : fileList;
+        _ = target.Focus(FocusState.Programmatic);
     }
 }

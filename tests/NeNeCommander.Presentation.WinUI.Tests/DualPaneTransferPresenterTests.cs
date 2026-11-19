@@ -7,6 +7,7 @@ using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -27,7 +28,7 @@ public sealed class DualPaneTransferPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        DualPanePresentation rejected = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        DualPanePresentation rejected = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         Assert.AreSame(OperationStatus.MoveRequestRejected, rejected.OperationStatus);
         Assert.AreSame(OperationBarTone.Failure, rejected.Tone);
@@ -89,7 +90,7 @@ public sealed class DualPaneTransferPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Move, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc);
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
     }
 
     /// <summary>Proves each copy completion maps to one copy status and a rejected copy request is named.</summary>
@@ -128,7 +129,7 @@ public sealed class DualPaneTransferPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
 
-        Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus);
+        Assert.AreSame(OperationStatus.CopyRequestRejected, DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown).OperationStatus);
     }
 
     private static async Task<OperationStatus> OperationStatusAsync(
@@ -157,7 +158,7 @@ public sealed class DualPaneTransferPresenterTests
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), cancellationToken);
 
-        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc).OperationStatus;
+        return DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown).OperationStatus;
     }
 
     /// <summary>Proves a completed, cancelled, or idle operation keeps the idle bar tone.</summary>

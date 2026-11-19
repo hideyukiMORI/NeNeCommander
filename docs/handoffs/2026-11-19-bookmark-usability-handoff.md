@@ -1,6 +1,6 @@
 # 2026-11-19 Bookmark操作性改善の引き継ぎ
 
-Status: ongoing; Issue #457 / PR458, technical proof being finalized
+Status: ongoing; PR458 integrated into feature PR402; hide acceptance pending
 
 hideの停止指示まで継続する依頼が有効。追加依頼のPreviewは#459で公開前deep review中。
 単体実装が既定。今回の複数専門家は明示依頼に沿う読み取り専用レビュー。
@@ -8,9 +8,9 @@ hideの停止指示まで継続する依頼が有効。追加依頼のPreviewは
 
 ## 現在の候補と証拠
 
-- mainは#454/PR460を統合した`c25dc30`。PR402の機能`8c1c551`はhideの画面受理前。
-  作業木は`D:/NeNeCommander/worktrees/issue-457`、branchは`fix/457-bookmark-keyboard-usability`。
-  PR458はPR402の機能ブランチ向け。main/Previewへは統合しない。
+- mainは#459/PR461を統合した`555704e`。PR458は11:37にPR402の機能ブランチへ
+  squash統合済み（`9ba489a`）。issue-398作業木でmain同期と結合検証を進めた。
+  PR402はhideの画面受理前でDraft。main/Previewへは統合しない。
 - 正典はKeyboardIntentMapper/BookmarkManagerKeyboard、BookmarkEditorActionからSettingsSession、
   既存CommanderSessionナビゲーション。別の実行経路は追加していない。
 - Ctrl+Enter、検索専用案内、保存後の選択と検索解除通知、active/passive表示、入力ラベル、
@@ -41,11 +41,16 @@ SHA-256は`ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`。
 毎回直前の設定を保全し、終了後に自分の変更だけであることを検証して復元する。
 
 残る範囲は物理長押し、速いTab/pointer競合、今回の検索欄IME、分離したretry/back、狭幅/DPI/HC/Narrator。
-空ペインへの移動後の復帰は、この候補に未取込のmain #454の既存focus修正を同期して確認する。
-新しいfocus経路を追加しない。これらの技術証拠はhideのPR402画面受理を代替しない。
+main #454の既存focus修正を同期した結合版では、11:59〜12:02に空フォルダーへの移動後、
+pointerなしのCtrl+Bで再表示と選択行を確認した。新しいfocus経路は追加していない。
+結合後Application 206 / Presentation 74 / view所有権24が成功、App含むbuildは警告/エラー0、
+Inspectは既存7件。競合解消C#8ファイルの書式確認はexit 0（workspace警告を記録）。
+独立した結合source reviewも必須修正なし。終了後の設定は専用1登録と想定schema移行のみで、
+12:03に元の218byteへ復元してhash一致。これらはhideのPR402画面受理を代替しない。
 
-次は保存案内修正の証拠/書式/commitを確定してPR458を機能ブランチへ統合し、mainを同期する。
-#459のdeep reviewが成功したらaccepted mainから公式publish、独立展開照合、公開/匿名再取得照合へ進む。
+次はmain同期の記録とcommit/pushを確定し、PR402の説明を最終実装・証拠へ合わせる。
+#459はaccepted mainから公式publish済みで586 payloadとZIP内586ファイルのhash一致。
+独立展開と言語リソースを照合し、deep review/CodeQL成功とalert検査後に公開/匿名再取得照合へ進む。
 既存公開beta.1と通常稼働アプリはそのまま。#453の遅延調査は未解決。
 
 恒久証拠は`D:/NeNeCommander/evidence/bookmark-ux-20261119/`。

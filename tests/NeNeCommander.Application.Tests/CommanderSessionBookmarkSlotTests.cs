@@ -27,8 +27,7 @@ public sealed class CommanderSessionBookmarkSlotTests
         BookmarkCatalog catalog = CommanderSessionTestValues.Catalog(
             CommanderSessionTestValues.Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One));
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent())).CreateSession(SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, CommanderSessionTestValues.ParsePath("C:\\left"), CancellationToken.None);
@@ -55,8 +54,7 @@ public sealed class CommanderSessionBookmarkSlotTests
         BookmarkCatalog catalog = CommanderSessionTestValues.Catalog(
             CommanderSessionTestValues.Entry("Target", "C:\\target", BookmarkShortcutSlot.One));
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent())).CreateSession(SettingsReadOutcome.Read(UserSettings.Create(
-                ColorScheme.NeNeDark,
-                HiddenItemVisibility.Hidden,
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
                 catalog, PaneSortPreferences.Default)));
 
         CommanderSnapshot unchanged = await session.HandleAsync(

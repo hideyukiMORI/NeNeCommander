@@ -14,11 +14,19 @@ States are `proposed`, `accepted`, `superseded`, or `rejected`. An accepted ADR 
 
 An ADR is required for project-graph changes, a new dependency, a canonical-mechanism change, a provider-policy change, a protected API exception, a coverage exclusion, or a gate change. An ADR cannot authorize suppressions, silent destructive behavior, or bypassing the verification required for the selected change impact (ADR-0061).
 
+## Reserved identifiers
+
+- **ADR-0080** is reserved for the bookmark manager decision in [PR402](https://github.com/hideyukiMORI/NeNeCommander/pull/402), corrected by Issue #445 / PR446. Its [accepted feature decision](https://github.com/hideyukiMORI/NeNeCommander/blob/8c1c551c8c3083fbc0267216c19390a27ba8f5bb/docs/adr/0080-bookmark-manager-keyboard.md) retains the 2026-11-16 acceptance date; the feature still awaits hide's screen confirmation before main integration. Do not allocate this number to another decision. Move this entry into the ordinary accepted list when PR402 is integrated.
+
+Number allocation includes these reservations as well as the records already in this directory.
+
 ## Proposed decisions
 
 None.
 
 ## Accepted decisions
+
+- [ADR-0082: Wrap the footer and persist its normal key-hint visibility](0082-footer-key-hint-visibility.md)
 
 - [ADR-0081: Check literal localization keys against shipped catalogs](0081-check-literal-localization-keys.md)
 

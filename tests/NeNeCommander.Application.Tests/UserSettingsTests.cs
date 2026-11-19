@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
@@ -14,8 +16,9 @@ public sealed class UserSettingsTests
     {
         UserSettings settings = UserSettings.Default;
 
-        Assert.AreSame(ColorScheme.NeNeDark, settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Hidden, settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.NeNeDark, settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Hidden, settings.Display.HiddenItemVisibility);
+        Assert.AreSame(KeyHintVisibility.Shown, settings.Display.KeyHintVisibility);
         Assert.AreSame(BookmarkCatalog.Empty, settings.Bookmarks);
     }
 
@@ -24,14 +27,30 @@ public sealed class UserSettingsTests
     public void CreateWhenComponentsAreValidatedExposesThemUnchanged()
     {
         UserSettings settings = UserSettings.Create(
-            ColorScheme.Dracula,
-            HiddenItemVisibility.Shown,
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
-        Assert.AreSame(ColorScheme.Dracula, settings.ColorScheme);
-        Assert.AreSame(HiddenItemVisibility.Shown, settings.HiddenItemVisibility);
+        Assert.AreSame(ColorScheme.Dracula, settings.Display.ColorScheme);
+        Assert.AreSame(HiddenItemVisibility.Shown, settings.Display.HiddenItemVisibility);
         Assert.AreSame(BookmarkCatalog.Empty, settings.Bookmarks);
         Assert.AreNotEqual(UserSettings.Default, settings);
+    }
+
+    /// <summary>Proves no missing display choice can create partial preferences.</summary>
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    public void CreateDisplayWhenAnyChoiceIsNullRejectsIncompleteValue(int missingIndex)
+    {
+        object?[] arguments = [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown];
+        arguments[missingIndex] = null;
+        MethodInfo factory = typeof(DisplayPreferences).GetMethod(nameof(DisplayPreferences.Create))
+            ?? throw new AssertFailedException("The display factory was not found.");
+
+        TargetInvocationException exception = Assert.ThrowsExactly<TargetInvocationException>(() => factory.Invoke(null, arguments));
+
+        _ = Assert.IsInstanceOfType<ArgumentNullException>(exception.InnerException);
     }
 
     /// <summary>Proves the read outcome carries settings, absence, and rejection as separate closed variants.</summary>
@@ -39,8 +58,7 @@ public sealed class UserSettingsTests
     public void ReadOutcomeWhenCreatedCarriesExactlyOneClosedVariant()
     {
         UserSettings settings = UserSettings.Create(
-            ColorScheme.NeNeLight,
-            HiddenItemVisibility.Hidden,
+            DisplayPreferences.Create(ColorScheme.NeNeLight, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         Assert.AreSame(

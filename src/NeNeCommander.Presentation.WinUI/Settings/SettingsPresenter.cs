@@ -17,7 +17,7 @@ public static class SettingsPresenter
             schemes.Add(new SettingsColorSchemeOption(
                 scheme,
                 NameResourceKey(scheme),
-                snapshot.Settings.ColorScheme));
+                snapshot.Settings.Display.ColorScheme));
         }
         return new SettingsPresentation(
             snapshot,

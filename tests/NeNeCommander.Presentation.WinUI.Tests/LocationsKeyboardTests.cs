@@ -5,6 +5,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Panes;
 using Windows.System;
+using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Tests;
 
@@ -147,7 +148,7 @@ public sealed class LocationsKeyboardTests
     [TestMethod]
     public void HintsWhenPickerOwnsInputAreGeneratedFromItsBindings()
     {
-        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations);
+        IReadOnlyList<KeyHint> hints = KeyHintPresenter.Present(KeyboardContext.Locations, KeyHintVisibility.Shown);
         KeyBinding open = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
             .Single(binding => binding.Intent == UserIntent.OpenLocations);
 

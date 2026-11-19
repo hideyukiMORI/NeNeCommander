@@ -64,7 +64,7 @@ public sealed class CommanderSessionTests
             observer,
             CancellationToken.None);
 
-        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Settings.HiddenItemVisibility);
+        Assert.AreSame(HiddenItemVisibility.Shown, session.Current.Settings.Settings.Display.HiddenItemVisibility);
         PaneContentListed leftContent = Assert.IsInstanceOfType<PaneContentListed>(
             session.Current.Panes.Left.Content);
         Assert.AreSame(HiddenItemVisibility.Hidden, leftContent.State.HiddenItemVisibility);
@@ -169,13 +169,13 @@ public sealed class CommanderSessionTests
         Assert.AreSame(SettingsEditorState.Open, ignored.Settings.Editor);
         Assert.IsEmpty(observer.Settings);
         Assert.HasCount(1, store.Writes);
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.Display.ColorScheme);
         firstWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await store.WaitForWriteCountAsync(2);
-        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.Display.ColorScheme);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
         await session.StopAsync();
-        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].ColorScheme);
-        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].ColorScheme);
+        Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].Display.ColorScheme);
+        Assert.AreSame(ColorScheme.Dracula, store.Writes[1].Display.ColorScheme);
     }
 }

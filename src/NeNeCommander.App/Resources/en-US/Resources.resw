@@ -387,4 +387,6 @@
   <data name="BookmarkStatusSavedSelection" xml:space="preserve"><value>Bookmark updated. Search cleared and updated bookmark selected.</value></data>
   <data name="BookmarkHelpCloseOrCancel" xml:space="preserve"><value>Close / cancel draft</value></data>
   <data name="BookmarkPersistenceLabel.Text" xml:space="preserve"><value>Settings:</value></data>
+  <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>Show key hints in the footer</value></data>
+  <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>When off, F1 help and Enter/Esc hints for confirmation or name entry remain visible.</value></data>
 </root>

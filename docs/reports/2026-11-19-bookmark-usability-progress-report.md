@@ -1,6 +1,6 @@
 # 2026-11-19 Bookmark操作性改善・中間記録
 
-Status: ongoing; Issue #457 implementation candidate, native acceptance pending
+Status: ongoing; Issue #457 integrated into feature PR402, hide acceptance pending
 
 hideの「止めるまで進める」という依頼で再開した。最優先のBookmarkを、既存PR402の
 キーボード操作から改善している。通常mainと公開Previewには反映していない。
@@ -49,11 +49,26 @@ App buildは警告/エラー0、Inspect既存7件で追加なし、変更C#書�
 詳細と未観測項目は[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)。
 
 試験アプリはAlt+F4で終了。設定の差分は専用登録2件/カテゴリ1件だけと確認し、元の218byteへ
-復元してSHA-256一致。通常Cアプリは保持した。PR458とPR402はDraftのまま、main/Preview外。
+復元してSHA-256一致。通常Cアプリは保持した。PR458は機能ブランチへ統合済み、PR402はDraftのまま、main/Preview外。
 hideの別途画面受理を代替しない。#459のPreview beta.2公開用deep reviewは別の受理済みmainで実行中。
 
 未完了のD:/NeNeCommander/worktrees/issue-457とoutputs/bookmark-ux-20261119は保持する。
 恒久証拠はD:/NeNeCommander/evidence/bookmark-ux-20261119。停止指示はなく、作業は継続中。
+
+## main同期と空ペイン復帰
+
+PR458を11:37に機能ブランチへsquash統合した（`9ba489a`）。続いてmain `c25dc30`を同期し、
+文書・両言語リソース・分割済み試験fixtureの競合を解消した。新しい設定契約への移行は
+既存のDisplayPreferencesを使い、独自のfocus経路を増やしていない。
+結合後Application 206件、Presentation 74件、view所有権24件が全成功。Appを含むbuildは
+警告/エラー0。競合解消C#8ファイルの書式確認は成功、Inspectは既存7件で追加なし。
+独立したキーボードreviewでも結合による必須修正はなかった。
+
+11:59〜12:02の専用窓で空一覧から登録し、Enterで空フォルダーへ移動した直後に、
+マウスを使わずCtrl+Bで一覧を再表示し選択行を確認した。元の空ペイン復帰の未証明範囲を
+この結合版では解消した。専用窓終了後、変更が専用1登録と想定のschema移行だけと照合し、
+12:03に元の218byteへ復元してhash一致。通常Cアプリは保持した。
+正確なコマンド、候補hash、観測の限界は品質記録に追記した。hideのPR402画面受理は別途必要。
 
 ## ! hide実行待ち：後片付け
 
