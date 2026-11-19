@@ -24,6 +24,33 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Accepted capability-continuation integration, 20:04 JST
+
+Accepted main009edf2 is merged into the separate Bookmark candidate from featuref6859fa.
+Relative to common base1cc5d75, product/test changes are exactly TransferExecution.cs and
+the four new capability-continuation test files from #488. All five match accepted main;
+all84 feature-specific source/test/tool files match the prior feature. There is no overlap
+or manual C# edit. The only merge conflict is PROJECT_STATE's new chronological entries;
+both complete sets are retained, with the conflict snapshot preserved.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/bookmark-ux-20261119/capability-sync/run.ps1`
+passes all five recorded dotnet steps: explicit locked Release restores for Application tests
+and App, their zero-warning/error Release builds, and six selected tests. The filter is
+`FullyQualifiedName~GatewayCapabilityContinuationTests|FullyQualifiedName~CommanderSessionBookmarkOwnershipTests.HandleAsyncWhenOperationModalOwnsInputFreezesBookmarkInteractionAsync`.
+Five controlled continuation/cancel/fault/synchronous cases and the direct operation-modal
+Bookmark input boundary pass6/6, no skip. All1065 proof inputs remain byte-identical.
+App DLL SHA256 is `71835aa944ab966a9ec63bf582eeb45112e9f643f98a0a0fdea3a479e299602c`.
+
+ADR-0061 scope is this new combination's affected Application boundary and App build.
+Accepted #488 provider/presentation evidence and unchanged Bookmark/focus/IME/native proof
+remain tied to their recorded inputs; no full regression, coverage, mutation, formatting,
+native walk or hosted CI is repeated. This combined binary has no new native observation.
+Computer Use's physical-Escape stop is respected; no UI operation or normal-app replacement.
+PR402 remains Draft and cannot merge into main/Preview before hide's separate screen acceptance.
+Exact arguments/timestamps/exits, input hashes and source-ownership proof are in permanent
+`D:/NeNeCommander/evidence/bookmark-ux-20261119/capability-sync/`. Unfinished feature worktrees
+are retained; four previously rejected cleanup targets are not retried.
+
 ## Native hint clicks and scrim cancellation, 18:49–18:52 JST
 
 The unchanged combined App on feature63f4769 receives one bounded pointer/keyboard walk in

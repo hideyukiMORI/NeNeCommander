@@ -193,6 +193,17 @@ PR402のhide画面受理は別途必要。未受理作業と旧4削除拒否対�
 通常38360、公開版、未受理作業を保持。hideの画面受理、物理長押し、DPI/HC/Narrator等は別。
 mainの1cc5d75以降は7文書だけの差で、製品入力の再検証は不要。PR402はDraftのまま。
 
+
+## 20:04時点の能力確認継続修正との結合
+
+受理済みmain009edf2をfeaturef6859faへ同期した。共通base1cc5d75以後の製品/test変更は
+TransferExecutionと新規4testだけでmainと一致し、Bookmark固有84ファイルは不変。
+競合はPROJECT_STATEの追加履歴だけで両方を保持。Application/Appの明示Release restore/build成功、
+警告/error0。継続処理5件＋操作modalのBookmark入力所有1件が6/6成功、全1065入力不変。
+正確なcommands/hash/境界は品質記録と恒久capability-sync/。関係のない既存検証は再利用した。
+Esc停止後の画面操作・この結合binaryのnative確認は行っていない。PR402はDraft/hide画面受理待ち。
+未受理の作業木/outputを保持し、通常app/公開beta.2は変更なし。旧4削除拒否対象は再試行しない。
+
 ## ! hide実行待ち：後片付け
 
 従来の拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消した。
