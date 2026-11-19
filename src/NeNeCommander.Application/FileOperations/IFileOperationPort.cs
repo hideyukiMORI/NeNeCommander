@@ -10,8 +10,8 @@ namespace NeNeCommander.Application.FileOperations;
 /// </summary>
 public interface IFileOperationPort
 {
-    /// <summary>Captures identity and capabilities before any mutation begins.</summary>
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken);
+    /// <summary>Captures identity and only the capabilities requested by the gateway's explicit purpose.</summary>
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken);
 
     /// <summary>Validates destination containment, recursion, capability, and every source collision before a copy or move.</summary>
     public Task<TransferPreflightOutcome> PreflightTransferAsync(

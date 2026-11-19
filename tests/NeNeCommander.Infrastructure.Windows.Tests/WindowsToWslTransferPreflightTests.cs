@@ -184,6 +184,7 @@ public sealed class WindowsToWslTransferPreflightTests
     {
         FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter().InspectAsync(
             Local(path),
+            FileInspectionPurpose.Deletion,
             CancellationToken.None);
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
     }

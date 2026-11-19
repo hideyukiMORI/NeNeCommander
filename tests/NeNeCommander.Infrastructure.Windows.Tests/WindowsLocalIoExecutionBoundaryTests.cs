@@ -30,7 +30,7 @@ public sealed class WindowsLocalIoExecutionBoundaryTests
         Task<DirectoryReadOutcome> read = reader.ReadAsync(
             Request(root.Path),
             CancellationToken.None);
-        Task<FileInspectionOutcome> inspection = adapter.InspectAsync(file, CancellationToken.None);
+        Task<FileInspectionOutcome> inspection = adapter.InspectAsync(file, FileInspectionPurpose.Deletion, CancellationToken.None);
 
         Assert.IsFalse(read.IsCompleted);
         Assert.IsFalse(inspection.IsCompleted);

@@ -31,15 +31,15 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         DriveType observed = DriveType.Fixed;
         WindowsLocalFileOperationAdapter adapter = Adapter(new WindowsDriveBoundary(_ => observed));
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await adapter.InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+            await adapter.InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         FileEntrySnapshot location = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await adapter.InspectAsync(root.Path, CancellationToken.None)).Snapshot;
+            await adapter.InspectAsync(root.Path, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         Assert.IsNull((await adapter.PreflightTransferAsync([source], destination, CancellationToken.None)).Failure);
 
         observed = DriveType.Network;
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<FileInspectionFailed>(
-                await adapter.InspectAsync(sourcePath, CancellationToken.None)).Failure);
+                await adapter.InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
             (await adapter.PreflightTransferAsync([source], destination, CancellationToken.None)).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
@@ -74,12 +74,12 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsLocalPath path = Local(sourceText);
         WindowsLocalFileOperationAdapter local = Adapter(new WindowsDriveBoundary(_ => DriveType.Fixed));
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await local.InspectAsync(path, CancellationToken.None)).Snapshot;
+            await local.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WindowsLocalFileOperationAdapter denied = Adapter(new WindowsDriveBoundary(_ => observed));
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
             Assert.IsInstanceOfType<FileInspectionFailed>(
-                await denied.InspectAsync(path, CancellationToken.None)).Failure);
+                await denied.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None)).Failure);
         AssertDenied(await denied.DeleteAsync(snapshot, DeletionExecutionMode.Permanent, CancellationToken.None));
         Assert.AreEqual("kept", File.ReadAllText(sourceText));
     }
@@ -102,7 +102,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
             throw failure;
         }));
 
-        FileInspectionOutcome outcome = await adapter.InspectAsync(Local(root.WriteFile("a.txt", "kept")), CancellationToken.None);
+        FileInspectionOutcome outcome = await adapter.InspectAsync(Local(root.WriteFile("a.txt", "kept")), FileInspectionPurpose.Deletion, CancellationToken.None);
 
         Assert.IsTrue(queried);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
@@ -149,7 +149,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsLocalPath sourcePath = Local(root.WriteFile("source.txt", "kept"));
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
             await Adapter(new WindowsDriveBoundary(_ => DriveType.Fixed))
-                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+                .InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WindowsDriveBoundary drives = new(_ => observed);
         WindowsToWslTransfer transfer = new(new WindowsLocalIoExecutionBoundary(), new ScriptedWslFileSystem(), drives);
 
@@ -173,7 +173,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsLocalPath destination = Local(root.CreateDirectory("dest"));
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
             await Adapter(new WindowsDriveBoundary(_ => DriveType.Fixed))
-                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+                .InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WindowsDriveBoundary drives = new(path =>
             path.CanonicalText.StartsWith(destination.CanonicalText, StringComparison.OrdinalIgnoreCase)
                 ? DriveType.Fixed : DriveType.Network);
@@ -200,7 +200,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsLocalPath destination = Local(root.CreateDirectory("dest"));
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
             await Adapter(new WindowsDriveBoundary(_ => DriveType.Fixed))
-                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+                .InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WindowsDriveBoundary drives = new(path =>
             path.CanonicalText.StartsWith(destination.CanonicalText, StringComparison.OrdinalIgnoreCase)
                 ? DriveType.Network : DriveType.Fixed);
@@ -227,7 +227,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsLocalPath path = Local(root.WriteFile("a.txt", "kept"));
         WindowsLocalFileOperationAdapter adapter = Adapter(new WindowsDriveBoundary(_ => observed));
 
-        FileInspectionOutcome outcome = await adapter.InspectAsync(path, CancellationToken.None);
+        FileInspectionOutcome outcome = await adapter.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None);
 
         Assert.AreSame(path, Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot.Path);
     }
@@ -244,7 +244,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WindowsDriveBoundary drives = new(_ => observed);
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
             await Adapter(drives)
-                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+                .InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WslPath destination = WslToWindowsTransferFixture.Source("destination");
         ScriptedWslFileSystem target = new();
         target.Set(ScriptedWslFileSystem.Entry(destination, "destination", DirectoryEntryKind.Directory));
@@ -282,7 +282,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
         WslPath sourcePath = WslToWindowsTransferFixture.Source("source.txt");
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(
             await new WslFileOperationAdapter(new WindowsLocalIoExecutionBoundary(), sourceFileSystem)
-                .InspectAsync(sourcePath, CancellationToken.None)).Snapshot;
+                .InspectAsync(sourcePath, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         WslToWindowsTransfer transfer = new(new WindowsLocalIoExecutionBoundary(), sourceFileSystem, drives);
 
         observed = DriveType.Network;

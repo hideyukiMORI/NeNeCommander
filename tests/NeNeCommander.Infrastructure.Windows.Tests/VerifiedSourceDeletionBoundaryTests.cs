@@ -294,7 +294,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
         internal FileEntrySnapshot? Frozen { get; private set; }
 
-        public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+        public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
         {
             return Task.FromResult(FileInspectionOutcome.Succeeded(_source));
         }

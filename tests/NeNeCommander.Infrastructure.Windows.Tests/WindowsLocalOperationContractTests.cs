@@ -78,7 +78,7 @@ public sealed class WindowsLocalOperationContractTests
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("file|0|0|0")).Identity;
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.PermanentOnly);
 
-        WindowsLocalOperationTestContext.AssertNullGuard(adapter, nameof(IFileOperationPort.InspectAsync), [null, CancellationToken.None]);
+        WindowsLocalOperationTestContext.AssertNullGuard(adapter, nameof(IFileOperationPort.InspectAsync), [null, FileInspectionPurpose.Deletion, CancellationToken.None]);
         WindowsLocalOperationTestContext.AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightTransferAsync), [null, path, CancellationToken.None]);
         WindowsLocalOperationTestContext.AssertNullGuard(adapter, nameof(IFileOperationPort.PreflightTransferAsync), [new[] { snapshot }, null, CancellationToken.None]);
         WindowsLocalOperationTestContext.AssertNullGuard(adapter, nameof(IFileOperationPort.CopyAsync), [null, path, CancellationToken.None]);

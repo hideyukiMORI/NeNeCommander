@@ -55,7 +55,7 @@ public sealed class WindowsWslFileSystemTrailingDotTests
 
         WslFileOperationAdapter adapter = new(new WindowsLocalIoExecutionBoundary(), fileSystem);
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await adapter.InspectAsync(Wsl("/owned/foo."), CancellationToken.None)).Snapshot;
+            await adapter.InspectAsync(Wsl("/owned/foo."), FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         Assert.AreEqual(Wsl("/owned/foo."), snapshot.Path);
         Assert.AreEqual(file.Identity, snapshot.Identity);
     }

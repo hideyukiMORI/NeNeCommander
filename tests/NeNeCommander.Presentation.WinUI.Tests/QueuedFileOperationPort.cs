@@ -57,7 +57,7 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         _preflights.Enqueue(preflight);
     }
 
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         return _inspections.Dequeue().Task;
     }

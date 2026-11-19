@@ -32,9 +32,9 @@ internal sealed class StepHookPort : IFileOperationPort
 
     internal List<DeletionExecutionMode> DeletionModes { get; } = [];
 
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
-        return _inner.InspectAsync(path, cancellationToken);
+        return _inner.InspectAsync(path, purpose, cancellationToken);
     }
 
     public async Task<TransferPreflightOutcome> PreflightTransferAsync(

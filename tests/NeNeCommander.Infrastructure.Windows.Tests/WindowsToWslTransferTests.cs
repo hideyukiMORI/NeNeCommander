@@ -219,7 +219,7 @@ public sealed class WindowsToWslTransferTests
         ScriptedWslFileSystem destination = UsableDestination();
         WindowsToWslTransfer transfer = Transfer(destination);
 
-        FileInspectionOutcome inspection = await transfer.InspectAsync(file.Path, CancellationToken.None);
+        FileInspectionOutcome inspection = await transfer.InspectAsync(file.Path, FileInspectionPurpose.Deletion, CancellationToken.None);
         AtomicMoveCapabilityOutcome capability = await transfer.GetAtomicMoveCapabilityAsync(
             file,
             Destination,
@@ -266,7 +266,7 @@ public sealed class WindowsToWslTransferTests
 
     private static void AssertTransferMembersRejectNull(WindowsToWslTransfer transfer, FileEntrySnapshot source)
     {
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => transfer.InspectAsync(null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => transfer.InspectAsync(null!, FileInspectionPurpose.Deletion, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => transfer.PreflightTransferAsync(null!, Destination, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
@@ -331,6 +331,7 @@ public sealed class WindowsToWslTransferTests
     {
         FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter().InspectAsync(
             Local(path),
+            FileInspectionPurpose.Deletion,
             CancellationToken.None);
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
     }
