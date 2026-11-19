@@ -25,6 +25,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<ProviderStepOutcome> _verifications;
     private readonly Queue<CopyVerificationOutcome> _verificationEvidence = [];
     private readonly List<DeletionExecutionMode> _deletionModes = [];
+    private readonly List<FileInspectionPurpose> _inspectionPurposes = [];
 
     private ScriptedFileOperationPort(ScriptedCallbackPoint? callbackPoint, Action? callback)
     {
@@ -45,6 +46,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
 
     internal IReadOnlyList<string> Calls => new ReadOnlyCollection<string>(_calls);
     internal IReadOnlyList<DeletionExecutionMode> DeletionModes => _deletionModes.AsReadOnly();
+    internal IReadOnlyList<FileInspectionPurpose> InspectionPurposes => _inspectionPurposes.AsReadOnly();
 
     internal static ScriptedFileOperationPort Create(
         ScriptedCallbackPoint? callbackPoint,
@@ -110,9 +112,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
 
     public Task<FileInspectionOutcome> InspectAsync(
         FileSystemPath path,
+        FileInspectionPurpose purpose,
         CancellationToken cancellationToken)
     {
         _calls.Add("Inspect:" + path.CanonicalText);
+        _inspectionPurposes.Add(purpose);
         FileInspectionOutcome outcome = _inspections.Dequeue();
         InvokeCallback(ScriptedCallbackPoint.AfterInspection);
         return Task.FromResult(outcome);

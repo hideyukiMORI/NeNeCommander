@@ -48,7 +48,7 @@ public sealed class WslMutationTests
         WslFileOperationAdapter adapter = WslOperationTestContext.Adapter(fileSystem);
         fileSystem.Set(WslOperationTestContext.Entry(source, "before", DirectoryEntryKind.File));
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(
-            await adapter.InspectAsync(source, CancellationToken.None)).Snapshot;
+            await adapter.InspectAsync(source, FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
         fileSystem.Set(WslOperationTestContext.Entry(source, "after", DirectoryEntryKind.File));
 
         ProviderStepOutcome outcome = await adapter.RenameAsync(

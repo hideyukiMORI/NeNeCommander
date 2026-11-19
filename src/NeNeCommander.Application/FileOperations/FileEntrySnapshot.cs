@@ -4,7 +4,7 @@ using NeNeCommander.Domain.Paths;
 namespace NeNeCommander.Application.FileOperations;
 
 /// <summary>
-/// Freezes provider identity and deletion capability for one preflighted source entry.
+/// Freezes provider identity and the requested deletion observation for one preflighted source entry.
 /// </summary>
 public sealed record FileEntrySnapshot
 {
@@ -28,7 +28,7 @@ public sealed record FileEntrySnapshot
     /// <summary>Gets the provider identity captured during preflight.</summary>
     public FileIdentity Identity { get; }
 
-    /// <summary>Gets the provider-reported deletion capability.</summary>
+    /// <summary>Gets the provider-reported deletion capability or its explicit unrequested state.</summary>
     public DeletionCapability DeletionCapability { get; }
 
     /// <summary>Gets the exact preflighted transfer target, or absence before transfer preflight.</summary>

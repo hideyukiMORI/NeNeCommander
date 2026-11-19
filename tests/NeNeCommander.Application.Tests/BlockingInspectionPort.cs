@@ -50,6 +50,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
 
     public Task<FileInspectionOutcome> InspectAsync(
         FileSystemPath path,
+        FileInspectionPurpose purpose,
         CancellationToken cancellationToken)
     {
         if (_firstInspection is FileInspectionOutcome firstInspection)

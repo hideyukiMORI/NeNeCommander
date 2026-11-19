@@ -137,7 +137,7 @@ public sealed class FileOperationGateway : IDisposable
             sources = copy.Sources;
             destination = copy.Destination;
         }
-        InspectionBatch inspection = await InspectAllAsync(sources, cancellationToken);
+        InspectionBatch inspection = await InspectAllAsync(sources, FileInspectionPurpose.IdentityOnly, cancellationToken);
         return inspection.Completion == InspectionBatchCompletion.Cancelled
             ? FileOperationOutcome.Cancelled([])
             : inspection.Failure is FileOperationFailureKind failedInspection
@@ -154,7 +154,7 @@ public sealed class FileOperationGateway : IDisposable
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
-        InspectionBatch inspection = await InspectAllAsync(request.Sources, cancellationToken);
+        InspectionBatch inspection = await InspectAllAsync(request.Sources, FileInspectionPurpose.Deletion, cancellationToken);
         return inspection switch
         {
             _ when inspection.Completion == InspectionBatchCompletion.Cancelled => FileOperationOutcome.Cancelled(effects),
@@ -194,9 +194,9 @@ public sealed class FileOperationGateway : IDisposable
         List<FileOperationEffect> effects,
         CancellationToken cancellationToken)
     {
-        DeletionExecutionMode mode = snapshot.DeletionCapability == DeletionCapability.Recycle
-            ? DeletionExecutionMode.Recycle
-            : DeletionExecutionMode.Permanent;
+        DeletionExecutionMode mode = snapshot.DeletionCapability == DeletionCapability.PermanentOnly
+            ? DeletionExecutionMode.Permanent
+            : DeletionExecutionMode.Recycle;
         ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, mode, cancellationToken);
         if (deletion.Failure is not null)
         {
@@ -221,7 +221,7 @@ public sealed class FileOperationGateway : IDisposable
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
-        FileInspectionOutcome inspection = await _port.InspectAsync(request.Location, cancellationToken);
+        FileInspectionOutcome inspection = await _port.InspectAsync(request.Location, FileInspectionPurpose.IdentityOnly, cancellationToken);
         if (inspection is FileInspectionFailed failed)
         {
             return FileOperationOutcome.Failed(effects, failed.Failure);
@@ -248,7 +248,7 @@ public sealed class FileOperationGateway : IDisposable
         CancellationToken cancellationToken)
     {
         List<FileOperationEffect> effects = [];
-        FileInspectionOutcome inspection = await _port.InspectAsync(request.Source, cancellationToken);
+        FileInspectionOutcome inspection = await _port.InspectAsync(request.Source, FileInspectionPurpose.IdentityOnly, cancellationToken);
         if (inspection is FileInspectionFailed failed)
         {
             return FileOperationOutcome.Failed(effects, failed.Failure);
@@ -271,6 +271,7 @@ public sealed class FileOperationGateway : IDisposable
 
     private async Task<InspectionBatch> InspectAllAsync(
         IReadOnlyList<FileSystemPath> sources,
+        FileInspectionPurpose purpose,
         CancellationToken cancellationToken)
     {
         List<FileEntrySnapshot> snapshots = [];
@@ -280,10 +281,14 @@ public sealed class FileOperationGateway : IDisposable
             {
                 return InspectionBatch.CancelledBatch();
             }
-            FileInspectionOutcome inspection = await _port.InspectAsync(source, cancellationToken);
+            FileInspectionOutcome inspection = await _port.InspectAsync(source, purpose, cancellationToken);
             switch (inspection)
             {
                 case FileInspectionSucceeded succeeded:
+                    if (purpose == FileInspectionPurpose.Deletion && !succeeded.Snapshot.DeletionCapability.IsInspected)
+                    {
+                        return InspectionBatch.Failed(FileOperationFailureKind.Inspection);
+                    }
                     snapshots.Add(succeeded.Snapshot);
                     break;
                 case FileInspectionFailed failed:

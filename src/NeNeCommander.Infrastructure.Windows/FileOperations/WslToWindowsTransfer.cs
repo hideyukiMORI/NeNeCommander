@@ -35,9 +35,10 @@ internal sealed class WslToWindowsTransfer : IFileOperationPort
         _driveBoundary = driveBoundary;
     }
 
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(purpose);
         return Task.FromResult(FileInspectionOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 

@@ -63,13 +63,14 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(purpose);
         return path switch
         {
-            WindowsLocalPath => _windowsLocal.InspectAsync(path, cancellationToken),
-            WslPath => _wsl.InspectAsync(path, cancellationToken),
+            WindowsLocalPath => _windowsLocal.InspectAsync(path, purpose, cancellationToken),
+            WslPath => _wsl.InspectAsync(path, purpose, cancellationToken),
             _ => Task.FromResult(FileInspectionOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)),
         };
     }

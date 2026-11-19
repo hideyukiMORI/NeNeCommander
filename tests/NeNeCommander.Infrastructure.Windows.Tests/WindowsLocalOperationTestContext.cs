@@ -31,7 +31,7 @@ internal static class WindowsLocalOperationTestContext
 
     internal static async Task<FileEntrySnapshot> InspectAsync(WindowsLocalFileOperationAdapter adapter, FileSystemPath path)
     {
-        FileInspectionOutcome outcome = await adapter.InspectAsync(path, CancellationToken.None);
+        FileInspectionOutcome outcome = await adapter.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None);
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
     }
 

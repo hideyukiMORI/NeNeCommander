@@ -279,6 +279,7 @@ public sealed class WindowsToWslTransferGatewayTests
     {
         FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter().InspectAsync(
             path,
+            FileInspectionPurpose.Deletion,
             CancellationToken.None);
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(outcome).Snapshot;
     }

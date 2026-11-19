@@ -73,7 +73,7 @@ public sealed class WslToWindowsBoundaryTests
         FileSystemPath target = fixture.Destination;
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable,
-            Assert.IsInstanceOfType<FileInspectionFailed>(await transfer.InspectAsync(source.Path, CancellationToken.None)).Failure);
+            Assert.IsInstanceOfType<FileInspectionFailed>(await transfer.InspectAsync(source.Path, FileInspectionPurpose.Deletion, CancellationToken.None)).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, (await transfer.MoveAsync(source, target, CancellationToken.None)).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, (await transfer.DeleteAsync(source, DeletionExecutionMode.Permanent, CancellationToken.None)).Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, (await transfer.CreateDirectoryAsync(source, target, CancellationToken.None)).Failure);
@@ -125,6 +125,7 @@ public sealed class WslToWindowsBoundaryTests
             _ when type == typeof(CancellationToken) => CancellationToken.None,
             _ when type == typeof(FileEntrySnapshot) => source,
             _ when type == typeof(FileSystemPath) => path,
+            _ when type == typeof(FileInspectionPurpose) => FileInspectionPurpose.Deletion,
             _ when type == typeof(DeletionExecutionMode) => DeletionExecutionMode.Permanent,
             _ => new[] { source },
         };
@@ -163,7 +164,7 @@ public sealed class WslToWindowsBoundaryTests
     private static async Task<FileEntrySnapshot> SnapshotAsync(WslToWindowsTransferFixture fixture)
     {
         return Assert.IsInstanceOfType<FileInspectionSucceeded>(await fixture.Router.InspectAsync(
-            WslToWindowsTransferFixture.Source("item.txt"), CancellationToken.None)).Snapshot;
+            WslToWindowsTransferFixture.Source("item.txt"), FileInspectionPurpose.Deletion, CancellationToken.None)).Snapshot;
     }
 
     private static FileSystemPath Parse(string text)

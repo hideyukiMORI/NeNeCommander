@@ -91,10 +91,13 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
-    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, CancellationToken cancellationToken)
+    public Task<FileInspectionOutcome> InspectAsync(FileSystemPath path, FileInspectionPurpose purpose, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        return _executionBoundary.ExecuteShellAsync(() => Inspect(path));
+        ArgumentNullException.ThrowIfNull(purpose);
+        return purpose == FileInspectionPurpose.Deletion
+            ? _executionBoundary.ExecuteShellAsync(() => Inspect(path, purpose))
+            : _executionBoundary.ExecuteAsync(() => Inspect(path, purpose));
     }
 
     /// <inheritdoc />
@@ -164,12 +167,25 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
+        return !source.DeletionCapability.IsInspected && mode is not DeletionExecutionMode.VerifiedCopyMode
+            ? Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection))
+            : ScheduleDeletionAsync(source, mode, cancellationToken);
+    }
+
+    private Task<ProviderStepOutcome> ScheduleDeletionAsync(
+        FileEntrySnapshot source, DeletionExecutionMode mode, CancellationToken cancellationToken)
+    {
         return mode == DeletionExecutionMode.Recycle
-            ? _executionBoundary.ExecuteShellAsync(() => source.Path is WindowsLocalPath local && _driveBoundary.AdmitsLocal(local)
-                ? _recycleBin.Recycle(source, cancellationToken)
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable))
+            ? _executionBoundary.ExecuteShellAsync(() => Recycle(source, cancellationToken))
             : _executionBoundary.ExecuteAsync(
                 () => Guarded(() => _steps.Delete(source, mode), FileOperationFailureKind.Delete));
+    }
+
+    private ProviderStepOutcome Recycle(FileEntrySnapshot source, CancellationToken cancellationToken)
+    {
+        return source.Path is WindowsLocalPath local && _driveBoundary.AdmitsLocal(local)
+            ? _recycleBin.Recycle(source, cancellationToken)
+            : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
     }
 
     /// <inheritdoc />
@@ -198,7 +214,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             () => Guarded(() => _steps.Rename(source, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
-    private FileInspectionOutcome Inspect(FileSystemPath path)
+    private FileInspectionOutcome Inspect(FileSystemPath path, FileInspectionPurpose purpose)
     {
         if (path is not WindowsLocalPath local || !_driveBoundary.AdmitsLocal(local))
         {
@@ -212,7 +228,9 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
                 : FileInspectionOutcome.Succeeded(FileEntrySnapshot.Create(
                     path,
                     WindowsLocalEntryIdentity.Describe(entry),
-                    _recycleBin.GetCapability(local)));
+                    purpose == FileInspectionPurpose.Deletion
+                        ? _recycleBin.GetCapability(local)
+                        : DeletionCapability.NotRequested));
         }
         catch (UnauthorizedAccessException exception)
         {

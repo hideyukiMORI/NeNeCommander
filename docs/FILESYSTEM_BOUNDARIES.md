@@ -80,6 +80,14 @@ requirements remain stricter than the general local drive observation.
 
 Windows recycle capability (ADR-0063) requires an existing non-root entry on a fixed drive, non-link ancestors and source tree, Shell filesystem/delete attributes, and an available volume recycle namespace. This admits a recycle-only attempt; it does not promise unchanged quota or permissions. Removable and network drives are not admitted by this capability.
 
+ADR-0083 makes the requested observation explicit on the existing inspection port. Copy, move,
+rename and directory creation request identity only; Windows/WSL return `NotRequested` for ordinary
+deletion capability while preserving the same admitted identity capture. Ordinary deletion requests
+the existing capability observation for every source and rejects any uninspected result before the
+first effect, regardless of confirmation. Provider ordinary-delete entry points also refuse it.
+Verified-copy source deletion still requires its own complete receipt and effect revalidation;
+it does not require or infer permission to perform ordinary deletion from that capability field.
+
 ### FS-003 — WSL discovery has one adapter
 
 - Status: **active**

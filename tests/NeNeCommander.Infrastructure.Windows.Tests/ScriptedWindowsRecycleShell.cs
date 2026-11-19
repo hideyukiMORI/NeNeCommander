@@ -12,9 +12,12 @@ internal sealed class ScriptedWindowsRecycleShell : IWindowsRecycleShell
     internal uint Attributes { get; init; } = 0x40000020;
     internal Exception? OpenFailure { get; init; }
     internal Exception? OperationFailure { get; init; }
+    internal int OpenEntryCount { get; private set; }
+    internal int QueryCount { get; private set; }
 
     public IWindowsShellEntry OpenEntry(WindowsLocalPath path)
     {
+        OpenEntryCount++;
         return OpenFailure is not null ? throw OpenFailure : new ScriptedWindowsShellEntry(path.CanonicalText)
         {
             Attributes = Attributes,
@@ -29,6 +32,7 @@ internal sealed class ScriptedWindowsRecycleShell : IWindowsRecycleShell
 
     public int QueryRecycleBin(WindowsLocalPath path)
     {
+        QueryCount++;
         return BinQueryResult;
     }
 }
