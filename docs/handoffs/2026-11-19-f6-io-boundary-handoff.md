@@ -1,6 +1,6 @@
 # 2026-11-19 F6 I/O境界・引き継ぎ
 
-Status: #485観測完了。文書統合・今回整理待ち。hide停止まで継続。
+Status: #485/PR486統合・今回整理完了。hide停止まで継続。
 
 - 受理main8a1aee8の診断コピーで固定warmup1＋測定5を完了。元の経路・安全確認・task/awaitを維持。
   9callback/sample、全効果/元0先2/idle/active-left、12hash、DONE0..5が一致。
@@ -14,11 +14,15 @@ Status: #485観測完了。文書統合・今回整理待ち。hide停止まで�
 - 専用41792通常終了、observer exit0、通常38360/元218B設定hash一致。復元不要。
   恒久記録`D:/NeNeCommander/evidence/f6-io-boundary-20261119/`。
   作業木`D:/NeNeCommander/worktrees/issue-485`と出力`D:/NeNeCommander/outputs/f6-io-boundary-20261119`は
-  全保全・技術受理/merge・clean/未追跡/ignored/link/稼働参照確認後にだけ整理する。
+  全保全・技術受理/merge・clean/未追跡/ignored/link/稼働参照を確認し19:24:12に削除、不在確認済み。
 - PR402はDraft f6859fa、機能63f4769のhide画面受理待ち。pointer walkは既存証拠に保存。
   公開beta.2・通常app不変。未完了Bookmark作業木と過去の拒否対象は今回削除しない。
 
 独立事後レビューは必須修正なし。全2,007出力/243,657,084Bはzipに保全し、全件size/SHA256一致。
+
+PR486は19:23:58に12a6c13として通常squash、受理a0f10abとtree一致。23数値行/209link/通常hook合格。
+今回のissue-485作業木とf6-io-boundary出力は19:24:12に確認付き整理を完了し、不在確認済み。
+branch/commit/全恒久証拠は保持し、過去の拒否4対象は再試行していない。
 
 ## ! hide実行待ち：後片付け
 

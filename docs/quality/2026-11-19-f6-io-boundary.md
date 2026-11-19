@@ -1,6 +1,6 @@
 # F6 I/O submission and callback boundaries — 2026-11-19
 
-Status: bounded native observation complete; documentation integration and task cleanup pending. #453 remains open.
+Status: PR486 integrated; this task worktree/output cleanup complete. #453 remains open.
 
 [Issue #485](https://github.com/hideyukiMORI/NeNeCommander/issues/485) continues
 [#453](https://github.com/hideyukiMORI/NeNeCommander/issues/453) from accepted main
@@ -174,8 +174,24 @@ discovery then selected the existing helper, with no mutation from that failed r
 
 Task worktree: `D:/NeNeCommander/worktrees/issue-485`.
 Task output: `D:/NeNeCommander/outputs/f6-io-boundary-20261119`.
-Only these two targets may be removed after accepted/clean/untracked/ignored/no-link/no-reference/
+These exact two targets were removed after accepted/clean/untracked/ignored/no-link/no-reference/
 complete-archive checks. Branches, commits, permanent evidence and unfinished Bookmark work remain.
 Four earlier rejected cleanup targets are not retried. See the
 [progress report](../reports/2026-11-19-f6-io-boundary-progress-report.md) and
 [handoff](../handoffs/2026-11-19-f6-io-boundary-handoff.md).
+
+
+## Integration and task cleanup completed
+
+[PR486](https://github.com/hideyukiMORI/NeNeCommander/pull/486) merged by normal expected-head
+squash at19:23:58 JST as12a6c13. Accepted a0f10ab and the squash have identical tree
+3fe0ce7c579eda61f806bade16ac5b24c45cd4e8; local main advanced by fast-forward. Requested reviews,
+unresolved threads and failed checks were absent. All23 numerical rows/209 links and ordinary
+112-rule/24-adversarial-registration/security/commit-message checks passed. No added product CI.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/f6-io-boundary-20261119/cleanup-completed.ps1
+-ExpectedHead a0f10ab371a5d5ac55ac2074216879ccc6391ede -PrNumber 486` exited0 at19:24:12 JST.
+Both exact task targets are absent. Preflight confirmed resolved absolute targets, accepted/squash
+tree equality, clean/untracked/ignored state, no active references or links, unchanged archive hash
+and current2,007-file/243,657,084-byte set/size/timestamps against complete content-hash preservation.
+Branches, commits and permanent evidence remain. Four earlier rejected targets were not retried.
