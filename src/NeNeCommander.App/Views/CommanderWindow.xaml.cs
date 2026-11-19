@@ -140,6 +140,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (IsTextComposing || _bookmarkView.HasOpenSelector)
         {
             _keyboardIntentMapper.ObserveNativeInput(input);
+            _bookmarkView.ObserveNativeInput();
             return;
         }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
@@ -149,6 +150,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             outcome = KeyboardIntentMapper.DeferModalConfirmToNativeControl(outcome);
         }
         args.Handled = consumesPendingFocus || ForwardOutcome(outcome);
+        if (!args.Handled &&
+            (input.RepeatState == KeyRepeatState.Initial || input.Key != KeyboardKey.Other))
+        {
+            _bookmarkView.ObserveNativeInput();
+        }
     }
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)
@@ -160,6 +166,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateCharacter(args, GetKeyboardContext());
         args.Handled = !IsTextComposing && ForwardOutcome(_keyboardIntentMapper.Map(input));
+        if (!args.Handled)
+        {
+            _bookmarkView.ObserveNativeInput();
+        }
     }
 
     private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing;

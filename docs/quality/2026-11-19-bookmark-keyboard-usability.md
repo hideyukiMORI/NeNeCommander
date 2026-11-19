@@ -1,6 +1,6 @@
 # Bookmark keyboard usability proof
 
-Status: Issue #457 integrated into the feature; PR402 remains Draft and outside main/Preview
+Status: Issue #457 follow-up verified locally; PR402 remains Draft and outside main/Preview
 
 ## Scope and invariant
 
@@ -23,6 +23,115 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
+
+## Native input ownership follow-up, 12:44–12:54 JST
+
+The prior fast-input observations prompted a read-only source review, which found a valid
+ordering even though the observed native sequence was not isolated: an explicit list request
+survives incidental Search focus, actual text input does not cancel it, and its later callback
+can take focus back. The same missing ownership transfer can let a draft's delayed SelectAll
+replace the user's newer selection. This is a source-confirmed gap; it is not proof of the exact
+cause or timing of the earlier native observations.
+
+The existing root mapper now reports input left unhandled to the bookmark ownership view.
+Only actual focus in Search, Name, Path or Category Name cancels the existing browse/detail
+queues. Composition start uses the same path. Initial KeyDown and identified editing keys can
+transfer ownership; a repeated raw Other awaits the produced character's repeat-guard decision.
+Thus holding an opening letter cannot prematurely discard the new form's initial focus, while
+an actual unhandled character can. Mapped actions and pending-confirmation Enter retain their
+existing handling. No key table, state, persistence, navigation or deferred-queue mechanism was
+added. The independent keyboard reviewer supported these boundaries before implementation.
+
+`fix/457-bookmark-native-input` reuses the issue-457 worktree and starts at feature `527ac43`.
+The existing queue test now includes incidental layout focus before explicit cancellation.
+This proves that later cancellation still wins after layout retained the request; it does not
+test WinUI event delivery. The unchanged mapper/repeat tests provide their existing boundaries.
+
+Verification was run with:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/bookmark-ux-20261119/verify-native-input.ps1
+```
+
+The script records every executable, argument, start/end time and exit in
+`native-input/commands.json`. Each of App, Presentation tests and Architecture tests received
+`dotnet restore <project> -p:Configuration=Release --locked-mode`. All builds used
+`dotnet build <project> -c Release --no-restore -m:1 -nr:false`; the Architecture build additionally
+used `-p:BuildProjectReferences=false` after the successful App/dependency build. All returned
+zero warnings/errors. Both test commands used
+`dotnet test --project <project> -c Release --no-build --no-restore -- --filter <filter>` with
+TRX output under `native-input/`:
+
+| Filter | Result |
+|---|---|
+| `FullyQualifiedName~BookmarkFocusRestorationTests\|FullyQualifiedName~BookmarkKeyboardRepeatTests\|FullyQualifiedName~BookmarkDraftKeyboardTests\|FullyQualifiedName~BookmarkKeyboardMappingTests` | 27 passed, zero failed/skipped |
+| `FullyQualifiedName~ViewCompositionOwnershipTests` | 24 passed, zero failed/skipped |
+
+The 1,034 tracked source/build/tooling inputs remained byte-identical throughout verification.
+`dotnet format whitespace NeNeCommander.slnx --no-restore --verify-no-changes --include $changed --verbosity diagnostic`
+returned 0 for the four changed C# files, with no edits; design-time workspace warnings remain
+in its log. `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` returned 1 for the
+same seven existing findings. The window type grows from 305 to 311 logical lines; no new
+finding, suppression, baseline or waiver was introduced. Application206 and unrelated combined
+Presentation evidence above are reused because those inputs did not change. No full gate,
+coverage, mutation, hosted workflow or release revalidation was requested by this local hook fix.
+
+The new App DLL SHA-256 is
+`69D83CD2FEB7E559872B1D977F813FE02E0F98170CA9B7DD415AAEF2DA502CC4`.
+Owned process10680/window7737148 ran from 12:51 to 12:54. Ctrl+B and A opened the zero-row
+manager and draft; the default name was visibly selected, and discrete X/Y keys replaced it
+with `xy`. A fast Escape/slash/X/Y batch subsequently left `/xy` in Search, retained after a
+settled observation. Slash was literal because Search owned it at that point; this does not
+claim that the list transition completed before slash or identify a queued callback's timing.
+The entire later text stayed in Search rather than changing into a browse command.
+
+Actual Search IME showed underlined Japanese `か` and a candidate popup. Enter committed it
+without leaving Search; another K/A composition followed by Escape retained only the committed
+`か` and the manager. IME was switched off afterward. Clearing the query and a fresh Enter
+returned to browse hints; the next A opened a draft. Name and Path both retained `xy` after
+Tab and native Ctrl+A input, and Category Name retained `xy` after category Tab/A. All drafts
+were cancelled; no bookmark/category was saved or deleted. The owned process exited normally
+and the original 218-byte settings hash was unchanged; no restoration was needed. Normal
+process38360 and the unrelated Chrome window remained running.
+
+The first element click failed before input with `coordinate input geometry is unavailable`;
+a new snapshot and keyboard input recovered the session. One screenshot request with
+`emit:false` was refused and was repeated with supported arguments. Immediate AX reads often
+preceded the rendered change, so the saved later AX/screenshot determines the outcome. These
+tool/setup events are not product failures. Windows Computer Use does not support held-key
+duration, so physical hold and deterministic delayed-dispatch interleaving remain unobserved.
+No destructive confirmation, DPI, high contrast or Narrator proof is added by this follow-up.
+
+## Additional native walk, 12:33–12:40 JST
+
+Unchanged feature `527ac43`/combined DLL below ran as owned process10792/window29561286.
+One owned bookmark pointed to an absent test directory. Ctrl+Enter saved it; Enter showed the
+navigation failure while preserving C:\. Escape returned to browsing, and Enter failed again.
+After creating only that owned empty directory externally, Enter alone navigated successfully.
+No pointer input occurred between initial entry/save and this back/retry sequence. This resolves
+the earlier inability to separate keyboard retry from pointer trials for this one owned case.
+
+At an observed 819×658 pixels, populated rows, bookmark-delete confirmation, category draft and
+the actual category-delete confirmation fit inside the modal. Cancel had visible initial focus;
+Enter cancelled both confirmations. No deletion was executed. Search IME was also observed
+with a candidate popup, Enter commit and Escape cancelling only the next composition.
+`native-walk-1233.md` owns the full attempt order and image provenance. In particular,
+`populated-narrow-category-delete.*` actually shows bookmark deletion and is not category proof;
+`narrow-category-confirm-actual.*` is the successful category capture.
+
+Setup included ineffective initial key attempts, a window-mode attempt that inserted minuses
+into the address (restored without submission), native caption sizing, delayed AX data and a
+rejected stale element index. Fast Return/Tab/Down/D and cancel/slash sequences had uncertain
+focus timing; the first IME attempt opened an unsaved draft and was cancelled. Only the later
+explicitly focused Search composition is counted as successful IME evidence. These attempts
+prompted the source review above; no blanket fast-input success is claimed.
+
+The process closed normally. Settings differed only by the owned bookmark/category plus the
+expected schema migration and default hints. After verifying those differences, the exact
+original218 bytes were restored, SHA-256
+`ABE305E4BC6C35A1325B2EED2389DD7D766E75D6B74C5236950E071C2563DDA5`.
+`native-retry-restoration.json` records the comparison. Normal process38360 remained running.
+hide's separate PR402 acceptance is still pending.
 
 ## Integration with main, 11:38–12:03 JST
 

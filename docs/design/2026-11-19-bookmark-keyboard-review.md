@@ -86,8 +86,13 @@ ListViews are tab stops, and the existing deferred-focus owner distinguishes req
 transitions from passive row restoration. Layout-driven focus does not cancel an explicit
 request. Later pointer input or initial native Tab does cancel it; a pending form/confirmation
 initial focus consumes Enter until dispatch, while IME and open selectors retain native input.
-The independent keyboard review checked the later-input and native-owner boundaries. These
-final hooks still require the interrupted native walk; unit proof is not a substitute.
+The follow-up review after the 12:33 native walk found that actual text input also needs to
+supersede the request. The root now reports only input left to native controls by the existing
+mapper, and the ownership view accepts it only for a focused bookmark text field. Repeated raw
+character events await the produced character's repeat decision. Composition start uses the
+same cancellation path. This protects both list focus and draft SelectAll without interpreting
+TextChanged or incidental GotFocus as user intent. Native evidence and limits are recorded in
+the quality record; source and queue proof do not establish every physical input ordering.
 
 Framework references: [focus navigation and Cycle](https://learn.microsoft.com/en-us/windows/apps/develop/input/focus-navigation),
 [TextBox IME composition lifecycle](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.textbox.textcompositionstarted),

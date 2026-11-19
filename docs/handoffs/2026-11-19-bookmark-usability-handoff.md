@@ -2,7 +2,7 @@
 
 Status: ongoing; PR458 integrated into feature PR402; hide acceptance pending
 
-hideの停止指示まで継続する依頼が有効。追加依頼のPreviewは#459で公開前deep review中。
+hideの停止指示まで継続する依頼が有効。追加依頼のPreview beta.2は#459で公開と照合を完了した。
 単体実装が既定。今回の複数専門家は明示依頼に沿う読み取り専用レビュー。
 実際のNeNe Commanderリナへの相談と合意は[デザイン記録](../design/2026-11-19-bookmark-keyboard-review.md)。
 
@@ -61,6 +61,26 @@ Enterによる取消を確認した。保存せず設定は完全一致。寸法
 未完了の作業木`D:/NeNeCommander/worktrees/issue-457`と出力`D:/NeNeCommander/outputs/bookmark-ux-20261119`
 は保持する。PR402と他の未完了作業、通常アプリが参照するF6 fixtureも保持する。
 
+## 12:54時点の追加結果
+
+mainは公開/後片付け記録まで統合した`5b54b0a`。Preview beta.2の公開3assetは匿名再取得で一致。
+Bookmarkの追加修正は`fix/457-bookmark-native-input`、既存issue-457作業木でfeature527ac43から実装。
+PR402はDraftのまま、hide受理前にmainへ統合しない。公開物も更新しない。
+
+12:33〜12:40の追加nativeで、キーだけのretry/backと819×658の実データ行・両確認・カテゴリ入力、
+検索IMEを確認した。誤ったcategory名の証拠ファイルや速い入力の不確かな順序も品質記録に明記した。
+設定は専用1登録/1カテゴリと想定schema移行だけを確認して元の218byteへ復元、hash一致。
+
+source reviewで実入力/IME開始後に古いfocusが残る経路を確認し、rootの既存mapperがnativeへ
+渡した入力だけを4 TextBox実focusで観測して既存CancelPendingFocusへつないだ。composition開始も同じ経路。
+raw Otherのrepeatはproduced characterの既存guard判断を待つ。新しい状態/キー表/実行経路はない。
+App/test build 0警告/0エラー、Presentation27/ViewOwnership24成功、入力1,034件のhash不変、
+format成功、Inspect既存7件。独立した実diff reviewで必須修正なし。
+12:51〜12:54の専用窓で4入力欄・検索IMEとEnter復帰を確認。保存せず終了、設定完全一致、通常app38360保持。
+物理held入力はツール非対応で未確認。決定論的なnative callback競合も未証明。
+詳細は[品質記録](../quality/2026-11-19-bookmark-keyboard-usability.md)と
+`D:/NeNeCommander/evidence/bookmark-ux-20261119/native-input/`。今回の対象以外の成功証拠は再利用する。
+
 ## ! hide実行待ち：後片付け
 
 旧拒否15対象は10:47の読み取りで全件不在を確認し、旧依頼は解消済み。
@@ -70,9 +90,15 @@ Enterによる取消を確認した。保存せず設定は完全一致。寸法
 
 - `D:/NeNeCommander/worktrees/issue-454`
 - `D:/NeNeCommander/outputs/footer-20261119`
+- `D:/NeNeCommander/worktrees/issue-459`
+- `D:/NeNeCommander/outputs/release-beta2-20261119`
+
+#459の後半2対象も4出力ファイルを保全し、展開版586ファイルを恒久candidateと照合、
+取込/未保存/リンク/稼働参照を確認済み。12:29の自動承認レビューが起動前に`blocked by policy`で
+削除を拒否したため実行されず、別手段の再試行もしていない。公開candidate/証拠/未完了Bookmarkは保持する。
 
 hide実行用（branch/commit/恒久証拠を保持）:
 
 ```powershell
-pwsh -NoProfile -File D:/NeNeCommander/evidence/footer-20261119/cleanup-for-hide.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-for-hide.ps1
 ```

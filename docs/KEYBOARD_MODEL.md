@@ -191,10 +191,14 @@ return context. Registration at a drive root offers its canonical path as the in
 initial name text is selected so typing replaces it. Slot choices show their current assignment
 without changing collision validation. Tapping the scrim takes the Escape route once.
 
-The browse view owns one current deferred focus request. A later search focus, native region
-focus, another requested region, or leaving browsing invalidates an earlier queued request. A
-callback may focus its list only while that request remains current; delayed list realization
-cannot take focus back from a newer owner.
+The browse view owns one current deferred focus request. Incidental layout focus cancels passive
+row restoration but retains an explicit state-transition request. Explicit search, pointer input,
+initial native Tab, another requested region, or leaving browsing supersedes an earlier request.
+Actual input passed to a focused bookmark text field and IME composition start cancel both browse
+and detail requests, so queued focus or SelectAll cannot overwrite that editor's newer ownership.
+Raw repeated character keys await the produced character's existing repeat-guard decision;
+mapped commands and pending-confirmation Enter do not surrender their focus request. A callback
+may focus its control only while that request remains current.
 
 ## Keyboard help
 

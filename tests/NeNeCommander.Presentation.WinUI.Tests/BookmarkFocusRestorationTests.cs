@@ -41,7 +41,7 @@ public sealed class BookmarkFocusRestorationTests
         Assert.AreEqual(0, focusCount);
     }
 
-    /// <summary>Proves a later search or close cancels an already-queued list restoration.</summary>
+    /// <summary>Proves later native editing cancels a request retained through incidental layout focus.</summary>
     [TestMethod]
     public void RequestWhenCancelledBeforeDispatchDoesNotRestoreFocus()
     {
@@ -49,6 +49,8 @@ public sealed class BookmarkFocusRestorationTests
         BookmarkFocusRestoration restoration = new(queued.Add);
         int focusCount = 0;
         restoration.Request(() => focusCount++);
+        restoration.CancelRestoration();
+        Assert.IsTrue(restoration.IsPending);
         restoration.Cancel();
         Assert.IsFalse(restoration.IsPending);
 
