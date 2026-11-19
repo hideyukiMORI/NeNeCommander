@@ -24,6 +24,51 @@ not selected. Successful evidence is reused when its relevant inputs have not ch
 Raw logs, source-review inputs, consultation results and UI evidence are retained in
 `D:/NeNeCommander/evidence/bookmark-ux-20261119/`.
 
+## Native category and bookmark renaming, 16:30–16:34 JST
+
+The unchanged featurebad2b03 and the same App DLL SHA256
+`3C65F5877ABC06A8CF67887C930E18C0A2CA41578B207EC64F5678E7461FAC1A` were used for a
+predeclared owned-data walk. All1,040 prior verification inputs remain byte-identical.
+In dedicated process18252/window12193574, keyboard-only Tab/A and Ctrl+Enter create
+NN Category Original, then one NN Category Item at the owned empty category-rename/target.
+The native category selector assigns the new category. Its count is1 and Unclassified0.
+Tab/Down/Down/E opens that category's rename form; Ctrl+A/type/Ctrl+Enter changes it to
+NN Category Renamed. The item keeps its category membership and path. E then opens the
+bookmark edit form, and the same save route renames it to NN Category Item Renamed.
+The settled list and screenshot show the new names, one item, and the new category count1.
+The saved JSON differs only in the two planned names and the corresponding category reference.
+
+Several immediate AX reads still showed the preceding input/list state. Later screenshots
+and subsequent state reads established the requested values before the relevant acceptance
+claim; these observations establish no input latency, dropped-key cause or precise focus timing.
+The first Alt+F4 inventory still listed the owned window; the subsequent inventory confirmed exit.
+After restart, Ctrl+B's combined input/read call returned `foreground window did not report a
+process id`. One rediscovery/rebind showed the manager already open with both renamed names,
+the category count1 and matching membership. No second Ctrl+B was sent. A subsequent state
+capture returned the same tool error, so UI attempts stopped. The final restart screenshot
+was not obtained; the rebind readback is an observed tool result, not a saved raw screenshot.
+After exact-path/PID selection, only owned process25852 was stopped. No lock-screen interaction,
+security-setting change, UI deletion or file-operation command was submitted.
+
+The saved430 bytes are identical before restart and after the last native attempt. An exact
+comparison against the original permits only the owned category/bookmark and expected
+schema4/default-hints migration. `python <evidence>/category-rename/restore.py` restored the
+original218 bytes at16:34:06 and verified the original SHA256. Normal process38360 remains.
+The baseline/plan,19 distinct state snapshots,20-action list, screenshots, before/after settings,
+tool-error record and restoration result are retained in permanent `category-rename/` evidence.
+The empty target directory remains with the unaccepted feature's other fixtures.
+
+Redefining the capture helper after the first manager read reused state-01 for the next read;
+the initial open action remains in the20-action list, but its separate raw snapshot was overwritten.
+No acceptance claim depends on that missing initial snapshot. The first document-verification
+attempt confused action ordinals16/20 with the actual snapshot numbers15/19 and stopped before
+editing documents. Listing the retained files corrected those references; captured data was not edited.
+
+`python <evidence>/category-rename/record.py` independently checks the saved-name/reference
+change, restart byte equality, key native state lines and all1,040 unchanged verification inputs.
+This is additional bounded native evidence and a documentation-only change, with no new build,
+product test or hosted CI. It does not replace hide's separate PR402 screen acceptance.
+
 ## Native shortcut collision and restart, 15:47–15:54 JST
 
 The unchanged combined source9006020/App DLL SHA256
