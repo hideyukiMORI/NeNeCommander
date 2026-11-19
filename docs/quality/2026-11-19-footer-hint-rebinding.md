@@ -1,6 +1,6 @@
 # 同じフッターキー案内の再bind削減 — 2026-11-19
 
-Status: implementation and selected proof complete; integration tracked in the handoff.
+Status: implementation and selected proof accepted; PR468 integrated and task cleanup complete.
 
 Issue [#467](https://github.com/hideyukiMORI/NeNeCommander/issues/467) follows the bounded
 [#465 observation](2026-11-19-f6-xaml-observation.md). It does not close #453 or establish
@@ -146,3 +146,12 @@ restored semantically, then the original218 bytes restored after owned-app exit,
 No normal binary or public release was rebuilt/replaced. Integration and cleanup are recorded in the
 [progress report](../reports/2026-11-19-footer-rebind-progress-report.md) and
 [handoff](../handoffs/2026-11-19-footer-rebind-handoff.md).
+
+PR [#468](https://github.com/hideyukiMORI/NeNeCommander/pull/468) was squash-merged at14:05:17 JST
+as `7baf18a`; its accepted head `4cf8ddd` has the identical tree. The final986 verification input
+hashes were unchanged. No requested review, unresolved thread or check failure was present;
+Ready/merge started no full CI. Normal commit hooks and178 relative links passed. At14:06:31,
+`cleanup-owned.ps1` removed the exact task worktree/output after confirming clean/accepted sources,
+zero process references/links, all73 preserved files and1563 classified build-only ignored files.
+Both targets are absent; branches/commits and permanent evidence remain. The four older rejected
+cleanup targets remain a separate handoff, with no rejected deletion retried.
