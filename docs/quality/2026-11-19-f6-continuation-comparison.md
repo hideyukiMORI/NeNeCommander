@@ -31,7 +31,7 @@ PID-scoped current-user/session events signal after the validated endpoint. The 
 exactly four signals; the recorder keeps its existing six-slot capacity but must finish at Count4.
 Explicit controller logging/AX/images/file reads follow each matching DONE. Tool/injection/OS
 costs remain unmeasured. CreateNew raw-PID JSON is written after normal close; PID reuse requires
-an absent output path before launch. A2/B2 must reuse the same binaries as A1/B1.
+an absent output path after PID identification and before the first F6. A2/B2 must reuse the same binaries as A1/B1.
 
 ## Completed preparation and exact checks
 
@@ -65,8 +65,15 @@ No Issue491 app launch, fixture move or native sample occurred. No further UI ca
 The initial handoff recorded builds as pending; authoritative completion subsequently established
 both successes. The read-only review was interrupted, then completed during non-UI continuation.
 
-Fixture preparation, controller implementation/limit proof, native collection, independent raw
-analysis, outcome/hash checks and final acceptance remain. Do not restart UI work before hide
+Sixteen fixture pairs are now prepared, all with identical41B/43B contents and empty destinations.
+Their32 hashes and the unchanged218-byte settings are recorded. The memory-only trial ledger
+passes16 synthetic admissions and rejects wrong ABBA order, a fifth sample, mismatched/duplicate
+DONE, actions/log snapshots before DONE and retry after unknown input. No UI API is imported by
+that check. `node D:/NeNeCommander/evidence/f6-continuation-comparison-20261119/trial-ledger-check.mjs`
+and `python D:/NeNeCommander/evidence/f6-continuation-comparison-20261119/prepare-fixtures.py` exit0.
+The observer launch wrapper is syntax-checked only; its real named-event handshake is unexecuted.
+
+Native collection, independent raw analysis, outcome/hash checks and final acceptance remain. Do not restart UI work before hide
 resumes it. Revalidate frozen inputs and exact process/raw ownership before any future sample.
 The normal app, settings and public beta.2 have not been modified by this task.
 
