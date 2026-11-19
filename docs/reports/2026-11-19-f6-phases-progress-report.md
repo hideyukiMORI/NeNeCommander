@@ -1,6 +1,6 @@
 # 2026-11-19 F6の非UI区間計測・進捗
 
-Status: diagnostic complete; documentation integration pending; continue until hide stops.
+Status: PR471 integrated and task cleanup complete; continue until hide stops.
 
 Issue #470で#453の未観測区間を既存provider/read portごとに測った。確認済みbeta.2のDLLを
 変更せず、DualPaneSession→FileOperationGateway→Windows providerと左右readを専用hostで実行した。
@@ -18,7 +18,11 @@ source上のInspectは移動時にもSTAでごみ箱利用可否を調べてい�
 probe42996は終了、通常38360と元218byte設定/hashは不変。UI起動/操作・設定復元なし。
 出力全66file/30,257,615byteを`D:/NeNeCommander/evidence/f6-phases-20261119/runs/`へ保全し、
 サイズ/hash一致を確認。文書のみのPRで、通常hook/links/diffを確認する。製品build/test/CIは追加しない。
-今回の作業木issue-470とoutputs/f6-phases-20261119は統合・参照確認後に整理する。
+PR471は14:40:01に`4e7c12c`としてmainへsquash統合。受理head `a7e7adb`と全treeが一致。
+184相対link/8数値行/diff/通常hook成功、未解決review・依頼・check失敗なし。追加CIなし。
+14:41:08に今回のissue-470作業木とoutputs/f6-phases-20261119を削除し、不在確認済み。
+削除前に取込一致、clean（未追跡/ignored含む）、process参照0、link0、全66file保全を確認した。
+branch/commit/恒久証拠は保持。過去の拒否済み4対象は操作していない。
 
 Bookmark PR402は`9006020`のDraft。直前の実アクセシビリティ情報確認も記録・push済みだがhide受理は別。
 通常アプリと公開beta.2は変更なし。停止指示はなく、作業継続中。
