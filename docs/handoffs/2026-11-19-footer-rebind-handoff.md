@@ -1,6 +1,6 @@
 # 2026-11-19 フッター再bind削減・引き継ぎ
 
-Status: selected implementation proof complete; continue until hide stops the session.
+Status: PR468 integrated and its task cleanup complete; continue until hide stops the session.
 
 1. Issue #467の製品変更は`DualPanePresenter`の等価list参照再利用と`OperationBarView`の同一参照guard。
    正典`KeyHintPresenter`、順序/内容/automation ID、provider/安全経路は維持する。ADR/waiver追加なし。
@@ -16,9 +16,11 @@ Status: selected implementation proof complete; continue until hide stops the se
 6. 所有app/traceは終了。通常PID38360/Chrome/元fixture保持。設定は元218B/hashへ復元。
    恒久証拠は`D:/NeNeCommander/evidence/footer-rebind-20261119/`、全73 outputファイルを保全済み。
    `D:/NeNeCommander/worktrees/issue-467`と`D:/NeNeCommander/outputs/footer-rebind-20261119`は
-   統合後の整理対象。branch/commit/恒久証拠を残す。
+   14:06:31に削除し不在確認済み。clean/統合一致/参照0/link0/保全済み、ignored1563件はbuildのみ。
+   branch/commit/恒久証拠は残した。cleanup-owned.ps1/result.jsonが操作証拠を所有する。
 7. PR402は`ddc16f4`のDraftでhideの画面受理待ち。公開beta.2と通常実行binaryはそのまま。
-   今回のmain向け修正が統合されたらfeatureへ取り込む範囲を確認する。未受理featureをmainへ入れない。
+   PR468のmain修正は`7baf18a`。受理head `4cf8ddd`とtree一致、関連986 inputs不変。featureへ
+   取り込む範囲を次に確認する。未受理featureをmainへ入れない。
 8. GitHub connector write403と、自動承認レビューのcleanup拒否は別。前者は認証済みghで作業できた。
    credentialを表示しない。拒否済みcleanupや公式winappCli取得は再試行しない。
 

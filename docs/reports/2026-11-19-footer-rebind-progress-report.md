@@ -15,11 +15,14 @@ Issue #467で、内容・順序が同じフッターキー案内の参照を再�
   成功証拠ではない。changed-02の移動後SQLハッシュ未取得を明記し、他の完全照合済み試行と区別した。
 - 専用app/traceは終了、通常PID38360は継続。元設定218BはSHA256まで復元。公開beta.2は変更なし。
 - 恒久証拠`D:/NeNeCommander/evidence/footer-rebind-20261119/`に、全73 outputファイル
-  /6,592,842Bのsize/hash一致を確認して保存した。追加worktree/outputは統合後に整理する。
+  /6,592,842Bのsize/hash一致を確認して保存した。今回の追加worktree/outputは統合後に削除済み。
 
 ADR-0061の限定範囲を選択し、全件/深いCIは追加しない。通常commit hookと文書リンク/diff確認を行う。
-実装を変更しない限り成功した検証を再利用する。統合と整理の最終結果は
-[引き継ぎ](../handoffs/2026-11-19-footer-rebind-handoff.md)に追記する。
+実装を変更しない限り成功した検証を再利用する。PR468は14:05:17 JSTに`7baf18a`としてmainへ統合。
+受理head `4cf8ddd`と全tree一致、関連986 inputs不変、通常hook/178リンク成功。full CI追加なし。
+14:06:31に今回の正確な2対象を削除し、不在を確認した。稼働参照・linkなし、未保存fileなし、
+ignored1563件はbuild成果物のみ。branch/commit/恒久証拠保持。詳細は
+[引き継ぎ](../handoffs/2026-11-19-footer-rebind-handoff.md)にも記録した。
 PR402のBookmarkは画面受理待ちのDraft、公開Previewへの取込みは別。hideの停止まで継続する。
 
 ## ! hide実行待ち：後片付け
