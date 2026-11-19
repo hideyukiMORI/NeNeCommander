@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
@@ -60,5 +63,55 @@ public sealed class FooterKeyHintTests
         Assert.AreSame(shown.OperationStatus, hidden.OperationStatus);
         Assert.AreSame(shown.Detail, hidden.Detail);
         Assert.AreSame(shown.InputContext, hidden.InputContext);
+        Assert.AreNotSame(shown.KeyHints, hidden.KeyHints);
+        Assert.AreNotSame(hidden.KeyHints, restored.KeyHints);
+        CollectionAssert.AreEqual(shown.KeyHints.ToArray(), restored.KeyHints.ToArray());
+    }
+
+    /// <summary>Proves changes to pane focus, selection and activation retain unchanged footer content.</summary>
+    [TestMethod]
+    public async Task PresentWhenPaneInteractionKeepsHintContentReusesHintReferenceAsync()
+    {
+        DualPaneSession panes = DualPaneTestContext.CreatePanes(out ScriptedDirectoryReadPort left, out _, out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing listing = DualPaneTestContext.CreateListing("C:\\left", ["a.txt", "b.txt"]);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
+        _ = await panes.NavigateAsync(PaneSide.Left, listing.Location, CancellationToken.None);
+        DualPanePresentation previous = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
+
+        foreach (UserIntent intent in new[] { UserIntent.MoveNext, UserIntent.ToggleSelection, UserIntent.ActivateOtherPane })
+        {
+            DualPaneSnapshot snapshot = await panes.HandleAsync(intent, RecordingDualPaneObserver.Create(), CancellationToken.None);
+            DualPanePresentation current = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, previous, KeyHintVisibility.Shown);
+
+            Assert.AreSame(previous.KeyHints, current.KeyHints);
+            previous = current;
+        }
+    }
+
+    /// <summary>Proves modal guidance updates on entry/exit but ignores the unrelated normal-hint preference.</summary>
+    [TestMethod]
+    public async Task PresentWhenNameEntryChangesContextUpdatesOnlyChangedHintContentAsync()
+    {
+        DualPaneSession panes = DualPaneTestContext.CreatePanes(out ScriptedDirectoryReadPort left, out _, out FileOperationGateway gateway);
+        using FileOperationGateway owned = gateway;
+        DirectoryListing listing = DualPaneTestContext.CreateListing("C:\\left", ["a.txt"]);
+        left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
+        _ = await panes.NavigateAsync(PaneSide.Left, listing.Location, CancellationToken.None);
+        DualPanePresentation normal = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
+        DualPaneSnapshot awaiting = await panes.HandleAsync(UserIntent.CreateDirectory, RecordingDualPaneObserver.Create(), CancellationToken.None);
+
+        DualPanePresentation modal = DualPanePresenter.Present(awaiting, TestMetadataFormats.Utc, normal, KeyHintVisibility.Hidden);
+        DualPanePresentation sameModal = DualPanePresenter.Present(awaiting, TestMetadataFormats.Utc, modal, KeyHintVisibility.Shown);
+        DualPaneSnapshot escaped = await panes.HandleAsync(UserIntent.Escape, RecordingDualPaneObserver.Create(), CancellationToken.None);
+        DualPanePresentation hidden = DualPanePresenter.Present(escaped, TestMetadataFormats.Utc, sameModal, KeyHintVisibility.Hidden);
+        DualPanePresentation sameHidden = DualPanePresenter.Present(escaped, TestMetadataFormats.Utc, hidden, KeyHintVisibility.Hidden);
+
+        Assert.AreNotSame(normal.KeyHints, modal.KeyHints);
+        CollectionAssert.AreEqual(KeyHintPresenter.Present(KeyboardContext.Modal, KeyHintVisibility.Hidden).ToArray(), modal.KeyHints.ToArray());
+        Assert.AreSame(modal.KeyHints, sameModal.KeyHints);
+        Assert.AreNotSame(sameModal.KeyHints, hidden.KeyHints);
+        CollectionAssert.AreEqual(KeyHintPresenter.Present(KeyboardContext.FileList, KeyHintVisibility.Hidden).ToArray(), hidden.KeyHints.ToArray());
+        Assert.AreSame(hidden.KeyHints, sameHidden.KeyHints);
     }
 }

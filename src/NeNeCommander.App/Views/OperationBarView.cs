@@ -94,7 +94,10 @@ internal sealed class OperationBarView
         AutomationProperties.SetAutomationId(_operationContent, presentation.DeletionConfirmationAutomationId);
         RenderTone(presentation.Tone);
         RenderDetail(presentation.Detail);
-        _operationKeyHints.ItemsSource = presentation.KeyHints;
+        if (!ReferenceEquals(_operationKeyHints.ItemsSource, presentation.KeyHints))
+        {
+            _operationKeyHints.ItemsSource = presentation.KeyHints;
+        }
         RenderNameEntry(presentation.NameEntry);
         RenderInformationVisibility();
         FocusNameEntry();
