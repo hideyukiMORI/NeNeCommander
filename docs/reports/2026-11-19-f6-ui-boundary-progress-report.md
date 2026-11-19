@@ -1,6 +1,6 @@
 # 2026-11-19 F6のUIホスト区間計測・進捗
 
-Status: 診断採取完了。文書統合・今回の作業物整理は未完了。hide停止まで継続。
+Status: PR480統合・今回の作業物整理完了。hide停止まで継続。
 
 Issue #479で、受理済みmain1cc5d75の診断コピーに4記録点を入れ、F6受付から既存ビューへの
 値設定完了までを測った。移動・安全確認・両ペイン再読込・描画の順序は維持している。
@@ -24,7 +24,9 @@ key logを書きAX/imageを取得した。外部I/O/automationが測定区間外
 
 専用PID25580は通常終了、通常38360/元218byte設定/hashは不変。設定復元不要。
 全1,950file/187,569,304byteを恒久evidenceのdiagnostic-output.zipへ保全し、size/hash照合済み。
-文書はissue-479作業木でPR化する。今回のコピー/output整理は受理・main統合後。
+PR480は18:00:00にf11380bとして通常squash統合し、受理c8a0a73とtree一致。
+6数値行/204相対link/通常hookを確認。取込/clean/未追跡/ignored/参照0/link0/archive確認後、
+issue-479作業木と今回outputのみ削除し不在確認済み。branch/commit/恒久証拠は保持。
 公開beta.2は不変。Bookmark PR402は63f4769のDraftでhideの画面受理が別途必要。
 
 ## ! hide実行待ち：後片付け

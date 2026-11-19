@@ -1,6 +1,6 @@
 # 2026-11-19 F6のUIホスト区間計測・引き継ぎ
 
-Status: #479診断採取完了。文書統合・今回の整理は未完了。hide停止まで継続。
+Status: #479/PR480統合・今回の整理完了。hide停止まで継続。
 
 1. #453はOPEN。今回はnative OnKeyDown→mapped Move→operation/refresh後のawait復帰→既存
    RenderSession終了だけを同じ時計で観測。物理キー・XAML完成frame・表示時刻ではない。
@@ -14,7 +14,9 @@ Status: #479診断採取完了。文書統合・今回の整理は未完了。hi
    1,348入力は最終hash一致。文書だけの統合に追加製品test/CIは不要。
 5. 全試行/source/diff/raw/AX/image/commandsは`D:/NeNeCommander/evidence/f6-ui-boundary-20261119/`。
    全1,950output file/187,569,304byteのzip保全・size/hash検算済み。PID25580終了、通常38360と
-   元218byte設定/hash不変。今回の作業木/outputは下記2対象。統合・clean/参照/link確認後に整理する。
+   元218byte設定/hash不変。PR480は18:00:00にf11380bへ通常squash統合、受理c8a0a73とtree一致。
+   6数値行/204link/通常hook成功。下記2対象はclean/未追跡/ignored/参照0/link0/archive確認後に
+   削除し不在確認済み。branch/commit/恒久証拠を保持。
    `D:/NeNeCommander/worktrees/issue-479`、`D:/NeNeCommander/outputs/f6-ui-boundary-20261119`。
 6. PR402は63f4769のDraft、hide画面受理待ち。公開beta.2と通常appは不変。過去拒否済み4対象は再試行禁止。
 7. 次は中間区間を本当に分離できる観測方法を検討する。外部入力/読取の干渉を記録せず純粋値としない。

@@ -1,6 +1,6 @@
 # F6 native host boundary observation — 2026-11-19
 
-Status: diagnostic observation complete; documentation integration and cleanup pending.
+Status: PR480 integrated; this task's worktree/output cleanup complete. #453 remains open.
 
 [Issue #479](https://github.com/hideyukiMORI/NeNeCommander/issues/479) extends the still-open
 [#453](https://github.com/hideyukiMORI/NeNeCommander/issues/453) investigation. It observes
@@ -147,3 +147,21 @@ clean/untracked/ignored checks, live-reference/link checks and archive verificat
 their removal. Four older automatically rejected cleanup targets are not retried.
 See the [progress report](../reports/2026-11-19-f6-ui-boundary-progress-report.md) and
 [handoff](../handoffs/2026-11-19-f6-ui-boundary-handoff.md).
+
+## Integration and task cleanup completed
+
+[PR480](https://github.com/hideyukiMORI/NeNeCommander/pull/480) merged through the normal
+expected-head squash at18:00:00 JST as `f11380b`. Accepted head `c8a0a73` and the squash
+have identical trees, and local main advanced by fast-forward. There were no requested
+reviews, unresolved threads or failed checks. The independent recording correction is
+included; six numerical rows,204 relative links and the normal112-rule/24-adversarial-
+registration/security/commit-message hooks passed. No product test or CI was added.
+
+`pwsh -NoProfile -File D:/NeNeCommander/evidence/f6-ui-boundary-20261119/cleanup-completed.ps1
+-ExpectedHead c8a0a7354e66828bb1eed03cd2c7e3cdab218443` exited0. The saved cleanup record
+confirms both exact issue-479 worktree and f6-ui-boundary output paths are absent. Preflight
+checked resolved absolute paths, accepted/clean/untracked/ignored state, zero live references
+and links, and the complete unchanged1,950-file/187,569,304-byte archive. Original full file
+hash verification was reused with unchanged source file-set/size/timestamps and archive hash.
+Branches, commits and permanent evidence remain; the four older rejected targets were not
+retried. #453, hide's PR402 acceptance and public beta.2 remain separate.
