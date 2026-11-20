@@ -61,7 +61,10 @@ public sealed record PaneState
     /// </summary>
     public IReadOnlyList<DirectoryEntry> VisibleEntries { get; private init; }
 
-    /// <summary>Gets the focus item, or absence when the visible set is empty.</summary>
+    /// <summary>
+    /// Gets the exact path instance of one visible entry, or absence when the visible set is empty.
+    /// Every completed reducer transition preserves this relationship.
+    /// </summary>
     public FileSystemPath? FocusItem { get; private init; }
 
     /// <summary>Gets the explicitly selected items, which are always visible items.</summary>
@@ -133,6 +136,11 @@ public sealed record PaneState
         return new PaneState(listing.Location, entries.AsReadOnly(), visiblePageCapacity, hiddenItemVisibility);
     }
 
+    /// <summary>
+    /// Commits the reducer's repaired focus and selection. The focus must be an actual visible
+    /// entry's path instance, or null when the visible set is empty. External preferred paths
+    /// must already have been resolved by identity.
+    /// </summary>
     internal PaneState Transition(FileSystemPath? focusItem, IReadOnlyList<FileSystemPath> selection)
     {
         List<FileSystemPath> ownedSelection = [.. selection];
