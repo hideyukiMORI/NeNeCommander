@@ -1,6 +1,6 @@
 # 2026-11-20 選択一覧の所有権・割当 引き継ぎ — Issue #504
 
-Status: 追加Delete/既存Copy証明・固定比較まで完了、独立最終検算は受理、PR統合/今回整理待ち。
+Status: #504/PR505受理・main統合・今回整理完了。最終引き継ぎを優先。
 
 - Base097bc22、branch`refactor/504-owned-selection`。製品変更はPaneState.csのみ、テスト3ファイル。
   private SelectionSnapshotはListを外へ渡さず、非generic ICollectionを実装しない。
@@ -23,6 +23,10 @@ Status: 追加Delete/既存Copy証明・固定比較まで完了、独立最終�
 
 詳細は[品質記録](../quality/2026-11-20-pane-selection-reuse.md)と
 [進捗報告](../reports/2026-11-20-pane-selection-reuse-progress-report.md)。
+
+PR505は23:34:19に4224a12へ通常squash、受理3376ed0とtree一致。全773file/194,767,135Bを
+サイズ/hash照合して保全。23:35:31に今回worktree/outputを整理し不在確認済み。
+上の次工程メモは完了済み。現在は[最終引き継ぎ](2026-11-20-final-handoff.md)を優先する。
 
 ## ! hide実行待ち：後片付け
 

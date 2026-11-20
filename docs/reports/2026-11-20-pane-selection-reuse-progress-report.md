@@ -1,6 +1,6 @@
 # 2026-11-20 選択一覧の所有権・移動時割当 進捗 — Issue #504
 
-Status: 実装・限定検証・固定比較完了。最終独立検算も全数一致・受理。PR統合・今回整理は未完了。
+Status: 最終受理・PR505通常統合・今回2対象の整理完了。
 
 選択一覧の内部ListがSyncRoot経由で変更できる反例を確認し、単なる参照共有案を停止。
 PaneState内の小さなprivate所有型で外部変更経路を閉じたうえで、同じ選択一覧だけを
@@ -20,6 +20,10 @@ clamp/往復のrecord等価判定は変わり得るため明記し、session通�
 実コマンド、範囲表、失敗・比較限界は[品質記録](../quality/2026-11-20-pane-selection-reuse.md)。
 恒久証拠は`D:/NeNeCommander/evidence/pane-selection-reuse-20261120`。
 #491の第3native campaignは開始しない。PR402のhide画面受理、#453、releaseは別件。
+
+PR505は23:34:19 JSTに4224a12へ通常squashし、受理3376ed0とtree一致。
+773ファイル/194,767,135Bを全サイズ/hash照合して保全し、23:35:31に今回2対象を整理。
+通常hook112規約/24脅威登録、216リンク確認成功。最終状態は[日報](2026-11-20-final-daily-report.md)。
 
 ## ! hide実行待ち：後片付け
 
