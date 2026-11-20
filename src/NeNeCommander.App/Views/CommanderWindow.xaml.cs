@@ -386,6 +386,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
+    private void OnCommandPaletteRowLoaded(object sender, RoutedEventArgs _)
+    {
+        CommandPaletteView.BindTitleToolTip(sender);
+    }
+
     private void OnSettingsClose(object _, RoutedEventArgs args)
     {
         ForwardIntent(UserIntent.Escape);

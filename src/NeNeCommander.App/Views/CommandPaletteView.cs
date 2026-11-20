@@ -1,6 +1,7 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
@@ -56,6 +57,22 @@ internal sealed class CommandPaletteView
         _commandPaletteSearch.TextCompositionEnded += OnCommandPaletteCompositionEnded;
         _commandPaletteCandidateList.ItemClick += OnCommandPaletteCandidateClick;
         _commandPaletteCandidateList.SelectionChanged += OnCommandPaletteSelectionChanged;
+    }
+
+    internal static void BindTitleToolTip(object sender)
+    {
+        if (sender is not Grid row ||
+            row.FindName("CommandPaletteTitle") is not TextBlock title ||
+            ToolTipService.GetToolTip(row) is not ToolTip toolTip)
+        {
+            throw new InvalidOperationException("Command palette title or tooltip is missing.");
+        }
+        toolTip.SetBinding(Control.IsEnabledProperty, new Binding
+        {
+            Source = title,
+            Path = new PropertyPath(nameof(TextBlock.IsTextTrimmed)),
+            Mode = BindingMode.OneWay,
+        });
     }
 
     internal bool IsComposing { get; private set; }
