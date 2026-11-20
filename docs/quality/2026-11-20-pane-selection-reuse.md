@@ -1,6 +1,6 @@
 # 2026-11-20 Owned pane selection — Issue #504
 
-Status: implementation, focused proof and independent evidence review accepted; PR integration and cleanup pending.
+Status: accepted and integrated through PR505; exact task worktree/output cleanup complete.
 
 ## Invariant and canonical mechanism
 
@@ -166,3 +166,22 @@ worktree/output until normal PR acceptance/main integration and full artifact
 path/size/hash archival plus clean/ignored/link/live-reference checks. Keep branch,
 commits and permanent evidence. Four older rejected cleanup targets remain separate
 and are not retried; see the handoff.
+
+PR505 merged normally at23:34:19 JST as4224a126546be7d32b525158aea168cb3dc10fdf,
+with the identical accepted3376ed05021d5e6824252d25c28926de0bf29133 tree. Local
+main fast-forwarded cleanly. Ordinary hooks passed112 normative rules and24
+registered adversarial cases;216 local document links and1003 final inputs passed.
+No hosted CI was started. The connector's PR creation returned403 (integration
+permission); authenticated gh created the same Draft PR and performed normal
+Ready/squash without bypass. This is distinct from automatic approval rejection.
+
+All773 generated/output files,194,767,135bytes, are archived in task-artifacts.zip
+with complete path/size/SHA256 verification. At23:35:31 JST the exact worktree and
+output were removed after accepted-tree/main/clean/untracked/ignored/no-link/
+no-active-reference/archive checks. Branches, commits and permanent evidence remain.
+The first cleanup guard stopped before any deletion because sequential text
+substitutions produced a wrong expected byte count. The retained script/failure
+record documents the correction to194767135; the same bounded script then passed.
+No automatic approval rejected this task's cleanup. Four older rejected targets
+remain pending and were not retried. The final daily report/handoff supersede this
+record's earlier pending paragraphs for session state.
