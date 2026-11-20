@@ -139,3 +139,8 @@ debounce timers, delayed live-region work, refusal flashes, match-run decoration
 badges, new token families, numeric visual constants, and special ellipsis switching. Those items
 would add timing or styling contracts beyond the accepted minimal direction and require separate
 evidence if proposed later.
+
+Issue #397 clarification, accepted by hide on2026-11-20: the title tooltip is
+enabled only while the native title TextBlock reports actual truncation. It
+retains the full localized title and existing accessible row name; no tooltip
+state or additional command/focus path is introduced.

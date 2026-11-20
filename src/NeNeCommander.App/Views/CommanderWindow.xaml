@@ -391,9 +391,14 @@
                     AutomationProperties.AutomationId="{x:Bind AutomationId}"
                     AutomationProperties.Name="{x:Bind AutomationName}"
                     ColumnSpacing="{StaticResource SpacingRowGap}"
+                    Loaded="OnCommandPaletteRowLoaded"
                     MinHeight="{StaticResource DensityRowHeight}"
-                    Padding="{StaticResource SpacingRowContent}"
-                    ToolTipService.ToolTip="{x:Bind Title}">
+                    Padding="{StaticResource SpacingRowContent}">
+                    <ToolTipService.ToolTip>
+                        <ToolTip
+                            Content="{x:Bind Title}"
+                            IsEnabled="False" />
+                    </ToolTipService.ToolTip>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -406,6 +411,7 @@
                         VerticalAlignment="Center" />
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock
+                            x:Name="CommandPaletteTitle"
                             FontSize="{StaticResource TypographyBodySize}"
                             Foreground="{StaticResource TextPrimaryBrush}"
                             Text="{x:Bind Title}"
