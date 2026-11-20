@@ -1,6 +1,6 @@
 # 2026-11-20 Pane focus reference scan — Issue #501
 
-Status: implementation, focused proof and independent final review accepted; PR integration and cleanup pending.
+Status: accepted and integrated through PR502; exact task worktree/output cleanup complete.
 
 ## Invariant and canonical mechanism
 
@@ -62,8 +62,9 @@ All restores/builds exit0, with zero build warnings/errors. Application103 cases
 (including six new) and Presentation28 pass, zero skips/failures. Final whitespace
 exits0. Complexity exits1 with exactly the same26 prior findings by
 path/metric/value/limit; there is no introduced finding and no repository-wide
-complexity pass. Normal Commit checks and final diff/link verification will be
-recorded before integration; passing product proof is reused for documents.
+complexity pass. Normal Commit checks pass (112 normative rules,24 registered adversarial cases;
+no product tests in Commit mode). Final whitespace/diff,214 local links and all
+1015 frozen inputs pass. Passing product proof is reused for documents.
 
 ## Fixed comparison and retained results
 
@@ -170,11 +171,17 @@ No required correction; no outlier was removed. See final-review.md.
 
 ## Integration and cleanup
 
-Branch refactor/501-pane-focus-scan. No release or settings operation is part of
-this task. After technical acceptance and normal squash integration, archive all
-unique generated worktree/output files with complete path/size/hash verification,
-then inspect exact absolute paths, tracked/untracked/ignored state, links and live
-references before removing the task worktree/output. Keep branch, commits and
-permanent evidence. Do not remove unfinished PR402/491 work or retry the four
-older automatically rejected cleanup targets. Current integration/cleanup status
-is pending and will be updated from observed results.
+PR502 merged normally at10:57:06 JST as1aed7bad89806bb6b0c8f46e1417dda38222bd8b.
+The squash tree exactly matches accepted6216db1bd4ae144bed84f628259bb2574b020b8a
+(tree c762463312a25209235b025a26aeb3931f688e81). Main synchronized cleanly. The PR
+had no additional CI checks under the selected ordinary scope; no bypass was used.
+
+All725 generated/output files (192,725,213bytes) are preserved in task-artifacts.zip
+with complete path/size/SHA256 verification. After merged-head/tree, clean tracked/
+untracked state, reviewed ignored groups, archive/current file metadata, exact
+absolute paths, no-links and no-live-reference checks, only the issue501 worktree
+and output were removed at2026-11-20T10:57:57.5322690+09:00. Absence is confirmed in cleanup-result.json.
+Branch, commits and permanent evidence remain. No release/settings operation or
+cleanup of unfinished PR402/491 work occurred; the four older automatically
+rejected cleanup targets were not retried. Closure documents reuse the successful
+proof because executable inputs remain unchanged.
