@@ -1,6 +1,6 @@
 # 2026-11-20 Truncated command-title tooltip — Issue #397
 
-Status: implementation and selected verification accepted; PR integration pending.
+Status: integrated through PR499; exact task worktree cleanup completed.
 
 ## Decision, invariant and mechanism
 
@@ -147,3 +147,19 @@ outside the removable worktree in the permanent evidence directory.
 Ready/merge status and exact cleanup result must be read from the later closure
 record. No full or deep workflow was requested. This documentation addition does
 not change the verified 1,016 implementation/tool/configuration inputs.
+
+## Observed integration and cleanup
+
+PR499 was marked Ready through the existing CLI after the connector also denied
+that mutation. Latest head 78e6e9c, base 0796619, clean mergeability, no applicable
+check failure, all 1,016 unchanged verification inputs and a clean worktree were
+checked before normal squash. PR499 merged at 09:27:42 JST as 2457bd1. Its tree
+matches the accepted candidate exactly; no admin bypass or extra CI was used.
+
+At 09:28:25 JST, the exact D:/NeNeCommander/worktrees/issue-397 worktree was removed
+after main synchronization, clean/untracked/ignored inspection, full archive
+coverage, unchanged generated-file inventory, no reparse points and no active
+process references. cleanup-preflight.json and cleanup-result.json retain the
+facts. The feature branch, both commits and permanent evidence remain. The four
+older automatically rejected cleanup targets were not retried. Main closure
+prose is a documentation-only follow-up, with no product test/build/CI rerun.
