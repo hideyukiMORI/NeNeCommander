@@ -129,3 +129,21 @@ Main integration and removal of this completed worktree remain pending. Preserve
 branches/commits and all evidence before bounded cleanup. The four older
 rejected cleanup targets remain separate and must not be retried. This change
 does not accept PR402's bookmark screen, close #453 or publish a release.
+
+## PR and artifact acceptance
+
+Draft PR499 contains accepted commit 374b3bf. Its ordinary Commit hook passed:
+112 unique normative rules and 24 adversarial-case registrations, security and
+whitespace checks, followed by the commit-message convention. These are policy
+checks, not execution of 24 behavioral cases. GitHub connector PR creation
+returned 403; the existing authenticated CLI created the Draft successfully.
+
+All 641 ignored/generated files (212,853,674 bytes) were preserved in
+ignored-build-artifacts.zip. The manifest and a full archive read-back verify
+every path, size and SHA256. The archive is 81,436,593 bytes. Branches and commits
+preserve tracked source; native/failed-attempt/build logs and images remain
+outside the removable worktree in the permanent evidence directory.
+
+Ready/merge status and exact cleanup result must be read from the later closure
+record. No full or deep workflow was requested. This documentation addition does
+not change the verified 1,016 implementation/tool/configuration inputs.
