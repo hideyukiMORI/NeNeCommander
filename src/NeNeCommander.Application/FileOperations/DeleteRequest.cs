@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -14,7 +13,7 @@ public sealed record DeleteRequest : FileOperationRequest
     }
 
     private DeleteRequest(
-        ReadOnlyCollection<FileSystemPath> sources,
+        IReadOnlyList<FileSystemPath> sources,
         PermanentDeletionConfirmation? confirmation)
         : base(sources)
     {
@@ -33,11 +32,8 @@ public sealed record DeleteRequest : FileOperationRequest
         PermanentDeletionConfirmation? confirmation)
     {
         FileOperationRequestFailureKind? failure = ValidateSourceSet(sources);
-        if (failure is not null)
-        {
-            return new FileOperationRequestRejected(failure);
-        }
-        List<FileSystemPath> ownedSources = [.. sources];
-        return new FileOperationRequestAccepted(new DeleteRequest(ownedSources.AsReadOnly(), confirmation));
+        return failure is not null
+            ? new FileOperationRequestRejected(failure)
+            : new FileOperationRequestAccepted(new DeleteRequest(sources, confirmation));
     }
 }
