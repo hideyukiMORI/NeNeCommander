@@ -48,6 +48,8 @@ Known issue
 Clicking outside the focused pane to reactivate an inactive window may leave
 keyboard commands unresponsive (reported by the maintainer; Issue #523).
 A fix is planned for a later Preview; this package does not claim it resolved.
+A jump to the first row after F6 was also reported on the screen-review candidate;
+Issue #550 tracks retaining focus near the moved item in a later version.
 
 Settings and updates
 Settings are saved in %LOCALAPPDATA%\NeNeCommander\settings.json, separately from

@@ -48,3 +48,46 @@ Official candidates: D:/NeNeCommander/releases/0.1.0-beta.3.
 Keep current user app14492/issue-495 and shared settings. After integration and
 complete artifact preservation, clean only exact completed task targets after
 checking tracked/untracked/ignored files, unique artifacts, links and live refs.
+
+## First release review and focused coverage correction
+
+Deep review44934477990 on a215ef2 completed unsuccessfully. Canonical behavior
+tests passed, but Application branch coverage was99.93% instead of required100%.
+The one Application branch was ActivePaneBookmarkDefaults.From rejecting an
+overlong folder leaf as a Bookmark display name. CodeQL's analysis step completed;
+this does not replace the failed deep review. Its full log and report remain
+under first-deep-review in the permanent evidence directory.
+
+Issue549 adds two public CommanderSession registration cases for128/129-character
+folder leaves. They assert the accepted/empty default name, complete original
+path, active pane, single read and absence of settings writes. Product source is
+unchanged. Seven registration cases pass; the Application layer now passes843/843
+and records branch-rate1 with the same coverage.settings. No threshold, exclusion,
+baseline or waiver changes. Changed-file formatting and the zero-warning/error
+Application test build pass.
+
+Commands executed from the release worktree:
+
+```powershell
+dotnet restore tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj --locked-mode -p:Configuration=Release
+dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore -m:2 -p:UseSharedCompilation=false
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter FullyQualifiedName~CommanderSessionBookmarkRegistrationTests
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --coverage --coverage-settings eng/coverage.settings --coverage-output-format cobertura --coverage-output D:/NeNeCommander/evidence/release-beta3-20261122/application-after-fix.cobertura.xml
+dotnet format whitespace tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj --no-restore --include tests/NeNeCommander.Application.Tests/CommanderSessionBookmarkRegistrationTests.cs --verify-no-changes
+```
+
+The before-fix coverage uses the same arguments with application-before-fix as
+the output name. It passes841 behavior cases while reproducing the coverage gap.
+Only the failed Application layer was rerun locally to identify/close this gap.
+One new release deep review is required for the changed test inputs.
+
+hide also reported post-F6 focus returning to the first row; Issue550 owns the
+next-version adjacent-item recovery. Issues530–548 hold the subsequent mouse,
+context menu, drag/drop, previews, information, search, animation, layout,
+system-monitor, archive, creation and navigation requests. None is silently
+included in this shipping candidate.
+
+The completed Bookmark worktrees398/430/431/445/457 were removed at03:34:45 after
+all7004 ignored artifacts/1,582,125,646bytes were archived and every entry verified.
+Branches/commits/evidence remain. Worktree495 stays retained for hide's live
+screen-review app14492 and associated unfinished runtime cleanup.
