@@ -58,7 +58,7 @@ public sealed record PaneState
     /// <summary>
     /// Gets the entries the pane shows under the current visibility, in the projected order of
     /// <see cref="SortOrder"/>. Movement, paging, focus, selection, and row projection read this
-    /// sequence.
+    /// owned sequence, whose public collection reads cannot change its contents.
     /// </summary>
     public IReadOnlyList<DirectoryEntry> VisibleEntries { get; private init; }
 
@@ -199,14 +199,76 @@ public sealed record PaneState
                 nameof(navigationHistory));
     }
 
-    private static ReadOnlyCollection<DirectoryEntry> SelectVisible(
+    private static VisibleEntrySnapshot SelectVisible(
         IReadOnlyList<DirectoryEntry> entries,
         HiddenItemVisibility hiddenItemVisibility)
     {
-        List<DirectoryEntry> visible = [.. entries.Where(entry =>
+        return VisibleEntrySnapshot.Create(entries.Where(entry =>
             hiddenItemVisibility == HiddenItemVisibility.Shown ||
-            entry.Metadata.Visibility == EntryVisibility.Normal)];
-        return visible.AsReadOnly();
+            entry.Metadata.Visibility == EntryVisibility.Normal));
+    }
+
+    /// <summary>
+    /// Owns the visible sequence without publishing a synchronization object or mutable storage.
+    /// Generic collection reads keep count and copy behavior for the existing pane consumers.
+    /// </summary>
+    private sealed record VisibleEntrySnapshot : IReadOnlyList<DirectoryEntry>, ICollection<DirectoryEntry>
+    {
+        private readonly List<DirectoryEntry> _entries;
+
+        private VisibleEntrySnapshot(IEnumerable<DirectoryEntry> entries)
+        {
+            _entries = [.. entries];
+        }
+
+        /// <summary>Gets the number of visible entries without enumeration.</summary>
+        public int Count => _entries.Count;
+
+        /// <summary>Gets one entry with the existing List index-boundary behavior.</summary>
+        public DirectoryEntry this[int index] => _entries[index];
+
+        bool ICollection<DirectoryEntry>.IsReadOnly => true;
+
+        internal static VisibleEntrySnapshot Create(IEnumerable<DirectoryEntry> entries)
+        {
+            return new VisibleEntrySnapshot(entries);
+        }
+
+        /// <summary>Enumerates entries without exposing the owned list.</summary>
+        public IEnumerator<DirectoryEntry> GetEnumerator()
+        {
+            return ((IEnumerable<DirectoryEntry>)_entries).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        bool ICollection<DirectoryEntry>.Contains(DirectoryEntry entry)
+        {
+            return _entries.Contains(entry);
+        }
+
+        void ICollection<DirectoryEntry>.CopyTo(DirectoryEntry[] array, int arrayIndex)
+        {
+            _entries.CopyTo(array, arrayIndex);
+        }
+
+        void ICollection<DirectoryEntry>.Add(DirectoryEntry entry)
+        {
+            throw new NotSupportedException();
+        }
+
+        void ICollection<DirectoryEntry>.Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        bool ICollection<DirectoryEntry>.Remove(DirectoryEntry entry)
+        {
+            throw new NotSupportedException();
+        }
     }
 
     /// <summary>
