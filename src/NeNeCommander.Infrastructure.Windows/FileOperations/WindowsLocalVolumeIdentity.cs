@@ -12,6 +12,8 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 internal static partial class WindowsLocalVolumeIdentity
 {
     private const int MaximumWindowsPathLength = 32768;
+    // A volume GUID path needs 49 characters plus its terminating null.
+    private const int VolumeGuidPathCapacity = 50;
 
     internal static bool SharesVolume(string sourcePath, string destinationPath)
     {
@@ -28,7 +30,7 @@ internal static partial class WindowsLocalVolumeIdentity
             throw CreateQueryFailure();
         }
 
-        char[] volumeName = new char[MaximumWindowsPathLength];
+        char[] volumeName = new char[VolumeGuidPathCapacity];
         return GetVolumeNameForVolumeMountPoint(ReadBuffer(volumePath), volumeName, volumeName.Length)
             ? ReadBuffer(volumeName)
             : throw CreateQueryFailure();

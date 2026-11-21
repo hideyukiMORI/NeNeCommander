@@ -93,3 +93,19 @@ in nonui-logs.zip. Build products stay in the unfinished D worktree; source, loc
 input hashes and proof scripts remain available. Retain both issue514 worktree and
 appsdk-270-20261122 output, plus the earlier pr-498-review reproduction, until
 technical acceptance and normal integration. No cleanup deletion was attempted.
+
+## Main synchronization after publication
+
+PR517 was published as Draft at7097717. After PR516 integrated Issue512 as
+7f0e6d3, that accepted main was merged into the candidate. Only PROJECT_STATE's
+adjacent inserted records conflicted; both records were retained. Of the1,017
+previous proof inputs,1,016 remain exact and the sole changed source is the
+volume GUID buffer file, exactly equal to accepted Issue512. The dependency graph,
+App, Presentation and Architecture sources/tests are unchanged.
+
+Reuse the25/53 AppSDK cases for these unchanged boundaries and Issue512's ten
+independent provider tests, whose project does not reference AppSDK. No product
+test or build was repeated merely for branch synchronization. Existing binaries
+remain the original e2f675b-based proof outputs; rebuild the final frozen candidate
+before future native acceptance. This does not claim a newly executed combined
+binary or remove the native/dependency-review hold.

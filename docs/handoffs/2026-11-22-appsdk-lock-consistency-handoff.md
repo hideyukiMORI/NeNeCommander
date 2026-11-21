@@ -22,3 +22,9 @@ D:/NeNeCommander/outputs/appsdk-270-20261122, D:/NeNeCommander/worktrees/pr-498-
 and D:/NeNeCommander/outputs/pr-498-review. Keep source/build artifacts until
 acceptance and archive verification, then use the normal exact-target cleanup
 checks. No cleanup rejection or deletion occurred in Issue514.
+
+Publication update: PR517 is Draft. Main7f0e6d3 from accepted Issue512 is now in
+this branch; both PROJECT_STATE additions are retained. The quality record explains
+reuse of25/53 AppSDK cases and independent10 provider cases. Existing binaries
+precede that merge and must be rebuilt from final frozen inputs before native
+acceptance. No candidate integration or PR498 closure is authorized at this stage.
