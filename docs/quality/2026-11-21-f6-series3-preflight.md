@@ -107,3 +107,6 @@ source buffer and unfinished D outputs/worktree remain pending task completion;
 no sole artifact was removed. Public Issue registration/PR updates still await
 the explicit destination approval requested earlier. #453, PR402 hide screen
 acceptance, AppSDK PR498 and release status remain separate and unresolved.
+
+[Series4/5 and current-call admission](2026-11-21-f6-series4-5-preflight.md) records
+the later independent stopped series and the prepared context-boundary correction.
