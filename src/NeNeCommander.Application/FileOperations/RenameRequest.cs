@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -17,7 +16,7 @@ public sealed record RenameRequest : FileOperationRequest
     }
 
     private RenameRequest(
-        ReadOnlyCollection<FileSystemPath> sources,
+        IReadOnlyList<FileSystemPath> sources,
         FileSystemPath source,
         FileSystemPath target)
         : base(sources)
@@ -44,20 +43,12 @@ public sealed record RenameRequest : FileOperationRequest
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(name);
-        if (source.Parent is not FileSystemPath parent)
-        {
-            return new FileOperationRequestRejected(FileOperationRequestFailureKind.SourceIsRoot);
-        }
-        if (parent.Child(name) is not PathParseSuccess child)
-        {
-            return new FileOperationRequestRejected(FileOperationRequestFailureKind.InvalidName);
-        }
-        if (child.Path.CanonicalText.Equals(source.CanonicalText, StringComparison.Ordinal))
-        {
-            return new FileOperationRequestRejected(FileOperationRequestFailureKind.DestinationIsSource);
-        }
-        List<FileSystemPath> ownedSources = [source];
-        return new FileOperationRequestAccepted(
-            new RenameRequest(ownedSources.AsReadOnly(), source, child.Path));
+        return source.Parent is not FileSystemPath parent
+            ? new FileOperationRequestRejected(FileOperationRequestFailureKind.SourceIsRoot)
+            : parent.Child(name) is not PathParseSuccess child
+            ? new FileOperationRequestRejected(FileOperationRequestFailureKind.InvalidName)
+            : child.Path.CanonicalText.Equals(source.CanonicalText, StringComparison.Ordinal)
+            ? new FileOperationRequestRejected(FileOperationRequestFailureKind.DestinationIsSource)
+            : new FileOperationRequestAccepted(new RenameRequest([source], source, child.Path));
     }
 }

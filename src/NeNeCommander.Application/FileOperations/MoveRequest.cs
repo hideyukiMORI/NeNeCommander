@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -14,7 +13,7 @@ public sealed record MoveRequest : FileOperationRequest
     {
     }
 
-    private MoveRequest(ReadOnlyCollection<FileSystemPath> sources, FileSystemPath destination)
+    private MoveRequest(IReadOnlyList<FileSystemPath> sources, FileSystemPath destination)
         : base(sources)
     {
         Destination = destination;
@@ -34,11 +33,8 @@ public sealed record MoveRequest : FileOperationRequest
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
         FileOperationRequestFailureKind? failure = ValidateTransfer(sources, destination);
-        if (failure is not null)
-        {
-            return new FileOperationRequestRejected(failure);
-        }
-        List<FileSystemPath> ownedSources = [.. sources];
-        return new FileOperationRequestAccepted(new MoveRequest(ownedSources.AsReadOnly(), destination));
+        return failure is not null
+            ? new FileOperationRequestRejected(failure)
+            : new FileOperationRequestAccepted(new MoveRequest(sources, destination));
     }
 }
