@@ -286,3 +286,14 @@ the returned lowercase executable path case-sensitively. The guard stopped befor
 F6; normal-close raw records Count0/IoCount0. All inputs/settings/fixtures remain
 unchanged and no App remains. Series3 was not resumed and adds no timing sample.
 Its corrected future launch checker has focused proof; publication remains pending.
+
+
+### 2026-11-21 stopped campaigns and background-only testing
+
+The [Series8/9 stop and input-isolation record](2026-11-21-f6-series8-9-stops-and-input-isolation.md)
+preserves the final incomplete campaign: 15 acknowledged moves, then a physical
+Escape stop with no last-sample DONE. All inputs/settings and 32 fixture hashes
+match; the owned App was normally closed without shared input and 428 transfer
+files are archived. Accepted comparison samples remain zero. hide's restated
+background-testing constraint supersedes old shared-desktop Computer Use plans;
+none of Series1-9 may be resumed or pooled.

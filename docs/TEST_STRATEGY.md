@@ -36,6 +36,16 @@ tests establish runtime compatibility without calling the structural member.
 
 Tests use injected clocks, identifiers, schedulers, providers, and seeded data. Wall time, sleeps, network state, random seeds, machine order, test order, and user directories are prohibited. A flaky test is a product defect and may not be retried into success.
 
+hide's 2026-11-21 input-isolation instruction also governs separate native
+verification and performance observations. Run background test runners or existing
+interfaces without injecting keyboard/mouse input into hide's shared interactive
+desktop. Do not use shared-desktop Computer Use, global input simulation or
+focus-dependent automation for testing. Python does not itself provide isolation.
+Native keyboard/focus proof requires a separately isolated desktop/session or VM,
+identified in the evidence before collection. Direct command/API proof does not
+establish native key routing or focus behavior. Preserve interrupted/uncertain
+attempts under their declared stop rules; never retry them into success.
+
 ### TST-004 — Property cases use one deterministic generator
 
 - Status: **active**
