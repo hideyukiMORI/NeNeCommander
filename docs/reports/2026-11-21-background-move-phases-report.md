@@ -14,7 +14,7 @@ collection/Python analysis exited0. Product/full CI/mutation/native runs were
 not started. See the [quality record](../quality/2026-11-21-background-move-phases.md)
 for every row, exact commands, provenance and limitations.
 
-Only documentation changes are prepared in the #453 branch. Public updates await
-the existing destination approval. PR402 hide acceptance and AppSDK PR498 remain
+Only documentation changes are prepared under Issue #513 after hide authorized
+publication on 2026-11-22. Parent #453 remains open. PR402 hide acceptance and AppSDK PR498 remain
 separate. The unfinished D worktree/output are retained; no cleanup rejection or
 deletion occurred in this task.

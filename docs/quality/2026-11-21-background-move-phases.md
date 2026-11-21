@@ -1,6 +1,6 @@
 # Current-main non-UI move phases — 2026-11-21
 
-Issue #453 remains open. hide confirmed that no isolated Windows VM or separate
+Issue #513 records this completed observation; parent #453 remains open. hide confirmed that no isolated Windows VM or separate
 test PC is available and requested non-UI continuation. This record observes the
 existing application/provider path without starting a native App or using shared
 keyboard, mouse, focus, Computer Use or UI Automation. It does not complete the
@@ -111,7 +111,7 @@ The observation fulfills only this non-UI phase question. #453 still lacks the
 native key-to-visible-completion explanation; #491's Series1-9 remain stopped,
 incomplete and unpooled. Shared-desktop input must not be used to fill that gap.
 PR402 still requires hide's screen acceptance. AppSDK PR498 and release remain
-separate. Public GitHub updates await the existing destination approval.
+separate. hide authorized publication on 2026-11-22; Issue #513 owns this documentation unit. Integration and cleanup are not yet claimed.
 
 The D worktree issue-453-background and output f6-background-current-20261121 are
 retained because publication/acceptance/integration are unfinished. No deletion
