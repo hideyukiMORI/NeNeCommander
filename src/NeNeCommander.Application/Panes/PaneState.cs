@@ -170,11 +170,15 @@ public sealed record PaneState
     }
 
     /// <summary>
-    /// Recomputes the projected order and the visible set for another sort order, keeping focus
+    /// Reuses equal-order projections and otherwise recomputes the order and visible set, keeping focus
     /// and selection untouched. The reducer repairs focus immediately afterwards (CMD-002).
     /// </summary>
     internal PaneState WithSortOrder(PaneSortOrder sortOrder)
     {
+        if (sortOrder == SortOrder)
+        {
+            return this;
+        }
         IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(ListedEntries, sortOrder);
         return this with
         {
