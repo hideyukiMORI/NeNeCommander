@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -57,14 +58,20 @@ public sealed record PaneState
     /// <summary>
     /// Gets the entries the pane shows under the current visibility, in the projected order of
     /// <see cref="SortOrder"/>. Movement, paging, focus, selection, and row projection read this
-    /// sequence.
+    /// owned sequence, whose public collection reads cannot change its contents.
     /// </summary>
     public IReadOnlyList<DirectoryEntry> VisibleEntries { get; private init; }
 
-    /// <summary>Gets the focus item, or absence when the visible set is empty.</summary>
+    /// <summary>
+    /// Gets the exact path instance of one visible entry, or absence when the visible set is empty.
+    /// Every completed reducer transition preserves this relationship.
+    /// </summary>
     public FileSystemPath? FocusItem { get; private init; }
 
-    /// <summary>Gets the explicitly selected items, which are always visible items.</summary>
+    /// <summary>
+    /// Gets the owned immutable selection of visible items. Movement and sorting retain this
+    /// collection; selection changes create a separately owned snapshot.
+    /// </summary>
     public IReadOnlyList<FileSystemPath> Selection { get; private init; }
 
     /// <summary>
@@ -75,7 +82,7 @@ public sealed record PaneState
     /// <summary>Gets every entry in the order it was given, which the projection never changes.</summary>
     private IReadOnlyList<DirectoryEntry> ListedEntries { get; }
 
-    private static IReadOnlyList<FileSystemPath> EmptySelection => Array.AsReadOnly(Array.Empty<FileSystemPath>());
+    private static IReadOnlyList<FileSystemPath> EmptySelection => SelectionSnapshot.Create(Array.Empty<FileSystemPath>());
 
     /// <summary>
     /// Creates an initial state after validating the entry snapshot. The state starts with
@@ -133,10 +140,19 @@ public sealed record PaneState
         return new PaneState(listing.Location, entries.AsReadOnly(), visiblePageCapacity, hiddenItemVisibility);
     }
 
+    /// <summary>
+    /// Commits the reducer's repaired focus and selection. The focus must be an actual visible
+    /// entry's path instance, or null when the visible set is empty. External preferred paths
+    /// must already have been resolved by identity. Only this state's owned selection is reused;
+    /// every other collection is copied so mutable caller storage cannot change either state.
+    /// </summary>
     internal PaneState Transition(FileSystemPath? focusItem, IReadOnlyList<FileSystemPath> selection)
     {
-        List<FileSystemPath> ownedSelection = [.. selection];
-        return this with { FocusItem = focusItem, Selection = ownedSelection.AsReadOnly() };
+        return this with
+        {
+            FocusItem = focusItem,
+            Selection = ReferenceEquals(selection, Selection) ? Selection : SelectionSnapshot.Create(selection),
+        };
     }
 
     /// <summary>
@@ -154,11 +170,15 @@ public sealed record PaneState
     }
 
     /// <summary>
-    /// Recomputes the projected order and the visible set for another sort order, keeping focus
+    /// Reuses equal-order projections and otherwise recomputes the order and visible set, keeping focus
     /// and selection untouched. The reducer repairs focus immediately afterwards (CMD-002).
     /// </summary>
     internal PaneState WithSortOrder(PaneSortOrder sortOrder)
     {
+        if (sortOrder == SortOrder)
+        {
+            return this;
+        }
         IReadOnlyList<DirectoryEntry> ordered = EntryOrdering.Apply(ListedEntries, sortOrder);
         return this with
         {
@@ -183,13 +203,75 @@ public sealed record PaneState
                 nameof(navigationHistory));
     }
 
-    private static ReadOnlyCollection<DirectoryEntry> SelectVisible(
+    private static DirectoryEntrySnapshot SelectVisible(
         IReadOnlyList<DirectoryEntry> entries,
         HiddenItemVisibility hiddenItemVisibility)
     {
-        List<DirectoryEntry> visible = [.. entries.Where(entry =>
+        return DirectoryEntrySnapshot.Create(entries.Where(entry =>
             hiddenItemVisibility == HiddenItemVisibility.Shown ||
-            entry.Metadata.Visibility == EntryVisibility.Normal)];
-        return visible.AsReadOnly();
+            entry.Metadata.Visibility == EntryVisibility.Normal));
+    }
+
+    /// <summary>
+    /// Closes the selection's backing storage while retaining generic collection read/copy paths.
+    /// Non-generic ICollection is deliberately absent because its SyncRoot can expose List storage.
+    /// </summary>
+    private sealed record SelectionSnapshot : IReadOnlyList<FileSystemPath>, ICollection<FileSystemPath>
+    {
+        private readonly List<FileSystemPath> _paths;
+
+        private SelectionSnapshot(IReadOnlyList<FileSystemPath> paths)
+        {
+            _paths = [.. paths];
+        }
+
+        /// <summary>Gets the number of selected paths without enumeration.</summary>
+        public int Count => _paths.Count;
+
+        /// <summary>Gets one selected path with the existing List index-boundary behavior.</summary>
+        public FileSystemPath this[int index] => _paths[index];
+
+        bool ICollection<FileSystemPath>.IsReadOnly => true;
+
+        internal static SelectionSnapshot Create(IReadOnlyList<FileSystemPath> paths)
+        {
+            return new SelectionSnapshot(paths);
+        }
+
+        /// <summary>Enumerates the owned paths without exposing their collection.</summary>
+        public IEnumerator<FileSystemPath> GetEnumerator()
+        {
+            return ((IEnumerable<FileSystemPath>)_paths).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        bool ICollection<FileSystemPath>.Contains(FileSystemPath path)
+        {
+            return _paths.Contains(path);
+        }
+
+        void ICollection<FileSystemPath>.CopyTo(FileSystemPath[] array, int arrayIndex)
+        {
+            _paths.CopyTo(array, arrayIndex);
+        }
+
+        void ICollection<FileSystemPath>.Add(FileSystemPath path)
+        {
+            throw new NotSupportedException();
+        }
+
+        void ICollection<FileSystemPath>.Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        bool ICollection<FileSystemPath>.Remove(FileSystemPath path)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

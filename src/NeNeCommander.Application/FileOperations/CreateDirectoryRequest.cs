@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -17,7 +16,7 @@ public sealed record CreateDirectoryRequest : FileOperationRequest
     }
 
     private CreateDirectoryRequest(
-        ReadOnlyCollection<FileSystemPath> sources,
+        IReadOnlyList<FileSystemPath> sources,
         FileSystemPath location,
         FileSystemPath target)
         : base(sources)
@@ -40,12 +39,8 @@ public sealed record CreateDirectoryRequest : FileOperationRequest
     {
         ArgumentNullException.ThrowIfNull(location);
         ArgumentNullException.ThrowIfNull(name);
-        if (location.Child(name) is not PathParseSuccess child)
-        {
-            return new FileOperationRequestRejected(FileOperationRequestFailureKind.InvalidName);
-        }
-        List<FileSystemPath> ownedSources = [location];
-        return new FileOperationRequestAccepted(
-            new CreateDirectoryRequest(ownedSources.AsReadOnly(), location, child.Path));
+        return location.Child(name) is PathParseSuccess child
+            ? new FileOperationRequestAccepted(new CreateDirectoryRequest([location], location, child.Path))
+            : new FileOperationRequestRejected(FileOperationRequestFailureKind.InvalidName);
     }
 }

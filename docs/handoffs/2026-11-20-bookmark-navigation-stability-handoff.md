@@ -65,3 +65,11 @@ accepted state, unsaved content, links and active references. Targets:
 ```powershell
 pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta2-20261119/cleanup-for-hide.ps1
 ```
+
+## 2026-11-22 acceptance
+
+hide accepted the current PR402 screen and requested release first. See
+[the current integration record](../quality/2026-11-22-bookmark-acceptance.md).
+The earlier acceptance-pending statement is superseded. Issues523–528 own the
+six next-version requests. Preserve live screen process14492/issue-495 until
+hide closes it; never remove a live referenced worktree. Issue522 owns release.

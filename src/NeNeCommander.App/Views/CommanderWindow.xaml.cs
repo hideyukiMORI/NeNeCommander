@@ -315,6 +315,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _bookmarkView.Invoke(sender);
     }
 
+    private void OnCommandPaletteRowLoaded(object sender, RoutedEventArgs _)
+    {
+        CommandPaletteView.BindTitleToolTip(sender);
+    }
+
     private void OnSettingsClose(object _, RoutedEventArgs args)
     {
         ForwardIntent(UserIntent.Escape);

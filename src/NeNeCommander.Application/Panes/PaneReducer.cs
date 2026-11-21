@@ -282,10 +282,16 @@ public static class PaneReducer
 
     private static int GetFocusIndex(PaneState state)
     {
-        return state.VisibleEntries
-            .Index()
-            .First(item => FileSystemPathIdentityComparer.Instance.Equals(item.Item.Path, state.FocusItem))
-            .Index;
+        // A completed reducer state focuses the exact path owned by a visible entry.
+        // External preferred paths are resolved by provider identity before reaching this scan.
+        for (int index = 0; index < state.VisibleEntries.Count; index++)
+        {
+            if (ReferenceEquals(state.VisibleEntries[index].Path, state.FocusItem))
+            {
+                return index;
+            }
+        }
+        throw new InvalidOperationException("Pane focus must reference a visible entry path.");
     }
 
     private static PaneState ToggleSelection(PaneState state)
