@@ -111,3 +111,6 @@ No product build/test/full CI/mutation ran; unchanged successful proof was reuse
 The unfinished D outputs/worktree and temporary repository transfer artifacts remain
 until acceptance/integration and archival/cleanup checks. No sole artifact was removed.
 #453, PR402 hide screen acceptance, AppSDK PR498 and release remain separate.
+Subsequent Series6/7 each completed only one excluded warmup before a caller
+error stopped the series; see [the stopped-series record](2026-11-21-f6-series6-7-stops.md).
+No measured or accepted comparison sample resulted.
