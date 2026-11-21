@@ -113,3 +113,8 @@ at the final observation. Raw attempts, old fixtures and both stopped series rem
 untouched. This is local preparation; future native adoption still needs a fixed
 protocol, source/binary/settings/fixture checks and appropriate review. It provides
 no new timing sample, speed claim, release proof, PR402 acceptance or #453 closure.
+
+The cross-tool bridge, concrete native stop guard, wrapper exit receipt and
+subsequent zero-input Series3 stop are recorded in
+[Series3 preparation and pre-input stop](2026-11-21-f6-series3-preflight.md).
+No new timing sample was obtained; the stopped series was not resumed.

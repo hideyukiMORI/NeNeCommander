@@ -277,3 +277,12 @@ observation after discarding the original handle, including stale-identity refus
 Its initial JSON-date mismatch, corrected integer-time proof and limits are retained.
 No third campaign, new F6 sample, old-series continuation or accepted A/B result is
 introduced. Historical observer exit and interruption cause remain unknown.
+
+### 2026-11-21 Series3 pre-input stop
+
+The [fixed Series3 preparation](2026-11-21-f6-series3-preflight.md) verified frozen
+A/B inputs and new fixtures, but its initial ownership command incorrectly compared
+the returned lowercase executable path case-sensitively. The guard stopped before
+F6; normal-close raw records Count0/IoCount0. All inputs/settings/fixtures remain
+unchanged and no App remains. Series3 was not resumed and adds no timing sample.
+Its corrected future launch checker has focused proof; publication remains pending.
