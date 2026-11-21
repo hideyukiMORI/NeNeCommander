@@ -37,10 +37,9 @@ public static class EntryOrdering
         ArgumentNullException.ThrowIfNull(order);
         IComparer<DirectoryEntry> comparer = Comparer<DirectoryEntry>.Create(
             (left, right) => CompareWithinGroup(left, right, order));
-        List<DirectoryEntry> ordered = [.. entries
+        return DirectoryEntrySnapshot.Create(entries
             .OrderBy(entry => entry.Kind == DirectoryEntryKind.Directory ? 0 : 1)
-            .ThenBy(entry => entry, comparer)];
-        return ordered.AsReadOnly();
+            .ThenBy(entry => entry, comparer));
     }
 
     private static int CompareWithinGroup(DirectoryEntry left, DirectoryEntry right, PaneSortOrder order)
