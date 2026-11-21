@@ -76,6 +76,38 @@ public sealed class CommanderSessionBookmarkRegistrationTests
         Assert.AreEqual("C:\\", rootDraft.Draft.Path);
     }
 
+    /// <summary>Proves the display-name boundary preserves the full folder path without saving settings.</summary>
+    [TestMethod]
+    [DataRow(128, 128)]
+    [DataRow(129, 0)]
+    public async Task HandleAsyncWhenFolderNameCrossesBookmarkLimitDerivesOnlyValidNameAsync(
+        int leafLength,
+        int expectedNameLength)
+    {
+        string path = "C:\\" + new string('a', leafLength);
+        ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
+        left.Enqueue(DirectoryReadOutcome.Succeeded(CommanderSessionTestValues.EmptyListing(path), null));
+        ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
+        using FileOperationGateway gateway = CommanderSessionTestValues.CreateGateway();
+        CommanderSession session = new CommanderSessionTestComposition(
+            left, ScriptedDirectoryReadPort.Create(), gateway, store).CreateSession();
+        RecordingCommanderObserver observer = new();
+        _ = await session.NavigateAsync(PaneSide.Left, CommanderSessionTestValues.ParsePath(path), CancellationToken.None);
+        _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
+
+        _ = await session.HandleAsync(
+            UserIntent.ManageBookmarks(BookmarkEditorAction.BeginAddBookmark),
+            observer,
+            CancellationToken.None);
+
+        BookmarkDrafting draft = Assert.IsInstanceOfType<BookmarkDrafting>(session.Current.Settings.BookmarksEditor);
+        Assert.AreEqual(new string('a', expectedNameLength), draft.Draft.Name);
+        Assert.AreEqual(path, draft.Draft.Path);
+        Assert.AreSame(PaneSide.Left, session.Current.Panes.ActiveSide);
+        Assert.HasCount(1, left.Requests);
+        Assert.IsEmpty(store.Writes);
+    }
+
     /// <summary>Proves a UNC share root offers its share name, the last segment before the trailing separator.</summary>
     [TestMethod]
     public async Task HandleAsyncWhenCurrentPaneIsUncShareRootDefaultsToTheShareNameAsync()
