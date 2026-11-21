@@ -42,7 +42,7 @@ public static class BookmarkManagerPresenter
             draftCategories
                 .Where(option => option.Filter is not BookmarkAllCategoryFilter)
                 .ToList(),
-            CreateShortcutOptions(state),
+            CreateShortcutOptions(state, catalog),
             StatusResourceKey(state));
         BookmarkPersistencePresentation persistence = new(
             SettingsPresenter.PresentSaveStatus(snapshot.Persistence),
@@ -62,6 +62,7 @@ public static class BookmarkManagerPresenter
             BookmarkDrafting draft => draft.ReturnContext,
             BookmarkCategoryDrafting category => category.ReturnContext,
             BookmarkCategoryDeleteConfirmation deletion => deletion.ReturnContext,
+            BookmarkDeleteConfirmation deletion => deletion.ReturnContext,
             BookmarkNavigationPending pending => pending.ReturnContext,
             BookmarkNavigationFailed failed => failed.ReturnContext,
             _ => new BookmarkBrowseContext(string.Empty, BookmarkCategoryFilter.All, null),
@@ -74,33 +75,42 @@ public static class BookmarkManagerPresenter
         string allCategoriesText,
         string uncategorizedText)
     {
-        List<BookmarkCategoryOption> options =
-        [
-            new(
-                BookmarkCategoryFilter.All,
-                allCategoriesText,
-                null,
-                selected is BookmarkAllCategoryFilter
-                    ? BookmarkOptionSelection.Selected
-                    : BookmarkOptionSelection.NotSelected),
-            new(
-                BookmarkCategoryFilter.Uncategorized,
-                uncategorizedText,
-                null,
-                selected is BookmarkUncategorizedCategoryFilter
-                    ? BookmarkOptionSelection.Selected
-                    : BookmarkOptionSelection.NotSelected),
-        ];
+        BookmarkCategoryOption all = new(
+            BookmarkCategoryFilter.All,
+            allCategoriesText,
+            null,
+            selected is BookmarkAllCategoryFilter
+                ? BookmarkOptionSelection.Selected
+                : BookmarkOptionSelection.NotSelected)
+        {
+            EntryCount = catalog.Bookmarks.Count,
+        };
+        BookmarkCategoryOption uncategorized = new(
+            BookmarkCategoryFilter.Uncategorized,
+            uncategorizedText,
+            null,
+            selected is BookmarkUncategorizedCategoryFilter
+                ? BookmarkOptionSelection.Selected
+                : BookmarkOptionSelection.NotSelected)
+        {
+            EntryCount = catalog.Bookmarks.Count(entry => entry.Category is null),
+        };
+        List<BookmarkCategoryOption> options = [all, uncategorized];
         foreach (BookmarkCategoryName category in catalog.Categories)
         {
             BookmarkCategoryFilter filter = BookmarkCategoryFilter.For(category);
-            options.Add(new BookmarkCategoryOption(
+            BookmarkCategorySelection? selection = catalog.Select(category);
+            BookmarkCategoryOption option = new(
                 filter,
                 category.Value,
-                catalog.Select(category),
+                selection,
                 selected == filter
                     ? BookmarkOptionSelection.Selected
-                    : BookmarkOptionSelection.NotSelected));
+                    : BookmarkOptionSelection.NotSelected)
+            {
+                EntryCount = selection?.Entries.Count ?? 0,
+            };
+            options.Add(option);
         }
         return options;
     }
@@ -160,7 +170,7 @@ public static class BookmarkManagerPresenter
             categoryText.Contains(context.SearchText, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static List<BookmarkShortcutOption> CreateShortcutOptions(BookmarksEditorState state)
+    private static List<BookmarkShortcutOption> CreateShortcutOptions(BookmarksEditorState state, BookmarkCatalog catalog)
     {
         BookmarkShortcutSlot? selected = (state as BookmarkDrafting)?.Draft.Shortcut;
         List<BookmarkShortcutOption> options =
@@ -179,7 +189,10 @@ public static class BookmarkManagerPresenter
                 ShortcutLabel(slot),
                 selected == slot
                     ? BookmarkOptionSelection.Selected
-                    : BookmarkOptionSelection.NotSelected));
+                    : BookmarkOptionSelection.NotSelected)
+            {
+                AssignedBookmarkName = catalog.Bookmarks.FirstOrDefault(entry => entry.ShortcutSlot == slot)?.Name.Value,
+            });
         }
         return options;
     }
@@ -210,6 +223,7 @@ public static class BookmarkManagerPresenter
             ? ProblemResourceKey(problem)
             : state switch
             {
+                BookmarksBrowsing { SavedSelection: not null } => "BookmarkStatusSavedSelection",
                 BookmarkDrafting draft => draft.Original is null
                     ? "BookmarkStatusAdding"
                     : "BookmarkStatusEditing",
@@ -217,6 +231,7 @@ public static class BookmarkManagerPresenter
                     ? "BookmarkStatusAddingCategory"
                     : "BookmarkStatusRenamingCategory",
                 BookmarkCategoryDeleteConfirmation => "BookmarkStatusConfirmCategoryDelete",
+                BookmarkDeleteConfirmation => "BookmarkStatusConfirmBookmarkDelete",
                 BookmarkNavigationPending => "BookmarkStatusNavigationPending",
                 BookmarkNavigationFailed failed => NavigationFailureResourceKey(failed),
                 _ => "BookmarkStatusReady",

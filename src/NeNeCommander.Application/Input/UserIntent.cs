@@ -172,7 +172,7 @@ public abstract record UserIntent
         return new NameSubmission(name);
     }
 
-    /// <summary>Creates an address-edit start intent for the pane whose native control received focus.</summary>
+    /// <summary>Creates an explicit address-edit start intent for the requested pane.</summary>
     public static UserIntent BeginAddressEdit(PaneSide side)
     {
         return new AddressFocusSubmission(side);
@@ -184,10 +184,10 @@ public abstract record UserIntent
         return new AddressSubmission(expectedState, rawText);
     }
 
-    /// <summary>Creates a focus-departure intent qualified by the editor state that lost focus.</summary>
-    public static UserIntent LeaveAddress(AddressEditorState expectedState)
+    /// <summary>Creates a modal cancellation qualified by the editor state that owns it.</summary>
+    public static UserIntent CancelAddress(AddressEditorState expectedState)
     {
-        return new AddressFocusDeparture(expectedState);
+        return new AddressCancellation(expectedState);
     }
 
     /// <summary>Creates a palette selection qualified by the exact open state that owns it.</summary>

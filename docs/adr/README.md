@@ -32,6 +32,8 @@ None.
 
 - [ADR-0081: Check literal localization keys against shipped catalogs](0081-check-literal-localization-keys.md)
 
+- [ADR-0080: Show the bookmark manager on the scrim and drive it with the pane movement keys](0080-bookmark-manager-keyboard.md)
+
 - [ADR-0078: Remove the system title bar and draw one caption bar](0078-frameless-window-caption-bar.md)
 
 - [ADR-0077: Move through the settings editor with the pane movement keys](0077-settings-editor-keyboard.md)

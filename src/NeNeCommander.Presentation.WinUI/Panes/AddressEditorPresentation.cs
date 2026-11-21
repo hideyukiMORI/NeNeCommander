@@ -31,7 +31,7 @@ public sealed record AddressEditorPresentation
     /// <summary>Gets text to assign once for this transition, or absence when native text is preserved.</summary>
     public string? ReplacementText { get; }
 
-    /// <summary>Gets the status overriding the editing pane, or absence for its ordinary pane status.</summary>
+    /// <summary>Gets the validation status shown in the address modal, or absence when input is not rejected.</summary>
     public PaneStatus? Status { get; }
 
     /// <summary>Gets the file list to focus once, or absence when focus must remain unchanged.</summary>

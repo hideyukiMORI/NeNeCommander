@@ -40,7 +40,11 @@ internal static class BookmarkEditorMutator
         BookmarkCatalogMutationOutcome outcome = state.Original is null
             ? catalog.AddBookmark(entry)
             : catalog.ReplaceBookmark(state.Original, entry);
-        return Complete(state.ReturnContext, state, outcome);
+        BookmarkCategoryFilter filter = state.ReturnContext.Filter is BookmarkAllCategoryFilter
+            ? BookmarkCategoryFilter.All
+            : entry.Category is null ? BookmarkCategoryFilter.Uncategorized : BookmarkCategoryFilter.For(entry.Category);
+        BookmarkBrowseContext context = new(string.Empty, filter, new BookmarkSelection(entry));
+        return Complete(context, state, outcome);
     }
 
     internal static BookmarkEditorMutationResult SaveCategory(
@@ -96,10 +100,11 @@ internal static class BookmarkEditorMutator
     {
         if (outcome is BookmarkCatalogChanged changed)
         {
-            BookmarksBrowsing browsing = Browse(new BookmarkBrowseContext(
+            BookmarkSelection? selection = context.Selection is null ? null : changed.Catalog.Select(context.Selection.Key);
+            BookmarksBrowsing browsing = new(new BookmarkBrowseContext(
                 context.SearchText,
                 context.Filter,
-                null));
+                selection), null, failureState is BookmarkDrafting ? selection : null);
             return new BookmarkEditorMutationResult(
                 browsing,
                 new BookmarkEditorTransition.CatalogChanged(changed.Catalog));

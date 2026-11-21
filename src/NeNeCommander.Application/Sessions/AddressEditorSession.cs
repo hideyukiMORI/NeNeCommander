@@ -85,9 +85,9 @@ public sealed class AddressEditorSession
                 _state = AddressEditorState.CloseFocusing(CapturedSide(_state));
                 return AddressEditorValidation.NothingToNavigate;
             }
-            if (intent is AddressFocusDeparture departure)
+            if (intent is AddressCancellation cancellation)
             {
-                Depart(departure.ExpectedState);
+                Cancel(cancellation.ExpectedState);
                 return AddressEditorValidation.NothingToNavigate;
             }
             return intent is AddressSubmission submission
@@ -96,11 +96,11 @@ public sealed class AddressEditorSession
         }
     }
 
-    private void Depart(AddressEditorState expected)
+    private void Cancel(AddressEditorState expected)
     {
         if (ReferenceEquals(_state, expected))
         {
-            _state = AddressEditorState.Closed;
+            _state = AddressEditorState.CloseFocusing(CapturedSide(_state));
         }
     }
 

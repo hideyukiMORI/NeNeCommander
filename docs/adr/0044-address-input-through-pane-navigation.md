@@ -27,6 +27,11 @@ after their respective canonical changes are ready.
 
 ## Decision
 
+Revision accepted by hide on 2026-11-20 for Issue #495: the two pane paths are
+permanent display-only `TextBlock` controls. `Ctrl+L` opens one explicit path-input
+modal for the active pane. This replaces both native-focus entry and the interim
+read-only inline `TextBox` direction. The existing state and navigation owners stay.
+
 - **`AddressEditorSession` owns address-editor state, admission, and submission validation, and
   `CommanderSession` remains the sole owner of address navigation.** This ownership sentence is
   superseded by ADR-0051; every other sentence of this ADR stays in force.
@@ -38,19 +43,19 @@ after their respective canonical changes are ready.
   first presentation restores the exact submitted text without lossy repair, while later renders of
   that same state do not overwrite subsequent native edits.
 - **Every entry route uses the same start command.** `Ctrl+L` targets the current active side.
-  Native focus on either existing address control submits that exact side. `CommanderSession`
+  Native focus or a path-display click does not start an editor; only the explicit command does. `CommanderSession`
   admits the request only when no settings modal, file-operation modal or running operation, or
   pane read owns interaction. When the requested side is passive, the session first uses the
   existing `DualPaneSession` activation intent, then captures that side and its listed location.
   Re-entering the already active address through `Ctrl+L` keeps the current native text and requests
-  Select All without creating a new editing state. Programmatic focus raised while rendering is
-  recognized as the same state and does not submit a second start.
+  Select All without creating a new editing state. The modal traps native Tab navigation and
+  blocks pointer interaction with the panes while open.
 - **Address editing has its own canonical keyboard context.** The context owns `Enter` as confirm
   and `Escape` as cancel, and keeps `Ctrl+L` as the canonical focus-address command. Every printable
   key, IME event, and other editing chord passes through to the native editor. Generic `TextEntry`,
   modal, file-list, and navigation-surface mappings are not widened. A view-local key table is not
   introduced.
-- **Submission parses exactly once in Application.** The host attaches the focused address text to
+- **Submission parses exactly once in Application.** The host attaches the modal editor text and exact rendered state to
   one `AddressSubmission` intent, as it already attaches name-entry text to a typed submission.
   `CommanderSession` passes the raw value once to `FileSystemPath.Parse`. A `PathParseSuccess`
   closes editing before starting the captured side's existing `DualPaneSession.NavigateAsync`
@@ -70,24 +75,22 @@ after their respective canonical changes are ready.
   address text, and requests focus for the captured side's file list. It is consumed before the
   pane reducer, so it does not clear selection. Start and submit are rejected while modal,
   operation, or read work owns interaction.
-- **Leaving an address closes the same editor without reclaiming focus.** Native focus departure
-  to a file list or another control discards the edit and restores the original canonical text,
-  but it preserves the focus destination the user chose. Departure submits the exact editor-state
-  instance that owned the old control; the session closes only when that instance is still current.
-  If focus moves directly between the two addresses, the new address start may occur before or
-  after the old address departure without the stale departure closing the new editor. Enter and
-  Escape use the same internal close transition with an explicit file-list focus disposition;
-  ordinary focus departure uses the no-focus disposition. No general focus engine is introduced.
+- **Explicit dismissal closes the captured modal and restores list focus.** Escape and a scrim
+  tap use the same expected-state-qualified cancellation. A stale cancellation cannot close a
+  newer editor. A focus change inside the modal or temporary window deactivation does not discard
+  text. There is no native `LostFocus` cancellation, per-pane text-control owner, or no-focus
+  departure route. Cancellation, like accepted submission, requests the captured file list once.
 - **Focus effects occur once per state transition.** Presentation carries the exact source editor
-  state. The host compares it with the last rendered state: a new editing state focuses and selects
-  the address, a new rejection focuses while preserving the raw text, and an Enter/Escape dismissal
-  focuses the captured file list. A focus-departure close does not issue another focus request.
-  Re-rendering the same state does not repeat those effects. This prevents read completion or an
-  unrelated settings notification from erasing text or reclaiming focus from a newer modal.
-- **The approved address controls remain the only visual surface.** The existing left and right
-  `TextBox`, AutomationIds, `PlainTextEditorStyle`, and semantic resources remain in place. The
-  change adds localized status text only. It adds no visual structure, style, token, history,
-  completion, file launch, path parser, provider adapter, or I/O mechanism.
+  state. A new editing state opens, focuses and selects the one input; a rejection restores the
+  exact raw value and localized error inside the modal without selecting all. An unchanged state
+  neither overwrites native text nor repeats focus effects. Closing collapses the modal and focuses
+  the captured file list. IME composition remains native and cannot submit navigation prematurely.
+- **One modal replaces inline editing.** `LeftAddress` and `RightAddress` remain the stable
+  automation identifiers on display-only text. `AddressEditorOverlay`, `AddressEditorModal` and
+  `AddressEditorInput` identify the sole editor. It reuses existing semantic surface, border,
+  spacing, typography and key-hint resources. The title and input name are localized; Enter/Escape
+  hints come from the existing canonical `AddressEntry` bindings. No history, completion,
+  provider adapter, parser or second navigation mechanism is added.
 
 ## Rejected alternatives
 
@@ -103,8 +106,8 @@ after their respective canonical changes are ready.
   editing.
 - Re-focusing controls after every render: late read or settings completion could steal focus from
   the surface that currently owns it.
-- Closing an editor from an unqualified `LostFocus` callback: event ordering between two address
-  controls could let the old control close the newly opened editor.
+- Keeping inline editors beside the explicit modal: that would duplicate entry and native focus
+  ownership. Incidental focus changes must not decide whether a path edit exists.
 - Adding a new navigation service or address-specific reader: the existing pane session and
   provider-neutral read port already express the complete operation.
 
@@ -134,18 +137,18 @@ Application tests prove active and passive address start, existing activation ro
 the origin side, rejection under settings/modal/operation/read ownership, exact successful routing,
 invalid-input read count zero, and listing/selection preservation for parse failure, provider
 failure, cancellation, and Escape. They also prove a later active-side change cannot retarget an
-accepted submission, and a stale focus-departure request cannot close a newer address editor.
+accepted submission, and a stale modal cancellation cannot close a newer address editor.
 
 Presentation tests prove the dedicated context owns `Enter`, `Escape`, and `Ctrl+L`, IME/printable
 input passes through, `Ctrl+L` remains the canonical focus binding, and address projection retains raw
 rejected text and the localized status key. Host rendering keeps an unchanged edit state from
-overwriting text or repeating focus effects, and distinguishes Enter/Escape list-focus dismissal
-from ordinary focus-departure closure. Actual WinUI mouse, tab, IME, focus, high-contrast, DPI, and
+overwriting text or repeating focus effects, and restores captured list focus after explicit dismissal. Display-only paths cannot become editors;
+Tab stays within the modal and native IME confirmation must not navigate. Actual WinUI mouse, tab, IME, focus, high-contrast, DPI, and
 narrow-width behavior remains explicit release-environment evidence under Issue #94.
 
 The change connects new untrusted input to the existing SEC-002 parser and read route without
 changing either safety contract. Independent review confirmed that the parser, provider, mutation,
 containment, and operation-identity contracts remain unchanged, so this Issue adds no separate deep
 review or mutation run. Focused Application and Presentation tests, affected coverage, and
-conformance run during implementation. The final candidate requires the normal Draft-to-Ready
-canonical CI gate. Scheduled and release deep-review obligations remain unchanged.
+conformance run during implementation. The 2026-11-20 revision follows ADR-0061: selected address/cancellation/hint/ownership tests, App
+build and native input proof; Ready starts no full CI. Release proof remains separately required.

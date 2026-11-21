@@ -17,6 +17,7 @@ public sealed record KeyBinding
             [KeyboardModifier.Control] = new Dictionary<KeyboardKey, string>
             {
                 [KeyboardKey.D] = "KeyLabelCtrlD",
+                [KeyboardKey.Enter] = "KeyLabelCtrlEnter",
                 [KeyboardKey.B] = "KeyLabelCtrlB",
                 [KeyboardKey.LowerG] = "KeyLabelCtrlG",
                 [KeyboardKey.H] = "KeyLabelCtrlH",
@@ -70,22 +71,17 @@ public sealed record KeyBinding
     public KeyboardModifier Modifier { get; }
 
     /// <summary>Gets the localized key-cap resource for this key and its modifier chord.</summary>
-    public string KeyLabelResourceKey => SelectKeyLabelResource();
+    public string KeyLabelResourceKey => LabelFor(Key, Modifier);
 
     /// <summary>Gets the sole intent the binding emits.</summary>
     public UserIntent Intent { get; }
 
-    private string SelectKeyLabelResource()
+    internal static string LabelFor(KeyboardKey key, KeyboardModifier modifier)
     {
-        return Modifier == KeyboardModifier.None
-            ? Key.LabelResourceKey
-            : SelectModifiedKeyLabelResource();
-    }
-
-    private string SelectModifiedKeyLabelResource()
-    {
-        return ModifiedKeyLabels.TryGetValue(Modifier, out Dictionary<KeyboardKey, string>? labels) &&
-            labels.TryGetValue(Key, out string? label)
+        return modifier == KeyboardModifier.None
+            ? key.LabelResourceKey
+            : ModifiedKeyLabels.TryGetValue(modifier, out Dictionary<KeyboardKey, string>? labels) &&
+            labels.TryGetValue(key, out string? label)
             ? label
             : "KeyLabelUnmapped";
     }

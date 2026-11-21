@@ -37,6 +37,10 @@ public sealed record BookmarkEditorDetails
     public bool IsCategoryDrafting => _state is BookmarkCategoryDrafting;
     /// <summary>Gets whether category deletion awaits explicit confirmation.</summary>
     public bool IsCategoryDeleteConfirmation => _state is BookmarkCategoryDeleteConfirmation;
+    /// <summary>Gets whether bookmark deletion awaits explicit confirmation (ADR-0080).</summary>
+    public bool IsBookmarkDeleteConfirmation => _state is BookmarkDeleteConfirmation;
+    /// <summary>Gets the unchanged bookmark awaiting deletion confirmation.</summary>
+    public BookmarkSelection? BookmarkDeleteSelection => (_state as BookmarkDeleteConfirmation)?.Selection;
     /// <summary>Gets whether canonical pane navigation is pending.</summary>
     public bool IsNavigationPending => _state is BookmarkNavigationPending;
     /// <summary>Gets whether canonical pane navigation failed.</summary>
@@ -75,9 +79,11 @@ public sealed record BookmarkEditorDetails
     /// <summary>Gets the native control that receives focus on a new substate.</summary>
     public BookmarkManagerFocusTarget InitialFocus => _state switch
     {
+        BookmarksBrowsing => BookmarkManagerFocusTarget.BookmarkList,
         BookmarkDrafting => BookmarkManagerFocusTarget.BookmarkName,
         BookmarkCategoryDrafting => BookmarkManagerFocusTarget.CategoryName,
         BookmarkCategoryDeleteConfirmation => BookmarkManagerFocusTarget.CancelCategoryDelete,
+        BookmarkDeleteConfirmation => BookmarkManagerFocusTarget.CancelBookmarkDelete,
         BookmarkNavigationFailed => BookmarkManagerFocusTarget.RetryNavigation,
         _ => BookmarkManagerFocusTarget.Search,
     };

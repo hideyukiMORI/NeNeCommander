@@ -1,5 +1,9 @@
 # mutation の本当の値と UI Automation の修正・引き継ぎ — 2026-11-16
 
+2026-11-18 番号訂正（#445）: この記録でブックマーク設計を指すADR-0079は、
+現在の[ADR-0080](../adr/0080-bookmark-manager-keyboard.md)。当時の記述はそのまま残す。
+公開済みmainのADR-0079は初回Previewの公開時期を指す。設計内容・承認日は変えていない。
+
 本日の内容は[日報](../reports/2026-11-16-mutation-truth-and-ui-automation-daily-report.md)に記録した。
 `main` は `d4c4e1d`（本追記の merge 前）。開いている PR は **#402（#398、draft、hide の実機の確認待ち）** の 1 つ。
 

@@ -10,7 +10,7 @@ public sealed class AddressEditorSessionTests
 {
     /// <summary>
     /// Proves validation is total over the closed scope. The session validates precedence under its
-    /// own read, so a closed scope can still receive an escape, a departure, or a submission
+    /// own read, so a closed scope can still receive an escape, a cancellation, or a submission
     /// qualified by the shared closed state; each keeps the closed state and navigates nothing.
     /// </summary>
     [TestMethod]
@@ -21,8 +21,8 @@ public sealed class AddressEditorSessionTests
         AddressEditorValidation escaped = owner.Validate(
             UserIntent.Escape,
             InteractionOwnership.ScopeOwnsInput);
-        AddressEditorValidation departed = owner.Validate(
-            UserIntent.LeaveAddress(AddressEditorState.Closed),
+        AddressEditorValidation cancelled = owner.Validate(
+            UserIntent.CancelAddress(AddressEditorState.Closed),
             InteractionOwnership.ScopeOwnsInput);
         AddressEditorValidation submitted = owner.Validate(
             UserIntent.SubmitAddress(AddressEditorState.Closed, "C:\\target"),
@@ -32,7 +32,7 @@ public sealed class AddressEditorSessionTests
             InteractionOwnership.AnotherScopeOwnsInput);
 
         Assert.AreSame(AddressEditorValidation.NothingToNavigate, escaped);
-        Assert.AreSame(AddressEditorValidation.NothingToNavigate, departed);
+        Assert.AreSame(AddressEditorValidation.NothingToNavigate, cancelled);
         Assert.AreSame(AddressEditorValidation.NothingToNavigate, submitted);
         Assert.AreSame(AddressEditorValidation.NothingToNavigate, unrelated);
         Assert.AreSame(AddressEditorState.Closed, owner.Current);

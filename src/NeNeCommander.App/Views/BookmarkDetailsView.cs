@@ -15,6 +15,7 @@ internal sealed class BookmarkDetailsView
     private readonly ResourceLoader _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Func<bool> _isRendering;
+    private readonly BookmarkFocusRestoration _focus;
     private bool _stateChanged;
     private readonly Grid _browseBody;
     private readonly ScrollViewer _draftBody;
@@ -23,14 +24,14 @@ internal sealed class BookmarkDetailsView
     private readonly TextBox _path;
     private readonly ComboBox _draftCategory;
     private readonly ComboBox _draftShortcut;
-    private readonly StackPanel _categoryDraftBody;
+    private readonly ScrollViewer _categoryDraftBody;
     private readonly TextBlock _categoryDraftTitle;
     private readonly TextBox _categoryName;
-    private readonly StackPanel _categoryDeleteBody;
+    private readonly ScrollViewer _categoryDeleteBody;
     private readonly TextBlock _deleteCategoryName;
     private readonly TextBlock _deleteCount;
     private readonly TextBlock _deleteDestination;
-    private readonly StackPanel _browseFooter;
+    private readonly ItemsControl _browseFooter;
     private readonly StackPanel _draftFooter;
     private readonly StackPanel _categoryDraftFooter;
     private readonly StackPanel _categoryDeleteFooter;
@@ -41,6 +42,7 @@ internal sealed class BookmarkDetailsView
     private readonly Button _categoryCancel;
     private readonly Button _confirmCategoryDelete;
     private readonly Button _cancelCategoryDelete;
+    private readonly BookmarkDeleteConfirmationView _deletion;
 
     internal BookmarkDetailsView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Func<bool> isRendering)
     {
@@ -52,6 +54,8 @@ internal sealed class BookmarkDetailsView
         _resources = resources;
         _forward = forward;
         _isRendering = isRendering;
+        _focus = new BookmarkFocusRestoration(callback =>
+            _ = root.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => callback()));
         _browseBody = Find<Grid>("BookmarkBrowseBody");
         _draftBody = Find<ScrollViewer>("BookmarkDraftBody");
         _draftTitle = Find<TextBlock>("BookmarkDraftTitle");
@@ -59,14 +63,14 @@ internal sealed class BookmarkDetailsView
         _path = Find<TextBox>("BookmarkPath");
         _draftCategory = Find<ComboBox>("BookmarkDraftCategory");
         _draftShortcut = Find<ComboBox>("BookmarkDraftShortcut");
-        _categoryDraftBody = Find<StackPanel>("BookmarkCategoryDraftBody");
+        _categoryDraftBody = Find<ScrollViewer>("BookmarkCategoryDraftBody");
         _categoryDraftTitle = Find<TextBlock>("BookmarkCategoryDraftTitle");
         _categoryName = Find<TextBox>("BookmarkCategoryName");
-        _categoryDeleteBody = Find<StackPanel>("BookmarkCategoryDeleteBody");
+        _categoryDeleteBody = Find<ScrollViewer>("BookmarkCategoryDeleteBody");
         _deleteCategoryName = Find<TextBlock>("BookmarkCategoryDeleteCategory");
         _deleteCount = Find<TextBlock>("BookmarkCategoryDeleteCount");
         _deleteDestination = Find<TextBlock>("BookmarkCategoryDeleteDestination");
-        _browseFooter = Find<StackPanel>("BookmarkBrowseFooter");
+        _browseFooter = Find<ItemsControl>("BookmarkBrowseFooter");
         _draftFooter = Find<StackPanel>("BookmarkDraftFooter");
         _categoryDraftFooter = Find<StackPanel>("BookmarkCategoryDraftFooter");
         _categoryDeleteFooter = Find<StackPanel>("BookmarkCategoryDeleteFooter");
@@ -74,9 +78,11 @@ internal sealed class BookmarkDetailsView
         _save = Find<Button>("BookmarkSave");
         _draftCancel = Find<Button>("BookmarkDraftCancel");
         _categorySave = Find<Button>("BookmarkCategorySave");
+        LabelSaveButtons();
         _categoryCancel = Find<Button>("BookmarkCategoryCancel");
         _confirmCategoryDelete = Find<Button>("BookmarkCategoryDeleteConfirm");
         _cancelCategoryDelete = Find<Button>("BookmarkCategoryDeleteCancel");
+        _deletion = new BookmarkDeleteConfirmationView(root, forward);
         AttachHandlers();
     }
 
@@ -84,9 +90,29 @@ internal sealed class BookmarkDetailsView
     {
         ArgumentNullException.ThrowIfNull(currentStateType);
         _stateChanged = previousStateType != currentStateType;
+        if (_stateChanged)
+        {
+            _focus.Cancel();
+        }
+        RenderVisibility(details);
+        RenderBookmarkDraft(details);
+        RenderCategoryState(details);
+        _deletion.Render(details);
+    }
+
+    private void LabelSaveButtons()
+    {
+        string saveKey = _resources.GetString(BookmarkManagerKeyHintPresenter.SaveKeyLabelResourceKey);
+        _save.Content = _save.Content + " (" + saveKey + ")";
+        _categorySave.Content = _save.Content;
+    }
+
+    private void RenderVisibility(BookmarkEditorDetails details)
+    {
         _browseBody.Visibility = details.IsBookmarkDrafting ||
             details.IsCategoryDrafting ||
-            details.IsCategoryDeleteConfirmation
+            details.IsCategoryDeleteConfirmation ||
+            details.IsBookmarkDeleteConfirmation
             ? Visibility.Collapsed
             : Visibility.Visible;
         _draftBody.Visibility = details.IsBookmarkDrafting ? Visibility.Visible : Visibility.Collapsed;
@@ -103,8 +129,6 @@ internal sealed class BookmarkDetailsView
         _navigationFailedFooter.Visibility = details.IsNavigationFailed
             ? Visibility.Visible
             : Visibility.Collapsed;
-        RenderBookmarkDraft(details);
-        RenderCategoryState(details);
     }
 
     private void RenderBookmarkDraft(BookmarkEditorDetails details)
@@ -216,13 +240,30 @@ internal sealed class BookmarkDetailsView
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.BookmarkName => _name,
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CategoryName => _categoryName,
             BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CancelCategoryDelete => _cancelCategoryDelete,
+            BookmarkManagerFocusTarget value when value == BookmarkManagerFocusTarget.CancelBookmarkDelete => _deletion.Cancel,
             _ => null,
         };
         if (control is null)
         {
             return false;
         }
-        _ = control.Focus(FocusState.Programmatic);
+        _focus.Request(() => FocusControl(control));
         return true;
+    }
+
+    internal bool IsFocusPending => _focus.IsPending;
+
+    internal void CancelPendingFocus()
+    {
+        _focus.Cancel();
+    }
+
+    private static void FocusControl(Control control)
+    {
+        _ = control.Focus(FocusState.Keyboard);
+        if (control is TextBox field)
+        {
+            field.SelectAll();
+        }
     }
 }

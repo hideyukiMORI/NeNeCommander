@@ -51,7 +51,7 @@ public static class KeyHintPresenter
     {
         return context == KeyboardContext.FileList
             ? CreateFileListLabels()
-            : context == KeyboardContext.Modal
+            : context == KeyboardContext.Modal || context == KeyboardContext.AddressEntry
                 ? CreateModalLabels()
                 : context == KeyboardContext.Locations ? CreateLocationsLabels() : [];
     }

@@ -163,7 +163,7 @@ public sealed class KeyboardIntentMapper
 
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
-    private bool _paletteEnterRepeatGuardActive;
+    private readonly KeyboardRepeatGuard _repeatGuard = new();
 
     /// <summary>Initializes the mapper with a monotonic clock used only for chord expiry.</summary>
     /// <param name="clock">Monotonic clock.</param>
@@ -195,6 +195,19 @@ public sealed class KeyboardIntentMapper
     public static IReadOnlyList<WindowAdjustmentKeyBinding> WindowAdjustmentBindings { get; } =
         DeclaredWindowBindings;
 
+    /// <summary>
+    /// Gets the keys owned by the bookmark manager's browse and search-field contexts in declaration
+    /// order (ADR-0080). The list is the same data <see cref="Map"/> consults.
+    /// </summary>
+    public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
+
+    /// <summary>Retains native Enter/Escape ownership until the next physical press.</summary>
+    internal void ObserveNativeInput(KeyboardInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        _repeatGuard.ObserveNative(input);
+    }
+
     internal static KeyboardMappingOutcome DeferModalConfirmToNativeControl(
         KeyboardMappingOutcome outcome)
     {
@@ -210,20 +223,19 @@ public sealed class KeyboardIntentMapper
     public KeyboardMappingOutcome Map(KeyboardInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Key == KeyboardKey.Enter &&
-            input.RepeatState == KeyRepeatState.Repeated &&
-            _paletteEnterRepeatGuardActive)
+        if (_repeatGuard.Consumes(input))
         {
-            _pendingChordStartedAt = null;
+            if (input.Key == KeyboardKey.Enter || IsDeclaredInContext(input))
+            {
+                _pendingChordStartedAt = null;
+            }
             return new KeyboardConsumed();
         }
-        if (input.Key == KeyboardKey.Enter && input.RepeatState == KeyRepeatState.Initial)
-        {
-            _paletteEnterRepeatGuardActive = false;
-        }
-        return input.Context == KeyboardContext.FileList || input.Context == KeyboardContext.NavigationSurface
+        KeyboardMappingOutcome outcome = input.Context == KeyboardContext.FileList || input.Context == KeyboardContext.NavigationSurface
             ? MapPaneKey(input)
             : MapContextKey(input);
+        _repeatGuard.Observe(input, outcome);
+        return outcome;
     }
 
     private KeyboardMappingOutcome MapContextKey(KeyboardInput input)
@@ -231,26 +243,16 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         return input.Context switch
         {
-            KeyboardContext context when context == KeyboardContext.CommandPalette => MapPaletteKey(input),
+            KeyboardContext context when context == KeyboardContext.CommandPalette => MapCommandPaletteKey(input),
             KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
+            KeyboardContext context when BookmarkManagerKeyMap.Owns(context) => BookmarkManagerKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
             _ => MapDeclaredKey(input),
         };
-    }
-
-    private KeyboardMappingOutcome MapPaletteKey(KeyboardInput input)
-    {
-        KeyboardMappingOutcome outcome = MapCommandPaletteKey(input);
-        if (outcome is MappedCommandPaletteAction mapped &&
-            mapped.Action == CommandPaletteKeyAction.Execute)
-        {
-            _paletteEnterRepeatGuardActive = true;
-        }
-        return outcome;
     }
 
     private KeyboardMappingOutcome MapPaneKey(KeyboardInput input)

@@ -29,8 +29,8 @@ internal static class BookmarkPresenterTestContext
         BookmarkCategoryFilter filter)
     {
         return Construct<BookmarksBrowsing>(
-            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem)],
-            [new BookmarkBrowseContext(searchText, filter, null), null]);
+            [typeof(BookmarkBrowseContext), typeof(BookmarkEditorProblem), typeof(BookmarkSelection)],
+            [new BookmarkBrowseContext(searchText, filter, null), null, null]);
     }
 
     internal static SettingsSnapshot Snapshot(

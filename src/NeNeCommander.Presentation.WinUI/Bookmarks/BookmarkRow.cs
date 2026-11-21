@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Bookmarks;
 
@@ -34,4 +35,10 @@ public sealed record BookmarkRow
     public string ShortcutLabelResourceKey { get; }
     /// <summary>Gets whether this row matches the session-owned selection.</summary>
     public bool IsSelected { get; }
+    /// <summary>Gets the row mark: the file list's focus mark for the selected row, otherwise unmarked.</summary>
+    public PaneRowMark Mark => IsSelected ? SelectionMark : PaneRowMark.Unmarked;
+
+    internal PaneRowMark SelectionMark { get; init; } = PaneRowMark.FocusInActivePane;
+    /// <summary>Gets the automation identifier of the row container, which names a visible row, not a bookmark identity.</summary>
+    public string AutomationId => "BookmarkRow_" + NameText;
 }

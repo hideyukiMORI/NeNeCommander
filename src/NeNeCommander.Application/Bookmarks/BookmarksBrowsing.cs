@@ -9,11 +9,15 @@ public sealed record BookmarksBrowsing : BookmarksEditorState
     {
     }
 
-    internal BookmarksBrowsing(BookmarkBrowseContext context, BookmarkEditorProblem? problem)
+    internal BookmarksBrowsing(
+        BookmarkBrowseContext context,
+        BookmarkEditorProblem? problem,
+        BookmarkSelection? savedSelection = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         Context = context;
         Problem = problem;
+        SavedSelection = savedSelection;
     }
 
     /// <summary>Gets the current browse inputs and selection.</summary>
@@ -21,4 +25,7 @@ public sealed record BookmarksBrowsing : BookmarksEditorState
 
     /// <summary>Gets the last user-correctable rejection, when present.</summary>
     public BookmarkEditorProblem? Problem { get; }
+
+    /// <summary>Gets the most recently saved bookmark while its return-to-list notice is current.</summary>
+    public BookmarkSelection? SavedSelection { get; }
 }

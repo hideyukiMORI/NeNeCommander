@@ -57,7 +57,7 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F6` | move selection, or the focus item when selection is empty, to the passive pane |
 | `F7` | create a directory in the active pane |
 | `F8` | request deletion under the provider's declared delete policy |
-| `Ctrl+L` | focus and select the active pane address input |
+| `Ctrl+L` | open the active pane path-input modal and select its current location |
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
 | `Ctrl+,` | open the session-owned settings editor from the file list or navigation surface |
 | `Ctrl+P` | open the session-owned command palette from the file list or navigation surface |
@@ -68,6 +68,17 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F1` | open the session-owned keyboard help from the file list or navigation surface; a held `F1` opens it once |
 
 `F5` is never inferred from timing. The focused control context is an explicit mapper input.
+
+The two pane paths are always display-only `TextBlock` controls. `Ctrl+L` opens one path-input
+modal for the active pane through the existing address owner (ADR-0044, Issue #495). A click on
+a displayed path does not open editing. The open modal owns `AddressEntry`; native Tab/Shift+Tab
+cycle within its input controls, while noninteractive key hints are excluded from the tab order.
+Repeating `Ctrl+L` selects the current native text without replacing it. Enter submits the exact
+text to the existing parser/navigation route; invalid input remains in the modal with its error.
+Escape or an outside scrim tap cancels the captured state and returns focus to its file list.
+Native focus changes and temporary window deactivation preserve the draft. IME composition keeps
+its Enter/Escape until composition ends. Startup and leaving the bookmark manager still restore
+the active file list; other text editors and modal owners retain their existing precedence.
 
 The command palette also opens Bookmarks and window adjustment (ADR-0068), using the same owners
 as `Ctrl+B` and `Ctrl+W`. Its existing twenty entries keep their order; Bookmarks and Window
@@ -129,11 +140,82 @@ scheme is saved when `Space` or `Enter` selects it. A repeated `Space` or `Enter
 held key changes a setting at most once. Undeclared keys, including `Tab` and `Shift+Tab`, reach
 the native controls.
 
+## Bookmark manager
+
+`Ctrl+B` opens the session-owned bookmark manager (ADR-0041). While its browse state is shown the
+host's keyboard context is `Bookmarks`, or `BookmarkSearch` while the search field holds focus
+(ADR-0080). Drafts use `BookmarkDraft`. All three are declared in the bookmark table of the canonical key map
+(`BookmarkManagerKeyMap`, published through `KeyboardIntentMapper.BookmarkManagerBindings`). The
+browse state has two focus regions, the category column and the bookmark list; the list holds
+focus when the manager opens or returns to browsing.
+
+| Input | Action in the bookmark list | Action in the category column |
+|---|---|---|
+| `j` or `Down` | select the next bookmark; stops at the last | select the next category, which filters the list; stops at the last |
+| `k` or `Up` | select the previous bookmark; stops at the first | select the previous category, which filters the list; stops at the first |
+| `Enter` | navigate to the selected bookmark (the existing manager navigation) | move focus to the bookmark list |
+| `Tab` or `Shift+Tab` | move focus to the category column | move focus to the bookmark list |
+| `a` | register the current folder (the existing add draft) | add a category (the existing category draft) |
+| `e` | edit the selected bookmark | rename the selected user category |
+| `d` | ask to delete the selected bookmark through its confirmation | ask to delete the selected user category through its confirmation |
+| `/` | move focus to the search field | move focus to the search field |
+| `Escape` | close the manager through the existing `Escape` route | close the manager through the existing `Escape` route |
+
+In `BookmarkSearch`, `Escape`, `Down` and `Enter` return focus to the bookmark list without closing
+the manager; every other key, including printable letters and `j`/`k`, reaches the search field
+(KBD-001), and no key is mapped while an input method is composing. Letters and `/` are produced
+characters with Control and Alt absent (KBD-003); a declared key under a modifier, and every
+undeclared key, pass through as in the settings context. Movement repeats; a held `Enter`, `Tab`,
+`a`, `e`, `d`, `/` or `Escape` acts once and its repeats are consumed, so a held `Escape` that left
+the search field does not also close the manager. The mapper's existing palette execution repeat
+guard also retains each accepted non-repeating bookmark press across input-owner changes: the
+opening `/`, `a` or `e` cannot become text in the search or draft, and navigation's `Enter` cannot
+open a file after the manager closes. Only a new initial event for the same identified key releases
+its guard; other keys and raw `Other` events do not. IME composition stays outside action mapping, and
+native composition or an open category/slot selector retains an `Enter` or `Escape` press in the
+same guard until its next initial event. Finishing composition or closing a selector therefore
+cannot turn a held key into save, cancel or navigation. All four bookmark text fields use this
+ownership boundary; an unfocused field cannot block the current owner.
+ordinary text presses and repeating movement acquire no such guard. An `e` or `d` with nothing selected, and an `e`
+or `d` on All bookmarks or Uncategorized, are consumed and do nothing, exactly where the removed
+buttons were disabled. Moving in the category column only changes the displayed filter and saves
+nothing. Neither `d` deletes at once: the bookmark-delete confirmation starts on Cancel, so an
+`Enter` right after `d` deletes nothing, and `Escape` or a scrim tap returns to browsing.
+`BookmarkDraft` owns `Ctrl+Enter` to submit the existing `BookmarkEditorAction.Save`, and
+unmodified `Escape` to cancel through the existing route. Ordinary `Enter`, arrows, text and
+Tab remain native control input. An open ComboBox keeps its keys, including `Escape` to close
+the popup; a fresh `Escape` after it closes cancels the draft. A held save cannot reach the list
+that replaces the draft. Both delete confirmations and failed navigation retain `Modal`;
+confirmation starts on Cancel and receives no draft-save binding.
+
+The panel cycles native Tab/Shift+Tab inside its visible controls. Browsing still uses the two
+region switch above. Entering a list preserves its visible selected row, or selects the first
+row through the existing Select action. A zero-row list receives focus itself; if the framework
+cannot focus it, search receives focus. Selecting a row saves nothing. Search Enter/Down/Escape
+keeps the query and enters the list; a second, fresh Enter opens the selected result. Search
+has its own three-key hint, and browse Tab hints name the destination.
+
+Successful bookmark save clears the query, preserves All or selects the saved entry's category,
+and selects the saved entry for continued editing/navigation. The status explains this query
+reset; the separate persistence status still reports disk saving/failure. Cancel preserves the
+return context. Registration at a drive root offers its canonical path as the initial name;
+initial name text is selected so typing replaces it. Slot choices show their current assignment
+without changing collision validation. Tapping the scrim takes the Escape route once.
+
+The browse view owns one current deferred focus request. Incidental layout focus cancels passive
+row restoration but retains an explicit state-transition request. Explicit search, pointer input,
+initial native Tab, another requested region, or leaving browsing supersedes an earlier request.
+Actual input passed to a focused bookmark text field and IME composition start cancel both browse
+and detail requests, so queued focus or SelectAll cannot overwrite that editor's newer ownership.
+Raw repeated character keys await the produced character's existing repeat-guard decision;
+mapped commands and pending-confirmation Enter do not surrender their focus request. A callback
+may focus its control only while that request remains current.
+
 ## Keyboard help
 
 `F1` opens one session-owned keyboard help (ADR-0076) under the same admission as the window
 adjustment mode. It lists the bindings of the file list, window adjustment mode, Locations picker,
-settings editor, command palette and the help itself, generated from the canonical key map; aliases of one action
+settings editor, bookmark manager, command palette and the help itself, generated from the canonical key map; aliases of one action
 share a row, `gg` is shown before `G`, and the nine bookmark slots share one row. The panes stay
 visible behind a transparent scrim and are frozen. While it is open the host's keyboard context is
 `KeyboardHelp`, declared in the canonical table of `KeyboardIntentMapper`:
@@ -186,7 +268,7 @@ Movement changes the focus item and preserves explicit selection. File commands 
 - Status: **active**
 - Enforcement: key-map uniqueness test.
 
-No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. Hint wording, both the key cap and the intent, comes from localization resources.
+No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0080). Hint wording, both the key cap and the intent, comes from localization resources.
 
 ## Accessibility
 

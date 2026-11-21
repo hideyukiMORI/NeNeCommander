@@ -17,6 +17,9 @@ public abstract record BookmarkEditorAction
     /// <summary>Gets the action that confirms the visible category deletion question.</summary>
     public static BookmarkEditorAction ConfirmDeleteCategory { get; } =
         new ConfirmDeleteCategoryAction();
+    /// <summary>Gets the action that confirms the visible bookmark deletion question (ADR-0080).</summary>
+    public static BookmarkEditorAction ConfirmDeleteBookmark { get; } =
+        new ConfirmDeleteBookmarkAction();
     /// <summary>Gets the action that cancels the deepest visible manager state.</summary>
     public static BookmarkEditorAction Cancel { get; } = new CancelAction();
 
@@ -66,10 +69,10 @@ public abstract record BookmarkEditorAction
         return new UpdateCategoryAction(name);
     }
 
-    /// <summary>Creates an action that deletes one unchanged displayed bookmark.</summary>
-    public static BookmarkEditorAction DeleteBookmark(BookmarkSelection selection)
+    /// <summary>Creates an action that opens deletion confirmation for one unchanged displayed bookmark.</summary>
+    public static BookmarkEditorAction BeginDeleteBookmark(BookmarkSelection selection)
     {
-        return new DeleteBookmarkAction(selection);
+        return new BeginDeleteBookmarkAction(selection);
     }
 
     /// <summary>Creates an action that opens category deletion confirmation.</summary>
@@ -202,13 +205,13 @@ public abstract record BookmarkEditorAction
         internal string Name { get; }
     }
 
-    internal sealed record DeleteBookmarkAction : BookmarkEditorAction
+    internal sealed record BeginDeleteBookmarkAction : BookmarkEditorAction
     {
         private protected override void RestrictDerivation()
         {
         }
 
-        internal DeleteBookmarkAction(BookmarkSelection selection)
+        internal BeginDeleteBookmarkAction(BookmarkSelection selection)
         {
             ArgumentNullException.ThrowIfNull(selection);
             Selection = selection;
@@ -233,6 +236,12 @@ public abstract record BookmarkEditorAction
     }
 
     internal sealed record ConfirmDeleteCategoryAction : BookmarkEditorAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    internal sealed record ConfirmDeleteBookmarkAction : BookmarkEditorAction
     {
         private protected override void RestrictDerivation()
         {

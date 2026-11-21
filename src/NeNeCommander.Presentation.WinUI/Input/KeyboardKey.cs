@@ -28,8 +28,14 @@ public abstract record KeyboardKey
     /// <summary>Gets the produced l key.</summary>
     public static KeyboardKey L { get; } = new LKey();
 
+    /// <summary>Gets the produced a key.</summary>
+    public static KeyboardKey A { get; } = new AKey();
+
     /// <summary>Gets the produced d key.</summary>
     public static KeyboardKey D { get; } = new DKey();
+
+    /// <summary>Gets the produced e key.</summary>
+    public static KeyboardKey E { get; } = new EKey();
 
     /// <summary>Gets the produced r key.</summary>
     public static KeyboardKey R { get; } = new RKey();
@@ -84,6 +90,9 @@ public abstract record KeyboardKey
 
     /// <summary>Gets the produced comma key.</summary>
     public static KeyboardKey Comma { get; } = new CommaKey();
+
+    /// <summary>Gets the produced slash character, whichever physical key produces it.</summary>
+    public static KeyboardKey Slash { get; } = new SlashKey();
 
     /// <summary>Gets the down-arrow virtual key.</summary>
     public static KeyboardKey Down { get; } = new DownKey();
@@ -209,6 +218,15 @@ public abstract record KeyboardKey
         public override string LabelResourceKey => "KeyLabelL";
     }
 
+    private sealed record AKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelA";
+    }
+
     private sealed record DKey : KeyboardKey
     {
         private protected override void RestrictDerivation()
@@ -216,6 +234,15 @@ public abstract record KeyboardKey
         }
 
         public override string LabelResourceKey => "KeyLabelD";
+    }
+
+    private sealed record EKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelE";
     }
 
     private sealed record RKey : KeyboardKey
@@ -311,6 +338,15 @@ public abstract record KeyboardKey
         }
 
         public override string LabelResourceKey => "KeyLabelComma";
+    }
+
+    private sealed record SlashKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelSlash";
     }
 
     private sealed record DownKey : KeyboardKey

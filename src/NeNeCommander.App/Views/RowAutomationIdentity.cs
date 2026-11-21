@@ -13,7 +13,8 @@ internal static class RowAutomationIdentity
     internal static void Attach<TRow>(
         ListViewBase list,
         Func<TRow, string> automationId,
-        Func<TRow, string> automationName)
+        Func<TRow, string> automationName,
+        Func<TRow, string>? automationDescription = null)
         where TRow : class
     {
         ArgumentNullException.ThrowIfNull(list);
@@ -28,6 +29,10 @@ internal static class RowAutomationIdentity
 
             AutomationProperties.SetAutomationId(args.ItemContainer, automationId(row));
             AutomationProperties.SetName(args.ItemContainer, automationName(row));
+            if (automationDescription is not null)
+            {
+                AutomationProperties.SetHelpText(args.ItemContainer, automationDescription(row));
+            }
         };
     }
 }
