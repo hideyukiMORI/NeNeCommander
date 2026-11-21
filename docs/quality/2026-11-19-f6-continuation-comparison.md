@@ -268,3 +268,12 @@ fixed plan and fresh fixtures, preserving these failed attempts and the same
 limits. The current worktree/outputs remain because comparison acceptance and
 integration are incomplete. The four older rejected cleanup targets remain
 excluded from this task. Normal app, settings and public beta.2 are unchanged.
+
+## Observer recovery preparation — 2026-11-21
+
+The [bounded recovery preparation](2026-11-21-observer-recovery-preparation.md)
+identifies the missing durable observer identity and proves fresh local process
+observation after discarding the original handle, including stale-identity refusal.
+Its initial JSON-date mismatch, corrected integer-time proof and limits are retained.
+No third campaign, new F6 sample, old-series continuation or accepted A/B result is
+introduced. Historical observer exit and interruption cause remain unknown.
