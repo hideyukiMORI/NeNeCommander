@@ -66,3 +66,50 @@ overwrite their evidence. Repository changes are documentation only: text/link/d
 review and ordinary Commit checks; no product build/test/full CI/mutation. The
 preparation does not validate the current App's speed, solve #453, complete #491,
 accept PR402 or change release status. No independent review is claimed.
+
+## Durable admission and real-observer handshake preparation
+
+A new diagnostic experiment under the same evidence root at
+durable-admission-20261121 extends the historical TrialLedger's sendF6 admission.
+The caller must supply an awaited persistence callback; the tested callback saves
+the pending block/App PID/sample/actions and observer receipt with CreateNew and
+flush before invoking input. This is a caller contract, not a security boundary:
+an arbitrary no-op callback is not claimed to prove disk persistence. A recreated
+controller using the same attempted sample path is refused; no resume API exists.
+Acknowledgment is refused while persistence/input delivery remains in flight.
+An explicit stop during persistence also prevents subsequent input.
+
+Two old-helper probes demonstrate the missing persistence hook and acceptance of
+an early acknowledgment during an unsettled synthetic input callback. They do not
+show that a previous campaign actually issued such an early acknowledgment or
+explain its runtime interruption. The final helper passes 16 synthetic ABBA inputs
+and 11 additional refusal/failure groups (missing callback, six malformed receipt
+cases, same-path recreation, filesystem open failure, unknown input, stop during
+persistence). Saved preparation exists before each input and callback mutation
+does not mutate the ledger. Decimal-text creation ticks preserve Int64 precision
+through JavaScript; the earlier PowerShell-only proof's integer ticks remain valid.
+
+The new start-observer.ps1 checks the supplied owner identity, saves an exclusive
+launch intent, launches the unchanged historical observer hidden, and immediately
+writes its independently observed PID/creation/executable/exact arguments. Its
+second launch into the same attempt directory is refused without replacing bytes.
+A dedicated PowerShell process owned synthetic event slots under its own PID.
+The real observer5784's identity matched a fresh OS read, Node saved preparation
+before requesting event0, exact DONE0 was acknowledged, both children exited0,
+and the observer was then absent. No native App or real UI/key input was involved.
+
+Commands executed successfully:
+- C:/Program Files/nodejs/node.exe D:/NeNeCommander/evidence/f6-continuation-comparison-20261119/durable-admission-20261121/run-proof.mjs
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/f6-continuation-comparison-20261119/durable-admission-20261121/prove-handshake.ps1 -AttemptRoot D:/NeNeCommander/evidence/f6-continuation-comparison-20261119/durable-admission-20261121/handshake-attempt1
+
+Source preparation initially refused an exact replacement because of LF/CRLF
+mismatch, before writing the candidate helper. The source was normalized in memory.
+The first Node-tool call did not execute after idle reset; its retry was denied at
+mkdir before creating the attempt. The existing same-user Node executable then ran
+the prepared proof successfully. These environmental/preparation issues are retained.
+
+Historical helper hashes and the reused observer binary are unchanged; no App runs
+at the final observation. Raw attempts, old fixtures and both stopped series remain
+untouched. This is local preparation; future native adoption still needs a fixed
+protocol, source/binary/settings/fixture checks and appropriate review. It provides
+no new timing sample, speed claim, release proof, PR402 acceptance or #453 closure.
