@@ -36,6 +36,13 @@ exposing mutable storage through public collection APIs. This keeps listing-base
 file handoff and visible focus consistent after publication. It is an in-process
 ownership guarantee, not a filesystem identity lock or a new provider admission rule.
 
+ADV-016 also covers the accepted FileOperationRequest source sequence. Its existing
+owner copies each accepted sequence once and does not expose mutable backing
+storage through public collection APIs. Provider callbacks cannot change its
+count or ordering and detach completed effects from progress/outcome publication.
+This is an in-process ownership guarantee, not a filesystem identity lock,
+concurrent caller-input mutation guarantee, or new provider admission rule.
+
 ### SEC-002 — Untrusted input is bounded before use
 
 - Status: **active**
