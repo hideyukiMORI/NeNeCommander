@@ -24,7 +24,10 @@ Use
   and entry. Some operations require explicit permanent-deletion confirmation.
 - Escape cancels or abandons the current interaction where supported.
 - Ctrl+P opens the command palette; Ctrl+G opens drives and WSL roots.
-- Ctrl+B opens bookmarks; Ctrl+, opens settings; Ctrl+W adjusts the window.
+- Ctrl+L edits the active pane path in a modal; ordinary path labels are display-only.
+- Ctrl+B opens bookmarks; Tab changes region, j/k or arrows move, / searches,
+  a/e/d add/edit/delete, Ctrl+Enter saves, and Escape cancels or closes.
+- Ctrl+, opens settings; Ctrl+W adjusts the window.
 - F1 opens the in-app keyboard help with the full current key map.
 - The footer wraps to the available width. Settings can hide normal key hints;
   F1 and the confirmation/name-entry Enter/Escape guidance remain visible.
@@ -40,6 +43,11 @@ Windows association launch. UNC mutations and mapped-network-drive mutations are
 not supported. WSL/UNC launch rejects incompatible names and paths of 260 or more
 UTF-16 code units. Provider capabilities and failures are reported by the app.
 There is no embedded editor, terminal, archive tool, FTP client or cloud protocol.
+
+Known issue
+Clicking outside the focused pane to reactivate an inactive window may leave
+keyboard commands unresponsive (reported by the maintainer; Issue #523).
+A fix is planned for a later Preview; this package does not claim it resolved.
 
 Settings and updates
 Settings are saved in %LOCALAPPDATA%\NeNeCommander\settings.json, separately from
