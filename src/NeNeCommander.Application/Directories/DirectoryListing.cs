@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using NeNeCommander.Domain.Paths;
 
@@ -14,11 +13,11 @@ public sealed record DirectoryListing
     /// <summary>Gets the fixed upper boundary of entries any listing may contain.</summary>
     public const int EntryBoundaryLimit = 10000;
 
-    private readonly ReadOnlyCollection<DirectoryEntry> _entries;
+    private readonly DirectoryEntrySnapshot _entries;
 
     private DirectoryListing(
         FileSystemPath location,
-        ReadOnlyCollection<DirectoryEntry> entries,
+        DirectoryEntrySnapshot entries,
         DirectoryListingCompleteness completeness,
         int unrepresentableEntryCount)
     {
@@ -34,6 +33,7 @@ public sealed record DirectoryListing
     /// <summary>
     /// Gets the entries ordered by kind with directories first, then by name ignoring case,
     /// then by ordinal name so providers with case-sensitive names remain deterministic.
+    /// The owned sequence retains its contents after publication through public collection APIs.
     /// </summary>
     public IReadOnlyList<DirectoryEntry> Entries => _entries;
 
@@ -69,12 +69,12 @@ public sealed record DirectoryListing
             return new DirectoryListingRejected(failure);
         }
 
-        List<DirectoryEntry> ordered = [.. entries
+        DirectoryEntrySnapshot ordered = DirectoryEntrySnapshot.Create(entries
             .OrderBy(entry => entry.Kind == DirectoryEntryKind.Directory ? 0 : 1)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(entry => entry.Name, StringComparer.Ordinal)];
+            .ThenBy(entry => entry.Name, StringComparer.Ordinal));
         return new DirectoryListingAccepted(
-            new DirectoryListing(location, ordered.AsReadOnly(), completeness, unrepresentableEntryCount));
+            new DirectoryListing(location, ordered, completeness, unrepresentableEntryCount));
     }
 
     private static DirectoryListingFailureKind? ValidateEntries(IReadOnlyList<DirectoryEntry> entries)

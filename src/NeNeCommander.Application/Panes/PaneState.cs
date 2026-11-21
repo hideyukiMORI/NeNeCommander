@@ -199,76 +199,13 @@ public sealed record PaneState
                 nameof(navigationHistory));
     }
 
-    private static VisibleEntrySnapshot SelectVisible(
+    private static DirectoryEntrySnapshot SelectVisible(
         IReadOnlyList<DirectoryEntry> entries,
         HiddenItemVisibility hiddenItemVisibility)
     {
-        return VisibleEntrySnapshot.Create(entries.Where(entry =>
+        return DirectoryEntrySnapshot.Create(entries.Where(entry =>
             hiddenItemVisibility == HiddenItemVisibility.Shown ||
             entry.Metadata.Visibility == EntryVisibility.Normal));
-    }
-
-    /// <summary>
-    /// Owns the visible sequence without publishing a synchronization object or mutable storage.
-    /// Generic collection reads keep count and copy behavior for the existing pane consumers.
-    /// </summary>
-    private sealed record VisibleEntrySnapshot : IReadOnlyList<DirectoryEntry>, ICollection<DirectoryEntry>
-    {
-        private readonly List<DirectoryEntry> _entries;
-
-        private VisibleEntrySnapshot(IEnumerable<DirectoryEntry> entries)
-        {
-            _entries = [.. entries];
-        }
-
-        /// <summary>Gets the number of visible entries without enumeration.</summary>
-        public int Count => _entries.Count;
-
-        /// <summary>Gets one entry with the existing List index-boundary behavior.</summary>
-        public DirectoryEntry this[int index] => _entries[index];
-
-        bool ICollection<DirectoryEntry>.IsReadOnly => true;
-
-        internal static VisibleEntrySnapshot Create(IEnumerable<DirectoryEntry> entries)
-        {
-            return new VisibleEntrySnapshot(entries);
-        }
-
-        /// <summary>Enumerates entries without exposing the owned list.</summary>
-        public IEnumerator<DirectoryEntry> GetEnumerator()
-        {
-            return ((IEnumerable<DirectoryEntry>)_entries).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        bool ICollection<DirectoryEntry>.Contains(DirectoryEntry entry)
-        {
-            return _entries.Contains(entry);
-        }
-
-        void ICollection<DirectoryEntry>.CopyTo(DirectoryEntry[] array, int arrayIndex)
-        {
-            _entries.CopyTo(array, arrayIndex);
-        }
-
-        void ICollection<DirectoryEntry>.Add(DirectoryEntry entry)
-        {
-            throw new NotSupportedException();
-        }
-
-        void ICollection<DirectoryEntry>.Clear()
-        {
-            throw new NotSupportedException();
-        }
-
-        bool ICollection<DirectoryEntry>.Remove(DirectoryEntry entry)
-        {
-            throw new NotSupportedException();
-        }
     }
 
     /// <summary>

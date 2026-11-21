@@ -29,6 +29,12 @@ are added. The pane's drive-kind report is descriptive, never permission to muta
 - Enforcement: `eng/adversarial-cases.json`, security scan, and adversarial tests.
 
 Every material threat has a stable ID, owner, expected defense, and test mapping. A security-relevant behavior change updates the threat model and its test in the same change.
+ADV-011 includes ownership of published directory-entry snapshots. DirectoryListing,
+EntryOrdering and PaneState retain their existing validation, ordering and visibility
+owners; one internal DirectoryEntrySnapshot owns each published sequence without
+exposing mutable storage through public collection APIs. This keeps listing-based
+file handoff and visible focus consistent after publication. It is an in-process
+ownership guarantee, not a filesystem identity lock or a new provider admission rule.
 
 ### SEC-002 — Untrusted input is bounded before use
 
