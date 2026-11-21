@@ -91,3 +91,7 @@ The completed Bookmark worktrees398/430/431/445/457 were removed at03:34:45 afte
 all7004 ignored artifacts/1,582,125,646bytes were archived and every entry verified.
 Branches/commits/evidence remain. Worktree495 stays retained for hide's live
 screen-review app14492 and associated unfinished runtime cleanup.
+
+## Reporting checkpoint
+
+The November22 03:46 JST [daily report](../reports/2026-11-22-preview-beta3-daily-report.md) and [handoff](../handoffs/2026-11-22-preview-beta3-handoff.md) consolidate this release and all28 future requests. Monitor movement551 and global visibility/foreground hotkey552 are recorded after release preparation; no product change is included. Second deep review44936588484 on9ca919d remains in progress at the checkpoint. The documentation-only follow-up preserves all reviewed product/test/dependency/tool inputs; reuse successful evidence under ADR-0061. Actual release publication and final artifact proof remain pending.
