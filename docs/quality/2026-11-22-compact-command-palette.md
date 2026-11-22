@@ -1,7 +1,7 @@
 # Compact command palette — Issue #525
 
 Date: 2026-11-22
-Status: locally implemented and verified; not published or integrated.
+Status: local XAML and selected geometry/API-scroll proof; one synthetic short-height case, native acceptance and publication remain unresolved.
 Base: main7ef9b9654bf26a74d2c673c6ff1d1d79195e65b2.
 
 ## Change and scope
@@ -60,6 +60,58 @@ This does not establish native keyboard/IME behavior or complete product layout.
   behavior proof is reused. No unrelated product suite, full CI, coverage,
   mutation or CS-013 inspection is repeated for two XAML changes.
 
+## Attached composition follow-up at19:43 JST
+
+A separate `attached-probe` uses the #551/#548 finding that an owned unshown Window
+can attach XamlRoot after dispatcher progress. It measures actual native client
+sizes640/320 by800/300 at125%, using the complete palette surface, search box,
+12 literal long-title/unavailable rows, detail and five canonical hints. English
+and Japanese use shipped resources; Chinese remains synthetic future stress text.
+The actual CommandPaletteRowContainerStyle and KeyHintWrapPanel are loaded. The
+row Loaded tooltip handler is removed, so tooltip binding is not tested.
+
+All attempts are retained, and only the final lifecycle variant collected results:
+
+- Initial restore/build succeeded0 warnings/errors. Parsing failed because the
+  fixture had omitted the window-scoped CommandPaletteRowContainerStyle. The
+  launcher stopped its owned process at20 seconds. PID was not captured by that
+  first launcher, and no successful layout is claimed. `attached-missing-style*`
+  and `attached-probe-missing-style.cs` preserve the error/source/timeout.
+- The exact product style was added to the fixture, and diagnostic failure cleanup
+  was changed to exit only its own process after writing an error. Build again
+  succeeded0 warnings/errors. Process8496 exited2 because the first130 ms tick did
+  not yet have XamlRoot. `attached-style-corrected*`, `attached-single-tick.error.txt`
+  and `attached-probe-single-tick.cs` preserve this invalid one-tick assumption.
+- The final fixture explicitly sizes its own native client, waits for actual
+  XamlRoot within the same20-second overall bound, then applies the requested
+  effective client size. No longer delay is treated as success. Lifecycle build
+  succeeded0 warnings/errors; process21264 exited0 without reaching the bound.
+  `attached-lifecycle-*` and `full-attached-lifecycle-layout.json` record this run.
+
+All12 final conditions acquire XamlRoot, match the requested client size, reach
+and realize the last row, return the first row to top0/offset0, and keep the modal
+and hints inside24 inset. All8 shipped-language conditions contain the entire last
+row. Of the4 synthetic-Chinese conditions,3 contain it entirely; at320×300 the
+viewport is32 while the row is33.6 effective pixels high, so about1.6 is outside.
+This stress case remains unresolved, not rounded into a pass. Complete-row proof
+is11/12; arrival/return and outer geometry are12/12. It needs follow-up in the
+Chinese locale/short-height design before that combination can be accepted.
+
+`attached-scroll-comparison.json` records these distinct assertions with0.02-pixel
+float tolerance and confirms all1079 original product inputs unchanged. Final
+activation count is0, ever-visible is false, and all sampled foreground values
+match the initial handle. No Show/Activate, injected input, product/session,
+settings or user data is used. Final source and the exact product panel source are
+in `attached-fixture-source/` with hashes. Prior successful App/geometry proof is
+reused; no product build/test/CI repeats. The fixture's timer is diagnostic sampling,
+not new product code or a deterministic product-test claim.
+
+From attached-probe, commands were `dotnet restore LayoutProbe.csproj --locked-mode
+-p:Configuration=Release` then `dotnet build LayoutProbe.csproj -c Release --no-restore
+-maxcpucount:4`; subsequent variants only used the latter. Each exact net10/win-x64
+LayoutProbe.exe launch used `Start-Process -WindowStyle Hidden -PassThru` and
+`WaitForExit(20000)`, with fixed task-owned JSON output and no command-line argument.
+The initial timeout, second exit2 and final exit0 remain separate outcomes.
 ## Exact commands
 
 From the task worktree:
@@ -89,10 +141,11 @@ fixture sources preserve every material attempt. The normal Commit hook remains
 
 ADR-0061 scope is a view-layout correction with affected App build, direct native
 geometry fixture and canonical Commit conformance. No application behavior or
-trust boundary changes. Neither helper-process success nor detached layout proves
-full-window short-height overflow, actual DPI/text scaling, screen-reader output,
-native search/IME/key routing, scrim hit testing, focus return or performance latency.
-Those existing environmental limits remain separate (#94/#523/#453/#491).
+trust boundary changes. Attached composition now adds the bounded125% API proof
+above; the synthetic320×300 complete-row assertion remains unresolved. Visible
+full-product behavior, other DPI/text scales, screen-reader output, native search/
+IME/key routing, scrim hit testing, focus return and performance latency remain
+unproved and separate (#94/#523/#453/#491). Helper geometry is not screen acceptance.
 
 #542 is committed locally at7724d88 but a prior automatic review rejected its
 push for lack of destination/payload-specific approval. Its question is pending;

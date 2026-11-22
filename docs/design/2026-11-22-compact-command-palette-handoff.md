@@ -14,8 +14,8 @@ centered; it retains Top alignment so filtering cannot move the search field
 vertically. A fixed24 effective-pixel inset replaces the advice's dynamic top
 percentage and narrow breakpoint, avoiding an extra sizing callback. There is no
 minimum/fixed width or height. The original star-sized scrolling candidate list
-continues to receive remaining height; short-window/full-window/DPI constraints
-are not claimed as newly proved.
+continues to receive remaining height. The follow-up below records bounded attached
+short-height measurements and their remaining synthetic-text limitation.
 
 The candidate grid keeps the marker and shortcut in Auto columns. The title and
 target share a2-star column; the existing reason uses a1-star column instead of
@@ -43,3 +43,13 @@ created or activated and no input was injected. This is geometry evidence, not a
 complete product screenshot, native keyboard/IME, DPI or Narrator result.
 The [quality record](../quality/2026-11-22-compact-command-palette.md) records trials
 and exact limits, including an unavailable built-in panel experiment.
+
+At19:43, the added attached-tree fixture measured actual125% client sizes640/320 by
+800/300 with the full surface. All12 conditions reach the last row and return to
+the first through ScrollIntoView; modal/hints fit. All8 English/Japanese cases show
+the whole last row. One synthetic-Chinese320×300 case leaves a32-high viewport for
+a33.6-high row. That complete-row requirement remains unsatisfied and must be
+resolved before accepting that future text/height combination. No new layout rule
+or product patch is inferred here. The two earlier fixture setup failures and the
+final lifecycle proof remain in the quality record. Native input, tooltip binding,
+other scales, Narrator and visible screen acceptance are still separate.
