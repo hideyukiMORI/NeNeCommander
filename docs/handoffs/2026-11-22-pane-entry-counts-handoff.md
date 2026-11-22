@@ -24,3 +24,9 @@ hideの症状の再現ではない。隔離したnative観測なしに推測修�
 #453/#491 native応答とAppSDK PR517は別件。ユーザーAppのissue495、未完491/514/
 pr-498-reviewと関連outputを消さず、現在の設定を古いbackupで上書きしない。
 共有デスクトップ入力禁止。hideの継続指示は有効。
+
+17:20 JST追記: ローカル通常hookは112規約/security24登録/commit形式が成功。
+19ファイルの件数機能を既存公開GitHubへpushする操作が自動承認レビューに拒否された。
+理由は今回のsource/historyと送信先に対する具体的なhide承認が確認できないこと。
+別手段へ切り替えず、当該branchの送信承認を依頼する。PR・main統合・整理は未完了。
+専用D worktreeと恒久証拠を保持。後片付けの拒否やhide実行待ちではない。

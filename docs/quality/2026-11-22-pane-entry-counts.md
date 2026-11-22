@@ -125,3 +125,18 @@ its existing low-priority activation restore and possible routed-input boundary
 are recorded separately in the permanent investigation evidence. #453/#491 native
 latency and AppSDK PR517 remain separate. This change neither establishes native
 input isolation nor repeats the prohibited shared-desktop experiments.
+
+## Publication approval hold — 17:20 JST
+
+The normal commit hook passes112 normative rules, the24-case security registry
+and the commit-message check. Product commit is8ac0c4cfb6f31b6465ad65a0d5a249a98235a28e;
+all frozen non-Markdown input hashes still match.
+Automatic approval rejected the planned push before execution: source/history
+export to the existing public GitHub remote requires explicit destination- and
+payload-specific user approval. The verified origin is
+https://github.com/hideyukiMORI/NeNeCommander.git. This is the19-file count feature
+(source, tests and documentation), with no generated binary/evidence payload.
+The full reason is retained in push-approval-hold.json. No alternate tool or
+indirect route is used to send it. Approval is requested for this concrete branch;
+PR creation/integration and task cleanup remain pending. Retain the completed
+local source/evidence and the dedicated worktree while it is unintegrated.

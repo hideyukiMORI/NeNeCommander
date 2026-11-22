@@ -25,3 +25,9 @@ PRと専用作業物の整理結果はclosing PR/completion.jsonが所有する�
 とは言えない。調査はD:/NeNeCommander/evidence/reactivation-input-20261122に保存。
 共有デスクトップ入力、ユーザーAppの終了、設定変更は行っていない。
 #453/#491とAppSDK PR517は別件として保持し、hideの停止まで継続する。
+
+17:20 JST追記: ローカル通常hookは112規約/security24登録/commit形式が成功。
+19ファイルの件数機能を既存公開GitHubへpushする操作が自動承認レビューに拒否された。
+理由は今回のsource/historyと送信先に対する具体的なhide承認が確認できないこと。
+別手段へ切り替えず、当該branchの送信承認を依頼する。PR・main統合・整理は未完了。
+専用D worktreeと恒久証拠を保持。後片付けの拒否やhide実行待ちではない。
