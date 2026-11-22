@@ -38,11 +38,11 @@ public sealed class CommandPaletteViewState
     /// <summary>Gets the filtered rows in stable catalog order.</summary>
     public IReadOnlyList<CommandPaletteRow> Rows { get; private set; }
 
-    /// <summary>Gets the localized target summary shared by every captured row.</summary>
-    public string Target => _allRows[0].Target;
+    /// <summary>Gets the selected command target, retaining the captured default when no result is selected.</summary>
+    public string Target => SelectedRow?.Target ?? _allRows[0].Target;
 
-    /// <summary>Gets the localized opposite-pane summary shared by every captured row.</summary>
-    public string Opposite => _allRows[0].Opposite;
+    /// <summary>Gets the opposite side of the selected command target, or the captured default for zero results.</summary>
+    public string Opposite => SelectedRow?.Opposite ?? _allRows[0].Opposite;
 
     /// <summary>
     /// Gets the one line that names the target and the opposite pane. The separator is palette

@@ -1,5 +1,6 @@
 using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,6 +15,7 @@ internal sealed class CommanderPaneView
     private readonly FrameworkElement _root;
     private readonly ResourceLoader _resources;
     private readonly TextBlock _address;
+    private readonly Button _navigation;
     private readonly TextBlock _status;
     private readonly TextBlock _counts;
     private readonly ListView _fileList;
@@ -32,6 +34,7 @@ internal sealed class CommanderPaneView
         _resources = resources;
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
+        _navigation = Find<Button>(prefix + "OpenOtherPane");
         _status = Find<TextBlock>(prefix + "Status");
         _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");
@@ -42,9 +45,14 @@ internal sealed class CommanderPaneView
         _number = Find<TextBlock>(prefix + "PaneNumber");
     }
 
-    internal void Render(PanePresentation presentation, PaneFrame frame)
+    internal void Render(PanePresentation presentation, PaneFrame frame, PaneNavigationAction navigation)
     {
         _address.Text = presentation.AddressText;
+        _navigation.Visibility = navigation.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        _navigation.IsEnabled = navigation.IsEnabled;
+        string navigationName = navigation.ComposeName(_resources.GetString);
+        AutomationProperties.SetName(_navigation, navigationName);
+        ToolTipService.SetToolTip(_navigation, navigationName);
         if (!ReferenceEquals(_fileList.ItemsSource, presentation.Rows))
         {
             _fileList.ItemsSource = presentation.Rows;

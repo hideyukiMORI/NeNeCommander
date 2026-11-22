@@ -221,8 +221,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation, keyHintVisibility);
         _presentation = presentation;
-        _leftPaneView.Render(presentation.Left, presentation.LeftFrame);
-        _rightPaneView.Render(presentation.Right, presentation.RightFrame);
+        _leftPaneView.Render(presentation.Left, presentation.LeftFrame,
+            PaneNavigationAction.Create(snapshot, PaneSide.Left));
+        _rightPaneView.Render(presentation.Right, presentation.RightFrame,
+            PaneNavigationAction.Create(snapshot, PaneSide.Right));
         _operationView.Render(presentation);
         _operationContext = presentation.InputContext;
         if (GetKeyboardContext() == KeyboardContext.FileList)
@@ -301,6 +303,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
                 ? UserIntent.SubmitName(NameEntry.Text)
                 : intent;
+    }
+
+    private void OnOpenOtherPaneClick(object _, RoutedEventArgs args)
+    {
+        ForwardIntent(UserIntent.OpenCurrentLocationInOtherPane);
     }
 
     private void OnPathDisplayPointerPressed(object sender, PointerRoutedEventArgs args)

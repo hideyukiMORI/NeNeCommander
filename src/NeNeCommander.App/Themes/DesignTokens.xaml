@@ -40,6 +40,8 @@
     <x:Double x:Key="ElevationPaneTranslation">2</x:Double>
     <x:Double x:Key="DensityNone">0</x:Double>
     <x:Double x:Key="DensityPaneHeaderHeight">34</x:Double>
+    <x:Double x:Key="DensityPaneNavigationTargetSize">24</x:Double>
+    <x:Double x:Key="SpacingPaneNavigationGap">4</x:Double>
     <x:Double x:Key="DensityRowHeight">28</x:Double>
     <x:Double x:Key="DensityRowMarkerWidth">2</x:Double>
     <x:Double x:Key="DensityKindIconSize">16</x:Double>

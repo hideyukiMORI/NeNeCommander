@@ -19,14 +19,26 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Ctrl+D` or `PageDown` | move focus down by half the visible page |
 | `Ctrl+U` or `PageUp` | move focus up by half the visible page |
 | `Tab` | activate the other pane without changing either pane's focus item |
+| `Ctrl+E` | open the current listed folder in the opposite pane, preserving active side and source focus/selection |
 | `Space` | toggle selection of the focus item without moving focus |
 | `Ctrl+H` | toggle hidden and system entries in the active pane |
 | `Ctrl+F3` | sort the active pane by name; again reverses the direction, from another key starts ascending |
 | `Ctrl+F4` | sort the active pane by extension; again reverses the direction, from another key starts ascending |
 | `Ctrl+F5` | sort the active pane by size, unknown sizes last; again reverses the direction, from another key starts ascending |
 | `Ctrl+F6` | sort the active pane by modification time, unknown times last; again reverses the direction, from another key starts ascending |
-| `Escape` | cancel a running file operation, then abandon the active pane's loading read, then cancel pending chord, then close transient UI, then clear selection |
+| `Escape` | cancel a running file operation, then abandon the active pane's loading read (or the exact passive read owned by Ctrl+E), then cancel pending chord, then close transient UI, then clear selection |
 
+`Ctrl+E` is declared in FileList and NavigationSurface only (ADR-0084). Its produced `e`
+with Control, or control character U+0005 with Control, uses the existing translated E key;
+raw virtual E remains a pass-through precursor. Plain e, native text/IME and Bookmark edit
+e retain their own contexts. The existing repeat guard consumes a held accepted Ctrl+E
+across later contexts until a fresh initial E; an untracked repeated Ctrl+E cannot start it.
+F1, shown footer and palette read the same canonical shortcut and command label. The new
+palette row identifies the opposite destination; all other command rows retain their targets.
+The hidden-footer setting still shows only F1. While the read runs, the host admits only
+Escape, which abandons that exact passive read when no active read takes precedence.
+No Tab or ordinary command is admitted during host work. See ADR-0084 for admission,
+idempotent same-location behavior and cancelled/failed-read content retention.
 Single-step movement cycles within the active pane's current visible projected order (hide, 2026-11-22;
 Issue #524). An empty visible set stays unfocused and one visible item keeps its focus. Cycling preserves
 explicit selection and the passive pane. Half-page movement still stops at either end, even when its

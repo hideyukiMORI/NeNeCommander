@@ -38,8 +38,9 @@ public sealed class CommandPalettePresenterTests
             Assert.AreSame(intent, row.Intent);
             Assert.AreEqual($"<{resourceKey}>", row.Title);
             Assert.AreEqual($"<{shortcutKey}>", row.Shortcut);
-            Assert.AreEqual("<CommandPaletteTargetLeft>", row.Target);
-            Assert.AreEqual("<CommandPaletteOppositeRight>", row.Opposite);
+            bool opposite = intent == UserIntent.OpenCurrentLocationInOtherPane;
+            Assert.AreEqual(opposite ? "<CommandPaletteTargetRight>" : "<CommandPaletteTargetLeft>", row.Target);
+            Assert.AreEqual(opposite ? "<CommandPaletteOppositeLeft>" : "<CommandPaletteOppositeRight>", row.Opposite);
             Assert.AreEqual("CommandPaletteCandidate_" + resourceKey, row.AutomationId);
         }
 
@@ -185,6 +186,7 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks", "KeyLabelCtrlB"),
             (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment", "KeyLabelCtrlW"),
             (UserIntent.OpenHelp, "IntentLabelOpenHelp", "KeyLabelF1"),
+            (UserIntent.OpenCurrentLocationInOtherPane, "IntentLabelOpenCurrentLocationInOtherPane", "KeyLabelCtrlE"),
         ];
     }
 }

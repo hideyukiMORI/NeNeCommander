@@ -61,6 +61,7 @@ internal static class KeyboardInputTranslator
             'a' => KeyboardKey.A,
             'd' or '\u0004' => KeyboardKey.D,
             'e' => KeyboardKey.E,
+            '\u0005' when modifier == KeyboardModifier.Control => KeyboardKey.E,
             '/' => KeyboardKey.Slash,
             'b' or '\u0002' => KeyboardKey.B,
             'G' => KeyboardKey.UpperG,

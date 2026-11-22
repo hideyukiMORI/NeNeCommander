@@ -48,6 +48,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to activate the other pane.</summary>
     public static UserIntent ActivateOtherPane { get; } = new ActivateOtherPaneIntent();
 
+    /// <summary>Gets the intent to open the current listed location in the opposite pane without activating it.</summary>
+    public static UserIntent OpenCurrentLocationInOtherPane { get; } = new OpenCurrentLocationInOtherPaneIntent();
+
     /// <summary>Gets the intent to toggle explicit selection for the focus item.</summary>
     public static UserIntent ToggleSelection { get; } = new ToggleSelectionIntent();
 
@@ -313,6 +316,12 @@ public abstract record UserIntent
         }
     }
     private sealed record OpenFocusedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenCurrentLocationInOtherPaneIntent : UserIntent
     {
         private protected override void RestrictDerivation()
         {

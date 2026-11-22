@@ -4,6 +4,8 @@ Status: accepted
 
 Date: 2026-09-03
 
+Refinement (2026-11-22): [ADR-0084](0084-open-current-location-in-other-pane.md) adds the explicit current-location-in-other-pane intent through the existing side-qualified navigation route. Active side remains unchanged; its cancellation capture is distinct from pane/read ownership. The original active-only statements below are superseded for that one intent.
+
 ## Context
 
 `PaneSession` coordinates one pane. The product has two panes and exactly one active pane that receives navigation and file-operation intents (glossary: active pane, passive pane). `Tab` maps to `ActivateOtherPane`, KBD-004 requires activation not to move either pane's focus item, and ADV-016 requires a read in flight to land in the pane that started it even when activation changes meanwhile.

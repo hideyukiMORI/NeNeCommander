@@ -26,6 +26,8 @@ None.
 
 ## Accepted decisions
 
+- [ADR-0084: Open the active location in the opposite pane through existing navigation](0084-open-current-location-in-other-pane.md)
+
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 
 - [ADR-0082: Wrap the footer and persist its normal key-hint visibility](0082-footer-key-hint-visibility.md)
