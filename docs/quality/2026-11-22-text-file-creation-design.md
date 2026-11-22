@@ -132,3 +132,41 @@ this is OS primitive evidence only. The current process has no
 NENE_COMMANDER_WSL_TEST_ROOT value; no live WSL mutation was started. No inference
 about another process's configuration, registered distributions or 9P capability
 is made from that absence. Native UI input is also unexecuted.
+
+## Independent review clarification — 20:40 JST
+
+The read-only reviewer requested a fixed completion scope and unambiguous late-
+cancellation result. The proposal now makes Windows local AND WSL the feature's
+completion scope: missing selected live WSL proof keeps the whole feature
+unaccepted/unshipped, with no evidence-controlled runtime switch. A successful
+admitted creation returns Succeeded, one FileCreated and progress1/1 even when
+cancellation arrives during the step, so the existing preferred-focus route stays
+reachable. Other failures/cancellation before admission remain closed and effect-
+free. Final technical review is still pending; no product implementation was made.
+
+The documentation commit387a92e passed the normal commit hook:112 normative rules,
+24 registered adversarial IDs, security/whitespace/message convention exit0.
+The separate new-document relative-link check passes. No product validation is
+claimed by these hook results. The original investigation input hashes are unchanged.
+
+## Technical contract accepted — 20:42 JST
+
+The independent read-only reviewer confirmed the corrected contract has no
+remaining mandatory correction. They checked the original primitive scripts/results,
+existing gateway/provider/scheduler and all22 source hashes (0 mismatches). The
+design owner accepts ADR-0085 technically under the current continuation request.
+The feature is still unimplemented and unshipped; selected live WSL, deep review,
+isolated native input and mouse-entry integration remain required.
+
+Reviewer discovery-only failures were retained in the review: initial git ownership
+refusal, then command-scoped safe.directory with a user-ignore-file permission
+warning; wrong ADR0027/CommandCatalog paths corrected with rg --files; truncated
+reads bounded and repeated; one call aborted before dispatch when a message arrived.
+The primary agent also had one read call aborted before dispatch on that message.
+No product or filesystem mutation occurred in those review activities.
+
+The next implementation branch is feat/544-create-empty-text-file in the same
+issue-544 worktree, starting from the accepted documentation. The documentation
+branch/commit are retained. The source-manifest is the pre-implementation baseline;
+subsequent product input changes require their own evidence and cannot reuse it as
+proof of the final code.

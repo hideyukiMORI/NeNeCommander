@@ -22,9 +22,11 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
-- [ADR-0085: Create one empty text file through the existing mutation gateway](0085-create-empty-text-file.md)
+None.
 
 ## Accepted decisions
+
+- [ADR-0085: Create one empty text file through the existing mutation gateway](0085-create-empty-text-file.md)
 
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 

@@ -33,3 +33,8 @@ fixture-02,fixture-03 は保持する。実link/readonly/hidden/長いpathがあ
 link先はすべて各fixture内。後の削除前に絶対path・唯一成果物・稼働参照・linkを検査し、
 成果物保全/受理/main統合後のみ専用worktree/outputを整理、branch/commit/evidenceは残す。
 現在後片付け拒否なし。hideの継続指示は有効、ユーザーApp/settings/他の作業は保持する。
+
+20:42更新: 独立レビューの2点（Windows+WSL全体を完成条件、late cancelはSucceeded）を修正し、
+追加必須修正なしを得た。ADR-0085を技術受理。機能の実装/製品受理/出荷ではない。
+同じworktreeでfeat/544-create-empty-text-fileへ進む。docs branch/commitを保持する。
+最初の22hashは調査時baseline。製品編集後に同じ証拠をfinal proofとは扱わない。

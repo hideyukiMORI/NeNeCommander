@@ -1,10 +1,12 @@
 # ADR-0085: Create one empty text file through the existing mutation gateway
 
-Status: proposed
+Status: accepted
 
 Date: 2026-11-22
 
-Issue #544. This is a reviewable technical proposal, not implementation or native UI acceptance.
+Issue #544. The design owner accepts this technical contract under hide's current
+continuation instruction after independent read-only review and the two clarified
+scope/cancellation points. This is not implementation, shipment or native UI acceptance.
 ADR-0084 is already allocated to Issue #547 in its retained worktree.
 
 ## Context
@@ -20,7 +22,7 @@ target to be created. CREATE_NEW combined with FILE_FLAG_OPEN_REPARSE_POINT refu
 that entry with error80. Both still follow a linked ancestor. These are OS primitive
 observations, not provider or product proof; see the linked quality record.
 
-## Decision proposed for review
+## Decision
 
 - Add a closed UserIntent.CreateTextFile and OperationKind.CreateTextFile. Use the
   existing OperationAwaitingName, NameSubmission, DualPaneSession.StartAsync and
@@ -55,15 +57,19 @@ observations, not provider or product proof; see the linked quality record.
 - Preserve ADR-0027's admitted atomic-step semantics: scheduler-level cancellation
   does not discard a queued/running mutation. Cancellation before admission stops
   creation. Once admitted, the step may complete; a successful effect is reported
-  even if cancellation arrives during it. There is no delete-on-cancel rollback.
+  even if cancellation arrives during it: the gateway returns Succeeded with one
+  FileCreated effect and progress1/1, not Cancelled with effects. This preserves
+  the existing successful-target focus policy. There is no delete-on-cancel rollback.
   Refresh/listing failure cannot erase the completed creation receipt. Successful
   creation uses the existing RefreshFocusingAsync target policy and passive refresh;
   no new selection or focus owner is added.
 - ProviderFileOperationPort routes this single-parent operation. Proposed admitted
   providers are Windows local under current WindowsDriveBoundary rules and WSL
   through its current 9P identity/extended-length boundary. UNC and mapped/unknown
-  drives retain closed refusal. An unproved WSL capability must remain disabled;
-  Windows success or a fake alone never grants WSL creation permission.
+  drives retain closed refusal. Windows local AND WSL are the completion scope of
+  this feature. Until the selected live WSL cells pass, the entire feature remains
+  unaccepted and unshipped; no runtime evidence flag or Windows-only completion is
+  introduced. Windows success or a fake alone never grants WSL creation permission.
 - Each provider revalidates the original location identity and its current non-link
   ancestor chain, requires a non-link directory, the same provider, and equality of
   target.Parent with that exact location using FileSystemPathIdentityComparer.
