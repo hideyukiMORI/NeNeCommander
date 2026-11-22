@@ -127,3 +127,32 @@ AppSDK PR517は今回のreleaseに混ぜない。
 lazy情報表示・演出off、keyboard/mouse同一commandの契約を保つ。
 アーカイブはcharter/ADR、新しいglobal hotkeyはwindow lifecycle/keyboard契約を
 先に設計し、無関係な依存や二重実行経路を増やさない。
+
+## 最新の実行状態 — 2026-11-22 15:06 JST
+
+この節が上の03:46時点の実行中・未確定情報を更新する。hideは13:25以降、
+マイルストーン継続、必要な試験/計測、全試行の記録、停止指示までの継続を依頼した。
+現在はまずbeta.3公開を完了する段階。新機能の実装へ勝手に優先順位を切り替えない。
+
+- mainは08c2d9c。issue522作業branchの製品headは264cffa、PR529はDraft。
+- 第二deep44936588484/9ca919dは19チェック成功。3つのCodeQL指摘を#553で修正。
+- 全ローカル補完検証と独立レビューは完了。正確な数値・制約は
+  [品質記録](../quality/2026-11-22-release-codeql-corrections.md)の最終節を参照。
+- 完成SARIF: `D:/NeNeCommander/evidence/release-beta3-20261122/codeql-corrections/final.sarif`。
+  3,548,275bytes、SHA256 `d255f59d3bc8ab1885deae032c446da04ac23551f5857a5a57b00ae23b9e9e64`。
+- 自動承認レビューがこのpayloadの公開GitHub登録を2回拒否。送信先/正本規約を確認しても、
+  ローカルパスを含む具体的な外部送信についてhideの明示承認が必要という理由だった。
+  候補branchと統合後mainへの送信をhideへ質問済み。返答がなければ送信を進めない。
+  別API・workflow・間接実行へ切り替えて拒否を回避しない。
+- 解析・mutation・対象テストを再実行する必要はない。新しい入力変更、証拠の具体的欠落、
+  96時間期限超過が起きた範囲だけを選ぶ。記録スクリプトの失敗も既に保全・修正した。
+- 承認後は同じ固定SARIFを正規CLIで登録し、APIのprocessing success/エラー/警告/指摘を確認。
+  CodeQLの異なるanalysis configurationで古い指摘が残る場合、削除/dismiss/baseline化しない。
+- PRの最終docs/受理/通常squash後、accepted tree一致を根拠に同じ解析証拠をmainへ適用し、
+  mainでも成功解析とopen alert0を確認する。packaging以降は上の再開手順のまま。
+- 正式candidate、tag、releaseはまだ作成していない。公開済みとは報告しない。
+- 後片付け拒否は発生していない。issue522/outputは未完了として残す。
+  ユーザーApp/issue495、#491、AppSDK#514、他の恒久証拠を変更しない。
+
+今回の最終記録の変更はMarkdownのみ。通常Commit hookとdiff/link確認だけを行い、
+成功済みの製品テストやCIを文書更新だけで再実行しない。

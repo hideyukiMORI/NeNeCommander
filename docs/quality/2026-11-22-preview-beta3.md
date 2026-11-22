@@ -102,3 +102,9 @@ The second deep review passed, but candidate CodeQL alerts154–156 remain open.
 Issue553 records their source corrections, focused proof and required
 supplemental validation in [the correction record](2026-11-22-release-codeql-corrections.md).
 Default-branch0 alerts did not establish candidate acceptance. Publication remains pending.
+
+
+Local supplemental proof is complete at15:06 JST. Original CodeQL reports0 findings;
+remote upload/readback and publication remain held for hide's explicit payload
+authorization after automatic approval rejection. The correction record and latest
+handoff section contain the exact payload, diagnostic limits and remaining steps.
