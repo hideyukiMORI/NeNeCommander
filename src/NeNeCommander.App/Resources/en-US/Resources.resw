@@ -398,4 +398,6 @@
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>Shown: files {0:N0}, folders {1:N0} · Selected {2:N0} · Loaded: files {3:N0}, folders {4:N0}</value></data>
   <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>Loaded entries only · {0}</value></data>
   <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>Last listing · {0}</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>Open this folder in the right pane ({0})</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>Open this folder in the left pane ({0})</value></data>
 </root>

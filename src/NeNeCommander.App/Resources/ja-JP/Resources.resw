@@ -398,4 +398,6 @@
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>表示: ファイル {0:N0}・フォルダー {1:N0} · 選択 {2:N0} · 取得: ファイル {3:N0}・フォルダー {4:N0}</value></data>
   <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>取得分のみ · {0}</value></data>
   <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>前回の一覧 · {0}</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>このフォルダーを右ペインで開く（{0}）</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>このフォルダーを左ペインで開く（{0}）</value></data>
 </root>

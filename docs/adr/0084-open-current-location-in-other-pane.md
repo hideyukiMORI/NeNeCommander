@@ -10,7 +10,9 @@ cross-pane navigation intent. No reader, provider, state owner or execution path
 Accepted for the technical routing/cancellation contract by the design owner under
 hide's current continuation instruction, after an independent read-only review
 and correction of host cancellation reachability and provider-aware path identity.
-Icon placement remains a proposal. Implementation/native acceptance and public transmission are separate.
+The November22 22:07 header implementation review accepts the engineering integration
+in [the design handoff](../design/2026-11-22-other-pane-header-handoff.md). Native screen
+acceptance and source publication remain separate.
 
 ## Context
 
@@ -86,9 +88,11 @@ activation. It must never be interpreted as copying or moving selected files.
   the same intent through the normal forwarder and keeps keyboard focus. The
   existing modal overlay owns blocking; readiness supplies enabled state. It must
   say that it opens the current folder, not files or selected items, in tooltip/UIA
-  wording with direction and shortcut. Icon placement/size is not accepted by this
-  proposal: the authored design brief awaits approved external consultation and
-  eventual engineering/screen review. Existing semantic styles/tokens are mandatory.
+  wording with direction and shortcut. The approved tool-free consultation informs
+  the 24-DIP reserved header target and 16-DIP folder/arrow geometry in the design
+  handoff. The passive slot remains; the active button projects the sole readiness
+  predicate. Same-location stays enabled under the contract above. Existing semantic
+  styles/tokens are mandatory; native screen acceptance remains pending.
 
 ## Rejected alternatives
 
@@ -111,10 +115,10 @@ presentation/keyboard projections. No old overload, compatibility path, provider
 policy, dependency, saved schema, new mechanism-registry row or new I/O boundary is
 needed. The existing rows remain the single owners.
 
-This work is local while #542's source publication approval remains pending. The
-Claude design brief was separately rejected by automatic approval and its exact
-payload/destination question is pending. Neither rejection may be retried through
-another branch, service or helper. Core local design/tests are independent work.
+The earlier transmission holds are historical: hide approved #542 publication and
+the exact Claude brief at21:34 JST. #542 is integrated as PR557/main b82aa1e; the
+2,593-byte brief received one tool-free consultation. This feature remains a local
+candidate; its source publication, native acceptance and integration are separate.
 
 ## Executable proof
 
