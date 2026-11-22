@@ -54,7 +54,9 @@ public static class PaneReducer
         }
 
         int currentIndex = GetFocusIndex(state);
-        int targetIndex = Math.Clamp(currentIndex + offset, 0, state.VisibleEntries.Count - 1);
+        int targetIndex = intent == UserIntent.MoveNext || intent == UserIntent.MovePrevious
+            ? (currentIndex + offset + state.VisibleEntries.Count) % state.VisibleEntries.Count
+            : Math.Clamp(currentIndex + offset, 0, state.VisibleEntries.Count - 1);
         return state.Transition(state.VisibleEntries[targetIndex].Path, state.Selection);
     }
 

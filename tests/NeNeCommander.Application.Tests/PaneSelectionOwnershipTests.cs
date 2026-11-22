@@ -27,7 +27,7 @@ public sealed class PaneSelectionOwnershipTests
         UserIntent[] intents = [UserIntent.MoveNext, UserIntent.MovePrevious,
             UserIntent.MoveHalfPageDown, UserIntent.MoveHalfPageUp, UserIntent.FocusLast,
             UserIntent.MoveNext, UserIntent.FocusFirst, UserIntent.MovePrevious];
-        int[] expectedFocus = [1, 0, 2, 0, 2, 2, 0, 0];
+        int[] expectedFocus = [1, 0, 2, 0, 2, 0, 0, 2];
 
         for (int index = 0; index < intents.Length; index++)
         {
@@ -205,14 +205,14 @@ public sealed class PaneSelectionOwnershipTests
         PaneState next = PaneReducer.Apply(original, UserIntent.MoveNext);
 
         PaneState returned = PaneReducer.Apply(next, UserIntent.MovePrevious);
-        PaneState clamped = PaneReducer.Apply(original, UserIntent.MovePrevious);
+        PaneState sameFocus = PaneReducer.Apply(original, UserIntent.FocusFirst);
 
         Assert.AreNotSame(original, returned);
-        Assert.AreNotSame(original, clamped);
+        Assert.AreNotSame(original, sameFocus);
         Assert.AreEqual(original, returned);
-        Assert.AreEqual(original, clamped);
+        Assert.AreEqual(original, sameFocus);
         Assert.AreEqual(original.GetHashCode(), returned.GetHashCode());
-        Assert.AreEqual(original.GetHashCode(), clamped.GetHashCode());
+        Assert.AreEqual(original.GetHashCode(), sameFocus.GetHashCode());
     }
 
     private static PaneState CreateState(int selectedCount)

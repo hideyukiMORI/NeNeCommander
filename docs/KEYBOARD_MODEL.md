@@ -8,8 +8,8 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 
 | Input | Intent |
 |---|---|
-| `j` or `Down` | focus next visible item |
-| `k` or `Up` | focus previous visible item |
+| `j` or `Down` | focus next visible item; from the last, cycle to the first |
+| `k` or `Up` | focus previous visible item; from the first, cycle to the last |
 | `h`, `Backspace`, or `Alt+Up` | navigate to parent |
 | `l` or `Enter` | open the focus item: navigate into a directory or hand a Windows local file to its Shell association |
 | `Alt+Left` | navigate to the previous successful location in the active pane |
@@ -26,6 +26,12 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 | `Ctrl+F5` | sort the active pane by size, unknown sizes last; again reverses the direction, from another key starts ascending |
 | `Ctrl+F6` | sort the active pane by modification time, unknown times last; again reverses the direction, from another key starts ascending |
 | `Escape` | cancel a running file operation, then abandon the active pane's loading read, then cancel pending chord, then close transient UI, then clear selection |
+
+Single-step movement cycles within the active pane's current visible projected order (hide, 2026-11-22;
+Issue #524). An empty visible set stays unfocused and one visible item keeps its focus. Cycling preserves
+explicit selection and the passive pane. Half-page movement still stops at either end, even when its
+step is one row; first/last targeting is unchanged. The Locations, Settings and Bookmark contexts keep
+their own declared movement behavior.
 
 `Ctrl+F3` and `Ctrl+F4` are declared for the file list and the navigation surface (ADR-0053). Plain
 `F3` and `F4` are unassigned and pass through. `Ctrl+F5` and `Ctrl+F6` are declared for the same two contexts

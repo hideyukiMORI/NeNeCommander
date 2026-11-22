@@ -17,9 +17,9 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class PaneSelectionSessionTests
 {
-    /// <summary>Proves reference-based publication continues when clamped states compare equal.</summary>
+    /// <summary>Proves reference-based publication continues when an unchanged focus target compares equal.</summary>
     [TestMethod]
-    public async Task HandleAsyncWhenClampedSelectionIsEqualPublishesNewSnapshot()
+    public async Task HandleAsyncWhenFocusTargetIsUnchangedPublishesNewSnapshot()
     {
         DirectoryListing listing = PaneSessionTestContext.Listing("C:\\selection",
             ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
@@ -29,15 +29,15 @@ public sealed class PaneSelectionSessionTests
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot selected = await session.HandleAsync(UserIntent.ToggleSelection, CancellationToken.None);
 
-        PaneSnapshot clamped = await session.HandleAsync(UserIntent.MovePrevious, CancellationToken.None);
+        PaneSnapshot sameFocus = await session.HandleAsync(UserIntent.FocusFirst, CancellationToken.None);
 
         PaneState originalState = Assert.IsInstanceOfType<PaneContentListed>(selected.Content).State;
-        PaneState clampedState = Assert.IsInstanceOfType<PaneContentListed>(clamped.Content).State;
-        Assert.AreNotSame(selected, clamped);
-        Assert.AreNotSame(originalState, clampedState);
-        Assert.AreEqual(originalState, clampedState);
-        Assert.AreSame(originalState.Selection, clampedState.Selection);
-        Assert.AreSame(clamped, session.Current);
+        PaneState sameFocusState = Assert.IsInstanceOfType<PaneContentListed>(sameFocus.Content).State;
+        Assert.AreNotSame(selected, sameFocus);
+        Assert.AreNotSame(originalState, sameFocusState);
+        Assert.AreEqual(originalState, sameFocusState);
+        Assert.AreSame(originalState.Selection, sameFocusState.Selection);
+        Assert.AreSame(sameFocus, session.Current);
         Assert.HasCount(1, port.Requests);
     }
 

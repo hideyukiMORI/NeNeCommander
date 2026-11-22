@@ -104,9 +104,9 @@ public sealed class PaneReducerTests
         Assert.AreSame(HiddenItemVisibility.Shown, state.HiddenItemVisibility);
     }
 
-    /// <summary>Proves movement clamps focus while preserving explicit selection.</summary>
+    /// <summary>Proves movement targets and paging boundaries preserve explicit selection.</summary>
     [TestMethod]
-    public void ApplyWhenMovingAndPagingClampsFocusAndPreservesSelection()
+    public void ApplyWhenMovingAndPagingPreservesTargetsAndSelection()
     {
         DirectoryEntry first = Entry("a-one", EntryVisibility.Normal);
         DirectoryEntry second = Entry("b-two", EntryVisibility.Normal);
@@ -146,7 +146,7 @@ public sealed class PaneReducerTests
         PaneState toLast = PaneReducer.Apply(state, UserIntent.FocusLast);
 
         Assert.AreSame(last.Path, next.FocusItem);
-        Assert.AreSame(last.Path, beyond.FocusItem);
+        Assert.AreSame(first.Path, beyond.FocusItem);
         Assert.AreSame(last.Path, toLast.FocusItem);
     }
 
