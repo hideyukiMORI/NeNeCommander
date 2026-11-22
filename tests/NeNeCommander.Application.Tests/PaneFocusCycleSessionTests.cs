@@ -27,14 +27,14 @@ public sealed class PaneFocusCycleSessionTests
         _ = await session.HandleAsync(UserIntent.FocusLast, CancellationToken.None);
         PaneSnapshot refreshed = await session.RefreshAsync(CancellationToken.None);
 
-        PaneSnapshot previous = await session.HandleAsync(UserIntent.MovePrevious, CancellationToken.None);
         PaneSnapshot next = await session.HandleAsync(UserIntent.MoveNext, CancellationToken.None);
+        PaneSnapshot previous = await session.HandleAsync(UserIntent.MovePrevious, CancellationToken.None);
 
-        Assert.AreSame(after.Entries[0].Path, DualPaneSessionTestContext.Focus(refreshed));
-        Assert.AreSame(after.Entries[1].Path, DualPaneSessionTestContext.Focus(previous));
+        Assert.AreSame(after.Entries[1].Path, DualPaneSessionTestContext.Focus(refreshed));
         Assert.AreSame(after.Entries[0].Path, DualPaneSessionTestContext.Focus(next));
-        Assert.AreSame(after, Assert.IsInstanceOfType<PaneContentListed>(next.Content).Listing);
-        Assert.AreSame(next, session.Current);
+        Assert.AreSame(after.Entries[1].Path, DualPaneSessionTestContext.Focus(previous));
+        Assert.AreSame(after, Assert.IsInstanceOfType<PaneContentListed>(previous.Content).Listing);
+        Assert.AreSame(previous, session.Current);
         Assert.HasCount(2, port.Requests);
         Assert.HasCount(3, before.Entries);
     }

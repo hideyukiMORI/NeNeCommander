@@ -31,6 +31,14 @@ Every user-file mutation is represented by one typed operation request and execu
 
 Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Movement preserves selection and uses the exact path owned by a visible entry. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
+A successful refresh preserves the current focus identity when it remains. If it was removed,
+focus moves to the next identity from the previous visible order that is still visible, then
+backward to the previous survivor. If none survives, the first new visible item is used; an empty
+visible set has no focus. This applies equally to explicit refresh and the existing post-operation
+refresh, including move/deletion and partial or cancelled outcomes. The new listing owns the
+chosen path. Explicit creation/rename targets retain their own preferred-focus policy, and a
+normal navigation still starts at its declared target or first item.
+
 ### CMD-003 — UI emits intents, not decisions
 
 - Status: **active**
