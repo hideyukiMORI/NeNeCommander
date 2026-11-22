@@ -24,11 +24,7 @@ internal sealed class BookmarkInputOwnership
         _cancelPendingFocus = cancelPendingFocus;
         foreach (string name in new[] { "BookmarkSearch", "BookmarkName", "BookmarkPath", "BookmarkCategoryName" })
         {
-            TextBox field = Find<TextBox>(name);
-            _ = _fields.Add(field);
-            field.TextCompositionStarted += OnCompositionStarted;
-            field.TextCompositionEnded += OnCompositionEnded;
-            field.LostFocus += (_, _) => _ = _composing.Remove(field);
+            RegisterField(name);
         }
         _category = Find<ComboBox>("BookmarkDraftCategory");
         _shortcut = Find<ComboBox>("BookmarkDraftShortcut");
@@ -46,6 +42,15 @@ internal sealed class BookmarkInputOwnership
         {
             _cancelPendingFocus();
         }
+    }
+
+    private void RegisterField(string name)
+    {
+        TextBox field = Find<TextBox>(name);
+        _ = _fields.Add(field);
+        field.TextCompositionStarted += OnCompositionStarted;
+        field.TextCompositionEnded += OnCompositionEnded;
+        field.LostFocus += (_, _) => _ = _composing.Remove(field);
     }
 
     private void OnCompositionStarted(TextBox sender, TextCompositionStartedEventArgs args)
