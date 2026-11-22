@@ -120,6 +120,31 @@ public static class PaneReducer
         return navigatedState.WithNavigationHistory(moved);
     }
 
+    /// <summary>
+    /// Recovers a removed current focus after a refresh from the previous visible order. Explicit
+    /// creation/rename targets keep their own policy. A surviving path belongs to the new listing;
+    /// if no old visible identity survives, the freshly read state's default focus remains.
+    /// </summary>
+    internal static PaneState RecoverRefreshFocus(
+        PaneState previousState,
+        PaneState refreshedState,
+        FileSystemPath? preferredFocus)
+    {
+        if (previousState.FocusItem is null ||
+            !FileSystemPathIdentityComparer.Instance.Equals(previousState.FocusItem, preferredFocus) ||
+            IndexOfEntry(refreshedState.Entries, preferredFocus) >= 0)
+        {
+            return refreshedState;
+        }
+        FileSystemPath? neighbour = NearestVisible(
+            previousState.VisibleEntries,
+            VisibleIdentities(refreshedState),
+            GetFocusIndex(previousState));
+        return neighbour is null
+            ? refreshedState
+            : refreshedState.Transition(neighbour, refreshedState.Selection);
+    }
+
     private static PaneState CommitAppendedNavigation(PaneState previousState, PaneState navigatedState)
     {
         PaneNavigationHistory previousHistory = previousState.NavigationHistory;
@@ -191,24 +216,26 @@ public static class PaneReducer
     private static FileSystemPath? RecoverFocus(PaneState state, FileSystemPath? target)
     {
         int index = IndexOfEntry(state.Entries, target);
-        return index < 0 ? null : NearestVisible(state, index);
+        return index < 0 ? null : NearestVisible(state.Entries, VisibleIdentities(state), index);
     }
 
-    private static FileSystemPath? NearestVisible(PaneState state, int index)
+    private static FileSystemPath? NearestVisible(
+        IReadOnlyList<DirectoryEntry> entries,
+        HashSet<FileSystemPath> visible,
+        int index)
     {
-        HashSet<FileSystemPath> visible = VisibleIdentities(state);
-        for (int forward = index; forward < state.Entries.Count; forward++)
+        for (int forward = index; forward < entries.Count; forward++)
         {
-            if (visible.Contains(state.Entries[forward].Path))
+            if (visible.TryGetValue(entries[forward].Path, out FileSystemPath? next))
             {
-                return state.Entries[forward].Path;
+                return next;
             }
         }
         for (int backward = index - 1; backward >= 0; backward--)
         {
-            if (visible.Contains(state.Entries[backward].Path))
+            if (visible.TryGetValue(entries[backward].Path, out FileSystemPath? previous))
             {
-                return state.Entries[backward].Path;
+                return previous;
             }
         }
         return null;

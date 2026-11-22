@@ -48,6 +48,14 @@ Back and Forward retain at most 100 successful locations per pane, including cur
 location only and commit their cursor after the target read succeeds. Refresh, same-location,
 failed, cancelled, superseded, and stale reads do not change history.
 
+A successful refresh preserves the current focus identity when it remains. If it was removed,
+focus moves to the next identity from the previous visible order that is still visible, then
+backward to the previous survivor. If none survives, the first new visible item is used; an empty
+visible set has no focus. This applies equally to explicit refresh and the existing post-operation
+refresh, including move/deletion and partial or cancelled outcomes. The new listing owns the
+chosen path. Explicit creation/rename targets retain their own preferred-focus policy, and a
+normal navigation still starts at its declared target or first item.
+
 A pending focused-file handoff freezes every pane intent and direct navigation or refresh entry
 point until its typed outcome arrives. The handoff never changes content, focus, selection, or
 history. Windows UNC and WSL files report an unavailable provider without reaching the Shell.

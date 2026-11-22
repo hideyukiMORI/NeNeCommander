@@ -76,8 +76,9 @@ public sealed class PaneSession
 
     /// <summary>
     /// Re-reads the listed location, keeping the current focus item when it still exists and
-    /// clearing selection. Nothing happens before the first listing or while a read or file
-    /// handoff is in flight.
+    /// clearing selection. A removed focus recovers the next surviving item in the old visible
+    /// order, then the previous, then the first new visible item if no old item survives. Nothing
+    /// happens before the first listing or while a read or file handoff is in flight.
     /// </summary>
     /// <param name="cancellationToken">Token observed by the read.</param>
     /// <returns>The snapshot current after the read completed or was superseded.</returns>
@@ -327,6 +328,10 @@ public sealed class PaneSession
             navigated,
             previousState?.SortOrder ?? _initialSortOrder,
             preferredFocus);
+        if (action == PaneNavigationAction.Preserve && previousState is not null)
+        {
+            ordered = PaneReducer.RecoverRefreshFocus(previousState, ordered, preferredFocus);
+        }
         PaneState committed = PaneReducer.CommitNavigation(previousState, ordered, action);
         return PaneSnapshot.IdleWith(new PaneContentListed(committed, succeeded.Listing, succeeded.DriveKind));
     }
