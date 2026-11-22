@@ -53,6 +53,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.FileList, KeyboardKey.E, KeyboardModifier.Control, UserIntent.OpenCurrentLocationInOtherPane),
         new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
         new(KeyboardContext.FileList, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
@@ -76,6 +77,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.E, KeyboardModifier.Control, UserIntent.OpenCurrentLocationInOtherPane),
         new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
         new(KeyboardContext.NavigationSurface, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
@@ -452,7 +454,8 @@ public sealed class KeyboardIntentMapper
                 input.Key == KeyboardKey.F6 ||
                 input.Key == KeyboardKey.F7 ||
                 input.Key == KeyboardKey.F8 ||
-                input.Key == KeyboardKey.F1);
+                input.Key == KeyboardKey.F1 ||
+                (input.Key == KeyboardKey.E && input.Modifier == KeyboardModifier.Control));
     }
 
     private static MappedKeyboardIntent MapIntent(UserIntent intent)

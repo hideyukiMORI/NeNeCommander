@@ -168,6 +168,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.OpenBookmarks,
                 UserIntent.OpenWindowAdjustment,
                 UserIntent.OpenHelp,
+                UserIntent.OpenCurrentLocationInOtherPane,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

@@ -18,6 +18,7 @@ public sealed record KeyBinding
             {
                 [KeyboardKey.D] = "KeyLabelCtrlD",
                 [KeyboardKey.Enter] = "KeyLabelCtrlEnter",
+                [KeyboardKey.E] = "KeyLabelCtrlE",
                 [KeyboardKey.B] = "KeyLabelCtrlB",
                 [KeyboardKey.LowerG] = "KeyLabelCtrlG",
                 [KeyboardKey.H] = "KeyLabelCtrlH",

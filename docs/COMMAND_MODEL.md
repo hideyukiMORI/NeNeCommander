@@ -31,6 +31,13 @@ Every user-file mutation is represented by one typed operation request and execu
 
 Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Movement preserves selection and uses the exact path owned by a visible entry. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
+`OpenCurrentLocationInOtherPane` (ADR-0084) is the explicit cross-pane navigation intent.
+`DualPaneSession` captures the active pane's currently listed location and opposite side,
+then calls its existing `NavigateAsync` for that side. The source snapshot and active side
+are preserved; destination ordering, focus, selection and history remain owned by its
+`PaneSession`/`PaneReducer`. The derived `CanOpenCurrentLocationInOtherPane` predicate admits
+only listed-source, idle-read/launch and non-modal-operation snapshots. Equal locations,
+using `FileSystemPathIdentityComparer`, are no-ops. No selected-file copy or handoff occurs.
 A successful refresh preserves the current focus identity when it remains. If it was removed,
 focus moves to the next identity from the previous visible order that is still visible, then
 backward to the previous survivor. If none survives, the first new visible item is used; an empty
@@ -66,6 +73,14 @@ Every command returns the canonical outcome model. Boolean success flags, magic 
 - Enforcement: cancellation tests.
 
 Cancellation means no new unit of work starts after observation. Already completed filesystem effects are reported explicitly. Cancellation is an outcome, not an error dialog and not an unobserved exception. Abandoning a pane read with `Escape` (ADR-0058) is a distinct pane state, not a cancellation outcome: the pane keeps its content, the read's token is cancelled, and whatever the provider step returns later is discarded.
+
+For the explicit opposite-pane command (ADR-0084), an active read retains first priority.
+When it is not loading, Escape may reach the passive read only while that exact captured
+`PaneLoading` instance is still current. It uses the same `PaneRead.Abandon`, releases the
+host waiter immediately and retains both pane contents. A newer or unrelated passive read
+is never cancelled by that capture. The capture owns no token/read and is cleared in
+`finally` only if it is still the command's own capture. File-operation/modal precedence and
+`AsyncWorkOwner`'s Escape-only interrupt admission remain unchanged.
 
 ### CMD-007 — Queries do not mutate
 

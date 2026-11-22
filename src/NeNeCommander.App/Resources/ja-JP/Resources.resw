@@ -391,4 +391,6 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
   <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
+  <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>現在のフォルダーを反対ペインで開く</value></data>
 </root>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NeNeCommander.Application.Commands;
+using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Presentation.WinUI.Input;
 
@@ -20,11 +21,14 @@ public static class CommandPalettePresenter
     {
         ArgumentNullException.ThrowIfNull(open);
         ArgumentNullException.ThrowIfNull(localize);
-        CommandPaletteContext context = CommandPaletteContext.Create(open.ActiveSide, localize);
+        CommandPaletteContext activeContext = CommandPaletteContext.Create(open.ActiveSide, localize);
+        CommandPaletteContext oppositeContext = CommandPaletteContext.Create(open.ActiveSide.Other, localize);
         IReadOnlyList<KeyBinding> bindings = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList);
         List<CommandPaletteRow> rows = [];
         foreach (CommandCandidate candidate in open.Candidates)
         {
+            CommandPaletteContext context = candidate.Intent == UserIntent.OpenCurrentLocationInOtherPane
+                ? oppositeContext : activeContext;
             CommandPaletteCaption caption = CommandPaletteCaption.Create(candidate.Intent, bindings, localize);
             CommandPaletteFeedback feedback = CommandPaletteFeedback.Create(candidate.Availability, caption, context, localize);
             rows.Add(new CommandPaletteRow(candidate, caption, context, feedback));

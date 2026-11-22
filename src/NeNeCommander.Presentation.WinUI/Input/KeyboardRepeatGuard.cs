@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
 
@@ -26,6 +27,7 @@ internal sealed class KeyboardRepeatGuard
         bool singleShot = outcome switch
         {
             MappedCommandPaletteAction palette => palette.Action == CommandPaletteKeyAction.Execute,
+            MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenCurrentLocationInOtherPane,
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
             KeyboardPassThrough => input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter,
             _ => false

@@ -4,6 +4,8 @@ Status: accepted
 
 Date: 2026-10-10
 
+Refinement (2026-11-22): [ADR-0084](0084-open-current-location-in-other-pane.md) permits Escape to abandon the exact passive read started by the explicit opposite-pane command when no active read has priority. Unrelated/newer passive reads remain unaffected. The active-only routing statements below are superseded for that one owned read; host work still refuses Tab and other ordinary commands.
+
 ## Context
 
 While a pane is `PaneLoading`, `PaneSession.HandleAsync` refuses every intent, `RefreshAsync` is
