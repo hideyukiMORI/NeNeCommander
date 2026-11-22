@@ -406,3 +406,23 @@ publication-hold.json retains the exact reason; no indirect retry or new PR occu
 Stopping records do not silently extend the earlier pending payload question.
 Native check priorities and exact limits are in the closing daily report/handoff.
 Wait for hide to resume; retain unfinished feature/fixture artifacts.
+
+## Explicitly approved Draft publication — 2026-11-23 01:58 JST
+
+hide explicitly answered 承認. The earlier exact35776de/231-file/2,070,510-byte
+payload, destination and4,638-byte body hash were revalidated. Local84e062c adds
+only6 stop documents, so the push names the approved commit explicitly:
+`git push origin 35776deddd757cb2ed9484d9ca56dae132666522:refs/heads/feat/527-theme-catalog`.
+It succeeds; remote readback matches35776de. No stop-document changes are sent.
+
+The connector has a previously established PR-write permission limitation. The
+authenticated CLI creates Draft565 with `gh pr create --repo hideyukiMORI/NeNeCommander
+--base main --head feat/527-theme-catalog --draft --title <prepared-title>
+--body-file D:/NeNeCommander/evidence/theme-catalog-20261122/draft-pr-body.md`.
+Readback confirms OPEN/Draft/main, exact head,231 files and matching title/body;
+statusCheckRollup is empty. The exact prior automatic-approval hold is resolved,
+not bypassed; publication-approved.json records the explicit user approval.
+
+No product input changes or tests are needed for this metadata-only step. The
+stop instruction continues; native/feature/dependent-language acceptance, main
+integration and release remain incomplete. Closing documents remain local.

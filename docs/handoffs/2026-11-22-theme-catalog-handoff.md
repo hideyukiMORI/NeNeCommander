@@ -1,3 +1,16 @@
+## 承認済みDraft公開・停止継続 — 2026-11-23 01:58 JST
+
+hideの「承認」を受け、先に提示した35776deの231ファイルと同一本文だけを送信し、
+[Draft PR565](https://github.com/hideyukiMORI/NeNeCommander/pull/565)を作成した。
+OPEN/Draft、base main、head35776de、231変更ファイル、本文・title一致、checksなしを読戻し確認。
+01:24の自動承認拒否は、この限定payloadについて解消済み。後から加えた停止記録84e062cと
+この公開記録はローカルに保持し、承認された送信範囲へ黙って含めていない。
+
+停止指示は継続する。実機/feature受理、main統合、release、追加CI、新規実装は行っていない。
+言語依存PR559と各native確認は下記のまま未完。未完worktree/outputは保持する。
+正本証拠: publication-approved.json、push-approved.log、pr-readback-approved.json、
+publication-hold.json（解消追記）。いずれもD:/NeNeCommander/evidence/theme-catalog-20261122/。
+
 ## 最終停止 — 2026-11-23 01:48 JST
 
 hideの「そろそろ上がろうと思う。区切りのいいところで止めて」に従って停止。
