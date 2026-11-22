@@ -62,6 +62,17 @@ dependency. The existing gate and proof entries invoke this one implementation.
 - Tests mirror the production namespace and file name using the suffix `Tests`.
 - Each production file has one primary top-level type. Small private nested types are permitted when they cannot be reused independently.
 
+Under ADR-0087, `eng/theme-catalog/` owns the fixed palette manifest and the three
+C# source templates; `eng/import-theme-catalog.ps1` is the sole offline import/check
+entry. Its declared committed outputs are Application `Settings/ColorScheme.cs`,
+Presentation `Settings/SettingsPresenter.cs`, App `Themes/ColorSchemeResources.cs`,
+the shared125 `Themes/Schemes/*.xaml`, and their three-locale name entries. These
+are the explicit CS-019 exception to the generated-directory rule and stay subject
+to all ordinary analyzers and gates. Edit templates/manifest, then import; never
+hand-edit those imported sections. The four Commander-only scheme files remain
+authored. `docs/release/licenses/theme-palette-notices.txt` holds the exact bounded
+upstream palette notice, inventoried by the existing release-notice path.
+
 ## Adding a project
 
 Adding, removing, renaming, or changing references for a project requires an accepted ADR and an atomic update to `eng/architecture.json`, this document, the solution, package allowlist, architecture tests, and lock files.

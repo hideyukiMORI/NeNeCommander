@@ -18,20 +18,14 @@ namespace NeNeCommander.App.Views;
 /// </summary>
 internal sealed class SettingsKeyboardView
 {
-    private readonly CheckBox[] _choices;
-    private readonly ItemsControl[] _optionGroups;
-    private readonly Button _close;
+    private readonly Control[] _groups;
     private readonly Func<XamlRoot> _root;
 
-    internal SettingsKeyboardView(CheckBox[] choices, ItemsControl[] optionGroups, Button close, Func<XamlRoot> root)
+    internal SettingsKeyboardView(Control[] groups, Func<XamlRoot> root)
     {
-        ArgumentNullException.ThrowIfNull(choices);
-        ArgumentNullException.ThrowIfNull(optionGroups);
-        ArgumentNullException.ThrowIfNull(close);
+        ArgumentNullException.ThrowIfNull(groups);
         ArgumentNullException.ThrowIfNull(root);
-        _choices = [.. choices];
-        _optionGroups = [.. optionGroups];
-        _close = close;
+        _groups = [.. groups];
         _root = root;
     }
 
@@ -49,6 +43,7 @@ internal sealed class SettingsKeyboardView
             if (next >= 0)
             {
                 _ = items[next].Focus(FocusState.Keyboard);
+                items[next].StartBringIntoView();
             }
             return true;
         }
@@ -93,7 +88,12 @@ internal sealed class SettingsKeyboardView
 
     private Control[] Items()
     {
-        return [.. _choices, .. _optionGroups.SelectMany(Descendants).OfType<RadioButton>(), _close];
+        return [.. _groups.SelectMany(Expand)];
+    }
+
+    private static IEnumerable<Control> Expand(Control control)
+    {
+        return control is ItemsControl group ? Descendants(group).OfType<RadioButton>() : [control];
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

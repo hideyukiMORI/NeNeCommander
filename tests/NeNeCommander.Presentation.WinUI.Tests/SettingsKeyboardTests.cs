@@ -75,6 +75,21 @@ public sealed class SettingsKeyboardTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => SettingsFocusOrder.Move(0, 1, null!));
     }
 
+    /// <summary>Proves the existing text-entry context preserves search editing and owns only Escape.</summary>
+    [TestMethod]
+    public void MapWhenThemeSearchOwnsTextKeepsTypingEditingAndEnterNative()
+    {
+        KeyboardIntentMapper mapper = CreateMapper();
+        KeyboardKey[] keys = [KeyboardKey.J, KeyboardKey.K, KeyboardKey.Up, KeyboardKey.Down, KeyboardKey.Space, KeyboardKey.Enter, KeyboardKey.Tab];
+        foreach (KeyboardKey key in keys)
+        {
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(
+                KeyboardInput.Create(key, KeyboardModifier.None, KeyRepeatState.Initial, KeyboardContext.TextEntry)));
+        }
+        Assert.AreSame(UserIntent.Escape, Assert.IsInstanceOfType<MappedKeyboardIntent>(mapper.Map(
+            KeyboardInput.Create(KeyboardKey.Escape, KeyboardModifier.None, KeyRepeatState.Initial, KeyboardContext.TextEntry))).Intent);
+    }
+
     private static UserIntent Mapped(KeyboardIntentMapper mapper, KeyboardKey key)
     {
         return Assert.IsInstanceOfType<MappedKeyboardIntent>(

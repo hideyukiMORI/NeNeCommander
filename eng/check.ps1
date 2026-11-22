@@ -71,6 +71,10 @@ try {
         $manifest = Get-Content -LiteralPath (Join-Path $root 'eng/architecture.json') -Raw | ConvertFrom-Json
         $solution = Join-Path $root ([string] $manifest.solution)
 
+        Write-Host '==> Deterministic theme import parity'
+        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'import-theme-catalog.ps1') -RepositoryRoot $root -Mode Check
+        if ($LASTEXITCODE -ne 0) { throw 'Imported theme catalog differs from committed fixed inputs.' }
+
         Write-Host '==> Locked restore'
         & dotnet restore $solution -p:Configuration=Release --locked-mode
         if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }

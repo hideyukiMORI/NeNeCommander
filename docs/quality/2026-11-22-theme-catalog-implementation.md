@@ -169,3 +169,110 @@ contains independent additive entries and retains both. Every1092 frozen non-Mar
 language input matches, so no product proof is repeated merely for the import.
 The next work is the offline manifest/notice generator, literal catalog/maps/XAML,
 ARC-012 proof and searchable settings implementation. No theme product result yet.
+
+## Implementation checkpoint and hide-requested stop — November23 00:57 JST
+
+hide requested a suitable stopping point and a daily report/handoff at00:52 JST.
+The live-region review correction, final affected build and local records are the
+stop boundary. No native fixture, additional feature, public push or release is
+started after that request. The older continuing-work statements are historical.
+The [session report](../reports/2026-11-23-milestone-checkpoint-daily-report.md) and
+[handoff](../handoffs/2026-11-23-milestone-checkpoint-handoff.md) own the restart state.
+
+### Implemented candidate
+
+- Closed129 values (94Dark/35Light), exact parsing and eight retained aliases;
+  private SchemeCatalog exposes no ICollection/SyncRoot or mutable list.
+- Frozen literal129 URI and129 resource-name projections. Offline
+  `eng/import-theme-catalog.ps1` owns125 imported XAML dictionaries, three C#
+  templates and121 added proper-name keys per locale. Eight further UI keys bring
+  each catalog to527 entries. All2,250 generated semantic colors and adjustment
+  steps equal the separate reviewed Python calculation. The four Commander-only
+  palette hashes remain exact. Dracula/Monokai/Solarized dark/light visibly align
+  with the accepted shared source; this is not a promise of unchanged appearance.
+- ARC-012 uses exactly one strict129-entry literal extractor and rejects malformed,
+  missing, duplicate, extra, reordered or appearance-drifted catalog/constant
+  projection inputs. The canonical Merge gate checks offline import parity before
+  restore/build; Commit remains conformance/security/whitespace only.
+- Searchable settings retain current-theme text, name/identifier filtering,
+  light/dark labels, an eight-row bounded list, one Tab region, cycling modal and
+  footer outside body scrolling. Search uses existing TextEntry and the host IME
+  guard. Native Checked still emits the single settings intent. Newly loaded rows
+  observe the latest applied scheme; progress does not rebind query/rows. Touched
+  SettingsPresentation option storage also closes its SyncRoot exposure.
+- Passive focus uses TextSecondary; progress uses the accepted outlined/filled
+  geometry with SurfacePane interior and existing1.5/8-DIP tokens. No operation
+  arithmetic or selection policy changes.
+- Existing release notice collection now includes125 distinct theme attributions
+  and the exact71,394-byte bounded notice, SHA256
+  `31629c34013fc98b7778528cf2bbb9c1d32ecd5967b29321c82f2b723450851a`.
+  The71389 character count in the earlier audit is not a byte count. An exact
+  eol=lf attribute preserves these bytes across Windows checkout. It is a separate
+  palette inventory, never a fabricated NuGet package.
+
+### Selected proof and exact commands
+
+Working directory for these commands is `D:/NeNeCommander/worktrees/issue-527`.
+Logs/results/scripts are in `D:/NeNeCommander/evidence/theme-catalog-20261122`.
+Outputs are `D:/NeNeCommander/outputs/theme-catalog-20261122`. No full gate,
+coverage, mutation or new CI run is claimed for this candidate.
+
+| Command / selected scope | Result and retained evidence |
+|---|---|
+| `dotnet restore NeNeCommander.slnx -p:Configuration=Release --locked-mode` | Success, restore-release.log; no lock change |
+| `pwsh -NoProfile -File eng/import-theme-catalog.ps1 -Mode Write -ReportPath D:/NeNeCommander/evidence/theme-catalog-20261122/import-first.json` |131 outputs/129 schemes; import-first.log/json |
+| `python verify-import-proposal.py` (saved absolute evidence script) |All2250 colors and every repair step equal independent reviewed values; import-proposal-parity.json |
+| `pwsh -NoProfile -File eng/import-theme-catalog.ps1 -Mode Check` |Success at initial and final changed-input checkpoints; import-check-stop.log |
+| `pwsh -NoProfile -File eng/prove-gates.ps1 -Rule ARC-012` with TEMP/TMP under owned D gate-temp |Positive1/negative16 pass; original3 retained; arc012-proof-first.log. Proof launcher verified and removed its own exact root. |
+| `dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore` |0 warnings/errors; catalog second and queue build logs |
+| `dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~ColorScheme'` |13/13 before the later queue test was added; application-catalog-tests.log |
+| Same Application test command, filter `FullyQualifiedName~ColorSchemeSettingsQueueTests\|FullyQualifiedName~SettingsSessionTests\|FullyQualifiedName~InterfaceLanguageQueueTests` |19/19; all129 complete-value saves, ordering/failure and language retention. application-queue-tests.log;32 distinct Application cases across the two runs |
+| `dotnet build tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj -c Release --no-restore` |0 warnings/errors; infrastructure-catalog-build-second.log |
+| Same Infrastructure test command, filter `FullyQualifiedName~ColorSchemeSettingsDocumentTests\|FullyQualifiedName~InterfaceLanguageDocumentTests` |34/34;129 full current-schema round trips,8 existing IDs across4 legacy schemas, unknown-text refusal; infrastructure-catalog-tests.log |
+| `dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-restore` |0 warnings/errors; presentation-search-build-second.log |
+| Same Presentation test command, filter `FullyQualifiedName~SettingsSchemeViewStateTests\|FullyQualifiedName~SettingsPresenterTests\|FullyQualifiedName~SettingsKeyboardTests\|FullyQualifiedName~PaneResourceTests\|FullyQualifiedName~DualPaneProgressPresenterTests\|FullyQualifiedName~PaneListingPresenterTests` |50/50; prior16 SettingsPresenter cases overlap and are not added; presentation-search-tests-first.log |
+| `dotnet build tests/NeNeCommander.Architecture.Tests/NeNeCommander.Architecture.Tests.csproj -c Release --no-restore` and selected `ColorSchemeResourceTests` |0 warnings/errors and3/3 URI/appearance/null cases; architecture-catalog-build-first.log and architecture-catalog-tests.log. Unchanged mapping evidence reused after later UI edits. |
+| `dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore` |Final review-fix build0 warnings/errors; app-review-fix-build.log |
+| `pwsh -NoProfile -File eng/prove-release-notices.ps1 -OutputDirectory D:/NeNeCommander/outputs/theme-catalog-20261122/notice-proof-01 -WindowsSdkLicensePath D:/NeNeCommander/releases/0.1.0-beta.3/candidate-20261122-01/NeNeCommander-0.1.0-beta.3-win-x64/licenses/Windows-SDK-license.rtf` |21 resolved package records,125 palette attributions,55 ZIP files all byte/hash-equal; corrupted notice refused before output. This tests notice packaging, not a new release payload. |
+| `dotnet format whitespace NeNeCommander.slnx --no-restore --include <changed C# paths>` then `--verify-no-changes` |Exit0, existing workspace-load warning retained; format-search-first.log / format-stop-verify.log |
+| `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` |Exit1 with exactly5 prior findings, identical path/line/column/metric/value/limit. complexity-picker-first.json and complexity-picker-comparison.json; no new finding or suppression |
+| `pwsh -NoProfile -File eng/conformance.ps1` |112 rules pass after review fix; conformance-stop.log |
+
+The final private notice attribute, source input hashes, Git readback and local
+checkpoint commit are recorded by stop-input-hashes.json, stop-github-readback.json
+and checkpoint-commit.json. Normal commit checks remain mandatory.
+
+### Trials and independent review
+
+All failed attempts remain beside successful logs. First Application no-restore
+build failed NETSDK1004 because this new worktree had no assets; the explicit
+locked Release restore corrected the environment. First UI build failed CA1826
+for parameterless FirstOrDefault on an indexed list, corrected to Count/index.
+The added keyboard test initially reversed the existing Create argument order
+(CS1503), corrected without changing the API. Subsequent App and Infrastructure
+builds each found an unused using (IDE0005); both were removed. No test was run
+against a stale DLL after a failed build. Read-only path misses and an rg option
+placement error had no product effect; subsequent reads used the actual paths.
+
+Independent implementation review found one required correction: Text changes
+alone did not explicitly raise the results live-region notification. RenderResults
+now compares ordinal text, returns for identical text, and raises the existing
+LiveRegionChanged mechanism after changed text. Read-only re-review at00:55:02
+accepts this correction and finds no additional required defect in the reviewed
+ownership/input/closure scope. The final App build includes this correction;
+actual assistive speech remains unproved. The sources for native focus semantics
+were Microsoft [GettingFocus](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.gettingfocus)
+and [TrySetNewFocusedElement](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.input.gettingfocuseventargs.trysetnewfocusedelement),
+checked against the compiled pinned SDK. These documents are not native acceptance.
+
+### Explicit remaining work
+
+No new theme candidate process or screen was launched. Still required: real
+loaded-control checks for latest selection/no unintended save, narrow/DPI layout
+and nested-scroll reachability, native Tab/j/k/Enter/Escape and IME, speech, Windows
+contrast modes, all packaged PRI/XBF values and clean-checkout source/notice proof,
+then final proof-scope decision, feature review, concrete publication approval,
+Draft PR/integration and eventual cleanup. Compiler-closure prototype proof is
+retained but is not mislabeled as a final product compiler-probe run. The final
+small helper/new test additions also require a scoped final complexity refresh if
+implementation continues. User App/settings, main and public beta.3 are unchanged.

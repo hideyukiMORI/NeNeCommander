@@ -13,3 +13,5 @@
 .githooks/* text eol=lf
 *.png binary
 *.ico binary
+# Preserve the exact upstream palette notice bytes across clean Windows checkouts.
+docs/release/licenses/theme-palette-notices.txt text eol=lf

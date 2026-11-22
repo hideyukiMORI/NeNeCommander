@@ -1,3 +1,11 @@
+## 終了checkpoint — 2026-11-23 00:57 JST
+
+hideの終了指示により、実装候補のレビュー修正と最終Appビルドを終えて停止。
+129テーマ・検索付き設定・通知収載をローカル実装済み。公開/main/native受理は未完。
+最新状態・正確な検証・再開順は[終了日報](../reports/2026-11-23-milestone-checkpoint-daily-report.md)と
+[終了引き継ぎ](../handoffs/2026-11-23-milestone-checkpoint-handoff.md)を優先する。
+過去の未実装/継続指示の記述は、その時点の記録として残す。
+
 ## Technical acceptance — 2026-11-23 00:18 JST
 
 ADR-0087 and the concrete handoff are accepted for implementation after the00:16

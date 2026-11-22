@@ -29,7 +29,7 @@ public sealed class ColorSchemeResourceTests
             Assert.IsTrue(addresses.Add(address.OriginalString), scheme.Identifier);
         }
 
-        Assert.HasCount(8, addresses);
+        Assert.HasCount(129, addresses);
     }
 
     /// <summary>Proves the closed appearance selects the matching framework element theme.</summary>

@@ -171,7 +171,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing;
+    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing || _settingsView.IsComposing;
 
     private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
@@ -349,6 +349,18 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _settingsView.SchemeChecked(sender);
     }
 
+    private void OnSettingsSchemeLoaded(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        _settingsView.SchemeLoaded(sender);
+    }
+
+    private void OnSettingsSchemeUnloaded(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        _settingsView.SchemeUnloaded(sender);
+    }
+
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
     public async Task StopAsync()
     {
@@ -372,7 +384,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             { KeyboardHelp: KeyboardHelpOpen } => KeyboardContext.KeyboardHelp,
             { Locations: not LocationsClosed } => KeyboardContext.Locations,
             _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
-            _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
+            _ when SettingsOverlay.Visibility == Visibility.Visible => _settingsView.OwnedKeyboardContext,
             _ when _operationContext == KeyboardContext.Modal => _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal,
             { AddressEditor: not AddressEditorClosed } => KeyboardContext.AddressEntry,
             _ => GetFocusedControlContext(),

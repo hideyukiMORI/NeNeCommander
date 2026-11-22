@@ -824,6 +824,8 @@ foreach ($localizationFile in $localizationFiles) {
     }
 }
 
+Assert-TextContains -Rule 'ARC-012' -Path (Join-Path $root 'eng/check.ps1') -Pattern 'import-theme-catalog\.ps1.*-RepositoryRoot \$root -Mode Check' -Description 'The canonical gate must verify deterministic theme import parity.'
+
 $designTokensPath = Join-Path $root 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
 $schemeRoot = Join-Path $root 'src/NeNeCommander.App/Themes/Schemes'
 $colorSchemeSourcePath = Join-Path $root 'src/NeNeCommander.Application/Settings/ColorScheme.cs'
@@ -843,12 +845,79 @@ if ((Test-Path -LiteralPath $designTokensPath -PathType Leaf) -and
     }
 
     $declaredSchemes = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
-    foreach ($identifierMatch in [regex]::Matches(
-            (Get-Content -LiteralPath $colorSchemeSourcePath -Raw),
-            '(?m)^\s*public override string Identifier => "(?<id>[a-z0-9-]+)";\s*$')) {
-        if (-not $declaredSchemes.Add($identifierMatch.Groups['id'].Value)) {
-            Add-Violation -Rule 'ARC-012' -Message "ColorScheme declares the duplicate identifier $($identifierMatch.Groups['id'].Value)."
+    $schemeSource = Get-Content -LiteralPath $colorSchemeSourcePath -Raw
+    $catalogMatches = [regex]::Matches($schemeSource, '(?s)private readonly ColorScheme\[\] _schemes =\s*\[(?<body>.*?)\];')
+    $entryPattern = 'new CatalogScheme\("(?<id>[a-z0-9]+(?:-[a-z0-9]+)*)", ColorSchemeAppearance\.(?<appearance>Dark|Light)\),'
+    $catalogEntries = @()
+    if ($catalogMatches.Count -ne 1) {
+        Add-Violation -Rule 'ARC-012' -Message 'ColorScheme must have exactly one literal SchemeCatalog array initializer.'
+    }
+    else {
+        $body = $catalogMatches[0].Groups['body'].Value
+        $catalogEntries = @([regex]::Matches($body, $entryPattern))
+        if ($catalogEntries.Count -ne 129 -or [regex]::Replace($body, $entryPattern, '').Trim().Length -ne 0 -or
+            [regex]::Matches($schemeSource, '\bnew CatalogScheme\s*\(').Count -ne 129) {
+            Add-Violation -Rule 'ARC-012' -Message 'SchemeCatalog must contain only its 129 literal identifier/closed-appearance entries.'
         }
+        foreach ($entry in $catalogEntries) {
+            if (-not $declaredSchemes.Add($entry.Groups['id'].Value)) {
+                Add-Violation -Rule 'ARC-012' -Message "ColorScheme declares the duplicate identifier $($entry.Groups['id'].Value)."
+            }
+        }
+    }
+
+    $fixedEntries = @()
+    try {
+        $fixed = Get-Content -LiteralPath (Join-Path $root 'eng/theme-catalog/source.json') -Raw | ConvertFrom-Json -AsHashtable
+        if ($fixed.schemaVersion -ne 1 -or $fixed.commanderOnly.Count -ne 4 -or $fixed.themes.Count -ne 125) { throw 'Wrong fixed manifest shape.' }
+        $fixedEntries = @($fixed.commanderOnly) + @($fixed.themes)
+        if ($catalogEntries.Count -ne $fixedEntries.Count) { throw 'Fixed catalog count differs.' }
+        for ($index = 0; $index -lt $fixedEntries.Count; $index++) {
+            $entry = $fixedEntries[$index]
+            if ($entry.appearance -cnotin @('dark', 'light') -or
+                $catalogEntries[$index].Groups['id'].Value -cne $entry.name -or
+                $catalogEntries[$index].Groups['appearance'].Value.ToLowerInvariant() -cne $entry.appearance) { throw 'Fixed identifier/order/appearance differs.' }
+        }
+    }
+    catch {
+        Add-Violation -Rule 'ARC-012' -Message "ColorScheme must match its fixed source manifest: $($_.Exception.Message)"
+    }
+
+    foreach ($projection in @(
+        @{ path = 'src/NeNeCommander.App/Themes/ColorSchemeResources.cs'; type = 'Uri'; field = 'DictionaryAddresses'; entry = '\["(?<id>[a-z0-9-]+)"\] = new Uri\("(?<value>ms-appx:///Themes/Schemes/[a-z0-9-]+\.xaml)"\),' },
+        @{ path = 'src/NeNeCommander.Presentation.WinUI/Settings/SettingsPresenter.cs'; type = 'string'; field = 'NameResourceKeys'; entry = '\["(?<id>[a-z0-9-]+)"\] = "(?<value>ColorSchemeName[A-Za-z0-9]+)",' }
+    )) {
+        $path = Join-Path $root $projection.path
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            Add-Violation -Rule 'ARC-012' -Message "Missing constant scheme projection $($projection.path)."
+            continue
+        }
+        $content = Get-Content -LiteralPath $path -Raw
+        $pattern = '(?s)private static readonly FrozenDictionary<string, ' + $projection.type + '> ' + $projection.field + ' =\s*new Dictionary<string, ' + $projection.type + '>\(StringComparer.Ordinal\)\s*\{(?<body>.*?)\}.ToFrozenDictionary\(StringComparer.Ordinal\);'
+        $maps = [regex]::Matches($content, $pattern)
+        if ($maps.Count -ne 1) {
+            Add-Violation -Rule 'ARC-012' -Message "$($projection.path) must have exactly one literal immutable projection."
+            continue
+        }
+        $body = $maps[0].Groups['body'].Value
+        $pairs = @([regex]::Matches($body, $projection.entry))
+        $projected = [System.Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+        if ($pairs.Count -ne 129 -or [regex]::Replace($body, $projection.entry, '').Trim().Length -ne 0) {
+            Add-Violation -Rule 'ARC-012' -Message "$($projection.path) must contain only 129 literal projection pairs."
+        }
+        foreach ($pair in $pairs) {
+            $id = $pair.Groups['id'].Value
+            $value = $pair.Groups['value'].Value
+            if (-not $projected.Add($id)) { Add-Violation -Rule 'ARC-012' -Message "Duplicate projected scheme $id." }
+            if ($projection.type -ceq 'Uri') {
+                if ($value -cne "ms-appx:///Themes/Schemes/$id.xaml") { Add-Violation -Rule 'ARC-012' -Message "Wrong literal address for $id." }
+            }
+            else {
+                $fixedRow = @($fixedEntries | Where-Object { $_.name -ceq $id })
+                if ($fixedRow.Count -ne 1 -or $fixedRow[0].nameKey -cne $value) { Add-Violation -Rule 'ARC-012' -Message "Wrong literal name key for $id." }
+            }
+        }
+        if (-not $projected.SetEquals($declaredSchemes)) { Add-Violation -Rule 'ARC-012' -Message "$($projection.path) identifiers differ from ColorScheme." }
     }
 
     $schemeFiles = @(Get-ChildItem -LiteralPath $schemeRoot -Filter '*.xaml' -File | Sort-Object -Property Name)

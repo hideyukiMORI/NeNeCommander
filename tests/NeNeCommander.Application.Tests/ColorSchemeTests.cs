@@ -43,13 +43,13 @@ public sealed class ColorSchemeTests
             Assert.IsInstanceOfType<ColorSchemeRejected>(ColorScheme.Parse("../../Themes/Schemes/nene-dark")).Kind);
     }
 
-    /// <summary>Proves the published set is exactly the eight approved schemes with unique identifiers.</summary>
+    /// <summary>Proves the published set is exactly the 129 approved schemes with unique identifiers.</summary>
     [TestMethod]
     public void AllWhenEnumeratedContainsEveryApprovedSchemeExactlyOnce()
     {
         IReadOnlyList<ColorScheme> schemes = ColorScheme.All;
 
-        Assert.HasCount(8, schemes);
+        Assert.HasCount(129, schemes);
         HashSet<string> identifiers = [];
         foreach (ColorScheme scheme in schemes)
         {

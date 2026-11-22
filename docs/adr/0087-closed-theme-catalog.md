@@ -22,7 +22,7 @@ is Light; Folio retains an earlier Dark version. The current Nib correction is
 selected. Four names already overlap Commander, so the union is129, not133.
 
 Local branch feat/527-theme-catalog starts from accepted main b82aa1e and includes
-Draft PR559/4a41dc4 as an explicit dependency. All1,092 non-Markdown inputs of the
+Draft PR559/91e06f5 (including its ownership correction) as an explicit dependency. All1,092 non-Markdown inputs of the
 language candidate match its frozen evidence before theme changes. This includes
 schema5, the fourth mandatory DisplayPreferences argument and three locales.
 Native approval and main integration of that dependency remain separate.

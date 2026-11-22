@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections;
 using System.Linq;
 using NeNeCommander.Application.Settings;
 
@@ -9,7 +9,7 @@ namespace NeNeCommander.Presentation.WinUI.Settings;
 /// <summary>Represents all render-ready state of the settings modal and its separate warning.</summary>
 public sealed record SettingsPresentation
 {
-    private readonly ReadOnlyCollection<SettingsColorSchemeOption> _schemes;
+    private readonly SchemeOptions _schemes;
 
     internal SettingsPresentation(
         SettingsSnapshot source,
@@ -24,9 +24,9 @@ public sealed record SettingsPresentation
         IsOpen = source.Editor == SettingsEditorState.Open;
         ShowHiddenItemsAtLaunch = source.Settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown;
         ShowKeyHints = source.Settings.Display.KeyHintVisibility == KeyHintVisibility.Shown;
-        _schemes = new List<SettingsColorSchemeOption>(schemes).AsReadOnly();
-        Languages = InterfaceLanguage.All.Select(language =>
-            new SettingsLanguageOption(language, source.Settings.Display.InterfaceLanguage)).ToList().AsReadOnly();
+        _schemes = SchemeOptions.Create(schemes);
+        Languages = LanguageOptions.Create(InterfaceLanguage.All.Select(language =>
+            new SettingsLanguageOption(language, source.Settings.Display.InterfaceLanguage)));
         SaveStatus = saveStatus;
         Warning = warning;
     }
@@ -40,7 +40,7 @@ public sealed record SettingsPresentation
     /// <summary>Gets the current normal footer hint checkbox value.</summary>
     public bool ShowKeyHints { get; }
 
-    /// <summary>Gets all eight scheme options in canonical order.</summary>
+    /// <summary>Gets all 129 scheme options in canonical order.</summary>
     public IReadOnlyList<SettingsColorSchemeOption> Schemes => _schemes;
 
     /// <summary>Gets the shipped language options in their canonical order.</summary>
@@ -51,4 +51,62 @@ public sealed record SettingsPresentation
 
     /// <summary>Gets the independent persistent warning.</summary>
     public SettingsWarningPresentation Warning { get; }
+
+    private sealed record SchemeOptions : IReadOnlyList<SettingsColorSchemeOption>
+    {
+        private readonly SettingsColorSchemeOption[] _options;
+
+        private SchemeOptions(IEnumerable<SettingsColorSchemeOption> options)
+        {
+            _options = [.. options];
+        }
+
+        public int Count => _options.Length;
+
+        public SettingsColorSchemeOption this[int index] => _options[index];
+
+        internal static SchemeOptions Create(IEnumerable<SettingsColorSchemeOption> options)
+        {
+            return new SchemeOptions(options);
+        }
+
+        public IEnumerator<SettingsColorSchemeOption> GetEnumerator()
+        {
+            return ((IEnumerable<SettingsColorSchemeOption>)_options).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    private sealed record LanguageOptions : IReadOnlyList<SettingsLanguageOption>
+    {
+        private readonly SettingsLanguageOption[] _options;
+
+        private LanguageOptions(IEnumerable<SettingsLanguageOption> options)
+        {
+            _options = [.. options];
+        }
+
+        public int Count => _options.Length;
+
+        public SettingsLanguageOption this[int index] => _options[index];
+
+        internal static LanguageOptions Create(IEnumerable<SettingsLanguageOption> options)
+        {
+            return new LanguageOptions(options);
+        }
+
+        public IEnumerator<SettingsLanguageOption> GetEnumerator()
+        {
+            return ((IEnumerable<SettingsLanguageOption>)_options).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }
