@@ -14,7 +14,7 @@ public sealed class PanePresentationTests
     public async Task ConstructWhenInputsAreCompleteRetainsRowAndSourceIdentity()
     {
         PanePresentation original = (await DualPaneTestContext.CreateListedPresentation()).Left;
-        PaneProjectionSource source = PaneProjectionSource.Create(original.SourceSnapshot, original.SourceFrame);
+        PaneProjectionSource source = PaneProjectionSource.Create(original.SourceSnapshot, original.SourceFrame, original);
         PaneHeaderPresentation header = PaneHeaderPresentation.Create(original.SourceSnapshot);
         PanePresentation presentation = new(original.OwnedRows, original.FocusRow, source, header);
         PanePresentation copy = presentation with { };
@@ -37,14 +37,14 @@ public sealed class PanePresentationTests
     public async Task ConstructWhenRequiredPartIsAbsentRejectsTheCall()
     {
         PanePresentation original = (await DualPaneTestContext.CreateListedPresentation()).Left;
-        PaneProjectionSource source = PaneProjectionSource.Create(original.SourceSnapshot, original.SourceFrame);
+        PaneProjectionSource source = PaneProjectionSource.Create(original.SourceSnapshot, original.SourceFrame, original);
         PaneHeaderPresentation header = PaneHeaderPresentation.Create(original.SourceSnapshot);
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(null!, original.FocusRow, source, header));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(original.OwnedRows, original.FocusRow, null!, header));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new PanePresentation(original.OwnedRows, original.FocusRow, source, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneProjectionSource.Create(null!, original.SourceFrame));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneProjectionSource.Create(original.SourceSnapshot, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneProjectionSource.Create(null!, original.SourceFrame, null));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneProjectionSource.Create(original.SourceSnapshot, null!, null));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => PaneHeaderPresentation.Create(null!));
     }
 }

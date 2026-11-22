@@ -76,7 +76,7 @@ public static class PaneListingPresenter
         return new PanePresentation(
             rows,
             null,
-            PaneProjectionSource.Create(snapshot, frame),
+            PaneProjectionSource.Create(snapshot, frame, previous),
             PaneHeaderPresentation.Create(snapshot));
     }
 
@@ -112,7 +112,7 @@ public static class PaneListingPresenter
         return new PanePresentation(
             ownedRows,
             FindFocusRow(ownedRows, listed.State.FocusItem),
-            PaneProjectionSource.Create(snapshot, frame),
+            PaneProjectionSource.Create(snapshot, frame, null),
             PaneHeaderPresentation.Create(snapshot));
     }
 
@@ -154,7 +154,7 @@ public static class PaneListingPresenter
         return new PanePresentation(
             rows,
             FindFocusRow(rows, listed.State.FocusItem),
-            PaneProjectionSource.Create(snapshot, frame),
+            PaneProjectionSource.Create(snapshot, frame, previous),
             PaneHeaderPresentation.Create(snapshot));
     }
 
