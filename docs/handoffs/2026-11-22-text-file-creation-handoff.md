@@ -1,3 +1,26 @@
+# 現在の引き継ぎ — 2026-11-22 21:49 JST
+
+#544、D:/NeNeCommander/worktrees/issue-544、feat/544-create-empty-text-file。
+受理済みADR-0085。ソース/試験/正本文書は通常hook付きの実装candidateとして保存する。実際のheadはGitとcommit証拠で確認する。
+[実装品質記録](../quality/2026-11-22-text-file-creation-implementation.md)が最新。
+名前modal/Ctrl+F7/palette/F1/日英seed/localとWSLの0byte作成まで配線済み。
+4distinct liveWSL cell成功（最後のdanglingは21:42）。3レビュー指摘は21:44再確認で解消。
+local最終6条件・最新Application28・Presentation追加1成功。重複は合算しない。
+
+次: 変更format/必要な最終consumer build、正本文書/ADV差分の確認、入力hash固定と
+通常hookで保存。pointer New導線#530/#531、完成candidateのdeep review、native UI、
+公開/統合/専用整理が残る。keyboardだけで#544をcloseしない。
+launcher1caseのarray修正、ownership捕捉順、親identityを保持する後発collision試験は
+今回の必要な修正。全failed logとrawTRXを保持。fullgate/mutation未実施。
+
+mainは#542/PR557のb82aa1e、accepted tree一致と922生成物保全・専用整理済み。
+#547の2593byteClaude送信は承認後成功。#528初回簡体字、#527計129選択で確定。
+各handoffにも追記済み。古い承認待ちはこの範囲で解消し、別payloadに広げない。
+hideは21:38に帰席し成果一覧を依頼。継続を取り消しておらず、共有desktop入力の
+禁止を解除する指示もない。通常App issue495/設定、他の未完作業を保持する。
+
+以下の記録は以前のcheckpoint。現在状態は上記と実装品質記録を優先。
+
 # 2026-11-22 引き継ぎ — 新規テキストファイル作成の設計
 
 Issue #544、docs/544-text-file-creation-design、main7ef9b96起点。
@@ -38,3 +61,18 @@ link先はすべて各fixture内。後の削除前に絶対path・唯一成果�
 追加必須修正なしを得た。ADR-0085を技術受理。機能の実装/製品受理/出荷ではない。
 同じworktreeでfeat/544-create-empty-text-fileへ進む。docs branch/commitを保持する。
 最初の22hashは調査時baseline。製品編集後に同じ証拠をfinal proofとは扱わない。
+
+実装途中更新: feat/544-create-empty-text-fileでbackendと対象試験を追加中。
+Application14、Infrastructure7+19成功。new intent/kindのみ追加したsession baselineは3失敗/1成功。
+名前入力/session/Presentation/Appは未配線。詳細は[実装記録](../quality/2026-11-22-text-file-creation-implementation.md)。
+未commit差分・新規ファイルを保全し、継続する。
+
+21:24更新: session/Presentation/Appを配線済み、最新Application74/Presentation47、
+Infrastructure40+ownership7、liveWSL3成功。詳細と全失敗試行は実装記録へ追記。
+独立実装レビューの3点: ローカルdriveの転送専用制約混入（Ram/CDRom因果2失敗）、
+非空を拒否する前の所有登録、dangling final linkの実WSL証拠不足。
+前2点は編集済み未再build/test、3点目のowned fixture/live proofはこれから。
+複雑度は既存5件に新テストmethod41/LiveWslTestRoot307が追加、責務整理後の再測定待ち。
+旧binaryを実行した69passは最新証拠に不採用、修正後の74passだけを使う。
+root/evidenceに記録したWSL維持PIDは専用helper、ユーザーsessionではない。
+通常native UI/公開push/deep review/最終受理/cleanupはまだ。未commit差分を保持。

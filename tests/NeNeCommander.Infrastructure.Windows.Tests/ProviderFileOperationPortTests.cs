@@ -334,6 +334,10 @@ public sealed class ProviderFileOperationPortTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.CreateDirectoryAsync(source, null!, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CreateEmptyFileAsync(null!, target, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
+            () => router.CreateEmptyFileAsync(source, null!, CancellationToken.None));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.RenameAsync(null!, target, CancellationToken.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => router.RenameAsync(source, null!, CancellationToken.None));
@@ -351,6 +355,7 @@ public sealed class ProviderFileOperationPortTests
         _ = await router.VerifyCopyAsync(source, destination, CancellationToken.None);
         _ = await router.DeleteAsync(source, DeletionExecutionMode.Permanent, CancellationToken.None);
         _ = await router.CreateDirectoryAsync(source, destination, CancellationToken.None);
+        _ = await router.CreateEmptyFileAsync(source, destination, CancellationToken.None);
         _ = await router.RenameAsync(source, destination, CancellationToken.None);
     }
 
@@ -367,7 +372,7 @@ public sealed class ProviderFileOperationPortTests
 
     private static string[] ExpectedMutationCalls()
     {
-        return ["preflight", "capability", "move", "copy", "verify", "delete", "create", "rename"];
+        return ["preflight", "capability", "move", "copy", "verify", "delete", "create", "create-file", "rename"];
     }
 
     private static string[] ExpectedCrossTransferCalls()
@@ -377,6 +382,6 @@ public sealed class ProviderFileOperationPortTests
 
     private static string[] ExpectedSourceOwnedCalls()
     {
-        return ["delete", "create", "rename"];
+        return ["delete", "create", "create-file", "rename"];
     }
 }

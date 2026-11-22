@@ -155,6 +155,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.Copy,
                 UserIntent.Move,
                 UserIntent.CreateDirectory,
+                UserIntent.CreateTextFile,
                 UserIntent.Delete,
                 UserIntent.ToggleSelection,
                 UserIntent.ToggleHiddenItems,

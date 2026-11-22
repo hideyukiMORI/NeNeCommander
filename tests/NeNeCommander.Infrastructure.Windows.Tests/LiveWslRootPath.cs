@@ -31,6 +31,16 @@ internal static class LiveWslRootPath
             : throw new InvalidOperationException("The live fixture child name is invalid.");
     }
 
+    internal static WslPath Resolve(WslPath root, string relativePath)
+    {
+        WslPath current = root;
+        foreach (string segment in Segments(relativePath))
+        {
+            current = Child(current, segment);
+        }
+        return current;
+    }
+
     internal static WslPath Parent(WslPath path)
     {
         return (WslPath)(path.Parent ?? throw new InvalidOperationException("The live entry has no parent."));

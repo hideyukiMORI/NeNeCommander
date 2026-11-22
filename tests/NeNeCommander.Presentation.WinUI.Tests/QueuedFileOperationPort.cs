@@ -125,6 +125,14 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
         return Task.FromResult(_steps.Dequeue());
     }
 
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(_steps.Dequeue());
+    }
+
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,

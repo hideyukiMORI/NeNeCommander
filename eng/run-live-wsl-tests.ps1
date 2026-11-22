@@ -30,12 +30,16 @@ $declaredCases = @(
     'ExecuteAsyncWhenLiveWslTreeCopiesToWindowsPreservesVisibleNamesAsync',
     'ExecuteAsyncWhenLiveWslTreeMovesToWindowsDeletesVerifiedSourceAsync',
     'ExecuteAsyncWhenLiveLinuxNamesCollideOnWindowsRejectsBeforeEffectsAsync',
-    'ExecuteAsyncWhenLiveLinuxNamesAreInvalidOnWindowsRejectsBeforeEffectsAsync')
+    'ExecuteAsyncWhenLiveLinuxNamesAreInvalidOnWindowsRejectsBeforeEffectsAsync',
+    'ExecuteAsyncWhenLiveEmptyFileNamesAreCreatedPreservesExactZeroByteEntriesAsync',
+    'ExecuteAsyncWhenLiveEmptyFileTargetsExistPreservesAllEntriesAsync',
+    'CreateEmptyFileWhenLiveFinalLinkExistsRefusesNativeStepAsync',
+    'CreateEmptyFileWhenLiveFinalLinkIsDanglingPreservesAbsentTargetAsync')
 if (@($Case | Where-Object { $_ -cnotin $declaredCases }).Count -ne 0 -or
     @($Case | Select-Object -Unique).Count -ne $Case.Count) {
     throw 'Each requested live case must be a distinct declared cell.'
 }
-$requiredCases = if ($Case.Count -eq 0) { $declaredCases } else { $Case }
+$requiredCases = @(if ($Case.Count -eq 0) { $declaredCases } else { $Case })
 $testFilter = 'TestCategory=LiveWsl&(' +
     (($requiredCases | ForEach-Object { 'FullyQualifiedName~' + $_ }) -join '|') + ')'
 

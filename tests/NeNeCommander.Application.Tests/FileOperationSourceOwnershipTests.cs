@@ -20,6 +20,7 @@ public sealed class FileOperationSourceOwnershipTests
     [DataRow("Copy")]
     [DataRow("Delete")]
     [DataRow("CreateDirectory")]
+    [DataRow("CreateTextFile")]
     [DataRow("Rename")]
     [TestCategory("Adversarial")]
     [TestProperty("ThreatId", "ADV-016")]
@@ -44,6 +45,7 @@ public sealed class FileOperationSourceOwnershipTests
     [DataRow("Copy")]
     [DataRow("Delete")]
     [DataRow("CreateDirectory")]
+    [DataRow("CreateTextFile")]
     [DataRow("Rename")]
     public void SourcesWhenReadOrCopiedPreserveOrderAndRejectMutation(string kind)
     {
@@ -138,6 +140,7 @@ public sealed class FileOperationSourceOwnershipTests
         return kind switch
         {
             "CreateDirectory" => GatewayTestContext.CreateCreateDirectory(source, "child"),
+            "CreateTextFile" => Assert.IsInstanceOfType<FileOperationRequestAccepted>(CreateTextFileRequest.Create(source, "child")).Request,
             "Rename" => GatewayTestContext.CreateRename(source, "renamed"),
             _ => CreateBatch(kind, [source, GatewayTestContext.ParsePath("C:\\second")]),
         };

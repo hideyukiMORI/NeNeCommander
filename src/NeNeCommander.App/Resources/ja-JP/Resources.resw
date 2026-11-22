@@ -391,4 +391,13 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
   <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>テキストファイルを作成中…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>新しいテキストファイルの名前を入力してください</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>テキストファイルを作成しました</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>テキストファイルの作成を中止しました</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>テキストファイルの作成は変更前に拒否されました</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>ファイル名が無効です</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>テキストファイルを作成</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>新しいテキスト.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
 </root>

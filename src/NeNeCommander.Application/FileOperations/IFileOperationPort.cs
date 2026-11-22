@@ -61,6 +61,13 @@ public interface IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken);
 
+    /// <summary>Creates one zero-byte file exclusively beneath the frozen, revalidated location without following a final link.</summary>
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken);
+
     /// <summary>Renames one frozen, revalidated entry to a target that must share the source's parent.</summary>
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,

@@ -1,3 +1,27 @@
+# 2026-11-22 作業報告 — 新規テキスト作成（21:49更新）
+
+#544は受理済みADR-0085に従って実装中。既存の名前入力、Ctrl+F7、パレット/F1、
+FileOperationGateway、local/WSL providerを使用し、入力名を変更せず0byte作成する。
+日英の初期名、作成後focus、キャンセル後の完了effectを既存経路で扱う。
+詳細なコマンド・全試行は[実装品質記録](../quality/2026-11-22-text-file-creation-implementation.md)。
+
+実WSLは合計4つの異なる選択cellが成功。正確な名前、既存file/dir/linkとの衝突、
+native live-linkとdangling-linkの拒否を確認し、全cellで所有rootのcleanupを確認した。
+所有fixtureは拒否した非空fileや新規残存物を削除せず、捕捉したentryだけを登録する。
+3件の独立レビュー指摘を修正し、21:44再確認で当該範囲の必須修正なし。
+
+Windows最終境界6条件、Application最新28条件、Presentation追加1条件は成功。
+各project buildは0警告0エラー。前の成功runとの重複を合算していない。
+途中のstyle4診断、1case launcherの配列化前停止、競合fixtureの期待違い2失敗も保存。
+規約112成功、複雑度は既存5件と場所/指標/値/上限まで一致。新たな免除はない。
+
+mouseのNew導線、全体deep review、native画面/input、公開/統合/後片付けは未完了。
+専用D worktreeと全証拠を保持し、beta.3や通常App/設定は変更しない。
+#542はPR557でmain統合・専用整理まで完了。#547設計brief送信承認と相談、
+#528簡体字先行、#527共通125+既存4も回答を記録済み。hideの継続指示は有効。
+
+以下は実装開始前の時点記録。上記の現在状態に優先しない。
+
 # 2026-11-22 作業報告 — 新規テキストファイル作成の安全性調査
 
 #544の設計を、既存の名前入力・FileOperationGateway・provider routerで具体化した。

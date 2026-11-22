@@ -23,6 +23,8 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
 
     internal List<WslPath> Created { get; } = [];
 
+    internal List<WslPath> CreatedFiles { get; } = [];
+
     internal List<(WslFileSystemEntry Source, WslPath Target)> Renamed { get; } = [];
 
     internal List<WslFileSystemEntry> Deleted { get; } = [];
@@ -156,6 +158,18 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         ThrowWhenConfigured();
         Created.Add(target);
         Set(Entry(target, "created", DirectoryEntryKind.Directory));
+    }
+
+    public ProviderStepOutcome CreateEmptyFile(WslPath target)
+    {
+        ThrowWhenConfigured();
+        if (_entries.ContainsKey(target.CanonicalText))
+        {
+            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+        }
+        CreatedFiles.Add(target);
+        Set(Entry(target, "created-file", DirectoryEntryKind.File));
+        return ProviderStepOutcome.Succeeded();
     }
 
     public void Rename(WslFileSystemEntry source, WslPath target)

@@ -94,6 +94,16 @@ public abstract record UserIntent
     /// <summary>Gets the intent to create a directory.</summary>
     public static UserIntent CreateDirectory { get; } = new CreateDirectoryIntent();
 
+    /// <summary>Gets the operation to create one empty text file.</summary>
+    public static UserIntent CreateTextFile { get; } = new CreateTextFileIntent();
+
+    private sealed record CreateTextFileIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Gets the intent to request deletion.</summary>
     public static UserIntent Delete { get; } = new DeleteIntent();
 

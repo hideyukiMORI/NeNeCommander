@@ -391,4 +391,13 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>When off, F1 help and Enter/Esc hints for confirmation or name entry remain visible.</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>Go to location</value></data>
   <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Absolute location</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>Creating text file…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>Enter a name for the new text file</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>Text file created</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>Text-file creation cancelled</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>Text-file creation was rejected before any change</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>File name is not valid</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>New text file</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>New text file.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
 </root>

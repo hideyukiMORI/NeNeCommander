@@ -172,6 +172,7 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.Copy, "IntentLabelCopy", "KeyLabelF5"),
             (UserIntent.Move, "IntentLabelMove", "KeyLabelF6"),
             (UserIntent.CreateDirectory, "IntentLabelCreateDirectory", "KeyLabelF7"),
+            (UserIntent.CreateTextFile, "IntentLabelCreateTextFile", "KeyLabelCtrlF7"),
             (UserIntent.Delete, "IntentLabelDelete", "KeyLabelF8"),
             (UserIntent.ToggleSelection, "IntentLabelToggleSelection", "KeyLabelSpace"),
             (UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems", "KeyLabelCtrlH"),
