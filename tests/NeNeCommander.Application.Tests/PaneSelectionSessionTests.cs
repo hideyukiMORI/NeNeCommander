@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -90,9 +91,8 @@ public sealed class PaneSelectionSessionTests
         PaneState selected = PaneReducer.Apply(initial, UserIntent.ToggleSelection);
         PaneState cleared = PaneReducer.Apply(selected, UserIntent.Escape);
 
-        foreach (PaneState state in new[] { initial, cleared })
+        foreach (IReadOnlyList<FileSystemPath> selection in new[] { initial, cleared }.Select(state => state.Selection))
         {
-            IReadOnlyList<FileSystemPath> selection = state.Selection;
             ICollection<FileSystemPath> collection = Assert.IsInstanceOfType<ICollection<FileSystemPath>>(selection);
             FileSystemPath[] destination = [listing.Entries[0].Path];
             collection.CopyTo(destination, 0);

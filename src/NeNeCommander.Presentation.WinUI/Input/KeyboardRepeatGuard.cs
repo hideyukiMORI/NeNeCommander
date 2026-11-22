@@ -23,10 +23,14 @@ internal sealed class KeyboardRepeatGuard
 
     internal void Observe(KeyboardInput input, KeyboardMappingOutcome outcome)
     {
-        if ((outcome is MappedCommandPaletteAction palette && palette.Action == CommandPaletteKeyAction.Execute) ||
-            (outcome is MappedBookmarkManagerAction bookmark && !bookmark.Action.Repeats) ||
-            (input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter &&
-                outcome is KeyboardPassThrough))
+        bool singleShot = outcome switch
+        {
+            MappedCommandPaletteAction palette => palette.Action == CommandPaletteKeyAction.Execute,
+            MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
+            KeyboardPassThrough => input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter,
+            _ => false
+        };
+        if (singleShot)
         {
             _ = _singleShotKeys.Add(input.Key);
         }
