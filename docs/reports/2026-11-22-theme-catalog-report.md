@@ -1,3 +1,28 @@
+## Current review checkpoint — 2026-11-23 00:16 JST
+
+ADR-0087 and the [concrete handoff](../design/2026-11-23-theme-catalog-handoff.md)
+remain proposed. Private owned-catalog prototype closes the discovered SyncRoot
+storage leak;129 runtime cases/aliases/unknown/enum conditions pass and CS-013
+has0 findings (root173, catalog142). Original wrapper/closure experiments remain
+historical with their limits. The fourth palette mapping proves7,875 pairs,
+including FocusRing as Bookmark text. A first legacy nene-light progress/track
+pair fails at2.97025; revised hollow/filled geometry and passive-marker brush
+pass387 actual pairs across129. Original four palette files stay byte-identical.
+No production theme code or native acceptance is claimed.
+
+Language correction PR559 is now OPEN/Draft at91e06f5 with clean selected proof;
+import it after saving these documents. Then technical design acceptance, offline
+catalog/notice import and exact resource mappings, searchable settings, conformance
+proof and affected builds/tests remain. Unmodified/native input/IME/speech/HC and
+visual acceptance remain separate. Shared desktop/user App/settings are untouched.
+Issues560–564 record hide's newly approved basic-operation TODOs; no release cutoff.
+
+## 現在の追記 — 2026-11-22 23:34 JST
+
+129選択はhide確認済み。feat/527-theme-catalogでmain b82aa1eとDraft言語PR559/4a41dc4を明示的に取り込み、現在85cd35d。言語入力1,092件は全一致。ADR-0087は提案段階。閉じた型試作7compilerケース・runtime・162行測定は成功（初回fixtureのtestsフォルダ不足は保存済み）。配色2案はそれぞれ7,875色対が通るが、最終採用・製品変更・実画面検証は未完了。
+
+3,851バイトのClaude briefは自動承認拒否後、hideの今回の明示承認により23:24:56に送信完了。別payloadの許可ではない。相談の原文/JSON/実行記録を保存。現在の正本は[実装前検証](../quality/2026-11-22-theme-catalog-implementation.md)。過去のcount/送信待ちはこの範囲で解消。次は技術レビュー、配色/選択UIの設計確定と実装。未完了worktree/outputを保持、user App/settings/Previewは触れていない。
+
 # 2026-11-22 作業報告 — 共通テーマ125種の調査
 
 #527、main7ef9b96起点。製品配色・設定・UIは変更していない。

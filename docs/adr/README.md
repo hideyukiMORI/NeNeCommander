@@ -22,7 +22,7 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
-None.
+- [ADR-0087: Extend the existing closed color-scheme catalog](0087-closed-theme-catalog.md).
 
 ## Accepted decisions
 
