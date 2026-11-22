@@ -1,3 +1,53 @@
+## hideの終了指示による停止 — 2026-11-23 01:48 JST
+
+hideが「そろそろ上がろうと思う。区切りのいいところで止めて。実機確認が必要なものはある？」
+と指示したため、この追記と通常のローカル保存を最後に停止する。01:01の再開や以前の継続指示を、
+この停止後の自動再開の許可として扱わない。新しい実装・起動・CI・公開送信は行わない。
+
+再開後の製品入力は1700b19から不変、検証記録は35776deに保存済み。
+終了前の読取では専用fixture/候補プロセス0、main b82aa1eはclean、使い捨てcheckoutは不存在。
+通常のユーザーAppと設定は変更していない。今回の停止保存commitは
+D:/NeNeCommander/evidence/theme-catalog-20261122/final-stop-commit.jsonとgit logで確認する。
+
+公開#527は未送信・PR未作成。01:24のgit pushは、自動承認審査が「今回の231ファイル・約2MBの
+公開payload/宛先に対するhideの明示承認が未確認」を理由に、プロセス作成前に拒否した。
+D:/NeNeCommander/evidence/theme-catalog-20261122/publication-hold.jsonが正本。
+過去のSARIF/別PR/Claude brief承認を流用せず、別手段でも再試行していない。
+既存の承認質問は35776deと保存済み本文を対象とし、今回追加する停止文書まで承認されたことには
+しない。再開時は送信対象head/files/bodyを照合してから扱う。今夜は新たな確認を求めない。
+
+### 次回の実機確認
+
+以下は現物のウィンドウ・入力・OS環境を必要とする未完事項。非表示fixture成功を実機受理に
+置き換えない。必要なものはサナが準備し、hideの通常設定を保全した確認用環境で実施する。
+今夜は確認用Appを起動しない。
+
+| 優先・対象 | 実機で確認する内容 | 現在の限界 |
+|---|---|---|
+| 最優先: #523 再activation | 別アプリへ切替えて戻り、左右一覧でj/k・上下・Tab・Enter等が受理されるか。症状が出た操作順とfocus位置を記録。 | 未再現で、修正済みとは言えない。これは修正受理ではなく再現調査。 |
+| #527 テーマ・設定検索 | 検索入力とIME、0件、選択→保存、検索解除後のcheck、Tab/Shift+Tab/j/k/Space/Enter/Escape、Closeから一覧へのfocus復帰。代表明暗色で選択/focus/進捗を目視。 |27条件×3locale・129資源・125%簡体字の小型geometryは成功。実キー/focus/IME/speechと見た目は未受理。 |
+| #528 表示言語 | System/日本語/English/简体中文を保存し、無改変candidateを終了・再起動して次回起動から反映。地域書式とIME、framework所有文字列も確認。 | コピーfixtureの起動10状態は成功。通常のstartup/restartとOS所有文字列は未証明。 |
+| #525/#548 小型palette/Locations | 狭い窓でも末尾候補・詳細・操作hintへ到達できること、tooltip、キー/IMEとfocus復帰。 | #525の合成中国語320×300では約1.6DIP欠けが既知。実際の中国語統合候補で修正・再測定してから受理を求める。 |
+| #547 反対ペインで開く | 左右それぞれからCtrl+Eとheader操作。元のactive/focusを保ち、反対側だけ同じfolderへ移動すること。 | Draft PR558、native/画面受理と統合後の言語資源確認は未完。 |
+| #544 空テキスト作成 | 専用の空の確認用folderでCtrl+F7、名前入力/IME/取消/既存名の拒否、作成後focus。マウスNew導線は#530/#531統合後。 | local/WSL backend証拠あり。mouse導線・完成candidateのdeep/native受理は未完。 |
+| 共通の環境確認 | 代表100–300%倍率、Windows contrast mode、Narrator等で設定とpaletteの名前/選択/件数/Close到達を確認。 | テーマ名high-contrastはWindows contrast modeの証拠ではない。共有desktop設定を無断変更しない。 |
+
+次回は#523の短い再現確認、続いて#527/#528の設定操作と再起動を先にする。
+旧#453/#491のF6応答・体感比較は別の未完調査で、このテーマ追加の回帰試験として実行しない。
+#551モニター移動と#526対象表示は調査段階で、完成版の実機受理対象ではない。
+
+停止までに追加したread-only照合では、fixture全132XBFが最終製品/PRIと同一で、3専用設定も
+意図した配色以外は不変だった。fixture-product-xbf-and-settings-parity.jsonに保存。
+#526は23commandの対象契約を読み、global/transfer/反対側切替/Bookmarkを一律にactive対象と
+説明しない必要を確認した。調査記録はD:/NeNeCommander/evidence/palette-context-20261123/
+contract-investigation.json。コード変更・追加branch・テスト・外部相談はまだない。
+
+### 保持と後片付け
+
+#527のfeature worktreeと専用fixture/outputは未公開・native未受理のため保持し、他の未完候補も
+下表の既存保持理由に従う。使い捨てcheckoutは整理済み。新しい削除拒否やhide実行待ちはない。
+公開承認待ちと後片付け待ちは別であり、今回は後片付けの依頼は不要。
+
 ## 再開後の検証追加 — 2026-11-23 01:21 JST
 
 hideの01:01再開指示に従って継続。製品1,227入力はcheckpoint1700b19から不変。

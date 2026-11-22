@@ -1,3 +1,12 @@
+## 最終停止 — 2026-11-23 01:48 JST
+
+hideの「そろそろ上がろうと思う。区切りのいいところで止めて」に従って停止。
+最新の[日報](../reports/2026-11-23-milestone-checkpoint-daily-report.md)と
+[引き継ぎ](../handoffs/2026-11-23-milestone-checkpoint-handoff.md)に、実機確認の優先順と
+公開送信の拒否/承認待ちを記録した。以前の再開・継続指示をこの停止後へ延長しない。
+製品入力は不変、専用プロセス0、main clean、使い捨てcheckout整理済み。
+公開#527は未送信・PR未作成。未完feature/fixtureは保持し、新しいcleanup待ちはない。
+
 ## 再開後の検証追加 — 2026-11-23 01:21 JST
 
 hideの01:01再開指示に従って継続。製品1,227入力はcheckpoint1700b19から不変。

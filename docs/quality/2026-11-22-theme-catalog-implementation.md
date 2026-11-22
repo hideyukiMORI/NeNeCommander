@@ -389,3 +389,20 @@ accounts for that declared absolute-project-reference/diagnostic-unsafe substitu
 alongside the three source substitutions; all165 unmodified copied inputs match.
 Read-only filename/wildcard lookup misses were corrected with actual file paths
 and directory-scoped rg filters; they changed no product or proof inputs.
+
+## Final user-requested stop — 2026-11-23 01:48 JST
+
+hide requested stopping at01:46 JST. No new feature, process, external transmission
+or CI starts. final-stop-preflight.json verifies no owned diagnostic/candidate
+processes, clean mainb82aa1e and absence of the disposed checkout. The sandbox CIM
+read was denied; a privileged read-only query completed without changing processes.
+Additional file-only proof matches all132 fixture XBF to final product and PRI and
+all3 owned saved settings to initial values except the intended theme. See
+fixture-product-xbf-and-settings-parity.json. No product input changed.
+
+The01:24 public push of35776de was automatically rejected before process creation
+for lack of explicit approval of the231-file/~2MB public payload and destination.
+publication-hold.json retains the exact reason; no indirect retry or new PR occurs.
+Stopping records do not silently extend the earlier pending payload question.
+Native check priorities and exact limits are in the closing daily report/handoff.
+Wait for hide to resume; retain unfinished feature/fixture artifacts.
