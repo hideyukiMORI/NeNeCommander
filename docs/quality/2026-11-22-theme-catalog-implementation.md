@@ -426,3 +426,40 @@ not bypassed; publication-approved.json records the explicit user approval.
 No product input changes or tests are needed for this metadata-only step. The
 stop instruction continues; native/feature/dependent-language acceptance, main
 integration and release remain incomplete. Closing documents remain local.
+
+## Manual feedback, corrected reference and final stop — 2026-11-23 02:37 JST
+
+At hide's request the unmodified #527/#528 candidate was visibly launched around
+02:10, PID39872 at launch. The original518-byte settings were backed up before
+launch; never restore that copy over later manual changes. launch.json under
+the permanent manual-launch-20261123-0209 evidence records executable/input hashes.
+Blue-frame computer-use was mistakenly used for launch; hide explicitly corrected
+this. No further screen capture, keys or clicks followed. This mechanism is now
+explicitly forbidden for launch/status as well as input. Use ordinary background
+process APIs and retain shared-desktop input/focus restrictions.
+
+hide's ten-point feedback reports working reactivation keys in this trial,
+theme catalog/search/Japanese input and selection/persistence behavior, but rejects
+the current interaction/design as the intended experience. Colors are provisionally
+acceptable. Nested scrolling/scrollbars overlap text; Ctrl+, after returning from
+another app takes seconds; resizing briefly loses drawing and settles in an
+estimated0.5–0.8 seconds. These are user observations, not instrumented timings.
+Immediate language switching is requested for discussion, not proved implemented.
+
+Read-only code investigation identifies nested ScrollViewers,129 nonvirtualized
+radio rows, close/open recreation, recursive control discovery per settings key,
+and whole-surface render/ScrollIntoView candidates. None is a measured cause.
+The inspected Nib settings drawer was the wrong reference for the user's intent:
+hide subsequently specified **Ctrl+P → :colorscheme selection**. Follow that exact
+route next; the prior Folio-like proposal remains unaccepted. Current ADR-0086
+still specifies next-launch language; any live-language mechanism requires a
+coherent replacement decision and direct state/resource proof.
+
+The feedback JSON, supplied screenshot copy and hash, and final correction/stop
+record are retained in D:/NeNeCommander/evidence/settings-feedback-20261123/.
+No product code, resource, dependency, test or running process is changed by this
+closing documentation. No build/test/full/deep/CI or public write is run.
+Documentation diff/link review and the ordinary commit hook are the selected
+scope; exact commands/results and final commit are in closing-verification.json.
+Feature/native acceptance and main integration remain incomplete. hide explicitly
+requested stopping after the daily report and handoff; do not resume automatically.

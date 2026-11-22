@@ -1,3 +1,16 @@
+## Native feedback: revision required — 2026-11-23 02:37 JST
+
+The implementation below has not received hide's screen/interaction acceptance.
+Native feedback reports nested scrolling/scrollbars over text, delayed opening
+after reactivation and resize drawing loss. The exact reference hide now requests
+is **Nib Ctrl+P → `:colorscheme` selection**, together with Folio's relevant theme
+interaction. Nib's right settings drawer is not the requested reference.
+The assistant's separate-page/live-preview proposal is still unaccepted.
+Preserve the catalog/resource proof, investigate that exact selection route, and
+agree the revised interaction/layout before replacing this engineering handoff.
+Immediate language switching is also a design request, not current behavior.
+See the latest daily report/handoff. Work stops after their local closing record.
+
 # Theme catalog and searchable settings handoff
 
 Issue #527 / ADR-0087 / 2026-11-23.
