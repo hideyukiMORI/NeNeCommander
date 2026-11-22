@@ -45,7 +45,7 @@ internal static class BookmarkPresenterTestContext
                 typeof(SettingsPersistenceState),
             ],
             [
-                UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), catalog, PaneSortPreferences.Default),
+                UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default),
                 SettingsEditorState.Bookmarks,
                 state,
                 SettingsPersistenceState.Succeeded,

@@ -142,15 +142,17 @@ context is `Settings` (ADR-0077), declared in the canonical table of `KeyboardIn
 |---|---|
 | `j` or `Down` | focus the next item; the focus stops at the last item |
 | `k` or `Up` | focus the previous item; the focus stops at the first item |
-| `Space` or `Enter` | toggle the focused check box, select the focused color scheme, or close |
+| `Space` or `Enter` | toggle the focused check box, select the focused language or color scheme, or close |
 | `Escape` | close the editor |
 
-The items are, in order, the hidden-at-launch check box, the footer-key-hint check box, each color
-scheme, and the close button. The footer preference (ADR-0082) changes immediately and saves through
+The items are, in order, the hidden-at-launch check box, the footer-key-hint check box, the four
+language options (System, Japanese, English, Simplified Chinese), each color scheme, and the close button. The footer preference (ADR-0082) changes immediately and saves through
 the same settings queue. Turning it off retains F1 and confirmation/name-entry Enter/Escape hints;
 all commands, warnings, results, progress and other surfaces keep their existing behavior.
-Movement only moves focus: passing over a scheme neither applies nor saves it, and the selected
-scheme is saved when `Space` or `Enter` selects it. A repeated `Space` or `Enter` is consumed so a
+Movement only moves focus: passing over any radio option neither applies nor saves it. `Space` or
+`Enter` selects through the existing Checked forwarder. Language and scheme use separate native
+radio groups. The initial focus remains Close. Language choices save through the same queue and
+apply only at the next launch; the current process retains its language (ADR-0086). A repeated `Space` or `Enter` is consumed so a
 held key changes a setting at most once. Undeclared keys, including `Tab` and `Shift+Tab`, reach
 the native controls.
 

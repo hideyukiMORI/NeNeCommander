@@ -8,18 +8,21 @@ public sealed record DisplayPreferences
     private DisplayPreferences(
         ColorScheme colorScheme,
         HiddenItemVisibility hiddenItemVisibility,
-        KeyHintVisibility keyHintVisibility)
+        KeyHintVisibility keyHintVisibility,
+        InterfaceLanguage interfaceLanguage)
     {
         ColorScheme = colorScheme;
         HiddenItemVisibility = hiddenItemVisibility;
         KeyHintVisibility = keyHintVisibility;
+        InterfaceLanguage = interfaceLanguage;
     }
 
     /// <summary>Gets the launch defaults, including visible footer hints.</summary>
     public static DisplayPreferences Default { get; } = new(
         Settings.ColorScheme.NeNeDark,
         Settings.HiddenItemVisibility.Hidden,
-        Settings.KeyHintVisibility.Shown);
+        Settings.KeyHintVisibility.Shown,
+        Settings.InterfaceLanguage.System);
 
     /// <summary>Gets the approved scheme rendered by the host.</summary>
     public ColorScheme ColorScheme { get; }
@@ -30,15 +33,20 @@ public sealed record DisplayPreferences
     /// <summary>Gets the normal footer hint visibility, applied immediately.</summary>
     public KeyHintVisibility KeyHintVisibility { get; }
 
-    /// <summary>Creates one complete value from three validated choices.</summary>
+    /// <summary>Gets the interface language applied only at the next launch.</summary>
+    public InterfaceLanguage InterfaceLanguage { get; }
+
+    /// <summary>Creates one complete value from four validated choices.</summary>
     public static DisplayPreferences Create(
         ColorScheme colorScheme,
         HiddenItemVisibility hiddenItemVisibility,
-        KeyHintVisibility keyHintVisibility)
+        KeyHintVisibility keyHintVisibility,
+        InterfaceLanguage interfaceLanguage)
     {
         ArgumentNullException.ThrowIfNull(colorScheme);
         ArgumentNullException.ThrowIfNull(hiddenItemVisibility);
         ArgumentNullException.ThrowIfNull(keyHintVisibility);
-        return new DisplayPreferences(colorScheme, hiddenItemVisibility, keyHintVisibility);
+        ArgumentNullException.ThrowIfNull(interfaceLanguage);
+        return new DisplayPreferences(colorScheme, hiddenItemVisibility, keyHintVisibility, interfaceLanguage);
     }
 }

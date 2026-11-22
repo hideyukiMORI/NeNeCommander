@@ -69,10 +69,12 @@ for compilation and runtime evidence.
   retain the new unpackaged process's unmodified default. An already-cancelled startup
   must not initialize/show the window. Keep exception observation and resource
   lifetime under the existing startup/shutdown owners; no second coordinator.
+  This orders explicit host calls; it does not promise to suppress all WinUI-internal
+  dictionary evaluation or evaluation caused by inspecting Application.Resources.
 - After constructing CommanderWindow and before activation, set the existing
   root FrameworkElement.Language for explicit choices; System leaves native
-  inheritance intact. Existing ResourceLoader, LocalizedTextConverter and x:Uid
-  own all lookups and are created only after startup language selection. No second
+  inheritance intact. The existing app-owned ResourceLoader, LocalizedTextConverter
+  and view x:Uid lookups are constructed after startup language selection. No second
   loader, copied application translation map or settings file is introduced.
 - The choice selects interface text only. Existing explicit/invariant metadata
   formatting and Windows regional culture stay unchanged. Framework-owned strings

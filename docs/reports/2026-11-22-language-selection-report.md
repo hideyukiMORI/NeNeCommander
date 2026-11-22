@@ -1,3 +1,25 @@
+# 2026-11-22 作業報告 — 言語選択の実装
+
+23:06 JST現在、#528をaccepted ADR-0086に沿ってローカル実装。設定画面でSystem・日本語・
+English・简体中文を選び、保存した値を次回起動から反映する。既存保存queue、schema5、
+旧1-4の非書換えSystem移行を実装。3言語各398項目を実PRIまで全照合した。
+
+対象検証はInfrastructure122、Application59、Presentation21が成功。製品App buildは
+警告0/エラー0、変更C#書式成功、規約112項目成功、複雑度は既存5件と完全一致。
+新言語型の外部継承・既知コピーは5条件で期待どおり。全コマンド・失敗を含む試行は
+[実装品質記録](../quality/2026-11-22-language-selection-implementation.md)に保存。
+
+実ソースcopyの非表示fixtureでは、10正常状態で329通常キー・画面属性・4radioが一致し、
+activation/表示0、設定バイト列/地域設定/前面window不変。最初のfocus付きfixtureは
+activation1を記録し中止、fixtureのみfocusを除いて区別している。取消はwindowなし・
+明示初期化なし。Resourcesの観測2件は評価時点を断定できず、保証を広げない。
+
+未改変製品startup/再起動、native input/focus/IME、speech、狭幅/DPI/HC/画面受理は未完。
+公開PR・main統合・後片付けも未完。通常App/ユーザー設定は変更していない。
+未完のD作業ツリーと証拠・診断出力を保持する。#547は別途hideの明示承認でPR558をDraft作成済み。
+
+## Earlier investigation — historical
+
 # 2026-11-22 作業報告 — 言語選択の起動順序
 
 #528、main7ef9b96起点の設計調査。製品への言語選択は未実装。

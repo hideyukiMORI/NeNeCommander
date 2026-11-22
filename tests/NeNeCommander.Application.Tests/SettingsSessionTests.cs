@@ -67,7 +67,7 @@ public sealed class SettingsSessionTests
     public async Task SelectLaunchHiddenVisibilityWhenChosenWritesCompleteSettingsAsync()
     {
         UserSettings initial = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
+            DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
@@ -161,7 +161,7 @@ public sealed class SettingsSessionTests
         BookmarkCatalog initialCatalog = Catalog("Initial", "C:\\initial");
         BookmarkCatalog replacementCatalog = Catalog("Replacement", "C:\\replacement");
         UserSettings initial = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
+            DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
             initialCatalog, PaneSortPreferences.Default);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();

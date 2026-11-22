@@ -20,7 +20,8 @@ public static class SettingsDocumentValidator
     private const int LegacySchemaVersion = 1;
     private const int BookmarkSchemaVersion = 2;
     private const int SortSchemaVersion = 3;
-    private const int SupportedSchemaVersion = 4;
+    private const int KeyHintSchemaVersion = 4;
+    private const int SupportedSchemaVersion = 5;
     private const string SchemaVersionName = "schemaVersion";
     private const string HiddenItemsName = "showHiddenItems";
     private const string ColorSchemeName = "colorScheme";
@@ -126,7 +127,7 @@ public static class SettingsDocumentValidator
         return versionElement.ValueKind != JsonValueKind.Number
             ? SettingsReadFailureKind.Malformed
             : !versionElement.TryGetInt32(out version) ||
-                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SortSchemaVersion and not SupportedSchemaVersion
+                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SortSchemaVersion and not KeyHintSchemaVersion and not SupportedSchemaVersion
                 ? SettingsReadFailureKind.UnknownVersion
                 : null;
     }
@@ -158,7 +159,9 @@ public static class SettingsDocumentValidator
                 ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName]
                 : version == SortSchemaVersion
                     ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"]
-                    : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints"]);
+                    : version == KeyHintSchemaVersion
+                        ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints"]
+                        : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints", "uiLanguage"]);
         if (shapeFailure is not null)
         {
             return SettingsReadOutcome.Rejected(shapeFailure);

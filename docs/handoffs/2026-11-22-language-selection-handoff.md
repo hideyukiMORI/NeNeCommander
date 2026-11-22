@@ -1,3 +1,21 @@
+# Current implementation checkpoint — 23:06 JST
+
+Local feature implementation and selected proof are complete; commit/publication follow.
+Use [the implementation proof](../quality/2026-11-22-language-selection-implementation.md)
+as current evidence. Infrastructure122, Application59, Presentation21; App0 warnings/errors;
+398 exact keys/PRI values per locale; changed-file format and112 conformance rules pass;
+complexity is the exact existing5. final-input-hashes.json freezes non-Markdown inputs.
+
+Ten copied-code startup states and the injected cancellation branch have bounded evidence.
+Explicit host initialization is deferred; do not infer when framework dictionaries materialize.
+The fixture substitutes settings/pane paths, activation, focus and diagnostic hooks. Its original
+activation1/resource-count failures remain recorded, not retried into equivalent success.
+Unmodified startup/restart, physical input/IME/focus/speech and screen fit remain required.
+No user App/settings mutation. No #528 public PR/main integration or cleanup yet.
+The #547 exact approval is resolved as Draft PR558/65a6fb2; it does not cover #528 payload.
+
+All earlier entries below are time-qualified history.
+
 # 2026-11-22 引き継ぎ — 言語選択の設計調査
 
 #528、docs/528-language-selection-design、main7ef9b96起点。
@@ -45,3 +63,24 @@ main b82aa1eを1692b22で取込。proposed ADR-0086の独立技術レビュー�
 locked restore/buildは成功、警告0/エラー0。詳細は新しいimplementation品質記録。
 #547 source49files/head65a6fb2の公開pushは22:13に別途自動承認が拒否、質問待ち。
 #542承認を他payloadへ広げず、ローカルの言語実装準備を継続する。
+
+
+## 現在の実装 — 22:57 JST
+
+accepted ADR-0086、branch feat/528-language-selection、HEAD592d74eから実装差分あり。
+選択肢/4引数DisplayPreferences/schema5/SettingsSession/設定radio/起動順序/zh-Hansを実装。
+Infrastructure122件、Application57件、Presentation21件の対象検証成功（重複なし）。
+App build警告0/エラー0。398項目×3言語の原本キー/書式と実PRI値を全照合。
+独立レビュー22:41:38で製品の必須修正なし。完全な未改変startup/restartは別OS環境が必要。
+
+専用startup-fixtureは実ソースcopyを使用するが、設定先・初期pane・Activate・focusなどを
+差替えており完全な実製品証拠ではない。初回英語の非表示focusでactivation1を記録し停止、
+該当focus要求をfixtureだけで除いた後10状態でactivation0/非表示/前面不変。
+取消はwindowなし/override不変だがResources2という観測を精査中。通常App/ユーザー設定と
+共有desktop入力には触れない。すべての失敗/診断差分/ログはimplementation品質記録と
+D:/NeNeCommander/evidence/language-selection-20261122へ保存。
+
+残りは取消の説明、fixture全値照合、最終書式/規約/複雑度比較、入力固定、文書/commit。
+実画面・再起動・IME・speech・公開PR/統合/後片付けは未完。#547はhide承認後PR558を
+Draftで作成済み（head65a6fb2、49ファイル一致）。古い#547送信保留はこのpayloadのみ解消。
+#528への送信承認とは混同しない。未完のworktree/outputsは保持する。

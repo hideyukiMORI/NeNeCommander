@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Settings;
@@ -24,6 +25,8 @@ public sealed record SettingsPresentation
         ShowHiddenItemsAtLaunch = source.Settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown;
         ShowKeyHints = source.Settings.Display.KeyHintVisibility == KeyHintVisibility.Shown;
         _schemes = new List<SettingsColorSchemeOption>(schemes).AsReadOnly();
+        Languages = InterfaceLanguage.All.Select(language =>
+            new SettingsLanguageOption(language, source.Settings.Display.InterfaceLanguage)).ToList().AsReadOnly();
         SaveStatus = saveStatus;
         Warning = warning;
     }
@@ -39,6 +42,9 @@ public sealed record SettingsPresentation
 
     /// <summary>Gets all eight scheme options in canonical order.</summary>
     public IReadOnlyList<SettingsColorSchemeOption> Schemes => _schemes;
+
+    /// <summary>Gets the shipped language options in their canonical order.</summary>
+    public IReadOnlyList<SettingsLanguageOption> Languages { get; }
 
     /// <summary>Gets the localized save-on-change status.</summary>
     public SettingsSaveStatus SaveStatus { get; }

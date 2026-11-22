@@ -138,6 +138,11 @@ Logs use typed event IDs and provider kinds. Credentials, environment values, fi
 
 Unknown capability, ambiguous identity, verification failure, stale state, malformed settings, unavailable security scanner, or incomplete destructive confirmation stops the affected operation. It never selects a permissive fallback. Settings writes preserve malformed input; reject reparse points observed in the Windows local ancestor chain and at the document itself; freeze the temporary file's Win32 identity while its owned handle is open; and revalidate the approved ancestor anchor, destination identity and exact content, plus temporary identity and exact bytes immediately before atomic publish. A later observation cannot replace the approved ancestor anchor. Each write selects one sibling temporary candidate through the injected identifier source (ADR-0070). Every observed entry kind at that candidate is a collision, without retry; its generated name does not establish ownership. Legacy fixed-name and other-attempt residue is neither read nor removed. Closed failures report directory-creation state and temporary residue separately. Distinct candidates no longer serialize different stores: a detected destination change rejects the stale writer, but two writers can pass their final comparisons before either publishes. ADR-0040 and ADR-0070 retain the residual reopen race of the path-based BCL directory, document, publish, and cleanup operations, without cross-process compare-and-swap or merge guarantees.
 
+Schema5 settings require an exact shipped interface-language identifier. Schemas1-4 acquire
+System in memory only; unknown or wrongly typed language values reject the whole document
+without repair. Only the closed InterfaceLanguage reaches the startup override, and System
+does not call its setter (ADR-0086, ADV-012). This introduces no alternate persistence path.
+
 ### SEC-012 — External AI review requires explicit approval
 
 - Status: **active**
