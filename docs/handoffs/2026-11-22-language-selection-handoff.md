@@ -35,3 +35,13 @@ initial-source/final-source、各JSON/run、verification-summary/logとverify-pr
 hideは中国語について「まず簡体字（推奨）」と回答。初回中国語は簡体字で確定。繁体字は今回の初回範囲に加えない。既存の日英と同一の選択/設定/起動経路へ統合する。前段の未回答記述はこの回答で解消。製品実装・schema/翻訳検証・native証拠は引き続き未完了。
 
 #542はPR557/main b82aa1eへ統合済み。#547の2593バイト設計brief送信もhideの明示承認後に完了。過去の承認待ち記載はこの範囲で解消し、別payloadへの許可と混同しない。
+
+
+## 実装準備の続行 — 22:20 JST
+
+feat/528-language-selectionへ作業branchを切替（旧docs branchは82e0892で保持）。
+main b82aa1eを1692b22で取込。proposed ADR-0086の独立技術レビュー待ちで製品未変更。
+新schema5正常入力4件の試験を追加、旧製品で4件拒否のred baselineを保存。
+locked restore/buildは成功、警告0/エラー0。詳細は新しいimplementation品質記録。
+#547 source49files/head65a6fb2の公開pushは22:13に別途自動承認が拒否、質問待ち。
+#542承認を他payloadへ広げず、ローカルの言語実装準備を継続する。
