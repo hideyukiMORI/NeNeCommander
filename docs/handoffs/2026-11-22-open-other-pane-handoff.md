@@ -50,3 +50,11 @@ AppはRelease buildで警告0/エラー0。書式と複雑度・入力hashの最
 - 未完了のためこのworktree、bin/obj、専用outputs、証拠は保持。cleanup拒否ではない。
 - #525/#542/#548のローカル候補、#523、native#453/#491、AppSDK PR517は別件。
   既存通常App/設定、issue-495、issue-491、issue-514とpr-498-reviewを触らない。
+
+## 設計相談の送信承認解消 — 2026-11-22 21:34 JST
+
+hideの「このブリーフをClaudeへ送信してよい」を受け、承認済み2593バイトのみをCLIへ送信。tools無効・strict MCP・safe mode・Chrome無効で1turn成功。ソースファイル送信なし。返答はdesign-advice-approved.txt、元JSON/実行記録も恒久証拠に保存。
+
+提案はpathとstatusの間に予約slot、24px target/16px folder+direction glyph、非active側はslot維持、左右別の説明文。同一場所・busy・未取得は既存admissionを投影する。転送との誤認を避け「開く」と明示する。これらは相談案で、semantic resources/狭幅/高contrast/非focus click/UIAの実装・検証と実画面確認は未完了。/design生成物とは主張しない。
+
+#542はPR557/main b82aa1e統合済み。#528初回は簡体字、#527は共通125+既存4の129選択をhideが確定。
