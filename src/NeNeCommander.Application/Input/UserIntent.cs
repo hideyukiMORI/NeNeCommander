@@ -238,6 +238,14 @@ public abstract record UserIntent
         return new LaunchHiddenItemVisibilitySelection(visibility);
     }
 
+    /// <summary>Creates an intent selecting the interface language for the next launch.</summary>
+    /// <param name="language">Shipped language selected by the editor.</param>
+    /// <returns>The typed selection intent.</returns>
+    public static UserIntent SelectInterfaceLanguage(InterfaceLanguage language)
+    {
+        return new InterfaceLanguageSelection(language);
+    }
+
     /// <summary>Creates an intent selecting the normal footer hint visibility.</summary>
     /// <param name="visibility">Closed visibility selected by the editor.</param>
     /// <returns>The typed selection intent.</returns>

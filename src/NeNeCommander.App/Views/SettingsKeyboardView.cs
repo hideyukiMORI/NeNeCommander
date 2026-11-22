@@ -14,23 +14,23 @@ namespace NeNeCommander.App.Views;
 /// <summary>
 /// Applies the settings editor's mapped keys to its native controls (ADR-0077). Movement only moves
 /// focus through the items in display order; activation toggles the check box, selects the focused
-/// scheme or closes, and every change reaches the session through the existing control handlers.
+/// radio option or closes, and every change reaches the session through the existing control handlers.
 /// </summary>
 internal sealed class SettingsKeyboardView
 {
     private readonly CheckBox[] _choices;
-    private readonly ItemsControl _schemes;
+    private readonly ItemsControl[] _optionGroups;
     private readonly Button _close;
     private readonly Func<XamlRoot> _root;
 
-    internal SettingsKeyboardView(CheckBox[] choices, ItemsControl schemes, Button close, Func<XamlRoot> root)
+    internal SettingsKeyboardView(CheckBox[] choices, ItemsControl[] optionGroups, Button close, Func<XamlRoot> root)
     {
         ArgumentNullException.ThrowIfNull(choices);
-        ArgumentNullException.ThrowIfNull(schemes);
+        ArgumentNullException.ThrowIfNull(optionGroups);
         ArgumentNullException.ThrowIfNull(close);
         ArgumentNullException.ThrowIfNull(root);
         _choices = [.. choices];
-        _schemes = schemes;
+        _optionGroups = [.. optionGroups];
         _close = close;
         _root = root;
     }
@@ -93,7 +93,7 @@ internal sealed class SettingsKeyboardView
 
     private Control[] Items()
     {
-        return [.. _choices, .. Descendants(_schemes).OfType<RadioButton>(), _close];
+        return [.. _choices, .. _optionGroups.SelectMany(Descendants).OfType<RadioButton>(), _close];
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

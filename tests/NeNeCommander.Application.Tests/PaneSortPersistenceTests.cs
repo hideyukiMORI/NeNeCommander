@@ -146,7 +146,7 @@ public sealed class PaneSortPersistenceTests
     {
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         BookmarkCatalog catalog = Catalog();
-        UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), catalog, PaneSortPreferences.Default);
+        UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default);
         SettingsSession settings = new(store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception));
         RecordingCommanderObserver observer = new();
         TaskCompletionSource<SettingsWriteOutcome>[] writes = [store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite()];
@@ -229,7 +229,7 @@ public sealed class PaneSortPersistenceTests
             VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity;
             PaneSession left = new(Left, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Left));
             PaneSession right = new(Right, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Right));
-            UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, preferences);
+            UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, preferences);
             Session = new CommanderSession(new DualPaneSession(left, right, _gateway),
                 new SettingsSession(Store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception)),
                 new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),

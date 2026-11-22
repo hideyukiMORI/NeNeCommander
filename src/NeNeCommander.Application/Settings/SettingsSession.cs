@@ -110,6 +110,8 @@ public sealed class SettingsSession
                 SelectColorSchemeAsync(selection.Scheme, observer, cancellationToken),
             LaunchHiddenItemVisibilitySelection selection =>
                 SelectLaunchHiddenItemVisibilityAsync(selection.Visibility, observer, cancellationToken),
+            InterfaceLanguageSelection selection =>
+                SelectInterfaceLanguageAsync(selection.Language, observer, cancellationToken),
             KeyHintVisibilitySelection selection =>
                 SelectKeyHintVisibilityAsync(selection.Visibility, observer, cancellationToken),
             _ => Task.CompletedTask,
@@ -154,7 +156,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -176,7 +178,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,
                 cancellationToken);
         }
@@ -198,7 +200,32 @@ public sealed class SettingsSession
         lock (_sync)
         {
             DisplayPreferences display = DisplayPreferences.Create(
-                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility);
+                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility, _settings.Display.InterfaceLanguage);
+            return QueueWrite(
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
+                observer,
+                cancellationToken);
+        }
+    }
+
+    /// <summary>Queues a next-launch language choice without changing the current process language.</summary>
+    /// <param name="language">Shipped language or the platform default.</param>
+    /// <param name="observer">Receives the state current after this write completes.</param>
+    /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
+    /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
+    public Task SelectInterfaceLanguageAsync(
+        InterfaceLanguage language,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            DisplayPreferences display = DisplayPreferences.Create(
+                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility,
+                _settings.Display.KeyHintVisibility, language);
             return QueueWrite(
                 UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
                 observer,

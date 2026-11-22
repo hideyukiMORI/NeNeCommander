@@ -50,12 +50,11 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     private AppWindowCloseAdapter? _closeAdapter;
     private CommanderWindow? _window;
 
-    /// <summary>Initializes the WinUI application resources.</summary>
+    /// <summary>Initializes lifecycle owners; explicit XAML initialization waits for the startup language.</summary>
     public CommanderApplication()
     {
         _startupWork = new AsyncWorkOwner(ReportDefect);
         _shutdownWork = new WindowShutdownOwner(ShutdownAsync, QueueFinalWindowClose, ReportDefect);
-        InitializeComponent();
     }
 
     /// <summary>Composes the initial window from concrete boundary implementations.</summary>
@@ -74,9 +73,9 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     }
 
     /// <summary>
-    /// Reads persisted settings, applies the selected color scheme to the application resources
-    /// before any view is created, and then composes and shows the window. The lifecycle owner
-    /// observes the task because a framework launch handler cannot await.
+    /// Reads settings and checks cancellation before explicit language, XAML, scheme and view
+    /// initialization. This orders host-owned calls, not all framework resource evaluation.
+    /// The lifecycle owner observes the task because a framework launch handler cannot await.
     /// </summary>
     private async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -86,10 +85,20 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             ioExecutionBoundary,
             new WindowsIdentifierSource());
         SettingsReadOutcome settingsOutcome = await settingsStore.ReadAsync(cancellationToken).ConfigureAwait(true);
+        cancellationToken.ThrowIfCancellationRequested();
         UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
+        if (settings.Display.InterfaceLanguage != InterfaceLanguage.System)
+        {
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = settings.Display.InterfaceLanguage.Identifier;
+        }
+        InitializeComponent();
         ApplyColorScheme(settings.Display.ColorScheme);
         SettingsSession settingsSession = new(settingsStore, settingsOutcome, ReportDefect);
         _window = CreateWindow(settings, ioExecutionBoundary, settingsSession);
+        if (settings.Display.InterfaceLanguage != InterfaceLanguage.System)
+        {
+            ((FrameworkElement)_window.Content).Language = settings.Display.InterfaceLanguage.Identifier;
+        }
         _window.ColorSchemeChanged += OnColorSchemeChanged;
         ApplyElementTheme(_window, settings.Display.ColorScheme.Appearance);
         _closeAdapter = new AppWindowCloseAdapter(_window, OnWindowCloseRequested);

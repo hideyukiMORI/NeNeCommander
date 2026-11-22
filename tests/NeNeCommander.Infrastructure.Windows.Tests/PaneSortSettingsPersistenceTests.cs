@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ public sealed class PaneSortSettingsPersistenceTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = Store(root);
         PaneSortPreferences orders = PaneSortPreferences.Create(Order(choice), Order(7 - choice));
-        UserSettings selected = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), Catalog(), orders);
+        UserSettings selected = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), Catalog(), orders);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(await store.WriteAsync(selected, CancellationToken.None));
         UserSettings restored = Assert.IsInstanceOfType<SettingsRead>(await store.ReadAsync(CancellationToken.None)).Settings;
@@ -68,7 +69,10 @@ public sealed class PaneSortSettingsPersistenceTests
         Assert.AreEqual(PaneSortPreferences.Default, migrated.PaneSortOrders);
         Assert.AreEqual(legacy, File.ReadAllText(path));
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(await store.WriteAsync(migrated, CancellationToken.None));
-        Assert.AreEqual(Document("{\"left\":" + DefaultOrder + ",\"right\":" + DefaultOrder + "}"), File.ReadAllText(path));
+        string expected = Document("{\"left\":" + DefaultOrder + ",\"right\":" + DefaultOrder + "}")
+            .Replace("\"schemaVersion\":4", "\"schemaVersion\":5", StringComparison.Ordinal)
+            .Replace("\"showKeyHints\":true}", "\"showKeyHints\":true,\"uiLanguage\":\"system\"}", StringComparison.Ordinal);
+        Assert.AreEqual(expected, File.ReadAllText(path));
     }
 
     /// <summary>Proves a missing new property never silently defaults the incomplete side.</summary>

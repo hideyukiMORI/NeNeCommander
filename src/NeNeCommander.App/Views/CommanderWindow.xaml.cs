@@ -337,6 +337,12 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _settingsView.ShowKeyHintsChanged(sender);
     }
 
+    private void OnSettingsLanguageChecked(object sender, RoutedEventArgs args)
+    {
+        _ = args;
+        _settingsView.LanguageChecked(sender);
+    }
+
     private void OnSettingsSchemeChecked(object sender, RoutedEventArgs args)
     {
         _ = args;
