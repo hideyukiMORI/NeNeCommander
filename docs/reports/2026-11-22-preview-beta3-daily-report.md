@@ -1,4 +1,23 @@
-# 2026-11-22 日報 — Preview beta.3公開前
+# 2026-11-22 日報 — Preview beta.3公開完了
+
+## 公開完了 — 2026-11-22 15:49 JST
+
+[Preview beta.3](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.3)は
+15:46:01に公開済み。PR529を通常squashしたmain288a695が受理ソースで、受理headとtree一致。
+候補・main双方のCodeQL処理成功とopen alert0、配布586ファイル、独立展開、
+日本語/英語各387文字列、ライセンス原本を確認した。15:49の公開3asset再downloadも
+全hash/size/service digest一致。正式候補と証拠はD側に保持する。
+[公開完了の品質記録](../quality/2026-11-22-preview-beta3-publication.md)が最新結果を所有する。
+
+PRI検査スクリプトの添付プロパティ名の誤変換を修正した。元script/失敗/dumpを保存し、
+配布物の変更・再buildは行っていない。deepの19成功項目は公開前確認時11.2時間前で、
+変更箇所補完と入力一致を根拠に再利用。自動承認によるSARIF送信保留はhide承認で解消済み。
+
+完了文書を通常PRで統合後、今回専用生成物を全件保全・照合して限定整理する。
+整理の確定結果は恒久証拠のcompletion.jsonに記録する。現時点で後片付け拒否はない。
+次は公開を待っていた#524一覧フォーカス循環を既存PaneReducerで進める。
+以下は時点付きの経過であり、古い「未公開」「承認待ち」を現在地として扱わない。
+
 
 記録時点: 2026-11-22 03:46 JST。これは公開前の途中記録。
 beta.3はまだ公開していない。最新の実行状態はリンク先と
