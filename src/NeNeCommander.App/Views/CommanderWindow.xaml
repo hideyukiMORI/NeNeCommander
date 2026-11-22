@@ -654,6 +654,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="LeftPaneHeader"
@@ -709,6 +710,15 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <TextBlock
+                        x:Name="LeftCounts"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="LeftPaneCounts"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingPaneHeader}"
+                        TextWrapping="Wrap" />
                 </Grid>
             </Border>
 
@@ -725,6 +735,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="RightPaneHeader"
@@ -780,6 +791,15 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <TextBlock
+                        x:Name="RightCounts"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="RightPaneCounts"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingPaneHeader}"
+                        TextWrapping="Wrap" />
                 </Grid>
             </Border>
         </Grid>

@@ -391,4 +391,9 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
   <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="PaneCountsUnavailable" xml:space="preserve"><value>件数未取得</value></data>
+  <data name="PaneCountsFormat" xml:space="preserve"><value>ファイル {0:N0} · フォルダー {1:N0} · 選択 {2:N0}</value></data>
+  <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>表示: ファイル {0:N0}・フォルダー {1:N0} · 選択 {2:N0} · 取得: ファイル {3:N0}・フォルダー {4:N0}</value></data>
+  <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>取得分のみ · {0}</value></data>
+  <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>前回の一覧 · {0}</value></data>
 </root>

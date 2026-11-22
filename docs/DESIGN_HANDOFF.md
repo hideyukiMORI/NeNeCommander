@@ -76,3 +76,20 @@ screen-reader or Issue #94 release confirmation.
 
 Framework basis: [WinUI automation-peer guidance](https://learn.microsoft.com/en-us/windows/apps/design/accessibility/custom-automation-peers)
 and [the Name/LabeledBy named-container implementation](https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/core/core/elements/framework.cpp).
+
+## Pane count strip — Issue #542
+
+The existing pane projection supplies direct file/folder/selection counts in a
+noninteractive TextBlock below each list. LeftPaneCounts and RightPaneCounts are
+stable automation identifiers. Existing monospace, secondary text and pane-spacing
+tokens apply. Full text wraps without fixed dimensions, trimming or a line limit;
+the tooltip holds the same complete text and the normal TextBlock peer owns its
+accessible content. It adds no tab stop or automatic per-keystroke announcement.
+
+The authored brief and ordinary Claude design advice are retained in the Issue542
+quality evidence. The requested /design command reported that it only manages
+project access in the installed CLI; that invocation produced no design. The
+advice's bottom placement is adopted with engineering adaptations: wrap complete
+labels instead of hiding narrow-width details, explicitly show selection zero,
+and qualify loaded-only or retained counts in text. Whole templates are localizable.
+Native narrow/DPI/high-contrast and screen-reader results remain unclaimed.
