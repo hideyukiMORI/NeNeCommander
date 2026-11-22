@@ -29,3 +29,9 @@ initial-source/final-source、各JSON/run、verification-summary/logとverify-pr
 別branch/送信手段で拒否を回避しない。#528は未実装/未公開/未統合のため削除しない。
 受理/main統合/成果物保全後に専用対象だけ整理し、closing PR/completionに実績を残す。
 ユーザーApp issue495/設定、未完491/514/pr498-reviewと他候補を保持。継続指示は有効。
+
+## hide回答の反映 — 2026-11-22 21:34 JST
+
+hideは中国語について「まず簡体字（推奨）」と回答。初回中国語は簡体字で確定。繁体字は今回の初回範囲に加えない。既存の日英と同一の選択/設定/起動経路へ統合する。前段の未回答記述はこの回答で解消。製品実装・schema/翻訳検証・native証拠は引き続き未完了。
+
+#542はPR557/main b82aa1eへ統合済み。#547の2593バイト設計brief送信もhideの明示承認後に完了。過去の承認待ち記載はこの範囲で解消し、別payloadへの許可と混同しない。
