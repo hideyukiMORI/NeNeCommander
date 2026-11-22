@@ -276,3 +276,116 @@ Draft PR/integration and eventual cleanup. Compiler-closure prototype proof is
 retained but is not mislabeled as a final product compiler-probe run. The final
 small helper/new test additions also require a scoped final complexity refresh if
 implementation continues. User App/settings, main and public beta.3 are unchanged.
+
+## Resumed non-visible proof — 2026-11-23 01:21 JST
+
+hide explicitly resumed at01:01 after the earlier stop. The original stop/checkpoint
+remains historical; this continuation changes documentation and owned diagnostics
+only. All1,227 frozen product/tool/test inputs still match stop-input-hashes.json.
+Main/user App/user settings/public beta.3 are unchanged. No physical input,
+shared-desktop focus, application activation or visible diagnostic window is used.
+
+### Actual controls, delayed save and bounded layout
+
+prepare-settings-control-fixture.py copies169 App source/resource inputs into
+D:/NeNeCommander/outputs/theme-catalog-20261122/settings-control-fixture, records
+all original hashes/substitutions and verifies the frozen product inputs first.
+It substitutes owned pane/settings paths and startup activation; copied
+FocusFileList/FocusInitialClose become no-ops. A diagnostic delegating store delays
+only the first real owned-store write. The original native Checked/Loaded events,
+settings intent route, queue and rendering remain. Any non-deactivated event,
+visibility or owned foreground observation aborts the fixture. These replacements
+make the proof narrower than unmodified startup, real keys or focus acceptance.
+
+`dotnet restore App/NeNeCommander.App.csproj -p:Configuration=Release --locked-mode`
+and `dotnet build App/NeNeCommander.App.csproj -c Release --no-restore` in that
+fixture succeed; final build has0 warnings/errors. First control fixture build
+had IDE0022/IDE0010 in diagnostic helpers, corrected without suppression; second
+passes. The later layout helper's IDE0078 likewise becomes the required pattern;
+second layout build passes. All four trial logs remain under the evidence root.
+No failed-build DLL was executed.
+
+`Start-Process -FilePath <fixture>/App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe
+-ArgumentList <en-US|ja-JP|zh-Hans> -WindowStyle Hidden -PassThru` followed by a30-second
+bounded process wait runs the same27 control cases in each locale. Each exits0,
+with27 passed checks, exactly2 explicit selections/writes, zero activation events,
+never-visible/never-owned-foreground observations, and unchanged foreground endpoints.
+The cases prove129 initially loaded radios, case-insensitive query, current selection
+outside results, zero results, latest checked state after re-realization, query/source/
+control identity across delayed completion, no save during render/filter/reopen,
+129 full accessible names/stable identifiers and retained language. This is27
+behavioral cases across3 locales, not81 distinct tests. No focus retention or speech
+is inferred from control identities or accessibility properties.
+
+The separate `-ArgumentList @('zh-Hans','layout')` mode exits0 with19 checks at the
+actual125% rasterization scale. The content measures exactly320x300 and640x360 DIPs.
+Modal sizes are296x249.6 and520x309.6; Close stays inside modal/content at both sizes.
+The outer body viewport is194.4/254.4 DIPs high, with a256-DIP inner choice viewport.
+StartBringIntoView reaches both first and last full32-DIP rows within both scroll
+clips, with Close still inside the content. No settings write occurs. This is API
+scroll/geometry proof for this locale/scale only, not keyboard/IME/mouse/visual or
+other-DPI proof. settings-layout-zh-Hans.json retains every rectangle and offset.
+
+The same hidden fixture loads all129 actual compiled dictionaries and compares
+all2,322 Color values plus2,322 brush values with byte-equal XAML sources. Every
+in-place copy retains all18 destination brush identities and matches selected
+colors. runtime-palettes-zh-Hans.json records each scheme; no Windows contrast-mode
+or rendered usability claim is made. All non-substituted fixture inputs still match
+original source hashes; resumed-proof-input-verification.json records this check.
+
+### Final binary, compiler and clean-source proof
+
+- Pinned SDK `makepri.exe dump /if <product-App-bin>/NeNeCommander.App.pri
+  /of D:/NeNeCommander/evidence/theme-catalog-20261122/app-pri-dump.xml /dt detailed /o`
+  plus verify-compiled-and-control-proof.py confirms527 exact values per en-US,
+  ja-JP and zh-Hans. All132 product XBF files, including129 schemes, are byte-equal
+  to their PRI EmbeddedData. Original verifier expected basic rather than detailed
+  qualifier syntax and failed before any product mutation; pri-verifier-trial.json
+  records the correction and exact singleton language matching.
+- `pwsh -NoProfile -File <evidence>/verify-product-closure.ps1` uses the final
+  Application Release DLL and pinned C# compiler, not prototype source. Two valid
+  abstract/copy probes compile; five unauthorized concrete/case/mutation probes
+  fail with the expected CS0534/CS0115/CS0122/CS0200 diagnostics. All7 checks pass;
+  actual DLL hash and logs are in product-closure-checks/closure.json.
+- `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` exits1 with
+  exactly the same5 prior findings, including identical path/line/column/metric/
+  value/limit; no new finding. complexity-resumed-comparison.json records equality.
+  Existing unresolved-invocation limits remain, and this is not a clean whole-tree
+  complexity result.
+- `git worktree add --detach D:/NeNeCommander/worktrees/issue-527-checkout-proof
+  1700b197bb7b9f8dddbab85d04ef0d4c9fa9d109` performs a real clean checkout.
+  Both `eng/import-theme-catalog.ps1 -RepositoryRoot <checkout> -Mode Check` and
+  `-Mode Write` succeed for131 outputs; regeneration leaves no tracked/untracked/
+  ignored changes. The notice is exactly71,394 bytes with the accepted SHA256.
+  This is regeneration/source proof, not a second full build.
+- That disposable checkout has no unique artifacts, links or active executable
+  references. Normal `git worktree remove <exact-checkout>` succeeds at01:14:55 JST;
+  absence is verified. The checkpoint commit, current feature worktree, fixtures
+  and all evidence remain. No cleanup rejection or hide cleanup request arises.
+
+### Scope decision and remaining acceptance
+
+ADR-0061 focused evidence covers the closed representation/consumer boundary,
+all current and legacy settings identifiers, ordered complete-value persistence,
+settings presentation/host controls, constant URI/compiled resource projection,
+actual marker/progress resources, ARC-012's changed parser and notice/import tools.
+The catalog remains authored and closed; no external factory/URI composition,
+provider/storage/shell boundary or dependency input is introduced. Existing
+Application32/Infrastructure34/Presentation50/Architecture3, App build, ARC1+16,
+notice55-file ZIP and color-pair proof are reused unchanged. A full/deep/CI run is
+not necessary merely for checkpoint/push/Draft publication. This does not waive
+release proof or any new wider-impact change; native acceptance is still required.
+
+Outstanding: unmodified startup/restart of dependent language PR559, native
+Tab/Shift+Tab/j/k/Space/Enter/Escape and IME/focus return, actual speech, Windows
+contrast mode, representative other DPI/locale layouts and hide's visual acceptance.
+The feature remains a local candidate; no new public PR, merge, release or feature
+acceptance is claimed here. Prepare a concrete Draft payload next; the existing
+limited external-transmission approvals are not generalized.
+
+The first fixture-input audit also compared the deliberately rewritten csproj to
+its original hash and stopped before documentation edits. The audit now explicitly
+accounts for that declared absolute-project-reference/diagnostic-unsafe substitution
+alongside the three source substitutions; all165 unmodified copied inputs match.
+Read-only filename/wildcard lookup misses were corrected with actual file paths
+and directory-scoped rg filters; they changed no product or proof inputs.
