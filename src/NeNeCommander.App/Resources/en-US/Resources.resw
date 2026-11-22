@@ -393,4 +393,9 @@
   <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Absolute location</value></data>
   <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
   <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>Open current folder in the other pane</value></data>
+  <data name="PaneCountsUnavailable" xml:space="preserve"><value>Counts unavailable</value></data>
+  <data name="PaneCountsFormat" xml:space="preserve"><value>Files {0:N0} · Folders {1:N0} · Selected {2:N0}</value></data>
+  <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>Shown: files {0:N0}, folders {1:N0} · Selected {2:N0} · Loaded: files {3:N0}, folders {4:N0}</value></data>
+  <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>Loaded entries only · {0}</value></data>
+  <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>Last listing · {0}</value></data>
 </root>

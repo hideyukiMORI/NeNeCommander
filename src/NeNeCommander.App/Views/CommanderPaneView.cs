@@ -15,6 +15,7 @@ internal sealed class CommanderPaneView
     private readonly ResourceLoader _resources;
     private readonly TextBlock _address;
     private readonly TextBlock _status;
+    private readonly TextBlock _counts;
     private readonly ListView _fileList;
     private readonly Border _border;
     private readonly Border _header;
@@ -32,6 +33,7 @@ internal sealed class CommanderPaneView
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
         _status = Find<TextBlock>(prefix + "Status");
+        _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");
         RowAutomationIdentity.Attach<PaneRow>(_fileList, row => row.AutomationId, row => row.Entry.Name);
         _border = Find<Border>(prefix + "PaneBorder");
@@ -54,6 +56,8 @@ internal sealed class CommanderPaneView
         }
         _status.Text = PaneStatusLine.Compose(
             presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
+        _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
+        ToolTipService.SetToolTip(_counts, _counts.Text);
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
     }

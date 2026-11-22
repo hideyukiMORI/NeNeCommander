@@ -41,6 +41,9 @@ public sealed record PanePresentation
     /// <summary>Gets the row that holds focus, or absence when there is no focus item.</summary>
     public PaneRow? FocusRow { get; }
 
+    /// <summary>Gets direct-entry counts for the displayed listing, or absence before a listing exists.</summary>
+    internal PaneCounts? Counts => _source.Counts;
+
     /// <summary>Gets the status the pane shows.</summary>
     public PaneStatus Status => _header.Status;
 
