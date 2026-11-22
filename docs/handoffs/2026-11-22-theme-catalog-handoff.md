@@ -1,3 +1,12 @@
+## Technical acceptance — 2026-11-23 00:18 JST
+
+ADR-0087 and the concrete handoff are accepted for implementation after the00:16
+independent read-only review finds no required correction. Language PR559/91e06f5
+is imported; only additive PROJECT_STATE conflict, both retained, all1092 frozen
+non-Markdown inputs match. Proposed design commit c095bcd passed normal112/security24
+checks. Next: offline source/notice import, catalog/maps/XAML, ARC-012 proof, search
+and exact settings/IME/focus integration. No theme product/native/PR acceptance.
+
 ## Current review checkpoint — 2026-11-23 00:16 JST
 
 ADR-0087 and the [concrete handoff](../design/2026-11-23-theme-catalog-handoff.md)

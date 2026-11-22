@@ -1,11 +1,15 @@
 # ADR-0087: Extend the existing closed color-scheme catalog to 129 choices
 
-Status: proposed
+Status: accepted
 
 Date: 2026-11-22
 
+Technical acceptance: 2026-11-23 00:16 JST, after independent read-only re-review
+found no remaining required contract correction. Accepted under hide's continuing
+implementation authority; native screen/IME/HC/speech and feature acceptance remain separate.
+
 Issue #527. hide confirmed the shared125 plus the four existing Commander-only
-choices at21:34 JST. This proposal changes the representation and concrete catalog
+choices at21:34 JST. This decision changes the representation and concrete catalog
 inside the existing settings/resource mechanism. It does not accept native UI,
 publication, release or the separately unaccepted language feature.
 

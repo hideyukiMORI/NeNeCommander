@@ -1,7 +1,7 @@
 # Theme catalog and searchable settings handoff
 
 Issue #527 / ADR-0087 / 2026-11-23.
-Status: proposed engineering adoption of the approved-brief Claude consultation;
+Status: accepted engineering adoption after the00:16 JST independent review;
 implementation and native screen acceptance remain separate.
 
 ## Provenance and adoption

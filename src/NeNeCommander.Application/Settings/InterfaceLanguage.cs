@@ -1,4 +1,4 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace NeNeCommander.Application.Settings;
@@ -22,14 +22,42 @@ public abstract record InterfaceLanguage
     public static InterfaceLanguage SimplifiedChinese { get; } = new SimplifiedChineseLanguage();
 
     /// <summary>Gets the closed choices in editor order without exposing mutable storage.</summary>
-    public static IReadOnlyList<InterfaceLanguage> All { get; } = Array.AsReadOnly<InterfaceLanguage>(
-        [System, Japanese, English, SimplifiedChinese]);
+    public static IReadOnlyList<InterfaceLanguage> All { get; } = LanguageCatalog.Create();
 
     /// <summary>Gets the exact persisted identifier; System is not a platform language tag.</summary>
     public abstract string Identifier { get; }
 
     private InterfaceLanguage()
     {
+    }
+
+    private sealed record LanguageCatalog : IReadOnlyList<InterfaceLanguage>
+    {
+        private readonly InterfaceLanguage[] _languages;
+
+        private LanguageCatalog()
+        {
+            _languages = [System, Japanese, English, SimplifiedChinese];
+        }
+
+        public int Count => _languages.Length;
+
+        public InterfaceLanguage this[int index] => _languages[index];
+
+        internal static LanguageCatalog Create()
+        {
+            return new LanguageCatalog();
+        }
+
+        public IEnumerator<InterfaceLanguage> GetEnumerator()
+        {
+            return ((IEnumerable<InterfaceLanguage>)_languages).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     private sealed record SystemLanguage : InterfaceLanguage

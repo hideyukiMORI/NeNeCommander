@@ -33,6 +33,10 @@ for compilation and runtime evidence.
   zh-Hans. System is the default and preserves the current platform-selected
   behavior. Only these shipped choices can reach the platform override. Unknown
   tags, aliases, casing, whitespace and null are not accepted as another choice.
+- The ordered public language catalog owns its array behind a private read-only
+  view. It exposes neither a mutable collection nor a non-generic ICollection
+  synchronization root that could disclose storage. Consumers may index and
+  enumerate the four closed choices; their order and identities are stable.
 - Add the choice to the existing DisplayPreferences complete value. Its one
   factory takes all four display choices; all callers migrate atomically, with
   no optional language argument or compatibility overload. All existing selectors,

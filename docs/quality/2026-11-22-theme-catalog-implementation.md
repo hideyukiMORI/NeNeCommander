@@ -1,7 +1,7 @@
 # Theme catalog design and prototype proof
 
 Issue #527 / 2026-11-22 / current local dependency base85cd35d.
-Status: proposed ADR-0087 and isolated prototypes; no theme product changes.
+Status: technically accepted ADR-0087/handoff after00:16 review; language91e06f5 imported; no theme product changes.
 
 ## Scope and provenance
 
@@ -154,3 +154,18 @@ Repeated source lookups for an output-side RuntimeProbe and nonexistent
 OperationPresentation/OperationPresenter paths were read-only misses. The actual
 saved evidence fixture and DualPanePresenter/OperationBarView established the
 rendering ownership. No fixture or product was launched by those lookups.
+
+## Technical acceptance and dependency correction — November23 00:18 JST
+
+The independent read-only re-review of ADR-0087 and the concrete handoff finds no
+remaining required contract correction. Storage ownership, actual text/mark pairs,
+hollow/filled progress, explicit theme selection, TextEntry/IME and modal focus
+contracts agree. It performs no editing/build/test. This accepts implementation
+under hide's continuing authority; it does not accept native or dependent features.
+
+Proposed design commit c095bcd passes112 conformance/security24 and normal message
+checks. Language correction91e06f5 is then imported; the sole PROJECT_STATE conflict
+contains independent additive entries and retains both. Every1092 frozen non-Markdown
+language input matches, so no product proof is repeated merely for the import.
+The next work is the offline manifest/notice generator, literal catalog/maps/XAML,
+ARC-012 proof and searchable settings implementation. No theme product result yet.

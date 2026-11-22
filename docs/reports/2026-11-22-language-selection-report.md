@@ -1,3 +1,23 @@
+# Current ownership correction — 23:58 JST
+
+PR559 is OPEN/Draft at published4a41dc4 after hide's explicit23:10 approval.
+The local catalog correction closes a newly reproduced ICollection.SyncRoot array
+leak without changing language values/queue/schema/resources/startup. Regression
+baseline1 fails as expected; corrected Application12/Infrastructure24/Presentation16
+pass, App/test builds have0 warnings/errors, two-file formatting passes and the
+same5 CS-013 findings remain. Independent read-only review accepts the correction.
+Overall distinct Application61, Infrastructure122, Presentation21; do not add
+rerun subsets. See ownership-* evidence and the updated implementation quality record.
+
+Only2 of1092 non-Markdown inputs change. Commit and Draft update remain next;
+native/unmodified startup/IME/focus/speech/screen acceptance and main integration/
+cleanup remain incomplete. Reuse unaffected proofs and retain the unfinished D tree.
+No user App/settings or shared-desktop input was used. Basic-operation TODOs are
+registered as Issues560–564 with explicit public-text approval; tracker564 reuses
+existing filter/search/mouse/input Issues. No release scope or date is fixed.
+
+All older entries are time-qualified history.
+
 # 2026-11-22 作業報告 — 言語選択の実装
 
 23:06 JST現在、#528をaccepted ADR-0086に沿ってローカル実装。設定画面でSystem・日本語・

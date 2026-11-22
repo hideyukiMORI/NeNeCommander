@@ -1,7 +1,7 @@
 # Language selection implementation proof
 
 Issue #528 / November22 / branch feat/528-language-selection.
-Status: local implementation and selected automatic proof complete through23:06 JST; native/unmodified-startup feature acceptance and publication remain pending.
+Status: Draft PR559 published with explicit approval at23:10 JST. A locally verified ownership correction follows below; native/unmodified-startup feature acceptance and main integration remain pending.
 The earlier language-lifecycle investigation remains distinct from product proof.
 
 ## Current scope and provenance
@@ -251,3 +251,59 @@ existing queue consumers, presentation/keyboard, App compilation, catalog/PRI an
 scoped construction evidence. Native uncertainty needs the named environment;
 unrelated provider or operation suites would not prove it. Reuse these successes
 unless their relevant implementation, tests, resources, dependencies or tooling change.
+
+## Read-only catalog ownership correction — 23:58 JST
+
+During the related theme-catalog review, the read-only wrapper was found to expose
+its backing array through non-generic ICollection.SyncRoot. The earlier IList.Clear
+refusal was insufficient proof. ownership-baseline-build.log succeeds with0 warnings/
+errors; ownership-baseline-test.log has1 expected failure: changing that exposed
+array replaced System with English. The test restores the original element in
+finally and is DoNotParallelize, so it cannot leave process-wide contamination.
+
+InterfaceLanguage now owns its four elements in private LanguageCatalog, exposing
+only IReadOnlyList and enumeration. No non-generic ICollection or mutable array is
+published. ADR-0086 clarifies this ownership invariant. The existing mutation test
+accepts a read-only-only surface, while the new regression and indexed/generic/
+non-generic order/bounds case prove both closure and ordinary consumers.
+
+The following commands run from the dedicated issue-528 worktree, each with logs
+prefixed ownership- under the existing evidence directory:
+
+- `dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore -maxcpucount:4`, then
+  `dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --filter 'FullyQualifiedName~InterfaceLanguage'`:12/12.
+- The same build/test shape for Infrastructure.Windows.Tests with
+  `FullyQualifiedName~InterfaceLanguageDocumentTests`:24/24. These parser cases
+  perform no filesystem effects and need no temporary-root mutation.
+- The same build/test shape for Presentation.WinUI.Tests with
+  `FullyQualifiedName~SettingsPresenterTests`:16/16.
+- `dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore -maxcpucount:4`:0 warnings/errors, as are all three test-project builds.
+- `dotnet format whitespace <Application or Application.Tests project> --no-restore --include <its single changed C# file>` and the matching
+  `--verify-no-changes`:both succeed. Formatting only changes whitespace.
+- `pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect`:exit1 with
+  the exact5 prior findings, compared structurally with complexity-final.json.
+
+The independent read-only re-review accepts the two-file correction without
+required changes; it runs no builds/tests. ownership-independent-review.json records
+that result. ownership-input-hashes.json freezes all1092 non-Markdown inputs and
+proves only the language implementation and its queue-test file differ from4a41dc4.
+Application has61 distinct successful cases overall (the previous59 plus2 new);
+Infrastructure122/Presentation21 totals do not grow by rerunning selected subsets.
+
+Queue/schema/write/native startup/resource/closed-root behavior outside this
+catalog representation is unchanged. Preserve and reuse the prior direct proof;
+do not repeat unrelated provider tests or copied startup processes. Native and
+unmodified-startup acceptance remain open. The correction is local pending commit/
+Draft update; it does not mark the feature ready or authorize merge.
+
+### Basic-operation backlog requested by hide
+
+At23:53–23:58 JST, hide requested basic-operation TODOs and explicitly approved
+five concise public Issue bodies. New Issues560/561/562 cover overwrite and folder
+merge, Windows file clipboard transfer, and bulk selection;563 is conditional UNC
+write support. Tracker564 links them with existing545/536/530/531/523. This records
+work, not a release cutoff or immediate implementation. Evidence is retained at
+D:/NeNeCommander/evidence/basic-operations-todo-20261122. The rejected detailed
+public payload was not sent; approved concise bodies were created through the
+CLI after connector403. Initial repeated tracker links were corrected and all5
+remote bodies/states and final links read back exactly.
