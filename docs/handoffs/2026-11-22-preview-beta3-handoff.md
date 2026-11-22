@@ -1,4 +1,24 @@
-# 2026-11-22 引き継ぎ — Preview beta.3公開前
+# 2026-11-22 引き継ぎ — Preview beta.3公開完了
+
+## 最新現在地 — 2026-11-22 15:49 JST
+
+beta.3は公開・認証なし再download照合まで完了。旧節の「未公開」「送信承認待ち」
+「PR529 Draft」は履歴であり再実行しない。公開source/tagはmain288a695 /
+v0.1.0-beta.3。候補とmainのCodeQLは成功・open alert0。詳細とexact commandsは
+[公開完了記録](../quality/2026-11-22-preview-beta3-publication.md)。
+
+今回の完了文書を通常PRへ統合し、issue522/outputの唯一成果物を保全・全件照合後、
+live参照・links・未保存差分を確認して限定整理する。branch/commit、正式candidate、
+公開download、全恒久証拠は保持。cleanupの実結果は
+D:/NeNeCommander/evidence/release-beta3-20261122/completion.jsonが所有する。
+文書更新だけで製品test/CIを繰り返さない。SARIFの再承認・再送・再解析も不要。
+
+hideの停止まで継続する指示は有効。release-firstを満たしたので、次は#524の
+一覧上下端の循環を扱う。j/kと矢印の既存commandを維持し、空/1件/左右/選択/非表示/
+再読込境界を局所検証する。Home/End/Pageの意味は推測で変えない。
+#523/#550、AppSDK PR517、native #453/#491は別で未解決。
+共有デスクトップ入力・ユーザーApp終了・設定書換えは行わない。
+
 
 記録時点: 2026-11-22 03:46 JST。
 [日報](../reports/2026-11-22-preview-beta3-daily-report.md)と
