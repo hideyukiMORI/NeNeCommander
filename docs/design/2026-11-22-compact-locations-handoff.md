@@ -1,6 +1,6 @@
 # Compact Locations picker — Issue #548
 
-Status: local engineering handoff; native scrolling and screen acceptance pending
+Status: local engineering handoff; attached API scrolling proved, native input/screen acceptance pending
 Date: 2026-11-22
 
 The existing Locations overlay uses a520 effective-pixel maximum width and24
@@ -28,7 +28,7 @@ This handoff instead bounds name/detail to2-star/1-star columns and wraps both:
 #548 asks that identifiers and information remain available, and the old row has
 no keyboard-visible full-name detail surface. Full text and the existing accessible
 name are preserved without introducing tooltip/input code. This deliberately
-allows variable-height rows; narrow clients show fewer rows and native scroll
+allows variable-height rows; narrow clients show fewer rows and native input-driven scroll
 arrival remains an explicit acceptance item. It is not claimed to be the advisor's
 one-line proposal or a final approved screen.
 
@@ -36,9 +36,13 @@ Hints use the already-existing KeyHintWrapPanel and canonical key-hint template
 and source. Status/error text already wraps. No font, color, radius, motion,
 locale, command path, package or persistence change is introduced.
 
-[Quality evidence](../quality/2026-11-22-compact-locations.md) distinguishes24
-row/hint and4 outer-width checks from12 limited composition measurements. An
-unshown, unactivated helper Window exits normally, but does not acquire XamlRoot;
-its ScrollIntoView calls do not establish real scroll arrival. Full-window,
-short-height interaction, actual DPI/text scaling, input, Narrator and visual
-acceptance remain pending. The user App and desktop input are untouched.
+[Quality evidence](../quality/2026-11-22-compact-locations.md) retains24 row/hint,
+4 outer-width and the original12 limited composition measurements. A new fixture
+lets the dispatcher attach the unshown Window's XamlRoot. At actual125% scale and
+640/320 by800/300 client sizes, the same12 composition conditions now prove complete
+last-row arrival and first-row return through ScrollIntoView, with modal/hints inside
+the24 inset. The earlier unconnected/faulted attempts remain recorded separately.
+This API proof uses literal rows, forced status text and the actual templates; it
+is not product key routing, pointer, focus, scrim hit testing or screen acceptance.
+Other DPI/text scales, Narrator and visible interaction remain pending. No user App,
+settings, visible window or desktop input was touched.

@@ -1,7 +1,7 @@
 # Compact Locations picker — Issue #548
 
 Date: 2026-11-22
-Status: local XAML implementation and geometry proof; native scrolling and publication pending.
+Status: local XAML implementation, geometry and attached API-scroll proof; native input/screen acceptance and publication pending.
 Base: main7ef9b9654bf26a74d2c673c6ff1d1d79195e65b2.
 
 ## Change and invariant
@@ -72,6 +72,46 @@ No user directory, settings, catalog, input injection or user App is used.
   tracked non-Markdown inputs and fixture source hashes are frozen; all original
   fixture variants remain. Product inputs did not change during fixture trials.
 
+## Attached-tree follow-up at19:31 JST
+
+Issue #551's independent hidden-window measurement established that dispatcher
+progress can attach XamlRoot without showing or activating a Window. This is a
+specific improvement to the earlier unavailable-host fixture, not a retry of an
+unchanged test or a workaround using desktop input. The old failure/limited records
+above remain historical evidence and are not relabelled as successes.
+
+A separate `attached-probe` directory preserves the original fixture unchanged.
+It uses the same product XAML, resources and KeyHintWrapPanel, the pinned package
+lock and PerMonitorV2 manifest. The dispatcher advances between attaching content,
+resizing the owned client, selecting/ScrollIntoView of the last row and returning
+by the same API to the first row. No Show, Activate, keyboard or pointer API runs.
+The diagnostic sampling timer is not product code or a deterministic test clock.
+
+`attached-probe-restore.log` and `attached-probe-build.log` record successful locked
+Release restore and0-warning/error build. `full-attached-scroll-exit.json` records
+process24152/exit0. The actual unshown native client sizes match640/320 by800/300
+effective pixels at125%, across English/Japanese/synthetic Chinese: the same12
+composition conditions as before, now attached. All12 acquire XamlRoot; the last
+row is realized and entirely inside the list viewport, and return to the first row
+realizes it at top0/offset0. All modal and hint regions remain within the24 inset.
+Nine cases require nonzero scrolling. Narrow/short Japanese and synthetic-Chinese
+cases retain91.2 viewport height with an81.6-high last row. Numeric float comparison
+uses0.02 effective pixels, explicitly recorded rather than integer rounding.
+
+`full-attached-scroll-layout.json` preserves all first/last/return observations.
+`attached-scroll-comparison.json` proves12/12, plus all1079 original product-input
+hashes unchanged. `attached-fixture-source/` and `attached-fixture-hashes.json`
+preserve this new fixture. Both activation count and ever-visible flag are0/false;
+all sampled foreground values match the initial handle. These observations do not
+claim native key/focus behavior. Product App build and prior passing geometry are
+reused because their inputs did not change; no product build/test or CI repeated.
+
+Commands from `attached-probe` are the same locked restore and no-restore build
+below. The exact executable under its net10/win-x64 output was launched with
+`Start-Process -WindowStyle Hidden -PassThru` and `WaitForExit(20000)`, with no JSON
+argument. The new fixture has a fixed task-owned output filename. No timeout fired.
+The launcher and comparison results, not the diagnostic's timer alone, establish
+this bounded run. No target process or setting outside this fixture was modified.
 ## Exact commands and scope
 
 From the task worktree:
@@ -101,8 +141,8 @@ proof is reused under ADR-0061, without claiming it verifies new layout behavior
 
 ## Acceptance and retention
 
-Native last-row arrival, real keyboard/pointer/focus return, scrim hit testing,
-full-window short-height behavior, actual DPI/text scaling and Narrator remain
+Real keyboard/pointer/focus return, scrim hit testing, visible full-window interaction,
+other DPI/text scales and Narrator remain
 unproved. A present, isolated native session is needed for those direct boundaries;
 do not mark this issue complete or imply screen acceptance from detached geometry.
 The row-height tradeoff is recorded for that review. No beta.3 change is made.
