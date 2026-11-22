@@ -22,7 +22,7 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
-None.
+- [ADR-0085: Create one empty text file through the existing mutation gateway](0085-create-empty-text-file.md)
 
 ## Accepted decisions
 
