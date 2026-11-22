@@ -105,11 +105,56 @@ public sealed class InterfaceLanguageQueueTests
     public void AllWhenConsumerAttemptsMutationKeepsFourShippedChoices()
     {
         Assert.HasCount(4, InterfaceLanguage.All);
-        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
-            ((System.Collections.Generic.IList<InterfaceLanguage>)InterfaceLanguage.All).Clear());
+        if (InterfaceLanguage.All is System.Collections.Generic.IList<InterfaceLanguage> mutable)
+        {
+            _ = Assert.ThrowsExactly<NotSupportedException>(mutable.Clear);
+        }
         CollectionAssert.AreEqual(
             ExpectedIdentifiers,
             System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(InterfaceLanguage.All, static language => language.Identifier)));
+    }
+
+    /// <summary>Proves collection synchronization metadata cannot expose writable language storage.</summary>
+    [TestMethod]
+    [DoNotParallelize]
+    public void AllWhenSynchronizationRootIsExposedCannotReplaceLanguage()
+    {
+        InterfaceLanguage observed = InterfaceLanguage.All[0];
+        if (InterfaceLanguage.All is System.Collections.ICollection collection &&
+            collection.SyncRoot is InterfaceLanguage[] storage)
+        {
+            InterfaceLanguage original = storage[0];
+            try
+            {
+                storage[0] = InterfaceLanguage.English;
+                observed = InterfaceLanguage.All[0];
+            }
+            finally
+            {
+                storage[0] = original;
+            }
+        }
+
+        Assert.AreSame(InterfaceLanguage.System, observed);
+        Assert.AreSame(InterfaceLanguage.System, InterfaceLanguage.All[0]);
+    }
+
+    /// <summary>Proves both enumeration contracts and indexed access expose the same closed order.</summary>
+    [TestMethod]
+    public void AllWhenReadThroughCollectionContractsKeepsExactOrderAndBounds()
+    {
+        System.Collections.IEnumerator iterator = ((System.Collections.IEnumerable)InterfaceLanguage.All).GetEnumerator();
+        int index = 0;
+        while (iterator.MoveNext())
+        {
+            Assert.AreSame(InterfaceLanguage.All[index], iterator.Current);
+            Assert.AreEqual(ExpectedIdentifiers[index], InterfaceLanguage.All[index].Identifier);
+            index++;
+        }
+
+        Assert.AreEqual(4, index);
+        _ = Assert.ThrowsExactly<IndexOutOfRangeException>(() => InterfaceLanguage.All[-1]);
+        _ = Assert.ThrowsExactly<IndexOutOfRangeException>(() => InterfaceLanguage.All[4]);
     }
 
     /// <summary>Proves an incomplete language selection cannot reach persistence or alter state.</summary>
