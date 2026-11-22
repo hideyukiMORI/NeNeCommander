@@ -156,3 +156,15 @@ lazy情報表示・演出off、keyboard/mouse同一commandの契約を保つ。
 
 今回の最終記録の変更はMarkdownのみ。通常Commit hookとdiff/link確認だけを行い、
 成功済みの製品テストやCIを文書更新だけで再実行しない。
+## 15:27 JST 更新 — hide承認・候補への送信完了
+
+hideの「送信して」で、説明済みの元SARIFを公開GitHubの候補と受理mainへ送る承認を得た。
+同じSHA256の結果を正規CLIで送信しexit0。GitHub処理はcomplete、解析2223321214は
+対象264cffa・164ルール・指摘0・error/warning空、候補refのopen alertも0件だった。
+以前の承認待ちは解消済みで、再承認を求めない。認証情報を保存していない。
+alertのdismiss・削除・baseline化も行っていない。
+
+文書だけの差分は製品入力を変えないため成功証拠を再利用する。続けてPR529の最終受理、
+通常squash、受理mainでの同等入力解析/readback、clean source packaging、配布物全検査、
+Preview公開・公開asset再download照合と限定整理を進める。現時点で公開完了とは扱わない。
+詳細・正確なコマンドとAPI記録はCodeQL補正の品質記録と恒久証拠領域に保存済み。

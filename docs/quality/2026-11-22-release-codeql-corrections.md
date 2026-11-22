@@ -296,3 +296,30 @@ alerts, final documentation/PR acceptance and squash merge, equivalent accepted
 main analysis/readback, clean-source packaging, all payload/ZIP/PRI/notice checks,
 public tag/assets readback and exact task cleanup. Recheck96-hour freshness at
 publication. No release, packaging or cleanup completion is claimed.
+## Authorized candidate upload — 15:27 JST
+
+hide explicitly answered "送信して" at15:24 JST to the described original3.55MB
+payload and public repository destination, including candidate and accepted main.
+The approved original SARIF's size/hash remain identical. The earlier automatic
+approval holds are historical and have been resolved by this explicit consent;
+no alternative upload path or credential workaround was used.
+
+The official CLI command was executed with the existing GitHub authentication
+piped directly to standard input; no token is saved in arguments, logs or files:
+
+    codeql github upload-results --sarif=D:/NeNeCommander/evidence/release-beta3-20261122/codeql-corrections/final.sarif --repository=hideyukiMORI/NeNeCommander --ref=refs/heads/chore/522-preview-beta3 --commit=264cffa79ee619d511f5ba6489e8a6b038f2150d --checkout-path=D:/NeNeCommander/worktrees/issue-522 --github-auth-stdin
+
+Upload exits0. SARIF907c1b98-e63d-11f1-8864-ff429b2ba68b has processing_status
+complete and no errors. Analysis2223321214 records the intended264cffa source,
+164 rules,0 results, empty error/warning and category/language:csharp. The CLI
+analysis_key is(default), distinct from the historical CI key; the explicit
+candidate-ref open-alert API nevertheless returns an empty array. No alert was
+dismissed, deleted or baselined. Raw API readbacks, arguments and upload logs are
+retained in codeql-corrections/candidate-*.json and upload*.json/log.
+
+The local documentation-only follow-up is reviewed against264cffa; no product,
+test, dependency or tool input changes. Successful proof is reused underADR-0061.
+Before merge, inspect final PR/checks/threads and use normal squash integration.
+Accepted main still requires equivalent-source analysis/API readback, then
+packaging, release/public-download verification and cleanup. Recheck96-hour
+freshness when publishing. This entry does not claim those later actions complete.
