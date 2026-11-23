@@ -807,18 +807,51 @@ $localizationFiles = @(Get-RepositoryFiles -Extensions @('.resw') -Roots @('src/
 if ($appSourceFiles.Count -gt 0 -and $localizationFiles.Count -eq 0) {
     Add-Violation -Rule 'CS-023' -Message 'App ResourceLoader calls require shipped localization catalogs.'
 }
+$localizationCatalogs = [System.Collections.Generic.List[object]]::new()
 foreach ($localizationFile in $localizationFiles) {
     [xml] $catalog = Get-Content -LiteralPath $localizationFile.FullName -Raw
     $localizedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($node in $catalog.SelectNodes('/root/data')) {
         [void] $localizedKeys.Add($node.GetAttribute('name'))
     }
+    $localizationCatalogs.Add([pscustomobject]@{ File = $localizationFile; Keys = $localizedKeys })
     foreach ($appSourceFile in $appSourceFiles) {
         $appSource = Get-Content -LiteralPath $appSourceFile.FullName -Raw
-        foreach ($reference in [regex]::Matches($appSource, '\.GetString\s*\(\s*"(?<key>[A-Za-z_][A-Za-z0-9_]*)"\s*\)')) {
+        foreach ($reference in [regex]::Matches($appSource, '\.GetString\s*\(\s*"(?<key>[A-Za-z_][A-Za-z0-9_.]*)"\s*\)')) {
             $key = $reference.Groups['key'].Value
             if (-not $localizedKeys.Contains($key)) {
                 Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $appSourceFile.FullName) requests undefined localized resource '$key' in $(Get-RelativePath -Path $localizationFile.FullName)."
+            }
+        }
+    }
+}
+
+
+# ADR-0088: literal attached keys use the same catalogs and an explicit window resource owner.
+foreach ($appSourceFile in $appSourceFiles) {
+    $appSource = Get-Content -LiteralPath $appSourceFile.FullName -Raw
+    if ($appSource -match '\bResourceLoader\b|PrimaryLanguageOverride|LocalizedTextConverter') {
+        Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $appSourceFile.FullName) uses the superseded cached localization mechanism."
+    }
+}
+foreach ($xamlFile in $xamlFiles) {
+    if ($xamlFile.FullName.Replace('\', '/') -match '/Themes/') { continue }
+    [xml] $markup = Get-Content -LiteralPath $xamlFile.FullName -Raw
+    foreach ($element in $markup.SelectNodes('//*')) {
+        if ($element.HasAttribute('Uid', 'http://schemas.microsoft.com/winfx/2006/xaml')) {
+            Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $xamlFile.FullName) uses launch-only x:Uid localization."
+        }
+        foreach ($attribute in $element.Attributes) {
+            if ($attribute.NamespaceURI -cne 'using:NeNeCommander.App.Views' -or
+                $attribute.LocalName -cnotmatch '^LocalizedText\.(?:Text|Content|Name|HelpText|Placeholder)Key$') { continue }
+            if (-not $element.HasAttribute('LocalizedText.Resources', 'using:NeNeCommander.App.Views')) {
+                Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $xamlFile.FullName) has a localized key without an explicit resource owner."
+            }
+            if ($attribute.Value.StartsWith('{', [System.StringComparison]::Ordinal)) { continue }
+            foreach ($localizationCatalog in $localizationCatalogs) {
+                if (-not $localizationCatalog.Keys.Contains($attribute.Value)) {
+                    Add-Violation -Rule 'CS-023' -Message "$(Get-RelativePath -Path $xamlFile.FullName) requests undefined localized resource '$($attribute.Value)' in $(Get-RelativePath -Path $localizationCatalog.File.FullName)."
+                }
             }
         }
     }

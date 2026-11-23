@@ -3,7 +3,7 @@ using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Application.Input;
 
-/// <summary>Represents a footer hint language selected in the settings editor.</summary>
+/// <summary>Represents the interface language selected in the settings editor.</summary>
 public sealed record InterfaceLanguageSelection : UserIntent
 {
     private protected override void RestrictDerivation()

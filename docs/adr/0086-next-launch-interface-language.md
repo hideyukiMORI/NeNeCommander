@@ -2,6 +2,10 @@
 
 Status: accepted
 
+The timing and resource-loading mechanism below are superseded by
+[ADR-0088](0088-live-interface-language.md). The closed choice, schema and queue
+contracts remain accepted; next-launch-only paragraphs are historical.
+
 Date: 2026-11-22
 
 Issue #528. hide requested Japanese, English and Chinese selection and confirmed

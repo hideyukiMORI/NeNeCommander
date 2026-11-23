@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -17,7 +16,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class CommandPaletteView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action<PaneSide> _focusFileList;
     private CommandPaletteViewState? _commandPaletteView;
@@ -31,7 +30,7 @@ internal sealed class CommandPaletteView
     private readonly Border _commandPaletteDetailBar;
     private readonly ItemsControl _commandPaletteKeyHints;
 
-    internal CommandPaletteView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action<PaneSide> focusFileList)
+    internal CommandPaletteView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Action<PaneSide> focusFileList)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);

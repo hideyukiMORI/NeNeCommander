@@ -1,9 +1,7 @@
 using System;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -29,7 +27,7 @@ internal sealed class KeyboardHelpView
 
     internal KeyboardHelpView(
         Grid overlay,
-        ResourceLoader resources,
+        ViewTextResources resources,
         CommanderSession session,
         Action<PaneSide> focusFileList)
     {
@@ -47,7 +45,6 @@ internal sealed class KeyboardHelpView
         KeyboardHelpPresentation help = KeyboardHelpPresenter.Present();
         Find<ItemsControl>("KeyboardHelpPrimaryGroups").ItemsSource = help.PrimaryGroups;
         _secondary.ItemsSource = help.SecondaryGroups;
-        AutomationProperties.SetName(_scroll, resources.GetString("KeyboardHelpName"));
         Find<Border>("KeyboardHelpSurface").Tapped += OnSurfaceTapped;
         _overlay.Tapped += OnScrimTapped;
         _overlay.SizeChanged += OnOverlaySizeChanged;

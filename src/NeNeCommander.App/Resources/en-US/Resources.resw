@@ -400,7 +400,7 @@
     <value>Interface language</value>
   </data>
   <data name="SettingsLanguageExplanation.Text" xml:space="preserve">
-    <value>Saved changes apply the next time NeNe Commander starts. The language of this window stays the same.</value>
+    <value>Changes the interface immediately. Your Windows regional formats and keyboard layout stay the same.</value>
   </data>
   <data name="SettingsLanguageSystem" xml:space="preserve">
     <value>Follow system language</value>
@@ -820,4 +820,5 @@
   <data name="CommandPaletteWindowDetail" xml:space="preserve"><value>Move or resize this window</value></data>
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>Application keyboard help</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>Manage shared bookmarks and choose a location</value></data>
+  <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
 </root>

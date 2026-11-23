@@ -2,7 +2,6 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -12,7 +11,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class CommanderPaneView
 {
     private readonly FrameworkElement _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly TextBlock _address;
     private readonly TextBlock _status;
     private readonly TextBlock _counts;
@@ -21,9 +20,10 @@ internal sealed class CommanderPaneView
     private readonly Border _header;
     private readonly Border _numberSurface;
     private readonly TextBlock _number;
+    private PanePresentation? _rendered;
 
 
-    internal CommanderPaneView(FrameworkElement root, ResourceLoader resources, PaneSide side)
+    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -44,6 +44,19 @@ internal sealed class CommanderPaneView
 
     internal void Render(PanePresentation presentation, PaneFrame frame)
     {
+        if (!ReferenceEquals(_rendered, presentation))
+        {
+            RenderContents(presentation, frame);
+            _rendered = presentation;
+        }
+        _status.Text = PaneStatusLine.Compose(
+            presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
+        _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
+        ToolTipService.SetToolTip(_counts, _counts.Text);
+    }
+
+    private void RenderContents(PanePresentation presentation, PaneFrame frame)
+    {
         _address.Text = presentation.AddressText;
         if (!ReferenceEquals(_fileList.ItemsSource, presentation.Rows))
         {
@@ -54,10 +67,6 @@ internal sealed class CommanderPaneView
         {
             _fileList.ScrollIntoView(presentation.FocusRow);
         }
-        _status.Text = PaneStatusLine.Compose(
-            presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
-        _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
-        ToolTipService.SetToolTip(_counts, _counts.Text);
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
     }

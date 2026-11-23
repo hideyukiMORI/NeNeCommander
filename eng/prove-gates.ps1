@@ -298,6 +298,30 @@ function Assert-LocalizedResourceProof {
         $content = Get-Content -LiteralPath $path -Raw
         Set-Content -LiteralPath $path -Value $content.Replace('name="OperationProgressSeparator"', 'name="RemovedProgressSeparator"') -NoNewline
     }
+    Assert-ConformanceFailure -Name 'unknown-attached-localized-key' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/CommanderWindow.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('LocalizedText.TextKey="SettingsTitle.Text"', 'LocalizedText.TextKey="MissingSettingsTitle.Text"') -NoNewline
+    }
+    Assert-ConformanceFailure -Name 'missing-explicit-localization-owner' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/CommanderWindow.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('views:LocalizedText.Resources="{StaticResource ViewTextResources}"', '') -NoNewline
+    }
+    Assert-ConformanceFailure -Name 'cached-localization-loader' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/ViewTextResources.cs'
+        Add-Content -LiteralPath $path -Value '// ResourceLoader is the rejected second resource path.'
+    }
+    Assert-ConformanceFailure -Name 'launch-only-localization-target' -ExpectedRule 'CS-023' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Views/CommanderWindow.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        Set-Content -LiteralPath $path -Value $content.Replace('x:Name="CaptionTitle"', 'x:Name="CaptionTitle" x:Uid="CaptionTitle"') -NoNewline
+    }
+
 }
 
 function Assert-ThemeCatalogProof {

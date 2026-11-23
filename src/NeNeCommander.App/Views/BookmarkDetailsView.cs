@@ -1,7 +1,8 @@
 using System;
+using System.Globalization;
+using System.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
@@ -12,7 +13,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class BookmarkDetailsView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Func<bool> _isRendering;
     private readonly BookmarkFocusRestoration _focus;
@@ -44,7 +45,7 @@ internal sealed class BookmarkDetailsView
     private readonly Button _cancelCategoryDelete;
     private readonly BookmarkDeleteConfirmationView _deletion;
 
-    internal BookmarkDetailsView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Func<bool> isRendering)
+    internal BookmarkDetailsView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Func<bool> isRendering)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -89,6 +90,7 @@ internal sealed class BookmarkDetailsView
     internal void Render(BookmarkEditorDetails details, Type? previousStateType, Type currentStateType)
     {
         ArgumentNullException.ThrowIfNull(currentStateType);
+        LabelSaveButtons();
         _stateChanged = previousStateType != currentStateType;
         if (_stateChanged)
         {
@@ -103,7 +105,9 @@ internal sealed class BookmarkDetailsView
     private void LabelSaveButtons()
     {
         string saveKey = _resources.GetString(BookmarkManagerKeyHintPresenter.SaveKeyLabelResourceKey);
-        _save.Content = _save.Content + " (" + saveKey + ")";
+        _save.Content = string.Format(CultureInfo.InvariantCulture,
+            CompositeFormat.Parse(_resources.GetString("BookmarkSaveShortcutFormat")),
+            _resources.GetString("BookmarkSave.Content"), saveKey);
         _categorySave.Content = _save.Content;
     }
 

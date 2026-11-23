@@ -26,6 +26,8 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Accepted decisions
 
+- [ADR-0088: Apply interface language through one live window resource context](0088-live-interface-language.md)
+
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 
 - [ADR-0082: Wrap the footer and persist its normal key-hint visibility](0082-footer-key-hint-visibility.md)
