@@ -1,3 +1,41 @@
+## 復帰入力の修正と実機確認完了 — 2026-11-23 21:27 JST
+
+hideの実操作で#523を再現した。非active側の一覧空白で復帰するとframeworkの
+無名ScrollViewerへfocusが移り、WindowFrame/native islandにはControl+Pが届くが
+InputSurfaceへ届かない。active行clickで回復する。101eventの原ログとhashを保持。
+
+既存PreviewKeyDown/CharacterReceivedの登録をWindowFrameへ1回ずつ移し、scroll hostに
+focusがあるpreview keyは既存FocusActiveFileListWhenIdleを通して一覧へ戻す。
+mapper/character変換・active pane・text/IME/modal・repeat・停止guardは既存経路を維持。
+root登録のみの中間案では文字eventが届かず、その失敗を保存して最終案から区別した。
+直接FileList条件を重ねた中間案のCS-013 cognitive11/10は、既存helper再利用で解消。
+
+旧版の隔離root入力は左右のarrow/character4条件が失敗、最終27項目はすべて成功しexit0。
+normal rowのpositive control、root Ctrl+P、1回だけの配送、passive pane保持、paletteの
+native文字/終了、address入力を含む。共有desktopには入力せず、非入力desktopを名前で検証。
+Presentation56成功、最終App/fixture build警告0・エラー0。書式検証は成功し既知workspace
+警告を保持。複雑度は既存5件と位置・値が一致。171 App source/141資源と依存DLLも照合一致、
+1230入力をhash固定。詳細・正確なコマンド・全失敗は[品質記録](../quality/2026-11-23-reactivation-input.md)。
+
+21:20頃の通常版PID45912をhideが試し、「左右とも開くようになった」と確認した。
+これは今回の実操作不具合の受理であり、全環境・速度・speech/IME試験やrelease完了ではない。
+受理binary後の同値guard整理を最終27項目とbuildで別途検証し、byte同一とは主張しない。
+PID45912が存在しないことを確認して通常buildも最終sourceへ更新した。古いsettings backupは
+一度も書き戻さず、現在の設定を保持。ユーザーの閉じたAppを勝手に再起動していない。
+
+保存先は `D:/NeNeCommander/worktrees/issue-523` / `fix/523-reactivation-input`。
+最終通常Appは同worktreeのsrc/NeNeCommander.App/bin/Release/net10.0-windows10.0.26100.0/
+win-x64/NeNeCommander.App.exe。evidenceは `D:/NeNeCommander/evidence/reactivation-input-20261123`。
+未統合のためworktreeと `D:/NeNeCommander/outputs/reactivation-input-20261123/` のnative-fixture、
+interactive-trace、routing-fixture、final-productを保持。後片付け拒否は発生していない。
+新公開・main統合・タグ・releaseはまだ行っていない。
+
+hideはタグを切って公開できる区切りを質問した。今回までを0.1.0-beta.4候補と提案した。
+テーマ、即時言語、小型palette/対象、位置サイズ、復帰inputとbeta.3以降のaccepted mainを
+一つの区切りにできる。remote最新tagはv0.1.0-beta.3/288a695と読取確認。
+次は候補PRの統合・release所定検証・clean-source配布物照合を経て公開する段階。
+質問をタグ作成/公開の実行指示として扱っていない。#453/#491等の別件は完了としない。
+
 ## 3機能の所見と復帰入力の再調査 — 2026-11-23 20:58 JST
 
 hideは即時言語・小型palette/共通対象・位置サイズ保存の候補について
