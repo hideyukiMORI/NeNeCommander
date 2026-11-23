@@ -144,6 +144,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return;
         }
         KeyboardContext context = GetKeyboardContext();
+        // Blank-area clicks can leave the framework scroll host owning character delivery.
+        if (FocusManager.GetFocusedElement(Content.XamlRoot) is ScrollViewer)
+        {
+            FocusActiveFileListWhenIdle();
+        }
         KeyboardInput input = WinUiKeyboardInputTranslator.TranslateKey(args, context);
         bool consumesPendingFocus = _bookmarkView.ObserveInput(input);
         if (IsTextComposing || _bookmarkView.HasOpenSelector)

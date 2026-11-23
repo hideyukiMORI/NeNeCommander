@@ -10,7 +10,12 @@
     xmlns:settings="using:NeNeCommander.Presentation.WinUI.Settings"
     xmlns:views="using:NeNeCommander.App.Views"
     Activated="OnActivated">
-    <Grid x:Name="WindowFrame" Background="{StaticResource SurfaceWindowBrush}">
+    <!-- Blank-area focus can belong to the framework root, outside the pane surface. -->
+    <Grid
+        x:Name="WindowFrame"
+        Background="{StaticResource SurfaceWindowBrush}"
+        CharacterReceived="OnCharacterReceived"
+        PreviewKeyDown="OnKeyDown">
         <Grid.Resources>
             <views:ViewTextResources x:Key="ViewTextResources" />
             <Style x:Key="CaptionButtonStyle" TargetType="Button">
@@ -109,8 +114,6 @@
         Grid.Row="1"
         AutomationProperties.AutomationId="CommanderDualPane"
         Background="{StaticResource SurfaceWindowBrush}"
-        CharacterReceived="OnCharacterReceived"
-        PreviewKeyDown="OnKeyDown"
         Loaded="OnLoaded"
         Padding="{StaticResource SpacingWindowContent}"
         RowSpacing="{StaticResource SpacingPaneGap}">

@@ -4,6 +4,14 @@ Status: normative
 
 Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-key aliases are entries in that mapper, not separate command implementations.
 
+The App registers its single preview-key and character handlers on the window's root
+content. Clicking blank pane space can leave focus on the framework root scroll host,
+outside the inner pane surface; that focus still uses the same input route and current
+session-owned active pane. Reactivation or a blank-area click does not change that pane.
+Before translating a file-list preview key, focus on a scroll host is returned through
+the existing active-file-list helper so the following character reaches the same owner.
+Text/IME, modal, repeat and shutdown guards continue to apply before dispatch.
+
 ## Normal-mode movement
 
 | Input | Intent |

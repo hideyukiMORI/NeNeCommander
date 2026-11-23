@@ -1,3 +1,136 @@
+## 復帰入力の修正と実機確認完了 — 2026-11-23 21:27 JST
+
+hideの実操作で#523を再現した。非active側の一覧空白で復帰するとframeworkの
+無名ScrollViewerへfocusが移り、WindowFrame/native islandにはControl+Pが届くが
+InputSurfaceへ届かない。active行clickで回復する。101eventの原ログとhashを保持。
+
+既存PreviewKeyDown/CharacterReceivedの登録をWindowFrameへ1回ずつ移し、scroll hostに
+focusがあるpreview keyは既存FocusActiveFileListWhenIdleを通して一覧へ戻す。
+mapper/character変換・active pane・text/IME/modal・repeat・停止guardは既存経路を維持。
+root登録のみの中間案では文字eventが届かず、その失敗を保存して最終案から区別した。
+直接FileList条件を重ねた中間案のCS-013 cognitive11/10は、既存helper再利用で解消。
+
+旧版の隔離root入力は左右のarrow/character4条件が失敗、最終27項目はすべて成功しexit0。
+normal rowのpositive control、root Ctrl+P、1回だけの配送、passive pane保持、paletteの
+native文字/終了、address入力を含む。共有desktopには入力せず、非入力desktopを名前で検証。
+Presentation56成功、最終App/fixture build警告0・エラー0。書式検証は成功し既知workspace
+警告を保持。複雑度は既存5件と位置・値が一致。171 App source/141資源と依存DLLも照合一致、
+1230入力をhash固定。詳細・正確なコマンド・全失敗は[品質記録](../quality/2026-11-23-reactivation-input.md)。
+
+21:20頃の通常版PID45912をhideが試し、「左右とも開くようになった」と確認した。
+これは今回の実操作不具合の受理であり、全環境・速度・speech/IME試験やrelease完了ではない。
+受理binary後の同値guard整理を最終27項目とbuildで別途検証し、byte同一とは主張しない。
+PID45912が存在しないことを確認して通常buildも最終sourceへ更新した。古いsettings backupは
+一度も書き戻さず、現在の設定を保持。ユーザーの閉じたAppを勝手に再起動していない。
+
+保存先は `D:/NeNeCommander/worktrees/issue-523` / `fix/523-reactivation-input`。
+最終通常Appは同worktreeのsrc/NeNeCommander.App/bin/Release/net10.0-windows10.0.26100.0/
+win-x64/NeNeCommander.App.exe。evidenceは `D:/NeNeCommander/evidence/reactivation-input-20261123`。
+未統合のためworktreeと `D:/NeNeCommander/outputs/reactivation-input-20261123/` のnative-fixture、
+interactive-trace、routing-fixture、final-productを保持。後片付け拒否は発生していない。
+新公開・main統合・タグ・releaseはまだ行っていない。
+
+hideはタグを切って公開できる区切りを質問した。今回までを0.1.0-beta.4候補と提案した。
+テーマ、即時言語、小型palette/対象、位置サイズ、復帰inputとbeta.3以降のaccepted mainを
+一つの区切りにできる。remote最新tagはv0.1.0-beta.3/288a695と読取確認。
+次は候補PRの統合・release所定検証・clean-source配布物照合を経て公開する段階。
+質問をタグ作成/公開の実行指示として扱っていない。#453/#491等の別件は完了としない。
+
+## 3機能の所見と復帰入力の再調査 — 2026-11-23 20:58 JST
+
+hideは即時言語・小型palette/共通対象・位置サイズ保存の候補について
+「どれもいい感じだと思う」と所見を返した。個別条件の数値や全環境の証明ではない。
+続いて、他Appから一覧の空白をクリックして戻るとCtrl+Pが反応しない場合があり、
+active paneの文字をクリックすると回復すると報告。#523の調査を再開した。
+
+現在の作業場所は `D:/NeNeCommander/worktrees/issue-523` / `fix/523-reactivation-input`、
+base5712d03。製品実装は未変更。既存のactivation/idle focus/input contextを調べ、
+App restore/buildは警告0・エラー0。非入力desktop上の診断は通常focus復帰を示すが、
+偽mouse/修飾キーが実入力を再現しないためCtrl+Pの成功/失敗証拠に数えない。
+詳細・失敗・コマンドは[品質記録](../quality/2026-11-23-reactivation-input.md)。
+
+20:56:48に人が操作する診断版PID29164を通常起動し応答・初期focusを確認。
+実行元は `D:/NeNeCommander/outputs/reactivation-input-20261123/interactive-trace/App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe`。
+左右3個の検証用ファイル、独自settings copyであり、正常設定は上書きしない。
+20:56:52にhideへ同じ操作と文字click後の比較を依頼し、観測待ち。
+入力記録はfocus/context/サニタイズしたkey種別のみ。文章・ファイル名を記録しない。
+CUA・画面取得・共有desktopへの入力注入は不使用。
+
+診断の最初2回の起動はPaneSide.ToStringの循環で失敗し、診断側の型名出力へ直した。
+製品修正・解決・native受理を先取りしない。正本evidenceは
+`D:/NeNeCommander/evidence/reactivation-input-20261123`。
+新worktree/両診断出力は調査未完、interactive-traceは稼働のため保持する。
+稼働PIDは操作前に再確認し、履歴PIDだけで終了しない。issue-526の受理済みbuild、
+通常設定、main・公開PR・releaseは変更なし。この調査記録はローカル保存のみ。
+
+## 3機能の実機確認版を起動 — 2026-11-23 20:34 JST
+
+hideの起動依頼に従い、PR570の製品fa06b21を20:34:35に通常起動した。
+実行元はD:/NeNeCommander/worktrees/issue-526/src/NeNeCommander.App/bin/Release/
+net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe、PID17748。
+20:34:53にウィンドウとResponding=trueを読取確認。3点は即時言語、小型palette/対象表示、
+位置サイズ・最大化の終了/再起動復元で、hideの結果待ち。起動を実機受理として扱わない。
+
+直前には既存Appが0件で、終了操作は不要だった。1243入力と141生成資源は検証済みと一致。
+現在settingsをmanual-launch-20261123-203435/settings-before.jsonへhash一致でbackupした。
+正本の起動記録はD:/NeNeCommander/evidence/window-placement-20261123/配下の同folder。
+hideの変更後の設定を古いbackupへ戻さない。青枠CUA・画面取得・入力注入・強制focusは不使用。
+以後issue-526は利用中Appの実行元でもあるため、稼働を再確認せずbuild/終了/削除しない。
+公開PRのhead・main・releaseは変更なし。今回の起動記録はローカル保存のみ。
+
+## 承認済み公開の完了 — 2026-11-23 20:07 JST
+
+hideが権限を変更し「権限変えたからやってみて」と再実行を指示したため、
+提示済みの3head・3Draft本文・既存2PR追記を照合して送信した。7commit/110filesの
+範囲は不変で、後から保存した承認待ち文書b1aecb5は送信していない。
+
+- [PR568](https://github.com/hideyukiMORI/NeNeCommander/pull/568):
+  小型palette/共通対象、head510d53de、base feat/527-theme-catalog/6182b0d。
+- [PR569](https://github.com/hideyukiMORI/NeNeCommander/pull/569):
+  即時言語、head856cb6f、base refactor/526-palette-context/510d53de。
+- [PR570](https://github.com/hideyukiMORI/NeNeCommander/pull/570):
+  位置サイズ保存、headfa06b21、base feat/528-live-interface-language/856cb6f。
+
+すべてOPEN/Draftでtitle/body/base/head一致。PR559/565には準備済みのhide受理所見だけを
+追記し、元のhead91e06f5/6182b0dとmainbaseb82aa1eを保持した。先の自動承認拒否は
+今回の明示指示と権限変更後の公開成功で解消している。連携APIによる最初のPR作成は
+403 Resource not accessible by integrationだったため、認証済みghで同じ本文を作成した。
+これはGitHub連携権限の不足で、新しい自動承認拒否ではない。
+
+公開操作はgit pushの3つのSHA:refs/heads/...指定、gh pr create --draft --body-file、
+gh pr edit --body-file。全commandは成功し、GitHub連携の読戻しで5PRを照合した。
+正確な引数/本文/結果はD:/NeNeCommander/evidence/window-placement-20261123/の
+publication-approval.json、publication-payload.json、push-approved.log、
+pr-created-approved.json、pr-updated-559.json、pr-updated-565.json、
+pr-readback-approved.json、publication-completion.jsonに保持する。
+
+1,243検証入力は全件不変。20:07:48の読取で利用中PID38108と現在settingsのSHA256も
+前回と同一。公開/文書記録のためbuild・製品test・full/deep CIを再実行しない。
+文書のdiff/link確認と通常commit hookのみ行う。今回の完了記録はローカル保存である。
+
+新画面・即時切替と可視maximize/minimize/restoreの実機確認、main統合・releaseは別。
+旧テーマ/旧言語のhide受理を再要求しない。未統合かつ利用中参照のあるD側worktree/
+outputは保持し、新しい後片付け拒否やhide後片付け待ちはない。下の承認待ちは履歴。
+
+## 公開差分の承認待ち — 2026-11-23 19:52 JST
+
+位置保存の実装はfa06b21（59files）に通常hook付きで保存済み、製品入力1243件は不変。
+小型palette510d53de、即時言語856cb6fと合わせて、公開済み6182b0dから7commit/110files。
+3つの依存Draft PRと既存PR559/565への受理所見追記を具体化した。
+
+既存公開remoteへの3branch pushは自動承認審査で拒否され、送信は行われていない。
+理由はIssue本文の公開承認が今回のコード/履歴送信を具体的に許可していないため。
+hideへこの差分・公開先の承認質問を提示済み。承認前に別経路で送信しない。
+正確なpayload・110file差分・3headはD:/NeNeCommander/evidence/window-placement-20261123/
+のpublication-review.md、publication-payload.json、publication-source.patch、
+publication-scope-check.json、publication-hold-final.json、local-completion.jsonを照合する。
+承認対象の位置保存headはfa06b21f508262161e316bd4d836c8b136dd50b2に固定する。
+この保留記録の追加commitを黙って公開payloadへ追加しない。
+
+コード・検証は完了。新画面と可視maximize/minimize/restoreの実機確認、main統合とreleaseは別。
+利用中App38108と現在設定は19:44:56確認で保持、設定SHA256は開始時と同じ。
+未統合worktree/outputをD側に保持し、新しい後片付け拒否やhide後片付け待ちはない。
+
 ## 位置・サイズ保存の最終候補 — 2026-11-23 19:43 JST
 
 現在はD:/NeNeCommander/worktrees/issue-526、feat/567-window-placement（base856cb6f）。
