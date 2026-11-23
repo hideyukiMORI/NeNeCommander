@@ -1,3 +1,22 @@
+## 公開差分の承認待ち — 2026-11-23 19:52 JST
+
+位置保存の実装はfa06b21（59files）に通常hook付きで保存済み、製品入力1243件は不変。
+小型palette510d53de、即時言語856cb6fと合わせて、公開済み6182b0dから7commit/110files。
+3つの依存Draft PRと既存PR559/565への受理所見追記を具体化した。
+
+既存公開remoteへの3branch pushは自動承認審査で拒否され、送信は行われていない。
+理由はIssue本文の公開承認が今回のコード/履歴送信を具体的に許可していないため。
+hideへこの差分・公開先の承認質問を提示済み。承認前に別経路で送信しない。
+正確なpayload・110file差分・3headはD:/NeNeCommander/evidence/window-placement-20261123/
+のpublication-review.md、publication-payload.json、publication-source.patch、
+publication-scope-check.json、publication-hold-final.json、local-completion.jsonを照合する。
+承認対象の位置保存headはfa06b21f508262161e316bd4d836c8b136dd50b2に固定する。
+この保留記録の追加commitを黙って公開payloadへ追加しない。
+
+コード・検証は完了。新画面と可視maximize/minimize/restoreの実機確認、main統合とreleaseは別。
+利用中App38108と現在設定は19:44:56確認で保持、設定SHA256は開始時と同じ。
+未統合worktree/outputをD側に保持し、新しい後片付け拒否やhide後片付け待ちはない。
+
 ## 位置・サイズ保存の最終候補 — 2026-11-23 19:43 JST
 
 現在はD:/NeNeCommander/worktrees/issue-526、feat/567-window-placement（base856cb6f）。
