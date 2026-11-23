@@ -70,9 +70,13 @@ remain required. No separate preceding focused mutation or duplicate full gate.
 - proof-input-reuse.json reconciles1246 current inputs against1243 at d688d58:
   exactly7 changed/added Application test files, all current hashes intact.
   All production, other tests, dependencies and gate/security tools are unchanged.
-- Full Application mutation is running. A guarded continuation waits for its
-  success before running the previously unexecuted Infrastructure/Presentation
-  tiers sequentially. No successful combined release conclusion is claimed.
+- Full Application mutation completes at08:09:07 JST, exit0,96.5095986% against95%.
+  All3242 mutant identities/semantics match the original report;35 previously
+  surviving mutants are now killed, all by the newly added cases. No detected
+  mutant becomes undetected.78 Survived/2 NoCoverage remain; this is not100%.
+  The guarded continuation starts the previously unexecuted Infrastructure tier
+  at08:09:55 JST, with Presentation to follow after success. No successful combined
+  release conclusion is claimed.
 - Read-only process metadata through Get-CimInstance was denied in the sandbox;
   file logs and the owned execution-session handle remain the observation source.
 
@@ -93,9 +97,55 @@ dotnet stryker --config-file ../../stryker-config.json --project NeNeCommander.A
 
 ## Remaining work and limits
 
-Finish mutation, formatting/complexity, stage/input mapping, final static analysis,
+Finish remaining mutation, stage/input mapping, final static analysis,
 PR evidence/review and accepted-main integration before official packaging. Prior
 588-file package remains provisional; no tag, release or official candidate is
 created. Keep existing human acceptance distinct from unrun scale/capture, package
 launch, provider and speech checks. The release worktree/output is unfinished and
 retained; completed feature cleanup is not repeated. There is no new cleanup hold.
+## Completed Application proof and static-analysis correction
+
+Application Complete/VSTest mutation takes39m46.97s atconcurrency2. Counts:
+Killed2181,Timeout31,Survived78,NoCoverage2,CompileError427,Ignored523. Semantic
+comparison checks source, locations, replacement and mutator for every entry.
+The35 newly killed mutants cover WindowRestorePlanner23, placement tracker2,
+saved placement2, settings4 and UserIntent4; each killedBy identity belongs to an
+added test. Other changes are Killed-to-Timeout2 and Timeout-to-Killed1, both
+still detected. The original failed workflow and all115 baseline undetected
+outcomes remain preserved. The comparison initially emitted an empty transition
+label through ordered-dictionary grouping; raw records were correct. Its initial
+summary is preserved and the grouping is corrected without rerunning mutation.
+
+The1246 non-document inputs remain unchanged after proof. Commit3fae9db saves
+tests/documents with normal Commit checks;3b0a5c1 connects mainaf17755. The sole
+PROJECT_STATE insertion conflict is resolved only after proving the main content
+is retained; complete trees before/after connection are equal. No push follows.
+The pending release ledger maps16 successful old stages to their original commands,
+input basis and execution times. Old workflow45195559902 remains failed. The
+conservative96-hour bound for old evidence is2026-11-27 23:34:56 JST, subject to
+an actual final publication-time check.
+
+The first final-source CodeQL analysis exits0 with164 rules/0 results and1037
+extracted files, but the isolated copy lacks test/Windows reference assemblies:
+2416 compilation diagnostics and350 extraction-error notifications. It is not
+accepted as adequate final proof. The parser also initially assumed rules belonged
+to the driver; the old CI SARIF stores them in an extension. An attempted old
+invocation comparison has no valid baseline diagnostic counts and is discarded.
+
+A separate database now uses the exact same1246 source inputs/config/query suite
+and hashes of existing build reference DLLs. Two existing pinned-SDK Roslyn DLLs
+and five managed MSTest/Windows SDK/WinUI/WinRT DLLs supply missing metadata; no
+product source, dependency pin or query exclusion changes. Initial repair
+preparation stopped because WinUIEdit.dll is native; the corrected script verifies
+the five copied managed references and excludes that native file. Both attempts
+are retained. Resolved extraction/analysis is still running and needs source/rule/
+diagnostic reconciliation plus candidate-ref upload and open-alert readback.
+
+Evidence additions: application-mutation-summary.json,
+application-baseline-survivor-outcomes.json, application-mutant-transitions.json,
+application-proof-complete.json, independent-proof-reuse-review.md,
+connect-main-complete.json, release-evidence-ledger-pending.json,
+codeql-snapshot.json, codeql-additional-reference-manifest.json and the separate
+CodeQL command/log/exit records. Infrastructure uses the repository default four
+sessions; process-only TEMP/TMP keep disposable tests on D and are restored by
+finally. No normal user environment or desktop setting is changed.

@@ -1,6 +1,6 @@
 # 2026-11-24 引き継ぎ — マイルストーン継続
 
-最終更新: 2026-11-24 07:44 JST。hideの停止まで継続する指示が有効。
+最終更新: 2026-11-24 08:18 JST。hideの停止まで継続する指示が有効。
 
 1. 現在は既存Issue571/PR573のbeta.4準備。作業コピーは
    D:/NeNeCommander/worktrees/issue-571、branch chore/571-preview-beta4。
@@ -27,3 +27,13 @@
 pr-498-reviewの作業物を保持。完成済み機能worktreeの整理は再実施しない。
 今回の出力D:/NeNeCommander/outputs/release-beta4-20261124とrelease作業コピーは未完で保持。
 新しい後片付け拒否はない。
+
+最新差分: HEAD3b0a5c1（tests/docs3fae9db＋main接続、全tree一致）。Application mutation
+96.5095986%成功。3242同一mutant、35件が追加テストで新規Killed、未検出80件は残る。
+実行session32171がInfrastructure→Presentationを担当し、session9633が参照DLL補足の
+CodeQLを担当する。重複起動しない。active-execution.jsonと各log/完了JSONを読む。
+初回final-codeql.sarifの0resultsだけでは不十分。resolved-codeql.sarifで164 rule IDs、
+1037 source files、コンパイル/抽出診断、1246入力一致を確認し、候補refへのuploadと
+open alert readbackが必要。旧CIのrulesはdriverでなくextensionsにもある。
+旧成功16stageはpending ledgerに対応付け済み。旧workflowはfailureのまま。
+旧証拠の保守的期限は2026-11-27 23:34:56 JST、最終公開時点で再確認する。
