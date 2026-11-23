@@ -1,3 +1,10 @@
+## Accepted interaction revision — 2026-11-23 10:31 JST
+
+hide resumed work and chose the Nib-style preview/Enter-or-click acceptance/close model.
+[The revised handoff](2026-11-23-theme-picker-revision.md) supersedes the original
+radio-list interaction and layout below. Catalog, palette and provenance contracts remain.
+Native acceptance, measured latency and instant language switching remain pending.
+
 ## Native feedback: revision required — 2026-11-23 02:37 JST
 
 The implementation below has not received hide's screen/interaction acceptance.

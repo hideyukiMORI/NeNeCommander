@@ -111,6 +111,20 @@ public sealed class KeyboardPaletteTests
         AssertPaletteAction(mapper, key, expected, KeyRepeatState.Initial);
     }
 
+    /// <summary>Proves a held theme-picker Escape cannot also close its settings parent or clear pane selection.</summary>
+    [TestMethod]
+    public void MapWhenPaletteEscapeReturnsToParentConsumesRepeatUntilNewInitialEscape()
+    {
+        KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
+        AssertPaletteAction(mapper, KeyboardKey.Escape, CommandPaletteKeyAction.Cancel);
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardMappingTestContext.Repeated(
+            KeyboardKey.Escape, KeyboardContext.Settings)));
+        _ = Assert.IsInstanceOfType<KeyboardConsumed>(mapper.Map(KeyboardMappingTestContext.Repeated(
+            KeyboardKey.Escape, KeyboardContext.FileList)));
+        KeyboardMappingTestContext.AssertMaps(mapper,
+            KeyboardMappingTestContext.Input(KeyboardKey.Escape, KeyboardContext.Settings), UserIntent.Escape);
+    }
+
     private static void AssertPaletteAction(
         KeyboardIntentMapper mapper,
         KeyboardKey key,

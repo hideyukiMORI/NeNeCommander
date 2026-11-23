@@ -143,6 +143,65 @@ public sealed class SettingsSchemeViewStateTests
         Assert.IsFalse(rows is IList<SettingsSchemeRow>);
     }
 
+    /// <summary>Proves candidate motion previews without changing the separately accepted row.</summary>
+    [TestMethod]
+    public void MoveWhenPickerOpensPreviewsCandidatesWithoutAcceptingThem()
+    {
+        SettingsSchemeViewState state = Create();
+        Assert.AreSame(state.CurrentRow, state.SelectedRow);
+        Assert.AreSame(ColorScheme.Dracula, state.PreviewScheme);
+        state.UpdateQuery("solarized");
+        Assert.AreSame(ColorScheme.SolarizedDark, state.PreviewScheme);
+        state.MovePrevious();
+        Assert.AreSame(ColorScheme.SolarizedDark, state.PreviewScheme);
+        state.MoveNext();
+        state.MoveNext();
+        Assert.AreSame(ColorScheme.SolarizedLight, state.PreviewScheme);
+        state.MovePrevious();
+        Assert.AreSame(ColorScheme.SolarizedDark, state.PreviewScheme);
+        Assert.AreSame(ColorScheme.Dracula, state.CurrentRow.Scheme);
+    }
+
+    /// <summary>Proves progress preserves candidate/rows/query and empty results restore the latest accepted theme.</summary>
+    [TestMethod]
+    public void ObserveAppliedWhenCandidateIsPreviewedKeepsPreviewUntilQueryHasNoResults()
+    {
+        SettingsSchemeViewState state = Create();
+        state.UpdateQuery("solarized");
+        state.MoveNext();
+        SettingsSchemeRow? candidate = state.SelectedRow;
+        IReadOnlyList<SettingsSchemeRow> rows = state.Rows;
+        state.ObserveApplied(ColorScheme.Ubuntu);
+        state.UpdateQuery("solarized");
+        Assert.AreSame(candidate, state.SelectedRow);
+        Assert.AreSame(rows, state.Rows);
+        Assert.AreSame(ColorScheme.SolarizedLight, state.PreviewScheme);
+        Assert.AreSame(ColorScheme.Ubuntu, state.CurrentRow.Scheme);
+        state.UpdateQuery("nothing-matches");
+        state.MoveNext();
+        state.MovePrevious();
+        Assert.IsNull(state.SelectedRow);
+        Assert.AreSame(ColorScheme.Ubuntu, state.PreviewScheme);
+    }
+
+    /// <summary>Proves a clicked row must still belong to this exact filtered view.</summary>
+    [TestMethod]
+    public void SelectWhenRowIsFilteredOrForeignRefusesItWithoutChangingCandidate()
+    {
+        SettingsSchemeViewState state = Create();
+        SettingsSchemeRow hidden = state.CurrentRow;
+        state.UpdateQuery("solarized");
+        SettingsSchemeRow? before = state.SelectedRow;
+        SettingsSchemeViewState foreign = Create();
+        foreign.UpdateQuery("solarized");
+        Assert.IsFalse(state.Select(hidden));
+        Assert.IsFalse(state.Select(foreign.Rows[0]));
+        Assert.AreSame(before, state.SelectedRow);
+        Assert.IsTrue(state.Select(state.Rows[1]));
+        Assert.AreSame(ColorScheme.SolarizedLight, state.PreviewScheme);
+        Assert.AreSame(ColorScheme.Dracula, state.CurrentRow.Scheme);
+    }
+
     private static SettingsSchemeViewState Create()
     {
         return SettingsSchemeViewState.Create(Presentation(), Localize);

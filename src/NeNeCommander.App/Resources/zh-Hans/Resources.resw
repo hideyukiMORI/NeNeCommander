@@ -390,7 +390,7 @@
   <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>在底部显示快捷键提示</value></data>
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>关闭后，F1 帮助以及确认或输入名称时的 Enter/Esc 提示仍然可见。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>转到位置</value></data>
-  <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>绝对路径</value></data>
+  <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>绝对路径</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>计数不可用</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>文件 {0:N0} · 文件夹 {1:N0} · 已选 {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>已显示：文件 {0:N0}、文件夹 {1:N0} · 已选 {2:N0} · 已读取：文件 {3:N0}、文件夹 {4:N0}</value></data>
@@ -801,4 +801,13 @@
   <data name="SettingsSchemeSearch.PlaceholderText" xml:space="preserve">
     <value>名称或标识符</value>
   </data>
+  <data name="IntentLabelOpenColorSchemes" xml:space="preserve"><value>选择配色 · :colorscheme</value></data>
+  <data name="ThemePickerTitle.Text" xml:space="preserve"><value>选择配色</value></data>
+  <data name="SettingsSchemeOptions.AutomationProperties.Name" xml:space="preserve"><value>配色候选</value></data>
+  <data name="SettingsChooseScheme.AutomationProperties.HelpText" xml:space="preserve"><value>打开配色搜索和选择</value></data>
+  <data name="ThemePickerHintPreview" xml:space="preserve"><value>预览</value></data>
+  <data name="ThemePickerHintApply" xml:space="preserve"><value>应用</value></data>
+  <data name="ThemePickerHintCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="ThemePickerCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>预览并选择窗口配色</value></data>
 </root>

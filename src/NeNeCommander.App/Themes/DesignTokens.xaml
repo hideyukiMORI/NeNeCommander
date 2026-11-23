@@ -69,5 +69,6 @@
     <x:Double x:Key="DensitySettingsModalMaxWidth">520</x:Double>
     <x:Double x:Key="DensitySettingsSchemeRowMinHeight">32</x:Double>
     <x:Double x:Key="DensitySettingsSchemeListMaxHeight">256</x:Double>
+    <Thickness x:Key="SpacingThemePickerRow">10,6,24,6</Thickness>
     <Duration x:Key="MotionStandardDuration">0:0:0.160</Duration>
 </ResourceDictionary>

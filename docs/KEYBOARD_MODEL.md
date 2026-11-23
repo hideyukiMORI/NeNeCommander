@@ -286,12 +286,20 @@ Movement changes the focus item and preserves explicit selection. File commands 
 
 No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0080). Hint wording, both the key cap and the intent, comes from localization resources.
 
-The theme search field uses the existing `TextEntry` context while focused
-(ADR-0087). Typing, editing, arrows, Tab and Enter stay native; Enter does not
-apply a theme. IME composing Enter/Escape remain native, and non-composing Escape
-closes through the existing settings route. The bounded theme choices form one
-Tab region inside the cycling modal; their checked state means applied, never
-merely focused. Filtering and progress renders retain search and applied state.
+The theme picker reuses the existing `CommandPalette` context and its sole action
+table (ADR-0087, November23 revision). Settings' current-theme button and the
+palette's searchable `:colorscheme` entry open the same settings-owned scope.
+Up/Down move the candidate and preview only; Enter or a candidate click accepts
+through the settings writer and closes. Escape/scrim cancel and restore the latest
+accepted palette. Enter/Escape repeats are retained by the shared repeat guard
+across owner changes, so a held key cannot accept again or close the parent.
+Native Tab/Shift+Tab cycle inside the picker, including its Cancel button. On that
+button Enter cancels. Text, editing shortcuts and IME remain native; composing
+Enter/Escape do not reach the picker. The sole virtualized candidate list scrolls,
+while search, accepted-name text and controls stay fixed. Candidate selection is
+preview, with accepted state named separately. Zero results restore accepted
+colors without saving. Progress renders retain query, rows, candidate and scroll.
+Theme hints derive their actual keys from `CommandPaletteBindings`.
 
 ## Accessibility
 

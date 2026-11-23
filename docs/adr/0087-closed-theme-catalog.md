@@ -132,7 +132,16 @@ OperationTrack remains in the existing18-role dictionary contract for compatibil
 this segment presentation no longer draws it. The four private palettes remain
 byte-identical, but these two shared geometric/projection changes are still visible.
 
-### Search and explicit selection inside the existing settings scope
+### Search and explicit selection inside the existing settings scope (superseded)
+
+On 2026-11-23 at about 10:31 JST hide explicitly selected the Nib Ctrl+P ->
+`:colorscheme` interaction: candidate preview, Enter/click accept and close, Escape
+cancel and restore. The [revised design](../design/2026-11-23-theme-picker-revision.md)
+now governs this section. SettingsSession owns the picker and remains the one writer;
+qualified acceptance/cancellation reject old picker identities. Presentation owns the
+temporary visual preview and the existing brush-copy route applies it. Settings and
+the command palette enter this same scope; the old embedded radio list is removed.
+The following paragraphs retain the original decision for historical comparison.
 
 The same SettingsSession and ordered complete-value writer remain the sole
 selection/save authority. Filtering and keyboard movement never select, save or
@@ -181,8 +190,8 @@ ratios establish it.
 -A publicly constructible string-backed scheme, URI composition or runtime theme
  loader: each widens the trusted catalog or introduces a second mechanism.
 -A search combo box whose arrow navigation immediately commits: violates ADR-0077.
--Using a live preview with Cancel/revert: adds a second unsaved palette lifetime
- and contradicts the current save-on-selection contract.
+-Originally rejected live preview with Cancel/revert: superseded by hide's explicit
+ November23 interaction revision above; only accepted choices enter the settings writer.
 -Assigning schema6 solely for catalog growth: identifiers remain the same closed
  field; only its accepted set grows.
 -Reducing contrast targets to the source ratio: all125 source primary pairs are

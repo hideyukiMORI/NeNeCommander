@@ -1,3 +1,41 @@
+## 再開・テーマ選択改訂 — 2026-11-23 12:20 JST
+
+hideの10:26再開後、NibのCtrl+P → `:colorscheme`を参照し、10:31頃に
+「Enter／クリックで保存して閉じる」を選択した。11:09のメモ帳比較による一時停止では
+実行中buildの終了を確認して検証を止め、12:06の明示指示から再開した。
+以下の02:37の停止や未採用案は履歴。本節が現在の実装状態を示す。
+
+設定には現在配色のボタンを置き、Ctrl+Pと同じ独立した検索一覧を開く形へ変更した。
+候補移動は仮表示だけ、Enter/clickで採用して閉じ、Escape/取消で最新の採用色へ戻す。
+0件・同色再採用・描画・保存完了通知から不要な保存をしない。設定から開いた場合は
+設定に戻り、Ctrl+Pから開いた場合は元の一覧へ戻る。既存SettingsSession/保存queueと
+配色brush更新を唯一の経路に保つ。旧129 radio行とテーマ用二重scrollを除去した。
+held Escapeが戻り先を閉じる反例も、既存repeat guardで修正した。
+
+[品質記録](../quality/2026-11-23-theme-picker-revision.md)に全試行・command/exitを記載。
+Application46、Presentation61、重複のあるkeyboard22、追加hint1が成功。最終Appと対象
+test buildは警告0/エラー0、規約112、変更した実製品型のcompiler proof7が成功。
+複雑度は従来5指摘と完全一致し、cleanとは扱わない。改行だけの書式修正後も検査成功。
+
+非表示の実コントロールでは同じ91条件を日本語・英語・簡体字それぞれで確認した。
+実125%、320x300/640x360/960x600 DIPsで固定操作部と一覧を検査し、保存は各1回の
+明示採用だけ。直接API末尾jumpの4DIP欠けは残るが、実際の候補移動では完全到達した。
+536文言/言語、132 XBF、共通DLL4個が製品と一致し、169 App sourceは記録済み診断差分
+だけで一致。1,227入力を凍結した。12:19の独立読取reviewに修正必須指摘はない。
+
+共有desktopへのキー/クリック/フォーカス取得/表示は行っていない。青枠computer-useは
+禁止のまま。実キー・IME・speech・他倍率・Windows contrast・見た目・無改変起動の受理は
+未完。hidden計時値をメモ帳との実機比較や復帰/resize応答の証明に転用しない。
+復帰後設定の遅れ、resize描画、即時言語切替は別の未完項目である。
+
+現在の成果は `D:/NeNeCommander/worktrees/issue-527` にローカル保存する。
+公開PR565は12:18読戻しでOPEN/Draft/head35776de/mainbaseb82aa1e。旧公開承認は
+35776deと元本文に限定されているため、この新しい差分は自動送信していない。
+コミットと送信状態の確定は `D:/NeNeCommander/evidence/theme-picker-20261123/`
+の `local-completion.json` と `publication-payload.json` を参照。
+main統合・release・Issue完了を宣言しない。未完worktree/fixture/outputは保持し、
+新しい後片付け拒否やhideへの削除依頼はない。
+
 ## 最終終了記録・実機フィードバック — 2026-11-23 02:37 JST
 
 hideが「今日はこの辺で区切ろう。日報と引き継ぎ書を書いて」と指示したため、

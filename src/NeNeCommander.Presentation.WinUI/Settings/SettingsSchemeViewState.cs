@@ -6,16 +6,18 @@ using NeNeCommander.Application.Settings;
 
 namespace NeNeCommander.Presentation.WinUI.Settings;
 
-/// <summary>Owns transient theme search and observes applied settings without selecting or persisting them.</summary>
+/// <summary>Owns theme search and candidate preview without changing accepted or persisted settings.</summary>
 public sealed class SettingsSchemeViewState
 {
     private readonly RowSnapshot _allRows;
+    private int _selectedIndex;
 
     private SettingsSchemeViewState(RowSnapshot rows, ColorScheme applied)
     {
         _allRows = rows;
         Rows = rows;
         CurrentRow = rows.Single(row => row.Scheme == applied);
+        _ = Select(CurrentRow);
     }
 
     /// <summary>Gets the exact native query, reset by constructing a new open view.</summary>
@@ -26,6 +28,12 @@ public sealed class SettingsSchemeViewState
 
     /// <summary>Gets the applied theme independently of the filter.</summary>
     public SettingsSchemeRow CurrentRow { get; private set; }
+
+    /// <summary>Gets the candidate being previewed, or absence for a query with no matches.</summary>
+    public SettingsSchemeRow? SelectedRow => _selectedIndex < 0 ? null : Rows[_selectedIndex];
+
+    /// <summary>Gets the temporary visual choice, restoring accepted settings when no candidate exists.</summary>
+    public ColorScheme PreviewScheme => SelectedRow?.Scheme ?? CurrentRow.Scheme;
 
     /// <summary>Gets the full unfiltered catalog size.</summary>
     public int TotalCount => _allRows.Count;
@@ -55,6 +63,40 @@ public sealed class SettingsSchemeViewState
         Rows = query.Length == 0 ? _allRows : RowSnapshot.Create(_allRows.Where(row =>
             row.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
             row.Scheme.Identifier.Contains(query, StringComparison.OrdinalIgnoreCase)));
+        _selectedIndex = Rows.Count == 0 ? -1 : 0;
+    }
+
+    /// <summary>Moves the preview toward the next candidate without wrapping or saving.</summary>
+    public void MoveNext()
+    {
+        if (_selectedIndex >= 0 && _selectedIndex < Rows.Count - 1)
+        {
+            _selectedIndex++;
+        }
+    }
+
+    /// <summary>Moves the preview toward the previous candidate without wrapping or saving.</summary>
+    public void MovePrevious()
+    {
+        if (_selectedIndex > 0)
+        {
+            _selectedIndex--;
+        }
+    }
+
+    /// <summary>Selects an owned visible row for preview, refusing stale or foreign row objects.</summary>
+    public bool Select(SettingsSchemeRow row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        for (int index = 0; index < Rows.Count; index++)
+        {
+            if (ReferenceEquals(Rows[index], row))
+            {
+                _selectedIndex = index;
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>Observes a session-owned change while keeping query, row identities and filtered storage.</summary>

@@ -21,7 +21,7 @@ public sealed class CommandPaletteViewStateTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, CommandPaletteTestContext.Localize);
 
-        Assert.HasCount(23, view.Rows);
+        Assert.HasCount(24, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -86,6 +86,28 @@ public sealed class CommandPaletteViewStateTests
         view.UpdateQuery(shortcut);
         Assert.HasCount(1, view.Rows);
         Assert.AreSame(expected, view.Rows[0].Intent);
+    }
+
+    /// <summary>Proves the Nib command text reaches the sole theme entry without inventing a pane target or shortcut.</summary>
+    [TestMethod]
+    [DataRow("Choose theme · :colorscheme")]
+    [DataRow("配色を選択 · :colorscheme")]
+    [DataRow("选择配色 · :colorscheme")]
+    public async Task PresentWhenColorSchemeCommandIsSearchedFindsGlobalThemeEntryAsync(string title)
+    {
+        CommandPaletteViewState view = CommandPalettePresenter.Present(
+            await CommandPaletteTestContext.OpenPaletteAsync(null),
+            key => key == "IntentLabelOpenColorSchemes" ? title : CommandPaletteTestContext.Localize(key));
+        view.UpdateQuery(":COLORSCHEME");
+        Assert.HasCount(1, view.Rows);
+        CommandPaletteRow row = view.Rows[0];
+        Assert.AreSame(UserIntent.OpenColorSchemes, row.Intent);
+        Assert.IsTrue(row.IsAvailable);
+        Assert.AreEqual(string.Empty, row.Shortcut);
+        Assert.AreEqual(string.Empty, row.Target);
+        Assert.AreEqual(string.Empty, row.Opposite);
+        Assert.AreEqual("CommandPaletteThemeDetail", row.Detail);
+        Assert.AreEqual(title + "; CommandPaletteThemeDetail", row.AutomationName);
     }
 
     /// <summary>Proves unavailable rows remain selected and expose complete localized detail and UIA text.</summary>

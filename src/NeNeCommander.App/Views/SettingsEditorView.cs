@@ -7,7 +7,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
-using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.App.Views;
 
@@ -27,10 +26,12 @@ internal sealed class SettingsEditorView
     private readonly TextBlock _warningText;
     private readonly Button _close;
     private readonly SettingsKeyboardView _keyboard;
-    private readonly SettingsThemePickerView _themePicker;
+    private readonly Button _schemeButton;
+    private readonly TextBlock _schemeName;
     private InterfaceLanguage? _selectedLanguage;
     private bool _initialFocusPending;
     private bool _rendering;
+    private bool _returningFromPicker;
 
     internal SettingsEditorView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action restoreFileListFocus)
     {
@@ -50,9 +51,11 @@ internal sealed class SettingsEditorView
         _warning = Find<Border>("SettingsWarning");
         _warningText = Find<TextBlock>("SettingsWarningText");
         _close = Find<Button>("SettingsClose");
-        _themePicker = new SettingsThemePickerView(root, resources, forward);
+        _schemeButton = Find<Button>("SettingsChooseScheme");
+        _schemeName = Find<TextBlock>("SettingsSelectedSchemeText");
+        _schemeButton.Click += OnChooseScheme;
         _keyboard = new SettingsKeyboardView(
-            [_showHidden, _showKeyHints, _languages, Find<TextBox>("SettingsSchemeSearch"), Find<ItemsControl>("SettingsSchemeOptions"), _close],
+            [_showHidden, _showKeyHints, _languages, _schemeButton, _close],
             () => root.XamlRoot);
         _close.Loaded += OnCloseLoaded;
         _overlay.PreviewKeyDown += OnOverlayKeyDown;
@@ -60,10 +63,6 @@ internal sealed class SettingsEditorView
     }
 
     internal bool IsOpen => _overlay.Visibility == Visibility.Visible;
-
-    internal bool IsComposing => _themePicker.IsComposing;
-
-    internal KeyboardContext OwnedKeyboardContext => _themePicker.OwnedKeyboardContext;
 
     internal bool Forward(UserIntent intent)
     {
@@ -79,12 +78,16 @@ internal sealed class SettingsEditorView
         if (!presentation.IsOpen && IsOpen)
         {
             _initialFocusPending = false;
-            _restoreFileListFocus();
+            if (!presentation.IsSchemePickerOpen)
+            {
+                _restoreFileListFocus();
+            }
         }
         _overlay.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         _showHidden.IsChecked = presentation.ShowHiddenItemsAtLaunch;
         _showKeyHints.IsChecked = presentation.ShowKeyHints;
-        _themePicker.Render(presentation);
+        SettingsColorSchemeOption selected = presentation.Schemes.Single(static option => option.IsSelected);
+        _schemeName.Text = _resources.GetString(selected.NameResourceKey);
         if (opening || _languages.ItemsSource is null)
         {
             _languages.ItemsSource = presentation.Languages;
@@ -94,10 +97,23 @@ internal sealed class SettingsEditorView
         _warningText.Text = _resources.GetString(presentation.Warning.ResourceKey);
         if (opening)
         {
+            FocusOpenedEditor();
+        }
+        _returningFromPicker = presentation.IsSchemePickerOpen;
+        _rendering = false;
+    }
+
+    private void FocusOpenedEditor()
+    {
+        if (_returningFromPicker)
+        {
+            _ = _schemeButton.Focus(FocusState.Programmatic);
+        }
+        else
+        {
             _initialFocusPending = true;
             FocusInitialClose();
         }
-        _rendering = false;
     }
 
     private void OnCloseLoaded(object sender, RoutedEventArgs args)
@@ -153,19 +169,9 @@ internal sealed class SettingsEditorView
         }
     }
 
-    internal void SchemeChecked(object sender)
+    private void OnChooseScheme(object sender, RoutedEventArgs args)
     {
-        _themePicker.SchemeChecked(sender);
-    }
-
-    internal void SchemeLoaded(object sender)
-    {
-        _themePicker.RowLoaded(sender);
-    }
-
-    internal void SchemeUnloaded(object sender)
-    {
-        _themePicker.RowUnloaded(sender);
+        _forward(UserIntent.OpenColorSchemes);
     }
 
     private T Find<T>(string name)

@@ -1,3 +1,51 @@
+## テーマ選択改訂の引き継ぎ — 2026-11-23 12:20 JST
+
+hideは10:26に再開、10:31頃にNib型のEnter/click採用・閉じる操作を選択した。
+11:09の一時停止後、12:06に「再開して」。以下の古い停止・未採用案は現在の指示ではない。
+
+作業は `D:/NeNeCommander/worktrees/issue-527` / `feat/527-theme-catalog`。
+改訂開始head15f5244、最終local commitはgit logと
+`D:/NeNeCommander/evidence/theme-picker-20261123/local-completion.json`を照合する。
+公開PR565は12:18読戻しでOPEN/Draft/head35776de、base main/b82aa1e。
+旧公開承認を新しい差分・本文へ流用しない。送信可否・対象は同evidenceの
+`publication-payload.json`と以後のhide返答で確認する。新しい送信試行/拒否は現時点でない。
+
+### 実装・証拠
+
+設定の現在配色ボタン/Ctrl+P `:colorscheme`から同じSettingsSession所有のpickerへ入る。
+仮表示と採用を分離し、exact-state提出、既存queue、親surface復帰、同色/取消のno-write、
+遅延完了時のquery/preview維持を実装。ListViewだけがscrollし、search/hint/Cancelは固定。
+既存palette key mapを再利用し、held Escapeのowner越えも修正した。
+[設計](../design/2026-11-23-theme-picker-revision.md)と
+[品質記録](../quality/2026-11-23-theme-picker-revision.md)が現在の正本。
+
+Application46、Presentation61、重複keyboard22、hint1成功。最終App/対象test build0警告0error、
+規約112、型compiler proof7、書式成功。CS-013は既存5と完全一致。12:19独立read-only reviewは
+修正必須指摘なし。成功済み範囲は同じ入力なら再利用し、工程だけを理由に再実行しない。
+同91assertion×3localeの非表示controlsが実125%・3サイズで成功。536文言/locale、132 XBF、
+4 DLLと169 App sourceの診断差分を照合。最終1,227入力は`final-input-hashes.json`。
+同一locale/重複filterを別test総数として加算しない。
+
+直接virtualized末尾APIjumpには英語で4DIP欠けが残る。通常MoveNextで全候補を移動すると
+最終行が完全に入ることは別途成功した。前者を「修正済み」にしない。
+全失敗・fixture実装・起動PID・専用設定は同evidenceへ保全。fixtureは
+`D:/NeNeCommander/outputs/theme-picker-20261123/control-fixture`、全診断processは終了済み。
+
+### 次の作業と制約
+
+1. local commit/hookと入力不変を確認し、具体的payloadへの公開承認があればDraft PR565を更新。
+   新本文は旧radio画面説明を最終picker説明へ置換する。native未受理のままmergeしない。
+2. hideの実機比較結果が届いたら事実として記録する。必要な入力/見た目/IME/speechの受理は
+   hideの操作か隔離環境で扱う。青枠computer-useは起動/確認も禁止、共有入力/focusも禁止。
+   通常App/設定を終了・上書き・古いbackupへ復元しない。
+3. 復帰後Ctrl+,の遅れとresize描画消失を別々に測り、原因に対応した変更だけを行う。
+   今回hidden fixtureの計時は可視frame/activation/Notepad比較ではない。
+4. 即時言語切替はADR-0086の次回起動契約を見直す設計作業。今回の実装完了に含めない。
+   Draft依存PR559、#523/#453/#491、AppSDK PR517、他候補は下の保持理由のまま。
+
+main/publicbeta.3は変更なし。#527とfixture/outputは未受理・未統合のため保持し、
+新しいcleanup拒否やhide実行待ちはない。
+
 ## 最終引き継ぎ・停止中 — 2026-11-23 02:37 JST
 
 hideの「今日はこの辺で区切ろう。日報と引き継ぎ書を書いて」に従い終了。

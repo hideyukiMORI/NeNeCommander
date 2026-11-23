@@ -22,6 +22,7 @@ public sealed record SettingsPresentation
         ArgumentNullException.ThrowIfNull(saveStatus);
         ArgumentNullException.ThrowIfNull(warning);
         IsOpen = source.Editor == SettingsEditorState.Open;
+        IsSchemePickerOpen = source.Editor is ColorSchemePickerOpen;
         ShowHiddenItemsAtLaunch = source.Settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown;
         ShowKeyHints = source.Settings.Display.KeyHintVisibility == KeyHintVisibility.Shown;
         _schemes = SchemeOptions.Create(schemes);
@@ -33,6 +34,9 @@ public sealed record SettingsPresentation
 
     /// <summary>Gets whether the settings modal is open.</summary>
     public bool IsOpen { get; }
+
+    /// <summary>Gets whether the same settings owner currently shows its theme picker.</summary>
+    public bool IsSchemePickerOpen { get; }
 
     /// <summary>Gets the current next-launch hidden-item checkbox value.</summary>
     public bool ShowHiddenItemsAtLaunch { get; }

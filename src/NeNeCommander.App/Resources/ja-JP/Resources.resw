@@ -390,7 +390,7 @@
   <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>フッターにキー案内を表示</value></data>
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
-  <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>件数未取得</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>ファイル {0:N0} · フォルダー {1:N0} · 選択 {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>表示: ファイル {0:N0}・フォルダー {1:N0} · 選択 {2:N0} · 取得: ファイル {3:N0}・フォルダー {4:N0}</value></data>
@@ -801,4 +801,13 @@
   <data name="SettingsSchemeSearch.PlaceholderText" xml:space="preserve">
     <value>テーマ名・識別子</value>
   </data>
+  <data name="IntentLabelOpenColorSchemes" xml:space="preserve"><value>配色を選択 · :colorscheme</value></data>
+  <data name="ThemePickerTitle.Text" xml:space="preserve"><value>配色を選択</value></data>
+  <data name="SettingsSchemeOptions.AutomationProperties.Name" xml:space="preserve"><value>テーマ候補</value></data>
+  <data name="SettingsChooseScheme.AutomationProperties.HelpText" xml:space="preserve"><value>配色の検索と選択を開く</value></data>
+  <data name="ThemePickerHintPreview" xml:space="preserve"><value>仮表示</value></data>
+  <data name="ThemePickerHintApply" xml:space="preserve"><value>採用</value></data>
+  <data name="ThemePickerHintCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="ThemePickerCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>画面の配色を仮表示して選択</value></data>
 </root>
