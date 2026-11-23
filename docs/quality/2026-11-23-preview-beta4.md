@@ -127,6 +127,44 @@ the permanent evidence directory. The full same-suite local CodeQL analysis rema
 in progress. A corrected release deep review is required because code/tests changed;
 the failed first run is not reused as successful release proof.
 
+Exact local correction invocations (working directory issue571; log redirection and
+complete arguments are also recorded in correction-commands.json):
+
+```powershell
+dotnet restore tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -p:Configuration=Release --locked-mode
+dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore
+dotnet run --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build -- --filter 'FullyQualifiedName~CommanderSessionBookmarkOwnershipTests|FullyQualifiedName~NullGuardTests|FullyQualifiedName~CommanderSessionPaletteCatalogTests|FullyQualifiedName~WindowPlacementSettingsTests|FullyQualifiedName~UserSettingsTests'
+dotnet restore tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -p:Configuration=Release --locked-mode
+dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-restore
+dotnet run --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-build -- --filter 'FullyQualifiedName~PaneCountsLineTests|FullyQualifiedName~PaneCountsTests|FullyQualifiedName~PaneResourceTests|FullyQualifiedName~PaneListingPresenterTests'
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore -- --coverage --coverage-settings eng/coverage.settings --coverage-output-format cobertura --coverage-output D:/NeNeCommander/evidence/release-beta4-20261123/application-after-fixture-fix.cobertura.xml
+dotnet test --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-build --no-restore -- --coverage --coverage-settings eng/coverage.settings --coverage-output-format cobertura --coverage-output D:/NeNeCommander/evidence/release-beta4-20261123/presentation-after-counts-fix.cobertura.xml
+dotnet format whitespace tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj --no-restore --include tests/NeNeCommander.Application.Tests/CommanderSessionBookmarkOwnershipTests.cs tests/NeNeCommander.Application.Tests/NullGuardTests.cs --verify-no-changes
+dotnet format whitespace tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj --no-restore --include src/NeNeCommander.Presentation.WinUI/Panes/PaneCountsLine.cs src/NeNeCommander.Presentation.WinUI/Panes/PaneEntryCounts.cs tests/NeNeCommander.Presentation.WinUI.Tests/PaneCountsLineTests.cs --verify-no-changes
+dotnet restore src/NeNeCommander.App/NeNeCommander.App.csproj -p:Configuration=Release --locked-mode
+dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore
+pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta4-20261123/run-counts-codeql.ps1
+```
+
+Corrected deep review45195559902 started23:33:56 JST on d688d58 after the two
+coherent correction commits44b61ba (Issue571 test fixtures) and d688d58 (Issue574).
+Its actual conclusion, candidate-ref alerts and distribution proof remain pending.
+
+The local same164-rule CodeQL run completes at23:38:57 JST with1243 source inputs
+unchanged. All four targeted count findings are absent. It is not a zero-finding
+release result: it additionally reports cs/coalesce-of-identical-expressions in
+eng/complexity/RecursionGraph.cs:64. The source accesses distinct Roslyn properties
+PartialDefinitionPart and ReducedFrom before the symbol fallback. This local
+buildless extraction has61 unresolved types/5 namespaces, including14 compilation
+diagnostics in that file and missing IMethodSymbol; the original CI extraction has8
+unresolved types/0 namespaces and no compilation diagnostic in that file. Missing
+dependency identity is a plausible explanation, not a reason to suppress the finding
+or rewrite the tool. The original and local SARIFs, exact164 rule-ID comparison and
+diagnostics are retained in local-codeql-extraction-comparison.json. The corrected
+canonical candidate analysis must resolve the difference. See the [query](https://codeql.github.com/codeql-query-help/csharp/cs-coalesce-of-identical-expressions/)
+and [GitHub buildless dependency description](https://docs.github.com/en/code-security/reference/code-scanning/codeql/build-options-for-compiled-languages).
+
 ## Integrated-feature cleanup
 
 At23:19 JST the completed issue523/525/526/527/528 worktrees and their eight dedicated
