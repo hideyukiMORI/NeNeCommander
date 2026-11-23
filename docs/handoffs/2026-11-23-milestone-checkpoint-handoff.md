@@ -1,3 +1,30 @@
+## 3機能の所見と復帰入力の再調査 — 2026-11-23 20:58 JST
+
+hideは即時言語・小型palette/共通対象・位置サイズ保存の候補について
+「どれもいい感じだと思う」と所見を返した。個別条件の数値や全環境の証明ではない。
+続いて、他Appから一覧の空白をクリックして戻るとCtrl+Pが反応しない場合があり、
+active paneの文字をクリックすると回復すると報告。#523の調査を再開した。
+
+現在の作業場所は `D:/NeNeCommander/worktrees/issue-523` / `fix/523-reactivation-input`、
+base5712d03。製品実装は未変更。既存のactivation/idle focus/input contextを調べ、
+App restore/buildは警告0・エラー0。非入力desktop上の診断は通常focus復帰を示すが、
+偽mouse/修飾キーが実入力を再現しないためCtrl+Pの成功/失敗証拠に数えない。
+詳細・失敗・コマンドは[品質記録](../quality/2026-11-23-reactivation-input.md)。
+
+20:56:48に人が操作する診断版PID29164を通常起動し応答・初期focusを確認。
+実行元は `D:/NeNeCommander/outputs/reactivation-input-20261123/interactive-trace/App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe`。
+左右3個の検証用ファイル、独自settings copyであり、正常設定は上書きしない。
+20:56:52にhideへ同じ操作と文字click後の比較を依頼し、観測待ち。
+入力記録はfocus/context/サニタイズしたkey種別のみ。文章・ファイル名を記録しない。
+CUA・画面取得・共有desktopへの入力注入は不使用。
+
+診断の最初2回の起動はPaneSide.ToStringの循環で失敗し、診断側の型名出力へ直した。
+製品修正・解決・native受理を先取りしない。正本evidenceは
+`D:/NeNeCommander/evidence/reactivation-input-20261123`。
+新worktree/両診断出力は調査未完、interactive-traceは稼働のため保持する。
+稼働PIDは操作前に再確認し、履歴PIDだけで終了しない。issue-526の受理済みbuild、
+通常設定、main・公開PR・releaseは変更なし。この調査記録はローカル保存のみ。
+
 ## 3機能の実機確認版を起動 — 2026-11-23 20:34 JST
 
 hideの起動依頼に従い、PR570の製品fa06b21を20:34:35に通常起動した。
