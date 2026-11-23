@@ -1,3 +1,18 @@
+## 3機能の実機確認版を起動 — 2026-11-23 20:34 JST
+
+hideの起動依頼に従い、PR570の製品fa06b21を20:34:35に通常起動した。
+実行元はD:/NeNeCommander/worktrees/issue-526/src/NeNeCommander.App/bin/Release/
+net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe、PID17748。
+20:34:53にウィンドウとResponding=trueを読取確認。3点は即時言語、小型palette/対象表示、
+位置サイズ・最大化の終了/再起動復元で、hideの結果待ち。起動を実機受理として扱わない。
+
+直前には既存Appが0件で、終了操作は不要だった。1243入力と141生成資源は検証済みと一致。
+現在settingsをmanual-launch-20261123-203435/settings-before.jsonへhash一致でbackupした。
+正本の起動記録はD:/NeNeCommander/evidence/window-placement-20261123/配下の同folder。
+hideの変更後の設定を古いbackupへ戻さない。青枠CUA・画面取得・入力注入・強制focusは不使用。
+以後issue-526は利用中Appの実行元でもあるため、稼働を再確認せずbuild/終了/削除しない。
+公開PRのhead・main・releaseは変更なし。今回の起動記録はローカル保存のみ。
+
 ## 承認済み公開の完了 — 2026-11-23 20:07 JST
 
 hideが権限を変更し「権限変えたからやってみて」と再実行を指示したため、
