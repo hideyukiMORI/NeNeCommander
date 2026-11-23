@@ -1,7 +1,9 @@
 # Nib-style theme picker revision — 2026-11-23
 
 Status: accepted interaction revision; implementation and scoped technical proof complete;
-native and visual acceptance pending. See [the proof record](../quality/2026-11-23-theme-picker-revision.md).
+hide accepted the current screen and interaction after the requested native trial on November23
+at about15:36 JST. The general acceptance does not provide individual environment measurements.
+See [the proof record](../quality/2026-11-23-theme-picker-revision.md).
 
 hide resumed work after reading the daily report and handoff, then explicitly selected
 “Nib型：Enter／クリックで保存して閉じる（推奨）” in this session at about 10:31 JST.

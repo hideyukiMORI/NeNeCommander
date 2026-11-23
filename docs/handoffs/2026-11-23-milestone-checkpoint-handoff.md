@@ -1,3 +1,21 @@
+## テーマ実機受理の引き継ぎ — 2026-11-23 15:36 JST
+
+hideが通常Appの起動と観点一覧を依頼。検証済み製品6182b0dを15:19:06に起動し、10観点提示後に
+「うん、いいと思う。」と返答した。現候補のテーマ画面・操作は受理済みとして扱い、同じ画面の
+受理を再び要求しない。ただし個別条件の報告や計時値ではなく、#523/復帰/resize性能・言語再起動・
+各IME/speech/DPI/contrast条件の包括的成功を追加しない。即時言語切替は未実装である。
+
+稼働Appは15:36確認でPID37804、実行元は
+`D:/NeNeCommander/worktrees/issue-527/src/NeNeCommander.App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe`。
+プロセス終了、再起動、同じ実行元のbuild/削除、現在設定の復元/上書きを勝手に行わない。
+起動前settings backupは `D:/NeNeCommander/evidence/theme-picker-20261123/manual-launch-20261123-1518/`
+内のsettings-before.json。古い写しよりhideの現在設定を優先する。launch.json、startup-check.json、
+native-acceptance.jsonに候補/設定hash/所感/限界を保存した。青枠CUA禁止は継続する。
+
+公開は最後に確認したPR565/Draft/6182b0dのまま。今回の受理文書はローカルに保存するだけで、
+先のexact payload承認を新たな送信へ流用しない。main統合前には依存PR559等の必要証拠を確認する。
+同じテーマUIの受理待ちを理由に止め直さない。未完かつ稼働参照のあるworktree/outputは保持する。
+
 ## 公開完了の引き継ぎ — 2026-11-23 12:27 JST
 
 hideは12:25に準備済みpayloadを「いいよ」と承認した。4commit/43変更ファイルの6182b0dと

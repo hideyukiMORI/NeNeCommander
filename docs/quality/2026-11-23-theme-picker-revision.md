@@ -1,5 +1,20 @@
 # Theme picker revision proof — 2026-11-23
 
+Native trial addendum15:36 JST: after explicitly requesting launch and the focused checklist,
+hide responded "うん、いいと思う。" This accepts the current theme screen/interaction of6182b0d.
+The unmodified product was launched normally at15:19:06 as PID37804; its executable path,
+responding window and title were confirmed through process metadata. All1,227 proof inputs,
+four common DLLs and PRI matched before launch. No CUA, injected input or forced-focus operation
+was used. Current settings were backed up without modification/restoration. The process is
+still running at the15:36 read and is preserved for hide.
+
+The response is overall acceptance, not ten individually reported checklist results or numeric
+activation/resize timing. It does not close #523 or establish IME/speech/other-DPI/contrast-mode
+or language restart coverage. The prior pending visual-acceptance statements below are superseded
+for this candidate. Evidence is `manual-launch-20261123-1518/launch.json`, `startup-check.json`
+and `native-acceptance.json` under this task's evidence directory. This feedback record is local;
+no new public metadata, merge, release, build or behavior test is performed for documentation.
+
 Publication addendum12:27 JST: hide approved the prepared payload at12:25. Four commits/43
 changed files through6182b0d and the exact4,647-byte body/title are now in OPEN/Draft PR565,
 verified against mainbaseb82aa1e with252 total PR files. The connector's metadata-write403
