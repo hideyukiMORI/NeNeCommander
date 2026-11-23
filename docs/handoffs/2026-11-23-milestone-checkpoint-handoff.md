@@ -1,3 +1,11 @@
+## 最新の停止地点 — 2026-11-24 00:15 JST
+
+hideの明示停止後、beta.4準備はApplication mutation94.98%/必要95%で未完。
+機能PRはmainへ統合済み、release PR573はDraft、候補CodeQLは0件、仮配布物の照合は成功。
+旧節の未統合/稼働/整理待ちを現在の状態として再実行しない。
+現在地と再開条件は[beta.4引き継ぎ](2026-11-23-preview-beta4-handoff.md)と
+[日報](../reports/2026-11-23-preview-beta4-daily-report.md)が所有する。再開指示まで開発を進めない。
+
 ## 復帰入力の修正と実機確認完了 — 2026-11-23 21:27 JST
 
 hideの実操作で#523を再現した。非active側の一覧空白で復帰するとframeworkの

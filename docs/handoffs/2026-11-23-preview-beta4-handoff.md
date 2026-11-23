@@ -1,67 +1,75 @@
-# 2026-11-23 引き継ぎ — Preview beta.4準備
+# 2026-11-23 引き継ぎ — Preview beta.4準備の停止地点
 
-記録時点: 2026-11-23 23:51 JST。まだ作業中。
-[日報](../reports/2026-11-23-preview-beta4-daily-report.md)と
-[品質記録](../quality/2026-11-23-preview-beta4.md)を併読する。
+最終更新: 2026-11-24 00:15 JST。
+[日報](../reports/2026-11-23-preview-beta4-daily-report.md) /
+[品質記録・正確なcommands](../quality/2026-11-23-preview-beta4.md)
 
-## 現在の指示と現在地
+## 最優先の指示
 
-hideの最新依頼は「リリース準備」。受理済み機能の統合、リリース証拠、配布候補を用意する。
-タグ作成・GitHub prerelease公開を実行したとは扱わない。過去のrelease-first/無期限継続を
-新規機能の実装許可に広げない。共有desktop操作・青枠CUA・通常設定の巻戻しは禁止。
+hideは「とりあえず区切ろうか」「日報と引き継ぎ書を書いて」と明示した。
+開発・試験・リリース作業は停止。記録を保存したら終了し、再開指示まで自動継続しない。
+以前の継続指示や「リリース準備」を、停止後の実行許可として使わない。
+青枠CUA、共有desktopへの入力、通常設定の巻戻しは禁止。
 
-- mainはe0a06164ce63399eeec193d29a6ce47af12af79c、同期済みでclean。
-- PR559/565/568/569/570/572はmerged。受理headとの完全tree一致を保存済み。
-- 作業: D:/NeNeCommander/worktrees/issue-571、chore/571-preview-beta4。
-- リリース: Issue571 / Ready PR573、追加CodeQL対応はIssue574。
-- 現head a111464はd688d58から文書だけ追加、1243非文書入力一致。
-- 証拠: D:/NeNeCommander/evidence/release-beta4-20261123。
+## 現在地
+
+- 製品mainはe0a06164ce63399eeec193d29a6ce47af12af79cまで統合済み。締め記録は別の文書PRで反映する。
+- PR559/565/568/569/570/572はmerged。各受理headとの完全tree一致を保存済み。
+- Release Issue571 / PR573はDraft。CodeQL対応Issue574はPR573に含まれるが未merge。
+- 製品・テストの確定候補はd688d58d01c966da79a0c64b142362388c0906e1。
+- 12ce741までの後続差分は記録だけ。この締め記録も文書だけで、実装・テストは変えない。
+- 作業場所: D:/NeNeCommander/worktrees/issue-571、chore/571-preview-beta4。
+- 恒久証拠: D:/NeNeCommander/evidence/release-beta4-20261123。
 - 一時出力: D:/NeNeCommander/outputs/release-beta4-20261123。
+- 正式beta.4候補、タグ、GitHub prereleaseは未作成。
 
-## 検証の再開点
+## 確定した失敗と成功
 
-初回45188453598は失敗。2件の古いApplication fixtureとCodeQLの4件は修正済み。
-修正の独立review・対象build/test・3言語書式・旧DLLでの失敗証明・coverageは完了し、
-再実行しない。CS-013は既存と完全一致の5件で、cleanとは報告しない。
+修正後deep review45195559902 / job137764954226は終了してfailure。
+canonical、coverage、audit、4層×3回adversarial、Domain mutation97.47%は成功。
+Application mutation94.98%が必要95%に届かず停止。Infrastructure/Presentation mutationは未実施。
+通常テストは2476件中2460成功/0失敗/16skip。coverageは100/100/94.65/96.08%。
 
-修正後のsecurity-deep-review run45195559902 / job137764954226がd688d58で実行中。
-canonicalも含むため別qualityを実行しない。終了したらrun/job/log/artifactを保存し、
-各gate/coverage/audit/adversarial/mutationを確認する。失敗を閾値変更で回避しない。
+Application reportの状態数はKilled2147、Timeout30、Survived113、NoCoverage2、
+CompileError427、Ignored523。ツールの元分類をそのまま保存し、この記録で新しい除外を追加していない。
+再開時の入口:
+D:/NeNeCommander/evidence/release-beta4-20261123/corrected-deep-review/mutation/NeNeCommander.Application/reports/mutation-report.json。
+まだsurvivorの原因調査・追加修正は始めていない。
 
-local counts-codeql.sarifは164規則、対象4件なし/別指摘1件。
-RecursionGraphのPartialDefinitionPart/ReducedFromを同一扱いするが、localはその型を
-解決できず14診断。以前のCIではその解決エラーなし。新candidateのanalysis/ref alertsを
-読み戻して区別する。local0件とせず、既定mainの0件でも代用しない。
-比較はlocal-codeql-extraction-comparison.json。ソース/設定/抑制の変更はしていない。
+CodeQL analysis2230861543はd688d58のcandidate refで164規則/結果0件。
+open owned alertsも0でAPIのerror/warningは空。同じ箇所のRoslyn型解決診断はない。
+これはlocal counts-codeql.sarifに残った型解決不足による別指摘1件とは区別する。
+local/CI両方のSARIFを保持し、local自体が0件だったとは書かない。
+dependency-review45198574239はa111464で成功。PR573は停止時Draftへ戻した。
 
-23:49までにclean a111464からtask output/package-preflightへ仮packageを生成し、
-全588ファイル、1681入力/10lock、3言語各547文字列、132 XBF、全notice、別展開が一致。
-証拠はevidence/preflight、source/ZIPは仮候補として保持する。最終mainとは別sourceなので、
-最終配布物は後でcanonical publisherから生成する。Appは起動していない。
-実装/独立review/preflightが完成して23:50にPR573をReadyへ。dependency-review45198574239
-はa111464で成功、レビュー/未解決threadなし。deep/CodeQL成功待ちは継続する。
+全job log、deep-review.json、mutation JSON、GitHub artifact ZIPを取得済み。
+artifact14831372423のSHA256は836182305d4823de054666a589c65c6867bedb9787bf45c07b60138b477253fd。
+stop-receipt.jsonと最終PR readbackが終了状態を所有する。新たなCIは起動していない。
 
-## 残りの順序
+## 再開後の順序
 
-1. 新deep成功と候補refの成功CodeQL/owned alerts0を確認。96時間以内を数値で記録する。
-2. PR本文を最終証拠へ更新。Ready/依存reviewは上記で完了、関連入力が同じなら再実行しない。
-3. 適用証拠、レビュー/未解決thread、exact headを確認して通常squash。mainを同期しtree一致。
-4. clean accepted sourceでeng/publish-release.ps1を一回実行する。正式候補は
-   D:/NeNeCommander/releases/0.1.0-beta.4/candidate-20261123-01を予定。
-   SDK license原本はD:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf。
-5. 準備済みverify-candidate.ps1、verify-pri-locales.ps1、verify-extracted-candidate.ps1で
-   全hash/notice/locale/XBF/runtime/sourceと別展開を照合。失敗した候補は上書きせず記録する。
-6. release-notes-draft.mdを実結果で確定し、日報/引継/PROJECT_STATEへ記録する。
-   タグ/公開はこの準備依頼の完了と区別する。
-7. 恒久成果物を収載して稼働参照/links/未保存を確認し、完了したtask専用コピーを整理する。
+1. hideの再開指示と最新main/PR状態を確認。文書PRによるmain移動を製品変更と取り違えない。
+2. 保存したApplication mutation reportから、未検出の振舞いと同値変更を区別して調べる。
+   閾値を下げず、必要な契約を直接証明する試験・修正に絞る。数値を超えるためだけの試験は加えない。
+3. 変更に対応するIssue/検証範囲を確定。成功済みの未変更証拠を再利用し、未実施2層も確認する。
+   releaseに必要な96時間以内の成功deep reviewを満たす。未変更全件を無条件に再実行しない。
+4. 必要なCodeQL再確認、PR本文、レビュー/thread/依存証拠、exact headを確認して通常squash。
+   新しいmainとの接続は実際のdiffで判断し、treeが異なるのにoursで捨てない。
+5. clean accepted mainからeng/publish-release.ps1で正式候補を生成し、
+   verify-candidate.ps1 / verify-pri-locales.ps1 / verify-extracted-candidate.ps1で照合する。
+6. release-notes-draft.mdを最終sourceと証拠で確定。タグ/公開は準備完了と区別し、
+   その時点のhide指示の範囲を確認する。
 
-## 保存と整理
+## 仮packageと残すもの
 
-issue523/525/526/527/528と関連8outputは保存・全hash照合後、23:19に削除完了。
-再削除しない。integrated-feature-artifacts.zip、manifestとcompletion receiptを保持。
-同archive内に旧Presentation DLLと旧CS-013結果があり、検証済み比較証拠も保存済み。
-issue491/495/514/544/547/548/551、pr-498-reviewは別件の未完了で触らない。
-issue571/outputはrelease準備未完のため保持。後片付け拒否・hide実行待ちはない。
+a111464のpackage-preflightはcanonical publisherで生成済み。
+588ファイル、1681入力/10lock、3言語各547文字列、132 XBF、全noticeと別展開は一致。
+正本はevidence/preflight。Appは起動していない。正式mainとはsource identityが違うため、
+最終配布物は別の新しい出力先へ生成し、この仮候補を上書きしない。
+SDK license原本: D:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf。
 
-受理済みのhide操作結果は新しい配布物の起動確認ではない。#94のexact scale/captureと
-新package launch/live-provider/speechの未確認を保持し、古い設定を戻さない。
+issue523/525/526/527/528と関連8outputは保存・照合後23:19に削除完了。再削除しない。
+integrated-feature-artifacts.zip、manifestとcompletion receipt、branch/commitを保持。
+issue571/outputはrelease未完で保持。別件issue491/495/514/544/547/548/551とpr-498-reviewは触らない。
+通常のユーザー設定とbeta.3公開物を保持する。#94のexact scale/captureと新package launch、
+live-provider/speechの未確認を引き継ぐ。後片付け拒否・hide実行待ちはない。

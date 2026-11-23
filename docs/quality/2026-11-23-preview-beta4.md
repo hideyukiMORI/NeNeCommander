@@ -1,6 +1,51 @@
 # Preview beta.4 preparation — Issue571
 
-Status: preparing; no new tag or release has been published.
+Status: stopped at hide's request on2026-11-24; release proof failed. No beta.4 tag or release is published.
+
+## Latest stop checkpoint — 2026-11-24 00:15 JST
+
+hide explicitly requests a checkpoint and the daily report/handoff. Implementation,
+tests and release work stop; only evidence and closing documentation are saved.
+PR573 is returned to Draft. No new CI, code correction, merge of the release PR,
+official shipping candidate, tag or publication follows that instruction.
+See the [final daily report](../reports/2026-11-23-preview-beta4-daily-report.md) and
+[restart handoff](../handoffs/2026-11-23-preview-beta4-handoff.md).
+
+Corrected deep review45195559902 on d688d58 completes with failure. Its script runs
+from23:34:56 to00:07:56 JST. Canonical tests pass2460 with0 failures and16 environmental
+skips out of2476. Branch coverage is Domain100%, Application100%, Infrastructure94.65%
+and Presentation96.08%; all protected thresholds pass. Direct/transitive dependency
+audit finds no vulnerability entry. Four adversarial layers run successfully three
+times; each Infrastructure iteration retains3 environmental skips. Domain mutation
+passes97.47%. Application mutation94.98% fails the95% threshold. Infrastructure and
+Presentation mutation have not run. A failed deep review does not establish release readiness.
+
+The Application mutation report contains Killed2147, Timeout30, Survived113,
+NoCoverage2, CompileError427 and Ignored523. These are the original tool categories,
+not new exclusions. No survivor investigation or repair is started after the stop.
+The next requested development session begins from that report and selects proof
+from the actual correction, retaining successful unchanged evidence as applicable.
+
+The workflow's CodeQL analysis2230861543 succeeds on the actual candidate ref with
+164 rules/0 results and API error/warning empty. The same ref has0 open owned alerts.
+Its extractor still logs8 unresolved types/0 namespaces; it is not claimed perfect.
+RecursionGraph has no compilation diagnostic and no coalescing finding in this CI
+SARIF. The local61-type/5-namespace result and its separate finding remain preserved
+as a dependency-resolution limitation; no code or query was changed to suppress it.
+
+The final workflow log, report, Domain/Application mutation reports and both SARIFs
+are saved in the permanent evidence directory. GitHub artifact14831372423 is retained
+as corrected-deep-review.zip and its downloaded SHA256 matches the service digest:
+836182305d4823de054666a589c65c6867bedb9787bf45c07b60138b477253fd.
+corrected-deep-review-final.json, corrected-codeql-analyses.json,
+corrected-codeql-alerts.json and stop-receipt.json own the final readback.
+
+The verified preflight remains a provisional a111464 artifact. The issue571 worktree,
+temporary output/tool/database/preflight and separate extraction are retained because
+release work is incomplete. Completed feature cleanup below remains complete; no new
+cleanup rejection or hide cleanup request exists. The repository has no workflow that
+automatically publishes a release after deep review. All earlier preparing/running/Ready
+statements below are chronological history, superseded by this stop checkpoint.
 
 hide requested release preparation on2026-11-23 after accepting the theme picker,
 immediate language switching, compact palette/context, window placement and the
