@@ -8,22 +8,18 @@ namespace NeNeCommander.Presentation.WinUI.Commands;
 public sealed record CommandPaletteRow
 {
     private readonly CommandPaletteCaption _caption;
-    private readonly CommandPaletteContext _context;
     private readonly CommandPaletteFeedback _feedback;
 
     internal CommandPaletteRow(
         CommandCandidate candidate,
         CommandPaletteCaption caption,
-        CommandPaletteContext context,
         CommandPaletteFeedback feedback)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(caption);
-        ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(feedback);
         Candidate = candidate;
         _caption = caption;
-        _context = context;
         _feedback = feedback;
     }
 
@@ -41,12 +37,6 @@ public sealed record CommandPaletteRow
 
     /// <summary>Gets the localized canonical shortcut.</summary>
     public string Shortcut => _caption.Shortcut;
-
-    /// <summary>Gets the localized target pane summary.</summary>
-    public string Target => _caption.GlobalDetail is null ? _context.Target : string.Empty;
-
-    /// <summary>Gets the localized opposite pane summary.</summary>
-    public string Opposite => _caption.GlobalDetail is null ? _context.Opposite : string.Empty;
 
     /// <summary>Gets the localized unavailable reason, or empty text when available.</summary>
     public string Reason => _feedback.Reason;

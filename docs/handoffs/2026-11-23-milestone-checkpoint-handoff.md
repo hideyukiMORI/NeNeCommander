@@ -1,3 +1,52 @@
+## 言語実機所見と追加改訂 — 2026-11-23 17:45 JST
+
+hideは言語の保存・設定再表示・再起動反映、文字欠け/翻訳、他設定保持を確認し、
+英語表示中のパレットで日本語漢字入力もできたと報告。言語ごとの実施順は未列挙。
+即時言語切替を明示要求し、既存#525/#526の幅/対象表示整理を再指定。
+ウィンドウ位置・サイズの保存と画面外補正（Nib参照）も追加依頼。
+
+現在は `D:/NeNeCommander/worktrees/issue-526` / `refactor/526-palette-context`。
+使用中のissue527/設定（17:21観測PID38108）を保持し、ここでbuild/終了しない。
+#525を取り込み、#526の共通対象と例外説明を実装。6件の旧実装失敗から、選択34件成功、
+App/test build0警告0error、実3言語/125%の36配置成功まで記録した。
+[品質記録](../quality/2026-11-23-palette-context.md)と同専用evidenceが正本。
+公開/統合はまだ行わず、変更した画面の実機受理は別。次は即時言語切替、
+位置サイズ保存・初期/復元時の画面内補正。Nibの読取main64d612e/int50では
+中央配置だけを確認し、保存実装は未確認。存在すると決めつけて複製しない。
+#548の既存Locations幅候補、#523/#453/#491、AppSDK517は別の保持対象。
+未完worktree/output/fixtureを保持し、新しい後片付け拒否はない。
+
+## テーマ実機受理の引き継ぎ — 2026-11-23 15:36 JST
+
+hideが通常Appの起動と観点一覧を依頼。検証済み製品6182b0dを15:19:06に起動し、10観点提示後に
+「うん、いいと思う。」と返答した。現候補のテーマ画面・操作は受理済みとして扱い、同じ画面の
+受理を再び要求しない。ただし個別条件の報告や計時値ではなく、#523/復帰/resize性能・言語再起動・
+各IME/speech/DPI/contrast条件の包括的成功を追加しない。即時言語切替は未実装である。
+
+稼働Appは15:36確認でPID37804、実行元は
+`D:/NeNeCommander/worktrees/issue-527/src/NeNeCommander.App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe`。
+プロセス終了、再起動、同じ実行元のbuild/削除、現在設定の復元/上書きを勝手に行わない。
+起動前settings backupは `D:/NeNeCommander/evidence/theme-picker-20261123/manual-launch-20261123-1518/`
+内のsettings-before.json。古い写しよりhideの現在設定を優先する。launch.json、startup-check.json、
+native-acceptance.jsonに候補/設定hash/所感/限界を保存した。青枠CUA禁止は継続する。
+
+公開は最後に確認したPR565/Draft/6182b0dのまま。今回の受理文書はローカルに保存するだけで、
+先のexact payload承認を新たな送信へ流用しない。main統合前には依存PR559等の必要証拠を確認する。
+同じテーマUIの受理待ちを理由に止め直さない。未完かつ稼働参照のあるworktree/outputは保持する。
+
+## 公開完了の引き継ぎ — 2026-11-23 12:27 JST
+
+hideは12:25に準備済みpayloadを「いいよ」と承認した。4commit/43変更ファイルの6182b0dと
+4,647-byte本文/タイトルを既存Draft PR565へ送信済み。読戻しはOPEN/Draft/head6182b0d、
+mainbaseb82aa1e、全252変更ファイル、本文/タイトル一致。下の「送信承認待ち」は履歴である。
+連携APIの本文編集403は既存ghによる同一payload更新で解決。新しいauto-review拒否はない。
+
+正本は `D:/NeNeCommander/evidence/theme-picker-20261123/` のpublication-payload.json、
+publication-approval.json、pr-readback-approved.json、local-completion.json。今回の公開記録は
+ローカル保存のみで、次回はgit log/statusと公開6182b0dを照合する。記録commitを新しい実装や
+公開承認と取り違えない。native/画面受理、復帰/resize計測、即時言語設計は未完のまま。
+main/publicbeta.3・通常App/設定は維持。未完worktree/fixture/outputを保持し、cleanup待ちはない。
+
 ## テーマ選択改訂の引き継ぎ — 2026-11-23 12:20 JST
 
 hideは10:26に再開、10:31頃にNib型のEnter/click採用・閉じる操作を選択した。

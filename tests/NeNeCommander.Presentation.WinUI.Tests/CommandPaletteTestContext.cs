@@ -93,9 +93,10 @@ internal static class CommandPaletteTestContext
             ["CommandPaletteTargetRight"] = "Target: right pane",
             ["CommandPaletteOppositeLeft"] = "Opposite: left pane",
             ["CommandPaletteOppositeRight"] = "Opposite: right pane",
-            ["CommandPaletteUnavailableDetailFormat"] = "{0}; {1}; Unavailable: {2}",
+            ["CommandPaletteUnavailableDetailFormat"] = "{0}; Unavailable: {1}",
             ["CommandPaletteUnavailableAutomationNameFormat"] =
-                "{0}; {1}; {2}; {3}; Unavailable; {4}",
+                "{0}; {1}; {2}; Unavailable; {3}",
+            ["CommandPaletteTransferLeftToRight"] = "From left pane to right pane",
             ["CommandPaletteUnavailableMarker"] = "!",
             ["CommandUnavailablePassivePane"] = "Opposite pane is unavailable",
         };
@@ -106,8 +107,8 @@ internal static class CommandPaletteTestContext
     {
         return key switch
         {
-            "CommandPaletteUnavailableDetailFormat" => "{0}|{1}|{2}",
-            "CommandPaletteUnavailableAutomationNameFormat" => "{0};{1};{2};{3};{4}",
+            "CommandPaletteUnavailableDetailFormat" => "{0}|{1}",
+            "CommandPaletteUnavailableAutomationNameFormat" => "{0};{1};{2};{3}",
             _ => $"<{key}>",
         };
     }

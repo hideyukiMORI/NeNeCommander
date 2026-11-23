@@ -144,3 +144,10 @@ Issue #397 clarification, accepted by hide on2026-11-20: the title tooltip is
 enabled only while the native title TextBlock reports actual truncation. It
 retains the full localized title and existing accessible row name; no tooltip
 state or additional command/focus path is introduced.
+
+Issue #525's [2026-11-22 geometry refinement](2026-11-22-compact-command-palette-handoff.md) supersedes the original full-available-width rule with a640 cap,24 inset, bounded title/reason columns and the existing wrapping key-hint panel. Original command, focus and input ownership remain.
+
+## November23 target-context refinement
+
+[Issue526](2026-11-23-palette-context-handoff.md) replaces repeated visible row targets
+with one captured common context and accurate exception details, preserving execution.
