@@ -1,3 +1,37 @@
+## 承認済み公開の完了 — 2026-11-23 20:07 JST
+
+hideが権限を変更し「権限変えたからやってみて」と再実行を指示したため、
+提示済みの3head・3Draft本文・既存2PR追記を照合して送信した。7commit/110filesの
+範囲は不変で、後から保存した承認待ち文書b1aecb5は送信していない。
+
+- [PR568](https://github.com/hideyukiMORI/NeNeCommander/pull/568):
+  小型palette/共通対象、head510d53de、base feat/527-theme-catalog/6182b0d。
+- [PR569](https://github.com/hideyukiMORI/NeNeCommander/pull/569):
+  即時言語、head856cb6f、base refactor/526-palette-context/510d53de。
+- [PR570](https://github.com/hideyukiMORI/NeNeCommander/pull/570):
+  位置サイズ保存、headfa06b21、base feat/528-live-interface-language/856cb6f。
+
+すべてOPEN/Draftでtitle/body/base/head一致。PR559/565には準備済みのhide受理所見だけを
+追記し、元のhead91e06f5/6182b0dとmainbaseb82aa1eを保持した。先の自動承認拒否は
+今回の明示指示と権限変更後の公開成功で解消している。連携APIによる最初のPR作成は
+403 Resource not accessible by integrationだったため、認証済みghで同じ本文を作成した。
+これはGitHub連携権限の不足で、新しい自動承認拒否ではない。
+
+公開操作はgit pushの3つのSHA:refs/heads/...指定、gh pr create --draft --body-file、
+gh pr edit --body-file。全commandは成功し、GitHub連携の読戻しで5PRを照合した。
+正確な引数/本文/結果はD:/NeNeCommander/evidence/window-placement-20261123/の
+publication-approval.json、publication-payload.json、push-approved.log、
+pr-created-approved.json、pr-updated-559.json、pr-updated-565.json、
+pr-readback-approved.json、publication-completion.jsonに保持する。
+
+1,243検証入力は全件不変。20:07:48の読取で利用中PID38108と現在settingsのSHA256も
+前回と同一。公開/文書記録のためbuild・製品test・full/deep CIを再実行しない。
+文書のdiff/link確認と通常commit hookのみ行う。今回の完了記録はローカル保存である。
+
+新画面・即時切替と可視maximize/minimize/restoreの実機確認、main統合・releaseは別。
+旧テーマ/旧言語のhide受理を再要求しない。未統合かつ利用中参照のあるD側worktree/
+outputは保持し、新しい後片付け拒否やhide後片付け待ちはない。下の承認待ちは履歴。
+
 ## 公開差分の承認待ち — 2026-11-23 19:52 JST
 
 位置保存の実装はfa06b21（59files）に通常hook付きで保存済み、製品入力1243件は不変。
