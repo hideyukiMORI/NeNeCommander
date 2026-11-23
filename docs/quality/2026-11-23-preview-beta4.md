@@ -83,4 +83,57 @@ gh workflow run security-deep-review.yml --repo hideyukiMORI/NeNeCommander --ref
 Run45188453598 started at22:53:43 JST on9121dc0. CodeQL initialization succeeded;
 the deep-review step is still running at23:01 JST. No quality workflow was dispatched.
 Later history/document-only updates do not invalidate its unchanged code/test/tool/
-dependency inputs. Final results, analysis/ref-alert readback and packaging are pending.
+dependency inputs. The results and necessary corrections are recorded below.
+
+## First release failure and corrections
+
+Run45188453598 failed: the canonical tests found two stale Application fixtures.
+The theme command increased the catalog to24; the bookmark ownership assertion
+still expected23. The reflective UserSettings.Create guard supplied three arguments
+after optional placement became the fourth parameter. Both expectations now match
+the accepted contracts. No production guard or threshold is weakened.
+
+CodeQL analysis2230334706 ran164 security-and-quality rules and reported four owned
+alerts157–160 on the candidate ref: three cs/invalid-string-formatting findings in
+PaneCountsLine and one cs/linq/missed-where in PaneEntryCounts. Its buildless extraction
+also logged restore failures and8 unresolved types; an empty API error field is not
+proof of a perfect extraction. The original SARIF/logs are retained. Issue574 tracks
+these findings separately from the stale test fixtures in Issue571.
+
+The normal three-value format genuinely received five values. SARIF also combines
+all strings returned by the test Localize callback, including unavailable, three-value
+and five-value templates at the one-value wrapper calls. The correction explicitly
+passes3/5/1 values and uses the same local Format helper pattern as existing presenters,
+retaining InvariantCulture and complete translated sentences. The one-pass directory
+count uses Count(predicate), without adding enumeration or filesystem reads. No
+query exclusion, suppression, baseline, resource change or public API is introduced.
+See the [official query explanation](https://codeql.github.com/codeql-query-help/csharp/cs-invalid-string-formatting/)
+and [query source](https://github.com/github/codeql/blob/main/csharp/ql/src/API%20Abuse/FormatInvalid.ql).
+
+Selected Application36 and Presentation35 tests pass. Their full directly affected
+assemblies pass933 and403 tests respectively, with branch coverage100% and96.078431%.
+Application/Presentation test builds and the final App build have0 warnings/errors.
+Changed-file whitespace checks and git diff --check pass. The new regression rejects
+a five-value template in the ordinary three-value context; the preserved old product
+DLL fails that single test as expected, then the fixed DLL is restored and hash-checked.
+All12 real templates across three locales have exact3/5/1/1 placeholder sets and
+InvariantCulture sample output. Independent read-only review requires no correction.
+
+CS-013 Inspect still exits1 with exactly the same five findings, including locations,
+values and limits, as the archived accepted input result; it is not claimed clean.
+The comparison is counts-complexity-comparison.json. Source input hashes, commands,
+test/coverage/build logs, old-DLL regression and independent review are retained in
+the permanent evidence directory. The full same-suite local CodeQL analysis remains
+in progress. A corrected release deep review is required because code/tests changed;
+the failed first run is not reused as successful release proof.
+
+## Integrated-feature cleanup
+
+At23:19 JST the completed issue523/525/526/527/528 worktrees and their eight dedicated
+outputs were removed after confirming integration, clean saved source, no links and
+no running references. All29,115 generated files (5,105,771,514 bytes) are preserved
+with every file hash verified in integrated-feature-artifacts.zip (SHA256
+eaec33d9c42e2d99fe9236e3d957adb3f753046e01b1def139adfd63790683ff).
+Branches, commits and permanent evidence remain. The archive manifest, exact bounded
+deletion script and completion receipt identify every target. Unfinished other tasks
+and the active issue571 release source/output remain. No cleanup rejection occurred.

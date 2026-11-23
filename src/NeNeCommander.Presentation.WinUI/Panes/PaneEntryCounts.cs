@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NeNeCommander.Application.Directories;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
@@ -25,14 +26,7 @@ internal sealed record PaneEntryCounts
     internal static PaneEntryCounts Create(IReadOnlyList<DirectoryEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        int directories = 0;
-        foreach (DirectoryEntry entry in entries)
-        {
-            if (entry.Kind == DirectoryEntryKind.Directory)
-            {
-                directories++;
-            }
-        }
+        int directories = entries.Count(entry => entry.Kind == DirectoryEntryKind.Directory);
         return new PaneEntryCounts(entries.Count - directories, directories);
     }
 }
