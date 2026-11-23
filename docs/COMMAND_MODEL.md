@@ -111,7 +111,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |
 | expected operation results | canonical closed `OperationOutcome` model |
 | settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |
-| next-launch interface language | `InterfaceLanguageSelection` through the existing settings modal/queue; `CommanderApplication` applies the accepted startup choice before its explicit resource initialization, and System leaves the platform override unset (ADR-0086) |
+| immediate interface language | `InterfaceLanguageSelection` through the existing settings modal/queue; the window-owned `ViewTextResources` applies the current choice to its sole explicit MRT context and existing localized controls, retaining the original System qualifier (ADR-0086, ADR-0088) |
 | settings modal ownership and intent routing | `CommanderSession` over `DualPaneSession` and `SettingsSession` |
 | command-palette state, admission, and qualified validation | `CommandPaletteSession` with `CommandCatalog` |
 | dispatch of a validated palette intent | `CommanderSession` |

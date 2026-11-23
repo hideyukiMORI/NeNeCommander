@@ -5,7 +5,6 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Input;
 using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Input;
@@ -28,7 +27,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly FileSystemPath _initialRightLocation;
     private readonly KeyboardIntentMapper _keyboardIntentMapper;
     private readonly CommanderSession _session;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly AsyncWorkOwner _paneWork;
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
@@ -65,9 +64,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _initialLeftLocation = initialLeftLocation;
         _initialRightLocation = initialRightLocation;
         _paneWork = new AsyncWorkOwner(dependencies.DefectObserver);
-        _resources = new ResourceLoader();
-        _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         InitializeComponent();
+        _resources = (ViewTextResources)WindowFrame.Resources["ViewTextResources"];
+        _resources.ApplyLanguage(_session.Current.Settings.Settings.Display.InterfaceLanguage);
+        WindowFrame.Language = _resources.LanguageTag;
+        _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
         _windowAdjustmentView = new WindowAdjustmentView(
@@ -194,6 +195,9 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
+        _resources.ApplyLanguage(snapshot.Settings.Settings.Display.InterfaceLanguage);
+        WindowFrame.Language = _resources.LanguageTag;
+        _captionBarView.RenderLanguage();
         bool returningFromPicker = _themePicker.IsOpen && snapshot.Settings.Editor == SettingsEditorState.Closed;
         RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
         RenderSettingsSurfaces(snapshot.Settings);

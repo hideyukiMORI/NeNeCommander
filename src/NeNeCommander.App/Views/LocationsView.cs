@@ -2,7 +2,6 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -18,7 +17,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class LocationsView
 {
     private readonly Grid _overlay;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action<PaneSide> _focusFileList;
     private readonly ListView _list;
@@ -30,7 +29,7 @@ internal sealed class LocationsView
 
     internal LocationsView(
         Grid overlay,
-        ResourceLoader resources,
+        ViewTextResources resources,
         Action<UserIntent> forward,
         Action<PaneSide> focusFileList)
     {

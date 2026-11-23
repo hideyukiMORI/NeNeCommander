@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
@@ -14,7 +13,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class SettingsEditorView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action _restoreFileListFocus;
     private readonly Grid _overlay;
@@ -33,7 +32,7 @@ internal sealed class SettingsEditorView
     private bool _rendering;
     private bool _returningFromPicker;
 
-    internal SettingsEditorView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action restoreFileListFocus)
+    internal SettingsEditorView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Action restoreFileListFocus)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);

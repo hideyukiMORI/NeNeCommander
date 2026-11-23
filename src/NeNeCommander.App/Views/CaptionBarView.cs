@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Windowing;
 using NeNeCommander.Presentation.WinUI.Windowing;
 
@@ -22,7 +21,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class CaptionBarView
 {
     private readonly Grid _bar;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly AppWindowCaptionAdapter _adapter;
     private readonly TextBlock _title;
     private readonly Button _maximize;
@@ -31,7 +30,7 @@ internal sealed class CaptionBarView
     private readonly CaptionButtonPart[] _parts;
     private WindowActivity _activity = WindowActivity.Active;
 
-    internal CaptionBarView(Grid bar, ResourceLoader resources, AppWindowCaptionAdapter adapter)
+    internal CaptionBarView(Grid bar, ViewTextResources resources, AppWindowCaptionAdapter adapter)
     {
         ArgumentNullException.ThrowIfNull(bar);
         ArgumentNullException.ThrowIfNull(resources);
@@ -40,7 +39,6 @@ internal sealed class CaptionBarView
         _resources = resources;
         _adapter = adapter;
         _title = Find<TextBlock>("CaptionTitle");
-        _title.Text = resources.GetString("CommanderWindowTitle");
         _maximize = Find<Button>("CaptionMaximize");
         _maximizeGlyph = Find<Path>("CaptionMaximizeGlyph");
         _restoreGlyph = Find<Path>("CaptionRestoreGlyph");
@@ -68,6 +66,12 @@ internal sealed class CaptionBarView
     {
         _activity = state == WindowActivationState.Deactivated ? WindowActivity.Inactive : WindowActivity.Active;
         Render();
+    }
+
+    internal void RenderLanguage()
+    {
+        CaptionBarPresentation presentation = CaptionBarPresenter.Present(_adapter.State, _activity);
+        AutomationProperties.SetName(_maximize, _resources.GetString(presentation.MiddleButton.NameResourceKey));
     }
 
     private void Attach(CaptionButtonPart part)

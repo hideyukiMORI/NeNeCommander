@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace NeNeCommander.Application.Settings;
 
-/// <summary>Identifies one shipped next-launch interface language; arbitrary tags cannot enter the host.</summary>
+/// <summary>Identifies one shipped interface language; arbitrary tags cannot enter the host.</summary>
 public abstract record InterfaceLanguage
 {
     /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
     private protected abstract void RestrictDerivation();
 
-    /// <summary>Gets the unmodified platform language at next launch.</summary>
+    /// <summary>Gets the unmodified platform language captured by the host.</summary>
     public static InterfaceLanguage System { get; } = new SystemLanguage();
 
     /// <summary>Gets Japanese interface text.</summary>

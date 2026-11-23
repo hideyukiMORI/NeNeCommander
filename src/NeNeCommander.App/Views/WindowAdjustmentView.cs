@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -22,7 +21,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class WindowAdjustmentView
 {
     private readonly Grid _overlay;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly WindowAdjustmentRoute _route;
     private readonly Action<PaneSide> _focusFileList;
     private readonly ContentControl _sink;
@@ -32,7 +31,7 @@ internal sealed class WindowAdjustmentView
 
     internal WindowAdjustmentView(
         Grid overlay,
-        ResourceLoader resources,
+        ViewTextResources resources,
         WindowAdjustmentRoute route,
         Action<PaneSide> focusFileList)
     {

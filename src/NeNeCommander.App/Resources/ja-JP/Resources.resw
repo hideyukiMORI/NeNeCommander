@@ -400,7 +400,7 @@
     <value>表示言語</value>
   </data>
   <data name="SettingsLanguageExplanation.Text" xml:space="preserve">
-    <value>保存した変更は、NeNe Commanderの次回起動から反映されます。このウィンドウの言語は変わりません。</value>
+    <value>選ぶとすぐに表示言語が切り替わります。Windowsの地域書式やキーボード配列は変わりません。</value>
   </data>
   <data name="SettingsLanguageSystem" xml:space="preserve">
     <value>システムの言語に従う</value>
@@ -820,4 +820,5 @@
   <data name="CommandPaletteWindowDetail" xml:space="preserve"><value>このウィンドウの位置・サイズを調整</value></data>
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>アプリ全体のキー操作一覧</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>共通のブックマークを管理・移動先を選択</value></data>
+  <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
 </root>

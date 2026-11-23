@@ -2,6 +2,7 @@
 
 Status: normative
 
+- Issue528/ADR-0088 implements immediate application-owned language text through one explicit window MRT context over the existing PRI. The old host fails the immediate-label case; the corrected hidden real-control sequence passes94 checks/stage20, retaining settings/radio sources, pane rows/focus/scroll, delayed/failed writes and System restoration. App build0 warnings/errors,112 conformance rules and CS-023 positive1/negative8 pass; the exact five pre-existing complexity findings remain. Source/XBF/dependency parity and final input hashes are recorded in [quality](quality/2026-11-23-live-interface-language.md). Independent read-only review finds no required correction. Physical keys/IME/speech/visible repaint and new screen acceptance remain; local implementation is not publication/integration. Issue567 window placement persistence/off-screen correction is created with the exact approved body and read back. The live issue527 App/current settings and unfinished copies remain retained.
 - Stage: `implementation`
 - Production code: `permitted`
 - Canonical gate: `pwsh -NoProfile -File ./eng/check.ps1`

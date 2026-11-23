@@ -41,7 +41,7 @@ public sealed class InterfaceLanguageSettingsTests
         await commander.StopAsync();
     }
 
-    /// <summary>Proves a failed save keeps the next-launch choice and exposes the existing failure channel.</summary>
+    /// <summary>Proves a failed save keeps the current choice and exposes the existing failure channel.</summary>
     [TestMethod]
     public async Task SelectWhenLanguageSaveFailsRetainsChoiceAndWarningAsync()
     {

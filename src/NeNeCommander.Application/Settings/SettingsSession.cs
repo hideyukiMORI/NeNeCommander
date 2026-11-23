@@ -250,7 +250,7 @@ public sealed class SettingsSession
         }
     }
 
-    /// <summary>Queues a next-launch language choice without changing the current process language.</summary>
+    /// <summary>Selects the interface language immediately and queues its existing complete settings value.</summary>
     /// <param name="language">Shipped language or the platform default.</param>
     /// <param name="observer">Receives the state current after this write completes.</param>
     /// <param name="cancellationToken">Token observed before this write mutates storage.</param>

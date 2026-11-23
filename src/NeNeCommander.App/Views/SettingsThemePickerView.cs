@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -17,7 +16,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class SettingsThemePickerView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action<ColorScheme> _preview;
     private readonly TextBox _search;
@@ -29,7 +28,7 @@ internal sealed class SettingsThemePickerView
     private SettingsSchemeViewState? _state;
     private bool _rendering;
 
-    internal SettingsThemePickerView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action<ColorScheme> preview)
+    internal SettingsThemePickerView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Action<ColorScheme> preview)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -44,7 +43,6 @@ internal sealed class SettingsThemePickerView
         _current = Find<TextBlock>("SettingsCurrentScheme");
         _results = Find<TextBlock>("SettingsSchemeResults");
         _cancel = Find<Button>("ThemePickerCancel");
-        Find<TextBlock>("ThemePickerInstructions").Text = ThemePickerKeyHintPresenter.Present(resources.GetString);
         RowAutomationIdentity.Attach<SettingsSchemeRow>(_choices, row => row.AutomationId, row => row.Description);
         _search.TextChanged += OnSearchChanged;
         _search.TextCompositionStarted += OnCompositionStarted;
@@ -72,6 +70,7 @@ internal sealed class SettingsThemePickerView
         bool opening = !ReferenceEquals(_open, open);
         if (opening)
         {
+            Find<TextBlock>("ThemePickerInstructions").Text = ThemePickerKeyHintPresenter.Present(_resources.GetString);
             _open = open;
             _state = SettingsSchemeViewState.Create(SettingsPresenter.Present(snapshot), _resources.GetString);
             _rendering = true;
