@@ -1,6 +1,6 @@
 # 2026-11-23 日報 — Preview beta.4準備
 
-記録時点: 2026-11-23 23:42 JST。リリース検証は実行中で、タグ・公開は未実施。
+記録時点: 2026-11-23 23:51 JST。リリース検証は実行中で、タグ・公開は未実施。
 最新の結果は[品質記録](../quality/2026-11-23-preview-beta4.md)と
 [引き継ぎ](../handoffs/2026-11-23-preview-beta4-handoff.md)に照合する。
 
@@ -48,8 +48,13 @@ Appと対象test buildは警告0・エラー0。変更format確認が成功し�
 ソース変更やdismissは行わず、新CI結果との照合を待つ。ローカル0件とは報告しない。
 
 修正後deep review45195559902はd688d58で実行中。後続文書cbf2530との1243入力一致を
-確認済みで、文書更新だけでは再実行しない。成功、candidate ref alerts0、依存review、
-配布物生成とZIP/展開物/全hash/PRI全locale/notice原本照合は未完。
+確認済みで、文書更新だけでは再実行しない。deep成功とcandidate ref alerts0は未完。
+clean a111464の仮パッケージは生成/独立照合/別展開が成功した。全588ファイル、1681入力、
+10lock、3言語各547文字列、132 XBF、21 packageの51notice、125テーマ表記が一致。
+これは正式配布候補ではなく、main確定前に新しい配布内容を確認するpreflight。
+最終mainのsource identityを記録する正式候補は検証後に生成する。
+実装/独立review/preflightがそろいPR573はReadyへ移行。依存review45198574239が成功し、
+レビュー/未解決threadなしを読み戻した。deep/CodeQL結果確定前にはmergeしない。
 正確なcommandsと失敗は品質記録とD側の恒久証拠に保存する。
 
 ## 設定・環境・整理

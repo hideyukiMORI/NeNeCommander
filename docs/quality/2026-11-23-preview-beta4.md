@@ -11,9 +11,10 @@ direct pane counts. Other unaccepted feature branches and AppSDK PR517 are exclu
 ## Invariant and scope
 
 Existing focused PRs remain the integration boundaries and use ordinary squash
-merges. The release source must preserve the accepted product tree. The single App
-Version and distribution README change for beta.4, including schema6 and the old
-binary incompatibility. No runtime route, dependency, threshold or waiver changes.
+merges. Feature integration preserves the accepted product tree; necessary corrections
+found by release validation are identified separately below. The single App Version
+and distribution README change for beta.4, including schema6 and the old binary
+incompatibility. No new runtime route, dependency, threshold or waiver is introduced.
 Only eng/publish-release.ps1 creates a clean-source shipping candidate.
 
 QLT-013/SEC-009 require applicable successful deep-review evidence within96hours;
@@ -175,3 +176,38 @@ eaec33d9c42e2d99fe9236e3d957adb3f753046e01b1def139adfd63790683ff).
 Branches, commits and permanent evidence remain. The archive manifest, exact bounded
 deletion script and completion receipt identify every target. Unfinished other tasks
 and the active issue571 release source/output remain. No cleanup rejection occurred.
+
+## Distribution preflight while deep review runs
+
+The previous equivalent deep-review step took54m50s. To expose packaging failures
+without waiting for this run, clean committed a111464 is packaged as an explicitly
+provisional preflight under the task output, not as the final shipping candidate:
+
+```powershell
+pwsh -NoProfile -File ./eng/publish-release.ps1 -OutputDirectory D:/NeNeCommander/outputs/release-beta4-20261123/package-preflight -WindowsSdkLicensePath D:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta4-20261123/verify-candidate.ps1 -Candidate D:/NeNeCommander/outputs/release-beta4-20261123/package-preflight -RepositoryRoot D:/NeNeCommander/worktrees/issue-571 -ResultPath D:/NeNeCommander/evidence/release-beta4-20261123/preflight/candidate-proof.json
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta4-20261123/verify-pri-locales.ps1 -Candidate D:/NeNeCommander/outputs/release-beta4-20261123/package-preflight -RepositoryRoot D:/NeNeCommander/worktrees/issue-571 -EvidenceDirectory D:/NeNeCommander/evidence/release-beta4-20261123/preflight
+pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta4-20261123/verify-extracted-candidate.ps1 -Candidate D:/NeNeCommander/outputs/release-beta4-20261123/package-preflight -Destination D:/NeNeCommander/outputs/release-beta4-20261123/preflight-extracted -ExpectedSource a11146420ed1e9b0a6e1cc046e2037ec73a327db -ResultPath D:/NeNeCommander/evidence/release-beta4-20261123/preflight/extracted-proof.json
+```
+
+All four commands exit0. The payload, ZIP and separate extraction match all588 files;
+1681 tracked inputs and10 locks match. All51 notice files from21 resolved packages,
+the original SDK license,125 imported theme attributions and both theme notice files
+match their sources. The self-contained x64 executable version and unsigned state
+match. All132 compiled application XBFs are embedded in the unchanged PRI, and all547
+strings in each of en-US/ja-JP/zh-Hans match the source resources. No App is launched.
+The113,960,769-byte preflight ZIP SHA256 is
+98efde1973c710e1f05798ec8d87528f6d82accab83f433cbe96f07020c52d97.
+
+Final packaging still follows successful release proof and accepted main, because
+the executable/manifest must identify that exact source commit. This preflight
+checks the new three-locale/theme-notice shipping content; it is not a second full
+test run or release approval. Keep its original manifest and logs when finalizing.
+
+At23:50 JST the implementation, independent review and preflight are complete, so
+PR573 becomes review-ready while the release deep review remains in progress.
+Ready does not request a second full gate. The csproj Version change selects the
+existing dependency-review workflow; run45198574239 succeeds on a111464. Review
+submissions and unresolved threads are empty at readback. These facts do not authorize
+merge before the required release/CodeQL result. PR body/head/base/Ready readback
+matches the prepared metadata, with both Issue571 and Issue574 linked.

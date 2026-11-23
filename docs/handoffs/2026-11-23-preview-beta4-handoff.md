@@ -1,6 +1,6 @@
 # 2026-11-23 引き継ぎ — Preview beta.4準備
 
-記録時点: 2026-11-23 23:42 JST。まだ作業中。
+記録時点: 2026-11-23 23:51 JST。まだ作業中。
 [日報](../reports/2026-11-23-preview-beta4-daily-report.md)と
 [品質記録](../quality/2026-11-23-preview-beta4.md)を併読する。
 
@@ -13,8 +13,8 @@ hideの最新依頼は「リリース準備」。受理済み機能の統合、�
 - mainはe0a06164ce63399eeec193d29a6ce47af12af79c、同期済みでclean。
 - PR559/565/568/569/570/572はmerged。受理headとの完全tree一致を保存済み。
 - 作業: D:/NeNeCommander/worktrees/issue-571、chore/571-preview-beta4。
-- リリース: Issue571 / Draft PR573、追加CodeQL対応はIssue574。
-- 現head cbf2530はd688d58から文書だけ追加、1243非文書入力一致。
+- リリース: Issue571 / Ready PR573、追加CodeQL対応はIssue574。
+- 現head a111464はd688d58から文書だけ追加、1243非文書入力一致。
 - 証拠: D:/NeNeCommander/evidence/release-beta4-20261123。
 - 一時出力: D:/NeNeCommander/outputs/release-beta4-20261123。
 
@@ -34,10 +34,17 @@ RecursionGraphのPartialDefinitionPart/ReducedFromを同一扱いするが、loc
 読み戻して区別する。local0件とせず、既定mainの0件でも代用しない。
 比較はlocal-codeql-extraction-comparison.json。ソース/設定/抑制の変更はしていない。
 
+23:49までにclean a111464からtask output/package-preflightへ仮packageを生成し、
+全588ファイル、1681入力/10lock、3言語各547文字列、132 XBF、全notice、別展開が一致。
+証拠はevidence/preflight、source/ZIPは仮候補として保持する。最終mainとは別sourceなので、
+最終配布物は後でcanonical publisherから生成する。Appは起動していない。
+実装/独立review/preflightが完成して23:50にPR573をReadyへ。dependency-review45198574239
+はa111464で成功、レビュー/未解決threadなし。deep/CodeQL成功待ちは継続する。
+
 ## 残りの順序
 
 1. 新deep成功と候補refの成功CodeQL/owned alerts0を確認。96時間以内を数値で記録する。
-2. PR本文を最終証拠へ更新しReadyへ。csproj版番号変更に対応するdependency reviewを確認。
+2. PR本文を最終証拠へ更新。Ready/依存reviewは上記で完了、関連入力が同じなら再実行しない。
 3. 適用証拠、レビュー/未解決thread、exact headを確認して通常squash。mainを同期しtree一致。
 4. clean accepted sourceでeng/publish-release.ps1を一回実行する。正式候補は
    D:/NeNeCommander/releases/0.1.0-beta.4/candidate-20261123-01を予定。
