@@ -223,7 +223,7 @@ public sealed class SettingsSchemeViewStateTests
     {
         UserSettings settings = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.English),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         System.Reflection.ConstructorInfo constructor = typeof(SettingsSnapshot).GetConstructor(
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
             null,

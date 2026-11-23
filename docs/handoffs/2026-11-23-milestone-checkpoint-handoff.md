@@ -1,3 +1,29 @@
+## 位置・サイズ保存の最終候補 — 2026-11-23 19:43 JST
+
+現在はD:/NeNeCommander/worktrees/issue-526、feat/567-window-placement（base856cb6f）。
+#525/#526はrefactor/526-palette-contextの510d53de、即時言語#528は
+feat/528-live-interface-languageの856cb6fに保存済み。最新commitはgit logと
+window-placement-20261123のlocal-completion.jsonで照合する。
+
+#567はADR-0089、schema6、純粋な復元planner/tracker、既存queue/normal-closeを実装した。
+起動時はtargetへMoveしてから物理サイズをApplyする。最後の設定通知と直接操作進捗、
+待機/直接focusは_stopping後に画面を触らない。通常closeの保存/失敗観測/drainを省略しない。
+[品質記録](../quality/2026-11-23-window-placement.md)が正本。選択Application122/Infra266/
+Presentation38成功、最終非表示6ケースexit0、最終App build0警告0error、規約112/書式成功、
+従来5件の複雑度指摘のみ。171source/141binaryresourcesの一致と1243入力を凍結。
+19:34:58の独立読取レビューで必須修正なし。古いpre-close成功JSONだけを終了成功と扱わない。
+
+次は具体的branch/PR本文を揃えて公開し、既存PR559/565と依存関係を保って統合へ進める。
+PR559/565は19:41読戻しでOPEN/Draft、各head91e06f5/6182b0d、mainbaseb82aa1e。
+旧テーマ画面の受理と旧言語のhide実機所見を再要求しない。新しい即時切替・小型palette・
+可視最大化/最小化/復元の確認は別で、非表示fixtureをその成功に読み替えない。
+使用中issue527のAppを終了/再build/削除せず、現在設定を旧backupへ戻さない。
+blue-frame CUA・共有入力/focusを使わない。追加成果物はD側を維持する。
+
+control-fixture、baseline-856cb6f、各D側output/evidenceは未統合のため保持する。
+新しい削除拒否やhide後片付け待ちはない。公開承認が必要になれば具体的payloadで扱い、
+Issue567本文の限定承認を新しいソース送信へ流用しない。
+
 ## 即時言語切替の実装 — 2026-11-23 18:32 JST
 
 hideの17:21の即時切替要求をADR-0088で実装した。既存PRIを読む一つの明示的ResourceContextで

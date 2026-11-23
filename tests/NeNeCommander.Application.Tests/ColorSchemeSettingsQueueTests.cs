@@ -23,7 +23,7 @@ public sealed class ColorSchemeSettingsQueueTests
             PaneSortOrder.Create(SortKey.Size, SortDirection.Descending),
             PaneSortOrder.Create(SortKey.Modified, SortDirection.Ascending));
         UserSettings initial = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.Japanese), catalog, sorts);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.Japanese), catalog, sorts, null);
         SettingsReadOutcome read = SettingsReadOutcome.Read(initial);
         ScriptedSettingsStore store = new(read);
         SettingsSession session = new(store, read, static _ => { });

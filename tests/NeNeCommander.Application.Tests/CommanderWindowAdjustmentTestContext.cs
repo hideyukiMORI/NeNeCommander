@@ -43,7 +43,7 @@ internal sealed class CommanderWindowAdjustmentTestContext : System.IDisposable
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Read(UserSettings.Create(
                     DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
-                    catalog, PaneSortPreferences.Default)),
+                    catalog, PaneSortPreferences.Default, null)),
                 static _ => { }),
             new TransientScopeOwners(
                 new AddressEditorSession(),

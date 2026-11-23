@@ -5,6 +5,7 @@ using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Application.Windowing;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.Sessions;
@@ -261,10 +262,20 @@ public sealed class CommanderSession
         return _scopes.KeyboardHelp.Close(expected);
     }
 
-    /// <summary>Awaits every settings write queued before application shutdown.</summary>
-    public Task StopAsync()
+    /// <summary>Queues a changed final placement and always drains the existing settings queue.</summary>
+    /// <param name="placement">Last normal placement, or absence when none could be captured.</param>
+    /// <param name="observer">Receives the existing typed persistence outcome.</param>
+    public async Task StopAsync(SavedWindowPlacement? placement, ISettingsProgressObserver observer)
     {
-        return _settings.StopAsync();
+        ArgumentNullException.ThrowIfNull(observer);
+        try
+        {
+            await _settings.SaveWindowPlacementAsync(placement, observer, CancellationToken.None).ConfigureAwait(false);
+        }
+        finally
+        {
+            await _settings.StopAsync().ConfigureAwait(false);
+        }
     }
 
     private CommanderSnapshot HandleBookmarkIntent(

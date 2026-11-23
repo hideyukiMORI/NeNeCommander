@@ -117,6 +117,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | dispatch of a validated palette intent | `CommanderSession` |
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
 | localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
+| startup and final window placement | `WindowRestorePlanner` decides one corrected normal rectangle; the existing `AppWindowPlacementAdapter` moves to the target display before applying it and tracks its own window. `CommanderSession.StopAsync` queues one changed final value and drains `SettingsSession`; stopping session/operation callbacks cannot rebuild content or refocus lists (ADR-0089) |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
 | framework asynchronous work | `AsyncWorkOwner`; Stop closes admission before cancelling and awaiting admitted work (ADR-0030, ADR-0071) |
 | normal final-window shutdown | `AppWindowCloseAdapter` translates system close to one `WindowShutdownOwner` drain, then the composition root closes the window (ADR-0071) |

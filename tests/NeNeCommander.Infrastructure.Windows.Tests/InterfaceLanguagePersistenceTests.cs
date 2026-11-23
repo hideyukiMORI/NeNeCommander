@@ -47,7 +47,7 @@ public sealed class InterfaceLanguagePersistenceTests
         InterfaceLanguage language = InterfaceLanguage.All[index];
         UserSettings selected = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, language),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(await Store(root).WriteAsync(selected, CancellationToken.None));
         UserSettings restored = Assert.IsInstanceOfType<SettingsRead>(await Store(root).ReadAsync(CancellationToken.None)).Settings;
@@ -55,7 +55,7 @@ public sealed class InterfaceLanguagePersistenceTests
         Assert.AreSame(language, restored.Display.InterfaceLanguage);
         Assert.AreEqual(selected.Display, restored.Display);
         Assert.AreEqual(selected.PaneSortOrders, restored.PaneSortOrders);
-        StringAssert.Contains(File.ReadAllText(root.Resolve("settings.json")), "\"showKeyHints\":false,\"uiLanguage\":\"" + language.Identifier + "\"}");
+        StringAssert.Contains(File.ReadAllText(root.Resolve("settings.json")), "\"showKeyHints\":false,\"uiLanguage\":\"" + language.Identifier + "\",\"windowPlacement\":null}");
         Assert.HasCount(1, Directory.GetFiles(root.Path.CanonicalText));
     }
 

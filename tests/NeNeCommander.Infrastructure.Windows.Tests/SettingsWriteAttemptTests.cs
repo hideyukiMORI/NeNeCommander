@@ -166,7 +166,7 @@ public sealed class SettingsWriteAttemptTests
         string published = File.ReadAllText(root.Resolve(DocumentName));
         UserSettings changed = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
-            UserSettings.Default.Bookmarks, UserSettings.Default.PaneSortOrders);
+            UserSettings.Default.Bookmarks, UserSettings.Default.PaneSortOrders, null);
 
         SettingsWriteRejected write = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(changed, CancellationToken.None));

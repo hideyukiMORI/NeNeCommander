@@ -100,7 +100,7 @@ public sealed class PaneSortPersistenceTests
         Assert.AreEqual(Order(2), fixture.Store.Writes[1].PaneSortOrders.Left);
         Assert.AreEqual(Order(6), fixture.Store.Writes[1].PaneSortOrders.Right);
         second.SetResult(SettingsWriteOutcome.Succeeded());
-        await fixture.Session.StopAsync();
+        await fixture.Session.StopAsync(null, new RecordingCommanderObserver());
     }
 
     /// <summary>Proves failure keeps the changed pane and typed preference, with the existing warning channel.</summary>
@@ -114,7 +114,7 @@ public sealed class PaneSortPersistenceTests
         CommanderSnapshot pending = await fixture.HandleAsync(UserIntent.SortBySize);
         write.SetResult(SettingsWriteOutcome.Rejected(
             SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None));
-        await fixture.Session.StopAsync();
+        await fixture.Session.StopAsync(null, new RecordingCommanderObserver());
 
         _ = Assert.IsInstanceOfType<SettingsPersistencePending>(pending.Settings.Persistence);
         _ = Assert.IsInstanceOfType<SettingsPersistenceFailed>(fixture.Session.Current.Settings.Persistence);
@@ -146,7 +146,7 @@ public sealed class PaneSortPersistenceTests
     {
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         BookmarkCatalog catalog = Catalog();
-        UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default);
+        UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default, null);
         SettingsSession settings = new(store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception));
         RecordingCommanderObserver observer = new();
         TaskCompletionSource<SettingsWriteOutcome>[] writes = [store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite(), store.PlanWrite()];
@@ -229,7 +229,7 @@ public sealed class PaneSortPersistenceTests
             VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity;
             PaneSession left = new(Left, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Left));
             PaneSession right = new(Right, new ScriptedFileLauncher(), PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, preferences.Right));
-            UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, preferences);
+            UserSettings initial = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, preferences, null);
             Session = new CommanderSession(new DualPaneSession(left, right, _gateway),
                 new SettingsSession(Store, SettingsReadOutcome.Read(initial), static exception => throw new AssertFailedException("Unexpected persistence fault.", exception)),
                 new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),

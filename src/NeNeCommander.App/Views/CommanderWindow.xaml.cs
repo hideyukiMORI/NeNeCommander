@@ -11,6 +11,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Application.Windowing;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
@@ -31,6 +32,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly AsyncWorkOwner _paneWork;
     private readonly BookmarkManagerView _bookmarkView;
     private readonly WindowAdjustmentView _windowAdjustmentView;
+    private readonly AppWindowPlacementAdapter _placementAdapter;
     private readonly KeyboardHelpView _keyboardHelpView;
     private readonly SettingsEditorView _settingsView;
     private readonly SettingsThemePickerView _themePicker;
@@ -71,27 +73,32 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
+        _placementAdapter = new AppWindowPlacementAdapter(AppWindow, InputSurface);
         _windowAdjustmentView = new WindowAdjustmentView(
             WindowAdjustmentOverlay,
             _resources,
-            new WindowAdjustmentRoute(dependencies.Session, new AppWindowPlacementAdapter(AppWindow, InputSurface), dependencies.DefectObserver),
+            new WindowAdjustmentRoute(dependencies.Session, _placementAdapter, dependencies.DefectObserver),
             FocusFileList);
         _locationsView = new LocationsView(LocationsOverlay, _resources, ForwardIntent, FocusFileList);
         _keyboardHelpView = new KeyboardHelpView(KeyboardHelpOverlay, _resources, dependencies.Session, FocusFileList);
         _settingsView = new SettingsEditorView(InputSurface, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
         _themePicker = new SettingsThemePickerView(ThemePickerOverlay, _resources, ForwardIntent, RenderColorScheme);
-        Title = _resources.GetString("CommanderWindowTitle");
-        _captionBarView = new CaptionBarView(
-            CaptionBar,
-            _resources,
-            new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons, dependencies.DefectObserver));
+        _captionBarView = CreateCaptionBar(dependencies.DefectObserver);
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
         _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right);
         _renderedScheme = dependencies.Session.Current.Settings.Settings.Display.ColorScheme;
+        _placementAdapter.Initialize(_session.Current.Settings.Settings.WindowPlacement);
+    }
+
+    private CaptionBarView CreateCaptionBar(Action<Exception> defectObserver)
+    {
+        Title = _resources.GetString("CommanderWindowTitle");
+        return new CaptionBarView(CaptionBar, _resources,
+            new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons, defectObserver));
     }
 
     /// <summary>Occurs when the host previews or displays an accepted scheme through the composition root.</summary>
@@ -195,6 +202,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
+        // The final settings write still drains, but its queued observer cannot rebuild closing content.
+        if (_stopping)
+        {
+            return;
+        }
         _resources.ApplyLanguage(snapshot.Settings.Settings.Display.InterfaceLanguage);
         WindowFrame.Language = _resources.LanguageTag;
         _captionBarView.RenderLanguage();
@@ -235,6 +247,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderPanes(DualPaneSnapshot snapshot, KeyHintVisibility keyHintVisibility)
     {
+        if (_stopping)
+        {
+            return;
+        }
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation, keyHintVisibility);
         _presentation = presentation;
         _leftPaneView.Render(presentation.Left, presentation.LeftFrame);
@@ -253,7 +269,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     /// </summary>
     private void FocusActiveFileListWhenIdle()
     {
-        if (GetKeyboardContext() == KeyboardContext.FileList)
+        if (!_stopping && GetKeyboardContext() == KeyboardContext.FileList)
         {
             FocusFileList(_session.Current.Panes.ActiveSide);
         }
@@ -369,13 +385,14 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     {
         _stopping = true;
         InputSurface.IsHitTestVisible = false;
+        SavedWindowPlacement? placement = _placementAdapter.FinishTracking();
         try
         {
             await _paneWork.StopAsync().ConfigureAwait(true);
         }
         finally
         {
-            await _session.StopAsync().ConfigureAwait(true);
+            await _session.StopAsync(placement, this).ConfigureAwait(true);
         }
     }
 
@@ -405,6 +422,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void FocusFileList(PaneSide side)
     {
+        if (_stopping)
+        {
+            return;
+        }
         ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
         Control target = fileList.SelectedItem is object selected && fileList.ContainerFromItem(selected) is ListViewItem row
             ? row

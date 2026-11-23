@@ -16,7 +16,7 @@ public sealed class BookmarkBrowsePersistenceTests
     {
         BookmarkEntry entry = BookmarkEditorTestValues.Entry("First", "C:\\first", null);
         BookmarkCatalog catalog = BookmarkEditorTestValues.Catalog([], [entry]);
-        UserSettings settings = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default);
+        UserSettings settings = UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default, null);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(settings));
         SettingsSession session = new(store, SettingsReadOutcome.Read(settings), static _ => { });
         _ = session.OpenBookmarks();

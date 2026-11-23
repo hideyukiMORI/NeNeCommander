@@ -29,7 +29,7 @@ public sealed class UserSettingsTests
     {
         UserSettings settings = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         Assert.AreSame(ColorScheme.Dracula, settings.Display.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, settings.Display.HiddenItemVisibility);
@@ -61,7 +61,7 @@ public sealed class UserSettingsTests
     {
         UserSettings settings = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.NeNeLight, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         Assert.AreSame(
             settings,

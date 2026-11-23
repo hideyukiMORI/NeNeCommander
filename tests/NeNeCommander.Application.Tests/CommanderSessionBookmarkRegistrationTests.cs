@@ -144,7 +144,7 @@ public sealed class CommanderSessionBookmarkRegistrationTests
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         using FileOperationGateway gateway = CommanderSessionTestValues.CreateGateway();
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, store).CreateSession(SettingsReadOutcome.Read(UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), CommanderSessionTestValues.Catalog(entry), PaneSortPreferences.Default)));
+            DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), CommanderSessionTestValues.Catalog(entry), PaneSortPreferences.Default, null)));
         RecordingCommanderObserver observer = new();
         _ = await session.HandleAsync(UserIntent.OpenBookmarks, observer, CancellationToken.None);
         BookmarkCatalog before = session.Current.Settings.Settings.Bookmarks;
@@ -214,7 +214,7 @@ public sealed class CommanderSessionBookmarkRegistrationTests
 
         AssertSavedBookmarkDraft(saved, store);
         write.SetResult(SettingsWriteOutcome.Succeeded());
-        await session.StopAsync();
+        await session.StopAsync(null, new RecordingCommanderObserver());
     }
 
     private static void AssertSavedBookmarkDraft(CommanderSnapshot saved, ScriptedSettingsStore store)

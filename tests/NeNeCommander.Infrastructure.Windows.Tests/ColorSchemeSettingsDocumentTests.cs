@@ -22,11 +22,11 @@ public sealed class ColorSchemeSettingsDocumentTests
         {
             UserSettings source = UserSettings.Create(
                 DisplayPreferences.Create(scheme, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.SimplifiedChinese),
-                BookmarkCatalog.Empty, sorts);
+                BookmarkCatalog.Empty, sorts, null);
             byte[] bytes = SettingsDocumentSerializer.Serialize(source);
             string document = Encoding.UTF8.GetString(bytes);
             UserSettings parsed = Assert.IsInstanceOfType<SettingsRead>(SettingsDocumentValidator.Validate(document)).Settings;
-            StringAssert.StartsWith(document, "{\"schemaVersion\":5,");
+            StringAssert.StartsWith(document, "{\"schemaVersion\":6,");
             Assert.AreSame(scheme, parsed.Display.ColorScheme);
             Assert.AreEqual(source.Display, parsed.Display);
             Assert.AreEqual(sorts, parsed.PaneSortOrders);

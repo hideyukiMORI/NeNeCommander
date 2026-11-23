@@ -133,7 +133,7 @@ public sealed class BookmarkSettingsDocumentRejectionTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         const string Document =
-            "{\"schemaVersion\":6,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "{\"schemaVersion\":7,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
             "\"bookmarkCategories\":[],\"bookmarks\":[]}";
         string documentPath = root.WriteFile(DocumentName, Document);
 

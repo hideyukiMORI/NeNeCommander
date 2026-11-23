@@ -68,7 +68,7 @@ public sealed class SettingsSessionTests
     {
         UserSettings initial = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Monokai, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> write = store.PlanWrite();
         SettingsSession session = new(store, SettingsReadOutcome.Read(initial), static _ => { });
@@ -162,7 +162,7 @@ public sealed class SettingsSessionTests
         BookmarkCatalog replacementCatalog = Catalog("Replacement", "C:\\replacement");
         UserSettings initial = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Ubuntu, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
-            initialCatalog, PaneSortPreferences.Default);
+            initialCatalog, PaneSortPreferences.Default, null);
         ScriptedSettingsStore store = new(SettingsReadOutcome.Read(initial));
         TaskCompletionSource<SettingsWriteOutcome> catalogWrite = store.PlanWrite();
         TaskCompletionSource<SettingsWriteOutcome> preferenceWrite = store.PlanWrite();

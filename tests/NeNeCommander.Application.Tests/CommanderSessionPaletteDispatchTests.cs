@@ -75,7 +75,7 @@ public sealed class CommanderSessionPaletteDispatchTests
         Assert.HasCount(1, store.Writes);
         Assert.AreEqual(order, store.Writes[0].PaneSortOrders.Left);
         write.SetResult(SettingsWriteOutcome.Succeeded());
-        await session.StopAsync();
+        await session.StopAsync(null, new RecordingCommanderObserver());
     }
 
     /// <summary>Proves settings, the palette, and the window mode keep a sort intent away from the panes.</summary>
