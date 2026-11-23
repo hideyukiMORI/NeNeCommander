@@ -1,3 +1,12 @@
+## 最新の停止記録 — 2026-11-24 00:15 JST
+
+受理機能はmainへ統合済み。beta.4準備はApplication mutation94.98%/必要95%で停止し、
+hideの依頼に従って日報・引き継ぎを保存した。通常検証と候補CodeQL0件、仮配布物照合は成功。
+release PR573はDraft、タグ・公開は未実施。最新の結果は
+[beta.4日報](2026-11-23-preview-beta4-daily-report.md)と
+[引き継ぎ](../handoffs/2026-11-23-preview-beta4-handoff.md)を参照する。
+以下の古い未統合/稼働/整理待ちは時点付きの履歴であり、再開許可ではない。
+
 ## 復帰入力の修正と実機確認完了 — 2026-11-23 21:27 JST
 
 hideの実操作で#523を再現した。非active側の一覧空白で復帰するとframeworkの
