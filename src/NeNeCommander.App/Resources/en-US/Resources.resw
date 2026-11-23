@@ -180,7 +180,7 @@
   <data name="SettingsSaveStatusFailed" xml:space="preserve"><value>Not saved</value></data>
   <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
   <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>The settings file could not be used. Defaults are active, and the file was left unchanged.</value></data>
-  <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>Your choice is active for this session but could not be saved.</value></data>
+  <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>Changes could not be saved. Check the settings location before trying again.</value></data>
   <data name="BookmarkManagerTitle.Text" xml:space="preserve"><value>Bookmarks</value></data>
   <data name="BookmarkSearch.PlaceholderText" xml:space="preserve"><value>Search bookmarks</value></data>
   <data name="BookmarkAllCategories" xml:space="preserve"><value>All bookmarks</value></data>
@@ -396,4 +396,22 @@
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>Shown: files {0:N0}, folders {1:N0} · Selected {2:N0} · Loaded: files {3:N0}, folders {4:N0}</value></data>
   <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>Loaded entries only · {0}</value></data>
   <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>Last listing · {0}</value></data>
+  <data name="SettingsLanguageLabel.Text" xml:space="preserve">
+    <value>Interface language</value>
+  </data>
+  <data name="SettingsLanguageExplanation.Text" xml:space="preserve">
+    <value>Saved changes apply the next time NeNe Commander starts. The language of this window stays the same.</value>
+  </data>
+  <data name="SettingsLanguageSystem" xml:space="preserve">
+    <value>Follow system language</value>
+  </data>
+  <data name="SettingsLanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="SettingsLanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="SettingsLanguageSimplifiedChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
 </root>

@@ -455,6 +455,16 @@
             </DataTemplate>
 
             <DataTemplate
+                x:Key="SettingsLanguageOptionTemplate"
+                x:DataType="settings:SettingsLanguageOption">
+                <RadioButton
+                    AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                    Checked="OnSettingsLanguageChecked"
+                    Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                    GroupName="SettingsInterfaceLanguages"
+                    IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+            </DataTemplate>
+            <DataTemplate
                 x:Key="SettingsSchemeOptionTemplate"
                 x:DataType="settings:SettingsColorSchemeOption">
                 <RadioButton
@@ -894,6 +904,19 @@
                             x:Uid="SettingsKeyHintExplanation"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Uid="SettingsLanguageLabel"
+                            FontWeight="Bold" />
+                        <TextBlock
+                            x:Name="SettingsLanguageExplanation"
+                            x:Uid="SettingsLanguageExplanation"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                        <ItemsControl
+                            x:Name="SettingsLanguageOptions"
+                            AutomationProperties.AutomationId="SettingsLanguageOptions"
+                            AutomationProperties.HelpText="{Binding ElementName=SettingsLanguageExplanation, Path=Text}"
+                            ItemTemplate="{StaticResource SettingsLanguageOptionTemplate}" />
                         <TextBlock
                             x:Uid="SettingsColorSchemeLabel"
                             FontWeight="Bold" />

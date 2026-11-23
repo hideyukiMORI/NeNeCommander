@@ -21,12 +21,14 @@ internal sealed class SettingsEditorView
     private readonly CheckBox _showHidden;
     private readonly CheckBox _showKeyHints;
     private readonly ItemsControl _schemes;
+    private readonly ItemsControl _languages;
     private readonly TextBlock _saveStatus;
     private readonly Border _warning;
     private readonly TextBlock _warningText;
     private readonly Button _close;
     private readonly SettingsKeyboardView _keyboard;
     private ColorScheme? _selectedScheme;
+    private InterfaceLanguage? _selectedLanguage;
     private bool _initialFocusPending;
     private bool _rendering;
 
@@ -44,11 +46,12 @@ internal sealed class SettingsEditorView
         _showHidden = Find<CheckBox>("SettingsShowHiddenAtLaunch");
         _showKeyHints = Find<CheckBox>("SettingsShowKeyHints");
         _schemes = Find<ItemsControl>("SettingsSchemeOptions");
+        _languages = Find<ItemsControl>("SettingsLanguageOptions");
         _saveStatus = Find<TextBlock>("SettingsSaveStatus");
         _warning = Find<Border>("SettingsWarning");
         _warningText = Find<TextBlock>("SettingsWarningText");
         _close = Find<Button>("SettingsClose");
-        _keyboard = new SettingsKeyboardView([_showHidden, _showKeyHints], _schemes, _close, () => root.XamlRoot);
+        _keyboard = new SettingsKeyboardView([_showHidden, _showKeyHints], [_languages, _schemes], _close, () => root.XamlRoot);
         _close.Loaded += OnCloseLoaded;
         _overlay.PreviewKeyDown += OnOverlayKeyDown;
         _overlay.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnOverlayPointerPressed), true);
@@ -66,6 +69,7 @@ internal sealed class SettingsEditorView
     {
         _rendering = true;
         _selectedScheme = presentation.Schemes.Single(static option => option.IsSelected).Scheme;
+        _selectedLanguage = presentation.Languages.Single(static option => option.IsSelected).Language;
         bool opening = presentation.IsOpen && !IsOpen;
         if (!presentation.IsOpen && IsOpen)
         {
@@ -78,6 +82,10 @@ internal sealed class SettingsEditorView
         if (opening || _schemes.ItemsSource is null)
         {
             _schemes.ItemsSource = presentation.Schemes;
+        }
+        if (opening || _languages.ItemsSource is null)
+        {
+            _languages.ItemsSource = presentation.Languages;
         }
         _saveStatus.Text = _resources.GetString(presentation.SaveStatus.ResourceKey);
         _warning.Visibility = presentation.Warning.IsVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -131,6 +139,15 @@ internal sealed class SettingsEditorView
         {
             KeyHintVisibility visibility = checkbox.IsChecked is true ? KeyHintVisibility.Shown : KeyHintVisibility.Hidden;
             _forward(UserIntent.SelectKeyHintVisibility(visibility));
+        }
+    }
+
+    internal void LanguageChecked(object sender)
+    {
+        if (!_rendering && sender is RadioButton { IsChecked: true, DataContext: SettingsLanguageOption option } &&
+            option.Language != _selectedLanguage)
+        {
+            _forward(UserIntent.SelectInterfaceLanguage(option.Language));
         }
     }
 

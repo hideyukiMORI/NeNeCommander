@@ -16,7 +16,7 @@ public sealed class SettingsPresenterTests
     {
         SettingsSnapshot snapshot = Snapshot(
             UserSettings.Create(
-                DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
+                DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
                 BookmarkCatalog.Empty, PaneSortPreferences.Default),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
@@ -177,7 +177,7 @@ public sealed class SettingsPresenterTests
     public void SettingsPresentationWhenOptionSourceChangesKeepsOwnedSnapshot()
     {
         SettingsSnapshot source = Snapshot(
-            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
         SettingsColorSchemeOption option = new(ColorScheme.Dracula, "ColorSchemeNameDracula", ColorScheme.Dracula);
@@ -199,7 +199,7 @@ public sealed class SettingsPresenterTests
     public void PresentWhenHintsAreHiddenAndSaveFailsRetainsIndependentWarning()
     {
         UserSettings settings = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden),
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.System),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
         SettingsWriteRejected rejection = Assert.IsInstanceOfType<SettingsWriteRejected>(SettingsWriteOutcome.Rejected(
             SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None));
@@ -210,6 +210,49 @@ public sealed class SettingsPresenterTests
         Assert.IsFalse(presentation.ShowKeyHints);
         Assert.IsTrue(presentation.Warning.IsVisible);
         Assert.AreSame(SettingsSaveStatus.Failed, presentation.SaveStatus);
+    }
+
+    /// <summary>Proves all four options retain canonical order and exactly the selected next-launch value.</summary>
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public void PresentWhenLanguageIsSelectedExposesFourOwnedOptions(int selectedIndex)
+    {
+        InterfaceLanguage selected = InterfaceLanguage.All[selectedIndex];
+        UserSettings settings = UserSettings.Create(
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, selected),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+
+        SettingsPresentation presentation = SettingsPresenter.Present(Snapshot(
+            settings, SettingsEditorState.Open, SettingsPersistenceState.Pending));
+
+        Assert.HasCount(4, presentation.Languages);
+        for (int index = 0; index < presentation.Languages.Count; index++)
+        {
+            SettingsLanguageOption option = presentation.Languages[index];
+            Assert.AreSame(InterfaceLanguage.All[index], option.Language);
+            Assert.AreEqual(index == selectedIndex, option.IsSelected);
+            Assert.AreEqual("SettingsLanguage" + option.Language.Identifier, option.AutomationId);
+            Assert.IsFalse(string.IsNullOrEmpty(option.NameResourceKey));
+        }
+        Assert.AreSame(SettingsSaveStatus.Pending, presentation.SaveStatus);
+        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
+            ((System.Collections.Generic.IList<SettingsLanguageOption>)presentation.Languages).Clear());
+    }
+
+    /// <summary>Proves language option names reference the shipped catalog keys.</summary>
+    [TestMethod]
+    [DataRow(0, "SettingsLanguageSystem")]
+    [DataRow(1, "SettingsLanguageJapanese")]
+    [DataRow(2, "SettingsLanguageEnglish")]
+    [DataRow(3, "SettingsLanguageSimplifiedChinese")]
+    public void LanguageOptionWhenProjectedUsesExactNameKey(int index, string expectedKey)
+    {
+        SettingsLanguageOption option = new(InterfaceLanguage.All[index], InterfaceLanguage.System);
+
+        Assert.AreEqual(expectedKey, option.NameResourceKey);
     }
 
     private static SettingsSnapshot Snapshot(

@@ -45,7 +45,7 @@ public sealed class WindowsLocalSettingsStoreResidueTests
         _ = Assert.IsInstanceOfType<SettingsAbsent>(
             await recoveredStore.ReadAsync(CancellationToken.None));
         UserSettings replacement = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);
@@ -80,7 +80,7 @@ public sealed class WindowsLocalSettingsStoreResidueTests
             await recoveredStore.ReadAsync(CancellationToken.None)).Settings;
         Assert.AreSame(ColorScheme.Ubuntu, oldSettings.Display.ColorScheme);
         UserSettings replacement = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
             BookmarkCatalog.Empty, PaneSortPreferences.Default);
 
         SettingsWriteOutcome outcome = await recoveredStore.WriteAsync(replacement, CancellationToken.None);

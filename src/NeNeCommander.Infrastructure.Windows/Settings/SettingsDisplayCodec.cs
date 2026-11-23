@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Text.Json;
 using NeNeCommander.Application.Settings;
 
@@ -23,8 +25,33 @@ internal static class SettingsDisplayCodec
         {
             return SettingsReadFailureKind.UnknownColorScheme;
         }
-        display = DisplayPreferences.Create(accepted.Scheme, visibility, hints);
+        SettingsReadFailureKind? languageFailure = ReadInterfaceLanguage(root, out InterfaceLanguage? language);
+        if (languageFailure is not null || language is null)
+        {
+            return languageFailure ?? SettingsReadFailureKind.Malformed;
+        }
+        display = DisplayPreferences.Create(accepted.Scheme, visibility, hints, language);
         return null;
+    }
+
+    private static SettingsReadFailureKind? ReadInterfaceLanguage(
+        JsonElement root,
+        out InterfaceLanguage? language)
+    {
+        language = InterfaceLanguage.System;
+        if (!root.TryGetProperty("uiLanguage", out JsonElement choice))
+        {
+            return null;
+        }
+        language = null;
+        if (choice.ValueKind != JsonValueKind.String)
+        {
+            return SettingsReadFailureKind.Malformed;
+        }
+        string? identifier = choice.GetString();
+        language = InterfaceLanguage.All.FirstOrDefault(candidate =>
+            string.Equals(candidate.Identifier, identifier, StringComparison.Ordinal));
+        return language is null ? SettingsReadFailureKind.UnknownInterfaceLanguage : null;
     }
 
     private static KeyHintVisibility? ReadKeyHintVisibility(JsonElement root)
