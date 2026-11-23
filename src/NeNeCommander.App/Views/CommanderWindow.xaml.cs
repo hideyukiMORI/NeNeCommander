@@ -34,6 +34,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly WindowAdjustmentView _windowAdjustmentView;
     private readonly KeyboardHelpView _keyboardHelpView;
     private readonly SettingsEditorView _settingsView;
+    private readonly SettingsThemePickerView _themePicker;
     private readonly CaptionBarView _captionBarView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
@@ -78,6 +79,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _keyboardHelpView = new KeyboardHelpView(KeyboardHelpOverlay, _resources, dependencies.Session, FocusFileList);
         _settingsView = new SettingsEditorView(InputSurface, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
+        _themePicker = new SettingsThemePickerView(ThemePickerOverlay, _resources, ForwardIntent, RenderColorScheme);
         Title = _resources.GetString("CommanderWindowTitle");
         _captionBarView = new CaptionBarView(
             CaptionBar,
@@ -91,7 +93,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _renderedScheme = dependencies.Session.Current.Settings.Settings.Display.ColorScheme;
     }
 
-    /// <summary>Occurs when the session selects a scheme for the composition root to apply.</summary>
+    /// <summary>Occurs when the host previews or displays an accepted scheme through the composition root.</summary>
     public event EventHandler<ColorSchemeChangedEventArgs>? ColorSchemeChanged;
 
     /// <inheritdoc />
@@ -171,7 +173,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing;
+    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing || _themePicker.IsComposing;
 
     private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
@@ -192,6 +194,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSession(CommanderSnapshot snapshot)
     {
+        bool returningFromPicker = _themePicker.IsOpen && snapshot.Settings.Editor == SettingsEditorState.Closed;
         RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
         RenderSettingsSurfaces(snapshot.Settings);
         _paletteView.Render(snapshot);
@@ -199,7 +202,15 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         _keyboardHelpView.Render();
-        ColorScheme scheme = snapshot.Settings.Settings.Display.ColorScheme;
+        RenderColorScheme(_themePicker.PreviewScheme ?? snapshot.Settings.Settings.Display.ColorScheme);
+        if (returningFromPicker)
+        {
+            FocusFileList(snapshot.Panes.ActiveSide);
+        }
+    }
+
+    private void RenderColorScheme(ColorScheme scheme)
+    {
         if (_renderedScheme != scheme)
         {
             _renderedScheme = scheme;
@@ -209,9 +220,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void RenderSettingsSurfaces(SettingsSnapshot snapshot)
     {
+        _themePicker.Render(snapshot);
         _settingsView.Render(SettingsPresenter.Present(snapshot));
         _bookmarkView.Render(snapshot);
-        if (_bookmarkView.IsOpen || _settingsView.IsOpen)
+        if (_bookmarkView.IsOpen || _settingsView.IsOpen || _themePicker.IsOpen)
         {
             _operationContext = KeyboardContext.Modal;
         }
@@ -252,7 +264,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         if (outcome is MappedCommandPaletteAction paletteAction)
         {
-            return _paletteView.Forward(paletteAction.Action);
+            return ForwardPaletteAction(paletteAction.Action);
         }
         if (outcome is MappedBookmarkManagerAction bookmarkAction)
         {
@@ -276,6 +288,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return true;
         }
         return outcome is KeyboardAwaitingChord or KeyboardConsumed;
+    }
+
+    private bool ForwardPaletteAction(CommandPaletteKeyAction action)
+    {
+        return _themePicker.IsOpen ? _themePicker.Forward(action) : _paletteView.Forward(action);
     }
 
     private void ForwardIntent(UserIntent intent)
@@ -343,12 +360,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _settingsView.LanguageChecked(sender);
     }
 
-    private void OnSettingsSchemeChecked(object sender, RoutedEventArgs args)
-    {
-        _ = args;
-        _settingsView.SchemeChecked(sender);
-    }
-
     /// <summary>Cancels and awaits pane work before the application releases operation resources.</summary>
     public async Task StopAsync()
     {
@@ -372,6 +383,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             { KeyboardHelp: KeyboardHelpOpen } => KeyboardContext.KeyboardHelp,
             { Locations: not LocationsClosed } => KeyboardContext.Locations,
             _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
+            _ when _themePicker.IsOpen => KeyboardContext.CommandPalette,
             _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
             _ when _operationContext == KeyboardContext.Modal => _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal,
             { AddressEditor: not AddressEditorClosed } => KeyboardContext.AddressEntry,

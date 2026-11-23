@@ -19,7 +19,7 @@ The canonical gate stops at the first failing stage:
 
 1. pinned SDK and repository-state validation;
 2. policy and conformance validation;
-3. locked dependency restore evaluated with the Release build configuration;
+3. deterministic theme-import parity, then locked dependency restore evaluated with the Release build configuration;
 4. formatting verification;
 5. Release build with warnings as errors;
 6. external record-case compiler proof, then deterministic unit and contract tests;

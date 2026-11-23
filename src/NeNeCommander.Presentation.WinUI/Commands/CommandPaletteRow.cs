@@ -43,10 +43,10 @@ public sealed record CommandPaletteRow
     public string Shortcut => _caption.Shortcut;
 
     /// <summary>Gets the localized target pane summary.</summary>
-    public string Target => _context.Target;
+    public string Target => _caption.GlobalDetail is null ? _context.Target : string.Empty;
 
     /// <summary>Gets the localized opposite pane summary.</summary>
-    public string Opposite => _context.Opposite;
+    public string Opposite => _caption.GlobalDetail is null ? _context.Opposite : string.Empty;
 
     /// <summary>Gets the localized unavailable reason, or empty text when available.</summary>
     public string Reason => _feedback.Reason;

@@ -4,7 +4,7 @@ param(
     [string] $RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
 
     [Parameter()]
-    [ValidateSet('All', 'QLT-015', 'CS-010', 'CS-002', 'CS-023')]
+    [ValidateSet('All', 'QLT-015', 'CS-010', 'CS-002', 'CS-023', 'ARC-012')]
     [string] $Rule = 'All'
 )
 
@@ -300,8 +300,72 @@ function Assert-LocalizedResourceProof {
     }
 }
 
+function Assert-ThemeCatalogProof {
+    Assert-ConformanceSuccess -Name 'closed-theme-catalog-positive' -Validate { param($caseRoot) }
+    Assert-ConformanceFailure -Name 'color-scheme-dictionary-drift' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/Schemes/dracula.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('<Color x:Key="SelectionMarkColor">', '<Color x:Key="SelectionMarkerColor">')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'color-outside-scheme-dictionary' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace(
+            '<Thickness x:Key="SpacingWindowOuter">6</Thickness>',
+            "<Color x:Key=`"SurfaceWindowColor`">#FF000000</Color>`r`n    <Thickness x:Key=`"SpacingWindowOuter`">6</Thickness>")
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+    Assert-ConformanceFailure -Name 'presentation-names-unknown-scheme-resource' -ExpectedRule 'ARC-012' -Mutate {
+        param($caseRoot)
+        $path = Join-Path $caseRoot 'src/NeNeCommander.Presentation.WinUI/Panes/PaneFrame.cs'
+        $content = Get-Content -LiteralPath $path -Raw
+        $content = $content.Replace('"BorderSubtleBrush"', '"BorderInvisibleBrush"')
+        Set-Content -LiteralPath $path -Value $content -NoNewline
+    }
+
+
+    $catalog = 'src/NeNeCommander.Application/Settings/ColorScheme.cs'
+    $resources = 'src/NeNeCommander.App/Themes/ColorSchemeResources.cs'
+    $presenter = 'src/NeNeCommander.Presentation.WinUI/Settings/SettingsPresenter.cs'
+    foreach ($case in @(
+        @{ name = 'catalog-missing'; path = $catalog; old = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark),'; replacement = '' },
+        @{ name = 'catalog-duplicate'; path = $catalog; old = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark),'; replacement = 'new CatalogScheme("nene-dark", ColorSchemeAppearance.Dark),' },
+        @{ name = 'catalog-extra'; path = $catalog; old = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark),'; replacement = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark), new CatalogScheme("alien", ColorSchemeAppearance.Dark),' },
+        @{ name = 'catalog-open-appearance'; path = $catalog; old = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark),'; replacement = 'new CatalogScheme("ubuntu", appearance),' },
+        @{ name = 'catalog-wrong-appearance'; path = $catalog; old = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Dark),'; replacement = 'new CatalogScheme("ubuntu", ColorSchemeAppearance.Light),' },
+        @{ name = 'catalog-second-initializer'; path = $catalog; old = 'private readonly ColorScheme[] _schemes ='; replacement = 'private readonly ColorScheme[] _schemes = []; private readonly ColorScheme[] _schemes =' },
+        @{ name = 'catalog-empty'; path = $catalog; old = '_schemes ='; replacement = '_notTheCatalog =' },
+        @{ name = 'address-missing'; path = $resources; old = '["ubuntu"] = new Uri("ms-appx:///Themes/Schemes/ubuntu.xaml"),'; replacement = '' },
+        @{ name = 'address-interpolated'; path = $resources; old = 'new Uri("ms-appx:///Themes/Schemes/ubuntu.xaml")'; replacement = 'new Uri($"ms-appx:///Themes/Schemes/{identifier}.xaml")' },
+        @{ name = 'address-wrong-file'; path = $resources; old = 'new Uri("ms-appx:///Themes/Schemes/ubuntu.xaml")'; replacement = 'new Uri("ms-appx:///Themes/Schemes/dracula.xaml")' },
+        @{ name = 'name-projection-drift'; path = $presenter; old = '["ubuntu"] = "ColorSchemeNameUbuntu",'; replacement = '["ubuntu"] = "ColorSchemeNameDracula",' },
+        @{ name = 'fixed-source-shape'; path = 'eng/theme-catalog/source.json'; old = '"schemaVersion": 1'; replacement = '"schemaVersion": 2' },
+        @{ name = 'import-parity-disconnected'; path = 'eng/check.ps1'; old = 'import-theme-catalog.ps1'; replacement = 'disconnected-import.ps1' }
+    )) {
+        Assert-ConformanceFailure -Name $case.name -ExpectedRule 'ARC-012' -Mutate {
+            param($caseRoot)
+            $path = Join-Path $caseRoot $case.path
+            $content = Get-Content -LiteralPath $path -Raw
+            if (-not $content.Contains($case.old, [StringComparison]::Ordinal)) { throw "Unapplied theme proof mutation: $($case.name)" }
+            Set-Content -LiteralPath $path -Value $content.Replace($case.old, $case.replacement) -NoNewline
+        }
+    }
+}
+
 try {
     New-Item -ItemType Directory -Path $proofRoot | Out-Null
+    if ($Rule -eq 'All' -or $Rule -eq 'ARC-012') {
+        Assert-ThemeCatalogProof
+        if ($Rule -eq 'ARC-012') {
+            Write-Host 'Gate proofs passed: ARC-012 valid fixed catalog and 16 malformed/projection/resource fixtures.'
+            return
+        }
+    }
     if ($Rule -eq 'All' -or $Rule -eq 'CS-023') {
         Assert-LocalizedResourceProof
         if ($Rule -eq 'CS-023') {
@@ -464,32 +528,6 @@ try {
         $content = $content.Replace(
             'string localApplicationData = Environment.GetFolderPath(',
             "long tickCount = Environment.TickCount64;`r`n        string localApplicationData = Environment.GetFolderPath(")
-        Set-Content -LiteralPath $path -Value $content -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'color-scheme-dictionary-drift' -ExpectedRule 'ARC-012' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/Schemes/dracula.xaml'
-        $content = Get-Content -LiteralPath $path -Raw
-        $content = $content.Replace('<Color x:Key="SelectionMarkColor">', '<Color x:Key="SelectionMarkerColor">')
-        Set-Content -LiteralPath $path -Value $content -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'color-outside-scheme-dictionary' -ExpectedRule 'ARC-012' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot 'src/NeNeCommander.App/Themes/DesignTokens.xaml'
-        $content = Get-Content -LiteralPath $path -Raw
-        $content = $content.Replace(
-            '<Thickness x:Key="SpacingWindowOuter">6</Thickness>',
-            "<Color x:Key=`"SurfaceWindowColor`">#FF000000</Color>`r`n    <Thickness x:Key=`"SpacingWindowOuter`">6</Thickness>")
-        Set-Content -LiteralPath $path -Value $content -NoNewline
-    }
-
-    Assert-ConformanceFailure -Name 'presentation-names-unknown-scheme-resource' -ExpectedRule 'ARC-012' -Mutate {
-        param($caseRoot)
-        $path = Join-Path $caseRoot 'src/NeNeCommander.Presentation.WinUI/Panes/PaneFrame.cs'
-        $content = Get-Content -LiteralPath $path -Raw
-        $content = $content.Replace('"BorderSubtleBrush"', '"BorderInvisibleBrush"')
         Set-Content -LiteralPath $path -Value $content -NoNewline
     }
 

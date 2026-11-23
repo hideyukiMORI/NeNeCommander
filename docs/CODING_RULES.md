@@ -177,7 +177,7 @@ Catch only exceptions that can be normalized or enriched. Platform adapters tran
 - Status: **active**
 - Enforcement: clean-tree build proof and path scan.
 
-Generated output is reproducible from committed inputs, written only to declared generated locations, and not edited manually. Generated files are not committed unless an ADR records why deterministic regeneration cannot be used.
+Generated output is reproducible from committed inputs, written only to declared generated locations, and not edited manually. Generated files are not committed unless an ADR records why deterministic regeneration cannot be used. ADR-0087 declares the fixed imported theme sources as an exception because ARC-012 and WinUI require those inputs before the product build; the canonical gate checks the single offline importer against committed inputs. These files retain all analyzers, coverage, mutation and complexity rules.
 
 ### CS-020 — Suppressions are prohibited
 

@@ -390,7 +390,7 @@
   <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>Show key hints in the footer</value></data>
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>When off, F1 help and Enter/Esc hints for confirmation or name entry remain visible.</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>Go to location</value></data>
-  <data name="AddressEditorInput.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Absolute location</value></data>
+  <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>Absolute location</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>Counts unavailable</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>Files {0:N0} · Folders {1:N0} · Selected {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>Shown: files {0:N0}, folders {1:N0} · Selected {2:N0} · Loaded: files {3:N0}, folders {4:N0}</value></data>
@@ -414,4 +414,400 @@
   <data name="SettingsLanguageSimplifiedChinese" xml:space="preserve">
     <value>简体中文</value>
   </data>
+  <data name="ColorSchemeNameCatalogUbuntuAubergine" xml:space="preserve">
+    <value>ubuntu-aubergine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNeutralLight" xml:space="preserve">
+    <value>neutral-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOneDark" xml:space="preserve">
+    <value>one-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNightOwl" xml:space="preserve">
+    <value>night-owl</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNightOwlLight" xml:space="preserve">
+    <value>night-owl-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogBlue" xml:space="preserve">
+    <value>blue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccin" xml:space="preserve">
+    <value>catppuccin</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDarkblue" xml:space="preserve">
+    <value>darkblue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDefault" xml:space="preserve">
+    <value>default</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDelek" xml:space="preserve">
+    <value>delek</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDesert" xml:space="preserve">
+    <value>desert</value>
+  </data>
+  <data name="ColorSchemeNameCatalogElflord" xml:space="preserve">
+    <value>elflord</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEvening" xml:space="preserve">
+    <value>evening</value>
+  </data>
+  <data name="ColorSchemeNameCatalogHabamax" xml:space="preserve">
+    <value>habamax</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIndustry" xml:space="preserve">
+    <value>industry</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKoehler" xml:space="preserve">
+    <value>koehler</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLunaperche" xml:space="preserve">
+    <value>lunaperche</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMorning" xml:space="preserve">
+    <value>morning</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMurphy" xml:space="preserve">
+    <value>murphy</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNovum" xml:space="preserve">
+    <value>novum</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPablo" xml:space="preserve">
+    <value>pablo</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPeachpuff" xml:space="preserve">
+    <value>peachpuff</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuiet" xml:space="preserve">
+    <value>quiet</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRetrobox" xml:space="preserve">
+    <value>retrobox</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRon" xml:space="preserve">
+    <value>ron</value>
+  </data>
+  <data name="ColorSchemeNameCatalogShine" xml:space="preserve">
+    <value>shine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSlate" xml:space="preserve">
+    <value>slate</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSorbet" xml:space="preserve">
+    <value>sorbet</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTorte" xml:space="preserve">
+    <value>torte</value>
+  </data>
+  <data name="ColorSchemeNameCatalogUnokai" xml:space="preserve">
+    <value>unokai</value>
+  </data>
+  <data name="ColorSchemeNameCatalogWildcharm" xml:space="preserve">
+    <value>wildcharm</value>
+  </data>
+  <data name="ColorSchemeNameCatalogZaibatsu" xml:space="preserve">
+    <value>zaibatsu</value>
+  </data>
+  <data name="ColorSchemeNameCatalogZellner" xml:space="preserve">
+    <value>zellner</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAbyss" xml:space="preserve">
+    <value>abyss</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDark2026" xml:space="preserve">
+    <value>vscode-dark-2026</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLight2026" xml:space="preserve">
+    <value>vscode-light-2026</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDarkModern" xml:space="preserve">
+    <value>vscode-dark-modern</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDarkPlus" xml:space="preserve">
+    <value>vscode-dark-plus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDark" xml:space="preserve">
+    <value>vscode-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeHighContrast" xml:space="preserve">
+    <value>vscode-high-contrast</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeHighContrastLight" xml:space="preserve">
+    <value>vscode-high-contrast-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLightModern" xml:space="preserve">
+    <value>vscode-light-modern</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLightPlus" xml:space="preserve">
+    <value>vscode-light-plus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLight" xml:space="preserve">
+    <value>vscode-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKimbieDark" xml:space="preserve">
+    <value>kimbie-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMonokaiDimmed" xml:space="preserve">
+    <value>monokai-dimmed</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuietLight" xml:space="preserve">
+    <value>quiet-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRed" xml:space="preserve">
+    <value>red</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTomorrowNightBlue" xml:space="preserve">
+    <value>tomorrow-night-blue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMonalisa" xml:space="preserve">
+    <value>monalisa</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinLatte" xml:space="preserve">
+    <value>catppuccin-latte</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinFrappe" xml:space="preserve">
+    <value>catppuccin-frappe</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinMacchiato" xml:space="preserve">
+    <value>catppuccin-macchiato</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNord" xml:space="preserve">
+    <value>nord</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGruvbox" xml:space="preserve">
+    <value>gruvbox</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGruvboxLight" xml:space="preserve">
+    <value>gruvbox-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNight" xml:space="preserve">
+    <value>tokyo-night</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightStorm" xml:space="preserve">
+    <value>tokyo-night-storm</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightMoon" xml:space="preserve">
+    <value>tokyo-night-moon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightLight" xml:space="preserve">
+    <value>tokyo-night-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubDark" xml:space="preserve">
+    <value>github-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubLight" xml:space="preserve">
+    <value>github-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubDarkDimmed" xml:space="preserve">
+    <value>github-dark-dimmed</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOneLight" xml:space="preserve">
+    <value>one-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIntellijLight" xml:space="preserve">
+    <value>intellij-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDarcula" xml:space="preserve">
+    <value>darcula</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePine" xml:space="preserve">
+    <value>rose-pine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePineMoon" xml:space="preserve">
+    <value>rose-pine-moon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePineDawn" xml:space="preserve">
+    <value>rose-pine-dawn</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEverforestDark" xml:space="preserve">
+    <value>everforest-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEverforestLight" xml:space="preserve">
+    <value>everforest-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawa" xml:space="preserve">
+    <value>kanagawa</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawaDragon" xml:space="preserve">
+    <value>kanagawa-dragon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawaLotus" xml:space="preserve">
+    <value>kanagawa-lotus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialOceanic" xml:space="preserve">
+    <value>material-oceanic</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialDarker" xml:space="preserve">
+    <value>material-darker</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialLighter" xml:space="preserve">
+    <value>material-lighter</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialPalenight" xml:space="preserve">
+    <value>material-palenight</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialDeepOcean" xml:space="preserve">
+    <value>material-deep-ocean</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuDark" xml:space="preserve">
+    <value>ayu-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuMirage" xml:space="preserve">
+    <value>ayu-mirage</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuLight" xml:space="preserve">
+    <value>ayu-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCobalt2" xml:space="preserve">
+    <value>cobalt2</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSynthwave84" xml:space="preserve">
+    <value>synthwave-84</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAlloyCore" xml:space="preserve">
+    <value>alloy-core</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVerdantRage" xml:space="preserve">
+    <value>verdant-rage</value>
+  </data>
+  <data name="ColorSchemeNameCatalogScarletWeb" xml:space="preserve">
+    <value>scarlet-web</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRelicSand" xml:space="preserve">
+    <value>relic-sand</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSoapRebellion" xml:space="preserve">
+    <value>soap-rebellion</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCodeRain" xml:space="preserve">
+    <value>code-rain</value>
+  </data>
+  <data name="ColorSchemeNameCatalogArcaneLibrary" xml:space="preserve">
+    <value>arcane-library</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRoyalKinetic" xml:space="preserve">
+    <value>royal-kinetic</value>
+  </data>
+  <data name="ColorSchemeNameCatalogArenaSunset" xml:space="preserve">
+    <value>arena-sunset</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCosmicMixtape" xml:space="preserve">
+    <value>cosmic-mixtape</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPrismSanctum" xml:space="preserve">
+    <value>prism-sanctum</value>
+  </data>
+  <data name="ColorSchemeNameCatalogWinterSentinel" xml:space="preserve">
+    <value>winter-sentinel</value>
+  </data>
+  <data name="ColorSchemeNameCatalogInfiniteDusk" xml:space="preserve">
+    <value>infinite-dusk</value>
+  </data>
+  <data name="ColorSchemeNameCatalogStellarPilot" xml:space="preserve">
+    <value>stellar-pilot</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuantumHoney" xml:space="preserve">
+    <value>quantum-honey</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCrimsonMercenary" xml:space="preserve">
+    <value>crimson-mercenary</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLastOutlaw" xml:space="preserve">
+    <value>last-outlaw</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIvoryAgent" xml:space="preserve">
+    <value>ivory-agent</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCelestialBrass" xml:space="preserve">
+    <value>celestial-brass</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAmberHaze" xml:space="preserve">
+    <value>amber-haze</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDesertOracle" xml:space="preserve">
+    <value>desert-oracle</value>
+  </data>
+  <data name="ColorSchemeNameCatalogChromeWasteland" xml:space="preserve">
+    <value>chrome-wasteland</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNeonGrid" xml:space="preserve">
+    <value>neon-grid</value>
+  </data>
+  <data name="ColorSchemeNameCatalogBiolumeForest" xml:space="preserve">
+    <value>biolume-forest</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPastelConcierge" xml:space="preserve">
+    <value>pastel-concierge</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTwilightJazz" xml:space="preserve">
+    <value>twilight-jazz</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNoirVigil" xml:space="preserve">
+    <value>noir-vigil</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCarnivalAshes" xml:space="preserve">
+    <value>carnival-ashes</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOrbitalFrost" xml:space="preserve">
+    <value>orbital-frost</value>
+  </data>
+  <data name="ColorSchemeNameCatalogFoldedCity" xml:space="preserve">
+    <value>folded-city</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMidnightDrive" xml:space="preserve">
+    <value>midnight-drive</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEditorialCafe" xml:space="preserve">
+    <value>editorial-cafe</value>
+  </data>
+  <data name="ColorSchemeNameCatalogStripedHaunt" xml:space="preserve">
+    <value>striped-haunt</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCuriousGarden" xml:space="preserve">
+    <value>curious-garden</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTideboundGold" xml:space="preserve">
+    <value>tidebound-gold</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVelvetCabaret" xml:space="preserve">
+    <value>velvet-cabaret</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLagoonWhisper" xml:space="preserve">
+    <value>lagoon-whisper</value>
+  </data>
+  <data name="SettingsSchemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="SettingsSchemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="SettingsSchemeDescriptionFormat" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="SettingsCurrentSchemeFormat" xml:space="preserve">
+    <value>Current theme: {0}</value>
+  </data>
+  <data name="SettingsSchemeResultsFormat" xml:space="preserve">
+    <value>{0} of {1} themes</value>
+  </data>
+  <data name="SettingsSchemeNoResults" xml:space="preserve">
+    <value>No matching themes.</value>
+  </data>
+  <data name="SettingsSchemeSearchLabel.Text" xml:space="preserve">
+    <value>Search themes</value>
+  </data>
+  <data name="SettingsSchemeSearch.PlaceholderText" xml:space="preserve">
+    <value>Name or identifier</value>
+  </data>
+  <data name="IntentLabelOpenColorSchemes" xml:space="preserve"><value>Choose theme · :colorscheme</value></data>
+  <data name="ThemePickerTitle.Text" xml:space="preserve"><value>Choose a theme</value></data>
+  <data name="SettingsSchemeOptions.AutomationProperties.Name" xml:space="preserve"><value>Theme candidates</value></data>
+  <data name="SettingsChooseScheme.AutomationProperties.HelpText" xml:space="preserve"><value>Open theme search and selection</value></data>
+  <data name="ThemePickerHintPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="ThemePickerHintApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="ThemePickerHintCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ThemePickerCancel.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>Preview and choose the window's color scheme</value></data>
 </root>

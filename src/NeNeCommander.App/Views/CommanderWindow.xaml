@@ -450,6 +450,8 @@
             <DataTemplate x:Key="ProgressSegmentTemplate">
                 <Rectangle
                     Fill="{Binding BrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                    Stroke="{StaticResource OperationProgressBrush}"
+                    StrokeThickness="{StaticResource DensityIconStrokeThickness}"
                     Height="{StaticResource DensityProgressSegmentSize}"
                     Width="{StaticResource DensityProgressSegmentSize}" />
             </DataTemplate>
@@ -466,12 +468,22 @@
             </DataTemplate>
             <DataTemplate
                 x:Key="SettingsSchemeOptionTemplate"
-                x:DataType="settings:SettingsColorSchemeOption">
-                <RadioButton
-                    Checked="OnSettingsSchemeChecked"
-                    Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                    GroupName="SettingsColorSchemes"
-                    IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+                x:DataType="settings:SettingsSchemeRow">
+                <Grid
+                    AutomationProperties.Name="{x:Bind Description}"
+                    ToolTipService.ToolTip="{x:Bind Description}"
+                    HorizontalAlignment="Stretch"
+                    MinHeight="{StaticResource DensitySettingsSchemeRowMinHeight}"
+                    Padding="{StaticResource SpacingThemePickerRow}">
+                    <Grid ColumnSpacing="{StaticResource SpacingRowGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind Appearance}" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
             </DataTemplate>
 
             <DataTemplate x:Key="BookmarkCategoryOptionTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
@@ -860,6 +872,7 @@
             x:Name="SettingsOverlay"
             Grid.RowSpan="3"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Padding="{StaticResource SpacingWindowOuter}"
             Visibility="Collapsed"
             Canvas.ZIndex="10">
             <Border
@@ -868,74 +881,188 @@
                 BorderBrush="{StaticResource FocusRingBrush}"
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
-                MinWidth="{StaticResource DensityNameEntryWidth}"
+                MaxWidth="{StaticResource DensitySettingsModalMaxWidth}"
                 Padding="{StaticResource SpacingWindowOuter}"
-                HorizontalAlignment="Center"
+                TabFocusNavigation="Cycle"
+                HorizontalAlignment="Stretch"
                 VerticalAlignment="Center">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                        <TextBlock
-                            x:Uid="SettingsTitle"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            FontWeight="Bold" />
-                        <TextBlock
-                            x:Uid="SettingsAutoSaveExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="SettingsShowHiddenAtLaunch"
-                            x:Uid="SettingsShowHiddenAtLaunch"
-                            AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
-                            Checked="OnSettingsShowHiddenChanged"
-                            Unchecked="OnSettingsShowHiddenChanged" />
-                        <TextBlock
-                            x:Uid="SettingsHiddenCurrentPaneExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="SettingsShowKeyHints"
-                            x:Uid="SettingsShowKeyHints"
-                            AutomationProperties.AutomationId="SettingsShowKeyHints"
-                            AutomationProperties.HelpText="{Binding ElementName=SettingsKeyHintExplanation, Path=Text}"
-                            Checked="OnSettingsShowKeyHintsChanged"
-                            Unchecked="OnSettingsShowKeyHintsChanged" />
-                        <TextBlock
-                            x:Name="SettingsKeyHintExplanation"
-                            x:Uid="SettingsKeyHintExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            x:Uid="SettingsLanguageLabel"
-                            FontWeight="Bold" />
-                        <TextBlock
-                            x:Name="SettingsLanguageExplanation"
-                            x:Uid="SettingsLanguageExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <ItemsControl
-                            x:Name="SettingsLanguageOptions"
-                            AutomationProperties.AutomationId="SettingsLanguageOptions"
-                            AutomationProperties.HelpText="{Binding ElementName=SettingsLanguageExplanation, Path=Text}"
-                            ItemTemplate="{StaticResource SettingsLanguageOptionTemplate}" />
-                        <TextBlock
-                            x:Uid="SettingsColorSchemeLabel"
-                            FontWeight="Bold" />
-                        <ItemsControl
-                            x:Name="SettingsSchemeOptions"
-                            AutomationProperties.AutomationId="SettingsSchemeOptions"
-                            ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}" />
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsTabStop="False">
+                        <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                            <TextBlock
+                                x:Uid="SettingsTitle"
+                                FontSize="{StaticResource TypographyBodySize}"
+                                FontWeight="Bold" />
+                            <TextBlock
+                                x:Uid="SettingsAutoSaveExplanation"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <CheckBox
+                                x:Name="SettingsShowHiddenAtLaunch"
+                                x:Uid="SettingsShowHiddenAtLaunch"
+                                AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
+                                Checked="OnSettingsShowHiddenChanged"
+                                Unchecked="OnSettingsShowHiddenChanged" />
+                            <TextBlock
+                                x:Uid="SettingsHiddenCurrentPaneExplanation"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <CheckBox
+                                x:Name="SettingsShowKeyHints"
+                                x:Uid="SettingsShowKeyHints"
+                                AutomationProperties.AutomationId="SettingsShowKeyHints"
+                                AutomationProperties.HelpText="{Binding ElementName=SettingsKeyHintExplanation, Path=Text}"
+                                Checked="OnSettingsShowKeyHintsChanged"
+                                Unchecked="OnSettingsShowKeyHintsChanged" />
+                            <TextBlock
+                                x:Name="SettingsKeyHintExplanation"
+                                x:Uid="SettingsKeyHintExplanation"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                x:Uid="SettingsLanguageLabel"
+                                FontWeight="Bold" />
+                            <TextBlock
+                                x:Name="SettingsLanguageExplanation"
+                                x:Uid="SettingsLanguageExplanation"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <ItemsControl
+                                x:Name="SettingsLanguageOptions"
+                                AutomationProperties.AutomationId="SettingsLanguageOptions"
+                                AutomationProperties.HelpText="{Binding ElementName=SettingsLanguageExplanation, Path=Text}"
+                                ItemTemplate="{StaticResource SettingsLanguageOptionTemplate}" />
+                            <TextBlock
+                                x:Uid="SettingsColorSchemeLabel"
+                                FontWeight="Bold" />
+                            <Button
+                                x:Name="SettingsChooseScheme"
+                                x:Uid="SettingsChooseScheme"
+                                AutomationProperties.AutomationId="SettingsChooseScheme"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left">
+                                <TextBlock x:Name="SettingsSelectedSchemeText" TextWrapping="Wrap" />
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Grid Grid.Row="1" ColumnSpacing="{StaticResource SpacingOperationBarGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock
                             x:Name="SettingsSaveStatus"
                             AutomationProperties.AutomationId="SettingsSaveStatus"
-                            Foreground="{StaticResource TextSecondaryBrush}" />
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
                         <Button
+                            Grid.Column="1"
                             x:Name="SettingsClose"
                             x:Uid="SettingsClose"
                             AutomationProperties.AutomationId="SettingsClose"
                             Click="OnSettingsClose"
                             HorizontalAlignment="Right" />
-                    </StackPanel>
-                </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="ThemePickerOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="ThemePickerOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="20">
+            <Border
+                x:Name="ThemePickerSurface"
+                AutomationProperties.AutomationId="ThemePickerSurface"
+                AutomationProperties.LabeledBy="{Binding ElementName=ThemePickerTitle}"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                MaxWidth="{StaticResource DensitySettingsModalMaxWidth}"
+                Padding="{StaticResource SpacingWindowOuter}"
+                TabFocusNavigation="Cycle"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="ThemePickerTitle" x:Uid="ThemePickerTitle" FontWeight="Bold" />
+                    <TextBox
+                        x:Name="SettingsSchemeSearch"
+                        x:Uid="SettingsSchemeSearch"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="SettingsSchemeSearch"
+                        AutomationProperties.LabeledBy="{Binding ElementName=ThemePickerTitle}"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False" />
+                    <TextBlock
+                        x:Name="SettingsCurrentScheme"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="SettingsCurrentScheme"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <ListView
+                        x:Name="SettingsSchemeOptions"
+                        x:Uid="SettingsSchemeOptions"
+                        Grid.Row="3"
+                        AutomationProperties.AutomationId="SettingsSchemeOptions"
+                        MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}"
+                        IsItemClickEnabled="True"
+                        ItemContainerStyle="{StaticResource CommandPaletteRowContainerStyle}"
+                        ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}"
+                        SelectionMode="Single"
+                        TabFocusNavigation="Once"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate><ItemsStackPanel /></ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.Resources>
+                            <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="SelectionMarkBrush" />
+                        </ListView.Resources>
+                    </ListView>
+                    <Grid Grid.Row="4" ColumnSpacing="{StaticResource SpacingOperationBarGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="{StaticResource SpacingRowGap}">
+                            <TextBlock
+                                x:Name="SettingsSchemeResults"
+                                AutomationProperties.AutomationId="SettingsSchemeResults"
+                                AutomationProperties.LiveSetting="Polite"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock x:Name="ThemePickerInstructions" Foreground="{StaticResource TextKeyHintBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button
+                            x:Name="ThemePickerCancel"
+                            x:Uid="ThemePickerCancel"
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="ThemePickerCancel"
+                            VerticalAlignment="Bottom" />
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
 

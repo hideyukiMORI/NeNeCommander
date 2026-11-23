@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
@@ -10,7 +11,7 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 [TestClass]
 public sealed class SettingsPresenterTests
 {
-    /// <summary>Proves all eight schemes and the next-launch visibility project in canonical order.</summary>
+    /// <summary>Proves all 129 schemes and the next-launch visibility project in canonical order.</summary>
     [TestMethod]
     public void PresentWhenEditorIsOpenProjectsEveryChoice()
     {
@@ -26,23 +27,23 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(presentation.IsOpen);
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
         Assert.IsTrue(presentation.ShowKeyHints);
-        Assert.HasCount(8, presentation.Schemes);
-        string[] expectedResourceKeys =
+        Assert.HasCount(129, presentation.Schemes);
+        string[] expectedPrefix =
         [
-            "ColorSchemeNameNeNeDark",
-            "ColorSchemeNameUbuntu",
-            "ColorSchemeNameMonokai",
-            "ColorSchemeNameSolarizedDark",
-            "ColorSchemeNameSolarizedLight",
-            "ColorSchemeNameDracula",
-            "ColorSchemeNameNeNeBlack",
-            "ColorSchemeNameNeNeLight",
+            "ColorSchemeNameNeNeDark", "ColorSchemeNameUbuntu", "ColorSchemeNameNeNeBlack", "ColorSchemeNameNeNeLight",
+            "ColorSchemeNameCatalogUbuntuAubergine", "ColorSchemeNameCatalogNeutralLight", "ColorSchemeNameSolarizedDark",
+            "ColorSchemeNameSolarizedLight", "ColorSchemeNameMonokai", "ColorSchemeNameDracula",
         ];
+        HashSet<string> nameKeys = [];
         for (int index = 0; index < ColorScheme.All.Count; index++)
         {
             Assert.AreSame(ColorScheme.All[index], presentation.Schemes[index].Scheme);
-            Assert.AreEqual(expectedResourceKeys[index], presentation.Schemes[index].NameResourceKey);
-            Assert.AreEqual(index == 5, presentation.Schemes[index].IsSelected);
+            Assert.IsTrue(nameKeys.Add(presentation.Schemes[index].NameResourceKey));
+            Assert.AreEqual(ColorScheme.All[index] == ColorScheme.Dracula, presentation.Schemes[index].IsSelected);
+            if (index < expectedPrefix.Length)
+            {
+                Assert.AreEqual(expectedPrefix[index], presentation.Schemes[index].NameResourceKey);
+            }
         }
         Assert.AreSame(SettingsSaveStatus.Succeeded, presentation.SaveStatus);
         Assert.AreEqual("SettingsSaveStatusSucceeded", presentation.SaveStatus.ResourceKey);
@@ -190,8 +191,8 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
         Assert.HasCount(1, presentation.Schemes);
         Assert.AreSame(option, presentation.Schemes[0]);
-        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
-            ((System.Collections.Generic.IList<SettingsColorSchemeOption>)presentation.Schemes).Clear());
+        Assert.IsFalse(presentation.Schemes is System.Collections.ICollection);
+        Assert.IsFalse(presentation.Schemes is IList<SettingsColorSchemeOption>);
     }
 
     /// <summary>Proves hidden footer hints remain a display choice while a save warning stays visible.</summary>
@@ -238,8 +239,8 @@ public sealed class SettingsPresenterTests
             Assert.IsFalse(string.IsNullOrEmpty(option.NameResourceKey));
         }
         Assert.AreSame(SettingsSaveStatus.Pending, presentation.SaveStatus);
-        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
-            ((System.Collections.Generic.IList<SettingsLanguageOption>)presentation.Languages).Clear());
+        Assert.IsFalse(presentation.Languages is System.Collections.ICollection);
+        Assert.IsFalse(presentation.Languages is IList<SettingsLanguageOption>);
     }
 
     /// <summary>Proves language option names reference the shipped catalog keys.</summary>

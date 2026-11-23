@@ -1,0 +1,60 @@
+using System;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using NeNeCommander.Application.Settings;
+
+namespace NeNeCommander.Presentation.WinUI.Settings;
+
+/// <summary>Projects application-owned settings state into one deterministic modal presentation.</summary>
+public static class SettingsPresenter
+{
+    private static readonly FrozenDictionary<string, string> NameResourceKeys =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+{{NAME_KEYS}}
+        }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>Projects one complete settings snapshot without changing it.</summary>
+    public static SettingsPresentation Present(SettingsSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        List<SettingsColorSchemeOption> schemes = [];
+        foreach (ColorScheme scheme in ColorScheme.All)
+        {
+            schemes.Add(new SettingsColorSchemeOption(
+                scheme,
+                NameResourceKey(scheme),
+                snapshot.Settings.Display.ColorScheme));
+        }
+        return new SettingsPresentation(
+            snapshot,
+            schemes,
+            PresentSaveStatus(snapshot.Persistence),
+            PresentWarning(snapshot.Persistence));
+    }
+
+    internal static SettingsSaveStatus PresentSaveStatus(SettingsPersistenceState persistence)
+    {
+        return persistence is SettingsPersistencePending
+            ? SettingsSaveStatus.Pending
+            : persistence is SettingsPersistenceSucceeded
+                ? SettingsSaveStatus.Succeeded
+                : SettingsSaveStatus.Failed;
+    }
+
+    internal static SettingsWarningPresentation PresentWarning(SettingsPersistenceState persistence)
+    {
+        return persistence is SettingsPersistenceStartupRejected
+            ? SettingsWarningPresentation.StartupRejected
+            : persistence is SettingsPersistenceFailed or SettingsPersistenceCancelled
+                ? SettingsWarningPresentation.SaveFailed
+                : SettingsWarningPresentation.Hidden;
+    }
+
+    private static string NameResourceKey(ColorScheme scheme)
+    {
+        return NameResourceKeys.TryGetValue(scheme.Identifier, out string? key)
+            ? key
+            : throw new InvalidOperationException("The settings editor received an unknown color scheme.");
+    }
+}

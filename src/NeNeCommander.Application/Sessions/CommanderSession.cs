@@ -95,7 +95,7 @@ public sealed class CommanderSession
                 .ConfigureAwait(false);
         }
         SettingsEditorState editor = _settings.Current.Editor;
-        if (editor == SettingsEditorState.Open)
+        if (editor == SettingsEditorState.Open || editor is ColorSchemePickerOpen)
         {
             _ = _settings.HandleEditorIntentAsync(intent, observer, CancellationToken.None);
             return Current;
@@ -169,6 +169,7 @@ public sealed class CommanderSession
         Action? open = intent switch
         {
             _ when intent == UserIntent.OpenSettings => OpenSettingsEditor,
+            _ when intent == UserIntent.OpenColorSchemes => OpenColorSchemePicker,
             _ when intent == UserIntent.OpenBookmarks => OpenBookmarkManager,
             _ when intent == UserIntent.OpenCommandPalette => OpenCommandPalette,
             _ when intent == UserIntent.OpenWindowAdjustment => OpenWindowAdjustment,
@@ -184,6 +185,14 @@ public sealed class CommanderSession
         if (!PaneInteractionIsFrozen())
         {
             _ = _settings.Open();
+        }
+    }
+
+    private void OpenColorSchemePicker()
+    {
+        if (!PaneInteractionIsFrozen())
+        {
+            _settings.OpenColorSchemes();
         }
     }
 

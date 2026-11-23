@@ -160,6 +160,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.ToggleHiddenItems,
                 UserIntent.ActivateOtherPane,
                 UserIntent.OpenSettings,
+            UserIntent.OpenColorSchemes,
                 UserIntent.SortByName,
                 UserIntent.SortByExtension,
                 UserIntent.OpenLocations,

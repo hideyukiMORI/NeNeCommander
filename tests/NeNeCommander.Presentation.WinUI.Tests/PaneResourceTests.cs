@@ -34,7 +34,7 @@ public sealed class PaneResourceTests
         Assert.AreEqual("FocusSurfaceBrush", PaneRowMark.FocusInActivePane.SurfaceBrushResourceKey);
         Assert.AreEqual("SelectionMarkBrush", PaneRowMark.Selected.MarkerBrushResourceKey);
         Assert.AreEqual("SelectionSurfaceBrush", PaneRowMark.Selected.SurfaceBrushResourceKey);
-        Assert.AreEqual("BorderSubtleBrush", PaneRowMark.FocusInPassivePane.MarkerBrushResourceKey);
+        Assert.AreEqual("TextSecondaryBrush", PaneRowMark.FocusInPassivePane.MarkerBrushResourceKey);
         Assert.AreEqual("SurfacePaneBrush", PaneRowMark.FocusInPassivePane.SurfaceBrushResourceKey);
         Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.MarkerBrushResourceKey);
         Assert.AreEqual("SurfacePaneBrush", PaneRowMark.Unmarked.SurfaceBrushResourceKey);

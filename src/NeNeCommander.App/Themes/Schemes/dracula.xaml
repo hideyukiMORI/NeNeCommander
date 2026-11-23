@@ -2,24 +2,24 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Color x:Key="SurfaceWindowColor">#FF21222C</Color>
+    <Color x:Key="SurfaceWindowColor">#FF343641</Color>
     <Color x:Key="SurfacePaneColor">#FF282A36</Color>
-    <Color x:Key="SurfaceFieldColor">#FF21222C</Color>
+    <Color x:Key="SurfaceFieldColor">#FF3D3F49</Color>
     <Color x:Key="TextPrimaryColor">#FFF8F8F2</Color>
-    <Color x:Key="TextSecondaryColor">#FF8490C0</Color>
-    <Color x:Key="TextHiddenColor">#FF6272A4</Color>
-    <Color x:Key="TextKeyHintColor">#FFF8F8F2</Color>
-    <Color x:Key="BorderSubtleColor">#FF44475A</Color>
-    <Color x:Key="FocusRingColor">#FFBD93F9</Color>
-    <Color x:Key="FocusSurfaceColor">#FF3B3554</Color>
-    <Color x:Key="SelectionSurfaceColor">#FF2C3F36</Color>
-    <Color x:Key="SelectionMarkColor">#FF50FA7B</Color>
-    <Color x:Key="StatusWarningColor">#FFFFB86C</Color>
-    <Color x:Key="StatusWarningSurfaceColor">#FF3D3128</Color>
-    <Color x:Key="StatusDangerColor">#FFFF5555</Color>
-    <Color x:Key="StatusDangerSurfaceColor">#FF402A2E</Color>
-    <Color x:Key="OperationProgressColor">#FFBD93F9</Color>
-    <Color x:Key="OperationTrackColor">#FF44475A</Color>
+    <Color x:Key="TextSecondaryColor">#FFC9CFE0</Color>
+    <Color x:Key="TextHiddenColor">#FFC9CFE0</Color>
+    <Color x:Key="TextKeyHintColor">#FFFFB8E1</Color>
+    <Color x:Key="BorderSubtleColor">#FF56575F</Color>
+    <Color x:Key="FocusRingColor">#FFF8F8F2</Color>
+    <Color x:Key="FocusSurfaceColor">#FF44475A</Color>
+    <Color x:Key="SelectionSurfaceColor">#FF4D4F58</Color>
+    <Color x:Key="SelectionMarkColor">#FFF1FA8C</Color>
+    <Color x:Key="StatusWarningColor">#FFFFC17E</Color>
+    <Color x:Key="StatusWarningSurfaceColor">#FF483F3E</Color>
+    <Color x:Key="StatusDangerColor">#FFFFBFBF</Color>
+    <Color x:Key="StatusDangerSurfaceColor">#FF48303B</Color>
+    <Color x:Key="OperationProgressColor">#FF50FA7B</Color>
+    <Color x:Key="OperationTrackColor">#FF474952</Color>
 
     <SolidColorBrush x:Key="SurfaceWindowBrush" Color="{StaticResource SurfaceWindowColor}" />
     <SolidColorBrush x:Key="SurfacePaneBrush" Color="{StaticResource SurfacePaneColor}" />

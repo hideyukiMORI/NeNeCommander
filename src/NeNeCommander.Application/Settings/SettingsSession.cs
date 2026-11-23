@@ -69,6 +69,17 @@ public sealed class SettingsSession
         }
     }
 
+    internal void OpenColorSchemes()
+    {
+        lock (_sync)
+        {
+            if (_editor == SettingsEditorState.Open || _editor == SettingsEditorState.Closed)
+            {
+                _editor = new ColorSchemePickerOpen(_editor);
+            }
+        }
+    }
+
     /// <summary>Opens the bookmark catalog editor without changing metadata.</summary>
     public SettingsSnapshot OpenBookmarks()
     {
@@ -99,6 +110,15 @@ public sealed class SettingsSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
+        if (Current.Editor is ColorSchemePickerOpen)
+        {
+            return HandleColorSchemePickerAsync(intent, observer, cancellationToken);
+        }
+        if (intent == UserIntent.OpenColorSchemes)
+        {
+            OpenColorSchemes();
+            return Task.CompletedTask;
+        }
         if (intent == UserIntent.Escape)
         {
             _ = Close();
@@ -116,6 +136,28 @@ public sealed class SettingsSession
                 SelectKeyHintVisibilityAsync(selection.Visibility, observer, cancellationToken),
             _ => Task.CompletedTask,
         };
+    }
+
+    private Task HandleColorSchemePickerAsync(
+        UserIntent intent,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        lock (_sync)
+        {
+            if (intent is ColorSchemePickerCancellation cancel && ReferenceEquals(_editor, cancel.ExpectedState))
+            {
+                _editor = cancel.ExpectedState.ReturnTo;
+            }
+            if (intent is ColorSchemePickerSubmission submit && ReferenceEquals(_editor, submit.ExpectedState))
+            {
+                _editor = submit.ExpectedState.ReturnTo;
+                return submit.Scheme == _settings.Display.ColorScheme
+                    ? Task.CompletedTask
+                    : SelectColorSchemeAsync(submit.Scheme, observer, cancellationToken);
+            }
+            return Task.CompletedTask;
+        }
     }
 
     internal Task SavePaneSortOrderAsync(

@@ -37,9 +37,9 @@ public sealed class CommandPalettePresenterTests
             Assert.AreSame(open.Candidates[index], row.Candidate);
             Assert.AreSame(intent, row.Intent);
             Assert.AreEqual($"<{resourceKey}>", row.Title);
-            Assert.AreEqual($"<{shortcutKey}>", row.Shortcut);
-            Assert.AreEqual("<CommandPaletteTargetLeft>", row.Target);
-            Assert.AreEqual("<CommandPaletteOppositeRight>", row.Opposite);
+            Assert.AreEqual(shortcutKey.Length == 0 ? string.Empty : $"<{shortcutKey}>", row.Shortcut);
+            Assert.AreEqual(intent == UserIntent.OpenColorSchemes ? string.Empty : "<CommandPaletteTargetLeft>", row.Target);
+            Assert.AreEqual(intent == UserIntent.OpenColorSchemes ? string.Empty : "<CommandPaletteOppositeRight>", row.Opposite);
             Assert.AreEqual("CommandPaletteCandidate_" + resourceKey, row.AutomationId);
         }
 
@@ -177,6 +177,7 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems", "KeyLabelCtrlH"),
             (UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane", "KeyLabelTab"),
             (UserIntent.OpenSettings, "IntentLabelOpenSettings", "KeyLabelCtrlComma"),
+            (UserIntent.OpenColorSchemes, "IntentLabelOpenColorSchemes", string.Empty),
             (UserIntent.SortByName, "IntentLabelSortByName", "KeyLabelCtrlF3"),
             (UserIntent.SortByExtension, "IntentLabelSortByExtension", "KeyLabelCtrlF4"),
             (UserIntent.OpenLocations, "IntentLabelOpenLocations", "KeyLabelCtrlG"),

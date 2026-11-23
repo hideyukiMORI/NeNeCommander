@@ -151,6 +151,7 @@ try {
         inputsUnchanged = $true
         inputs = $before
         packages = $licenses
+        paletteNotices = (Get-Content -LiteralPath (Join-Path $payload 'licenses/index.json') -Raw | ConvertFrom-Json -AsHashtable).paletteNotices
         files = $files
         archive = [ordered]@{ path = "$name.zip"; bytes = (Get-Item -LiteralPath $archive).Length; sha256 = $archiveHash }
         launchCheck = 'not-run'

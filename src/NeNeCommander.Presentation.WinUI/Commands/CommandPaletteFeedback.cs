@@ -34,6 +34,11 @@ internal sealed record CommandPaletteFeedback
         ArgumentNullException.ThrowIfNull(caption);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(localize);
+        if (caption.GlobalDetail is string globalDetail)
+        {
+            return new CommandPaletteFeedback(string.Empty, string.Empty, globalDetail,
+                caption.Title + "; " + globalDetail);
+        }
         string reason = availability is CommandUnavailable unavailable
             ? localize(ReasonResourceKey(unavailable.Reason))
             : string.Empty;

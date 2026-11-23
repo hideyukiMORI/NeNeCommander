@@ -146,7 +146,7 @@ context is `Settings` (ADR-0077), declared in the canonical table of `KeyboardIn
 | `Escape` | close the editor |
 
 The items are, in order, the hidden-at-launch check box, the footer-key-hint check box, the four
-language options (System, Japanese, English, Simplified Chinese), each color scheme, and the close button. The footer preference (ADR-0082) changes immediately and saves through
+language options (System, Japanese, English, Simplified Chinese), the theme search field, visible theme choices, and the close button. The footer preference (ADR-0082) changes immediately and saves through
 the same settings queue. Turning it off retains F1 and confirmation/name-entry Enter/Escape hints;
 all commands, warnings, results, progress and other surfaces keep their existing behavior.
 Movement only moves focus: passing over any radio option neither applies nor saves it. `Space` or
@@ -285,6 +285,21 @@ Movement changes the focus item and preserves explicit selection. File commands 
 - Enforcement: key-map uniqueness test.
 
 No context may map one keystroke to multiple intents, and no view may add a private binding. All displayed shortcut hints are generated from the canonical key-map data: `KeyboardIntentMapper` declares every binding in one table, maps from that table, and publishes it per context through `KeyboardIntentMapper.BindingsFor`, from which `KeyHintPresenter` projects the ordered key hints a surface shows. The command palette, the window adjustment mode and the bookmark manager own dedicated tables of Presentation actions inside the same key map; the bookmark table lives in the internal `BookmarkManagerKeyMap`, which only the mapper consults and which is published only through `KeyboardIntentMapper.BookmarkManagerBindings` (ADR-0080). Hint wording, both the key cap and the intent, comes from localization resources.
+
+The theme picker reuses the existing `CommandPalette` context and its sole action
+table (ADR-0087, November23 revision). Settings' current-theme button and the
+palette's searchable `:colorscheme` entry open the same settings-owned scope.
+Up/Down move the candidate and preview only; Enter or a candidate click accepts
+through the settings writer and closes. Escape/scrim cancel and restore the latest
+accepted palette. Enter/Escape repeats are retained by the shared repeat guard
+across owner changes, so a held key cannot accept again or close the parent.
+Native Tab/Shift+Tab cycle inside the picker, including its Cancel button. On that
+button Enter cancels. Text, editing shortcuts and IME remain native; composing
+Enter/Escape do not reach the picker. The sole virtualized candidate list scrolls,
+while search, accepted-name text and controls stay fixed. Candidate selection is
+preview, with accepted state named separately. Zero results restore accepted
+colors without saving. Progress renders retain query, rows, candidate and scroll.
+Theme hints derive their actual keys from `CommandPaletteBindings`.
 
 ## Accessibility
 
