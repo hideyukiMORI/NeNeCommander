@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Windowing;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -176,7 +177,7 @@ public sealed class SettingsSession
                 ? PaneSortPreferences.Create(order, previous.Right)
                 : PaneSortPreferences.Create(previous.Left, order);
             return QueueWrite(
-                UserSettings.Create(_settings.Display, _settings.Bookmarks, preferences),
+                UserSettings.Create(_settings.Display, _settings.Bookmarks, preferences, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -198,7 +199,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -220,7 +221,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -244,7 +245,7 @@ public sealed class SettingsSession
             DisplayPreferences display = DisplayPreferences.Create(
                 _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility, _settings.Display.InterfaceLanguage);
             return QueueWrite(
-                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -269,7 +270,7 @@ public sealed class SettingsSession
                 _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility,
                 _settings.Display.KeyHintVisibility, language);
             return QueueWrite(
-                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -293,7 +294,7 @@ public sealed class SettingsSession
             return QueueWrite(
                 UserSettings.Create(
                     _settings.Display,
-                    catalog, _settings.PaneSortOrders),
+                    catalog, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -329,7 +330,7 @@ public sealed class SettingsSession
                 ? QueueWrite(
                     UserSettings.Create(
                         _settings.Display,
-                        changed.Catalog, _settings.PaneSortOrders),
+                        changed.Catalog, _settings.PaneSortOrders, _settings.WindowPlacement),
                     observer,
                     cancellationToken)
                 : Task.CompletedTask;
@@ -364,6 +365,24 @@ public sealed class SettingsSession
         lock (_sync)
         {
             _bookmarkEditor.FinishNavigationFailed(reason);
+        }
+    }
+
+    internal Task SaveWindowPlacementAsync(
+        SavedWindowPlacement? placement,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            return placement is null || placement == _settings.WindowPlacement ||
+                _persistence is SettingsPersistenceStartupRejected
+                ? Task.CompletedTask
+                : QueueWrite(
+                    UserSettings.Create(_settings.Display, _settings.Bookmarks, _settings.PaneSortOrders, placement),
+                    observer,
+                    cancellationToken);
         }
     }
 

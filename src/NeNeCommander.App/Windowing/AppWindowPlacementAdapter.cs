@@ -19,6 +19,7 @@ internal sealed class AppWindowPlacementAdapter
 {
     private readonly AppWindow _window;
     private readonly UIElement _content;
+    private readonly WindowPlacementTracker _tracker = new();
 
     /// <summary>Initializes the adapter over one window and the content that carries its scale.</summary>
     /// <param name="window">The application window whose placement is read and written.</param>
@@ -29,6 +30,59 @@ internal sealed class AppWindowPlacementAdapter
         ArgumentNullException.ThrowIfNull(content);
         _window = window;
         _content = content;
+    }
+
+    /// <summary>Corrects the startup rectangle through the existing apply route before activation.</summary>
+    internal void Initialize(SavedWindowPlacement? saved)
+    {
+        PointInt32 position = _window.Position;
+        SizeInt32 size = _window.Size;
+        WindowBounds initial = WindowBounds.Create(position.X, position.Y, size.Width, size.Height);
+        WindowBounds current = BoundsOf(DisplayArea.GetFromWindowId(_window.Id, DisplayAreaFallback.Nearest).WorkArea);
+        WindowWorkAreas workAreas = WindowWorkAreas.Create(current, ReadAttachedWorkAreas().ConvertAll(BoundsOf));
+        SavedWindowPlacement plan = WindowRestorePlanner.Plan(saved, initial, workAreas);
+        // Moving first settles the target display scale before applying the decided physical size.
+        _window.Move(new PointInt32(plan.Bounds.Left, plan.Bounds.Top));
+        Apply(WindowRestorePlanner.PlanNormalBounds(plan));
+        Capture();
+        _window.Changed += OnChanged;
+        if (plan.State == WindowPresenterState.Maximized)
+        {
+            Apply(WindowAdjustmentPlan.Maximize);
+            Capture();
+        }
+    }
+
+    /// <summary>Captures the last geometry and detaches before shutdown starts awaiting work.</summary>
+    internal SavedWindowPlacement? FinishTracking()
+    {
+        _window.Changed -= OnChanged;
+        Capture();
+        return _tracker.Current;
+    }
+
+    private void OnChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        _ = sender;
+        _ = args;
+        Capture();
+    }
+
+    private void Capture()
+    {
+        try
+        {
+            PointInt32 position = _window.Position;
+            SizeInt32 size = _window.Size;
+            if (size.Width > 0 && size.Height > 0)
+            {
+                _tracker.Observe(WindowBounds.Create(position.X, position.Y, size.Width, size.Height), ReadPresenterState());
+            }
+        }
+        catch (COMException)
+        {
+            _tracker.Observe(WindowPlacement.Unavailable.Bounds, WindowPresenterState.Unavailable);
+        }
     }
 
     /// <summary>Reads a fresh placement; a failed or incomplete read yields the unavailable placement.</summary>

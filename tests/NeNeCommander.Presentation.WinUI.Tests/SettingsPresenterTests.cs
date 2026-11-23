@@ -18,7 +18,7 @@ public sealed class SettingsPresenterTests
         SettingsSnapshot snapshot = Snapshot(
             UserSettings.Create(
                 DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
-                BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
 
@@ -178,7 +178,7 @@ public sealed class SettingsPresenterTests
     public void SettingsPresentationWhenOptionSourceChangesKeepsOwnedSnapshot()
     {
         SettingsSnapshot source = Snapshot(
-            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
         SettingsColorSchemeOption option = new(ColorScheme.Dracula, "ColorSchemeNameDracula", ColorScheme.Dracula);
@@ -201,7 +201,7 @@ public sealed class SettingsPresenterTests
     {
         UserSettings settings = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.System),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         SettingsWriteRejected rejection = Assert.IsInstanceOfType<SettingsWriteRejected>(SettingsWriteOutcome.Rejected(
             SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None));
 
@@ -224,7 +224,7 @@ public sealed class SettingsPresenterTests
         InterfaceLanguage selected = InterfaceLanguage.All[selectedIndex];
         UserSettings settings = UserSettings.Create(
             DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, selected),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         SettingsPresentation presentation = SettingsPresenter.Present(Snapshot(
             settings, SettingsEditorState.Open, SettingsPersistenceState.Pending));

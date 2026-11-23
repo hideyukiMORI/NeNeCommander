@@ -39,9 +39,9 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(documentPath + TemporarySuffix));
     }
 
-    /// <summary>Proves the next write after a valid version-one read publishes complete version five.</summary>
+    /// <summary>Proves the next write after a valid version-one read publishes complete version six.</summary>
     [TestMethod]
-    public async Task WriteAsyncAfterVersionOneReadPublishesExplicitEmptyVersionFiveCatalogAsync()
+    public async Task WriteAsyncAfterVersionOneReadPublishesExplicitEmptyVersionSixCatalogAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         _ = root.WriteFile(DocumentName, VersionOne);
@@ -53,8 +53,8 @@ public sealed class BookmarkSettingsPersistenceTests
             await store.WriteAsync(settings, CancellationToken.None));
 
         Assert.AreEqual(
-            "{\"schemaVersion\":5,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
-            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true,\"uiLanguage\":\"system\"}",
+            "{\"schemaVersion\":6,\"showHiddenItems\":true,\"colorScheme\":\"ubuntu\"," +
+            "\"bookmarkCategories\":[],\"bookmarks\":[],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true,\"uiLanguage\":\"system\",\"windowPlacement\":null}",
             File.ReadAllText(root.Resolve(DocumentName)));
     }
 
@@ -89,7 +89,7 @@ public sealed class BookmarkSettingsPersistenceTests
 
     /// <summary>Proves an oversized complete value is rejected before any filesystem mutation.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenVersionFiveSerializationIsOversizedRejectsBeforeMutationAsync()
+    public async Task WriteAsyncWhenVersionSixSerializationIsOversizedRejectsBeforeMutationAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         bool mutationBoundaryReached = false;
@@ -102,7 +102,7 @@ public sealed class BookmarkSettingsPersistenceTests
                 OnBeforeDirectoryCreation = _ => mutationBoundaryReached = true,
                 OnBeforeTemporaryCreation = _ => mutationBoundaryReached = true,
             });
-        UserSettings settings = CreateLargeSettings(32750, 32400);
+        UserSettings settings = CreateLargeSettings(32750, 32377);
         Assert.AreEqual(SettingsDocumentValidator.MaximumDocumentLength + 1, SettingsDocumentSerializer.Serialize(settings).Length);
 
         SettingsWriteRejected rejected = Assert.IsInstanceOfType<SettingsWriteRejected>(
@@ -117,13 +117,13 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(root.Resolve(NestedDocument + TemporarySuffix)));
     }
 
-    /// <summary>Proves a complete schema-five document exactly at the byte boundary is accepted.</summary>
+    /// <summary>Proves a complete schema-six document exactly at the byte boundary is accepted.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenVersionFiveSerializationIsExactlyAtBoundarySucceedsAsync()
+    public async Task WriteAsyncWhenVersionSixSerializationIsExactlyAtBoundarySucceedsAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
-        UserSettings settings = CreateLargeSettings(32750, 32399);
+        UserSettings settings = CreateLargeSettings(32750, 32376);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(
             await store.WriteAsync(settings, CancellationToken.None));
@@ -134,9 +134,9 @@ public sealed class BookmarkSettingsPersistenceTests
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
     }
 
-    /// <summary>Proves the serializer writes schema five in deterministic preserved catalog order.</summary>
+    /// <summary>Proves the serializer writes schema six in deterministic preserved catalog order.</summary>
     [TestMethod]
-    public async Task WriteAsyncWhenBookmarksAreValidInstallsDeterministicSchemaFiveAsync()
+    public async Task WriteAsyncWhenBookmarksAreValidInstallsDeterministicSchemaSixAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalSettingsStore store = CreateStore(root);
@@ -158,12 +158,12 @@ public sealed class BookmarkSettingsPersistenceTests
             await store.WriteAsync(settings, CancellationToken.None));
 
         Assert.AreEqual(
-            "{\"schemaVersion\":5,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
+            "{\"schemaVersion\":6,\"showHiddenItems\":false,\"colorScheme\":\"nene-dark\"," +
             "\"bookmarkCategories\":[\"Personal\",\"Work\"],\"bookmarks\":[{" +
             "\"name\":\"Notes\",\"path\":\"C:\\\\\\u8CC7\\u6599\\\\\\uD83D\\uDE00\"," +
             "\"category\":\"Personal\",\"shortcutSlot\":null},{" +
             "\"name\":\"Repository\\uD83D\\uDE00\",\"path\":\"C:\\\\work\\\\NeNeCommander\"," +
-            "\"category\":\"Work\",\"shortcutSlot\":1}],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true,\"uiLanguage\":\"system\"}",
+            "\"category\":\"Work\",\"shortcutSlot\":1}],\"paneSortOrders\":{\"left\":{\"key\":\"name\",\"direction\":\"ascending\"},\"right\":{\"key\":\"name\",\"direction\":\"ascending\"}},\"showKeyHints\":true,\"uiLanguage\":\"system\",\"windowPlacement\":null}",
             File.ReadAllText(root.Resolve(DocumentName)));
         Assert.IsFalse(File.Exists(root.Resolve(DocumentName + TemporarySuffix)));
 
@@ -192,7 +192,7 @@ public sealed class BookmarkSettingsPersistenceTests
     {
         BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(
             BookmarkCatalog.Create(categories, bookmarks)).Catalog;
-        return UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default);
+        return UserSettings.Create(DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), catalog, PaneSortPreferences.Default, null);
     }
 
     private static BookmarkCategoryName ParseCategory(string text)

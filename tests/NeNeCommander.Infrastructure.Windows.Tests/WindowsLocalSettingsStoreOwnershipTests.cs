@@ -69,7 +69,7 @@ public sealed class WindowsLocalSettingsStoreOwnershipTests
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);
@@ -106,7 +106,7 @@ public sealed class WindowsLocalSettingsStoreOwnershipTests
         SettingsWriteOutcome first = await store.WriteAsync(UserSettings.Default, CancellationToken.None);
         SettingsWriteRejected second = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
                 CancellationToken.None));
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(first);
@@ -134,7 +134,7 @@ public sealed class WindowsLocalSettingsStoreOwnershipTests
 
         SettingsWriteRejected outcome = Assert.IsInstanceOfType<SettingsWriteRejected>(
             await store.WriteAsync(
-                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
                 CancellationToken.None));
 
         Assert.AreSame(SettingsWriteFailureKind.DestinationChanged, outcome.Failure);

@@ -176,7 +176,7 @@ public sealed class CommanderSessionBookmarkOwnershipTests
         using FileOperationGateway gateway = CommanderSessionTestValues.CreateGateway();
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent())).CreateSession(launcher, new ScriptedFileLauncher(), SettingsReadOutcome.Read(UserSettings.Create(
                 DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
-                CommanderSessionTestValues.Catalog(CommanderSessionTestValues.Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default)), out _);
+                CommanderSessionTestValues.Catalog(CommanderSessionTestValues.Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default, null)), out _);
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, CommanderSessionTestValues.ParsePath("C:\\left"), CancellationToken.None);
         TaskCompletionSource<Launching.FileLaunchOutcome> completion =

@@ -14,7 +14,7 @@ internal static class SettingsDocumentSerializer
         using (Utf8JsonWriter writer = new(output))
         {
             writer.WriteStartObject();
-            writer.WriteNumber("schemaVersion", 5);
+            writer.WriteNumber("schemaVersion", 6);
             writer.WriteBoolean(
                 "showHiddenItems",
                 settings.Display.HiddenItemVisibility == HiddenItemVisibility.Shown);
@@ -34,6 +34,7 @@ internal static class SettingsDocumentSerializer
             SettingsSortOrderCodec.Write(writer, settings.PaneSortOrders);
             writer.WriteBoolean("showKeyHints", settings.Display.KeyHintVisibility == KeyHintVisibility.Shown);
             writer.WriteString("uiLanguage", settings.Display.InterfaceLanguage.Identifier);
+            SettingsWindowPlacementCodec.Write(writer, settings.WindowPlacement);
             writer.WriteEndObject();
         }
         return output.ToArray();
