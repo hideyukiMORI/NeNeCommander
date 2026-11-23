@@ -1,3 +1,15 @@
+## 承認済みテーマ改訂の公開 — 2026-11-23 12:27 JST
+
+hideの「いいよ」を受け、提示済みの6182b0dまでの4commit/43変更ファイルと4,647-byte本文・
+タイトルだけを既存PR565へ反映した。GitHub連携の本文編集は403（integration権限不足）だったため、
+既存認証済みghで同一内容を更新。読戻しでOPEN/Draft、head6182b0d、base main/b82aa1e、
+PR全体252ファイル、本文/タイトル一致を確認した。自動承認レビューの新たな拒否ではない。
+
+根拠は `D:/NeNeCommander/evidence/theme-picker-20261123/` のpublication-approval.json、
+push-approved.log、metadata-connector-403.json、pr-edit-approved.log、pr-readback-approved.json。
+この公開記録はローカルに保存し、承認された6182b0dの送信範囲を増やしていない。
+main統合・release・CI・実機受理は未実施。未完worktree/fixtureは保持、後片付け待ちはない。
+
 ## 再開・テーマ選択改訂 — 2026-11-23 12:20 JST
 
 hideの10:26再開後、NibのCtrl+P → `:colorscheme`を参照し、10:31頃に

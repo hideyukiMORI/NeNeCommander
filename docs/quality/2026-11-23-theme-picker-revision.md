@@ -1,5 +1,13 @@
 # Theme picker revision proof — 2026-11-23
 
+Publication addendum12:27 JST: hide approved the prepared payload at12:25. Four commits/43
+changed files through6182b0d and the exact4,647-byte body/title are now in OPEN/Draft PR565,
+verified against mainbaseb82aa1e with252 total PR files. The connector's metadata-write403
+was handled by the existing authenticated CLI with the same approved content. `publication-approval.json`,
+`push-approved.log`, `pr-edit-approved.log` and `pr-readback-approved.json` retain evidence.
+The local-only statements below describe the pre-publication checkpoint. This receipt addendum
+is saved locally; it is not silently added to the precisely approved6182b0d payload.
+
 Issue: #527. Base for this revision: local `15f5244`; published Draft PR565 remains
 `35776de` until an explicitly authorized update. Main is `b82aa1e`.
 

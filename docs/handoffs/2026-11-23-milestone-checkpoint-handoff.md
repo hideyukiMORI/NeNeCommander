@@ -1,3 +1,16 @@
+## 公開完了の引き継ぎ — 2026-11-23 12:27 JST
+
+hideは12:25に準備済みpayloadを「いいよ」と承認した。4commit/43変更ファイルの6182b0dと
+4,647-byte本文/タイトルを既存Draft PR565へ送信済み。読戻しはOPEN/Draft/head6182b0d、
+mainbaseb82aa1e、全252変更ファイル、本文/タイトル一致。下の「送信承認待ち」は履歴である。
+連携APIの本文編集403は既存ghによる同一payload更新で解決。新しいauto-review拒否はない。
+
+正本は `D:/NeNeCommander/evidence/theme-picker-20261123/` のpublication-payload.json、
+publication-approval.json、pr-readback-approved.json、local-completion.json。今回の公開記録は
+ローカル保存のみで、次回はgit log/statusと公開6182b0dを照合する。記録commitを新しい実装や
+公開承認と取り違えない。native/画面受理、復帰/resize計測、即時言語設計は未完のまま。
+main/publicbeta.3・通常App/設定は維持。未完worktree/fixture/outputを保持し、cleanup待ちはない。
+
 ## テーマ選択改訂の引き継ぎ — 2026-11-23 12:20 JST
 
 hideは10:26に再開、10:31頃にNib型のEnter/click採用・閉じる操作を選択した。
