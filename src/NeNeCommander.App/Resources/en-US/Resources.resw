@@ -258,8 +258,8 @@
   <data name="CommandPaletteTargetRight" xml:space="preserve"><value>Target: right pane</value></data>
   <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>Opposite: left pane</value></data>
   <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>Opposite: right pane</value></data>
-  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · Unavailable: {2}</value></data>
-  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; Unavailable; {4}</value></data>
+  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · Unavailable: {1}</value></data>
+  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; Unavailable; {3}</value></data>
   <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
   <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>Focus an item first</value></data>
   <data name="CommandUnavailableSourceRequired" xml:space="preserve"><value>Select or focus an item first</value></data>
@@ -810,4 +810,14 @@
   <data name="ThemePickerHintCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="ThemePickerCancel.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>Preview and choose the window's color scheme</value></data>
+  <data name="CommandPaletteContextLeft" xml:space="preserve"><value>Current pane: left · Other pane: right</value></data>
+  <data name="CommandPaletteContextRight" xml:space="preserve"><value>Current pane: right · Other pane: left</value></data>
+  <data name="CommandPaletteTransferLeftToRight" xml:space="preserve"><value>From left pane to right pane</value></data>
+  <data name="CommandPaletteTransferRightToLeft" xml:space="preserve"><value>From right pane to left pane</value></data>
+  <data name="CommandPaletteActivateLeft" xml:space="preserve"><value>Switch to left pane</value></data>
+  <data name="CommandPaletteActivateRight" xml:space="preserve"><value>Switch to right pane</value></data>
+  <data name="CommandPaletteSettingsDetail" xml:space="preserve"><value>Application settings</value></data>
+  <data name="CommandPaletteWindowDetail" xml:space="preserve"><value>Move or resize this window</value></data>
+  <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>Application keyboard help</value></data>
+  <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>Manage shared bookmarks and choose a location</value></data>
 </root>

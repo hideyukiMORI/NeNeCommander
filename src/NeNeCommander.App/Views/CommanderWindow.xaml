@@ -409,21 +409,15 @@
                         Foreground="{StaticResource StatusWarningBrush}"
                         Text="{x:Bind StateMarker}"
                         VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock
-                            x:Name="CommandPaletteTitle"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{StaticResource TextPrimaryBrush}"
-                            Text="{x:Bind Title}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
-                        <TextBlock
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{x:Bind Target}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
-                    </StackPanel>
+                    <TextBlock
+                        x:Name="CommandPaletteTitle"
+                        Grid.Column="1"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{x:Bind Title}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
                     <TextBlock
                         Grid.Column="2"
                         Foreground="{StaticResource StatusWarningBrush}"
@@ -1580,7 +1574,8 @@
                     <TextBlock
                         x:Name="CommandPaletteContext"
                         AutomationProperties.AutomationId="CommandPaletteContext"
-                        Foreground="{StaticResource TextSecondaryBrush}"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
                         TextWrapping="Wrap" />
                     <TextBox
                         x:Name="CommandPaletteSearch"
@@ -1617,6 +1612,7 @@
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
                     <Border
+                        x:Name="CommandPaletteDetailBar"
                         Grid.Row="4"
                         AutomationProperties.AutomationId="CommandPaletteDetailBar"
                         Background="{StaticResource SurfaceFieldBrush}"

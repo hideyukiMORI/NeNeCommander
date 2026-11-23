@@ -28,6 +28,7 @@ internal sealed class CommandPaletteView
     private readonly TextBlock _commandPaletteContext;
     private readonly TextBlock _commandPaletteZeroResults;
     private readonly TextBlock _commandPaletteDetail;
+    private readonly Border _commandPaletteDetailBar;
     private readonly ItemsControl _commandPaletteKeyHints;
 
     internal CommandPaletteView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action<PaneSide> focusFileList)
@@ -48,6 +49,7 @@ internal sealed class CommandPaletteView
         _commandPaletteContext = Find<TextBlock>("CommandPaletteContext");
         _commandPaletteZeroResults = Find<TextBlock>("CommandPaletteZeroResults");
         _commandPaletteDetail = Find<TextBlock>("CommandPaletteDetail");
+        _commandPaletteDetailBar = Find<Border>("CommandPaletteDetailBar");
         _commandPaletteKeyHints = Find<ItemsControl>("CommandPaletteKeyHints");
         _commandPaletteKeyHints.ItemsSource = CommandPaletteKeyHintPresenter.Present();
         _root.Tapped += OnCommandPaletteScrimTapped;
@@ -138,6 +140,9 @@ internal sealed class CommandPaletteView
             ? Visibility.Visible
             : Visibility.Collapsed;
         _commandPaletteDetail.Text = view.SelectedRow?.Detail ?? string.Empty;
+        _commandPaletteDetailBar.Visibility = _commandPaletteDetail.Text.Length == 0
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         if (view.SelectedRow is CommandPaletteRow selected)
         {
             _commandPaletteCandidateList.ScrollIntoView(selected);

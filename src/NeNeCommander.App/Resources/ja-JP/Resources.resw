@@ -258,8 +258,8 @@
   <data name="CommandPaletteTargetRight" xml:space="preserve"><value>対象: 右ペイン</value></data>
   <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>反対側: 左ペイン</value></data>
   <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>反対側: 右ペイン</value></data>
-  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · {1} · 利用不可: {2}</value></data>
-  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; {3}; 利用不可; {4}</value></data>
+  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · 実行不可: {1}</value></data>
+  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; 実行不可; {3}</value></data>
   <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
   <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>先に項目へフォーカスしてください</value></data>
   <data name="CommandUnavailableSourceRequired" xml:space="preserve"><value>先に項目を選択またはフォーカスしてください</value></data>
@@ -810,4 +810,14 @@
   <data name="ThemePickerHintCancel" xml:space="preserve"><value>取消</value></data>
   <data name="ThemePickerCancel.Content" xml:space="preserve"><value>取消</value></data>
   <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>画面の配色を仮表示して選択</value></data>
+  <data name="CommandPaletteContextLeft" xml:space="preserve"><value>操作中: 左ペイン · 反対側: 右ペイン</value></data>
+  <data name="CommandPaletteContextRight" xml:space="preserve"><value>操作中: 右ペイン · 反対側: 左ペイン</value></data>
+  <data name="CommandPaletteTransferLeftToRight" xml:space="preserve"><value>左ペインから右ペインへ</value></data>
+  <data name="CommandPaletteTransferRightToLeft" xml:space="preserve"><value>右ペインから左ペインへ</value></data>
+  <data name="CommandPaletteActivateLeft" xml:space="preserve"><value>左ペインへ切り替え</value></data>
+  <data name="CommandPaletteActivateRight" xml:space="preserve"><value>右ペインへ切り替え</value></data>
+  <data name="CommandPaletteSettingsDetail" xml:space="preserve"><value>アプリ全体の設定</value></data>
+  <data name="CommandPaletteWindowDetail" xml:space="preserve"><value>このウィンドウの位置・サイズを調整</value></data>
+  <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>アプリ全体のキー操作一覧</value></data>
+  <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>共通のブックマークを管理・移動先を選択</value></data>
 </root>

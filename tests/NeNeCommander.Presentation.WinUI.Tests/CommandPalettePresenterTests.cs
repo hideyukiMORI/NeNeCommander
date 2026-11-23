@@ -27,8 +27,6 @@ public sealed class CommandPalettePresenterTests
             ExpectedCatalogRows();
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
-        Assert.AreEqual("<CommandPaletteTargetLeft>", view.Target);
-        Assert.AreEqual("<CommandPaletteOppositeRight>", view.Opposite);
         Assert.HasCount(expected.Count, view.Rows);
         for (int index = 0; index < expected.Count; index++)
         {
@@ -38,8 +36,6 @@ public sealed class CommandPalettePresenterTests
             Assert.AreSame(intent, row.Intent);
             Assert.AreEqual($"<{resourceKey}>", row.Title);
             Assert.AreEqual(shortcutKey.Length == 0 ? string.Empty : $"<{shortcutKey}>", row.Shortcut);
-            Assert.AreEqual(intent == UserIntent.OpenColorSchemes ? string.Empty : "<CommandPaletteTargetLeft>", row.Target);
-            Assert.AreEqual(intent == UserIntent.OpenColorSchemes ? string.Empty : "<CommandPaletteOppositeRight>", row.Opposite);
             Assert.AreEqual("CommandPaletteCandidate_" + resourceKey, row.AutomationId);
         }
 
@@ -48,14 +44,13 @@ public sealed class CommandPalettePresenterTests
         Assert.AreEqual(string.Empty, available.Reason);
         Assert.AreEqual(string.Empty, available.StateMarker);
         Assert.AreEqual(
-            "<CommandPaletteTargetLeft> · <CommandPaletteOppositeRight>",
+            string.Empty,
             available.Detail);
         Assert.AreEqual(
-            "<IntentLabelOpenFocused>; <KeyLabelL>; <CommandPaletteTargetLeft>; " +
-            "<CommandPaletteOppositeRight>",
+            "<IntentLabelOpenFocused>; <KeyLabelL>; <CommandPaletteTargetLeft>",
             available.AutomationName);
         Assert.AreEqual(
-            "<CommandPaletteTargetLeft> · <CommandPaletteOppositeRight>",
+            "<CommandPaletteContextLeft>",
             view.Context);
     }
 
@@ -79,8 +74,6 @@ public sealed class CommandPalettePresenterTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, CommandPaletteTestContext.ProjectResource);
 
-        Assert.AreEqual("<CommandPaletteTargetRight>", view.Target);
-        Assert.AreEqual("<CommandPaletteOppositeLeft>", view.Opposite);
         Assert.HasCount(expected.Count, view.Rows);
         for (int index = 0; index < expected.Count; index++)
         {
@@ -91,13 +84,11 @@ public sealed class CommandPalettePresenterTests
             Assert.IsFalse(row.IsAvailable);
             Assert.AreEqual($"<{resourceKey}>", row.Reason);
             Assert.AreEqual("<CommandPaletteUnavailableMarker>", row.StateMarker);
-            Assert.AreEqual(
-                $"<CommandPaletteTargetRight>|<CommandPaletteOppositeLeft>|<{resourceKey}>",
-                row.Detail);
-            Assert.AreEqual(
-                $"{row.Title};{row.Shortcut};<CommandPaletteTargetRight>;" +
-                $"<CommandPaletteOppositeLeft>;<{resourceKey}>",
-                row.AutomationName);
+            string scope = intent == UserIntent.Copy || intent == UserIntent.Move
+                ? "<CommandPaletteTransferRightToLeft>" : "<CommandPaletteTargetRight>";
+            Assert.AreEqual(intent == UserIntent.Copy || intent == UserIntent.Move
+                ? $"{scope}|<{resourceKey}>" : $"<{resourceKey}>", row.Detail);
+            Assert.AreEqual($"{row.Title};{row.Shortcut};{scope};<{resourceKey}>", row.AutomationName);
         }
     }
 
@@ -152,9 +143,9 @@ public sealed class CommandPalettePresenterTests
         _ = Assert.ThrowsExactly<ArgumentException>(() =>
             new CommandPaletteKeyHint("KeyLabelEnter", " "));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            new CommandPaletteViewState(null!, rows));
+            new CommandPaletteViewState(null!, rows, string.Empty));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() =>
-            new CommandPaletteViewState(open, null!));
+            new CommandPaletteViewState(open, null!, string.Empty));
     }
 
     private static IReadOnlyList<(UserIntent Intent, string ResourceKey, string ShortcutKey)>

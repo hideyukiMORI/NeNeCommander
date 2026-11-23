@@ -8,8 +8,8 @@ namespace NeNeCommander.Presentation.WinUI.Commands;
 /// <summary>Formats availability explanation and accessible text for one captured candidate.</summary>
 internal sealed record CommandPaletteFeedback
 {
-    private static readonly CompositeFormat AvailableDetailFormat = CompositeFormat.Parse("{0} · {1}");
-    private static readonly CompositeFormat AvailableAutomationNameFormat = CompositeFormat.Parse("{0}; {1}; {2}; {3}");
+    private static readonly CompositeFormat UnboundShortcutFormat = CompositeFormat.Parse("{0}; {1}");
+    private static readonly CompositeFormat AvailableAutomationNameFormat = CompositeFormat.Parse("{0}; {1}; {2}");
 
     private CommandPaletteFeedback(string reason, string stateMarker, string detail, string automationName)
     {
@@ -25,34 +25,36 @@ internal sealed record CommandPaletteFeedback
     internal string AutomationName { get; }
 
     internal static CommandPaletteFeedback Create(
-        CommandAvailability availability,
+        CommandCandidate candidate,
         CommandPaletteCaption caption,
         CommandPaletteContext context,
         Func<string, string> localize)
     {
-        ArgumentNullException.ThrowIfNull(availability);
+        ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(caption);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(localize);
-        if (caption.GlobalDetail is string globalDetail)
-        {
-            return new CommandPaletteFeedback(string.Empty, string.Empty, globalDetail,
-                caption.Title + "; " + globalDetail);
-        }
-        string reason = availability is CommandUnavailable unavailable
+        string? scope = context.DetailFor(candidate.Intent, localize);
+        string accessibleScope = scope ?? context.Target;
+        string reason = candidate.Availability is CommandUnavailable unavailable
             ? localize(ReasonResourceKey(unavailable.Reason))
             : string.Empty;
-        bool available = availability == CommandAvailability.Available;
-        string detail = available
-            ? string.Format(CultureInfo.InvariantCulture, AvailableDetailFormat, context.Target, context.Opposite)
-            : Format(localize("CommandPaletteUnavailableDetailFormat"), context.Target, context.Opposite, reason);
+        bool available = candidate.Availability == CommandAvailability.Available;
+        string detail = available ? scope ?? string.Empty : scope is null ? reason :
+            Format(localize("CommandPaletteUnavailableDetailFormat"), scope, reason);
         string automationName = available
-            ? string.Format(CultureInfo.InvariantCulture, AvailableAutomationNameFormat,
-                caption.Title, caption.Shortcut, context.Target, context.Opposite)
+            ? AvailableAutomationName(caption, accessibleScope)
             : Format(localize("CommandPaletteUnavailableAutomationNameFormat"),
-                caption.Title, caption.Shortcut, context.Target, context.Opposite, reason);
+                caption.Title, caption.Shortcut, accessibleScope, reason);
         return new CommandPaletteFeedback(reason,
             available ? string.Empty : localize("CommandPaletteUnavailableMarker"), detail, automationName);
+    }
+
+    private static string AvailableAutomationName(CommandPaletteCaption caption, string scope)
+    {
+        return caption.Shortcut.Length == 0
+            ? string.Format(CultureInfo.InvariantCulture, UnboundShortcutFormat, caption.Title, scope)
+            : string.Format(CultureInfo.InvariantCulture, AvailableAutomationNameFormat, caption.Title, caption.Shortcut, scope);
     }
 
     private static string ReasonResourceKey(CommandUnavailableReason reason)

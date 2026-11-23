@@ -9,18 +9,16 @@ namespace NeNeCommander.Presentation.WinUI.Commands;
 /// <summary>Captures one command's localized caption and stable label-derived identity.</summary>
 internal sealed record CommandPaletteCaption
 {
-    private CommandPaletteCaption(string title, string shortcut, string automationId, string? globalDetail)
+    private CommandPaletteCaption(string title, string shortcut, string automationId)
     {
         Title = title;
         Shortcut = shortcut;
         AutomationId = automationId;
-        GlobalDetail = globalDetail;
     }
 
     internal string Title { get; }
     internal string Shortcut { get; }
     internal string AutomationId { get; }
-    internal string? GlobalDetail { get; }
 
     internal static CommandPaletteCaption Create(
         UserIntent intent,
@@ -36,7 +34,6 @@ internal sealed record CommandPaletteCaption
         return new CommandPaletteCaption(
             localize(label.ResourceKey),
             shortcut,
-            "CommandPaletteCandidate_" + label.ResourceKey,
-            intent == UserIntent.OpenColorSchemes ? localize("CommandPaletteThemeDetail") : null);
+            "CommandPaletteCandidate_" + label.ResourceKey);
     }
 }

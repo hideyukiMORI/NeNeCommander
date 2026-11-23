@@ -26,10 +26,10 @@ public static class CommandPalettePresenter
         foreach (CommandCandidate candidate in open.Candidates)
         {
             CommandPaletteCaption caption = CommandPaletteCaption.Create(candidate.Intent, bindings, localize);
-            CommandPaletteFeedback feedback = CommandPaletteFeedback.Create(candidate.Availability, caption, context, localize);
-            rows.Add(new CommandPaletteRow(candidate, caption, context, feedback));
+            CommandPaletteFeedback feedback = CommandPaletteFeedback.Create(candidate, caption, context, localize);
+            rows.Add(new CommandPaletteRow(candidate, caption, feedback));
         }
-        return new CommandPaletteViewState(open, rows.AsReadOnly());
+        return new CommandPaletteViewState(open, rows.AsReadOnly(), context.Heading);
     }
 
 }

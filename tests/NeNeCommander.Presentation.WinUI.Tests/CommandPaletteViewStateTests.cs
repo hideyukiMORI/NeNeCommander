@@ -104,8 +104,6 @@ public sealed class CommandPaletteViewStateTests
         Assert.AreSame(UserIntent.OpenColorSchemes, row.Intent);
         Assert.IsTrue(row.IsAvailable);
         Assert.AreEqual(string.Empty, row.Shortcut);
-        Assert.AreEqual(string.Empty, row.Target);
-        Assert.AreEqual(string.Empty, row.Opposite);
         Assert.AreEqual("CommandPaletteThemeDetail", row.Detail);
         Assert.AreEqual(title + "; CommandPaletteThemeDetail", row.AutomationName);
     }
@@ -127,7 +125,7 @@ public sealed class CommandPaletteViewStateTests
         StringAssert.Contains(selected.Detail, "Opposite pane is unavailable");
         StringAssert.Contains(selected.AutomationName, "Unavailable");
         StringAssert.Contains(selected.AutomationName, "F5");
-        StringAssert.Contains(selected.AutomationName, "Target: left pane");
+        StringAssert.Contains(selected.AutomationName, "From left pane to right pane");
     }
 
     /// <summary>Proves selection clamps at both ends and starts over after every query change.</summary>
@@ -156,7 +154,7 @@ public sealed class CommandPaletteViewStateTests
     {
         CommandPaletteOpen open = await CommandPaletteTestContext.OpenPaletteAsync(null);
         CommandPaletteViewState many = CommandPalettePresenter.Present(open, CommandPaletteTestContext.ProjectResource);
-        CommandPaletteViewState zero = new(open, Array.Empty<CommandPaletteRow>());
+        CommandPaletteViewState zero = new(open, Array.Empty<CommandPaletteRow>(), string.Empty);
 
         zero.MovePrevious();
         zero.MoveNext();
@@ -207,7 +205,7 @@ public sealed class CommandPaletteViewStateTests
     {
         CommandPaletteViewState empty = new(
             await CommandPaletteTestContext.OpenPaletteAsync(null),
-            Array.Empty<CommandPaletteRow>());
+            Array.Empty<CommandPaletteRow>(), string.Empty);
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => empty.UpdateQuery(null!));
 
