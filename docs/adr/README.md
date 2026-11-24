@@ -22,6 +22,8 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
+- [ADR-0091: Share command selection between the palette and context menu](0091-context-menu-through-command-selection.md)
+
 - [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
 
 - [ADR-0087: Extend the existing closed color-scheme catalog](0087-closed-theme-catalog.md).
