@@ -135,6 +135,10 @@ public sealed class PaneSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ThrowOrphanedReadFault();
+        if (intent is PaneInteraction interaction)
+        {
+            return HandleInteractionAsync(interaction, cancellationToken);
+        }
         if (Current.Activity is PaneLoading loading)
         {
             return Task.FromResult(intent == UserIntent.Escape ? AbandonRead(loading) : Current);
@@ -159,9 +163,30 @@ public sealed class PaneSession
     }
 
     /// <summary>
-    /// Starts the read or file handoff an intent requests, or returns null when the intent only
-    /// changes pane state.
+    /// Applies admitted pointer input and retains an immutable receipt even for passive surfaces.
     /// </summary>
+    private Task<PaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
+    {
+        if (!interaction.Matches(Current))
+        {
+            return Task.FromResult(Current);
+        }
+        PaneContent content = Current.Content;
+        if (content is PaneContentListed listed)
+        {
+            PaneState next = PaneReducer.ApplyInteraction(listed.State, interaction);
+            if (!ReferenceEquals(next, listed.State))
+            {
+                content = new PaneContentListed(next, listed.Listing, listed.DriveKind);
+            }
+        }
+        Current = Current.WithContent(content);
+        return interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
+            ? OpenFocusedAsync((PaneContentListed)Current.Content, cancellationToken)
+            : Task.FromResult(Current);
+    }
+
+    /// <summary>Starts the existing external action requested by an ordinary pane intent.</summary>
     private Task<PaneSnapshot>? StartExternalAction(
         PaneContentListed listed,
         UserIntent intent,

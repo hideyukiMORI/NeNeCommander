@@ -11,6 +11,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | passive pane | The other pane; the default destination for cross-pane operations. |
 | focus item | The single item addressed by movement and open commands. |
 | selection | The explicit set of items marked for a batch operation. |
+| selection anchor | The absent or exact owned visible path in PaneState from which consecutive pointer range selection is measured; only PaneReducer establishes, preserves, rebinds or clears it (ADR-0090). |
+| pane interaction | One closed row or passive-surface UserIntent qualified by explicit pane side and the exact rendered PaneSnapshot, with owned visible entry membership for a row (ADR-0090). |
+| command entry | The one application-level Bookmarks/Settings/Help button group and its Presentation-only native-focus context; it invokes existing intents and owns no Application modal (ADR-0090). |
 | filesystem path | A validated `FileSystemPath` value with a known provider boundary. |
 | provider boundary | `WindowsLocal`, `WindowsUnc`, or `Wsl`, including capabilities and semantics. |
 | intent | A UI-independent request for behavior. |

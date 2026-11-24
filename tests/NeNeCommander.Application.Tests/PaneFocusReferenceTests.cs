@@ -75,7 +75,7 @@ public sealed class PaneFocusReferenceTests
         DirectoryListing listing = CreateListing("C:\\root");
         PaneState state = PaneReducer.Navigate(
             listing, PaneSessionTestContext.Capacity(4), null, HiddenItemVisibility.Hidden);
-        PaneState broken = state.Transition(PaneSessionTestContext.ParsePath("c:\\ROOT\\a.txt"), state.Selection);
+        PaneState broken = state.Transition(PaneSessionTestContext.ParsePath("c:\\ROOT\\a.txt"), state.Selection, state.SelectionAnchor);
 
         _ = Assert.ThrowsExactly<InvalidOperationException>(() => PaneReducer.Apply(broken, UserIntent.MoveNext));
     }

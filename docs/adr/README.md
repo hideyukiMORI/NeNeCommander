@@ -22,9 +22,13 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
+- [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
+
 - [ADR-0087: Extend the existing closed color-scheme catalog](0087-closed-theme-catalog.md).
 
 ## Accepted decisions
+
+- [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
 
 - [ADR-0088: Apply interface language through one live window resource context](0088-live-interface-language.md)
 

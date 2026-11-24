@@ -29,7 +29,7 @@ Every user-file mutation is represented by one typed operation request and execu
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Movement preserves selection and uses the exact path owned by a visible entry. The active side is held only by `DualPaneSession` and changes only on `ActivateOtherPane`. `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
+Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Movement preserves selection and uses the exact path owned by a visible entry. The active side is held only by `DualPaneSession` and changes on `ActivateOtherPane` or an admitted exact-owner pointer interaction (ADR-0090). `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
 A successful refresh preserves the current focus identity when it remains. If it was removed,
 focus moves to the next identity from the previous visible order that is still visible, then
@@ -39,6 +39,15 @@ refresh, including move/deletion and partial or cancelled outcomes. The new list
 chosen path. Explicit creation/rename targets retain their own preferred-focus policy, and a
 normal navigation still starts at its declared target or first item.
 
+Pointer row/header/background requests carry the explicit side and exact current
+rendered PaneSnapshot; row actions additionally require reference membership of
+an owned visible DirectoryEntry. Stale/foreign/recycled input cannot change active
+side, selection or effects. CommanderSession keeps scope precedence; DualPaneSession
+refuses pointer interaction during pending/running operations or either pane's
+read/launch before activating the explicit side. PaneReducer alone commits focus,
+selection and the visible owned selection anchor. Opening reuses OpenFocused.
+Native ListView selection is only a projection and is reconciled after rejection.
+The accepted gesture, anchor and first-tap receipt rules are in ADR-0090.
 ### CMD-003 — UI emits intents, not decisions
 
 - Status: **active**
@@ -86,7 +95,7 @@ Provider adapters translate canonical requests and platform responses. Product p
 - Status: **active**
 - Enforcement: presentation scan and keyboard contract tests.
 
-All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages, controls, and view models do not maintain private key maps. Context such as text-entry focus is an explicit mapper input.
+All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages, controls, and view models do not maintain private key maps. Context such as text-entry focus is an explicit mapper input. ADR-0090 adds the Presentation-only CommandEntry context and closed F10 focus action to this mapper. Native button Tab/Enter/Space remain native; no second keyboard table or Application modal is introduced. Existing modal precedence, repeat ownership and focus-return guards apply.
 
 ## Canonical mechanism registry
 
@@ -108,6 +117,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | observed network-drive indication | optional read-success `DriveKind`, retained by `PaneContentListed` and projected through `PanePresentation` / `PaneStatusLine` (ADR-0072) |
 | pane state | `PaneReducer` |
 | keyboard mapping | `KeyboardIntentMapper` |
+| qualified pane pointer mapping and accepted-gesture receipts | `PanePointerMapper`, dispatched through the existing CommanderSession/DualPaneSession/PaneSession route (ADR-0090) |
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |
 | expected operation results | canonical closed `OperationOutcome` model |
 | settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |

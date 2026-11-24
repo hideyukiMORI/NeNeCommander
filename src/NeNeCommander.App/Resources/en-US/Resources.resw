@@ -821,4 +821,9 @@
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>Application keyboard help</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>Manage shared bookmarks and choose a location</value></data>
   <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyLabelF10" xml:space="preserve"><value>F10</value></data>
+  <data name="CommandEntryFocus" xml:space="preserve"><value>Focus application commands</value></data>
+  <data name="CommandEntryReturn" xml:space="preserve"><value>Return to active pane</value></data>
+  <data name="CommandEntryToolTipFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyboardHelpGroupCommandEntry" xml:space="preserve"><value>Application commands</value></data>
 </root>

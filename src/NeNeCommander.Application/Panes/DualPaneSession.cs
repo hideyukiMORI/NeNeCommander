@@ -11,7 +11,7 @@ namespace NeNeCommander.Application.Panes;
 
 /// <summary>
 /// Coordinates the two pane sessions, the sole active side, and file operations between them.
-/// Only <see cref="UserIntent.ActivateOtherPane"/> changes the active side; every other pane intent
+/// <see cref="UserIntent.ActivateOtherPane"/> and admitted qualified pointer input change the active side; other pane intents
 /// reaches the active pane's session alone, so a read in flight always lands in the pane that
 /// started it. <see cref="UserIntent.Move"/>, <see cref="UserIntent.Copy"/>, and <see cref="UserIntent.Delete"/> run through the sole
 /// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs except
@@ -114,12 +114,29 @@ public sealed class DualPaneSession
         {
             return ResolveConflictAsync(awaitingConflict, intent, observer, cancellationToken);
         }
+        if (intent is PaneInteraction interaction)
+        {
+            return HandleInteractionAsync(interaction, cancellationToken);
+        }
         if (intent == UserIntent.ActivateOtherPane)
         {
             _activeSide = _activeSide.Other;
             return Task.FromResult(Current);
         }
         return RouteAsync(intent, observer, cancellationToken);
+    }
+
+    private Task<DualPaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
+    {
+        PaneSession target = SessionOf(interaction.Side);
+        if (_left.Current.Activity is PaneLoading or PaneLaunching ||
+            _right.Current.Activity is PaneLoading or PaneLaunching ||
+            !interaction.Matches(target.Current))
+        {
+            return Task.FromResult(Current);
+        }
+        _activeSide = interaction.Side;
+        return ReportAfterAsync(target.HandleAsync(interaction, cancellationToken));
     }
 
     private Task<DualPaneSnapshot> RouteAsync(

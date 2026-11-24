@@ -1,4 +1,5 @@
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Locations;
 using NeNeCommander.Application.Panes;
@@ -173,6 +174,25 @@ public abstract record UserIntent
     public static UserIntent SubmitName(string name)
     {
         return new NameSubmission(name);
+    }
+
+    /// <summary>Creates one row gesture qualified by the exact pane and owned entry it displayed.</summary>
+    public static UserIntent InteractWithPaneEntry(
+        PaneSide side,
+        PaneSnapshot expectedSnapshot,
+        DirectoryEntry entry,
+        PaneEntryAction action)
+    {
+        return new PaneRowInteraction(side, expectedSnapshot, entry, action);
+    }
+
+    /// <summary>Creates one blank-list or header gesture qualified by the exact rendered pane.</summary>
+    public static UserIntent InteractWithPaneSurface(
+        PaneSide side,
+        PaneSnapshot expectedSnapshot,
+        PaneSurfaceAction action)
+    {
+        return new PaneSurfaceInteraction(side, expectedSnapshot, action);
     }
 
     /// <summary>Creates an explicit address-edit start intent for the requested pane.</summary>

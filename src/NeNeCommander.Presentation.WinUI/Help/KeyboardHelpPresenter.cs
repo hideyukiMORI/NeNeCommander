@@ -40,6 +40,7 @@ public static class KeyboardHelpPresenter
             new("KeyboardHelpGroupBookmarks", BookmarkManagerRows()),
             new("KeyboardHelpGroupCommandPalette", CommandPaletteRows()),
             new("KeyboardHelpGroupHelp", ContextRows(KeyboardContext.KeyboardHelp, HelpLabelOf)),
+            new("KeyboardHelpGroupCommandEntry", CommandEntryRows()),
         ];
         return new KeyboardHelpPresentation(primary.AsReadOnly(), secondary.AsReadOnly());
     }
@@ -59,6 +60,24 @@ public static class KeyboardHelpPresenter
                 rows.AddOnce(LabelOf(UserIntent.FocusFirst), ChordKeyLabel);
             }
             rows.Add(LabelOf(binding.Intent), binding.KeyLabelResourceKey);
+        }
+        foreach (KeyboardFocusBinding binding in KeyboardIntentMapper.FocusBindings.Where(binding => binding.Context == KeyboardContext.FileList))
+        {
+            rows.Add(binding.LabelResourceKey, binding.Key.LabelResourceKey);
+        }
+        return rows.Build();
+    }
+
+    private static ReadOnlyCollection<KeyboardHelpRow> CommandEntryRows()
+    {
+        RowBuilder rows = new();
+        foreach (KeyBinding binding in KeyboardIntentMapper.BindingsFor(KeyboardContext.CommandEntry))
+        {
+            rows.Add(LabelOf(binding.Intent), binding.KeyLabelResourceKey);
+        }
+        foreach (KeyboardFocusBinding binding in KeyboardIntentMapper.FocusBindings.Where(binding => binding.Context == KeyboardContext.CommandEntry))
+        {
+            rows.Add(binding.LabelResourceKey, binding.Key.LabelResourceKey);
         }
         return rows.Build();
     }

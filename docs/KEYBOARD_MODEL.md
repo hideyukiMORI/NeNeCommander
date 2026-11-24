@@ -7,7 +7,9 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 The App registers its single preview-key and character handlers on the window's root
 content. Clicking blank pane space can leave focus on the framework root scroll host,
 outside the inner pane surface; that focus still uses the same input route and current
-session-owned active pane. Reactivation or a blank-area click does not change that pane.
+session-owned active pane. Reactivation alone does not change that pane. An admitted
+intentional row/header/list-background gesture activates its addressed pane through
+ADR-0090; stale, busy and unrelated scroll-control gestures do not.
 Before translating a file-list preview key, focus on a scroll host is returned through
 the existing active-file-list helper so the following character reaches the same owner.
 Text/IME, modal, repeat and shutdown guards continue to apply before dispatch.
@@ -312,3 +314,46 @@ Theme hints derive their actual keys from `CommandPaletteBindings`.
 ## Accessibility
 
 Every Vim movement has a standard Windows keyboard alternative. Tab order, focus visuals, automation names, high-contrast resource use, and keyboard-only dialog completion are implementation requirements proven by mapper and presentation tests; their on-screen confirmation follows ADR-0054.
+
+## Pointer selection and command-entry focus (ADR-0090)
+
+Qualified plain row clicks replace explicit selection and set focus/anchor; Ctrl
+click toggles one entry and sets focus/anchor. Shift replaces the inclusive visible
+range and Ctrl+Shift adds it without duplicates. A missing anchor is established
+from pre-gesture focus (or target) on the first range gesture and persists for later
+ranges. Space sets that same anchor; movement preserves it; Escape/blank clearing
+removes it. Sort retains it, visibility/refresh recover its owned visible identity,
+and successful navigation clears it. Header activation preserves marks. ScrollBar/
+Thumb and interactive descendants are not blank-list targets. Terminal read/launch
+indications survive a pointer selection; Loading/Launching refuse it.
+
+A first Tapped must actually change the Application snapshot captured immediately
+inside admitted work before HandleAsync. A stale request returning a newer state
+with the same focused row is not acceptance. DoubleTapped requires the accepted
+first side/listing/entry, the current snapshot and visible entry, and consumes the
+candidate once. Other intents/owners/work/listings invalidate it. No click timer,
+framework selection owner or direct Shell route is added.
+
+Unmodified initial F10 from ordinary pane input enters the Bookmarks/Settings/Help
+button group. CommandEntry context exists only while those native controls own
+focus and loses precedence to every existing modal/editor/window scope. Native
+Tab/Shift+Tab cycles the three buttons; Enter/Space invokes their existing commands.
+File-list commands do not map there. F10/Escape returns to the active pane. The
+canonical mapper supplies focus actions and hint declarations. Its existing repeat
+guard holds F10/Escape and native Enter/Space across context changes, so a held key
+cannot reenter, clear pane marks or immediately invoke a newly opened surface.
+Queued/reactivation focus restoration rechecks context and leaves the group alone.
+An admitted synchronous row/header/background click returns to its explicit pane
+through the existing focus helper after rendering. The receipt requires the exact
+before/request owner, a new target snapshot, the matching active side and available
+input ownership; rejected or asynchronous Open results cannot request this return.
+The host checks stopping before consulting native context and rechecks current
+ownership before applying focus. Header and absent-content receipts preserve their
+content/activity/model identities while replacing the snapshot wrapper.
+
+Only raw F10 adds explicit Shift distinction: Shift+F10 is unassigned for future
+context-menu work, and Shift with Control/Alt is an undeclared combination. Other
+virtual keys and produced characters keep their current Control/Alt mapping,
+including uppercase G, layout-produced symbols, IME and dead-key exclusions.
+This contract is under implementation; technical design acceptance does not claim
+native event-order, physical-key or visible-layout acceptance.

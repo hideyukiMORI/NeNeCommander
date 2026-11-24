@@ -60,6 +60,9 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.FileList, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
         new(KeyboardContext.FileList, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
+        new(KeyboardContext.CommandEntry, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
+        new(KeyboardContext.CommandEntry, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
+        new(KeyboardContext.CommandEntry, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.FileList, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.FileList, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -201,6 +204,9 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
 
+    /// <summary>Gets the canonical focus-only bindings used by mapping and displayed help.</summary>
+    public static IReadOnlyList<KeyboardFocusBinding> FocusBindings => KeyboardFocusMap.Bindings;
+
     /// <summary>Retains native Enter/Escape ownership until the next physical press.</summary>
     internal void ObserveNativeInput(KeyboardInput input)
     {
@@ -248,6 +254,7 @@ public sealed class KeyboardIntentMapper
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
+            KeyboardContext context when context == KeyboardContext.CommandEntry => MapCommandEntryKey(input),
             KeyboardContext context when BookmarkManagerKeyMap.Owns(context) => BookmarkManagerKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
@@ -304,7 +311,7 @@ public sealed class KeyboardIntentMapper
 
     private static bool IsDeclaredInContext(KeyboardInput input)
     {
-        return DeclaredBindings.Any(binding =>
+        return KeyboardFocusMap.BindingFor(input) is not null || DeclaredBindings.Any(binding =>
             binding.Context == input.Context &&
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
@@ -417,6 +424,14 @@ public sealed class KeyboardIntentMapper
                 : declared;
     }
 
+    private static KeyboardMappingOutcome MapCommandEntryKey(KeyboardInput input)
+    {
+        return input.RepeatState == KeyRepeatState.Repeated &&
+            (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.F1)
+                ? new KeyboardConsumed()
+                : MapDeclaredKey(input);
+    }
+
     private static bool IsIgnoredWindowRepeat(
         WindowAdjustmentKeyAction action,
         KeyRepeatState repeatState)
@@ -433,7 +448,7 @@ public sealed class KeyboardIntentMapper
             binding.Context == input.Context &&
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
-        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+        return binding is null ? KeyboardFocusMap.Map(input) : MapIntent(binding.Intent);
     }
 
     private static bool IsChordPrefix(KeyboardInput input)

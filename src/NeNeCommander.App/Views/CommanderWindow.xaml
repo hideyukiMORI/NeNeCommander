@@ -18,6 +18,16 @@
         PreviewKeyDown="OnKeyDown">
         <Grid.Resources>
             <views:ViewTextResources x:Key="ViewTextResources" />
+            <Style x:Key="CommandEntryButtonStyle" TargetType="Button">
+                <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
+                <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
+                <Setter Property="Height" Value="{StaticResource DensityRowHeight}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingPaneHeader}" />
+                <Setter Property="FontFamily" Value="{StaticResource TypographyMonospaceFamily}" />
+                <Setter Property="FontSize" Value="{StaticResource TypographyMonospaceSize}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="UseSystemFocusVisuals" Value="True" />
+            </Style>
             <Style x:Key="CaptionButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource SurfaceWindowBrush}" />
                 <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
@@ -61,6 +71,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid x:Name="CaptionDragArea" Background="{StaticResource SurfaceWindowBrush}">
                 <TextBlock
@@ -75,7 +86,12 @@
                     TextWrapping="NoWrap"
                     VerticalAlignment="Center" />
             </Grid>
-            <StackPanel x:Name="CaptionButtons" Grid.Column="1" Orientation="Horizontal">
+            <StackPanel x:Name="CommandEntryButtons" Grid.Column="1" Orientation="Horizontal" TabFocusNavigation="Cycle">
+                <Button x:Name="CommandEntryBookmarks" AutomationProperties.AutomationId="CommandEntryBookmarks" Style="{StaticResource CommandEntryButtonStyle}" />
+                <Button x:Name="CommandEntrySettings" AutomationProperties.AutomationId="CommandEntrySettings" Style="{StaticResource CommandEntryButtonStyle}" />
+                <Button x:Name="CommandEntryHelp" AutomationProperties.AutomationId="CommandEntryHelp" Style="{StaticResource CommandEntryButtonStyle}" />
+            </StackPanel>
+            <StackPanel x:Name="CaptionButtons" Grid.Column="2" Orientation="Horizontal">
                 <Button
                     x:Name="CaptionMinimize"
                     views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="CaptionMinimize.AutomationProperties.Name"
@@ -678,6 +694,7 @@
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="LeftPaneHeader"
+                        Background="{StaticResource SurfacePaneBrush}"
                         BorderBrush="{StaticResource FocusRingBrush}"
                         BorderThickness="{StaticResource BorderPaneHeaderThickness}"
                         Height="{StaticResource DensityPaneHeaderHeight}"
@@ -705,7 +722,6 @@
                                 x:Name="LeftAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="LeftAddress"
-                                PointerPressed="OnPathDisplayPointerPressed"
                                 FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
@@ -759,6 +775,7 @@
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="RightPaneHeader"
+                        Background="{StaticResource SurfacePaneBrush}"
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="{StaticResource BorderPaneHeaderThickness}"
                         Height="{StaticResource DensityPaneHeaderHeight}"
@@ -786,7 +803,6 @@
                                 x:Name="RightAddress"
                                 Grid.Column="1"
                                 AutomationProperties.AutomationId="RightAddress"
-                                PointerPressed="OnPathDisplayPointerPressed"
                                 FontFamily="{StaticResource TypographyMonospaceFamily}"
                                 FontSize="{StaticResource TypographyMonospaceSize}"
                                 Foreground="{StaticResource TextPrimaryBrush}"
