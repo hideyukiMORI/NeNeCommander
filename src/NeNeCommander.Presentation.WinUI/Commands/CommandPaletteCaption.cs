@@ -29,10 +29,11 @@ internal sealed record CommandPaletteCaption
         ArgumentNullException.ThrowIfNull(bindings);
         ArgumentNullException.ThrowIfNull(localize);
         CommandLabel label = CommandLabelCatalog.LabelFor(intent);
-        KeyBinding binding = bindings.First(binding => binding.Intent == intent);
+        string shortcut = intent == UserIntent.OpenColorSchemes ? string.Empty :
+            localize(bindings.First(binding => binding.Intent == intent).KeyLabelResourceKey);
         return new CommandPaletteCaption(
             localize(label.ResourceKey),
-            localize(binding.KeyLabelResourceKey),
+            shortcut,
             "CommandPaletteCandidate_" + label.ResourceKey);
     }
 }

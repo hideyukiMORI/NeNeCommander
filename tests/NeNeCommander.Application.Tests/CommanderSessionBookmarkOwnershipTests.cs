@@ -175,8 +175,8 @@ public sealed class CommanderSessionBookmarkOwnershipTests
         left.Enqueue(DirectoryReadOutcome.Succeeded(CommanderSessionTestValues.Listing("C:\\left", "item.txt"), null));
         using FileOperationGateway gateway = CommanderSessionTestValues.CreateGateway();
         CommanderSession session = new CommanderSessionTestComposition(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent())).CreateSession(launcher, new ScriptedFileLauncher(), SettingsReadOutcome.Read(UserSettings.Create(
-                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
-                CommanderSessionTestValues.Catalog(CommanderSessionTestValues.Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default)), out _);
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
+                CommanderSessionTestValues.Catalog(CommanderSessionTestValues.Entry("Target", "C:\\bookmark", BookmarkShortcutSlot.One)), PaneSortPreferences.Default, null)), out _);
         RecordingCommanderObserver observer = new();
         _ = await session.NavigateAsync(PaneSide.Left, CommanderSessionTestValues.ParsePath("C:\\left"), CancellationToken.None);
         TaskCompletionSource<Launching.FileLaunchOutcome> completion =
@@ -219,7 +219,7 @@ public sealed class CommanderSessionBookmarkOwnershipTests
 
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(23, CommandCatalog.Commands);
+        Assert.HasCount(24, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);
     }

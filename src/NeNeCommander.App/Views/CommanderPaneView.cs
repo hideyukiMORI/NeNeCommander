@@ -2,7 +2,6 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -12,17 +11,19 @@ namespace NeNeCommander.App.Views;
 internal sealed class CommanderPaneView
 {
     private readonly FrameworkElement _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly TextBlock _address;
     private readonly TextBlock _status;
+    private readonly TextBlock _counts;
     private readonly ListView _fileList;
     private readonly Border _border;
     private readonly Border _header;
     private readonly Border _numberSurface;
     private readonly TextBlock _number;
+    private PanePresentation? _rendered;
 
 
-    internal CommanderPaneView(FrameworkElement root, ResourceLoader resources, PaneSide side)
+    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -32,6 +33,7 @@ internal sealed class CommanderPaneView
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
         _status = Find<TextBlock>(prefix + "Status");
+        _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");
         RowAutomationIdentity.Attach<PaneRow>(_fileList, row => row.AutomationId, row => row.Entry.Name);
         _border = Find<Border>(prefix + "PaneBorder");
@@ -41,6 +43,19 @@ internal sealed class CommanderPaneView
     }
 
     internal void Render(PanePresentation presentation, PaneFrame frame)
+    {
+        if (!ReferenceEquals(_rendered, presentation))
+        {
+            RenderContents(presentation, frame);
+            _rendered = presentation;
+        }
+        _status.Text = PaneStatusLine.Compose(
+            presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
+        _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
+        ToolTipService.SetToolTip(_counts, _counts.Text);
+    }
+
+    private void RenderContents(PanePresentation presentation, PaneFrame frame)
     {
         _address.Text = presentation.AddressText;
         if (!ReferenceEquals(_fileList.ItemsSource, presentation.Rows))
@@ -52,8 +67,6 @@ internal sealed class CommanderPaneView
         {
             _fileList.ScrollIntoView(presentation.FocusRow);
         }
-        _status.Text = PaneStatusLine.Compose(
-            presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
     }

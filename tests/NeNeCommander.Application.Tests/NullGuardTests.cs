@@ -187,9 +187,9 @@ public sealed class NullGuardTests
             [null, HiddenItemVisibility.Hidden]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplyHiddenItemVisibility),
             [state, null]);
-        NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
+        _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
             [null, PaneSortOrder.Default, null]);
-        NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
+        _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneReducer), nameof(PaneReducer.ApplySortOrder), null,
             [state, null, null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(EntryOrdering), nameof(EntryOrdering.Apply),
             [null, PaneSortOrder.Default]);
@@ -201,11 +201,11 @@ public sealed class NullGuardTests
     private static void AssertSettingsValueArguments()
     {
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [null, BookmarkCatalog.Empty, PaneSortPreferences.Default]);
+            [null, BookmarkCatalog.Empty, PaneSortPreferences.Default, null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [DisplayPreferences.Default, null, PaneSortPreferences.Default]);
+            [DisplayPreferences.Default, null, PaneSortPreferences.Default, null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(UserSettings), nameof(UserSettings.Create),
-            [DisplayPreferences.Default, BookmarkCatalog.Empty, null]);
+            [DisplayPreferences.Default, BookmarkCatalog.Empty, null, null]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),
             [null, PaneSortOrder.Default]);
         NullGuardAssertions.AssertStaticNullGuard(typeof(PaneSortPreferences), nameof(PaneSortPreferences.Create),

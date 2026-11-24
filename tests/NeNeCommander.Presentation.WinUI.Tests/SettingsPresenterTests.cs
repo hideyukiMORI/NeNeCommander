@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
@@ -10,14 +11,14 @@ namespace NeNeCommander.Presentation.WinUI.Tests;
 [TestClass]
 public sealed class SettingsPresenterTests
 {
-    /// <summary>Proves all eight schemes and the next-launch visibility project in canonical order.</summary>
+    /// <summary>Proves all 129 schemes and the next-launch visibility project in canonical order.</summary>
     [TestMethod]
     public void PresentWhenEditorIsOpenProjectsEveryChoice()
     {
         SettingsSnapshot snapshot = Snapshot(
             UserSettings.Create(
-                DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
-                BookmarkCatalog.Empty, PaneSortPreferences.Default),
+                DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
+                BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
 
@@ -26,23 +27,23 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(presentation.IsOpen);
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
         Assert.IsTrue(presentation.ShowKeyHints);
-        Assert.HasCount(8, presentation.Schemes);
-        string[] expectedResourceKeys =
+        Assert.HasCount(129, presentation.Schemes);
+        string[] expectedPrefix =
         [
-            "ColorSchemeNameNeNeDark",
-            "ColorSchemeNameUbuntu",
-            "ColorSchemeNameMonokai",
-            "ColorSchemeNameSolarizedDark",
-            "ColorSchemeNameSolarizedLight",
-            "ColorSchemeNameDracula",
-            "ColorSchemeNameNeNeBlack",
-            "ColorSchemeNameNeNeLight",
+            "ColorSchemeNameNeNeDark", "ColorSchemeNameUbuntu", "ColorSchemeNameNeNeBlack", "ColorSchemeNameNeNeLight",
+            "ColorSchemeNameCatalogUbuntuAubergine", "ColorSchemeNameCatalogNeutralLight", "ColorSchemeNameSolarizedDark",
+            "ColorSchemeNameSolarizedLight", "ColorSchemeNameMonokai", "ColorSchemeNameDracula",
         ];
+        HashSet<string> nameKeys = [];
         for (int index = 0; index < ColorScheme.All.Count; index++)
         {
             Assert.AreSame(ColorScheme.All[index], presentation.Schemes[index].Scheme);
-            Assert.AreEqual(expectedResourceKeys[index], presentation.Schemes[index].NameResourceKey);
-            Assert.AreEqual(index == 5, presentation.Schemes[index].IsSelected);
+            Assert.IsTrue(nameKeys.Add(presentation.Schemes[index].NameResourceKey));
+            Assert.AreEqual(ColorScheme.All[index] == ColorScheme.Dracula, presentation.Schemes[index].IsSelected);
+            if (index < expectedPrefix.Length)
+            {
+                Assert.AreEqual(expectedPrefix[index], presentation.Schemes[index].NameResourceKey);
+            }
         }
         Assert.AreSame(SettingsSaveStatus.Succeeded, presentation.SaveStatus);
         Assert.AreEqual("SettingsSaveStatusSucceeded", presentation.SaveStatus.ResourceKey);
@@ -177,7 +178,7 @@ public sealed class SettingsPresenterTests
     public void SettingsPresentationWhenOptionSourceChangesKeepsOwnedSnapshot()
     {
         SettingsSnapshot source = Snapshot(
-            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
             SettingsEditorState.Open,
             SettingsPersistenceState.Succeeded);
         SettingsColorSchemeOption option = new(ColorScheme.Dracula, "ColorSchemeNameDracula", ColorScheme.Dracula);
@@ -190,8 +191,8 @@ public sealed class SettingsPresenterTests
         Assert.IsTrue(presentation.ShowHiddenItemsAtLaunch);
         Assert.HasCount(1, presentation.Schemes);
         Assert.AreSame(option, presentation.Schemes[0]);
-        _ = Assert.ThrowsExactly<NotSupportedException>(() =>
-            ((System.Collections.Generic.IList<SettingsColorSchemeOption>)presentation.Schemes).Clear());
+        Assert.IsFalse(presentation.Schemes is System.Collections.ICollection);
+        Assert.IsFalse(presentation.Schemes is IList<SettingsColorSchemeOption>);
     }
 
     /// <summary>Proves hidden footer hints remain a display choice while a save warning stays visible.</summary>
@@ -199,8 +200,8 @@ public sealed class SettingsPresenterTests
     public void PresentWhenHintsAreHiddenAndSaveFailsRetainsIndependentWarning()
     {
         UserSettings settings = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Hidden, InterfaceLanguage.System),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         SettingsWriteRejected rejection = Assert.IsInstanceOfType<SettingsWriteRejected>(SettingsWriteOutcome.Rejected(
             SettingsWriteFailureKind.IoFailure, SettingsDirectoryEffect.NotAttempted, SettingsWriteEffect.None));
 
@@ -210,6 +211,49 @@ public sealed class SettingsPresenterTests
         Assert.IsFalse(presentation.ShowKeyHints);
         Assert.IsTrue(presentation.Warning.IsVisible);
         Assert.AreSame(SettingsSaveStatus.Failed, presentation.SaveStatus);
+    }
+
+    /// <summary>Proves all four options retain canonical order and exactly the selected next-launch value.</summary>
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public void PresentWhenLanguageIsSelectedExposesFourOwnedOptions(int selectedIndex)
+    {
+        InterfaceLanguage selected = InterfaceLanguage.All[selectedIndex];
+        UserSettings settings = UserSettings.Create(
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, selected),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
+
+        SettingsPresentation presentation = SettingsPresenter.Present(Snapshot(
+            settings, SettingsEditorState.Open, SettingsPersistenceState.Pending));
+
+        Assert.HasCount(4, presentation.Languages);
+        for (int index = 0; index < presentation.Languages.Count; index++)
+        {
+            SettingsLanguageOption option = presentation.Languages[index];
+            Assert.AreSame(InterfaceLanguage.All[index], option.Language);
+            Assert.AreEqual(index == selectedIndex, option.IsSelected);
+            Assert.AreEqual("SettingsLanguage" + option.Language.Identifier, option.AutomationId);
+            Assert.IsFalse(string.IsNullOrEmpty(option.NameResourceKey));
+        }
+        Assert.AreSame(SettingsSaveStatus.Pending, presentation.SaveStatus);
+        Assert.IsFalse(presentation.Languages is System.Collections.ICollection);
+        Assert.IsFalse(presentation.Languages is IList<SettingsLanguageOption>);
+    }
+
+    /// <summary>Proves language option names reference the shipped catalog keys.</summary>
+    [TestMethod]
+    [DataRow(0, "SettingsLanguageSystem")]
+    [DataRow(1, "SettingsLanguageJapanese")]
+    [DataRow(2, "SettingsLanguageEnglish")]
+    [DataRow(3, "SettingsLanguageSimplifiedChinese")]
+    public void LanguageOptionWhenProjectedUsesExactNameKey(int index, string expectedKey)
+    {
+        SettingsLanguageOption option = new(InterfaceLanguage.All[index], InterfaceLanguage.System);
+
+        Assert.AreEqual(expectedKey, option.NameResourceKey);
     }
 
     private static SettingsSnapshot Snapshot(

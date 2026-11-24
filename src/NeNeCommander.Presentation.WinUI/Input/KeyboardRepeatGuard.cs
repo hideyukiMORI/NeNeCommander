@@ -25,7 +25,8 @@ internal sealed class KeyboardRepeatGuard
     {
         bool singleShot = outcome switch
         {
-            MappedCommandPaletteAction palette => palette.Action == CommandPaletteKeyAction.Execute,
+            MappedCommandPaletteAction palette => palette.Action == CommandPaletteKeyAction.Execute ||
+                palette.Action == CommandPaletteKeyAction.Cancel,
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
             KeyboardPassThrough => input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter,
             _ => false

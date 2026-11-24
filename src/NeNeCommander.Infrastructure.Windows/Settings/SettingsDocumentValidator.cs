@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Settings;
+using NeNeCommander.Application.Windowing;
 
 namespace NeNeCommander.Infrastructure.Windows.Settings;
 
@@ -20,7 +21,9 @@ public static class SettingsDocumentValidator
     private const int LegacySchemaVersion = 1;
     private const int BookmarkSchemaVersion = 2;
     private const int SortSchemaVersion = 3;
-    private const int SupportedSchemaVersion = 4;
+    private const int KeyHintSchemaVersion = 4;
+    private const int LanguageSchemaVersion = 5;
+    private const int SupportedSchemaVersion = 6;
     private const string SchemaVersionName = "schemaVersion";
     private const string HiddenItemsName = "showHiddenItems";
     private const string ColorSchemeName = "colorScheme";
@@ -126,7 +129,7 @@ public static class SettingsDocumentValidator
         return versionElement.ValueKind != JsonValueKind.Number
             ? SettingsReadFailureKind.Malformed
             : !versionElement.TryGetInt32(out version) ||
-                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SortSchemaVersion and not SupportedSchemaVersion
+                version is not LegacySchemaVersion and not BookmarkSchemaVersion and not SortSchemaVersion and not KeyHintSchemaVersion and not LanguageSchemaVersion and not SupportedSchemaVersion
                 ? SettingsReadFailureKind.UnknownVersion
                 : null;
     }
@@ -154,11 +157,7 @@ public static class SettingsDocumentValidator
     {
         SettingsReadFailureKind? shapeFailure = ValidateExactProperties(
             root,
-            version == BookmarkSchemaVersion
-                ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName]
-                : version == SortSchemaVersion
-                    ? [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"]
-                    : [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints"]);
+            CatalogProperties(version));
         if (shapeFailure is not null)
         {
             return SettingsReadOutcome.Rejected(shapeFailure);
@@ -170,6 +169,18 @@ public static class SettingsDocumentValidator
             bookmarksElement.ValueKind != JsonValueKind.Array
             ? SettingsReadOutcome.Rejected(SettingsReadFailureKind.Malformed)
             : ReadCatalog(root, categoriesElement, bookmarksElement);
+    }
+
+    private static IReadOnlyList<string> CatalogProperties(int version)
+    {
+        return version switch
+        {
+            BookmarkSchemaVersion => [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName],
+            SortSchemaVersion => [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders"],
+            KeyHintSchemaVersion => [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints"],
+            LanguageSchemaVersion => [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints", "uiLanguage"],
+            _ => [SchemaVersionName, HiddenItemsName, ColorSchemeName, CategoriesName, BookmarksName, "paneSortOrders", "showKeyHints", "uiLanguage", "windowPlacement"],
+        };
     }
 
     private static SettingsReadOutcome ReadCatalog(
@@ -346,9 +357,10 @@ public static class SettingsDocumentValidator
         PaneSortPreferences preferences)
     {
         SettingsReadFailureKind? failure = SettingsDisplayCodec.Read(root, out DisplayPreferences? display);
-        return failure is not null || display is null
-            ? SettingsReadOutcome.Rejected(failure ?? SettingsReadFailureKind.Malformed)
-            : SettingsReadOutcome.Read(UserSettings.Create(display, catalog, preferences));
+        SettingsReadFailureKind? placementFailure = SettingsWindowPlacementCodec.Read(root, out SavedWindowPlacement? placement);
+        return failure is not null || display is null || placementFailure is not null
+            ? SettingsReadOutcome.Rejected(failure ?? placementFailure ?? SettingsReadFailureKind.Malformed)
+            : SettingsReadOutcome.Read(UserSettings.Create(display, catalog, preferences, placement));
     }
 
     internal static SettingsReadFailureKind? ValidateExactProperties(

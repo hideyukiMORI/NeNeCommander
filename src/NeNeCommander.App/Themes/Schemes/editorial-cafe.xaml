@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="SurfaceWindowColor">#FFDBE3DD</Color>
+    <Color x:Key="SurfacePaneColor">#FFE5EDE7</Color>
+    <Color x:Key="SurfaceFieldColor">#FFD4DDD7</Color>
+    <Color x:Key="TextPrimaryColor">#FF364A48</Color>
+    <Color x:Key="TextSecondaryColor">#FF465750</Color>
+    <Color x:Key="TextHiddenColor">#FF465751</Color>
+    <Color x:Key="TextKeyHintColor">#FF295956</Color>
+    <Color x:Key="BorderSubtleColor">#FFBFC9C4</Color>
+    <Color x:Key="FocusRingColor">#FF365650</Color>
+    <Color x:Key="FocusSurfaceColor">#FFD9E2DC</Color>
+    <Color x:Key="SelectionSurfaceColor">#FFB8CCC5</Color>
+    <Color x:Key="SelectionMarkColor">#FF5B6F42</Color>
+    <Color x:Key="StatusWarningColor">#FF625017</Color>
+    <Color x:Key="StatusWarningSurfaceColor">#FFD5D9C9</Color>
+    <Color x:Key="StatusDangerColor">#FF853C36</Color>
+    <Color x:Key="StatusDangerSurfaceColor">#FFDBD5CE</Color>
+    <Color x:Key="OperationProgressColor">#FF846048</Color>
+    <Color x:Key="OperationTrackColor">#FFCBD5CF</Color>
+
+    <SolidColorBrush x:Key="SurfaceWindowBrush" Color="{StaticResource SurfaceWindowColor}" />
+    <SolidColorBrush x:Key="SurfacePaneBrush" Color="{StaticResource SurfacePaneColor}" />
+    <SolidColorBrush x:Key="SurfaceFieldBrush" Color="{StaticResource SurfaceFieldColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextHiddenBrush" Color="{StaticResource TextHiddenColor}" />
+    <SolidColorBrush x:Key="TextKeyHintBrush" Color="{StaticResource TextKeyHintColor}" />
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtleColor}" />
+    <SolidColorBrush x:Key="FocusRingBrush" Color="{StaticResource FocusRingColor}" />
+    <SolidColorBrush x:Key="FocusSurfaceBrush" Color="{StaticResource FocusSurfaceColor}" />
+    <SolidColorBrush x:Key="SelectionSurfaceBrush" Color="{StaticResource SelectionSurfaceColor}" />
+    <SolidColorBrush x:Key="SelectionMarkBrush" Color="{StaticResource SelectionMarkColor}" />
+    <SolidColorBrush x:Key="StatusWarningBrush" Color="{StaticResource StatusWarningColor}" />
+    <SolidColorBrush x:Key="StatusWarningSurfaceBrush" Color="{StaticResource StatusWarningSurfaceColor}" />
+    <SolidColorBrush x:Key="StatusDangerBrush" Color="{StaticResource StatusDangerColor}" />
+    <SolidColorBrush x:Key="StatusDangerSurfaceBrush" Color="{StaticResource StatusDangerSurfaceColor}" />
+    <SolidColorBrush x:Key="OperationProgressBrush" Color="{StaticResource OperationProgressColor}" />
+    <SolidColorBrush x:Key="OperationTrackBrush" Color="{StaticResource OperationTrackColor}" />
+</ResourceDictionary>

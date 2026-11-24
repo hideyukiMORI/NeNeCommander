@@ -109,8 +109,8 @@ public sealed class PaneSessionNullGuardTests
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [null]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [null, FileLaunchFailureKind.NotFound]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null]);
-        NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
-        NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
+        _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
+        _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
     }
 
     private static void AssertDualPaneConstructorArguments(ConstructorInfo constructor, PaneSession left, PaneSession right, FileOperationGateway gateway)

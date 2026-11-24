@@ -72,7 +72,7 @@ public sealed class CommanderSessionTests
         CommanderSnapshot changed = await changing;
         _ = Assert.IsInstanceOfType<SettingsPersistencePending>(changed.Settings.Persistence);
         write.SetResult(SettingsWriteOutcome.Succeeded());
-        await session.StopAsync();
+        await session.StopAsync(null, new RecordingCommanderObserver());
         _ = Assert.IsInstanceOfType<SettingsPersistenceSucceeded>(session.Current.Settings.Persistence);
     }
 
@@ -174,7 +174,7 @@ public sealed class CommanderSessionTests
         await store.WaitForWriteCountAsync(2);
         Assert.AreSame(ColorScheme.Dracula, session.Current.Settings.Settings.Display.ColorScheme);
         secondWrite.SetResult(SettingsWriteOutcome.Succeeded());
-        await session.StopAsync();
+        await session.StopAsync(null, new RecordingCommanderObserver());
         Assert.AreSame(ColorScheme.Ubuntu, store.Writes[0].Display.ColorScheme);
         Assert.AreSame(ColorScheme.Dracula, store.Writes[1].Display.ColorScheme);
     }

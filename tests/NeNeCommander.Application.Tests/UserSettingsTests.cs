@@ -19,6 +19,7 @@ public sealed class UserSettingsTests
         Assert.AreSame(ColorScheme.NeNeDark, settings.Display.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Hidden, settings.Display.HiddenItemVisibility);
         Assert.AreSame(KeyHintVisibility.Shown, settings.Display.KeyHintVisibility);
+        Assert.AreSame(InterfaceLanguage.System, settings.Display.InterfaceLanguage);
         Assert.AreSame(BookmarkCatalog.Empty, settings.Bookmarks);
     }
 
@@ -27,8 +28,8 @@ public sealed class UserSettingsTests
     public void CreateWhenComponentsAreValidatedExposesThemUnchanged()
     {
         UserSettings settings = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         Assert.AreSame(ColorScheme.Dracula, settings.Display.ColorScheme);
         Assert.AreSame(HiddenItemVisibility.Shown, settings.Display.HiddenItemVisibility);
@@ -41,9 +42,10 @@ public sealed class UserSettingsTests
     [DataRow(0)]
     [DataRow(1)]
     [DataRow(2)]
+    [DataRow(3)]
     public void CreateDisplayWhenAnyChoiceIsNullRejectsIncompleteValue(int missingIndex)
     {
-        object?[] arguments = [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown];
+        object?[] arguments = [ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System];
         arguments[missingIndex] = null;
         MethodInfo factory = typeof(DisplayPreferences).GetMethod(nameof(DisplayPreferences.Create))
             ?? throw new AssertFailedException("The display factory was not found.");
@@ -58,8 +60,8 @@ public sealed class UserSettingsTests
     public void ReadOutcomeWhenCreatedCarriesExactlyOneClosedVariant()
     {
         UserSettings settings = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.NeNeLight, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.NeNeLight, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         Assert.AreSame(
             settings,

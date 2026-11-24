@@ -10,8 +10,14 @@
     xmlns:settings="using:NeNeCommander.Presentation.WinUI.Settings"
     xmlns:views="using:NeNeCommander.App.Views"
     Activated="OnActivated">
-    <Grid x:Name="WindowFrame" Background="{StaticResource SurfaceWindowBrush}">
+    <!-- Blank-area focus can belong to the framework root, outside the pane surface. -->
+    <Grid
+        x:Name="WindowFrame"
+        Background="{StaticResource SurfaceWindowBrush}"
+        CharacterReceived="OnCharacterReceived"
+        PreviewKeyDown="OnKeyDown">
         <Grid.Resources>
+            <views:ViewTextResources x:Key="ViewTextResources" />
             <Style x:Key="CaptionButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource SurfaceWindowBrush}" />
                 <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
@@ -59,6 +65,7 @@
             <Grid x:Name="CaptionDragArea" Background="{StaticResource SurfaceWindowBrush}">
                 <TextBlock
                     x:Name="CaptionTitle"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="CommanderWindowTitle"
                     AutomationProperties.AutomationId="CaptionTitle"
                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -71,7 +78,7 @@
             <StackPanel x:Name="CaptionButtons" Grid.Column="1" Orientation="Horizontal">
                 <Button
                     x:Name="CaptionMinimize"
-                    x:Uid="CaptionMinimize"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="CaptionMinimize.AutomationProperties.Name"
                     AutomationProperties.AutomationId="CaptionMinimize"
                     Style="{StaticResource CaptionButtonStyle}">
                     <Path x:Name="CaptionMinimizeGlyph" Data="M0,5.5 L10,5.5" Style="{StaticResource CaptionGlyphStyle}" />
@@ -94,7 +101,7 @@
                 </Button>
                 <Button
                     x:Name="CaptionClose"
-                    x:Uid="CaptionClose"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="CaptionClose.AutomationProperties.Name"
                     AutomationProperties.AutomationId="CaptionClose"
                     Style="{StaticResource CaptionButtonStyle}">
                     <Path x:Name="CaptionCloseGlyph" Data="M0.5,0.5 L9.5,9.5 M9.5,0.5 L0.5,9.5" Style="{StaticResource CaptionGlyphStyle}" />
@@ -107,14 +114,11 @@
         Grid.Row="1"
         AutomationProperties.AutomationId="CommanderDualPane"
         Background="{StaticResource SurfaceWindowBrush}"
-        CharacterReceived="OnCharacterReceived"
-        PreviewKeyDown="OnKeyDown"
         Loaded="OnLoaded"
         Padding="{StaticResource SpacingWindowContent}"
         RowSpacing="{StaticResource SpacingPaneGap}">
         <Grid.Resources>
             <views:SemanticResourceConverter x:Key="SemanticResourceConverter" />
-            <views:LocalizedTextConverter x:Key="LocalizedTextConverter" />
 
             <Style x:Key="PlainTextEditorStyle" TargetType="TextBox">
                 <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
@@ -244,7 +248,7 @@
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyKindLabelSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding Kind.LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding Kind.LabelResourceKey}"
                         VerticalAlignment="Center" />
                 </Grid>
             </DataTemplate>
@@ -264,7 +268,7 @@
                             FontFamily="{StaticResource TypographyMonospaceFamily}"
                             FontSize="{StaticResource TypographyMonospaceSize}"
                             Foreground="{StaticResource TextKeyHintBrush}"
-                            Text="{Binding KeyLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding KeyLabelResourceKey}"
                             VerticalAlignment="Center" />
                     </Border>
                     <TextBlock
@@ -272,7 +276,7 @@
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding IntentLabelResourceKey}"
                         TextLineBounds="Tight"
                         VerticalAlignment="Center" />
                 </StackPanel>
@@ -289,7 +293,7 @@
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextKeyHintBrush}"
-                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding}"
                         VerticalAlignment="Center" />
                 </Border>
             </DataTemplate>
@@ -314,7 +318,7 @@
                     <TextBlock
                         FontSize="{StaticResource TypographyBodySize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding ActionLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding ActionLabelResourceKey}"
                         TextLineBounds="Tight"
                         VerticalAlignment="Center" />
                 </StackPanel>
@@ -326,7 +330,7 @@
                         FontSize="{StaticResource TypographyBodySize}"
                         FontWeight="Bold"
                         Foreground="{StaticResource TextPrimaryBrush}"
-                        Text="{Binding TitleResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding TitleResourceKey}" />
                     <ItemsControl
                         IsTabStop="False"
                         ItemTemplate="{StaticResource KeyboardHelpRowTemplate}"
@@ -368,7 +372,7 @@
                                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                                         FontSize="{StaticResource TypographyMonospaceSize}"
                                         Foreground="{StaticResource TextKeyHintBrush}"
-                                        Text="{Binding Converter={StaticResource LocalizedTextConverter}}"
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding}"
                                         VerticalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
@@ -378,7 +382,7 @@
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding IntentLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding IntentLabelResourceKey}"
                         TextLineBounds="Tight"
                         VerticalAlignment="Center" />
                 </StackPanel>
@@ -401,29 +405,23 @@
                     </ToolTipService.ToolTip>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock
                         Foreground="{StaticResource StatusWarningBrush}"
                         Text="{x:Bind StateMarker}"
                         VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock
-                            x:Name="CommandPaletteTitle"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            Foreground="{StaticResource TextPrimaryBrush}"
-                            Text="{x:Bind Title}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
-                        <TextBlock
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{x:Bind Target}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
-                    </StackPanel>
+                    <TextBlock
+                        x:Name="CommandPaletteTitle"
+                        Grid.Column="1"
+                        FontSize="{StaticResource TypographyBodySize}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{x:Bind Title}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Center" />
                     <TextBlock
                         Grid.Column="2"
                         Foreground="{StaticResource StatusWarningBrush}"
@@ -450,18 +448,40 @@
             <DataTemplate x:Key="ProgressSegmentTemplate">
                 <Rectangle
                     Fill="{Binding BrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
+                    Stroke="{StaticResource OperationProgressBrush}"
+                    StrokeThickness="{StaticResource DensityIconStrokeThickness}"
                     Height="{StaticResource DensityProgressSegmentSize}"
                     Width="{StaticResource DensityProgressSegmentSize}" />
             </DataTemplate>
 
             <DataTemplate
-                x:Key="SettingsSchemeOptionTemplate"
-                x:DataType="settings:SettingsColorSchemeOption">
+                x:Key="SettingsLanguageOptionTemplate"
+                x:DataType="settings:SettingsLanguageOption">
                 <RadioButton
-                    Checked="OnSettingsSchemeChecked"
-                    Content="{Binding NameResourceKey, Converter={StaticResource LocalizedTextConverter}}"
-                    GroupName="SettingsColorSchemes"
+                    AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                    Checked="OnSettingsLanguageChecked"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="{Binding NameResourceKey}"
+                    GroupName="SettingsInterfaceLanguages"
                     IsChecked="{x:Bind IsSelected, Mode=OneTime}" />
+            </DataTemplate>
+            <DataTemplate
+                x:Key="SettingsSchemeOptionTemplate"
+                x:DataType="settings:SettingsSchemeRow">
+                <Grid
+                    AutomationProperties.Name="{x:Bind Description}"
+                    ToolTipService.ToolTip="{x:Bind Description}"
+                    HorizontalAlignment="Stretch"
+                    MinHeight="{StaticResource DensitySettingsSchemeRowMinHeight}"
+                    Padding="{StaticResource SpacingThemePickerRow}">
+                    <Grid ColumnSpacing="{StaticResource SpacingRowGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind Appearance}" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
             </DataTemplate>
 
             <DataTemplate x:Key="BookmarkCategoryOptionTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
@@ -498,7 +518,7 @@
             <DataTemplate x:Key="BookmarkKeyHintTemplate" x:DataType="bookmarks:BookmarkManagerKeyHint">
                 <Button
                     AutomationProperties.AutomationId="{x:Bind AutomationId}"
-                    AutomationProperties.Name="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="{Binding LabelResourceKey}"
                     Click="OnBookmarkKeyHintClick"
                     IsEnabled="{x:Bind IsInvocable}"
                     Style="{StaticResource BookmarkKeyHintButtonStyle}">
@@ -522,7 +542,7 @@
                             FontFamily="{StaticResource TypographyMonospaceFamily}"
                             FontSize="{StaticResource TypographyMonospaceSize}"
                             Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding LabelResourceKey}"
                             TextLineBounds="Tight"
                             VerticalAlignment="Center" />
                     </StackPanel>
@@ -582,7 +602,7 @@
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource FocusRingBrush}"
-                        Text="{Binding ShortcutLabelResourceKey, Converter={StaticResource LocalizedTextConverter}}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding ShortcutLabelResourceKey}"
                         TextWrapping="NoWrap"
                         VerticalAlignment="Center"
                         Width="{StaticResource DensityBookmarkSlotColumnWidth}" />
@@ -624,7 +644,7 @@
 
             <DataTemplate x:Key="BookmarkShortcutOptionTemplate" x:DataType="bookmarks:BookmarkShortcutOption">
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingRowGap}">
-                    <TextBlock Text="{Binding LabelResourceKey, Converter={StaticResource LocalizedTextConverter}}" />
+                    <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding LabelResourceKey}" />
                     <TextBlock Text="{x:Bind AssignedBookmarkName}" Foreground="{StaticResource TextSecondaryBrush}" />
                 </StackPanel>
             </DataTemplate>
@@ -643,7 +663,7 @@
 
             <Border
                 x:Name="LeftPaneBorder"
-                x:Uid="LeftPaneRegion"
+                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="LeftPaneRegion.AutomationProperties.Name"
                 Grid.Column="0"
                 AutomationProperties.AutomationId="LeftPaneBorder"
                 Background="{StaticResource SurfacePaneBrush}"
@@ -654,6 +674,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="LeftPaneHeader"
@@ -674,7 +695,7 @@
                                 VerticalAlignment="Center">
                                 <TextBlock
                                     x:Name="LeftPaneNumber"
-                                    x:Uid="LeftPaneNumber"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="LeftPaneNumber.Text"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
                                     FontWeight="Bold"
@@ -709,12 +730,21 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <TextBlock
+                        x:Name="LeftCounts"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="LeftPaneCounts"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingPaneHeader}"
+                        TextWrapping="Wrap" />
                 </Grid>
             </Border>
 
             <Border
                 x:Name="RightPaneBorder"
-                x:Uid="RightPaneRegion"
+                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="RightPaneRegion.AutomationProperties.Name"
                 Grid.Column="1"
                 AutomationProperties.AutomationId="RightPaneBorder"
                 Background="{StaticResource SurfacePaneBrush}"
@@ -725,6 +755,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="RightPaneHeader"
@@ -745,7 +776,7 @@
                                 VerticalAlignment="Center">
                                 <TextBlock
                                     x:Name="RightPaneNumber"
-                                    x:Uid="RightPaneNumber"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="RightPaneNumber.Text"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
                                     FontWeight="Bold"
@@ -780,6 +811,15 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <TextBlock
+                        x:Name="RightCounts"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="RightPaneCounts"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Margin="{StaticResource SpacingPaneHeader}"
+                        TextWrapping="Wrap" />
                 </Grid>
             </Border>
         </Grid>
@@ -797,15 +837,15 @@
             VerticalAlignment="Center"
             Visibility="Collapsed">
             <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                <TextBlock x:Uid="ConflictModalTitle" FontSize="{StaticResource TypographyBodySize}" />
+                <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictModalTitle.Text" FontSize="{StaticResource TypographyBodySize}" />
                 <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
                 <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
                 <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <CheckBox x:Name="ConflictApplyToAll" x:Uid="ConflictApplyToAll" IsChecked="False" />
+                <CheckBox x:Name="ConflictApplyToAll" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictApplyToAll.Content" IsChecked="False" />
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                    <Button x:Name="ConflictSkip" x:Uid="ConflictSkip" />
-                    <Button x:Name="ConflictKeepBoth" x:Uid="ConflictKeepBoth" />
-                    <Button x:Name="ConflictCancel" x:Uid="ConflictCancel" />
+                    <Button x:Name="ConflictSkip" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictSkip.Content" />
+                    <Button x:Name="ConflictKeepBoth" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictKeepBoth.Content" />
+                    <Button x:Name="ConflictCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictCancel.Content" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -830,6 +870,7 @@
             x:Name="SettingsOverlay"
             Grid.RowSpan="3"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Padding="{StaticResource SpacingWindowOuter}"
             Visibility="Collapsed"
             Canvas.ZIndex="10">
             <Border
@@ -838,61 +879,188 @@
                 BorderBrush="{StaticResource FocusRingBrush}"
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
-                MinWidth="{StaticResource DensityNameEntryWidth}"
+                MaxWidth="{StaticResource DensitySettingsModalMaxWidth}"
                 Padding="{StaticResource SpacingWindowOuter}"
-                HorizontalAlignment="Center"
+                TabFocusNavigation="Cycle"
+                HorizontalAlignment="Stretch"
                 VerticalAlignment="Center">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                        <TextBlock
-                            x:Uid="SettingsTitle"
-                            FontSize="{StaticResource TypographyBodySize}"
-                            FontWeight="Bold" />
-                        <TextBlock
-                            x:Uid="SettingsAutoSaveExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="SettingsShowHiddenAtLaunch"
-                            x:Uid="SettingsShowHiddenAtLaunch"
-                            AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
-                            Checked="OnSettingsShowHiddenChanged"
-                            Unchecked="OnSettingsShowHiddenChanged" />
-                        <TextBlock
-                            x:Uid="SettingsHiddenCurrentPaneExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="SettingsShowKeyHints"
-                            x:Uid="SettingsShowKeyHints"
-                            AutomationProperties.AutomationId="SettingsShowKeyHints"
-                            AutomationProperties.HelpText="{Binding ElementName=SettingsKeyHintExplanation, Path=Text}"
-                            Checked="OnSettingsShowKeyHintsChanged"
-                            Unchecked="OnSettingsShowKeyHintsChanged" />
-                        <TextBlock
-                            x:Name="SettingsKeyHintExplanation"
-                            x:Uid="SettingsKeyHintExplanation"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            x:Uid="SettingsColorSchemeLabel"
-                            FontWeight="Bold" />
-                        <ItemsControl
-                            x:Name="SettingsSchemeOptions"
-                            AutomationProperties.AutomationId="SettingsSchemeOptions"
-                            ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}" />
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsTabStop="False">
+                        <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                            <TextBlock
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsTitle.Text"
+                                FontSize="{StaticResource TypographyBodySize}"
+                                FontWeight="Bold" />
+                            <TextBlock
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsAutoSaveExplanation.Text"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <CheckBox
+                                x:Name="SettingsShowHiddenAtLaunch"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="SettingsShowHiddenAtLaunch.Content"
+                                AutomationProperties.AutomationId="SettingsShowHiddenAtLaunch"
+                                Checked="OnSettingsShowHiddenChanged"
+                                Unchecked="OnSettingsShowHiddenChanged" />
+                            <TextBlock
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsHiddenCurrentPaneExplanation.Text"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <CheckBox
+                                x:Name="SettingsShowKeyHints"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="SettingsShowKeyHints.Content"
+                                AutomationProperties.AutomationId="SettingsShowKeyHints"
+                                AutomationProperties.HelpText="{Binding ElementName=SettingsKeyHintExplanation, Path=Text}"
+                                Checked="OnSettingsShowKeyHintsChanged"
+                                Unchecked="OnSettingsShowKeyHintsChanged" />
+                            <TextBlock
+                                x:Name="SettingsKeyHintExplanation"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsKeyHintExplanation.Text"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsLanguageLabel.Text"
+                                FontWeight="Bold" />
+                            <TextBlock
+                                x:Name="SettingsLanguageExplanation"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsLanguageExplanation.Text"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <ItemsControl
+                                x:Name="SettingsLanguageOptions"
+                                AutomationProperties.AutomationId="SettingsLanguageOptions"
+                                AutomationProperties.HelpText="{Binding ElementName=SettingsLanguageExplanation, Path=Text}"
+                                ItemTemplate="{StaticResource SettingsLanguageOptionTemplate}" />
+                            <TextBlock
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="SettingsColorSchemeLabel.Text"
+                                FontWeight="Bold" />
+                            <Button
+                                x:Name="SettingsChooseScheme"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.HelpTextKey="SettingsChooseScheme.AutomationProperties.HelpText"
+                                AutomationProperties.AutomationId="SettingsChooseScheme"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left">
+                                <TextBlock x:Name="SettingsSelectedSchemeText" TextWrapping="Wrap" />
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Grid Grid.Row="1" ColumnSpacing="{StaticResource SpacingOperationBarGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock
                             x:Name="SettingsSaveStatus"
                             AutomationProperties.AutomationId="SettingsSaveStatus"
-                            Foreground="{StaticResource TextSecondaryBrush}" />
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
                         <Button
+                            Grid.Column="1"
                             x:Name="SettingsClose"
-                            x:Uid="SettingsClose"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="SettingsClose.Content"
                             AutomationProperties.AutomationId="SettingsClose"
                             Click="OnSettingsClose"
                             HorizontalAlignment="Right" />
-                    </StackPanel>
-                </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="ThemePickerOverlay"
+            Grid.RowSpan="3"
+            AutomationProperties.AutomationId="ThemePickerOverlay"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Padding="{StaticResource SpacingWindowOuter}"
+            Visibility="Collapsed"
+            Canvas.ZIndex="20">
+            <Border
+                x:Name="ThemePickerSurface"
+                AutomationProperties.AutomationId="ThemePickerSurface"
+                AutomationProperties.LabeledBy="{Binding ElementName=ThemePickerTitle}"
+                Background="{StaticResource SurfacePaneBrush}"
+                BorderBrush="{StaticResource FocusRingBrush}"
+                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                CornerRadius="{StaticResource RadiusPane}"
+                MaxWidth="{StaticResource DensitySettingsModalMaxWidth}"
+                Padding="{StaticResource SpacingWindowOuter}"
+                TabFocusNavigation="Cycle"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center">
+                <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="ThemePickerTitle" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ThemePickerTitle.Text" FontWeight="Bold" />
+                    <TextBox
+                        x:Name="SettingsSchemeSearch"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.PlaceholderKey="SettingsSchemeSearch.PlaceholderText"
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="SettingsSchemeSearch"
+                        AutomationProperties.LabeledBy="{Binding ElementName=ThemePickerTitle}"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False" />
+                    <TextBlock
+                        x:Name="SettingsCurrentScheme"
+                        Grid.Row="2"
+                        AutomationProperties.AutomationId="SettingsCurrentScheme"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <ListView
+                        x:Name="SettingsSchemeOptions"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="SettingsSchemeOptions.AutomationProperties.Name"
+                        Grid.Row="3"
+                        AutomationProperties.AutomationId="SettingsSchemeOptions"
+                        MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}"
+                        IsItemClickEnabled="True"
+                        ItemContainerStyle="{StaticResource CommandPaletteRowContainerStyle}"
+                        ItemTemplate="{StaticResource SettingsSchemeOptionTemplate}"
+                        SelectionMode="Single"
+                        TabFocusNavigation="Once"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate><ItemsStackPanel /></ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.Resources>
+                            <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="SelectionSurfaceBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="SelectionMarkBrush" />
+                            <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="SelectionMarkBrush" />
+                        </ListView.Resources>
+                    </ListView>
+                    <Grid Grid.Row="4" ColumnSpacing="{StaticResource SpacingOperationBarGap}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="{StaticResource SpacingRowGap}">
+                            <TextBlock
+                                x:Name="SettingsSchemeResults"
+                                AutomationProperties.AutomationId="SettingsSchemeResults"
+                                AutomationProperties.LiveSetting="Polite"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock x:Name="ThemePickerInstructions" Foreground="{StaticResource TextKeyHintBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button
+                            x:Name="ThemePickerCancel"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ThemePickerCancel.Content"
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="ThemePickerCancel"
+                            VerticalAlignment="Bottom" />
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
 
@@ -906,7 +1074,7 @@
             Canvas.ZIndex="11">
             <Border
                 x:Name="BookmarkManagerSurface"
-                x:Uid="BookmarkManagerRegion"
+                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkManagerRegion.AutomationProperties.Name"
                 AutomationProperties.AutomationId="BookmarkManagerModal"
                 Background="{StaticResource SurfacePaneBrush}"
                 BorderBrush="{StaticResource FocusRingBrush}"
@@ -934,7 +1102,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock
-                                x:Uid="BookmarkManagerTitle"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkManagerTitle.Text"
                                 FontSize="{StaticResource TypographyBodySize}"
                                 FontWeight="Bold"
                                 Foreground="{StaticResource TextPrimaryBrush}"
@@ -949,7 +1117,7 @@
                                 VerticalAlignment="Center" />
                             <TextBox
                                 x:Name="BookmarkSearch"
-                                x:Uid="BookmarkSearch"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.PlaceholderKey="BookmarkSearch.PlaceholderText"
                                 Grid.Column="2"
                                 AutomationProperties.AutomationId="BookmarkSearch"
                                 VerticalAlignment="Center"
@@ -992,13 +1160,13 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <TextBlock
-                                    x:Uid="BookmarkCategoryActionsHeader"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryActionsHeader.Text"
                                     FontSize="{StaticResource TypographyKindLabelSize}"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     Padding="{StaticResource SpacingOperationBar}" />
                                 <ListView
                                     x:Name="BookmarkCategories"
-                                    x:Uid="BookmarkCategoriesRegion"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkCategoriesRegion.AutomationProperties.Name"
                                     Grid.Row="1"
                                     AutomationProperties.AutomationId="BookmarkCategories"
                                     BorderThickness="{StaticResource BorderOperationBarThickness}"
@@ -1026,26 +1194,26 @@
                                 </Grid.ColumnDefinitions>
                                 <Border Width="{StaticResource DensityRowMarkerWidth}" />
                                 <TextBlock
-                                    x:Uid="BookmarkColumnSlot"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnSlot.Text"
                                     Grid.Column="1"
                                     FontSize="{StaticResource TypographyKindLabelSize}"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     Width="{StaticResource DensityBookmarkSlotColumnWidth}" />
                                 <TextBlock
-                                    x:Uid="BookmarkColumnName"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnName.Text"
                                     Grid.Column="2"
                                     FontSize="{StaticResource TypographyKindLabelSize}"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     Width="{StaticResource DensityBookmarkNameColumnWidth}" />
                                 <TextBlock
-                                    x:Uid="BookmarkColumnPath"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnPath.Text"
                                     Grid.Column="3"
                                     FontSize="{StaticResource TypographyKindLabelSize}"
                                     Foreground="{StaticResource TextSecondaryBrush}" />
                             </Grid>
                             <ListView
                                 x:Name="BookmarkRows"
-                                x:Uid="BookmarkRowsRegion"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkRowsRegion.AutomationProperties.Name"
                                 Grid.Row="1"
                                 AutomationProperties.AutomationId="BookmarkRows"
                                 BorderThickness="{StaticResource BorderOperationBarThickness}"
@@ -1071,13 +1239,13 @@
                     <ScrollViewer x:Name="BookmarkDraftBody" Grid.Row="2" Visibility="Collapsed">
                         <StackPanel Padding="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationBarGap}">
                             <TextBlock x:Name="BookmarkDraftTitle" FontWeight="Bold" />
-                            <TextBlock x:Name="BookmarkNameLabel" x:Uid="BookmarkNameLabel" />
+                            <TextBlock x:Name="BookmarkNameLabel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkNameLabel.Text" />
                             <TextBox x:Name="BookmarkName" AutomationProperties.AutomationId="BookmarkName" AutomationProperties.LabeledBy="{Binding ElementName=BookmarkNameLabel}" MaxLength="128" />
-                            <TextBlock x:Name="BookmarkPathLabel" x:Uid="BookmarkPathLabel" />
+                            <TextBlock x:Name="BookmarkPathLabel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkPathLabel.Text" />
                             <TextBox x:Name="BookmarkPath" AutomationProperties.AutomationId="BookmarkPath" AutomationProperties.LabeledBy="{Binding ElementName=BookmarkPathLabel}" MaxLength="32767" />
-                            <TextBlock x:Name="BookmarkCategoryLabel" x:Uid="BookmarkCategoryLabel" />
+                            <TextBlock x:Name="BookmarkCategoryLabel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryLabel.Text" />
                             <ComboBox x:Name="BookmarkDraftCategory" AutomationProperties.AutomationId="BookmarkDraftCategory" AutomationProperties.LabeledBy="{Binding ElementName=BookmarkCategoryLabel}" ItemTemplate="{StaticResource BookmarkCategoryOptionTemplate}" />
-                            <TextBlock x:Name="BookmarkShortcutLabel" x:Uid="BookmarkShortcutLabel" />
+                            <TextBlock x:Name="BookmarkShortcutLabel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkShortcutLabel.Text" />
                             <ComboBox x:Name="BookmarkDraftShortcut" AutomationProperties.AutomationId="BookmarkDraftShortcut" AutomationProperties.LabeledBy="{Binding ElementName=BookmarkShortcutLabel}" ItemTemplate="{StaticResource BookmarkShortcutOptionTemplate}" />
                         </StackPanel>
                     </ScrollViewer>
@@ -1085,31 +1253,31 @@
                     <ScrollViewer x:Name="BookmarkCategoryDraftBody" Grid.Row="2" Visibility="Collapsed">
                         <StackPanel Padding="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationBarGap}">
                             <TextBlock x:Name="BookmarkCategoryDraftTitle" FontWeight="Bold" />
-                            <TextBlock x:Name="BookmarkCategoryNameLabel" x:Uid="BookmarkCategoryNameLabel" />
+                            <TextBlock x:Name="BookmarkCategoryNameLabel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryNameLabel.Text" />
                             <TextBox x:Name="BookmarkCategoryName" AutomationProperties.AutomationId="BookmarkCategoryName" AutomationProperties.LabeledBy="{Binding ElementName=BookmarkCategoryNameLabel}" MaxLength="64" />
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="BookmarkCategoryDeleteBody" Grid.Row="2" Visibility="Collapsed">
                         <StackPanel Padding="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationBarGap}">
-                            <TextBlock x:Uid="BookmarkCategoryDeleteTitle" FontWeight="Bold" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteExplanation" TextWrapping="Wrap" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteCategoryLabel" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryDeleteTitle.Text" FontWeight="Bold" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryDeleteExplanation.Text" TextWrapping="Wrap" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryDeleteCategoryLabel.Text" />
                             <TextBlock x:Name="BookmarkCategoryDeleteCategory" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteCountLabel" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryDeleteCountLabel.Text" />
                             <TextBlock x:Name="BookmarkCategoryDeleteCount" />
-                            <TextBlock x:Uid="BookmarkCategoryDeleteDestinationLabel" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryDeleteDestinationLabel.Text" />
                             <TextBlock x:Name="BookmarkCategoryDeleteDestination" />
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="BookmarkDeleteBody" Grid.Row="2" Visibility="Collapsed">
                         <StackPanel Padding="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationBarGap}">
-                            <TextBlock x:Uid="BookmarkDeleteTitle" FontWeight="Bold" />
-                            <TextBlock x:Uid="BookmarkDeleteExplanation" TextWrapping="Wrap" />
-                            <TextBlock x:Uid="BookmarkDeleteNameLabel" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkDeleteTitle.Text" FontWeight="Bold" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkDeleteExplanation.Text" TextWrapping="Wrap" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkDeleteNameLabel.Text" />
                             <TextBlock x:Name="BookmarkDeleteName" AutomationProperties.AutomationId="BookmarkDeleteName" TextWrapping="Wrap" />
-                            <TextBlock x:Uid="BookmarkDeletePathLabel" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkDeletePathLabel.Text" />
                             <TextBlock x:Name="BookmarkDeletePath" AutomationProperties.AutomationId="BookmarkDeletePath" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
                         </StackPanel>
                     </ScrollViewer>
@@ -1127,7 +1295,7 @@
                             </Grid.ColumnDefinitions>
                             <ItemsControl
                                 x:Name="BookmarkBrowseFooter"
-                                x:Uid="BookmarkKeyHintsRegion"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkKeyHintsRegion.AutomationProperties.Name"
                                 AutomationProperties.AutomationId="BookmarkKeyHints"
                                 IsTabStop="False"
                                 ItemTemplate="{StaticResource BookmarkKeyHintTemplate}"
@@ -1139,29 +1307,29 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
                             <StackPanel x:Name="BookmarkDraftFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
-                                <Button x:Name="BookmarkSave" x:Uid="BookmarkSave" />
-                                <Button x:Name="BookmarkDraftCancel" x:Uid="BookmarkCancel" />
+                                <Button x:Name="BookmarkSave"  />
+                                <Button x:Name="BookmarkDraftCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCancel.Content" />
                             </StackPanel>
                             <StackPanel x:Name="BookmarkCategoryDraftFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
-                                <Button x:Name="BookmarkCategorySave" x:Uid="BookmarkSave" />
-                                <Button x:Name="BookmarkCategoryCancel" x:Uid="BookmarkCancel" />
+                                <Button x:Name="BookmarkCategorySave"  />
+                                <Button x:Name="BookmarkCategoryCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCancel.Content" />
                             </StackPanel>
                             <StackPanel x:Name="BookmarkCategoryDeleteFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
-                                <Button x:Name="BookmarkCategoryDeleteConfirm" x:Uid="BookmarkCategoryDeleteConfirm" />
-                                <Button x:Name="BookmarkCategoryDeleteCancel" x:Uid="BookmarkCancel" />
+                                <Button x:Name="BookmarkCategoryDeleteConfirm" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCategoryDeleteConfirm.Content" />
+                                <Button x:Name="BookmarkCategoryDeleteCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCancel.Content" />
                             </StackPanel>
                             <StackPanel x:Name="BookmarkDeleteFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
-                                <Button x:Name="BookmarkDeleteConfirm" x:Uid="BookmarkDeleteConfirm" AutomationProperties.AutomationId="BookmarkDeleteConfirm" />
-                                <Button x:Name="BookmarkDeleteCancel" x:Uid="BookmarkCancel" AutomationProperties.AutomationId="BookmarkDeleteCancel" />
+                                <Button x:Name="BookmarkDeleteConfirm" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkDeleteConfirm.Content" AutomationProperties.AutomationId="BookmarkDeleteConfirm" />
+                                <Button x:Name="BookmarkDeleteCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCancel.Content" AutomationProperties.AutomationId="BookmarkDeleteCancel" />
                             </StackPanel>
                             <StackPanel x:Name="BookmarkNavigationFailedFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
-                                <Button x:Name="BookmarkNavigationRetry" x:Uid="BookmarkNavigationRetry" />
-                                <Button x:Name="BookmarkNavigationCancel" x:Uid="BookmarkNavigationBack" />
+                                <Button x:Name="BookmarkNavigationRetry" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkNavigationRetry.Content" />
+                                <Button x:Name="BookmarkNavigationCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkNavigationBack.Content" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingRowGap}" VerticalAlignment="Center">
                                 <TextBlock
                                     x:Name="BookmarkPersistenceLabel"
-                                    x:Uid="BookmarkPersistenceLabel"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkPersistenceLabel.Text"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
                                     Foreground="{StaticResource TextSecondaryBrush}" />
@@ -1181,7 +1349,7 @@
 
         <Border
             x:Name="OperationBar"
-            x:Uid="OperationBarRegion"
+            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="OperationBarRegion.AutomationProperties.Name"
             Grid.Row="2"
             AutomationProperties.AutomationId="OperationBar"
             Background="{StaticResource SurfacePaneBrush}"
@@ -1286,30 +1454,30 @@
                     </StackPanel>
                     <views:KeyHintWrapPanel x:Name="TransferResultSegments" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                            <TextBlock x:Uid="TransferResultNotTransferred" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="TransferResultNotTransferred.Text" />
                             <TextBlock x:Name="TransferResultNotTransferredCount" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                            <TextBlock x:Uid="TransferResultCopied" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="TransferResultCopied.Text" />
                             <TextBlock x:Name="TransferResultCopiedCount" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                            <TextBlock x:Uid="TransferResultVerified" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="TransferResultVerified.Text" />
                             <TextBlock x:Name="TransferResultVerifiedCount" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                            <TextBlock x:Uid="TransferResultSourceDeleted" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="TransferResultSourceDeleted.Text" />
                             <TextBlock x:Name="TransferResultSourceDeletedCount" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                            <TextBlock x:Uid="TransferResultSourcePartiallyDeleted" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="TransferResultSourcePartiallyDeleted.Text" />
                             <TextBlock x:Name="TransferResultSourcePartiallyDeletedCount" />
                         </StackPanel>
                     </views:KeyHintWrapPanel>
                 </views:KeyHintWrapPanel>
                 <ItemsControl
                     x:Name="OperationKeyHints"
-                    x:Uid="OperationKeyHintsRegion"
+                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="OperationKeyHintsRegion.AutomationProperties.Name"
                     AutomationProperties.AutomationId="OperationKeyHints"
                     HorizontalAlignment="Right"
                     ItemTemplate="{StaticResource KeyHintTemplate}"
@@ -1346,12 +1514,12 @@
                 <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
                     <TextBlock
                         x:Name="AddressEditorTitle"
-                        x:Uid="AddressEditorTitle"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="AddressEditorTitle.Text"
                         FontSize="{StaticResource TypographyBodySize}"
                         FontWeight="Bold" />
                     <TextBox
                         x:Name="AddressEditorInput"
-                        x:Uid="AddressEditorInput"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="AddressEditorInput.AutomationProperties.Name"
                         AutomationProperties.AutomationId="AddressEditorInput"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
@@ -1394,6 +1562,8 @@
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
                 HorizontalAlignment="Stretch"
+                Margin="{StaticResource SpacingCommandPaletteOuter}"
+                MaxWidth="{StaticResource DensityCommandPaletteMaxWidth}"
                 Padding="{StaticResource SpacingWindowOuter}"
                 VerticalAlignment="Top">
                 <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
@@ -1408,18 +1578,19 @@
                     <TextBlock
                         x:Name="CommandPaletteContext"
                         AutomationProperties.AutomationId="CommandPaletteContext"
-                        Foreground="{StaticResource TextSecondaryBrush}"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
                         TextWrapping="Wrap" />
                     <TextBox
                         x:Name="CommandPaletteSearch"
-                        x:Uid="CommandPaletteSearch"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="CommandPaletteSearch.AutomationProperties.Name" views:LocalizedText.PlaceholderKey="CommandPaletteSearch.PlaceholderText"
                         Grid.Row="1"
                         AutomationProperties.AutomationId="CommandPaletteSearch"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyBodySize}" />
                     <ListView
                         x:Name="CommandPaletteCandidateList"
-                        x:Uid="CommandPaletteCandidateList"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="CommandPaletteCandidateList.AutomationProperties.Name"
                         Grid.Row="2"
                         AutomationProperties.AutomationId="CommandPaletteCandidateList"
                         IsItemClickEnabled="True"
@@ -1437,7 +1608,7 @@
                     </ListView>
                     <TextBlock
                         x:Name="CommandPaletteZeroResults"
-                        x:Uid="CommandPaletteZeroResults"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="CommandPaletteZeroResults.Text"
                         Grid.Row="3"
                         AutomationProperties.AutomationId="CommandPaletteZeroResults"
                         Foreground="{StaticResource TextSecondaryBrush}"
@@ -1445,6 +1616,7 @@
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
                     <Border
+                        x:Name="CommandPaletteDetailBar"
                         Grid.Row="4"
                         AutomationProperties.AutomationId="CommandPaletteDetailBar"
                         Background="{StaticResource SurfaceFieldBrush}"
@@ -1464,9 +1636,7 @@
                         ItemTemplate="{StaticResource KeyHintTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                                <views:KeyHintWrapPanel />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
@@ -1502,7 +1672,7 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock x:Uid="LocationsTitle" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" />
+                    <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="LocationsTitle.Text" FontSize="{StaticResource TypographyBodySize}" FontWeight="Bold" />
                     <TextBlock
                         x:Name="LocationsStatus"
                         Grid.Row="1"
@@ -1527,7 +1697,7 @@
                         Visibility="Collapsed" />
                     <ListView
                         x:Name="LocationsList"
-                        x:Uid="LocationsList"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="LocationsList.AutomationProperties.Name"
                         Grid.Row="4"
                         AutomationProperties.AutomationId="LocationsList"
                         IsItemClickEnabled="True"
@@ -1573,14 +1743,14 @@
                     </Grid.RowDefinitions>
                     <TextBlock
                         x:Name="KeyboardHelpTitle"
-                        x:Uid="KeyboardHelpTitle"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="KeyboardHelpTitle.Text"
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="{StaticResource TypographyBodySize}"
                         FontWeight="Bold"
                         Foreground="{StaticResource TextPrimaryBrush}"
                         Margin="{StaticResource SpacingWindowOuter}" />
                     <ScrollViewer
-                        x:Name="KeyboardHelp"
+                        x:Name="KeyboardHelp" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="KeyboardHelpName"
                         Grid.Row="1"
                         AutomationProperties.AutomationId="KeyboardHelp"
                         HorizontalScrollBarVisibility="Disabled"
@@ -1609,7 +1779,7 @@
                         </Grid>
                     </ScrollViewer>
                     <TextBlock
-                        x:Uid="KeyboardHelpCloseNote"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="KeyboardHelpCloseNote.Text"
                         Grid.Row="2"
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="{StaticResource TypographyBodySize}"

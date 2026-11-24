@@ -109,6 +109,9 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the session-owned settings editor.</summary>
     public static UserIntent OpenSettings { get; } = new OpenSettingsIntent();
 
+    /// <summary>Gets the intent to enter the one theme picker from settings or the command palette.</summary>
+    public static UserIntent OpenColorSchemes { get; } = new OpenColorSchemesIntent();
+
     /// <summary>Gets the intent to open the session-owned command palette.</summary>
     public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
 
@@ -230,12 +233,32 @@ public abstract record UserIntent
         return new ColorSchemeSelection(scheme);
     }
 
+    /// <summary>Creates an explicit theme acceptance qualified by the picker that displayed it.</summary>
+    public static UserIntent SubmitColorScheme(ColorSchemePickerOpen expectedState, ColorScheme scheme)
+    {
+        return new ColorSchemePickerSubmission(expectedState, scheme);
+    }
+
+    /// <summary>Creates a theme cancellation qualified by the picker that owns it.</summary>
+    public static UserIntent CancelColorSchemePicker(ColorSchemePickerOpen expectedState)
+    {
+        return new ColorSchemePickerCancellation(expectedState);
+    }
+
     /// <summary>Creates an intent selecting the next-launch hidden-item default.</summary>
     /// <param name="visibility">Closed visibility selected by the editor.</param>
     /// <returns>The typed selection intent.</returns>
     public static UserIntent SelectLaunchHiddenItemVisibility(HiddenItemVisibility visibility)
     {
         return new LaunchHiddenItemVisibilitySelection(visibility);
+    }
+
+    /// <summary>Creates an intent selecting the interface language for the next launch.</summary>
+    /// <param name="language">Shipped language selected by the editor.</param>
+    /// <returns>The typed selection intent.</returns>
+    public static UserIntent SelectInterfaceLanguage(InterfaceLanguage language)
+    {
+        return new InterfaceLanguageSelection(language);
     }
 
     /// <summary>Creates an intent selecting the normal footer hint visibility.</summary>
@@ -414,6 +437,13 @@ public abstract record UserIntent
         {
         }
     }
+    private sealed record OpenColorSchemesIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private sealed record OpenSettingsIntent : UserIntent
     {
         private protected override void RestrictDerivation()

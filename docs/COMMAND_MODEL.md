@@ -111,11 +111,13 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | view-model notifications and commands | CommunityToolkit.Mvvm source generators |
 | expected operation results | canonical closed `OperationOutcome` model |
 | settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |
+| immediate interface language | `InterfaceLanguageSelection` through the existing settings modal/queue; the window-owned `ViewTextResources` applies the current choice to its sole explicit MRT context and existing localized controls, retaining the original System qualifier (ADR-0086, ADR-0088) |
 | settings modal ownership and intent routing | `CommanderSession` over `DualPaneSession` and `SettingsSession` |
 | command-palette state, admission, and qualified validation | `CommandPaletteSession` with `CommandCatalog` |
 | dispatch of a validated palette intent | `CommanderSession` |
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
 | localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
+| startup and final window placement | `WindowRestorePlanner` decides one corrected normal rectangle; the existing `AppWindowPlacementAdapter` moves to the target display before applying it and tracks its own window. `CommanderSession.StopAsync` queues one changed final value and drains `SettingsSession`; stopping session/operation callbacks cannot rebuild content or refocus lists (ADR-0089) |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
 | framework asynchronous work | `AsyncWorkOwner`; Stop closes admission before cancelling and awaiting admitted work (ADR-0030, ADR-0071) |
 | normal final-window shutdown | `AppWindowCloseAdapter` translates system close to one `WindowShutdownOwner` drain, then the composition root closes the window (ADR-0071) |
@@ -123,7 +125,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | Windows drive enumeration | `IDriveCatalog` implemented only by `WindowsDriveCatalog` through the Windows local I/O execution boundary |
 | Locations picker state, admission, focus, and qualified validation | `LocationsSession` over `IDriveCatalog` and `IWslDistributionCatalog` |
 | window adjustment mode synchronous input route | `CommanderSession.AdjustWindow` and `CommanderSession.LeaveWindowAdjustment` |
-| color scheme | scheme resource dictionary merged by the composition root |
+| color scheme | sole fixed ColorScheme catalog and constant resource projection, copied into the existing merged brushes by the composition root (ADR-0087); transient theme search never applies or saves |
 | focused file launch | `PaneSession` file/directory decision through `IFileLauncher`, with path admission owned by `WindowsShellFileLauncher` |
 | time | `IClock` boundary |
 | identifiers | `IIdentifierSource` boundary, composed with `WindowsIdentifierSource`; settings writes request one candidate token per attempt (ADR-0070) |

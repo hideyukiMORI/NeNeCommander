@@ -62,7 +62,7 @@ public abstract record PaneRowMark
         {
         }
 
-        public override string MarkerBrushResourceKey => "BorderSubtleBrush";
+        public override string MarkerBrushResourceKey => "TextSecondaryBrush";
 
         public override string SurfaceBrushResourceKey => "SurfacePaneBrush";
     }
