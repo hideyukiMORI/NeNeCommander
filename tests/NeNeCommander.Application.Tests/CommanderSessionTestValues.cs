@@ -27,8 +27,8 @@ internal static class CommanderSessionTestValues
         BookmarkCatalog catalog)
     {
         return new CommanderSessionTestComposition(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent())).CreateSession(SettingsReadOutcome.Read(UserSettings.Create(
-                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown),
-                catalog, PaneSortPreferences.Default)));
+                DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
+                catalog, PaneSortPreferences.Default, null)));
     }
 
     internal static CommandCandidate Candidate(CommandPaletteOpen palette, UserIntent intent)

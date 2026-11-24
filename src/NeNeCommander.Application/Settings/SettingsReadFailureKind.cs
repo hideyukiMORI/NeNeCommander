@@ -30,6 +30,9 @@ public abstract record SettingsReadFailureKind
     /// <summary>Gets the failure for text that names no approved color scheme.</summary>
     public static SettingsReadFailureKind UnknownColorScheme { get; } = new UnknownColorSchemeFailure();
 
+    /// <summary>Gets the failure for text naming no shipped interface language.</summary>
+    public static SettingsReadFailureKind UnknownInterfaceLanguage { get; } = new UnknownInterfaceLanguageFailure();
+
     /// <summary>Gets the failure for an invalid or internally inconsistent bookmark catalog.</summary>
     public static SettingsReadFailureKind InvalidBookmarks { get; } = new InvalidBookmarksFailure();
 
@@ -77,6 +80,12 @@ public abstract record SettingsReadFailureKind
         }
     }
     private sealed record UnknownColorSchemeFailure : SettingsReadFailureKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record UnknownInterfaceLanguageFailure : SettingsReadFailureKind
     {
         private protected override void RestrictDerivation()
         {

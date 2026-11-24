@@ -109,7 +109,7 @@ Windows local, Windows UNC, and WSL locations are closed provider variants with 
 - Status: **active**
 - Enforcement: XAML token scan and design-handoff review.
 
-Business behavior, keyboard intent, and pane state do not depend on colors, spacing, typography, animation, or a particular visual composition. Final design enters through semantic resources and presentation-only templates.
+Business behavior, keyboard intent, and pane state do not depend on colors, spacing, typography, animation, or a particular visual composition. Final design enters through semantic resources and presentation-only templates. Under ADR-0087, the single literal closed scheme catalog must match the fixed source manifest, constant URI/name projections and dictionary token set. Malformed, missing, extra or duplicate cases fail ARC-012. The canonical gate additionally verifies offline import parity before restoring/building the product.
 
 ### ARC-013 — Architecture outranks convenience
 

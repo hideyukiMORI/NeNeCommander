@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Presentation.WinUI.Settings;
@@ -14,23 +13,26 @@ namespace NeNeCommander.App.Views;
 internal sealed class SettingsEditorView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action _restoreFileListFocus;
     private readonly Grid _overlay;
     private readonly CheckBox _showHidden;
     private readonly CheckBox _showKeyHints;
-    private readonly ItemsControl _schemes;
+    private readonly ItemsControl _languages;
     private readonly TextBlock _saveStatus;
     private readonly Border _warning;
     private readonly TextBlock _warningText;
     private readonly Button _close;
     private readonly SettingsKeyboardView _keyboard;
-    private ColorScheme? _selectedScheme;
+    private readonly Button _schemeButton;
+    private readonly TextBlock _schemeName;
+    private InterfaceLanguage? _selectedLanguage;
     private bool _initialFocusPending;
     private bool _rendering;
+    private bool _returningFromPicker;
 
-    internal SettingsEditorView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action restoreFileListFocus)
+    internal SettingsEditorView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Action restoreFileListFocus)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -43,12 +45,17 @@ internal sealed class SettingsEditorView
         _overlay = Find<Grid>("SettingsOverlay");
         _showHidden = Find<CheckBox>("SettingsShowHiddenAtLaunch");
         _showKeyHints = Find<CheckBox>("SettingsShowKeyHints");
-        _schemes = Find<ItemsControl>("SettingsSchemeOptions");
+        _languages = Find<ItemsControl>("SettingsLanguageOptions");
         _saveStatus = Find<TextBlock>("SettingsSaveStatus");
         _warning = Find<Border>("SettingsWarning");
         _warningText = Find<TextBlock>("SettingsWarningText");
         _close = Find<Button>("SettingsClose");
-        _keyboard = new SettingsKeyboardView([_showHidden, _showKeyHints], _schemes, _close, () => root.XamlRoot);
+        _schemeButton = Find<Button>("SettingsChooseScheme");
+        _schemeName = Find<TextBlock>("SettingsSelectedSchemeText");
+        _schemeButton.Click += OnChooseScheme;
+        _keyboard = new SettingsKeyboardView(
+            [_showHidden, _showKeyHints, _languages, _schemeButton, _close],
+            () => root.XamlRoot);
         _close.Loaded += OnCloseLoaded;
         _overlay.PreviewKeyDown += OnOverlayKeyDown;
         _overlay.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnOverlayPointerPressed), true);
@@ -65,29 +72,47 @@ internal sealed class SettingsEditorView
     internal void Render(SettingsPresentation presentation)
     {
         _rendering = true;
-        _selectedScheme = presentation.Schemes.Single(static option => option.IsSelected).Scheme;
+        _selectedLanguage = presentation.Languages.Single(static option => option.IsSelected).Language;
         bool opening = presentation.IsOpen && !IsOpen;
         if (!presentation.IsOpen && IsOpen)
         {
             _initialFocusPending = false;
-            _restoreFileListFocus();
+            if (!presentation.IsSchemePickerOpen)
+            {
+                _restoreFileListFocus();
+            }
         }
         _overlay.Visibility = presentation.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         _showHidden.IsChecked = presentation.ShowHiddenItemsAtLaunch;
         _showKeyHints.IsChecked = presentation.ShowKeyHints;
-        if (opening || _schemes.ItemsSource is null)
+        SettingsColorSchemeOption selected = presentation.Schemes.Single(static option => option.IsSelected);
+        _schemeName.Text = _resources.GetString(selected.NameResourceKey);
+        if (opening || _languages.ItemsSource is null)
         {
-            _schemes.ItemsSource = presentation.Schemes;
+            _languages.ItemsSource = presentation.Languages;
         }
         _saveStatus.Text = _resources.GetString(presentation.SaveStatus.ResourceKey);
         _warning.Visibility = presentation.Warning.IsVisible ? Visibility.Visible : Visibility.Collapsed;
         _warningText.Text = _resources.GetString(presentation.Warning.ResourceKey);
         if (opening)
         {
+            FocusOpenedEditor();
+        }
+        _returningFromPicker = presentation.IsSchemePickerOpen;
+        _rendering = false;
+    }
+
+    private void FocusOpenedEditor()
+    {
+        if (_returningFromPicker)
+        {
+            _ = _schemeButton.Focus(FocusState.Programmatic);
+        }
+        else
+        {
             _initialFocusPending = true;
             FocusInitialClose();
         }
-        _rendering = false;
     }
 
     private void OnCloseLoaded(object sender, RoutedEventArgs args)
@@ -134,13 +159,18 @@ internal sealed class SettingsEditorView
         }
     }
 
-    internal void SchemeChecked(object sender)
+    internal void LanguageChecked(object sender)
     {
-        if (!_rendering && sender is RadioButton { IsChecked: true, DataContext: SettingsColorSchemeOption option } &&
-            option.Scheme != _selectedScheme)
+        if (!_rendering && sender is RadioButton { IsChecked: true, DataContext: SettingsLanguageOption option } &&
+            option.Language != _selectedLanguage)
         {
-            _forward(UserIntent.SelectColorScheme(option.Scheme));
+            _forward(UserIntent.SelectInterfaceLanguage(option.Language));
         }
+    }
+
+    private void OnChooseScheme(object sender, RoutedEventArgs args)
+    {
+        _forward(UserIntent.OpenColorSchemes);
     }
 
     private T Find<T>(string name)

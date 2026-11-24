@@ -26,6 +26,7 @@ public static class CommandLabelCatalog
         new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
         new(UserIntent.ActivateOtherPane, "IntentLabelActivateOtherPane"),
         new(UserIntent.OpenSettings, "IntentLabelOpenSettings"),
+        new(UserIntent.OpenColorSchemes, "IntentLabelOpenColorSchemes"),
         new(UserIntent.SortByName, "IntentLabelSortByName"),
         new(UserIntent.SortByExtension, "IntentLabelSortByExtension"),
         new(UserIntent.OpenLocations, "IntentLabelOpenLocations"),

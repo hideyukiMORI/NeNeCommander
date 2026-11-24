@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Presentation.WinUI.Panes;
@@ -17,7 +16,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class OperationBarView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private ActiveConflictModal? _renderedConflictModal;
     private readonly Border _conflictModal;
@@ -48,7 +47,7 @@ internal sealed class OperationBarView
     private readonly Grid _statusGroup;
     private readonly StackPanel _counts;
 
-    internal OperationBarView(Grid root, ResourceLoader resources, Action<UserIntent> forward)
+    internal OperationBarView(Grid root, ViewTextResources resources, Action<UserIntent> forward)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);

@@ -45,7 +45,7 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
             });
         _ = await ReadThroughSchedulerAsync<SettingsAbsent>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? otherWrite = null;
-        UserSettings otherValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default);
+        UserSettings otherValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         WindowsLocalSettingsStore staleStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -85,7 +85,7 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
             new DeterministicIdentifierSource(first: 2));
         _ = await ReadThroughSchedulerAsync<SettingsRead>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? otherWrite = null;
-        UserSettings otherValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default);
+        UserSettings otherValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         WindowsLocalSettingsStore staleStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook
@@ -122,7 +122,7 @@ public sealed class WindowsLocalSettingsStoreConcurrentStoreTests
         _ = await ReadThroughSchedulerAsync<SettingsAbsent>(otherStore, otherScheduler);
         Task<SettingsWriteOutcome>? competingWrite = null;
         byte[]? ownerBytesAfterCollision = null;
-        UserSettings competingValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default);
+        UserSettings competingValue = UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
         WindowsLocalSettingsStore ownerStore = CreateStore(
             root,
             new ScriptedSettingsWriteTestHook

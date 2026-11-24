@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Settings;
@@ -20,7 +19,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class BookmarkManagerView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action _restoreFileListFocus;
     private readonly TextBlock _status;
@@ -37,7 +36,7 @@ internal sealed class BookmarkManagerView
     private Type? _renderedStateType;
     private bool _rendering;
 
-    internal BookmarkManagerView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Action restoreFileListFocus)
+    internal BookmarkManagerView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Action restoreFileListFocus)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);

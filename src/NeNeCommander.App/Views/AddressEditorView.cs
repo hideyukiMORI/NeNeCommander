@@ -2,7 +2,6 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -16,14 +15,14 @@ namespace NeNeCommander.App.Views;
 internal sealed class AddressEditorView
 {
     private readonly Grid _overlay;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Action<PaneSide> _focusFileList;
     private readonly TextBox _input;
     private readonly TextBlock _status;
     private AddressEditorPresentation? _rendered;
 
-    internal AddressEditorView(Grid overlay, ResourceLoader resources, Action<UserIntent> forward, Action<PaneSide> focusFileList)
+    internal AddressEditorView(Grid overlay, ViewTextResources resources, Action<UserIntent> forward, Action<PaneSide> focusFileList)
     {
         ArgumentNullException.ThrowIfNull(overlay);
         ArgumentNullException.ThrowIfNull(resources);

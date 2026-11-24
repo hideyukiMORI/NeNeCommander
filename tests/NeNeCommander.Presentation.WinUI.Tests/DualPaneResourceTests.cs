@@ -28,7 +28,7 @@ public sealed class DualPaneResourceTests
         Assert.AreEqual("StatusDangerBrush", OperationBarTone.Failure.BorderBrushResourceKey);
         Assert.AreSame(OperationBarIcon.Warning, OperationBarTone.Failure.Icon);
         Assert.AreEqual("OperationProgressBrush", ProgressSegment.Filled.BrushResourceKey);
-        Assert.AreEqual("OperationTrackBrush", ProgressSegment.Empty.BrushResourceKey);
+        Assert.AreEqual("SurfacePaneBrush", ProgressSegment.Empty.BrushResourceKey);
     }
 
     /// <summary>Proves each frame names distinct semantic border resources.</summary>

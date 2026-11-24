@@ -14,24 +14,18 @@ namespace NeNeCommander.App.Views;
 /// <summary>
 /// Applies the settings editor's mapped keys to its native controls (ADR-0077). Movement only moves
 /// focus through the items in display order; activation toggles the check box, selects the focused
-/// scheme or closes, and every change reaches the session through the existing control handlers.
+/// radio option or closes, and every change reaches the session through the existing control handlers.
 /// </summary>
 internal sealed class SettingsKeyboardView
 {
-    private readonly CheckBox[] _choices;
-    private readonly ItemsControl _schemes;
-    private readonly Button _close;
+    private readonly Control[] _groups;
     private readonly Func<XamlRoot> _root;
 
-    internal SettingsKeyboardView(CheckBox[] choices, ItemsControl schemes, Button close, Func<XamlRoot> root)
+    internal SettingsKeyboardView(Control[] groups, Func<XamlRoot> root)
     {
-        ArgumentNullException.ThrowIfNull(choices);
-        ArgumentNullException.ThrowIfNull(schemes);
-        ArgumentNullException.ThrowIfNull(close);
+        ArgumentNullException.ThrowIfNull(groups);
         ArgumentNullException.ThrowIfNull(root);
-        _choices = [.. choices];
-        _schemes = schemes;
-        _close = close;
+        _groups = [.. groups];
         _root = root;
     }
 
@@ -49,6 +43,7 @@ internal sealed class SettingsKeyboardView
             if (next >= 0)
             {
                 _ = items[next].Focus(FocusState.Keyboard);
+                items[next].StartBringIntoView();
             }
             return true;
         }
@@ -93,7 +88,12 @@ internal sealed class SettingsKeyboardView
 
     private Control[] Items()
     {
-        return [.. _choices, .. Descendants(_schemes).OfType<RadioButton>(), _close];
+        return [.. _groups.SelectMany(Expand)];
+    }
+
+    private static IEnumerable<Control> Expand(Control control)
+    {
+        return control is ItemsControl group ? Descendants(group).OfType<RadioButton>() : [control];
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

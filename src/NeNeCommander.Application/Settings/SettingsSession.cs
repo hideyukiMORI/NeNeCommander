@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Input;
+using NeNeCommander.Application.Windowing;
 
 namespace NeNeCommander.Application.Settings;
 
@@ -69,6 +70,17 @@ public sealed class SettingsSession
         }
     }
 
+    internal void OpenColorSchemes()
+    {
+        lock (_sync)
+        {
+            if (_editor == SettingsEditorState.Open || _editor == SettingsEditorState.Closed)
+            {
+                _editor = new ColorSchemePickerOpen(_editor);
+            }
+        }
+    }
+
     /// <summary>Opens the bookmark catalog editor without changing metadata.</summary>
     public SettingsSnapshot OpenBookmarks()
     {
@@ -99,6 +111,15 @@ public sealed class SettingsSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
+        if (Current.Editor is ColorSchemePickerOpen)
+        {
+            return HandleColorSchemePickerAsync(intent, observer, cancellationToken);
+        }
+        if (intent == UserIntent.OpenColorSchemes)
+        {
+            OpenColorSchemes();
+            return Task.CompletedTask;
+        }
         if (intent == UserIntent.Escape)
         {
             _ = Close();
@@ -110,10 +131,34 @@ public sealed class SettingsSession
                 SelectColorSchemeAsync(selection.Scheme, observer, cancellationToken),
             LaunchHiddenItemVisibilitySelection selection =>
                 SelectLaunchHiddenItemVisibilityAsync(selection.Visibility, observer, cancellationToken),
+            InterfaceLanguageSelection selection =>
+                SelectInterfaceLanguageAsync(selection.Language, observer, cancellationToken),
             KeyHintVisibilitySelection selection =>
                 SelectKeyHintVisibilityAsync(selection.Visibility, observer, cancellationToken),
             _ => Task.CompletedTask,
         };
+    }
+
+    private Task HandleColorSchemePickerAsync(
+        UserIntent intent,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        lock (_sync)
+        {
+            if (intent is ColorSchemePickerCancellation cancel && ReferenceEquals(_editor, cancel.ExpectedState))
+            {
+                _editor = cancel.ExpectedState.ReturnTo;
+            }
+            if (intent is ColorSchemePickerSubmission submit && ReferenceEquals(_editor, submit.ExpectedState))
+            {
+                _editor = submit.ExpectedState.ReturnTo;
+                return submit.Scheme == _settings.Display.ColorScheme
+                    ? Task.CompletedTask
+                    : SelectColorSchemeAsync(submit.Scheme, observer, cancellationToken);
+            }
+            return Task.CompletedTask;
+        }
     }
 
     internal Task SavePaneSortOrderAsync(
@@ -132,7 +177,7 @@ public sealed class SettingsSession
                 ? PaneSortPreferences.Create(order, previous.Right)
                 : PaneSortPreferences.Create(previous.Left, order);
             return QueueWrite(
-                UserSettings.Create(_settings.Display, _settings.Bookmarks, preferences),
+                UserSettings.Create(_settings.Display, _settings.Bookmarks, preferences, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -154,7 +199,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(scheme, _settings.Display.HiddenItemVisibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -176,7 +221,7 @@ public sealed class SettingsSession
         lock (_sync)
         {
             return QueueWrite(
-                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility), _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(DisplayPreferences.Create(_settings.Display.ColorScheme, visibility, _settings.Display.KeyHintVisibility, _settings.Display.InterfaceLanguage), _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -198,9 +243,34 @@ public sealed class SettingsSession
         lock (_sync)
         {
             DisplayPreferences display = DisplayPreferences.Create(
-                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility);
+                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility, visibility, _settings.Display.InterfaceLanguage);
             return QueueWrite(
-                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders),
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
+                observer,
+                cancellationToken);
+        }
+    }
+
+    /// <summary>Selects the interface language immediately and queues its existing complete settings value.</summary>
+    /// <param name="language">Shipped language or the platform default.</param>
+    /// <param name="observer">Receives the state current after this write completes.</param>
+    /// <param name="cancellationToken">Token observed before this write mutates storage.</param>
+    /// <returns>A task completing after this revision's ordered write attempt.</returns>
+    /// <exception cref="InvalidOperationException">The session has already stopped.</exception>
+    public Task SelectInterfaceLanguageAsync(
+        InterfaceLanguage language,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            DisplayPreferences display = DisplayPreferences.Create(
+                _settings.Display.ColorScheme, _settings.Display.HiddenItemVisibility,
+                _settings.Display.KeyHintVisibility, language);
+            return QueueWrite(
+                UserSettings.Create(display, _settings.Bookmarks, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -224,7 +294,7 @@ public sealed class SettingsSession
             return QueueWrite(
                 UserSettings.Create(
                     _settings.Display,
-                    catalog, _settings.PaneSortOrders),
+                    catalog, _settings.PaneSortOrders, _settings.WindowPlacement),
                 observer,
                 cancellationToken);
         }
@@ -260,7 +330,7 @@ public sealed class SettingsSession
                 ? QueueWrite(
                     UserSettings.Create(
                         _settings.Display,
-                        changed.Catalog, _settings.PaneSortOrders),
+                        changed.Catalog, _settings.PaneSortOrders, _settings.WindowPlacement),
                     observer,
                     cancellationToken)
                 : Task.CompletedTask;
@@ -295,6 +365,24 @@ public sealed class SettingsSession
         lock (_sync)
         {
             _bookmarkEditor.FinishNavigationFailed(reason);
+        }
+    }
+
+    internal Task SaveWindowPlacementAsync(
+        SavedWindowPlacement? placement,
+        ISettingsProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(observer);
+        lock (_sync)
+        {
+            return placement is null || placement == _settings.WindowPlacement ||
+                _persistence is SettingsPersistenceStartupRejected
+                ? Task.CompletedTask
+                : QueueWrite(
+                    UserSettings.Create(_settings.Display, _settings.Bookmarks, _settings.PaneSortOrders, placement),
+                    observer,
+                    cancellationToken);
         }
     }
 

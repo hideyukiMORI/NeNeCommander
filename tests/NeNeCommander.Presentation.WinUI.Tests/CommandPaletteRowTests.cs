@@ -23,13 +23,12 @@ public sealed class CommandPaletteRowTests
         CommandPaletteCaption caption = CommandPaletteCaption.Create(candidate.Intent,
             KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList), CommandPaletteTestContext.ProjectResource);
         CommandPaletteContext context = CreateContext();
-        CommandPaletteFeedback feedback = CommandPaletteFeedback.Create(candidate.Availability,
+        CommandPaletteFeedback feedback = CommandPaletteFeedback.Create(candidate,
             caption, context, CommandPaletteTestContext.ProjectResource);
 
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(null!, caption, context, feedback));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(candidate, null!, context, feedback));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(candidate, caption, null!, feedback));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(candidate, caption, context, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(null!, caption, feedback));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(candidate, null!, feedback));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new CommandPaletteRow(candidate, caption, null!));
     }
 
     /// <summary>Proves caption construction requires the canonical intent, bindings and localization.</summary>
@@ -60,10 +59,11 @@ public sealed class CommandPaletteRowTests
             KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList), CommandPaletteTestContext.ProjectResource);
         CommandPaletteContext context = CreateContext();
 
+        CommandCandidate candidate = CommandPaletteTestContext.CreateCandidate(UserIntent.Refresh, CommandAvailability.Available);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(null!, caption, context, CommandPaletteTestContext.ProjectResource));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(CommandAvailability.Available, null!, context, CommandPaletteTestContext.ProjectResource));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(CommandAvailability.Available, caption, null!, CommandPaletteTestContext.ProjectResource));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(CommandAvailability.Available, caption, context, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(candidate, null!, context, CommandPaletteTestContext.ProjectResource));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(candidate, caption, null!, CommandPaletteTestContext.ProjectResource));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => CommandPaletteFeedback.Create(candidate, caption, context, null!));
     }
 
     /// <summary>Proves grouping display state retains record value equality and captured candidate identity.</summary>

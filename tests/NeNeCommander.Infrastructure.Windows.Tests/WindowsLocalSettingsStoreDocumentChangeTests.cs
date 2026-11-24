@@ -228,7 +228,7 @@ public sealed class WindowsLocalSettingsStoreDocumentChangeTests
             });
 
         SettingsWriteOutcome outcome = await store.WriteAsync(
-            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown), BookmarkCatalog.Empty, PaneSortPreferences.Default),
+            UserSettings.Create(DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, KeyHintVisibility.Shown, InterfaceLanguage.System), BookmarkCatalog.Empty, PaneSortPreferences.Default, null),
             cancellation.Token);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(outcome);

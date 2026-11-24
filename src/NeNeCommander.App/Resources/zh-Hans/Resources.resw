@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="CommanderWindowTitle" xml:space="preserve"><value>NeNe Commander</value></data>
+  <data name="CaptionMinimize.AutomationProperties.Name" xml:space="preserve"><value>最小化</value></data>
+  <data name="CaptionMaximizeName" xml:space="preserve"><value>最大化</value></data>
+  <data name="CaptionRestoreName" xml:space="preserve"><value>还原</value></data>
+  <data name="CaptionClose.AutomationProperties.Name" xml:space="preserve"><value>关闭</value></data>
+  <data name="PaneStatusNoListing" xml:space="preserve"><value>尚未显示任何位置</value></data>
+  <data name="PaneStatusLoading" xml:space="preserve"><value>正在读取…</value></data>
+  <data name="PaneStatusComplete" xml:space="preserve"><value>列表读取完成</value></data>
+  <data name="PaneStatusBounded" xml:space="preserve"><value>已达到项目数量上限，读取已停止</value></data>
+  <data name="PaneStatusEntriesOmitted" xml:space="preserve"><value>部分项目无法显示</value></data>
+  <data name="PaneStatusAccessDenied" xml:space="preserve"><value>无权访问此位置</value></data>
+  <data name="PaneStatusNotFound" xml:space="preserve"><value>此位置不是文件夹</value></data>
+  <data name="PaneStatusProviderUnavailable" xml:space="preserve"><value>此位置不可用</value></data>
+  <data name="PaneStatusCancelled" xml:space="preserve"><value>列表读取已取消</value></data>
+  <data name="PaneStatusReadAbandoned" xml:space="preserve"><value>已停止等待读取</value></data>
+  <data name="PaneStatusLaunching" xml:space="preserve"><value>正在打开文件…</value></data>
+  <data name="PaneStatusLaunchCancelled" xml:space="preserve"><value>打开文件已取消</value></data>
+  <data name="PaneStatusLaunchNotFound" xml:space="preserve"><value>此文件已不可用</value></data>
+  <data name="PaneStatusLaunchAccessDenied" xml:space="preserve"><value>无权访问此文件</value></data>
+  <data name="PaneStatusAssociationUnavailable" xml:space="preserve"><value>没有可用于打开此文件的应用</value></data>
+  <data name="PaneStatusLaunchUnavailable" xml:space="preserve"><value>无法打开此文件</value></data>
+  <data name="PaneStatusInvalidAddress" xml:space="preserve"><value>请输入有效的绝对路径</value></data>
+  <data name="PaneSortNameAscending" xml:space="preserve"><value>名称 ↑</value></data>
+  <data name="PaneSortNameDescending" xml:space="preserve"><value>名称 ↓</value></data>
+  <data name="PaneSortExtensionAscending" xml:space="preserve"><value>扩展名 ↑</value></data>
+  <data name="PaneSortExtensionDescending" xml:space="preserve"><value>扩展名 ↓</value></data>
+  <data name="PaneSortSizeAscending" xml:space="preserve"><value>大小 ↑</value></data>
+  <data name="PaneSortSizeDescending" xml:space="preserve"><value>大小 ↓</value></data>
+  <data name="PaneSortModifiedAscending" xml:space="preserve"><value>修改时间 ↑</value></data>
+  <data name="PaneSortModifiedDescending" xml:space="preserve"><value>修改时间 ↓</value></data>
+  <data name="PaneLocationNetworkDrive" xml:space="preserve"><value>网络驱动器</value></data>
+  <data name="OperationStatusIdle" xml:space="preserve"><value></value></data>
+  <data name="OperationProgressSeparator" xml:space="preserve"><value> / </value></data>
+  <data name="OperationStatusMoving" xml:space="preserve"><value>正在移动…</value></data>
+  <data name="OperationStatusMoveSucceeded" xml:space="preserve"><value>移动完成</value></data>
+  <data name="OperationStatusMoveCancelled" xml:space="preserve"><value>移动已取消</value></data>
+  <data name="OperationStatusMovePartiallyCompleted" xml:space="preserve"><value>移动已停止，部分操作已完成</value></data>
+  <data name="OperationStatusMoveRejected" xml:space="preserve"><value>移动被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusMoveRequestRejected" xml:space="preserve"><value>移动请求无效</value></data>
+  <data name="OperationStatusMoveAwaitingConflict" xml:space="preserve"><value>请先处理移动时的冲突</value></data>
+  <data name="OperationStatusCopying" xml:space="preserve"><value>正在复制…</value></data>
+  <data name="OperationStatusCopySucceeded" xml:space="preserve"><value>复制完成</value></data>
+  <data name="OperationStatusCopyCancelled" xml:space="preserve"><value>复制已取消</value></data>
+  <data name="OperationStatusCopyPartiallyCompleted" xml:space="preserve"><value>复制已停止，部分操作已完成</value></data>
+  <data name="OperationStatusCopyRejected" xml:space="preserve"><value>复制被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusCopyRequestRejected" xml:space="preserve"><value>复制请求无效</value></data>
+  <data name="OperationStatusCopyAwaitingConflict" xml:space="preserve"><value>请先处理复制时的冲突</value></data>
+  <data name="ConflictModalTitle.Text" xml:space="preserve"><value>目标位置已存在同名项目</value></data>
+  <data name="ConflictApplyToAll.Content" xml:space="preserve"><value>应用于本次操作的所有冲突</value></data>
+  <data name="ConflictSkip.Content" xml:space="preserve"><value>跳过</value></data>
+  <data name="ConflictKeepBoth.Content" xml:space="preserve"><value>保留两者</value></data>
+  <data name="ConflictCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="TransferResultNotTransferred.Text" xml:space="preserve"><value>未传输</value></data>
+  <data name="TransferResultCopied.Text" xml:space="preserve"><value>已复制</value></data>
+  <data name="TransferResultVerified.Text" xml:space="preserve"><value>已验证</value></data>
+  <data name="TransferResultSourceDeleted.Text" xml:space="preserve"><value>源项目已删除</value></data>
+  <data name="TransferResultSourcePartiallyDeleted.Text" xml:space="preserve"><value>源项目已部分删除</value></data>
+  <data name="OperationStatusCreatingDirectory" xml:space="preserve"><value>正在创建文件夹…</value></data>
+  <data name="OperationStatusCreateDirectoryAwaitingName" xml:space="preserve"><value>请输入新文件夹的名称</value></data>
+  <data name="OperationStatusDirectoryCreated" xml:space="preserve"><value>文件夹已创建</value></data>
+  <data name="OperationStatusCreateDirectoryCancelled" xml:space="preserve"><value>创建文件夹已取消</value></data>
+  <data name="OperationStatusCreateDirectoryRejected" xml:space="preserve"><value>创建文件夹被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusCreateDirectoryRequestRejected" xml:space="preserve"><value>文件夹名称无效</value></data>
+  <data name="OperationStatusRenaming" xml:space="preserve"><value>正在重命名…</value></data>
+  <data name="OperationStatusRenameAwaitingName" xml:space="preserve"><value>请输入焦点所在项目的新名称</value></data>
+  <data name="OperationStatusRenamed" xml:space="preserve"><value>重命名完成</value></data>
+  <data name="OperationStatusRenameCancelled" xml:space="preserve"><value>重命名已取消</value></data>
+  <data name="OperationStatusRenameRejected" xml:space="preserve"><value>重命名被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusRenameRequestRejected" xml:space="preserve"><value>新名称无效</value></data>
+  <data name="OperationStatusDeleting" xml:space="preserve"><value>正在删除…</value></data>
+  <data name="OperationStatusDeleteAwaitingConfirmation" xml:space="preserve"><value>要从此 Windows 位置永久删除所选项目吗（不放入回收站）？按 Enter 确认，按 Esc 取消。项目数量：</value></data>
+  <data name="OperationStatusDeleteSucceeded" xml:space="preserve"><value>删除完成</value></data>
+  <data name="OperationStatusDeleteCancelled" xml:space="preserve"><value>删除已取消</value></data>
+  <data name="OperationStatusDeletePartiallyCompleted" xml:space="preserve"><value>删除已停止，部分操作已完成</value></data>
+  <data name="OperationStatusDeleteRejected" xml:space="preserve"><value>删除被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusDeleteRequestRejected" xml:space="preserve"><value>删除请求无效</value></data>
+  <data name="LeftPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>左侧窗格</value></data>
+  <data name="RightPaneRegion.AutomationProperties.Name" xml:space="preserve"><value>右侧窗格</value></data>
+  <data name="OperationBarRegion.AutomationProperties.Name" xml:space="preserve"><value>操作栏</value></data>
+  <data name="OperationKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>快捷键提示</value></data>
+  <data name="LeftPaneNumber.Text" xml:space="preserve"><value>1</value></data>
+  <data name="RightPaneNumber.Text" xml:space="preserve"><value>2</value></data>
+  <data name="EntryKindDirectoryLabel" xml:space="preserve"><value>目录</value></data>
+  <data name="EntryKindFileLabel" xml:space="preserve"><value></value></data>
+  <data name="PaneRowSizeUnitBytes" xml:space="preserve"><value>B</value></data>
+  <data name="PaneRowSizeUnitKilobytes" xml:space="preserve"><value>KB</value></data>
+  <data name="PaneRowSizeUnitMegabytes" xml:space="preserve"><value>MB</value></data>
+  <data name="PaneRowSizeUnitGigabytes" xml:space="preserve"><value>GB</value></data>
+  <data name="PaneRowSizeUnitTerabytes" xml:space="preserve"><value>TB</value></data>
+  <data name="PaneRowModifiedFormat" xml:space="preserve"><value>yyyy-MM-dd HH:mm</value></data>
+  <data name="PaneRowMetadataUnknown" xml:space="preserve"><value>—</value></data>
+  <data name="KeyLabelLowerG" xml:space="preserve"><value>g</value></data>
+  <data name="KeyLabelUpperG" xml:space="preserve"><value>G</value></data>
+  <data name="KeyLabelH" xml:space="preserve"><value>h</value></data>
+  <data name="KeyLabelB" xml:space="preserve"><value>b</value></data>
+  <data name="KeyLabel1" xml:space="preserve"><value>1</value></data>
+  <data name="KeyLabel2" xml:space="preserve"><value>2</value></data>
+  <data name="KeyLabel3" xml:space="preserve"><value>3</value></data>
+  <data name="KeyLabel4" xml:space="preserve"><value>4</value></data>
+  <data name="KeyLabel5" xml:space="preserve"><value>5</value></data>
+  <data name="KeyLabel6" xml:space="preserve"><value>6</value></data>
+  <data name="KeyLabel7" xml:space="preserve"><value>7</value></data>
+  <data name="KeyLabel8" xml:space="preserve"><value>8</value></data>
+  <data name="KeyLabel9" xml:space="preserve"><value>9</value></data>
+  <data name="KeyLabelCtrlD" xml:space="preserve"><value>Ctrl+D</value></data>
+  <data name="KeyLabelCtrlH" xml:space="preserve"><value>Ctrl+H</value></data>
+  <data name="KeyLabelCtrlComma" xml:space="preserve"><value>Ctrl+,</value></data>
+  <data name="KeyLabelCtrlL" xml:space="preserve"><value>Ctrl+L</value></data>
+  <data name="KeyLabelCtrlR" xml:space="preserve"><value>Ctrl+R</value></data>
+  <data name="KeyLabelCtrlU" xml:space="preserve"><value>Ctrl+U</value></data>
+  <data name="KeyLabelCtrlF3" xml:space="preserve"><value>Ctrl+F3</value></data>
+  <data name="KeyLabelCtrlF4" xml:space="preserve"><value>Ctrl+F4</value></data>
+  <data name="KeyLabelCtrlF5" xml:space="preserve"><value>Ctrl+F5</value></data>
+  <data name="KeyLabelCtrlF6" xml:space="preserve"><value>Ctrl+F6</value></data>
+  <data name="KeyLabelCtrlB" xml:space="preserve"><value>Ctrl+B</value></data>
+  <data name="KeyLabelCtrl1" xml:space="preserve"><value>Ctrl+1</value></data>
+  <data name="KeyLabelCtrl2" xml:space="preserve"><value>Ctrl+2</value></data>
+  <data name="KeyLabelCtrl3" xml:space="preserve"><value>Ctrl+3</value></data>
+  <data name="KeyLabelCtrl4" xml:space="preserve"><value>Ctrl+4</value></data>
+  <data name="KeyLabelCtrl5" xml:space="preserve"><value>Ctrl+5</value></data>
+  <data name="KeyLabelCtrl6" xml:space="preserve"><value>Ctrl+6</value></data>
+  <data name="KeyLabelCtrl7" xml:space="preserve"><value>Ctrl+7</value></data>
+  <data name="KeyLabelCtrl8" xml:space="preserve"><value>Ctrl+8</value></data>
+  <data name="KeyLabelCtrl9" xml:space="preserve"><value>Ctrl+9</value></data>
+  <data name="KeyLabelAltUp" xml:space="preserve"><value>Alt+↑</value></data>
+  <data name="KeyLabelAltLeft" xml:space="preserve"><value>Alt+←</value></data>
+  <data name="KeyLabelAltRight" xml:space="preserve"><value>Alt+→</value></data>
+  <data name="KeyLabelJ" xml:space="preserve"><value>j</value></data>
+  <data name="KeyLabelK" xml:space="preserve"><value>k</value></data>
+  <data name="KeyLabelL" xml:space="preserve"><value>l</value></data>
+  <data name="KeyLabelD" xml:space="preserve"><value>d</value></data>
+  <data name="KeyLabelR" xml:space="preserve"><value>r</value></data>
+  <data name="KeyLabelU" xml:space="preserve"><value>u</value></data>
+  <data name="KeyLabelDown" xml:space="preserve"><value>↓</value></data>
+  <data name="KeyLabelUp" xml:space="preserve"><value>↑</value></data>
+  <data name="KeyLabelLeft" xml:space="preserve"><value>←</value></data>
+  <data name="KeyLabelRight" xml:space="preserve"><value>→</value></data>
+  <data name="KeyLabelBackspace" xml:space="preserve"><value>BS</value></data>
+  <data name="KeyLabelEnter" xml:space="preserve"><value>Enter</value></data>
+  <data name="KeyLabelPageDown" xml:space="preserve"><value>PgDn</value></data>
+  <data name="KeyLabelPageUp" xml:space="preserve"><value>PgUp</value></data>
+  <data name="KeyLabelTab" xml:space="preserve"><value>Tab</value></data>
+  <data name="KeyLabelSpace" xml:space="preserve"><value>Space</value></data>
+  <data name="KeyLabelEscape" xml:space="preserve"><value>Esc</value></data>
+  <data name="KeyLabelF2" xml:space="preserve"><value>F2</value></data>
+  <data name="KeyLabelF3" xml:space="preserve"><value>F3</value></data>
+  <data name="KeyLabelF4" xml:space="preserve"><value>F4</value></data>
+  <data name="KeyLabelF5" xml:space="preserve"><value>F5</value></data>
+  <data name="KeyLabelF6" xml:space="preserve"><value>F6</value></data>
+  <data name="KeyLabelF7" xml:space="preserve"><value>F7</value></data>
+  <data name="KeyLabelF8" xml:space="preserve"><value>F8</value></data>
+  <data name="KeyLabelUnmapped" xml:space="preserve"><value></value></data>
+  <data name="IntentLabelRename" xml:space="preserve"><value>重命名</value></data>
+  <data name="IntentLabelCopy" xml:space="preserve"><value>复制</value></data>
+  <data name="IntentLabelMove" xml:space="preserve"><value>移动</value></data>
+  <data name="IntentLabelCreateDirectory" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="IntentLabelDelete" xml:space="preserve"><value>删除</value></data>
+  <data name="IntentLabelActivateOtherPane" xml:space="preserve"><value>切换窗格</value></data>
+  <data name="IntentLabelToggleHiddenItems" xml:space="preserve"><value>隐藏项目</value></data>
+  <data name="IntentLabelOpenBookmarks" xml:space="preserve"><value>书签</value></data>
+  <data name="IntentLabelOpenWindowAdjustment" xml:space="preserve"><value>调整窗口</value></data>
+  <data name="IntentLabelOpenSettings" xml:space="preserve"><value>设置</value></data>
+  <data name="IntentLabelEscape" xml:space="preserve"><value>取消</value></data>
+  <data name="IntentLabelConfirm" xml:space="preserve"><value>确认</value></data>
+  <data name="KeyLabelComma" xml:space="preserve"><value>,</value></data>
+  <data name="SettingsTitle.Text" xml:space="preserve"><value>设置</value></data>
+  <data name="SettingsAutoSaveExplanation.Text" xml:space="preserve"><value>更改会自动保存。关闭或按 Esc 不会撤销更改。</value></data>
+  <data name="SettingsShowHiddenAtLaunch.Content" xml:space="preserve"><value>启动时显示隐藏项目</value></data>
+  <data name="SettingsHiddenCurrentPaneExplanation.Text" xml:space="preserve"><value>此设置改变下次启动时的默认值。当前窗格保留各自的显示设置。</value></data>
+  <data name="SettingsColorSchemeLabel.Text" xml:space="preserve"><value>配色方案</value></data>
+  <data name="SettingsClose.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="SettingsSaveStatusSucceeded" xml:space="preserve"><value>已保存</value></data>
+  <data name="SettingsSaveStatusPending" xml:space="preserve"><value>正在保存…</value></data>
+  <data name="SettingsSaveStatusFailed" xml:space="preserve"><value>未保存</value></data>
+  <data name="SettingsWarningHidden" xml:space="preserve"><value></value></data>
+  <data name="SettingsWarningStartupRejected" xml:space="preserve"><value>无法使用设置文件。已采用默认设置，原文件未作更改。</value></data>
+  <data name="SettingsWarningSaveFailed" xml:space="preserve"><value>无法保存更改。请检查设置的保存位置后重试。</value></data>
+  <data name="BookmarkManagerTitle.Text" xml:space="preserve"><value>书签</value></data>
+  <data name="BookmarkSearch.PlaceholderText" xml:space="preserve"><value>搜索书签</value></data>
+  <data name="BookmarkAllCategories" xml:space="preserve"><value>所有书签</value></data>
+  <data name="BookmarkUncategorized" xml:space="preserve"><value>未分类</value></data>
+  <data name="BookmarkCategoryActionsHeader.Text" xml:space="preserve"><value>分类</value></data>
+  <data name="BookmarkDraftAddTitle" xml:space="preserve"><value>添加书签</value></data>
+  <data name="BookmarkDraftEditTitle" xml:space="preserve"><value>编辑书签</value></data>
+  <data name="BookmarkNameLabel.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="BookmarkPathLabel.Text" xml:space="preserve"><value>路径</value></data>
+  <data name="BookmarkCategoryLabel.Text" xml:space="preserve"><value>分类</value></data>
+  <data name="BookmarkShortcutLabel.Text" xml:space="preserve"><value>快捷键</value></data>
+  <data name="BookmarkShortcutUnassigned" xml:space="preserve"><value>未分配</value></data>
+  <data name="BookmarkSave.Content" xml:space="preserve"><value>保存</value></data>
+  <data name="BookmarkCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="BookmarkCategoryAddTitle" xml:space="preserve"><value>添加分类</value></data>
+  <data name="BookmarkCategoryRenameTitle" xml:space="preserve"><value>重命名分类</value></data>
+  <data name="BookmarkCategoryNameLabel.Text" xml:space="preserve"><value>分类名称</value></data>
+  <data name="BookmarkCategoryDeleteTitle.Text" xml:space="preserve"><value>要删除此分类吗？</value></data>
+  <data name="BookmarkCategoryDeleteExplanation.Text" xml:space="preserve"><value>此分类中的书签将移至“未分类”。</value></data>
+  <data name="BookmarkCategoryDeleteCategoryLabel.Text" xml:space="preserve"><value>分类</value></data>
+  <data name="BookmarkCategoryDeleteCountLabel.Text" xml:space="preserve"><value>受影响的书签数</value></data>
+  <data name="BookmarkCategoryDeleteDestinationLabel.Text" xml:space="preserve"><value>移至</value></data>
+  <data name="BookmarkCategoryDeleteConfirm.Content" xml:space="preserve"><value>删除分类</value></data>
+  <data name="BookmarkNavigationRetry.Content" xml:space="preserve"><value>重试</value></data>
+  <data name="BookmarkStatusReady" xml:space="preserve"><value>选择书签以转到该位置。</value></data>
+  <data name="BookmarkStatusAdding" xml:space="preserve"><value>请输入书签详情。</value></data>
+  <data name="BookmarkStatusEditing" xml:space="preserve"><value>请编辑书签详情。</value></data>
+  <data name="BookmarkStatusAddingCategory" xml:space="preserve"><value>请输入分类名称。</value></data>
+  <data name="BookmarkStatusRenamingCategory" xml:space="preserve"><value>请输入新的分类名称。</value></data>
+  <data name="BookmarkStatusConfirmCategoryDelete" xml:space="preserve"><value>删除此分类前，请确认受影响的书签。</value></data>
+  <data name="BookmarkStatusNavigationPending" xml:space="preserve"><value>正在转到书签位置…</value></data>
+  <data name="BookmarkStatusNavigationAccessDenied" xml:space="preserve"><value>无权访问书签指向的文件夹。当前文件夹保持不变。</value></data>
+  <data name="BookmarkStatusNavigationNotFound" xml:space="preserve"><value>未找到书签指向的文件夹。当前文件夹保持不变。</value></data>
+  <data name="BookmarkStatusNavigationProviderUnavailable" xml:space="preserve"><value>书签所在的文件系统不可用。当前文件夹保持不变。</value></data>
+  <data name="BookmarkStatusNavigationCancelled" xml:space="preserve"><value>转到此书签位置的操作已取消。当前文件夹保持不变。</value></data>
+  <data name="BookmarkEmptyNoBookmarks" xml:space="preserve"><value>尚无书签。按 a 添加当前文件夹。</value></data>
+  <data name="BookmarkEmptyNoMatches" xml:space="preserve"><value>当前搜索条件和分类下没有匹配的书签。</value></data>
+  <data name="BookmarkNavigationBack.Content" xml:space="preserve"><value>返回列表</value></data>
+  <data name="BookmarkProblemInvalidName" xml:space="preserve"><value>请输入有效的名称。</value></data>
+  <data name="BookmarkProblemInvalidPath" xml:space="preserve"><value>请输入有效的路径。</value></data>
+  <data name="BookmarkProblemInvalidCategory" xml:space="preserve"><value>请选择有效的分类。</value></data>
+  <data name="BookmarkProblemDuplicateCategory" xml:space="preserve"><value>已存在同名分类。</value></data>
+  <data name="BookmarkProblemDuplicateBookmark" xml:space="preserve"><value>该分类中已存在同名书签。</value></data>
+  <data name="BookmarkProblemDuplicateShortcut" xml:space="preserve"><value>此快捷键已被分配。</value></data>
+  <data name="BookmarkProblemCategoryLimit" xml:space="preserve"><value>已达到分类数量上限。</value></data>
+  <data name="BookmarkProblemBookmarkLimit" xml:space="preserve"><value>已达到书签数量上限。</value></data>
+  <data name="BookmarkProblemStaleSelection" xml:space="preserve"><value>此项目已更改。请查看当前书签列表后重试。</value></data>
+  <data name="BookmarkProblemCategoryDeleteCollision" xml:space="preserve"><value>删除此分类会在“未分类”中产生同名书签。请先重命名或调整书签分类。</value></data>
+  <data name="ColorSchemeNameNeNeDark" xml:space="preserve"><value>NeNe Dark</value></data>
+  <data name="ColorSchemeNameUbuntu" xml:space="preserve"><value>Ubuntu</value></data>
+  <data name="ColorSchemeNameMonokai" xml:space="preserve"><value>Monokai</value></data>
+  <data name="ColorSchemeNameSolarizedDark" xml:space="preserve"><value>Solarized Dark</value></data>
+  <data name="ColorSchemeNameSolarizedLight" xml:space="preserve"><value>Solarized Light</value></data>
+  <data name="ColorSchemeNameDracula" xml:space="preserve"><value>Dracula</value></data>
+  <data name="ColorSchemeNameNeNeBlack" xml:space="preserve"><value>NeNe Black</value></data>
+  <data name="ColorSchemeNameNeNeLight" xml:space="preserve"><value>NeNe Light</value></data>
+  <data name="KeyLabelCtrlP" xml:space="preserve"><value>Ctrl+P</value></data>
+  <data name="IntentLabelOpenFocused" xml:space="preserve"><value>打开焦点所在项目</value></data>
+  <data name="IntentLabelNavigateParent" xml:space="preserve"><value>转到上级文件夹</value></data>
+  <data name="IntentLabelNavigateBack" xml:space="preserve"><value>后退</value></data>
+  <data name="IntentLabelNavigateForward" xml:space="preserve"><value>前进</value></data>
+  <data name="IntentLabelRefresh" xml:space="preserve"><value>刷新窗格</value></data>
+  <data name="IntentLabelFocusAddress" xml:space="preserve"><value>编辑地址</value></data>
+  <data name="IntentLabelToggleSelection" xml:space="preserve"><value>切换选中状态</value></data>
+  <data name="IntentLabelOpenCommandPalette" xml:space="preserve"><value>命令</value></data>
+  <data name="IntentLabelSortByName" xml:space="preserve"><value>按名称排序</value></data>
+  <data name="IntentLabelSortByExtension" xml:space="preserve"><value>按扩展名排序</value></data>
+  <data name="IntentLabelSortBySize" xml:space="preserve"><value>按大小排序</value></data>
+  <data name="IntentLabelSortByModified" xml:space="preserve"><value>按修改时间排序</value></data>
+  <data name="CommandPaletteSearch.AutomationProperties.Name" xml:space="preserve"><value>搜索命令</value></data>
+  <data name="CommandPaletteSearch.PlaceholderText" xml:space="preserve"><value>搜索命令</value></data>
+  <data name="CommandPaletteCandidateList.AutomationProperties.Name" xml:space="preserve"><value>候选命令</value></data>
+  <data name="CommandPaletteZeroResults.Text" xml:space="preserve"><value>没有匹配的命令</value></data>
+  <data name="CommandPaletteTargetLeft" xml:space="preserve"><value>目标：左侧窗格</value></data>
+  <data name="CommandPaletteTargetRight" xml:space="preserve"><value>目标：右侧窗格</value></data>
+  <data name="CommandPaletteOppositeLeft" xml:space="preserve"><value>对侧：左侧窗格</value></data>
+  <data name="CommandPaletteOppositeRight" xml:space="preserve"><value>对侧：右侧窗格</value></data>
+  <data name="CommandPaletteUnavailableDetailFormat" xml:space="preserve"><value>{0} · 不可用：{1}</value></data>
+  <data name="CommandPaletteUnavailableAutomationNameFormat" xml:space="preserve"><value>{0}; {1}; {2}; 不可用; {3}</value></data>
+  <data name="CommandPaletteUnavailableMarker" xml:space="preserve"><value>!</value></data>
+  <data name="CommandUnavailableFocusRequired" xml:space="preserve"><value>请先将焦点移到一个项目</value></data>
+  <data name="CommandUnavailableSourceRequired" xml:space="preserve"><value>请先选中项目或将焦点移到一个项目</value></data>
+  <data name="CommandUnavailablePassivePane" xml:space="preserve"><value>对侧窗格尚未显示任何位置</value></data>
+  <data name="CommandUnavailableParent" xml:space="preserve"><value>当前位置没有上级文件夹</value></data>
+  <data name="CommandUnavailableBack" xml:space="preserve"><value>没有可后退的位置</value></data>
+  <data name="CommandUnavailableForward" xml:space="preserve"><value>没有可前进的位置</value></data>
+  <data name="CommandPaletteHintPrevious" xml:space="preserve"><value>上一项</value></data>
+  <data name="CommandPaletteHintNext" xml:space="preserve"><value>下一项</value></data>
+  <data name="CommandPaletteHintExecute" xml:space="preserve"><value>执行</value></data>
+  <data name="CommandPaletteHintCancel" xml:space="preserve"><value>关闭</value></data>
+  <data name="CommandPaletteHintFocus" xml:space="preserve"><value>焦点</value></data>
+  <data name="KeyLabelW" xml:space="preserve"><value>w</value></data>
+  <data name="KeyLabelM" xml:space="preserve"><value>m</value></data>
+  <data name="KeyLabelPlus" xml:space="preserve"><value>+</value></data>
+  <data name="KeyLabelMinus" xml:space="preserve"><value>-</value></data>
+  <data name="KeyLabelCtrlW" xml:space="preserve"><value>Ctrl+W</value></data>
+  <data name="WindowAdjustmentTitle" xml:space="preserve"><value>调整窗口</value></data>
+  <data name="WindowAdjustmentHintMove" xml:space="preserve"><value>移动</value></data>
+  <data name="WindowAdjustmentHintEnlarge" xml:space="preserve"><value>放大</value></data>
+  <data name="WindowAdjustmentHintShrink" xml:space="preserve"><value>缩小</value></data>
+  <data name="WindowAdjustmentHintMaximize" xml:space="preserve"><value>最大化</value></data>
+  <data name="WindowAdjustmentHintRestore" xml:space="preserve"><value>还原</value></data>
+  <data name="WindowAdjustmentHintLeave" xml:space="preserve"><value>完成</value></data>
+  <data name="WindowAdjustmentOutcomeIdle" xml:space="preserve"><value>就绪</value></data>
+  <data name="WindowAdjustmentPlannedMoveLeft" xml:space="preserve"><value>向左移动</value></data>
+  <data name="WindowAdjustmentPlannedMoveDown" xml:space="preserve"><value>向下移动</value></data>
+  <data name="WindowAdjustmentPlannedMoveUp" xml:space="preserve"><value>向上移动</value></data>
+  <data name="WindowAdjustmentPlannedMoveRight" xml:space="preserve"><value>向右移动</value></data>
+  <data name="WindowAdjustmentPlannedEnlarge" xml:space="preserve"><value>放大</value></data>
+  <data name="WindowAdjustmentPlannedShrink" xml:space="preserve"><value>缩小</value></data>
+  <data name="WindowAdjustmentPlannedMaximize" xml:space="preserve"><value>最大化</value></data>
+  <data name="WindowAdjustmentPlannedRestore" xml:space="preserve"><value>还原</value></data>
+  <data name="WindowAdjustmentRefusedCaption" xml:space="preserve"><value>未移动：标题栏将超出桌面</value></data>
+  <data name="WindowAdjustmentRefusedMaximumSize" xml:space="preserve"><value>未放大：已达到工作区大小</value></data>
+  <data name="WindowAdjustmentRefusedMinimumSize" xml:space="preserve"><value>未缩小：已达到最小尺寸</value></data>
+  <data name="WindowAdjustmentRefusedMaximized" xml:space="preserve"><value>未应用：窗口已最大化</value></data>
+  <data name="WindowAdjustmentRefusedMinimized" xml:space="preserve"><value>未应用：窗口已最小化</value></data>
+  <data name="WindowAdjustmentRefusedRestored" xml:space="preserve"><value>未还原：窗口已处于普通状态</value></data>
+  <data name="WindowAdjustmentRefusedNotOverlapped" xml:space="preserve"><value>未应用：此窗口模式不支持调整</value></data>
+  <data name="WindowAdjustmentRefusedUnavailable" xml:space="preserve"><value>未应用：无法读取窗口位置和大小</value></data>
+  <data name="KeyLabelCtrlG" xml:space="preserve"><value>Ctrl+G</value></data>
+  <data name="IntentLabelOpenLocations" xml:space="preserve"><value>打开位置列表</value></data>
+  <data name="IntentLabelMoveNext" xml:space="preserve"><value>下一项</value></data>
+  <data name="IntentLabelMovePrevious" xml:space="preserve"><value>上一项</value></data>
+  <data name="LocationsTitle.Text" xml:space="preserve"><value>位置</value></data>
+  <data name="LocationsList.AutomationProperties.Name" xml:space="preserve"><value>驱动器和 WSL 发行版</value></data>
+  <data name="LocationsLoading" xml:space="preserve"><value>正在列出驱动器和 WSL 发行版…</value></data>
+  <data name="LocationsEmpty" xml:space="preserve"><value>未找到驱动器或 WSL 发行版。</value></data>
+  <data name="LocationsDrivesProviderUnavailable" xml:space="preserve"><value>无法列出驱动器。</value></data>
+  <data name="LocationsDrivesAccessDenied" xml:space="preserve"><value>无权访问驱动器列表。</value></data>
+  <data name="LocationsDrivesUnrepresentableFormat" xml:space="preserve"><value>有 {0} 个驱动器无法显示。</value></data>
+  <data name="LocationsWslProviderUnavailable" xml:space="preserve"><value>无法列出 WSL 发行版。</value></data>
+  <data name="LocationsWslMalformedOutput" xml:space="preserve"><value>WSL 返回了无法显示的发行版列表。</value></data>
+  <data name="LocationsDriveKindFixed" xml:space="preserve"><value>固定磁盘</value></data>
+  <data name="LocationsDriveKindRemovable" xml:space="preserve"><value>可移动磁盘</value></data>
+  <data name="LocationsDriveKindNetwork" xml:space="preserve"><value>网络驱动器</value></data>
+  <data name="LocationsDriveKindOptical" xml:space="preserve"><value>光驱</value></data>
+  <data name="LocationsDriveKindUnknown" xml:space="preserve"><value>未知</value></data>
+  <data name="LocationsWslDetail" xml:space="preserve"><value>WSL</value></data>
+  <data name="LocationsRowAutomationNameFormat" xml:space="preserve"><value>{0}，{1}</value></data>
+  <data name="KeyLabelF1" xml:space="preserve"><value>F1</value></data>
+  <data name="KeyLabelChordGG" xml:space="preserve"><value>g g</value></data>
+  <data name="KeyLabelCtrl1To9" xml:space="preserve"><value>Ctrl+1–9</value></data>
+  <data name="IntentLabelOpenHelp" xml:space="preserve"><value>帮助</value></data>
+  <data name="IntentLabelFocusFirst" xml:space="preserve"><value>第一项</value></data>
+  <data name="IntentLabelFocusLast" xml:space="preserve"><value>最后一项</value></data>
+  <data name="IntentLabelMoveHalfPageDown" xml:space="preserve"><value>向下半页</value></data>
+  <data name="IntentLabelMoveHalfPageUp" xml:space="preserve"><value>向上半页</value></data>
+  <data name="IntentLabelBookmarkSlots" xml:space="preserve"><value>转到编号书签</value></data>
+  <data name="KeyboardHelpGroupFileList" xml:space="preserve"><value>文件列表</value></data>
+  <data name="KeyboardHelpGroupWindowAdjustment" xml:space="preserve"><value>调整窗口 (Ctrl+W)</value></data>
+  <data name="KeyboardHelpGroupLocations" xml:space="preserve"><value>位置列表 (Ctrl+G)</value></data>
+  <data name="KeyboardHelpGroupCommandPalette" xml:space="preserve"><value>命令面板 (Ctrl+P)</value></data>
+  <data name="KeyboardHelpGroupHelp" xml:space="preserve"><value>本帮助 (F1)</value></data>
+  <data name="KeyboardHelpScrollDown" xml:space="preserve"><value>向下滚动</value></data>
+  <data name="KeyboardHelpScrollUp" xml:space="preserve"><value>向上滚动</value></data>
+  <data name="KeyboardHelpPageDown" xml:space="preserve"><value>向下半页</value></data>
+  <data name="KeyboardHelpPageUp" xml:space="preserve"><value>向上半页</value></data>
+  <data name="KeyboardHelpClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="KeyboardHelpTitle.Text" xml:space="preserve"><value>键盘快捷键</value></data>
+  <data name="KeyboardHelpCloseNote.Text" xml:space="preserve"><value>按 Esc 或 F1 关闭</value></data>
+  <data name="KeyboardHelpName" xml:space="preserve"><value>键盘快捷键列表</value></data>
+  <data name="KeyboardHelpGroupSettings" xml:space="preserve"><value>设置 (Ctrl+,)</value></data>
+  <data name="KeyLabelA" xml:space="preserve"><value>a</value></data>
+  <data name="KeyLabelE" xml:space="preserve"><value>e</value></data>
+  <data name="KeyLabelSlash" xml:space="preserve"><value>/</value></data>
+  <data name="BookmarkManagerRegion.AutomationProperties.Name" xml:space="preserve"><value>书签</value></data>
+  <data name="BookmarkCategoriesRegion.AutomationProperties.Name" xml:space="preserve"><value>分类</value></data>
+  <data name="BookmarkRowsRegion.AutomationProperties.Name" xml:space="preserve"><value>书签列表</value></data>
+  <data name="BookmarkKeyHintsRegion.AutomationProperties.Name" xml:space="preserve"><value>快捷键提示</value></data>
+  <data name="BookmarkCountFormat" xml:space="preserve"><value>{0} 项</value></data>
+  <data name="BookmarkColumnSlot.Text" xml:space="preserve"><value>编号</value></data>
+  <data name="BookmarkColumnName.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="BookmarkColumnPath.Text" xml:space="preserve"><value>位置</value></data>
+  <data name="BookmarkHintMove" xml:space="preserve"><value>移动焦点</value></data>
+  <data name="BookmarkHintOpen" xml:space="preserve"><value>打开</value></data>
+  <data name="BookmarkHintToList" xml:space="preserve"><value>转到列表</value></data>
+  <data name="BookmarkHintSearch" xml:space="preserve"><value>搜索</value></data>
+  <data name="BookmarkHintSwitch" xml:space="preserve"><value>切换</value></data>
+  <data name="BookmarkHintAddBookmark" xml:space="preserve"><value>添加</value></data>
+  <data name="BookmarkHintEditBookmark" xml:space="preserve"><value>编辑</value></data>
+  <data name="BookmarkHintDeleteBookmark" xml:space="preserve"><value>删除</value></data>
+  <data name="BookmarkHintAddCategory" xml:space="preserve"><value>添加分类</value></data>
+  <data name="BookmarkHintRenameCategory" xml:space="preserve"><value>重命名</value></data>
+  <data name="BookmarkHintDeleteCategory" xml:space="preserve"><value>删除分类</value></data>
+  <data name="BookmarkHintClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="BookmarkHelpActivate" xml:space="preserve"><value>打开（分类：转到列表）</value></data>
+  <data name="BookmarkHelpSearch" xml:space="preserve"><value>将焦点移到搜索框</value></data>
+  <data name="BookmarkHelpSwitch" xml:space="preserve"><value>在分类和列表之间切换</value></data>
+  <data name="BookmarkHelpAdd" xml:space="preserve"><value>添加当前文件夹（分类：添加分类）</value></data>
+  <data name="BookmarkHelpEdit" xml:space="preserve"><value>编辑（分类：重命名）</value></data>
+  <data name="BookmarkHelpDelete" xml:space="preserve"><value>确认后删除（分类同样需要确认）</value></data>
+  <data name="BookmarkHelpLeaveSearch" xml:space="preserve"><value>离开搜索框并转到列表</value></data>
+  <data name="KeyboardHelpGroupBookmarks" xml:space="preserve"><value>书签 (Ctrl+B)</value></data>
+  <data name="BookmarkDeleteTitle.Text" xml:space="preserve"><value>要删除此书签吗？</value></data>
+  <data name="BookmarkDeleteExplanation.Text" xml:space="preserve"><value>删除会从列表中移除此书签及其快捷键。</value></data>
+  <data name="BookmarkDeleteNameLabel.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="BookmarkDeletePathLabel.Text" xml:space="preserve"><value>位置</value></data>
+  <data name="BookmarkDeleteConfirm.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="BookmarkStatusConfirmBookmarkDelete" xml:space="preserve"><value>删除前请确认书签内容。</value></data>
+  <data name="KeyLabelCtrlEnter" xml:space="preserve"><value>Ctrl+Enter</value></data>
+  <data name="BookmarkHelpSaveDraft" xml:space="preserve"><value>保存书签或分类草稿</value></data>
+  <data name="BookmarkHintToCategories" xml:space="preserve"><value>分类</value></data>
+  <data name="BookmarkStatusSavedSelection" xml:space="preserve"><value>书签已更新。搜索已清空，并已选中更新后的书签。</value></data>
+  <data name="BookmarkHelpCloseOrCancel" xml:space="preserve"><value>关闭／取消草稿</value></data>
+  <data name="BookmarkPersistenceLabel.Text" xml:space="preserve"><value>设置：</value></data>
+  <data name="SettingsShowKeyHints.Content" xml:space="preserve"><value>在底部显示快捷键提示</value></data>
+  <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>关闭后，F1 帮助以及确认或输入名称时的 Enter/Esc 提示仍然可见。</value></data>
+  <data name="AddressEditorTitle.Text" xml:space="preserve"><value>转到位置</value></data>
+  <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>绝对路径</value></data>
+  <data name="PaneCountsUnavailable" xml:space="preserve"><value>计数不可用</value></data>
+  <data name="PaneCountsFormat" xml:space="preserve"><value>文件 {0:N0} · 文件夹 {1:N0} · 已选 {2:N0}</value></data>
+  <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>已显示：文件 {0:N0}、文件夹 {1:N0} · 已选 {2:N0} · 已读取：文件 {3:N0}、文件夹 {4:N0}</value></data>
+  <data name="PaneCountsLoadedOnlyFormat" xml:space="preserve"><value>仅统计已读取的项目 · {0}</value></data>
+  <data name="PaneCountsPreviousFormat" xml:space="preserve"><value>上次读取的列表 · {0}</value></data>
+  <data name="SettingsLanguageLabel.Text" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="SettingsLanguageExplanation.Text" xml:space="preserve">
+    <value>选择后立即切换界面语言。Windows区域格式和键盘布局保持不变。</value>
+  </data>
+  <data name="SettingsLanguageSystem" xml:space="preserve">
+    <value>跟随系统语言</value>
+  </data>
+  <data name="SettingsLanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="SettingsLanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="SettingsLanguageSimplifiedChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="ColorSchemeNameCatalogUbuntuAubergine" xml:space="preserve">
+    <value>ubuntu-aubergine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNeutralLight" xml:space="preserve">
+    <value>neutral-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOneDark" xml:space="preserve">
+    <value>one-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNightOwl" xml:space="preserve">
+    <value>night-owl</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNightOwlLight" xml:space="preserve">
+    <value>night-owl-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogBlue" xml:space="preserve">
+    <value>blue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccin" xml:space="preserve">
+    <value>catppuccin</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDarkblue" xml:space="preserve">
+    <value>darkblue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDefault" xml:space="preserve">
+    <value>default</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDelek" xml:space="preserve">
+    <value>delek</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDesert" xml:space="preserve">
+    <value>desert</value>
+  </data>
+  <data name="ColorSchemeNameCatalogElflord" xml:space="preserve">
+    <value>elflord</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEvening" xml:space="preserve">
+    <value>evening</value>
+  </data>
+  <data name="ColorSchemeNameCatalogHabamax" xml:space="preserve">
+    <value>habamax</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIndustry" xml:space="preserve">
+    <value>industry</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKoehler" xml:space="preserve">
+    <value>koehler</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLunaperche" xml:space="preserve">
+    <value>lunaperche</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMorning" xml:space="preserve">
+    <value>morning</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMurphy" xml:space="preserve">
+    <value>murphy</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNovum" xml:space="preserve">
+    <value>novum</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPablo" xml:space="preserve">
+    <value>pablo</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPeachpuff" xml:space="preserve">
+    <value>peachpuff</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuiet" xml:space="preserve">
+    <value>quiet</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRetrobox" xml:space="preserve">
+    <value>retrobox</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRon" xml:space="preserve">
+    <value>ron</value>
+  </data>
+  <data name="ColorSchemeNameCatalogShine" xml:space="preserve">
+    <value>shine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSlate" xml:space="preserve">
+    <value>slate</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSorbet" xml:space="preserve">
+    <value>sorbet</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTorte" xml:space="preserve">
+    <value>torte</value>
+  </data>
+  <data name="ColorSchemeNameCatalogUnokai" xml:space="preserve">
+    <value>unokai</value>
+  </data>
+  <data name="ColorSchemeNameCatalogWildcharm" xml:space="preserve">
+    <value>wildcharm</value>
+  </data>
+  <data name="ColorSchemeNameCatalogZaibatsu" xml:space="preserve">
+    <value>zaibatsu</value>
+  </data>
+  <data name="ColorSchemeNameCatalogZellner" xml:space="preserve">
+    <value>zellner</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAbyss" xml:space="preserve">
+    <value>abyss</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDark2026" xml:space="preserve">
+    <value>vscode-dark-2026</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLight2026" xml:space="preserve">
+    <value>vscode-light-2026</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDarkModern" xml:space="preserve">
+    <value>vscode-dark-modern</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDarkPlus" xml:space="preserve">
+    <value>vscode-dark-plus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeDark" xml:space="preserve">
+    <value>vscode-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeHighContrast" xml:space="preserve">
+    <value>vscode-high-contrast</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeHighContrastLight" xml:space="preserve">
+    <value>vscode-high-contrast-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLightModern" xml:space="preserve">
+    <value>vscode-light-modern</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLightPlus" xml:space="preserve">
+    <value>vscode-light-plus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVscodeLight" xml:space="preserve">
+    <value>vscode-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKimbieDark" xml:space="preserve">
+    <value>kimbie-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMonokaiDimmed" xml:space="preserve">
+    <value>monokai-dimmed</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuietLight" xml:space="preserve">
+    <value>quiet-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRed" xml:space="preserve">
+    <value>red</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTomorrowNightBlue" xml:space="preserve">
+    <value>tomorrow-night-blue</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMonalisa" xml:space="preserve">
+    <value>monalisa</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinLatte" xml:space="preserve">
+    <value>catppuccin-latte</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinFrappe" xml:space="preserve">
+    <value>catppuccin-frappe</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCatppuccinMacchiato" xml:space="preserve">
+    <value>catppuccin-macchiato</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNord" xml:space="preserve">
+    <value>nord</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGruvbox" xml:space="preserve">
+    <value>gruvbox</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGruvboxLight" xml:space="preserve">
+    <value>gruvbox-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNight" xml:space="preserve">
+    <value>tokyo-night</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightStorm" xml:space="preserve">
+    <value>tokyo-night-storm</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightMoon" xml:space="preserve">
+    <value>tokyo-night-moon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTokyoNightLight" xml:space="preserve">
+    <value>tokyo-night-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubDark" xml:space="preserve">
+    <value>github-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubLight" xml:space="preserve">
+    <value>github-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogGithubDarkDimmed" xml:space="preserve">
+    <value>github-dark-dimmed</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOneLight" xml:space="preserve">
+    <value>one-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIntellijLight" xml:space="preserve">
+    <value>intellij-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDarcula" xml:space="preserve">
+    <value>darcula</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePine" xml:space="preserve">
+    <value>rose-pine</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePineMoon" xml:space="preserve">
+    <value>rose-pine-moon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRosePineDawn" xml:space="preserve">
+    <value>rose-pine-dawn</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEverforestDark" xml:space="preserve">
+    <value>everforest-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEverforestLight" xml:space="preserve">
+    <value>everforest-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawa" xml:space="preserve">
+    <value>kanagawa</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawaDragon" xml:space="preserve">
+    <value>kanagawa-dragon</value>
+  </data>
+  <data name="ColorSchemeNameCatalogKanagawaLotus" xml:space="preserve">
+    <value>kanagawa-lotus</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialOceanic" xml:space="preserve">
+    <value>material-oceanic</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialDarker" xml:space="preserve">
+    <value>material-darker</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialLighter" xml:space="preserve">
+    <value>material-lighter</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialPalenight" xml:space="preserve">
+    <value>material-palenight</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMaterialDeepOcean" xml:space="preserve">
+    <value>material-deep-ocean</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuDark" xml:space="preserve">
+    <value>ayu-dark</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuMirage" xml:space="preserve">
+    <value>ayu-mirage</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAyuLight" xml:space="preserve">
+    <value>ayu-light</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCobalt2" xml:space="preserve">
+    <value>cobalt2</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSynthwave84" xml:space="preserve">
+    <value>synthwave-84</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAlloyCore" xml:space="preserve">
+    <value>alloy-core</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVerdantRage" xml:space="preserve">
+    <value>verdant-rage</value>
+  </data>
+  <data name="ColorSchemeNameCatalogScarletWeb" xml:space="preserve">
+    <value>scarlet-web</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRelicSand" xml:space="preserve">
+    <value>relic-sand</value>
+  </data>
+  <data name="ColorSchemeNameCatalogSoapRebellion" xml:space="preserve">
+    <value>soap-rebellion</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCodeRain" xml:space="preserve">
+    <value>code-rain</value>
+  </data>
+  <data name="ColorSchemeNameCatalogArcaneLibrary" xml:space="preserve">
+    <value>arcane-library</value>
+  </data>
+  <data name="ColorSchemeNameCatalogRoyalKinetic" xml:space="preserve">
+    <value>royal-kinetic</value>
+  </data>
+  <data name="ColorSchemeNameCatalogArenaSunset" xml:space="preserve">
+    <value>arena-sunset</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCosmicMixtape" xml:space="preserve">
+    <value>cosmic-mixtape</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPrismSanctum" xml:space="preserve">
+    <value>prism-sanctum</value>
+  </data>
+  <data name="ColorSchemeNameCatalogWinterSentinel" xml:space="preserve">
+    <value>winter-sentinel</value>
+  </data>
+  <data name="ColorSchemeNameCatalogInfiniteDusk" xml:space="preserve">
+    <value>infinite-dusk</value>
+  </data>
+  <data name="ColorSchemeNameCatalogStellarPilot" xml:space="preserve">
+    <value>stellar-pilot</value>
+  </data>
+  <data name="ColorSchemeNameCatalogQuantumHoney" xml:space="preserve">
+    <value>quantum-honey</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCrimsonMercenary" xml:space="preserve">
+    <value>crimson-mercenary</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLastOutlaw" xml:space="preserve">
+    <value>last-outlaw</value>
+  </data>
+  <data name="ColorSchemeNameCatalogIvoryAgent" xml:space="preserve">
+    <value>ivory-agent</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCelestialBrass" xml:space="preserve">
+    <value>celestial-brass</value>
+  </data>
+  <data name="ColorSchemeNameCatalogAmberHaze" xml:space="preserve">
+    <value>amber-haze</value>
+  </data>
+  <data name="ColorSchemeNameCatalogDesertOracle" xml:space="preserve">
+    <value>desert-oracle</value>
+  </data>
+  <data name="ColorSchemeNameCatalogChromeWasteland" xml:space="preserve">
+    <value>chrome-wasteland</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNeonGrid" xml:space="preserve">
+    <value>neon-grid</value>
+  </data>
+  <data name="ColorSchemeNameCatalogBiolumeForest" xml:space="preserve">
+    <value>biolume-forest</value>
+  </data>
+  <data name="ColorSchemeNameCatalogPastelConcierge" xml:space="preserve">
+    <value>pastel-concierge</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTwilightJazz" xml:space="preserve">
+    <value>twilight-jazz</value>
+  </data>
+  <data name="ColorSchemeNameCatalogNoirVigil" xml:space="preserve">
+    <value>noir-vigil</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCarnivalAshes" xml:space="preserve">
+    <value>carnival-ashes</value>
+  </data>
+  <data name="ColorSchemeNameCatalogOrbitalFrost" xml:space="preserve">
+    <value>orbital-frost</value>
+  </data>
+  <data name="ColorSchemeNameCatalogFoldedCity" xml:space="preserve">
+    <value>folded-city</value>
+  </data>
+  <data name="ColorSchemeNameCatalogMidnightDrive" xml:space="preserve">
+    <value>midnight-drive</value>
+  </data>
+  <data name="ColorSchemeNameCatalogEditorialCafe" xml:space="preserve">
+    <value>editorial-cafe</value>
+  </data>
+  <data name="ColorSchemeNameCatalogStripedHaunt" xml:space="preserve">
+    <value>striped-haunt</value>
+  </data>
+  <data name="ColorSchemeNameCatalogCuriousGarden" xml:space="preserve">
+    <value>curious-garden</value>
+  </data>
+  <data name="ColorSchemeNameCatalogTideboundGold" xml:space="preserve">
+    <value>tidebound-gold</value>
+  </data>
+  <data name="ColorSchemeNameCatalogVelvetCabaret" xml:space="preserve">
+    <value>velvet-cabaret</value>
+  </data>
+  <data name="ColorSchemeNameCatalogLagoonWhisper" xml:space="preserve">
+    <value>lagoon-whisper</value>
+  </data>
+  <data name="SettingsSchemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="SettingsSchemeDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="SettingsSchemeDescriptionFormat" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="SettingsCurrentSchemeFormat" xml:space="preserve">
+    <value>当前主题：{0}</value>
+  </data>
+  <data name="SettingsSchemeResultsFormat" xml:space="preserve">
+    <value>{0} / {1} 个主题</value>
+  </data>
+  <data name="SettingsSchemeNoResults" xml:space="preserve">
+    <value>没有匹配的主题。</value>
+  </data>
+  <data name="SettingsSchemeSearchLabel.Text" xml:space="preserve">
+    <value>搜索主题</value>
+  </data>
+  <data name="SettingsSchemeSearch.PlaceholderText" xml:space="preserve">
+    <value>名称或标识符</value>
+  </data>
+  <data name="IntentLabelOpenColorSchemes" xml:space="preserve"><value>选择配色 · :colorscheme</value></data>
+  <data name="ThemePickerTitle.Text" xml:space="preserve"><value>选择配色</value></data>
+  <data name="SettingsSchemeOptions.AutomationProperties.Name" xml:space="preserve"><value>配色候选</value></data>
+  <data name="SettingsChooseScheme.AutomationProperties.HelpText" xml:space="preserve"><value>打开配色搜索和选择</value></data>
+  <data name="ThemePickerHintPreview" xml:space="preserve"><value>预览</value></data>
+  <data name="ThemePickerHintApply" xml:space="preserve"><value>应用</value></data>
+  <data name="ThemePickerHintCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="ThemePickerCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="CommandPaletteThemeDetail" xml:space="preserve"><value>预览并选择窗口配色</value></data>
+  <data name="CommandPaletteContextLeft" xml:space="preserve"><value>当前窗格：左 · 另一窗格：右</value></data>
+  <data name="CommandPaletteContextRight" xml:space="preserve"><value>当前窗格：右 · 另一窗格：左</value></data>
+  <data name="CommandPaletteTransferLeftToRight" xml:space="preserve"><value>从左窗格到右窗格</value></data>
+  <data name="CommandPaletteTransferRightToLeft" xml:space="preserve"><value>从右窗格到左窗格</value></data>
+  <data name="CommandPaletteActivateLeft" xml:space="preserve"><value>切换到左窗格</value></data>
+  <data name="CommandPaletteActivateRight" xml:space="preserve"><value>切换到右窗格</value></data>
+  <data name="CommandPaletteSettingsDetail" xml:space="preserve"><value>应用设置</value></data>
+  <data name="CommandPaletteWindowDetail" xml:space="preserve"><value>移动此窗口或调整大小</value></data>
+  <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>应用快捷键帮助</value></data>
+  <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>管理共用书签并选择位置</value></data>
+  <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+</root>

@@ -38,6 +38,6 @@ public abstract record ProgressSegment
         {
         }
 
-        public override string BrushResourceKey => "OperationTrackBrush";
+        public override string BrushResourceKey => "SurfacePaneBrush";
     }
 }

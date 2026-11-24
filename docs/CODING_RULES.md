@@ -177,7 +177,7 @@ Catch only exceptions that can be normalized or enriched. Platform adapters tran
 - Status: **active**
 - Enforcement: clean-tree build proof and path scan.
 
-Generated output is reproducible from committed inputs, written only to declared generated locations, and not edited manually. Generated files are not committed unless an ADR records why deterministic regeneration cannot be used.
+Generated output is reproducible from committed inputs, written only to declared generated locations, and not edited manually. Generated files are not committed unless an ADR records why deterministic regeneration cannot be used. ADR-0087 declares the fixed imported theme sources as an exception because ARC-012 and WinUI require those inputs before the product build; the canonical gate checks the single offline importer against committed inputs. These files retain all analyzers, coverage, mutation and complexity rules.
 
 ### CS-020 — Suppressions are prohibited
 
@@ -210,11 +210,11 @@ Code-behind may initialize components, maintain framework-required view referenc
 User-facing text is referenced from localization resources. Colors, brushes, spacing, typography, corner radii, control density, and motion are referenced through semantic design resources. Hard-coded visual constants in views are prohibited except values explicitly documented as framework geometry.
 
 Issue #448 / ADR-0081 adds a conformance check for direct `GetString("Key")` calls in App C#:
-each simple literal key must exist, with exact case, in every shipped `.resw`
+each simple literal key (including dotted property keys) must exist, with exact case, in every shipped `.resw`
 catalog. The source scan covers ASCII identifier literals; it does not resolve
 dynamic keys, aliases, escaped strings, or comments as C# syntax. Existing typed
 presentation-key tests remain necessary. `eng/prove-gates.ps1 -Rule CS-023`
-proves a valid catalog, absent catalogs, a misspelled key, wrong case, and a missing translation.
+proves a valid catalog, absent catalogs, a misspelled key, wrong case, and a missing translation. ADR-0088 extends the same scan to literal `LocalizedText` attached keys and requires their explicit window resource owner; its negative fixtures also reject absent scope, cached loaders and launch-only x:Uid. Bound keys remain covered by presenter and actual-control proof.
 
 ## Dependencies and documentation
 

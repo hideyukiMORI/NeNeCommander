@@ -1,0 +1,3651 @@
+{
+  "schemaVersion": 1,
+  "source": "Fixed Nib palette inputs; Folio comparison is provenance only.",
+  "sourceFiles": [
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "src/core/BuiltinThemes.hpp",
+      "sha256": "5091bb0563c2a66a79dc998811497ce949be7cb258b25fd586ff64f5e3048ed1",
+      "length": 102373,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "src/core/BuiltinThemePalettes.hpp",
+      "sha256": "323c7b1f1f08de82f5212e4c10c0527cc922c59c74a3395d578ae9e694fd3a8a",
+      "length": 87813,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "src/core/ThemeDerivation.hpp",
+      "sha256": "4d931655d257a575ab55aef05a3fed4025dba04c14daadb5b8b5b691d6d271e7",
+      "length": 5956,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "src/core/Palette.hpp",
+      "sha256": "0d8e5ffbfce27c5d7e46449e27e660212006234de815e36451bb9d8a6283bfbd",
+      "length": 1427,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "docs/theme-sources.json",
+      "sha256": "d93952fa65071d4973406b49a9f60f6ec21b1ce044fe33752cfcfd3d6d9f0508",
+      "length": 145102,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "34c619a1f36e5d5520919a18f0e160c329e6a3308f3aa7b165805dca2d981e6d",
+      "length": 74167,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "LICENSE",
+      "sha256": "5844313c6c3f3bc62398832165874eadb29cacbfa1793235fafe634ef5ed3805",
+      "length": 1069,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "nib",
+      "commit": "5d76cc7125b1b3bc74a302cefb28ec67c0d314fd",
+      "path": "docs/adr/0117-expanded-colorschemes-and-gutter-background.md",
+      "sha256": "9d6409c7dc38a224c2d68eed4348eacf57bb3be58dd8f28be72514a1acbca006",
+      "length": 6013,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "src/core/folio_theme.c",
+      "sha256": "6470f15f58f585df73a338e2b9dd67541f0c3c0c54fb113f3a48b82afec60d3e",
+      "length": 293499,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "src/core/folio_theme.h",
+      "sha256": "bbcd2cfa50ca962e48deabad44ae92fe186097fa4257835509a59f2836b03c8b",
+      "length": 4308,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "docs/theme-sources.json",
+      "sha256": "050b459f5f2154f42c56bfe1b00e45d6aacc373ba7593a59df7f40071e69fd88",
+      "length": 30222,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "80148d20d6e07f26a664995cc2a084386254fc8c833ff152f250186f122b164f",
+      "length": 74653,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "LICENSE",
+      "sha256": "5844313c6c3f3bc62398832165874eadb29cacbfa1793235fafe634ef5ed3805",
+      "length": 1069,
+      "worktreeMatches": true
+    },
+    {
+      "repository": "folio",
+      "commit": "1411261b92231dbe0a3783be35ae5b6578ae2821",
+      "path": "docs/adr/0049-builtin-theme-catalog.md",
+      "sha256": "0383f6fbb9d333b28ee3d3af0f64254e0df62944271136d5fb0a02401d2aedd4",
+      "length": 7028,
+      "worktreeMatches": true
+    }
+  ],
+  "notice": {
+    "path": "docs/release/licenses/theme-palette-notices.txt",
+    "bytes": 71394,
+    "sha256": "31629c34013fc98b7778528cf2bbb9c1d32ecd5967b29321c82f2b723450851a"
+  },
+  "commanderOnly": [
+    {
+      "name": "nene-dark",
+      "appearance": "dark",
+      "nameKey": "ColorSchemeNameNeNeDark",
+      "sha256": "04ce2a5193ec3dfbb5e06946a173258b5e22542b18062a59b2a1a5eab8e9a8db"
+    },
+    {
+      "name": "ubuntu",
+      "appearance": "dark",
+      "nameKey": "ColorSchemeNameUbuntu",
+      "sha256": "9b13d88bf05e5282fa146d7ba6587bbd862d913f3331a1205bd8045d5c378699"
+    },
+    {
+      "name": "nene-black",
+      "appearance": "dark",
+      "nameKey": "ColorSchemeNameNeNeBlack",
+      "sha256": "3da9128e022b9f9582151f0e9b7d803ed6b7510672384bd23b2a1db66d39a3f0"
+    },
+    {
+      "name": "nene-light",
+      "appearance": "light",
+      "nameKey": "ColorSchemeNameNeNeLight",
+      "sha256": "5ff76bafe698de32ae1bb411e809917b128ef7820dbe4db2d68768aa79bf23e9"
+    }
+  ],
+  "themes": [
+    {
+      "name": "ubuntu-aubergine",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EEEEEC",
+        "background": "#300A24",
+        "cursor": "#E95420",
+        "selection": "#E95420",
+        "current_line": "#3E1A32",
+        "line_number": "#7A6675",
+        "comment": "#B8A9B3",
+        "keyword": "#FCAF3E",
+        "string": "#8AE234",
+        "number": "#AD7FA8",
+        "type": "#FCE94F",
+        "function": "#729FCF",
+        "constant": "#AD7FA8",
+        "operators": "#34E2E2",
+        "error": "#EF2929",
+        "warning": "#FCAF3E"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT",
+        "url": "https://github.com/hideyukiMORI/nene-nib"
+      },
+      "nameKey": "ColorSchemeNameCatalogUbuntuAubergine"
+    },
+    {
+      "name": "neutral-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#1B1F24",
+        "background": "#F4F5F7",
+        "cursor": "#E95420",
+        "selection": "#E95420",
+        "current_line": "#E6E8EC",
+        "line_number": "#9AA3AD",
+        "comment": "#5C6570",
+        "keyword": "#CE5C00",
+        "string": "#4E9A06",
+        "number": "#75507B",
+        "type": "#C4A000",
+        "function": "#3465A4",
+        "constant": "#75507B",
+        "operators": "#06989A",
+        "error": "#CC0000",
+        "warning": "#CE5C00"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT",
+        "url": "https://github.com/hideyukiMORI/nene-nib"
+      },
+      "nameKey": "ColorSchemeNameCatalogNeutralLight"
+    },
+    {
+      "name": "solarized-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#839496",
+        "background": "#002B36",
+        "cursor": "#839496",
+        "selection": "#073642",
+        "current_line": "#073642",
+        "line_number": "#586E75",
+        "comment": "#586E75",
+        "keyword": "#859900",
+        "string": "#2AA198",
+        "number": "#2AA198",
+        "type": "#B58900",
+        "function": "#268BD2",
+        "constant": "#2AA198",
+        "operators": "#859900",
+        "error": "#DC322F",
+        "warning": "#CB4B16"
+      },
+      "source": {
+        "author": "Ethan Schoonover",
+        "license": "MIT",
+        "url": "https://ethanschoonover.com/solarized/"
+      },
+      "nameKey": "ColorSchemeNameSolarizedDark"
+    },
+    {
+      "name": "solarized-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#586E75",
+        "background": "#FDF6E3",
+        "cursor": "#657B83",
+        "selection": "#EEE8D5",
+        "current_line": "#EEE8D5",
+        "line_number": "#93A1A1",
+        "comment": "#93A1A1",
+        "keyword": "#859900",
+        "string": "#2AA198",
+        "number": "#2AA198",
+        "type": "#B58900",
+        "function": "#268BD2",
+        "constant": "#2AA198",
+        "operators": "#859900",
+        "error": "#DC322F",
+        "warning": "#CB4B16"
+      },
+      "source": {
+        "author": "Ethan Schoonover",
+        "license": "MIT",
+        "url": "https://ethanschoonover.com/solarized/"
+      },
+      "nameKey": "ColorSchemeNameSolarizedLight"
+    },
+    {
+      "name": "monokai",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F8F8F2",
+        "background": "#272822",
+        "cursor": "#F8F8F0",
+        "selection": "#49483E",
+        "current_line": "#49483E",
+        "line_number": "#75715E",
+        "comment": "#75715E",
+        "keyword": "#F92672",
+        "string": "#E6DB74",
+        "number": "#AE81FF",
+        "type": "#66D9EF",
+        "function": "#A6E22E",
+        "constant": "#AE81FF",
+        "operators": "#F92672",
+        "error": "#F92672",
+        "warning": "#FD971F"
+      },
+      "source": {
+        "author": "Wimer Hazenberg",
+        "license": "colors used; the name is attributed to the original author",
+        "url": "https://github.com/textmate/monokai.tmbundle/blob/master/Themes/Monokai.tmTheme"
+      },
+      "nameKey": "ColorSchemeNameMonokai"
+    },
+    {
+      "name": "dracula",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F8F8F2",
+        "background": "#282A36",
+        "cursor": "#F8F8F2",
+        "selection": "#44475A",
+        "current_line": "#44475A",
+        "line_number": "#6272A4",
+        "comment": "#6272A4",
+        "keyword": "#FF79C6",
+        "string": "#F1FA8C",
+        "number": "#BD93F9",
+        "type": "#8BE9FD",
+        "function": "#50FA7B",
+        "constant": "#BD93F9",
+        "operators": "#FF79C6",
+        "error": "#FF5555",
+        "warning": "#FFB86C"
+      },
+      "source": {
+        "author": "Zeno Rocha and contributors",
+        "license": "MIT",
+        "url": "https://spec.draculatheme.com/"
+      },
+      "nameKey": "ColorSchemeNameDracula"
+    },
+    {
+      "name": "one-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#ABB2BF",
+        "background": "#282C34",
+        "cursor": "#528BFF",
+        "selection": "#3E4451",
+        "current_line": "#2C323C",
+        "line_number": "#636D83",
+        "comment": "#5C6370",
+        "keyword": "#C678DD",
+        "string": "#98C379",
+        "number": "#D19A66",
+        "type": "#E5C07B",
+        "function": "#61AFEF",
+        "constant": "#D19A66",
+        "operators": "#ABB2BF",
+        "error": "#E05252",
+        "warning": "#E0C285"
+      },
+      "source": {
+        "author": "Atom",
+        "license": "MIT",
+        "url": "https://github.com/atom/one-dark-syntax"
+      },
+      "nameKey": "ColorSchemeNameCatalogOneDark"
+    },
+    {
+      "name": "night-owl",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D6DEEB",
+        "background": "#011627",
+        "cursor": "#80A4C2",
+        "selection": "#1D3B53",
+        "current_line": "#072435",
+        "line_number": "#4B6479",
+        "comment": "#637777",
+        "keyword": "#C792EA",
+        "string": "#ECC48D",
+        "number": "#F78C6C",
+        "type": "#FFCB8B",
+        "function": "#82AAFF",
+        "constant": "#82AAFF",
+        "operators": "#7FDBCA",
+        "error": "#EF5350",
+        "warning": "#B39554"
+      },
+      "source": {
+        "author": "Sarah Drasner",
+        "license": "MIT",
+        "url": "https://github.com/sdras/night-owl-vscode-theme"
+      },
+      "nameKey": "ColorSchemeNameCatalogNightOwl"
+    },
+    {
+      "name": "night-owl-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#403F53",
+        "background": "#FBFBFB",
+        "cursor": "#90A7B2",
+        "selection": "#E0E0E0",
+        "current_line": "#F0F0F0",
+        "line_number": "#90A7B2",
+        "comment": "#989FB1",
+        "keyword": "#994CC3",
+        "string": "#4876D6",
+        "number": "#AA0982",
+        "type": "#111111",
+        "function": "#4876D6",
+        "constant": "#4876D6",
+        "operators": "#0C969B",
+        "error": "#E64D49",
+        "warning": "#DAAA01"
+      },
+      "source": {
+        "author": "Sarah Drasner",
+        "license": "MIT",
+        "url": "https://github.com/sdras/night-owl-vscode-theme"
+      },
+      "nameKey": "ColorSchemeNameCatalogNightOwlLight"
+    },
+    {
+      "name": "blue",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFD700",
+        "background": "#000087",
+        "cursor": "#00FF00",
+        "selection": "#008787",
+        "current_line": "#005FAF",
+        "line_number": "#5FFFFF",
+        "comment": "#8A8A8A",
+        "keyword": "#FFFFFF",
+        "string": "#5FFFFF",
+        "number": "#5FFFFF",
+        "type": "#FFA500",
+        "function": "#BCBCBC",
+        "constant": "#5FFFFF",
+        "operators": "#FFA500",
+        "error": "#FF7F50",
+        "warning": "#D787D7"
+      },
+      "source": {
+        "author": "Original author Steven Vertigan <steven@vertigan.wattle.id.au>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/blue.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogBlue"
+    },
+    {
+      "name": "catppuccin",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#CDD6F4",
+        "background": "#1E1E2E",
+        "cursor": "#F5E0DC",
+        "selection": "#45475A",
+        "current_line": "#2A2B3C",
+        "line_number": "#80818E",
+        "comment": "#9399B2",
+        "keyword": "#CBA6F7",
+        "string": "#A6E3A1",
+        "number": "#FAB387",
+        "type": "#F9E2AF",
+        "function": "#89B4FA",
+        "constant": "#FAB387",
+        "operators": "#89DCEB",
+        "error": "#F38BA8",
+        "warning": "#F9E2AF"
+      },
+      "source": {
+        "author": "The Catppuccin Community <catppuccin.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/catppuccin.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogCatppuccin"
+    },
+    {
+      "name": "darkblue",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C0C0C0",
+        "background": "#000040",
+        "cursor": "#FFFF60",
+        "selection": "#FFFFFF",
+        "current_line": "#666666",
+        "line_number": "#90F020",
+        "comment": "#80A0FF",
+        "keyword": "#FFFF60",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#90F020",
+        "function": "#90FFF0",
+        "constant": "#FFA0A0",
+        "operators": "#FFFF60",
+        "error": "#FFA0A0",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "Original author Bohdan Vlasyuk <bohdan@vstu.edu.ua>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/darkblue.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogDarkblue"
+    },
+    {
+      "name": "default",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#000000",
+        "cursor": "#40FFFF",
+        "selection": "#134C4C",
+        "current_line": "#111111",
+        "line_number": "#999999",
+        "comment": "#80A0FF",
+        "keyword": "#FFFF60",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#60FF60",
+        "function": "#40FFFF",
+        "constant": "#FFA0A0",
+        "operators": "#FFFF60",
+        "error": "#FF6060",
+        "warning": "#FFFF60"
+      },
+      "source": {
+        "author": "Vim contributors",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/default.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogDefault"
+    },
+    {
+      "name": "delek",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#D0D0D0",
+        "current_line": "#E4E4E4",
+        "line_number": "#A52A2A",
+        "comment": "#EE0000",
+        "keyword": "#0000FF",
+        "string": "#008A00",
+        "number": "#008A00",
+        "type": "#0000FF",
+        "function": "#008383",
+        "constant": "#008A00",
+        "operators": "#0000FF",
+        "error": "#EE0000",
+        "warning": "#CD00CD"
+      },
+      "source": {
+        "author": "Original author David Schweikert <david@schweikert.ch>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/delek.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogDelek"
+    },
+    {
+      "name": "desert",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#333333",
+        "cursor": "#F0E68C",
+        "selection": "#6B8E24",
+        "current_line": "#666666",
+        "line_number": "#909090",
+        "comment": "#6DCEEB",
+        "keyword": "#F0E68C",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#BDB76B",
+        "function": "#89FB98",
+        "constant": "#FFA0A0",
+        "operators": "#F0E68C",
+        "error": "#FF6B6B",
+        "warning": "#D98383"
+      },
+      "source": {
+        "author": "Original author Hans Fugal <hans@fugal.net>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/desert.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogDesert"
+    },
+    {
+      "name": "elflord",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#00FFFF",
+        "background": "#000000",
+        "cursor": "#00FFFF",
+        "selection": "#A9A9A9",
+        "current_line": "#3A3A3A",
+        "line_number": "#FFFF00",
+        "comment": "#80A0FF",
+        "keyword": "#B45A5A",
+        "string": "#FF00FF",
+        "number": "#FF00FF",
+        "type": "#60FF60",
+        "function": "#FFFFFF",
+        "constant": "#FF00FF",
+        "operators": "#FF0000",
+        "error": "#FFFFFF",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "original author Ron Aaron <ron@ronware.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/elflord.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogElflord"
+    },
+    {
+      "name": "evening",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#333333",
+        "cursor": "#00FF00",
+        "selection": "#999999",
+        "current_line": "#666666",
+        "line_number": "#FFFF00",
+        "comment": "#80A0FF",
+        "keyword": "#FFFF60",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#00FF00",
+        "function": "#00FFFF",
+        "constant": "#FFA0A0",
+        "operators": "#FFFF60",
+        "error": "#FF6B6B",
+        "warning": "#FF6B6B"
+      },
+      "source": {
+        "author": "Original author Bram Moolenaar <Bram@vim.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/evening.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogEvening"
+    },
+    {
+      "name": "habamax",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C7C7C7",
+        "background": "#1C1C1C",
+        "cursor": "#EEEEEE",
+        "selection": "#1A3456",
+        "current_line": "#303030",
+        "line_number": "#808080",
+        "comment": "#858585",
+        "keyword": "#AF87AF",
+        "string": "#87AF87",
+        "number": "#D7AF87",
+        "type": "#5F87AF",
+        "function": "#87AFAF",
+        "constant": "#D7AF87",
+        "operators": "#AF87AF",
+        "error": "#AF87AF",
+        "warning": "#D75F87"
+      },
+      "source": {
+        "author": "Maxim Kim <habamax@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/habamax.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogHabamax"
+    },
+    {
+      "name": "industry",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DADADA",
+        "background": "#000000",
+        "cursor": "#DADADA",
+        "selection": "#6C6C6C",
+        "current_line": "#6C6C6C",
+        "line_number": "#FFFF00",
+        "comment": "#00AFAF",
+        "keyword": "#FFFFFF",
+        "string": "#00FFFF",
+        "number": "#00FFFF",
+        "type": "#00FF00",
+        "function": "#00FF00",
+        "constant": "#00FFFF",
+        "operators": "#FFFFFF",
+        "error": "#FFFFFF",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "Original author Shian Lee.",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/industry.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogIndustry"
+    },
+    {
+      "name": "koehler",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#000000",
+        "cursor": "#00FF00",
+        "selection": "#666666",
+        "current_line": "#555555",
+        "line_number": "#FFFF00",
+        "comment": "#80A0FF",
+        "keyword": "#FFFF60",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#60FF60",
+        "function": "#40FFFF",
+        "constant": "#FFA0A0",
+        "operators": "#FFFF60",
+        "error": "#D83838",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "original author Ron Aaron <ron@ronware.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/koehler.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogKoehler"
+    },
+    {
+      "name": "lunaperche",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C6C6C6",
+        "background": "#000000",
+        "cursor": "#C6C6C6",
+        "selection": "#104070",
+        "current_line": "#262626",
+        "line_number": "#7C7C7C",
+        "comment": "#5FAFFF",
+        "keyword": "#E4E4E4",
+        "string": "#FFD787",
+        "number": "#FF87FF",
+        "type": "#5FD75F",
+        "function": "#C6C6C6",
+        "constant": "#FF87FF",
+        "operators": "#E4E4E4",
+        "error": "#FF5F5F",
+        "warning": "#FF5F5F"
+      },
+      "source": {
+        "author": "Maxim Kim <habamax@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/lunaperche.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogLunaperche"
+    },
+    {
+      "name": "morning",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#E4E4E4",
+        "cursor": "#2E8B57",
+        "selection": "#D0D0D0",
+        "current_line": "#D3D3D3",
+        "line_number": "#A52A2A",
+        "comment": "#0000FF",
+        "keyword": "#A52A2A",
+        "string": "#B600B6",
+        "number": "#B600B6",
+        "type": "#267248",
+        "function": "#007272",
+        "constant": "#B600B6",
+        "operators": "#A52A2A",
+        "error": "#CF0000",
+        "warning": "#6A0DAD"
+      },
+      "source": {
+        "author": "Original author Bram Moolenaar <Bram@vim.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/morning.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogMorning"
+    },
+    {
+      "name": "murphy",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#87FF87",
+        "background": "#000000",
+        "cursor": "#87FF87",
+        "selection": "#005F00",
+        "current_line": "#444444",
+        "line_number": "#FFFF00",
+        "comment": "#FFA700",
+        "keyword": "#FFFF00",
+        "string": "#FFFFFF",
+        "number": "#FFFFFF",
+        "type": "#BCBCBC",
+        "function": "#00FFFF",
+        "constant": "#FFFFFF",
+        "operators": "#FFFF00",
+        "error": "#FFFFFF",
+        "warning": "#FFA700"
+      },
+      "source": {
+        "author": "Original author Ron Aaron <ron@ronware.org>.",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/murphy.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogMurphy"
+    },
+    {
+      "name": "novum",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E0E2EA",
+        "background": "#14161B",
+        "cursor": "#E0E2EA",
+        "selection": "#4F5258",
+        "current_line": "#37393F",
+        "line_number": "#7B7D81",
+        "comment": "#9B9EA4",
+        "keyword": "#E0E2EA",
+        "string": "#B3F6C0",
+        "number": "#E0E2EA",
+        "type": "#E0E2EA",
+        "function": "#8CF8F7",
+        "constant": "#E0E2EA",
+        "operators": "#E0E2EA",
+        "error": "#EEF1F8",
+        "warning": "#FCE094"
+      },
+      "source": {
+        "author": "Charan Mandati <charancuz008@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/novum.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogNovum"
+    },
+    {
+      "name": "pablo",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#000000",
+        "cursor": "#FFFFFF",
+        "selection": "#A9A9A9",
+        "current_line": "#3A3A3A",
+        "line_number": "#7F7F7F",
+        "comment": "#808080",
+        "keyword": "#C0C000",
+        "string": "#00FFFF",
+        "number": "#00FFFF",
+        "type": "#00C000",
+        "function": "#00C0C0",
+        "constant": "#00FFFF",
+        "operators": "#C0C000",
+        "error": "#FFFFFF",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "Ron Aaron <ron@ronware.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/pablo.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogPablo"
+    },
+    {
+      "name": "peachpuff",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFDAB9",
+        "cursor": "#000000",
+        "selection": "#CCCCCC",
+        "current_line": "#F5C195",
+        "line_number": "#CD0000",
+        "comment": "#406090",
+        "keyword": "#A52A2A",
+        "string": "#C00058",
+        "number": "#C00058",
+        "type": "#267147",
+        "function": "#006E6E",
+        "constant": "#C00058",
+        "operators": "#A52A2A",
+        "error": "#CA0000",
+        "warning": "#B100B1"
+      },
+      "source": {
+        "author": "Original author David Ne\\v{c}as (Yeti) <yeti@physics.muni.cz>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/peachpuff.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogPeachpuff"
+    },
+    {
+      "name": "quiet",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DADADA",
+        "background": "#000000",
+        "cursor": "#DADADA",
+        "selection": "#414141",
+        "current_line": "#303030",
+        "line_number": "#7C7C7C",
+        "comment": "#757575",
+        "keyword": "#DADADA",
+        "string": "#DADADA",
+        "number": "#DADADA",
+        "type": "#DADADA",
+        "function": "#DADADA",
+        "constant": "#DADADA",
+        "operators": "#DADADA",
+        "error": "#FF005F",
+        "warning": "#DADADA"
+      },
+      "source": {
+        "author": "Maxence Weynans <neutaaaaan@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/quiet.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogQuiet"
+    },
+    {
+      "name": "retrobox",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EBDBB2",
+        "background": "#1C1C1C",
+        "cursor": "#FBF1C7",
+        "selection": "#2A405A",
+        "current_line": "#303030",
+        "line_number": "#8A7E75",
+        "comment": "#928374",
+        "keyword": "#FB5944",
+        "string": "#B8BB26",
+        "number": "#D3869B",
+        "type": "#FABD2F",
+        "function": "#B8BB26",
+        "constant": "#D3869B",
+        "operators": "#8EC07C",
+        "error": "#FB5944",
+        "warning": "#FB5944"
+      },
+      "source": {
+        "author": "Maxim Kim <habamax@gmail.com>, ported from gruvbox8 of Lifepillar <lifepillar@lifepillar.me>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/retrobox.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogRetrobox"
+    },
+    {
+      "name": "ron",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#00FFFF",
+        "background": "#000000",
+        "cursor": "#60A060",
+        "selection": "#004C4C",
+        "current_line": "#666666",
+        "line_number": "#A9A9A9",
+        "comment": "#00FF00",
+        "keyword": "#ADD8E6",
+        "string": "#00FFFF",
+        "number": "#00FFFF",
+        "type": "#2E8B57",
+        "function": "#00FFFF",
+        "constant": "#00FFFF",
+        "operators": "#FFA500",
+        "error": "#FF0000",
+        "warning": "#FFFF00"
+      },
+      "source": {
+        "author": "original author Ron Aaron <ron@ronware.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/ron.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogRon"
+    },
+    {
+      "name": "shine",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#A8A8A8",
+        "current_line": "#DADADA",
+        "line_number": "#6D6D6D",
+        "comment": "#767676",
+        "keyword": "#2D8654",
+        "string": "#986B6B",
+        "number": "#986B6B",
+        "type": "#2D8654",
+        "function": "#008383",
+        "constant": "#986B6B",
+        "operators": "#2D8654",
+        "error": "#EE0000",
+        "warning": "#6A0DAD"
+      },
+      "source": {
+        "author": "Original author is Yasuhiro Matsumoto <mattn.jp@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/shine.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogShine"
+    },
+    {
+      "name": "slate",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#262626",
+        "cursor": "#D7D787",
+        "selection": "#5F8700",
+        "current_line": "#333333",
+        "line_number": "#868686",
+        "comment": "#8C8C8C",
+        "keyword": "#678DD9",
+        "string": "#87D7FF",
+        "number": "#FFAFAF",
+        "type": "#678DD9",
+        "function": "#FFD7AF",
+        "constant": "#FFAFAF",
+        "operators": "#D7875F",
+        "error": "#FF4949",
+        "warning": "#FF8787"
+      },
+      "source": {
+        "author": "Original maintainer Ralph Amissah <ralph@amissah.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/slate.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogSlate"
+    },
+    {
+      "name": "sorbet",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DADADA",
+        "background": "#161821",
+        "cursor": "#DADADA",
+        "selection": "#000000",
+        "current_line": "#363841",
+        "line_number": "#7B7B9C",
+        "comment": "#AF87D7",
+        "keyword": "#87AFD7",
+        "string": "#D7AF5F",
+        "number": "#D75F5F",
+        "type": "#87AFD7",
+        "function": "#87D75F",
+        "constant": "#D75F5F",
+        "operators": "#87AFD7",
+        "error": "#FF5F5F",
+        "warning": "#DADADA"
+      },
+      "source": {
+        "author": "Maxence Weynans <neutaaaaan@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/sorbet.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogSorbet"
+    },
+    {
+      "name": "torte",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#CCCCCC",
+        "background": "#000000",
+        "cursor": "#00FF00",
+        "selection": "#A9A9A9",
+        "current_line": "#666666",
+        "line_number": "#7F7F7F",
+        "comment": "#80A0FF",
+        "keyword": "#FFFF60",
+        "string": "#FFA0A0",
+        "number": "#FFA0A0",
+        "type": "#60FF60",
+        "function": "#40FFFF",
+        "constant": "#FFA0A0",
+        "operators": "#FFFF60",
+        "error": "#FFFFFF",
+        "warning": "#FF0000"
+      },
+      "source": {
+        "author": "Original maintainer Thorsten Maerz <info@netztorte.de>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/torte.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogTorte"
+    },
+    {
+      "name": "unokai",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F8F8F2",
+        "background": "#282923",
+        "cursor": "#DADADA",
+        "selection": "#3A5D60",
+        "current_line": "#3A392F",
+        "line_number": "#8A8A8A",
+        "comment": "#928F80",
+        "keyword": "#FA4D8B",
+        "string": "#E6DB74",
+        "number": "#AE81FF",
+        "type": "#FD971F",
+        "function": "#A6E22E",
+        "constant": "#AE81FF",
+        "operators": "#FA4D8B",
+        "error": "#FA4D8B",
+        "warning": "#FA4D8B"
+      },
+      "source": {
+        "author": "k-37 <60838818+k-37@users.noreply.github.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/unokai.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogUnokai"
+    },
+    {
+      "name": "wildcharm",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D0D0D0",
+        "background": "#000000",
+        "cursor": "#FFFFFF",
+        "selection": "#204060",
+        "current_line": "#262626",
+        "line_number": "#7C7C7C",
+        "comment": "#767676",
+        "keyword": "#00AFFF",
+        "string": "#00D75F",
+        "number": "#00D75F",
+        "type": "#FFAF00",
+        "function": "#FF87FF",
+        "constant": "#00D75F",
+        "operators": "#00AFFF",
+        "error": "#DC2173",
+        "warning": "#FFAF00"
+      },
+      "source": {
+        "author": "Maxim Kim <habamax@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/wildcharm.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogWildcharm"
+    },
+    {
+      "name": "zaibatsu",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#0E0024",
+        "cursor": "#FFFF5F",
+        "selection": "#5FD7FF",
+        "current_line": "#362B49",
+        "line_number": "#AFAFFF",
+        "comment": "#AFAFFF",
+        "keyword": "#FFAFFF",
+        "string": "#FFFF5F",
+        "number": "#FFFF5F",
+        "type": "#FF5FAF",
+        "function": "#87FFFF",
+        "constant": "#FFFF5F",
+        "operators": "#FFAFFF",
+        "error": "#DF3838",
+        "warning": "#FFAFFF"
+      },
+      "source": {
+        "author": "Romain Lafourcade <romainlafourcade@gmail.com>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/zaibatsu.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogZaibatsu"
+    },
+    {
+      "name": "zellner",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#FFFF00",
+        "current_line": "#E5E5E5",
+        "line_number": "#A52A2A",
+        "comment": "#EE0000",
+        "keyword": "#A52A2A",
+        "string": "#CF00CF",
+        "number": "#CF00CF",
+        "type": "#0000FF",
+        "function": "#0000FF",
+        "constant": "#CF00CF",
+        "operators": "#A52A2A",
+        "error": "#EE0000",
+        "warning": "#A020F0"
+      },
+      "source": {
+        "author": "Original author Ron Aaron <ron@ronware.org>",
+        "license": "Vim license; palette adaptation",
+        "url": "https://github.com/vim/vim/blob/99b9dd00cd180bade5b8b08c00e4e8ae2e553dbe/runtime/colors/zellner.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogZellner"
+    },
+    {
+      "name": "abyss",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#6688CC",
+        "background": "#000C18",
+        "cursor": "#DDBB88",
+        "selection": "#770811",
+        "current_line": "#082050",
+        "line_number": "#5E7B98",
+        "comment": "#6B77A6",
+        "keyword": "#577DA4",
+        "string": "#22AA44",
+        "number": "#F280D0",
+        "type": "#FFEEBB",
+        "function": "#DDBB88",
+        "constant": "#F280D0",
+        "operators": "#6688CC",
+        "error": "#B75D6F",
+        "warning": "#F280D0"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-abyss/themes/abyss-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogAbyss"
+    },
+    {
+      "name": "vscode-dark-2026",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#BBBEBF",
+        "background": "#121314",
+        "cursor": "#BBBEBF",
+        "selection": "#245C73",
+        "current_line": "#242526",
+        "line_number": "#858889",
+        "comment": "#8B949E",
+        "keyword": "#DCDCAA",
+        "string": "#A5D6FF",
+        "number": "#B5CEA8",
+        "type": "#4EC9B0",
+        "function": "#D2A8FF",
+        "constant": "#569CD6",
+        "operators": "#D7BA7D",
+        "error": "#FFA198",
+        "warning": "#B5CEA8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/2026-dark.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeDark2026"
+    },
+    {
+      "name": "vscode-light-2026",
+      "appearance": "light",
+      "body": {
+        "foreground": "#202020",
+        "background": "#FFFFFF",
+        "cursor": "#202020",
+        "selection": "#BFD9F2",
+        "current_line": "#FAFAFA",
+        "line_number": "#606060",
+        "comment": "#6E7781",
+        "keyword": "#EE0000",
+        "string": "#0000FF",
+        "number": "#098658",
+        "type": "#267F99",
+        "function": "#8250DF",
+        "constant": "#0000FF",
+        "operators": "#EE0000",
+        "error": "#82071E",
+        "warning": "#098658"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/2026-light.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeLight2026"
+    },
+    {
+      "name": "vscode-dark-modern",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#CCCCCC",
+        "background": "#1F1F1F",
+        "cursor": "#CCCCCC",
+        "selection": "#163955",
+        "current_line": "#2B2B2B",
+        "line_number": "#7B828C",
+        "comment": "#6A9955",
+        "keyword": "#DCDCAA",
+        "string": "#D16969",
+        "number": "#B5CEA8",
+        "type": "#4EC9B0",
+        "function": "#DCDCAA",
+        "constant": "#569CD6",
+        "operators": "#D7BA7D",
+        "error": "#F44747",
+        "warning": "#B5CEA8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/dark_modern.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeDarkModern"
+    },
+    {
+      "name": "vscode-dark-plus",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D4D4D4",
+        "background": "#1E1E1E",
+        "cursor": "#D4D4D4",
+        "selection": "#575748",
+        "current_line": "#2A2A2A",
+        "line_number": "#8C8C8C",
+        "comment": "#6A9955",
+        "keyword": "#DCDCAA",
+        "string": "#D16969",
+        "number": "#B5CEA8",
+        "type": "#4EC9B0",
+        "function": "#DCDCAA",
+        "constant": "#569CD6",
+        "operators": "#D7BA7D",
+        "error": "#F44747",
+        "warning": "#B5CEA8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/dark_plus.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeDarkPlus"
+    },
+    {
+      "name": "vscode-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D4D4D4",
+        "background": "#1E1E1E",
+        "cursor": "#D4D4D4",
+        "selection": "#2E4355",
+        "current_line": "#2A2A2A",
+        "line_number": "#8C8C8C",
+        "comment": "#6A9955",
+        "keyword": "#569CD6",
+        "string": "#D16969",
+        "number": "#B5CEA8",
+        "type": "#9CDCFE",
+        "function": "#569CD6",
+        "constant": "#569CD6",
+        "operators": "#569CD6",
+        "error": "#F44747",
+        "warning": "#B5CEA8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/dark_vs.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeDark"
+    },
+    {
+      "name": "vscode-high-contrast",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#000000",
+        "cursor": "#FFFFFF",
+        "selection": "#FFFFFF",
+        "current_line": "#111111",
+        "line_number": "#999999",
+        "comment": "#7CA668",
+        "keyword": "#C586C0",
+        "string": "#D16969",
+        "number": "#B5CEA8",
+        "type": "#4EC9B0",
+        "function": "#DCDCAA",
+        "constant": "#569CD6",
+        "operators": "#569CD6",
+        "error": "#F44747",
+        "warning": "#B5CEA8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/hc_black.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeHighContrast"
+    },
+    {
+      "name": "vscode-high-contrast-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#292929",
+        "background": "#FFFFFF",
+        "cursor": "#292929",
+        "selection": "#292929",
+        "current_line": "#EEEEEE",
+        "line_number": "#666666",
+        "comment": "#515151",
+        "keyword": "#EE0000",
+        "string": "#0F4A85",
+        "number": "#096D48",
+        "type": "#185E73",
+        "function": "#5E2CBC",
+        "constant": "#0F4A85",
+        "operators": "#EE0000",
+        "error": "#B5200D",
+        "warning": "#096D48"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/hc_light.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeHighContrastLight"
+    },
+    {
+      "name": "vscode-light-modern",
+      "appearance": "light",
+      "body": {
+        "foreground": "#3B3B3B",
+        "background": "#FFFFFF",
+        "cursor": "#3B3B3B",
+        "selection": "#B3CFEA",
+        "current_line": "#F2F2F2",
+        "line_number": "#6B737E",
+        "comment": "#008000",
+        "keyword": "#EE0000",
+        "string": "#0000FF",
+        "number": "#098658",
+        "type": "#267F99",
+        "function": "#795E26",
+        "constant": "#0000FF",
+        "operators": "#EE0000",
+        "error": "#CD3131",
+        "warning": "#098658"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/light_modern.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeLightModern"
+    },
+    {
+      "name": "vscode-light-plus",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#D7CFBE",
+        "current_line": "#EEEEEE",
+        "line_number": "#666666",
+        "comment": "#008000",
+        "keyword": "#EE0000",
+        "string": "#0000FF",
+        "number": "#098658",
+        "type": "#267F99",
+        "function": "#795E26",
+        "constant": "#0000FF",
+        "operators": "#EE0000",
+        "error": "#CD3131",
+        "warning": "#098658"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/light_plus.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeLightPlus"
+    },
+    {
+      "name": "vscode-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#B3B3FF",
+        "current_line": "#EEEEEE",
+        "line_number": "#666666",
+        "comment": "#008000",
+        "keyword": "#0000FF",
+        "string": "#0000FF",
+        "number": "#098658",
+        "type": "#0451A5",
+        "function": "#0000FF",
+        "constant": "#0000FF",
+        "operators": "#0000FF",
+        "error": "#CD3131",
+        "warning": "#098658"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-defaults/themes/light_vs.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogVscodeLight"
+    },
+    {
+      "name": "kimbie-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D3AF86",
+        "background": "#221A0F",
+        "cursor": "#D3AF86",
+        "selection": "#63492E",
+        "current_line": "#5E452B",
+        "line_number": "#A18D75",
+        "comment": "#A57B4D",
+        "keyword": "#A4797B",
+        "string": "#998158",
+        "number": "#F79A32",
+        "type": "#F06431",
+        "function": "#8AB1B0",
+        "constant": "#998158",
+        "operators": "#A4797B",
+        "error": "#E0506C",
+        "warning": "#F79A32"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-kimbie-dark/themes/kimbie-dark-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogKimbieDark"
+    },
+    {
+      "name": "monokai-dimmed",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C5C8C6",
+        "background": "#1E1E1E",
+        "cursor": "#C07020",
+        "selection": "#434548",
+        "current_line": "#303030",
+        "line_number": "#8E8F8E",
+        "comment": "#9A9B99",
+        "keyword": "#9D79A6",
+        "string": "#9AA83A",
+        "number": "#6089B4",
+        "type": "#C56B6B",
+        "function": "#CE6A05",
+        "constant": "#568F8F",
+        "operators": "#9D79A6",
+        "error": "#FF2F26",
+        "warning": "#6089B4"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-monokai-dimmed/themes/dimmed-monokai-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogMonokaiDimmed"
+    },
+    {
+      "name": "quiet-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#333333",
+        "background": "#F5F5F5",
+        "cursor": "#54494B",
+        "selection": "#C9D0D9",
+        "current_line": "#E4F6D4",
+        "line_number": "#6D705B",
+        "comment": "#3E7E24",
+        "keyword": "#4B69C6",
+        "string": "#4B69C6",
+        "number": "#9C5D27",
+        "type": "#7A3E9D",
+        "function": "#AA3731",
+        "constant": "#9C5D27",
+        "operators": "#707070",
+        "error": "#660000",
+        "warning": "#9C5D27"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-quietlight/themes/quietlight-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogQuietLight"
+    },
+    {
+      "name": "red",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F8F8F8",
+        "background": "#390000",
+        "cursor": "#970000",
+        "selection": "#750000",
+        "current_line": "#610000",
+        "line_number": "#B76969",
+        "comment": "#E7C0C0",
+        "keyword": "#F13636",
+        "string": "#FFB454",
+        "number": "#F8F8F8",
+        "type": "#96DD3B",
+        "function": "#FFB454",
+        "constant": "#FFE862",
+        "operators": "#F8F8F8",
+        "error": "#FFFFFF",
+        "warning": "#F8F8F8"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-red/themes/Red-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogRed"
+    },
+    {
+      "name": "tomorrow-night-blue",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#002451",
+        "cursor": "#FFFFFF",
+        "selection": "#003F8E",
+        "current_line": "#00346E",
+        "line_number": "#99A8BA",
+        "comment": "#798BBA",
+        "keyword": "#EBBBFF",
+        "string": "#D1F1A9",
+        "number": "#FFC58F",
+        "type": "#FFEEAD",
+        "function": "#BBDAFF",
+        "constant": "#FFC58F",
+        "operators": "#99FFFF",
+        "error": "#CD9731",
+        "warning": "#FFC58F"
+      },
+      "source": {
+        "author": "Microsoft and theme contributors",
+        "license": "MIT",
+        "url": "https://github.com/microsoft/vscode/blob/6133b425600558c15ca5238ce483a2f5bdb8db9c/extensions/theme-tomorrow-night-blue/themes/tomorrow-night-blue-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogTomorrowNightBlue"
+    },
+    {
+      "name": "monalisa",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F6D666",
+        "background": "#120B0D",
+        "cursor": "#F6D666",
+        "selection": "#2F2327",
+        "current_line": "#362127",
+        "line_number": "#A18954",
+        "comment": "#817A77",
+        "keyword": "#928F4E",
+        "string": "#BB8A3E",
+        "number": "#C16E31",
+        "type": "#A76C43",
+        "function": "#7F7D59",
+        "constant": "#B4616B",
+        "operators": "#837A5F",
+        "error": "#CA5443",
+        "warning": "#C16E31"
+      },
+      "source": {
+        "author": "Patrick Dewey and contributors",
+        "license": "MIT",
+        "url": "https://github.com/ptdewey/monalisa-nvim/blob/2ffe6db37fcad17da0d210f5b3a357712d0b8a2b/fnl/monalisa/init.fnl"
+      },
+      "nameKey": "ColorSchemeNameCatalogMonalisa"
+    },
+    {
+      "name": "catppuccin-latte",
+      "appearance": "light",
+      "body": {
+        "foreground": "#4C4F69",
+        "background": "#EFF1F5",
+        "cursor": "#DC8A78",
+        "selection": "#ACB0BE",
+        "current_line": "#CCD0DA",
+        "line_number": "#656774",
+        "comment": "#6A6C7D",
+        "keyword": "#8839EF",
+        "string": "#327D22",
+        "number": "#BC4A09",
+        "type": "#986114",
+        "function": "#1E63EE",
+        "constant": "#BC4A09",
+        "operators": "#0376A3",
+        "error": "#D20F39",
+        "warning": "#986114"
+      },
+      "source": {
+        "author": "Catppuccin contributors",
+        "license": "MIT",
+        "url": "https://github.com/catppuccin/palette/blob/07d02aa110ef9eb7e7427afca5c73ba9cf7f8ebd/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogCatppuccinLatte"
+    },
+    {
+      "name": "catppuccin-frappe",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C6D0F5",
+        "background": "#303446",
+        "cursor": "#F2D5CF",
+        "selection": "#626880",
+        "current_line": "#414559",
+        "line_number": "#8B93AD",
+        "comment": "#949CBB",
+        "keyword": "#CA9EE6",
+        "string": "#A6D189",
+        "number": "#EF9F76",
+        "type": "#E5C890",
+        "function": "#8CAAEE",
+        "constant": "#EF9F76",
+        "operators": "#99D1DB",
+        "error": "#E78284",
+        "warning": "#E5C890"
+      },
+      "source": {
+        "author": "Catppuccin contributors",
+        "license": "MIT",
+        "url": "https://github.com/catppuccin/palette/blob/07d02aa110ef9eb7e7427afca5c73ba9cf7f8ebd/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogCatppuccinFrappe"
+    },
+    {
+      "name": "catppuccin-macchiato",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#CAD3F5",
+        "background": "#24273A",
+        "cursor": "#F4DBD6",
+        "selection": "#5B6078",
+        "current_line": "#363A4F",
+        "line_number": "#8087A2",
+        "comment": "#939AB7",
+        "keyword": "#C6A0F6",
+        "string": "#A6DA95",
+        "number": "#F5A97F",
+        "type": "#EED49F",
+        "function": "#8AADF4",
+        "constant": "#F5A97F",
+        "operators": "#91D7E3",
+        "error": "#ED8796",
+        "warning": "#EED49F"
+      },
+      "source": {
+        "author": "Catppuccin contributors",
+        "license": "MIT",
+        "url": "https://github.com/catppuccin/palette/blob/07d02aa110ef9eb7e7427afca5c73ba9cf7f8ebd/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogCatppuccinMacchiato"
+    },
+    {
+      "name": "nord",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D8DEE9",
+        "background": "#2E3440",
+        "cursor": "#D8DEE9",
+        "selection": "#434C5E",
+        "current_line": "#3B4252",
+        "line_number": "#AAAFB8",
+        "comment": "#979CA8",
+        "keyword": "#81A1C1",
+        "string": "#A3BE8C",
+        "number": "#B691AF",
+        "type": "#8FBCBB",
+        "function": "#88C0D0",
+        "constant": "#81A1C1",
+        "operators": "#81A1C1",
+        "error": "#CF888F",
+        "warning": "#EBCB8B"
+      },
+      "source": {
+        "author": "Arctic Ice Studio and Sven Greb",
+        "license": "MIT",
+        "url": "https://github.com/nordtheme/nord/blob/1cef71605416a222e57225b544540ce0fcec18d4/src/nord.scss"
+      },
+      "nameKey": "ColorSchemeNameCatalogNord"
+    },
+    {
+      "name": "gruvbox",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EBDBB2",
+        "background": "#282828",
+        "cursor": "#B8BB26",
+        "selection": "#504945",
+        "current_line": "#3C3836",
+        "line_number": "#938475",
+        "comment": "#9A8C7F",
+        "keyword": "#FB5340",
+        "string": "#B8BB26",
+        "number": "#D3869B",
+        "type": "#FABD2F",
+        "function": "#B8BB26",
+        "constant": "#D3869B",
+        "operators": "#FE8019",
+        "error": "#FB5340",
+        "warning": "#FE8019"
+      },
+      "source": {
+        "author": "Pavel Pertsev",
+        "license": "MIT",
+        "url": "https://github.com/morhetz/gruvbox/blob/ef8864bb42bf244f0295d1c5a403b27e3d139695/colors/gruvbox.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogGruvbox"
+    },
+    {
+      "name": "gruvbox-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#3C3836",
+        "background": "#FBF1C7",
+        "cursor": "#79740E",
+        "selection": "#D5C4A1",
+        "current_line": "#EBDBB2",
+        "line_number": "#6A5F54",
+        "comment": "#786C60",
+        "keyword": "#9D0006",
+        "string": "#75700E",
+        "number": "#8F3F71",
+        "type": "#976211",
+        "function": "#75700E",
+        "constant": "#8F3F71",
+        "operators": "#AF3A03",
+        "error": "#9D0006",
+        "warning": "#AF3A03"
+      },
+      "source": {
+        "author": "Pavel Pertsev",
+        "license": "MIT",
+        "url": "https://github.com/morhetz/gruvbox/blob/ef8864bb42bf244f0295d1c5a403b27e3d139695/colors/gruvbox.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogGruvboxLight"
+    },
+    {
+      "name": "tokyo-night",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C0CAF5",
+        "background": "#1A1B26",
+        "cursor": "#7AA2F7",
+        "selection": "#292E42",
+        "current_line": "#292E42",
+        "line_number": "#7B8095",
+        "comment": "#7B82A2",
+        "keyword": "#BB9AF7",
+        "string": "#9ECE6A",
+        "number": "#FF9E64",
+        "type": "#2AC3DE",
+        "function": "#7AA2F7",
+        "constant": "#FF9E64",
+        "operators": "#89DDFF",
+        "error": "#DD5757",
+        "warning": "#E0AF68"
+      },
+      "source": {
+        "author": "Folke Lemaitre and Tokyo Night contributors",
+        "license": "MIT",
+        "url": "https://github.com/folke/tokyonight.nvim/blob/cdc07ac78467a233fd62c493de29a17e0cf2b2b6/lua/tokyonight/colors/night.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogTokyoNight"
+    },
+    {
+      "name": "tokyo-night-storm",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C0CAF5",
+        "background": "#24283B",
+        "cursor": "#7AA2F7",
+        "selection": "#292E42",
+        "current_line": "#292E42",
+        "line_number": "#878B9E",
+        "comment": "#888FAC",
+        "keyword": "#BB9AF7",
+        "string": "#9ECE6A",
+        "number": "#FF9E64",
+        "type": "#2AC3DE",
+        "function": "#7AA2F7",
+        "constant": "#FF9E64",
+        "operators": "#89DDFF",
+        "error": "#E16B6B",
+        "warning": "#E0AF68"
+      },
+      "source": {
+        "author": "Folke Lemaitre and Tokyo Night contributors",
+        "license": "MIT",
+        "url": "https://github.com/folke/tokyonight.nvim/blob/cdc07ac78467a233fd62c493de29a17e0cf2b2b6/lua/tokyonight/colors/storm.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogTokyoNightStorm"
+    },
+    {
+      "name": "tokyo-night-moon",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C8D3F5",
+        "background": "#222436",
+        "cursor": "#82AAFF",
+        "selection": "#2F334D",
+        "current_line": "#2F334D",
+        "line_number": "#83879B",
+        "comment": "#828AB7",
+        "keyword": "#C099FF",
+        "string": "#C3E88D",
+        "number": "#FF966C",
+        "type": "#65BCFF",
+        "function": "#82AAFF",
+        "constant": "#FF966C",
+        "operators": "#89DDFF",
+        "error": "#D36C7E",
+        "warning": "#FFC777"
+      },
+      "source": {
+        "author": "Folke Lemaitre and Tokyo Night contributors",
+        "license": "MIT",
+        "url": "https://github.com/folke/tokyonight.nvim/blob/cdc07ac78467a233fd62c493de29a17e0cf2b2b6/lua/tokyonight/colors/moon.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogTokyoNightMoon"
+    },
+    {
+      "name": "tokyo-night-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#343B59",
+        "background": "#E6E7ED",
+        "cursor": "#363C4D",
+        "selection": "#D7D9E1",
+        "current_line": "#DCDEE3",
+        "line_number": "#5C5D64",
+        "comment": "#606269",
+        "keyword": "#4F4168",
+        "string": "#65676E",
+        "number": "#965027",
+        "type": "#33635C",
+        "function": "#2959AA",
+        "constant": "#965027",
+        "operators": "#65359D",
+        "error": "#B63E3E",
+        "warning": "#8F5E15"
+      },
+      "source": {
+        "author": "Enkia",
+        "license": "MIT",
+        "url": "https://github.com/enkia/tokyo-night-vscode-theme/blob/7c0f11eaef322f293621ca7befe462214b7ea468/themes/tokyo-night-light-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogTokyoNightLight"
+    },
+    {
+      "name": "github-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C9D1D9",
+        "background": "#0D1117",
+        "cursor": "#58A6FF",
+        "selection": "#13233A",
+        "current_line": "#161B22",
+        "line_number": "#6F7782",
+        "comment": "#8B949E",
+        "keyword": "#FF7B72",
+        "string": "#A5D6FF",
+        "number": "#79C0FF",
+        "type": "#FFA657",
+        "function": "#D2A8FF",
+        "constant": "#79C0FF",
+        "operators": "#FF7B72",
+        "error": "#F85149",
+        "warning": "#D29922"
+      },
+      "source": {
+        "author": "GitHub and Primer contributors",
+        "license": "MIT",
+        "url": "https://github.com/primer/github-vscode-theme/blob/cd78e5e4e7bcf132a6f428ae0f32264bb1b729cf/src/theme.js"
+      },
+      "nameKey": "ColorSchemeNameCatalogGithubDark"
+    },
+    {
+      "name": "github-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#24292F",
+        "background": "#FFFFFF",
+        "cursor": "#0969DA",
+        "selection": "#DDF4FF",
+        "current_line": "#F6F8FA",
+        "line_number": "#6A737C",
+        "comment": "#6E7781",
+        "keyword": "#CF222E",
+        "string": "#0A3069",
+        "number": "#0550AE",
+        "type": "#953800",
+        "function": "#8250DF",
+        "constant": "#0550AE",
+        "operators": "#CF222E",
+        "error": "#CF222E",
+        "warning": "#9A6700"
+      },
+      "source": {
+        "author": "GitHub and Primer contributors",
+        "license": "MIT",
+        "url": "https://github.com/primer/github-vscode-theme/blob/cd78e5e4e7bcf132a6f428ae0f32264bb1b729cf/src/theme.js"
+      },
+      "nameKey": "ColorSchemeNameCatalogGithubLight"
+    },
+    {
+      "name": "github-dark-dimmed",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#ADBAC7",
+        "background": "#22272E",
+        "cursor": "#539BF5",
+        "selection": "#273549",
+        "current_line": "#2D333B",
+        "line_number": "#7F8892",
+        "comment": "#838F9B",
+        "keyword": "#F47067",
+        "string": "#96D0FF",
+        "number": "#6CB6FF",
+        "type": "#F69D50",
+        "function": "#DCBDFB",
+        "constant": "#6CB6FF",
+        "operators": "#F47067",
+        "error": "#E7625B",
+        "warning": "#C69026"
+      },
+      "source": {
+        "author": "GitHub and Primer contributors",
+        "license": "MIT",
+        "url": "https://github.com/primer/github-vscode-theme/blob/cd78e5e4e7bcf132a6f428ae0f32264bb1b729cf/src/theme.js"
+      },
+      "nameKey": "ColorSchemeNameCatalogGithubDarkDimmed"
+    },
+    {
+      "name": "one-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#383A42",
+        "background": "#FAFAFA",
+        "cursor": "#4078F2",
+        "selection": "#C3D3F8",
+        "current_line": "#EDEDEE",
+        "line_number": "#6C6C70",
+        "comment": "#727377",
+        "keyword": "#A626A4",
+        "string": "#408140",
+        "number": "#986801",
+        "type": "#9B6A01",
+        "function": "#3B6EDD",
+        "constant": "#986801",
+        "operators": "#017BAF",
+        "error": "#CA1243",
+        "warning": "#9B6A01"
+      },
+      "source": {
+        "author": "Atom",
+        "license": "MIT",
+        "url": "https://github.com/atom/one-light-syntax/blob/d84579027410c576086dfca14d934c4bd74b0438/styles/colors.less"
+      },
+      "nameKey": "ColorSchemeNameCatalogOneLight"
+    },
+    {
+      "name": "intellij-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#000000",
+        "background": "#FFFFFF",
+        "cursor": "#000000",
+        "selection": "#5974AB",
+        "current_line": "#FFFAE3",
+        "line_number": "#6D6D6D",
+        "comment": "#767676",
+        "keyword": "#000080",
+        "string": "#008000",
+        "number": "#0000FF",
+        "type": "#000080",
+        "function": "#000000",
+        "constant": "#660E7A",
+        "operators": "#000000",
+        "error": "#CA4A4A",
+        "warning": "#937012"
+      },
+      "source": {
+        "author": "JetBrains",
+        "license": "Apache-2.0; palette adaptation",
+        "url": "https://github.com/JetBrains/intellij-community/blob/8886d47ff4b7a538583b793ba29e9cc642ae01d9/platform/platform-resources/src/DefaultColorSchemesManager.xml"
+      },
+      "nameKey": "ColorSchemeNameCatalogIntellijLight"
+    },
+    {
+      "name": "darcula",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#A9B7C6",
+        "background": "#2B2B2B",
+        "cursor": "#BBBBBB",
+        "selection": "#214283",
+        "current_line": "#323232",
+        "line_number": "#999B9D",
+        "comment": "#939393",
+        "keyword": "#CF803E",
+        "string": "#809971",
+        "number": "#6897BB",
+        "type": "#CF803E",
+        "function": "#FFC66D",
+        "constant": "#A587B5",
+        "operators": "#A9B7C6",
+        "error": "#E46D6D",
+        "warning": "#BE9117"
+      },
+      "source": {
+        "author": "JetBrains",
+        "license": "Apache-2.0; palette adaptation",
+        "url": "https://github.com/JetBrains/intellij-community/blob/8886d47ff4b7a538583b793ba29e9cc642ae01d9/platform/platform-resources/src/DefaultColorSchemesManager.xml"
+      },
+      "nameKey": "ColorSchemeNameCatalogDarcula"
+    },
+    {
+      "name": "rose-pine",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E0DEF4",
+        "background": "#191724",
+        "cursor": "#EBBCBA",
+        "selection": "#26233A",
+        "current_line": "#1F1D2E",
+        "line_number": "#88849B",
+        "comment": "#827E96",
+        "keyword": "#4F889F",
+        "string": "#F6C177",
+        "number": "#F6C177",
+        "type": "#9CCFD8",
+        "function": "#EBBCBA",
+        "constant": "#C4A7E7",
+        "operators": "#908CAA",
+        "error": "#EB6F92",
+        "warning": "#F6C177"
+      },
+      "source": {
+        "author": "Rosé Pine contributors",
+        "license": "MIT",
+        "url": "https://github.com/rose-pine/palette/blob/92af52b465ab6e47437aca223c9b8d3009a2023b/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogRosePine"
+    },
+    {
+      "name": "rose-pine-moon",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E0DEF4",
+        "background": "#232136",
+        "cursor": "#EA9A97",
+        "selection": "#393552",
+        "current_line": "#2A273F",
+        "line_number": "#928FA4",
+        "comment": "#8B879E",
+        "keyword": "#4593B3",
+        "string": "#F6C177",
+        "number": "#F6C177",
+        "type": "#9CCFD8",
+        "function": "#EA9A97",
+        "constant": "#C4A7E7",
+        "operators": "#908CAA",
+        "error": "#EB6F92",
+        "warning": "#F6C177"
+      },
+      "source": {
+        "author": "Rosé Pine contributors",
+        "license": "MIT",
+        "url": "https://github.com/rose-pine/palette/blob/92af52b465ab6e47437aca223c9b8d3009a2023b/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogRosePineMoon"
+    },
+    {
+      "name": "rose-pine-dawn",
+      "appearance": "light",
+      "body": {
+        "foreground": "#464261",
+        "background": "#FAF4ED",
+        "cursor": "#D7827E",
+        "selection": "#F2E9E1",
+        "current_line": "#FFFAF3",
+        "line_number": "#767280",
+        "comment": "#716D7B",
+        "keyword": "#286983",
+        "string": "#966522",
+        "number": "#966522",
+        "type": "#467881",
+        "function": "#9D5F5C",
+        "constant": "#7B6890",
+        "operators": "#716D89",
+        "error": "#A25A6E",
+        "warning": "#966522"
+      },
+      "source": {
+        "author": "Rosé Pine contributors",
+        "license": "MIT",
+        "url": "https://github.com/rose-pine/palette/blob/92af52b465ab6e47437aca223c9b8d3009a2023b/palette.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogRosePineDawn"
+    },
+    {
+      "name": "everforest-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D3C6AA",
+        "background": "#2D353B",
+        "cursor": "#A7C080",
+        "selection": "#543A48",
+        "current_line": "#343F44",
+        "line_number": "#86938A",
+        "comment": "#939F97",
+        "keyword": "#E67E80",
+        "string": "#A7C080",
+        "number": "#D699B6",
+        "type": "#DBBC7F",
+        "function": "#A7C080",
+        "constant": "#D699B6",
+        "operators": "#E69875",
+        "error": "#E67E80",
+        "warning": "#DBBC7F"
+      },
+      "source": {
+        "author": "Sainnhe Park",
+        "license": "MIT",
+        "url": "https://github.com/sainnhe/everforest/blob/85a86eb62409e3ec88713bff3d1b9d7374e112e4/autoload/everforest.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogEverforestDark"
+    },
+    {
+      "name": "everforest-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#5C6A72",
+        "background": "#FDF6E3",
+        "cursor": "#8DA101",
+        "selection": "#EAEDC8",
+        "current_line": "#F4F0D9",
+        "line_number": "#636B62",
+        "comment": "#6A7369",
+        "keyword": "#C44441",
+        "string": "#697801",
+        "number": "#AA508E",
+        "type": "#946A00",
+        "function": "#697801",
+        "constant": "#AA508E",
+        "operators": "#AE591B",
+        "error": "#C44441",
+        "warning": "#946A00"
+      },
+      "source": {
+        "author": "Sainnhe Park",
+        "license": "MIT",
+        "url": "https://github.com/sainnhe/everforest/blob/85a86eb62409e3ec88713bff3d1b9d7374e112e4/autoload/everforest.vim"
+      },
+      "nameKey": "ColorSchemeNameCatalogEverforestLight"
+    },
+    {
+      "name": "kanagawa",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DCD7BA",
+        "background": "#1F1F28",
+        "cursor": "#7E9CD8",
+        "selection": "#3B445C",
+        "current_line": "#2C2B32",
+        "line_number": "#818079",
+        "comment": "#888781",
+        "keyword": "#957FB8",
+        "string": "#98BB6C",
+        "number": "#D27E99",
+        "type": "#7AA89F",
+        "function": "#7E9CD8",
+        "constant": "#FFA066",
+        "operators": "#E6C384",
+        "error": "#EC4F4F",
+        "warning": "#FF9E3B"
+      },
+      "source": {
+        "author": "Rebelot and Kanagawa contributors",
+        "license": "MIT",
+        "url": "https://github.com/rebelot/kanagawa.nvim/blob/bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3/lua/kanagawa/colors.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogKanagawa"
+    },
+    {
+      "name": "kanagawa-dragon",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C5C9C5",
+        "background": "#181616",
+        "cursor": "#8BA4B0",
+        "selection": "#3A4044",
+        "current_line": "#242222",
+        "line_number": "#777F77",
+        "comment": "#7A827A",
+        "keyword": "#8992A7",
+        "string": "#8A9A7B",
+        "number": "#A292A3",
+        "type": "#8EA4A2",
+        "function": "#8BA4B0",
+        "constant": "#B6927B",
+        "operators": "#C4B28A",
+        "error": "#C4746E",
+        "warning": "#B98D7B"
+      },
+      "source": {
+        "author": "Rebelot and Kanagawa contributors",
+        "license": "MIT",
+        "url": "https://github.com/rebelot/kanagawa.nvim/blob/bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3/lua/kanagawa/colors.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogKanagawaDragon"
+    },
+    {
+      "name": "kanagawa-lotus",
+      "appearance": "light",
+      "body": {
+        "foreground": "#545464",
+        "background": "#F2ECBC",
+        "cursor": "#4D699B",
+        "selection": "#C1C5B3",
+        "current_line": "#E7E2B6",
+        "line_number": "#646156",
+        "comment": "#6D6A5E",
+        "keyword": "#624C83",
+        "string": "#5A6F40",
+        "number": "#A0516C",
+        "type": "#51706B",
+        "function": "#4D699B",
+        "constant": "#A05600",
+        "operators": "#706B3C",
+        "error": "#BA3C4E",
+        "warning": "#A05600"
+      },
+      "source": {
+        "author": "Rebelot and Kanagawa contributors",
+        "license": "MIT",
+        "url": "https://github.com/rebelot/kanagawa.nvim/blob/bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3/lua/kanagawa/colors.lua"
+      },
+      "nameKey": "ColorSchemeNameCatalogKanagawaLotus"
+    },
+    {
+      "name": "material-oceanic",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#B0BEC5",
+        "background": "#263238",
+        "cursor": "#82AAFF",
+        "selection": "#415673",
+        "current_line": "#2F3B41",
+        "line_number": "#7B8F98",
+        "comment": "#899AA3",
+        "keyword": "#C792EA",
+        "string": "#C3E88D",
+        "number": "#F78C6C",
+        "type": "#FFCB6B",
+        "function": "#82AAFF",
+        "constant": "#F07178",
+        "operators": "#89DDFF",
+        "error": "#FF607B",
+        "warning": "#FFCB6B"
+      },
+      "source": {
+        "author": "Material Theme / Mallowigi and Equinusocio",
+        "license": "published palette colors; names attributed to their authors",
+        "url": "https://material-theme.com/docs/reference/color-palette/"
+      },
+      "nameKey": "ColorSchemeNameCatalogMaterialOceanic"
+    },
+    {
+      "name": "material-darker",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#B0BEC5",
+        "background": "#212121",
+        "cursor": "#82AAFF",
+        "selection": "#3E4A63",
+        "current_line": "#2B2B2C",
+        "line_number": "#828282",
+        "comment": "#888888",
+        "keyword": "#C792EA",
+        "string": "#C3E88D",
+        "number": "#F78C6C",
+        "type": "#FFCB6B",
+        "function": "#82AAFF",
+        "constant": "#F07178",
+        "operators": "#89DDFF",
+        "error": "#FF5370",
+        "warning": "#FFCB6B"
+      },
+      "source": {
+        "author": "Material Theme / Mallowigi and Equinusocio",
+        "license": "published palette colors; names attributed to their authors",
+        "url": "https://material-theme.com/docs/reference/color-palette/"
+      },
+      "nameKey": "ColorSchemeNameCatalogMaterialDarker"
+    },
+    {
+      "name": "material-lighter",
+      "appearance": "light",
+      "body": {
+        "foreground": "#546E7A",
+        "background": "#FAFAFA",
+        "cursor": "#6182B8",
+        "selection": "#CDD6E7",
+        "current_line": "#EFF1F2",
+        "line_number": "#6A777D",
+        "comment": "#68757B",
+        "keyword": "#7C4DFF",
+        "string": "#627C3C",
+        "number": "#BC5336",
+        "type": "#9B6821",
+        "function": "#5774A4",
+        "constant": "#D53632",
+        "operators": "#2A7D83",
+        "error": "#D53632",
+        "warning": "#9B6821"
+      },
+      "source": {
+        "author": "Material Theme / Mallowigi and Equinusocio",
+        "license": "published palette colors; names attributed to their authors",
+        "url": "https://material-theme.com/docs/reference/color-palette/"
+      },
+      "nameKey": "ColorSchemeNameCatalogMaterialLighter"
+    },
+    {
+      "name": "material-palenight",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#A6ACCD",
+        "background": "#292D3E",
+        "cursor": "#82AAFF",
+        "selection": "#435277",
+        "current_line": "#313548",
+        "line_number": "#8389A9",
+        "comment": "#8E93B0",
+        "keyword": "#C792EA",
+        "string": "#C3E88D",
+        "number": "#F78C6C",
+        "type": "#FFCB6B",
+        "function": "#82AAFF",
+        "constant": "#F07178",
+        "operators": "#89DDFF",
+        "error": "#FF5975",
+        "warning": "#FFCB6B"
+      },
+      "source": {
+        "author": "Material Theme / Mallowigi and Equinusocio",
+        "license": "published palette colors; names attributed to their authors",
+        "url": "https://material-theme.com/docs/reference/color-palette/"
+      },
+      "nameKey": "ColorSchemeNameCatalogMaterialPalenight"
+    },
+    {
+      "name": "material-deep-ocean",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#8F93A2",
+        "background": "#0F111A",
+        "cursor": "#82AAFF",
+        "selection": "#313E5E",
+        "current_line": "#171A23",
+        "line_number": "#7681B7",
+        "comment": "#717CB4",
+        "keyword": "#C792EA",
+        "string": "#C3E88D",
+        "number": "#F78C6C",
+        "type": "#FFCB6B",
+        "function": "#82AAFF",
+        "constant": "#F07178",
+        "operators": "#89DDFF",
+        "error": "#FF5370",
+        "warning": "#FFCB6B"
+      },
+      "source": {
+        "author": "Material Theme / Mallowigi and Equinusocio",
+        "license": "published palette colors; names attributed to their authors",
+        "url": "https://material-theme.com/docs/reference/color-palette/"
+      },
+      "nameKey": "ColorSchemeNameCatalogMaterialDeepOcean"
+    },
+    {
+      "name": "ayu-dark",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#BFBDB6",
+        "background": "#10141C",
+        "cursor": "#E6B450",
+        "selection": "#193155",
+        "current_line": "#161A24",
+        "line_number": "#777C88",
+        "comment": "#76808A",
+        "keyword": "#F29668",
+        "string": "#39BAE6",
+        "number": "#FF8F40",
+        "type": "#39BAE6",
+        "function": "#E6C08A",
+        "constant": "#D2A6FF",
+        "operators": "#F29668",
+        "error": "#D95757",
+        "warning": "#E6B450"
+      },
+      "source": {
+        "author": "Ayu Theme and Yihui Hu",
+        "license": "MIT",
+        "url": "https://github.com/ayu-theme/vscode-ayu/blob/2c6feb7215bf7ca6c8c9a51066f255025df3a5b9/ayu-dark.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogAyuDark"
+    },
+    {
+      "name": "ayu-mirage",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#CCCAC2",
+        "background": "#242936",
+        "cursor": "#FFCC66",
+        "selection": "#2B4768",
+        "current_line": "#1A1F29",
+        "line_number": "#858B95",
+        "comment": "#8692A2",
+        "keyword": "#F29E74",
+        "string": "#5CCFE6",
+        "number": "#FFA659",
+        "type": "#5CCFE6",
+        "function": "#D9BE98",
+        "constant": "#DFBFFF",
+        "operators": "#F29E74",
+        "error": "#FF6666",
+        "warning": "#FFCC66"
+      },
+      "source": {
+        "author": "Ayu Theme and Yihui Hu",
+        "license": "MIT",
+        "url": "https://github.com/ayu-theme/vscode-ayu/blob/2c6feb7215bf7ca6c8c9a51066f255025df3a5b9/ayu-mirage.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogAyuMirage"
+    },
+    {
+      "name": "ayu-light",
+      "appearance": "light",
+      "body": {
+        "foreground": "#5C6166",
+        "background": "#FCFCFC",
+        "cursor": "#F29718",
+        "selection": "#D7E4F6",
+        "current_line": "#F0F1F3",
+        "line_number": "#707377",
+        "comment": "#737375",
+        "keyword": "#9B685D",
+        "string": "#3B7D93",
+        "number": "#AF5E23",
+        "type": "#3B7D93",
+        "function": "#9F6830",
+        "constant": "#8866AA",
+        "operators": "#9B685D",
+        "error": "#CB4747",
+        "warning": "#A56711"
+      },
+      "source": {
+        "author": "Ayu Theme and Yihui Hu",
+        "license": "MIT",
+        "url": "https://github.com/ayu-theme/vscode-ayu/blob/2c6feb7215bf7ca6c8c9a51066f255025df3a5b9/ayu-light.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogAyuLight"
+    },
+    {
+      "name": "cobalt2",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#FFFFFF",
+        "background": "#193549",
+        "cursor": "#FFC600",
+        "selection": "#0050A4",
+        "current_line": "#1F4662",
+        "line_number": "#AAAAAA",
+        "comment": "#309EFF",
+        "keyword": "#FF9D00",
+        "string": "#A5FF90",
+        "number": "#FFFFFF",
+        "type": "#FB94FF",
+        "function": "#FF9D00",
+        "constant": "#FF638D",
+        "operators": "#FFFFFF",
+        "error": "#CB8989",
+        "warning": "#FFC600"
+      },
+      "source": {
+        "author": "Wes Bos",
+        "license": "MIT",
+        "url": "https://github.com/wesbos/cobalt2-vscode/blob/c4e9574372b85afad1682ed0fdd1ac0411c62512/theme/cobalt2.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogCobalt2"
+    },
+    {
+      "name": "synthwave-84",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D4D4D4",
+        "background": "#262335",
+        "cursor": "#F97E72",
+        "selection": "#413F4E",
+        "current_line": "#322F40",
+        "line_number": "#888690",
+        "comment": "#848BBD",
+        "keyword": "#72F1B8",
+        "string": "#FF8B39",
+        "number": "#2EE2FA",
+        "type": "#FE4551",
+        "function": "#36F9F6",
+        "constant": "#F97E72",
+        "operators": "#F1F0F2",
+        "error": "#FE4551",
+        "warning": "#63C89E"
+      },
+      "source": {
+        "author": "Robb Owen",
+        "license": "MIT",
+        "url": "https://github.com/robb0wen/synthwave-vscode/blob/ecfa2fe1279f7233663fa3f98a96e6756000567b/themes/synthwave-color-theme.json"
+      },
+      "nameKey": "ColorSchemeNameCatalogSynthwave84"
+    },
+    {
+      "name": "alloy-core",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F3E9DC",
+        "background": "#19151B",
+        "cursor": "#E4AF55",
+        "selection": "#55432C",
+        "current_line": "#282328",
+        "line_number": "#A99791",
+        "comment": "#A99791",
+        "keyword": "#F27769",
+        "string": "#E9C46A",
+        "number": "#91CBD1",
+        "type": "#EABF76",
+        "function": "#6ACAD7",
+        "constant": "#DA9B78",
+        "operators": "#D6C5BC",
+        "error": "#FF7773",
+        "warning": "#E4AF55"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogAlloyCore"
+    },
+    {
+      "name": "verdant-rage",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E4ECD9",
+        "background": "#14201B",
+        "cursor": "#9ACE6A",
+        "selection": "#3C5432",
+        "current_line": "#222E28",
+        "line_number": "#9BAA9C",
+        "comment": "#9BAA9C",
+        "keyword": "#B8A2D7",
+        "string": "#B7DA89",
+        "number": "#D0AEDC",
+        "type": "#8FC5A5",
+        "function": "#ABDFA3",
+        "constant": "#CAA4DA",
+        "operators": "#C0CDAF",
+        "error": "#F49388",
+        "warning": "#DBCA7B"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogVerdantRage"
+    },
+    {
+      "name": "scarlet-web",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E8ECF3",
+        "background": "#121C31",
+        "cursor": "#EA716D",
+        "selection": "#523543",
+        "current_line": "#202A3E",
+        "line_number": "#90A0B9",
+        "comment": "#90A0B9",
+        "keyword": "#F17C7A",
+        "string": "#B5CC99",
+        "number": "#E8B985",
+        "type": "#8BB8E8",
+        "function": "#6CC3E8",
+        "constant": "#D4A8DA",
+        "operators": "#B5C6E1",
+        "error": "#FF8A83",
+        "warning": "#EAC477"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogScarletWeb"
+    },
+    {
+      "name": "relic-sand",
+      "appearance": "light",
+      "body": {
+        "foreground": "#3A2C20",
+        "background": "#F1E4C6",
+        "cursor": "#945025",
+        "selection": "#D6B896",
+        "current_line": "#E5D8BB",
+        "line_number": "#786B51",
+        "comment": "#71654D",
+        "keyword": "#9B4328",
+        "string": "#536641",
+        "number": "#8B4F54",
+        "type": "#765C24",
+        "function": "#38696C",
+        "constant": "#8D5341",
+        "operators": "#5B5142",
+        "error": "#B3312C",
+        "warning": "#875F15"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogRelicSand"
+    },
+    {
+      "name": "soap-rebellion",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E1E8D6",
+        "background": "#1B2524",
+        "cursor": "#F39BAD",
+        "selection": "#5B484D",
+        "current_line": "#283230",
+        "line_number": "#9BAA98",
+        "comment": "#9BAA98",
+        "keyword": "#F39BAD",
+        "string": "#CDD87B",
+        "number": "#EAAF89",
+        "type": "#A3C6BA",
+        "function": "#EEC8D0",
+        "constant": "#D6B4E2",
+        "operators": "#ADBCAE",
+        "error": "#F67F8F",
+        "warning": "#DDD67F"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogSoapRebellion"
+    },
+    {
+      "name": "code-rain",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#C9E9CD",
+        "background": "#08130E",
+        "cursor": "#75E59A",
+        "selection": "#285238",
+        "current_line": "#15211B",
+        "line_number": "#7B9F86",
+        "comment": "#7B9F86",
+        "keyword": "#66D890",
+        "string": "#B6E899",
+        "number": "#7FD7BF",
+        "type": "#A9DBC9",
+        "function": "#8DF1BC",
+        "constant": "#D3E6A0",
+        "operators": "#87B99B",
+        "error": "#F2959C",
+        "warning": "#D7D78F"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCodeRain"
+    },
+    {
+      "name": "arcane-library",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EAE2D1",
+        "background": "#181B30",
+        "cursor": "#D8B778",
+        "selection": "#514945",
+        "current_line": "#26283B",
+        "line_number": "#989CB5",
+        "comment": "#989CB5",
+        "keyword": "#C5A0DF",
+        "string": "#B6CA97",
+        "number": "#DEB17D",
+        "type": "#97BDD9",
+        "function": "#DCCA95",
+        "constant": "#D5A2B4",
+        "operators": "#B6B9D0",
+        "error": "#EA8990",
+        "warning": "#DEBF79"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-colorschemes.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogArcaneLibrary"
+    },
+    {
+      "name": "royal-kinetic",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E6DFF3",
+        "background": "#110E1C",
+        "cursor": "#B582F5",
+        "selection": "#42305D",
+        "current_line": "#1F1C2B",
+        "line_number": "#9684B3",
+        "comment": "#9684B3",
+        "keyword": "#C69AFF",
+        "string": "#78DACA",
+        "number": "#D7B17D",
+        "type": "#B7A5EC",
+        "function": "#A1DBEE",
+        "constant": "#E7A7D0",
+        "operators": "#BCAFCF",
+        "error": "#F191AB",
+        "warning": "#E9C07B"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogRoyalKinetic"
+    },
+    {
+      "name": "arena-sunset",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#ECE8CF",
+        "background": "#192C29",
+        "cursor": "#F09068",
+        "selection": "#594A3B",
+        "current_line": "#273934",
+        "line_number": "#90AA9A",
+        "comment": "#90AA9A",
+        "keyword": "#F5AA75",
+        "string": "#C7D976",
+        "number": "#EAB87A",
+        "type": "#7DD1CB",
+        "function": "#EADB9A",
+        "constant": "#E3A8C4",
+        "operators": "#B5CABA",
+        "error": "#F49187",
+        "warning": "#EED875"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogArenaSunset"
+    },
+    {
+      "name": "cosmic-mixtape",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EEE0F5",
+        "background": "#251630",
+        "cursor": "#E68BCD",
+        "selection": "#5E395F",
+        "current_line": "#33243D",
+        "line_number": "#9F89B2",
+        "comment": "#9F89B2",
+        "keyword": "#ECA7DA",
+        "string": "#9EDACE",
+        "number": "#F6B98D",
+        "type": "#9CCAF2",
+        "function": "#C5B0F5",
+        "constant": "#DDC288",
+        "operators": "#C5ACCE",
+        "error": "#F592B2",
+        "warning": "#F1CB83"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCosmicMixtape"
+    },
+    {
+      "name": "prism-sanctum",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E9E9D7",
+        "background": "#102825",
+        "cursor": "#EDA657",
+        "selection": "#524D34",
+        "current_line": "#1F3531",
+        "line_number": "#83AAA0",
+        "comment": "#83AAA0",
+        "keyword": "#F4B672",
+        "string": "#B7D39A",
+        "number": "#E99A7C",
+        "type": "#86CCC6",
+        "function": "#E9D497",
+        "constant": "#CBB2E5",
+        "operators": "#B5C8B8",
+        "error": "#F4927D",
+        "warning": "#F5D586"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogPrismSanctum"
+    },
+    {
+      "name": "winter-sentinel",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DDE8EF",
+        "background": "#142431",
+        "cursor": "#8FB9CB",
+        "selection": "#38505F",
+        "current_line": "#22313E",
+        "line_number": "#8FA4B3",
+        "comment": "#8FA4B3",
+        "keyword": "#A6CFE2",
+        "string": "#B5CABC",
+        "number": "#E3AAA7",
+        "type": "#8CCBCD",
+        "function": "#D2DEDC",
+        "constant": "#BCBCE0",
+        "operators": "#A8BDCA",
+        "error": "#F0959C",
+        "warning": "#E3C498"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogWinterSentinel"
+    },
+    {
+      "name": "infinite-dusk",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F0E2E8",
+        "background": "#2C1D32",
+        "cursor": "#DDA286",
+        "selection": "#61444B",
+        "current_line": "#392A3E",
+        "line_number": "#A895B1",
+        "comment": "#A895B1",
+        "keyword": "#DCB0EB",
+        "string": "#E3C28F",
+        "number": "#EFAD91",
+        "type": "#B1C6E9",
+        "function": "#F5D19B",
+        "constant": "#E9ADC6",
+        "operators": "#C3B3CC",
+        "error": "#F49BAD",
+        "warning": "#E5CB94"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogInfiniteDusk"
+    },
+    {
+      "name": "stellar-pilot",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EDE7D9",
+        "background": "#141E35",
+        "cursor": "#D6B766",
+        "selection": "#4E4B43",
+        "current_line": "#232C40",
+        "line_number": "#8E9AB6",
+        "comment": "#8E9AB6",
+        "keyword": "#F09C97",
+        "string": "#E0C983",
+        "number": "#B4D2DF",
+        "type": "#A3BDEB",
+        "function": "#F2DBA2",
+        "constant": "#E6ACC5",
+        "operators": "#C0C9DA",
+        "error": "#FA9195",
+        "warning": "#EAC46B"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogStellarPilot"
+    },
+    {
+      "name": "quantum-honey",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EEE6D3",
+        "background": "#282218",
+        "cursor": "#E4B651",
+        "selection": "#604E29",
+        "current_line": "#352F25",
+        "line_number": "#AFA18A",
+        "comment": "#AFA18A",
+        "keyword": "#E9C16A",
+        "string": "#D0D5A3",
+        "number": "#E99F8D",
+        "type": "#A6C6CA",
+        "function": "#F2D996",
+        "constant": "#D4B5A7",
+        "operators": "#C8BDA5",
+        "error": "#F59A84",
+        "warning": "#EBD27D"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogQuantumHoney"
+    },
+    {
+      "name": "crimson-mercenary",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#EDE1DC",
+        "background": "#27161B",
+        "cursor": "#E57D85",
+        "selection": "#60343A",
+        "current_line": "#342428",
+        "line_number": "#A98E96",
+        "comment": "#A98E96",
+        "keyword": "#F49CA3",
+        "string": "#D3C4AE",
+        "number": "#E9AD90",
+        "type": "#B9C2D5",
+        "function": "#EBD3C8",
+        "constant": "#C9AECF",
+        "operators": "#C8ABB4",
+        "error": "#F29D87",
+        "warning": "#E2C085"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCrimsonMercenary"
+    },
+    {
+      "name": "last-outlaw",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E8DDC9",
+        "background": "#2A221C",
+        "cursor": "#CAA06A",
+        "selection": "#5A4733",
+        "current_line": "#372F28",
+        "line_number": "#A99A85",
+        "comment": "#A99A85",
+        "keyword": "#E2B17D",
+        "string": "#B9C39D",
+        "number": "#DBA28C",
+        "type": "#C5B995",
+        "function": "#EBD4A2",
+        "constant": "#C8B0A3",
+        "operators": "#C0AE99",
+        "error": "#EB9C8B",
+        "warning": "#E3C07C"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogLastOutlaw"
+    },
+    {
+      "name": "ivory-agent",
+      "appearance": "light",
+      "body": {
+        "foreground": "#31363B",
+        "background": "#F2EFE8",
+        "cursor": "#A73837",
+        "selection": "#DCB9B3",
+        "current_line": "#E5E3DC",
+        "line_number": "#616566",
+        "comment": "#696D6E",
+        "keyword": "#963A3D",
+        "string": "#46635C",
+        "number": "#8A532C",
+        "type": "#385C78",
+        "function": "#6B4A62",
+        "constant": "#7E4A42",
+        "operators": "#555F68",
+        "error": "#AC343C",
+        "warning": "#805E1D"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogIvoryAgent"
+    },
+    {
+      "name": "celestial-brass",
+      "appearance": "light",
+      "body": {
+        "foreground": "#343631",
+        "background": "#EEE8D8",
+        "cursor": "#9B7836",
+        "selection": "#D6C7A8",
+        "current_line": "#E1DCCD",
+        "line_number": "#615E52",
+        "comment": "#6C695C",
+        "keyword": "#705538",
+        "string": "#596246",
+        "number": "#866042",
+        "type": "#466368",
+        "function": "#725275",
+        "constant": "#8F4C45",
+        "operators": "#5F6258",
+        "error": "#A04438",
+        "warning": "#786014"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCelestialBrass"
+    },
+    {
+      "name": "amber-haze",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F1E0CF",
+        "background": "#301C18",
+        "cursor": "#EAA25C",
+        "selection": "#67442C",
+        "current_line": "#3D2924",
+        "line_number": "#B69788",
+        "comment": "#B69788",
+        "keyword": "#F3B179",
+        "string": "#81CFD8",
+        "number": "#E6C08D",
+        "type": "#A4C8D9",
+        "function": "#F6D2A3",
+        "constant": "#E9A89D",
+        "operators": "#C8B2A0",
+        "error": "#F79586",
+        "warning": "#EAD278"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogAmberHaze"
+    },
+    {
+      "name": "desert-oracle",
+      "appearance": "light",
+      "body": {
+        "foreground": "#463C31",
+        "background": "#EBE0C9",
+        "cursor": "#9D702F",
+        "selection": "#D4BF9B",
+        "current_line": "#E0D5BF",
+        "line_number": "#615442",
+        "comment": "#71624D",
+        "keyword": "#88562D",
+        "string": "#5C6747",
+        "number": "#92543F",
+        "type": "#47646A",
+        "function": "#76612F",
+        "constant": "#78546B",
+        "operators": "#6A6252",
+        "error": "#A04533",
+        "warning": "#786015"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogDesertOracle"
+    },
+    {
+      "name": "chrome-wasteland",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E8E0C9",
+        "background": "#253239",
+        "cursor": "#E6AC72",
+        "selection": "#5E564A",
+        "current_line": "#323E43",
+        "line_number": "#98A9AC",
+        "comment": "#98A9AC",
+        "keyword": "#EDBA82",
+        "string": "#BCCDA6",
+        "number": "#F0A582",
+        "type": "#82CCD8",
+        "function": "#F1D5A2",
+        "constant": "#CBB4D1",
+        "operators": "#B3C8C9",
+        "error": "#F8987F",
+        "warning": "#E8CE89"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogChromeWasteland"
+    },
+    {
+      "name": "neon-grid",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D9F0F2",
+        "background": "#061D27",
+        "cursor": "#6EDDEC",
+        "selection": "#255662",
+        "current_line": "#142B35",
+        "line_number": "#76A6B4",
+        "comment": "#76A6B4",
+        "keyword": "#8DE5ED",
+        "string": "#B7DCD1",
+        "number": "#F2B36C",
+        "type": "#8CBEE7",
+        "function": "#B5EAF1",
+        "constant": "#E7CA8B",
+        "operators": "#93C4D0",
+        "error": "#F19483",
+        "warning": "#EDCF78"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogNeonGrid"
+    },
+    {
+      "name": "biolume-forest",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#D5E8F1",
+        "background": "#0C2038",
+        "cursor": "#69CDD9",
+        "selection": "#275368",
+        "current_line": "#1A2E44",
+        "line_number": "#7CA0BB",
+        "comment": "#7CA0BB",
+        "keyword": "#A8B4F0",
+        "string": "#A0DDBE",
+        "number": "#DAD884",
+        "type": "#82D0E4",
+        "function": "#C0E6DE",
+        "constant": "#C3A5DF",
+        "operators": "#9CBFD4",
+        "error": "#EF98B3",
+        "warning": "#E3D277"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogBiolumeForest"
+    },
+    {
+      "name": "pastel-concierge",
+      "appearance": "light",
+      "body": {
+        "foreground": "#543D4C",
+        "background": "#F6E7E6",
+        "cursor": "#A34D70",
+        "selection": "#DEB9C3",
+        "current_line": "#EBDCDC",
+        "line_number": "#725762",
+        "comment": "#80616D",
+        "keyword": "#894A70",
+        "string": "#5B6B55",
+        "number": "#955C41",
+        "type": "#586782",
+        "function": "#7B526F",
+        "constant": "#915759",
+        "operators": "#796075",
+        "error": "#B83B5B",
+        "warning": "#86601E"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogPastelConcierge"
+    },
+    {
+      "name": "twilight-jazz",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E9E4F2",
+        "background": "#1C2146",
+        "cursor": "#E4C86B",
+        "selection": "#585351",
+        "current_line": "#2A2E52",
+        "line_number": "#9698BD",
+        "comment": "#9698BD",
+        "keyword": "#C4AFF1",
+        "string": "#E9D88D",
+        "number": "#EAA6BB",
+        "type": "#91C3E5",
+        "function": "#EDE0A6",
+        "constant": "#C1C6F0",
+        "operators": "#B5B7D6",
+        "error": "#F39AAE",
+        "warning": "#EBD27E"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogTwilightJazz"
+    },
+    {
+      "name": "noir-vigil",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E5DCDD",
+        "background": "#1D181A",
+        "cursor": "#D57972",
+        "selection": "#543534",
+        "current_line": "#2B2527",
+        "line_number": "#A28F95",
+        "comment": "#A28F95",
+        "keyword": "#E89A92",
+        "string": "#CCBCA7",
+        "number": "#E1AF8C",
+        "type": "#AAB6C5",
+        "function": "#E8CFB3",
+        "constant": "#D0ADB8",
+        "operators": "#BEACB0",
+        "error": "#F59389",
+        "warning": "#E1BC80"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogNoirVigil"
+    },
+    {
+      "name": "carnival-ashes",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E3E5CF",
+        "background": "#20332A",
+        "cursor": "#C9AC62",
+        "selection": "#52573A",
+        "current_line": "#2D3F35",
+        "line_number": "#99AD96",
+        "comment": "#99AD96",
+        "keyword": "#DCA189",
+        "string": "#C9D08C",
+        "number": "#E7BD77",
+        "type": "#9DC6B5",
+        "function": "#E9D59A",
+        "constant": "#D1A4AF",
+        "operators": "#B9C7AA",
+        "error": "#ED988B",
+        "warning": "#DFD078"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCarnivalAshes"
+    },
+    {
+      "name": "orbital-frost",
+      "appearance": "light",
+      "body": {
+        "foreground": "#35434E",
+        "background": "#EBF0F3",
+        "cursor": "#52738B",
+        "selection": "#BECBD4",
+        "current_line": "#DFE4E8",
+        "line_number": "#53656F",
+        "comment": "#5C707B",
+        "keyword": "#3F6282",
+        "string": "#4B7069",
+        "number": "#7D6252",
+        "type": "#3E6A7C",
+        "function": "#536083",
+        "constant": "#765874",
+        "operators": "#5C6D7C",
+        "error": "#A24D55",
+        "warning": "#806623"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogOrbitalFrost"
+    },
+    {
+      "name": "folded-city",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DEE8EB",
+        "background": "#202F3A",
+        "cursor": "#91B6C8",
+        "selection": "#415764",
+        "current_line": "#2D3B46",
+        "line_number": "#93A9B5",
+        "comment": "#93A9B5",
+        "keyword": "#A6C5DE",
+        "string": "#ACCCC2",
+        "number": "#D8A795",
+        "type": "#9BC6CB",
+        "function": "#C6DBDF",
+        "constant": "#C7B5D3",
+        "operators": "#AFC5CE",
+        "error": "#EC9B9A",
+        "warning": "#DBC397"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogFoldedCity"
+    },
+    {
+      "name": "midnight-drive",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E7E6D3",
+        "background": "#12343C",
+        "cursor": "#BCD8C9",
+        "selection": "#456566",
+        "current_line": "#204046",
+        "line_number": "#8EB0AC",
+        "comment": "#8EB0AC",
+        "keyword": "#ABDACF",
+        "string": "#D9D8A6",
+        "number": "#E2BFA0",
+        "type": "#A0CEDD",
+        "function": "#ECE2B5",
+        "constant": "#CDBAD7",
+        "operators": "#B3CDC5",
+        "error": "#ED9D9F",
+        "warning": "#E3D28D"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogMidnightDrive"
+    },
+    {
+      "name": "editorial-cafe",
+      "appearance": "light",
+      "body": {
+        "foreground": "#364A48",
+        "background": "#E5EDE7",
+        "cursor": "#4F7D75",
+        "selection": "#B8CCC5",
+        "current_line": "#D9E2DC",
+        "line_number": "#50635C",
+        "comment": "#596F67",
+        "keyword": "#326D6A",
+        "string": "#5B6F42",
+        "number": "#935D3E",
+        "type": "#496B87",
+        "function": "#846048",
+        "constant": "#89576B",
+        "operators": "#5D6D64",
+        "error": "#A44A43",
+        "warning": "#7D671E"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogEditorialCafe"
+    },
+    {
+      "name": "striped-haunt",
+      "appearance": "light",
+      "body": {
+        "foreground": "#332B40",
+        "background": "#EFEDEA",
+        "cursor": "#775383",
+        "selection": "#CBBFCC",
+        "current_line": "#E2E0DF",
+        "line_number": "#645969",
+        "comment": "#746779",
+        "keyword": "#6F477E",
+        "string": "#526A38",
+        "number": "#8E583A",
+        "type": "#4D637B",
+        "function": "#7E5369",
+        "constant": "#786128",
+        "operators": "#685D72",
+        "error": "#A63F53",
+        "warning": "#7B631D"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogStripedHaunt"
+    },
+    {
+      "name": "curious-garden",
+      "appearance": "light",
+      "body": {
+        "foreground": "#3A4840",
+        "background": "#E7EEDD",
+        "cursor": "#527F70",
+        "selection": "#BBCDBD",
+        "current_line": "#DBE3D3",
+        "line_number": "#58634F",
+        "comment": "#616D57",
+        "keyword": "#775482",
+        "string": "#466B55",
+        "number": "#965739",
+        "type": "#3B7180",
+        "function": "#775D3D",
+        "constant": "#8C536E",
+        "operators": "#606E5B",
+        "error": "#AC454B",
+        "warning": "#806220"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogCuriousGarden"
+    },
+    {
+      "name": "tidebound-gold",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#E9DFC7",
+        "background": "#292B23",
+        "cursor": "#D8B56F",
+        "selection": "#5D5439",
+        "current_line": "#36372E",
+        "line_number": "#A7A38A",
+        "comment": "#A7A38A",
+        "keyword": "#E8BF80",
+        "string": "#BDC59C",
+        "number": "#DCA38A",
+        "type": "#9DBFBA",
+        "function": "#E6D59A",
+        "constant": "#C7AEBD",
+        "operators": "#BDBBA5",
+        "error": "#EE9C8E",
+        "warning": "#E2CC86"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogTideboundGold"
+    },
+    {
+      "name": "velvet-cabaret",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#F1DED5",
+        "background": "#351820",
+        "cursor": "#E2B375",
+        "selection": "#684639",
+        "current_line": "#42252C",
+        "line_number": "#B29398",
+        "comment": "#B29398",
+        "keyword": "#F0A6AA",
+        "string": "#E7CE9A",
+        "number": "#EBAF7D",
+        "type": "#D0B8E0",
+        "function": "#F5DAB1",
+        "constant": "#EBAABF",
+        "operators": "#D1B4AE",
+        "error": "#F69494",
+        "warning": "#EBD186"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogVelvetCabaret"
+    },
+    {
+      "name": "lagoon-whisper",
+      "appearance": "dark",
+      "body": {
+        "foreground": "#DBE9DF",
+        "background": "#103437",
+        "cursor": "#8BC6BC",
+        "selection": "#345F5E",
+        "current_line": "#1E4042",
+        "line_number": "#8DAFA6",
+        "comment": "#8DAFA6",
+        "keyword": "#B0D5C5",
+        "string": "#D2D8B0",
+        "number": "#DBA996",
+        "type": "#8BC9D6",
+        "function": "#E1E7CC",
+        "constant": "#C2B9D7",
+        "operators": "#AACBC4",
+        "error": "#EC9DA6",
+        "warning": "#DDD28F"
+      },
+      "source": {
+        "author": "NeNe Nib",
+        "license": "MIT; original palette",
+        "url": "https://github.com/hideyukiMORI/nene-nib/blob/main/docs/design/2026-10-12-cinema-collection.md"
+      },
+      "nameKey": "ColorSchemeNameCatalogLagoonWhisper"
+    }
+  ]
+}

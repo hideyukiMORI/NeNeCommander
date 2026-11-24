@@ -15,7 +15,7 @@ public abstract record SettingsEditorState
     /// <summary>Gets the open bookmark-catalog editor state.</summary>
     public static SettingsEditorState Bookmarks { get; } = new BookmarksState();
 
-    private SettingsEditorState()
+    private protected SettingsEditorState()
     {
     }
 

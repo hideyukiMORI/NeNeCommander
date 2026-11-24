@@ -23,6 +23,41 @@ function Copy-WindowsSdkLicense {
     return $name
 }
 
+function Copy-ThemePaletteNotices {
+    param([Parameter(Mandatory)] [string] $Destination)
+
+    $source = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'theme-catalog/source.json') -Raw | ConvertFrom-Json -AsHashtable
+    if ($source.schemaVersion -ne 1 -or $source.themes.Count -ne 125 -or
+        $source.notice.path -cne 'docs/release/licenses/theme-palette-notices.txt') { throw 'Unexpected fixed palette attribution input.' }
+    $noticePath = Join-Path (Split-Path -Parent $PSScriptRoot) $source.notice.path
+    $notice = Get-Item -LiteralPath $noticePath
+    if (($notice.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
+        $notice.Length -ne $source.notice.bytes -or
+        (Get-FileHash -LiteralPath $noticePath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $source.notice.sha256) { throw 'Fixed palette notice bytes/hash changed.' }
+    $target = Join-Path $Destination 'themes'
+    [void] [System.IO.Directory]::CreateDirectory($target)
+    Copy-Item -LiteralPath $noticePath -Destination (Join-Path $target 'NOTICES.txt')
+    $attribution = [ordered]@{
+        schemaVersion = 1
+        scope = '125 fixed palettes adapted into Commander semantic roles; source appearances and base foreground/background retained.'
+        origins = @($source.sourceFiles | ForEach-Object {
+            [ordered]@{ repository = $_.repository; commit = $_.commit; path = $_.path; sha256 = $_.sha256 }
+        })
+        themes = @($source.themes | ForEach-Object {
+            [ordered]@{ identifier = $_.name; appearance = $_.appearance; author = $_.source.author; license = $_.source.license; url = $_.source.url }
+        })
+    }
+    [System.IO.File]::WriteAllText((Join-Path $target 'attribution.json'), ($attribution | ConvertTo-Json -Depth 8) + "`n", [System.Text.UTF8Encoding]::new($false))
+    return [ordered]@{
+        scope = 'Adapted palette sources, separate from resolved NuGet packages.'
+        themes = 125
+        files = @('NOTICES.txt', 'attribution.json' | ForEach-Object {
+            $path = Join-Path $target $_
+            [ordered]@{ path = "themes/$_"; bytes = (Get-Item -LiteralPath $path).Length; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+        })
+    }
+}
+
 function Copy-ReleaseNotices {
     param(
         [Parameter(Mandatory)] [string] $AssetsPath,
@@ -98,8 +133,9 @@ function Copy-ReleaseNotices {
     }
     $index = [ordered]@{
         schemaVersion = 1
-        scope = 'Resolved publish packages and framework packs, including build-time dependencies.'
+        scope = 'Resolved publish packages and framework packs, including build-time dependencies, plus separately inventoried adapted palette sources.'
         packages = @($records)
+        paletteNotices = Copy-ThemePaletteNotices -Destination $Destination
     }
     [System.IO.File]::WriteAllText((Join-Path $Destination 'index.json'), ($index | ConvertTo-Json -Depth 8) + "`n")
     return @($records)

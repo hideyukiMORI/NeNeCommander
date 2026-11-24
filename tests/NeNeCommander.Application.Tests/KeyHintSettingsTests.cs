@@ -38,7 +38,7 @@ public sealed class KeyHintSettingsTests
         Assert.IsEmpty(context.Right.Requests);
         Assert.AreSame(PaneSide.Left, changed.Panes.ActiveSide);
         write.SetResult(SettingsWriteOutcome.Succeeded());
-        await commander.StopAsync();
+        await commander.StopAsync(null, new RecordingCommanderObserver());
     }
 
     /// <summary>Proves a failed save keeps the immediate choice and exposes the existing failure channel.</summary>

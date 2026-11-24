@@ -102,15 +102,16 @@ public sealed class KeyHintSettingsDocumentTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         KeyHintVisibility visibility = choice == 0 ? KeyHintVisibility.Shown : KeyHintVisibility.Hidden;
         UserSettings selected = UserSettings.Create(
-            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, visibility),
-            BookmarkCatalog.Empty, PaneSortPreferences.Default);
+            DisplayPreferences.Create(ColorScheme.Dracula, HiddenItemVisibility.Shown, visibility, InterfaceLanguage.System),
+            BookmarkCatalog.Empty, PaneSortPreferences.Default, null);
 
         _ = Assert.IsInstanceOfType<SettingsWriteSucceeded>(await Store(root).WriteAsync(selected, CancellationToken.None));
         UserSettings reloaded = Assert.IsInstanceOfType<SettingsRead>(await Store(root).ReadAsync(CancellationToken.None)).Settings;
 
         Assert.AreEqual(selected.Display, reloaded.Display);
         Assert.AreEqual(selected.PaneSortOrders, reloaded.PaneSortOrders);
-        string expected = Document("\"showKeyHints\":" + (choice == 0 ? "true" : "false"))
+        string expected = Document("\"showKeyHints\":" + (choice == 0 ? "true" : "false") + ",\"uiLanguage\":\"system\",\"windowPlacement\":null")
+            .Replace("\"schemaVersion\":4", "\"schemaVersion\":6", StringComparison.Ordinal)
             .Replace("\"showHiddenItems\":false", "\"showHiddenItems\":true", StringComparison.Ordinal)
             .Replace("nene-dark", "dracula", StringComparison.Ordinal);
         Assert.AreEqual(expected, File.ReadAllText(root.Resolve("settings.json")));

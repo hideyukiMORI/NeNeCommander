@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.ApplicationModel.Resources;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
@@ -19,7 +18,7 @@ namespace NeNeCommander.App.Views;
 internal sealed class BookmarkBrowseView
 {
     private readonly Grid _root;
-    private readonly ResourceLoader _resources;
+    private readonly ViewTextResources _resources;
     private readonly Action<UserIntent> _forward;
     private readonly Func<bool> _isRendering;
     private readonly BookmarkFocusRestoration _focus;
@@ -32,7 +31,7 @@ internal sealed class BookmarkBrowseView
     private readonly TextBlock _emptyContent;
     private readonly TextBlock _count;
 
-    internal BookmarkBrowseView(Grid root, ResourceLoader resources, Action<UserIntent> forward, Func<bool> isRendering)
+    internal BookmarkBrowseView(Grid root, ViewTextResources resources, Action<UserIntent> forward, Func<bool> isRendering)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);

@@ -22,9 +22,11 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
-None.
+- [ADR-0087: Extend the existing closed color-scheme catalog](0087-closed-theme-catalog.md).
 
 ## Accepted decisions
+
+- [ADR-0088: Apply interface language through one live window resource context](0088-live-interface-language.md)
 
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 
@@ -125,3 +127,6 @@ None.
 - [ADR-0023: Render the shell as the approved Direction C layout](0023-direction-c-shell-layout.md)
 - [ADR-0024: Decide the visible set of a pane from the persisted hidden-item visibility](0024-hidden-item-visibility.md)
 - [ADR-0040: Persist complete settings through one session-owned editor](0040-atomic-settings-write-and-session-editor.md)
+- [ADR-0086: Select the next-launch interface language through existing settings](0086-next-launch-interface-language.md)
+
+- [ADR-0089: Persist normal window placement and correct off-screen restoration](0089-persist-window-placement.md)
