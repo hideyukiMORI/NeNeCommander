@@ -168,7 +168,7 @@ public sealed class InterfaceLanguageQueueTests
         object?[] arguments = [InterfaceLanguage.English, new RecordingCommanderObserver(), CancellationToken.None];
         arguments[missingIndex] = null;
 
-        NullGuardAssertions.AssertInternalMethodNullGuard(
+        _ = NullGuardAssertions.AssertInternalMethodNullGuard(
             typeof(SettingsSession), nameof(SettingsSession.SelectInterfaceLanguageAsync), session, arguments);
 
         Assert.AreSame(UserSettings.Default, session.Current.Settings);

@@ -44,7 +44,7 @@ internal static class NullGuardAssertions
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }
 
-    internal static void AssertInternalMethodNullGuard(Type type, string methodName, object? instance, object?[] arguments)
+    internal static ArgumentNullException AssertInternalMethodNullGuard(Type type, string methodName, object? instance, object?[] arguments)
     {
         MethodInfo method = type.GetMethod(
             methodName,
@@ -52,7 +52,7 @@ internal static class NullGuardAssertions
             throw new AssertFailedException("The internal method was not found.");
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(
             () => method.Invoke(instance, arguments));
-        _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
+        return Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
     }
 
     internal static void AssertConstructorNullGuard(ConstructorInfo constructor, object?[] arguments)

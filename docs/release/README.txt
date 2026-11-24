@@ -28,6 +28,10 @@ Use
 - Ctrl+B opens bookmarks; Tab changes region, j/k or arrows move, / searches,
   a/e/d add/edit/delete, Ctrl+Enter saves, and Escape cancels or closes.
 - Ctrl+, opens settings; Ctrl+W adjusts the window.
+- Settings can switch Japanese, English or Simplified Chinese immediately.
+- The current-theme button or Ctrl+P :colorscheme opens 129 searchable themes.
+  Moving through the list previews a theme; Enter or a click accepts it.
+  Escape cancels the preview and restores the accepted theme.
 - F1 opens the in-app keyboard help with the full current key map.
 - The footer wraps to the available width. Settings can hide normal key hints;
   F1 and the confirmation/name-entry Enter/Escape guidance remain visible.
@@ -44,19 +48,24 @@ not supported. WSL/UNC launch rejects incompatible names and paths of 260 or mor
 UTF-16 code units. Provider capabilities and failures are reported by the app.
 There is no embedded editor, terminal, archive tool, FTP client or cloud protocol.
 
-Known issue
-Clicking outside the focused pane to reactivate an inactive window may leave
-keyboard commands unresponsive (reported by the maintainer; Issue #523).
-A fix is planned for a later Preview; this package does not claim it resolved.
-A jump to the first row after F6 was also reported on the screen-review candidate;
-Issue #550 tracks retaining focus near the moved item in a later version.
+Changes in beta.4
+The command palette uses a smaller width and one shared target-pane description.
+The file list wraps at its ends, and refresh after a move retains focus near the
+removed item. Each pane reports direct file/folder and selection counts; these
+are not recursive folder totals. Keyboard commands recover when returning through
+the inactive pane's blank area (Issue #523); the maintainer confirmed both sides.
+Normal close saves window position, size and maximized state. Restart restores
+the window within a current display work area. A killed or crashed process cannot
+guarantee a final settings save.
 
 Settings and updates
 Settings are saved in %LOCALAPPDATA%\NeNeCommander\settings.json, separately from
-this folder. Current writes use schema version 4; valid older versions 1, 2 and 3
-are read without a startup rewrite. A later accepted settings change saves version 4.
-The beta.1 and older binaries reject version 4, show their settings warning and
-use defaults without overwriting the rejected document. No downgrade is provided.
+this folder. Current writes use schema version 6; valid older versions 1 through 5
+are read without a startup rewrite. An accepted settings change or changed window
+placement at normal close saves version 6. This includes the display language and
+window placement as well as themes, bookmarks, sort order and other preferences.
+Beta.3 and older binaries reject version 6, show their settings warning and use
+defaults without overwriting the rejected document. No downgrade is provided.
 Different copies run by the same Windows account share this settings file.
 To update, close the app and extract the new ZIP into a new folder. There is no
 automatic updater. Deleting an extracted application folder leaves settings intact.

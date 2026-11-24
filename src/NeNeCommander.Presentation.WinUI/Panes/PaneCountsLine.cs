@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Text;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Panes;
 
@@ -26,21 +25,24 @@ public static class PaneCountsLine
         {
             return localize("PaneCountsUnavailable");
         }
-        string key = counts.Visible.Total == counts.Loaded.Total
-            ? "PaneCountsFormat"
-            : "PaneCountsVisibleFormat";
-        string text = string.Format(CultureInfo.InvariantCulture, CompositeFormat.Parse(localize(key)),
-            counts.Visible.Files, counts.Visible.Directories, counts.Selected,
-            counts.Loaded.Files, counts.Loaded.Directories);
+        string text = counts.Visible.Total == counts.Loaded.Total
+            ? Format(localize("PaneCountsFormat"),
+                counts.Visible.Files, counts.Visible.Directories, counts.Selected)
+            : Format(localize("PaneCountsVisibleFormat"),
+                counts.Visible.Files, counts.Visible.Directories, counts.Selected,
+                counts.Loaded.Files, counts.Loaded.Directories);
         if (listed.Listing.Completeness == DirectoryListingCompleteness.Bounded ||
             listed.Listing.UnrepresentableEntryCount > 0)
         {
-            text = string.Format(CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(localize("PaneCountsLoadedOnlyFormat")), text);
+            text = Format(localize("PaneCountsLoadedOnlyFormat"), text);
         }
         return presentation.SourceSnapshot.Activity is PaneLoading or PaneReadCancelled or PaneReadAbandoned or PaneReadFailed
-            ? string.Format(CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(localize("PaneCountsPreviousFormat")), text)
+            ? Format(localize("PaneCountsPreviousFormat"), text)
             : text;
+    }
+
+    private static string Format(string format, params object[] values)
+    {
+        return string.Format(CultureInfo.InvariantCulture, format, values);
     }
 }
