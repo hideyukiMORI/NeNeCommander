@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -37,6 +38,7 @@ internal sealed class CommanderPaneView
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
         _navigation = Find<Button>(prefix + "OpenOtherPane");
+        _navigation.Click += (_, _) => pointer.Forward(UserIntent.OpenCurrentLocationInOtherPane);
         _status = Find<TextBlock>(prefix + "Status");
         _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");

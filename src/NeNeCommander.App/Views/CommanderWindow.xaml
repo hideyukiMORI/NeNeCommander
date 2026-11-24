@@ -668,11 +668,11 @@
                     ColumnSpacing="{StaticResource SpacingRowGap}"
                     Padding="{StaticResource SpacingRowContent}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{x:Bind NameText}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind DetailText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontFamily="{StaticResource TypographyMonospaceFamily}" Text="{x:Bind NameText}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextSecondaryBrush}" Text="{x:Bind DetailText}" TextWrapping="Wrap" />
                 </Grid>
             </DataTemplate>
 
@@ -759,7 +759,6 @@
                                     <Button
                                         x:Name="LeftOpenOtherPane"
                                         AutomationProperties.AutomationId="LeftOpenOtherPane"
-                                        Click="OnOpenOtherPaneClick"
                                         IsEnabled="False"
                                         Style="{StaticResource PaneNavigationButtonStyle}"
                                         Visibility="Collapsed">
@@ -868,7 +867,6 @@
                                     <Button
                                         x:Name="RightOpenOtherPane"
                                         AutomationProperties.AutomationId="RightOpenOtherPane"
-                                        Click="OnOpenOtherPaneClick"
                                         IsEnabled="False"
                                         Style="{StaticResource PaneNavigationButtonStyle}"
                                         Visibility="Collapsed">
@@ -1752,6 +1750,8 @@
                 BorderThickness="{StaticResource BorderOperationBarThickness}"
                 CornerRadius="{StaticResource RadiusPane}"
                 HorizontalAlignment="Stretch"
+                Margin="{StaticResource SpacingLocationsOuter}"
+                MaxWidth="{StaticResource DensityLocationsMaxWidth}"
                 Padding="{StaticResource SpacingWindowOuter}"
                 VerticalAlignment="Top">
                 <Grid RowSpacing="{StaticResource SpacingOperationBarGap}">
@@ -1801,9 +1801,7 @@
                         ItemTemplate="{StaticResource KeyHintTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource SpacingOperationDetailGap}" />
+                                <views:KeyHintWrapPanel />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>

@@ -425,11 +425,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
                 : intent;
     }
 
-    private void OnOpenOtherPaneClick(object _, RoutedEventArgs args)
-    {
-        ForwardIntent(UserIntent.OpenCurrentLocationInOtherPane);
-    }
-
     private void OnBookmarkKeyHintClick(object sender, RoutedEventArgs args)
     {
         _bookmarkView.Invoke(sender);

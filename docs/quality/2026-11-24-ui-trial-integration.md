@@ -42,7 +42,11 @@ The header's navigation projection refreshes on every Render, independently of
 cached pane rows, because passive readiness and language can change without a new
 active-row projection. The existing pointer/selection cache remains intact.
 
-#548 at ee1859a40eaa3183baf5b08e3eb37be847685f08 is still pending at this checkpoint.
+#548 at ee1859a40eaa3183baf5b08e3eb37be847685f08 adds only the accepted
+Locations token/template changes and its exact-item/full-row identity cache in
+LocationsView. Three historical document conflicts are additive; product files
+merge without conflicts. The pre-Locations hash comparison below establishes the
+reuse boundary; final App/XAML and control seams remain pending.
 
 ## Attempts and selected evidence
 
@@ -88,3 +92,107 @@ source publication, feature main integration and release are separate and pendin
 Retain this incomplete worktree/output and all original feature candidates. Its
 cleanup follows acceptance/integration and permanent artifact preservation; it is
 not included in the completed beta.4 cleanup.
+
+The #547 merge is saved locally as15b1d1feb37ab652cf27d37d3796623851f76169
+with normal112-rule/24-threat commit checks. The #548 merge is not yet committed.
+
+## Native callback and integration-responsibility proof
+
+The independent review identified a real adapter reentry seam: Detach clears its
+managed invocation before calling native Hide, whose Closing callbacks can run
+synchronously. The initial diagnostic expected one native Closing event; attempts
+01/02 instead observed two synchronous events, so those fixture-condition failures
+are retained. With the same product and only one adversarial action injected on
+the first callback, attempts03/04 confirm the callback occurs before outer Render
+returns, then fail respectively because Stop still permits a new menu and a newer
+nested Render is overwritten by the older outer snapshot.
+
+CommandMenuView now assigns one private object identity to each admitted Render
+and rechecks that identity plus stopping immediately after Detach. It retains the
+existing invocation-qualified command/cancellation route and native menu; there is
+no second dispatch path. With only that product change, attempt05 passes all four
+checks and exits0; attempt06 passes all four checks but exits3221225477/0xC0000005
+after the before-close receipt. The latter is not a successful complete run. The
+original source, fixtures, build records and both kinds of receipt are preserved.
+A diagnostic-only follow-up observes old/new Closed events and waits for replacement
+realization and closure before final window teardown; its result is still pending.
+No physical input or visible acceptance is inferred from these controlled callbacks.
+All six launcher receipts retain the unchanged normal-settings bytes/hash/time and
+Default input desktop; processes are owned children on the declared non-input desktop.
+
+Integration initially measures six CS-013 findings: CommanderWindow301,
+CommanderSession302 and KeyboardIntentMapper310 logical lines are three new
+production violations, alongside three pre-existing findings. The old window-key
+test-size finding is absent in this integrated input. The new violations are fixed
+by responsibility, without changing thresholds or hiding measurements:
+
+- CommanderPaneView connects its header Button to the existing PanePointerBindings
+  Forward action; duplicate host/XAML Click hookup is removed.
+- DualPaneSnapshot exposes two internal immutable activity facts with exactly the
+  previous loading/launching expressions. CommanderSession's bookmark/palette/address
+  admission and the existing opposite-pane readiness consume those same facts.
+- WindowAdjustmentKeyMap holds the unchanged window declaration table, mapping and
+  repeat predicate. KeyboardIntentMapper remains the sole public mapper/facade and
+  supplies the same read-only list to shortcut hints.
+
+Normal App build04 and Application/Presentation builds03 succeed with0warnings and
+0errors. Application admission02 passes224/225; its sole failure is the old27-command
+catalog count in CommanderSessionBookmarkOwnershipTests, before the opposite-pane
+command made the integrated catalog28. Only that expectation changes. Application
+build04 and count03 pass1/1; the224 previous successes are reused. Presentation
+keymap02 passes162/162. These are bounded owner/admission/input checks, not a whole
+suite, full gate, mutation or release claim. Exact commands and times are in
+run-refactor-proof-01/02.ps1 and the matching per-command JSON/log files.
+
+Independent source review finds no mandatory correction in the render guard or
+three responsibility changes; it explicitly retains attempt06's process-exit limit.
+Final native integration, complexity reconciliation, format, commit and trial
+acceptance remain pending. Production feature publication/main integration is not
+performed by this local trial work.
+
+## Final selected integration result at22:24 JST
+
+The lifecycle-observed reentry attempts07/08 both pass the same four callback/
+ownership checks and both owned processes exit0. The replacement trace proves
+synchronous Closing reentry, old Closed outside Render, realized replacement,
+Stop, and replacement Closed before final window teardown. Normal settings and
+input desktop remain unchanged. Independent read-only review accepts this repaired
+boundary. Attempt06 remains an early-teardown access-violation record; this result
+does not claim that earlier teardown condition is solved or unrelated to product.
+
+The final source copy before line-ending normalization has178 App inputs:176 are
+exact, with only the declared project-reference and composition substitutions.
+All four production dependency DLLs match. Fixture hashes, build04 and final
+parity02 are retained. Integration attempts09(en-US),10(ja-JP),11(zh-Hans) each
+pass60 checks across16 stages and each process exits0. These exercise cached
+active-pane readiness while passive loading changes, three-language header UIA/
+tooltip refresh, nested-button exclusion from passive hits, actual left/right
+header UIA Invoke and same-location no-op, native context dismissal/right focus,
+actual palette-row Invoke into the window helper and its return, and compact
+Locations loading/layout/14-row cached traversal with complete final wrapped text.
+Catalogs and external launching are fakes; no synthetic external path is navigated.
+No physical mouse/keys/IME, shared-desktop input, visible acceptance, full provider
+coverage or final distribution package is claimed. The receipt scope string is a
+generic diagnostic-adapter label; each scenario/check list and launcher receipt
+is authoritative for what actually ran.
+
+Complexity02 has exactly the three unchanged findings (two5-parameter scope records
+and one4-level help-presenter nesting), with no new finding. CommanderWindow299,
+CommanderSession296 and KeyboardIntentMapper269 are below300; new WindowAdjustmentKeyMap
+is42 and CommandMenuView109. The tool still exits1 for the retained findings.
+
+The initial broad dotnet format command fails on7files' LF/CRLF differences and
+on XAML-wired host members that its design-time analyzer treats as unused. No
+analyzer suppression is added and no XAML handler is removed for this diagnostic.
+The repository's actual check uses `dotnet format whitespace`. After preserving
+1368 proof inputs and proving only line endings change in7files, that canonical
+whitespace mode on the9 touched C# files exits0. The workspace-load warning remains
+recorded. Normal builds above retain all analyzers and0warnings/errors. Relevant
+code bodies, tests, dependencies and tooling are unchanged by normalization, so
+successful behavior evidence is reused; raw file hashes are not claimed identical.
+See final-inputs-before-eol-01.json, eol-normalization-01.json and format-whitespace-02.json.
+
+This is local technical proof for the combined trial. The existing published
+beta.4 remains unchanged; #564 is the broader TODO tracker and is not closed by
+this integration. Physical/visible acceptance, feature publication/main integration
+and eventual cleanup remain distinct. All unfinished original copies are retained.

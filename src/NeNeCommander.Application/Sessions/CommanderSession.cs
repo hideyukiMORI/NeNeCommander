@@ -405,19 +405,7 @@ public sealed class CommanderSession
 
     private bool BookmarkInteractionIsFrozen()
     {
-        return PaneInteractionIsFrozen() || AnyPaneExternalWorkIsRunning(_panes.Current);
-    }
-
-    private static bool AnyPaneExternalWorkIsRunning(DualPaneSnapshot panes)
-    {
-        return panes.Left.Activity is PaneLoading or PaneLaunching ||
-            panes.Right.Activity is PaneLoading or PaneLaunching;
-    }
-
-    private bool AnyPaneReadIsRunning()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        return panes.Left.Activity is PaneLoading || panes.Right.Activity is PaneLoading;
+        return PaneInteractionIsFrozen() || _panes.Current.HasExternalWork;
     }
 
     private CommanderSnapshot OpenContextMenu(UserIntent intent)
@@ -484,7 +472,7 @@ public sealed class CommanderSession
         return _settings.Current.Editor == SettingsEditorState.Closed &&
             _scopes.AddressEditor.Current is AddressEditorClosed &&
             !PaneInteractionIsFrozen() &&
-            !AnyPaneExternalWorkIsRunning(panes)
+            !panes.HasExternalWork
                 ? InteractionOwnership.ScopeOwnsInput
                 : InteractionOwnership.AnotherScopeOwnsInput;
     }
@@ -529,7 +517,7 @@ public sealed class CommanderSession
 
     private InteractionOwnership AddressOwnership()
     {
-        return PaneInteractionIsFrozen() || AnyPaneReadIsRunning()
+        return PaneInteractionIsFrozen() || _panes.Current.HasReadInProgress
             ? InteractionOwnership.AnotherScopeOwnsInput
             : InteractionOwnership.ScopeOwnsInput;
     }

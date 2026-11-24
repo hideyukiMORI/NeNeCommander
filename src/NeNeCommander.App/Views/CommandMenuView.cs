@@ -25,6 +25,7 @@ internal sealed class CommandMenuView
     private MenuFlyout? _menu;
     private CommandMenuPlacement? _placement;
     private bool _stopping;
+    private object? _renderOwner;
 
     internal CommandMenuView(FrameworkElement root, ViewTextResources resources, Action<UserIntent> forward, Action<PaneSide> returnFocus)
     {
@@ -73,8 +74,14 @@ internal sealed class CommandMenuView
         {
             return;
         }
+        object renderOwner = new();
+        _renderOwner = renderOwner;
         bool wasOpen = _invocation is not null;
         Detach();
+        if (_stopping || !ReferenceEquals(_renderOwner, renderOwner))
+        {
+            return;
+        }
         if (snapshot.Scopes.CommandPalette is not CommandPaletteOpen open || open.Surface == CommandSurface.Palette)
         {
             if (wasOpen && snapshot.Scopes.CommandPalette is CommandPaletteClosed { FileListFocusSide: PaneSide side })
