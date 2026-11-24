@@ -20,14 +20,19 @@ public static class WindowAdjustmentPlanner
     /// <summary>Plans one adjustment of the window described by a placement read a moment ago.</summary>
     /// <param name="placement">Placement the host read immediately before this decision.</param>
     /// <param name="action">Closed action the mode requested.</param>
+    /// <param name="transfer">Closed transfer-only facts; ordinary adjustments use NotRequested.</param>
     /// <returns>The plan the host applies exactly once, or a refusal it only renders.</returns>
-    public static WindowAdjustmentPlan Plan(WindowPlacement placement, WindowAdjustmentAction action)
+    public static WindowAdjustmentPlan Plan(
+        WindowPlacement placement,
+        WindowAdjustmentAction action,
+        WindowTransferInput transfer)
     {
         ArgumentNullException.ThrowIfNull(placement);
         ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(transfer);
         WindowAdjustmentRefusal? blocked = BlockingRefusal(placement.PresenterState, action);
         return blocked is null
-            ? PlanAdmittedAction(placement, action)
+            ? PlanAdmittedAction(placement, action, transfer)
             : new WindowRefusedPlan(blocked);
     }
 
@@ -83,9 +88,12 @@ public static class WindowAdjustmentPlanner
 
     private static WindowAdjustmentPlan PlanAdmittedAction(
         WindowPlacement placement,
-        WindowAdjustmentAction action)
+        WindowAdjustmentAction action,
+        WindowTransferInput transfer)
     {
-        return action == WindowAdjustmentAction.Maximize
+        return action.ChangesDisplay
+            ? WindowTransferPlanner.Plan(placement, action, transfer)
+            : action == WindowAdjustmentAction.Maximize
             ? WindowAdjustmentPlan.Maximize
             : action == WindowAdjustmentAction.Restore
                 ? WindowAdjustmentPlan.Restore

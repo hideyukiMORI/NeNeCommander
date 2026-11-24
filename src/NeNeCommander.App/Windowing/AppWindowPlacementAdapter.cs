@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using NeNeCommander.Application.Windowing;
 using Windows.Graphics;
+using Windows.Graphics.Display;
 
 namespace NeNeCommander.App.Windowing;
 
@@ -98,6 +100,121 @@ internal sealed class AppWindowPlacementAdapter
         }
     }
 
+    /// <summary>Reads fresh transfer-only display facts without activating or showing the own window.</summary>
+    /// <param name="isCurrent">Exact owner and non-stopping qualification checked around platform reads.</param>
+    internal WindowTransferInput ReadTransfer(Func<bool> isCurrent)
+    {
+        ArgumentNullException.ThrowIfNull(isCurrent);
+        try
+        {
+            return !isCurrent()
+                ? WindowTransferInput.Unavailable
+                : !_window.IsVisible
+                    ? WindowTransferInput.Hidden
+                    : OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621)
+                        ? ReadDisplays(isCurrent)
+                        : WindowTransferInput.Unavailable;
+        }
+        catch (COMException)
+        {
+            return WindowTransferInput.Unavailable;
+        }
+        catch (ArgumentException)
+        {
+            return WindowTransferInput.Unavailable;
+        }
+    }
+
+    [SupportedOSPlatform("windows10.0.22621")]
+    private WindowTransferInput ReadDisplays(Func<bool> isCurrent)
+    {
+        if (!isCurrent())
+        {
+            return WindowTransferInput.Unavailable;
+        }
+        DisplayArea current = DisplayArea.GetFromWindowId(_window.Id, DisplayAreaFallback.Nearest);
+        if (!isCurrent())
+        {
+            return WindowTransferInput.Unavailable;
+        }
+        IReadOnlyList<DisplayArea> attached = DisplayArea.FindAll();
+        List<WindowDisplay> observations = [];
+        for (int index = 0; index < attached.Count; index++)
+        {
+            if (!isCurrent())
+            {
+                return WindowTransferInput.Unavailable;
+            }
+            observations.Add(ReadDisplay(attached[index]));
+        }
+        return isCurrent()
+            ? WindowTransferInput.Create(WindowDisplaySnapshot.Create(ReadDisplay(current), observations))
+            : WindowTransferInput.Unavailable;
+    }
+
+    [SupportedOSPlatform("windows10.0.22621")]
+    private static WindowDisplay ReadDisplay(DisplayArea display)
+    {
+        nint monitor = Microsoft.UI.Win32Interop.GetMonitorFromDisplayId(display.DisplayId);
+        DisplayInformation information = DisplayInformationInterop.GetForMonitor(monitor);
+        return WindowDisplay.Create(WindowDisplayIdentity.Create(display.DisplayId.Value),
+            BoundsOf(display.WorkArea), information.RawPixelsPerViewPixel);
+    }
+
+    /// <summary>Applies at most the two precomputed rectangles, qualified before and after each effect.</summary>
+    /// <param name="plan">The pure calculation's exact source, target and rectangles.</param>
+    /// <param name="isCurrent">Whether the decided owner still owns this non-stopping route.</param>
+    /// <param name="observeDefect">Existing observer for unexpected SDK failures.</param>
+    /// <returns>The observed effect boundary; a call that started can never claim no effect.</returns>
+    internal WindowTransferEffect ApplyTransfer(WindowTransferPlan plan, Func<bool> isCurrent, Action<Exception> observeDefect)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        ArgumentNullException.ThrowIfNull(isCurrent);
+        ArgumentNullException.ThrowIfNull(observeDefect);
+        WindowTransferEffect effect = WindowTransferEffect.NotApplied;
+        try
+        {
+            if (!Qualifies(plan, isCurrent, WindowTransferQualification.CanStart))
+            {
+                return effect;
+            }
+            effect = WindowTransferEffect.Unconfirmed;
+            _window.MoveAndResize(RectOf(plan.Geometry.Initial));
+            if (!Qualifies(plan, isCurrent, WindowTransferQualification.CanFinish))
+            {
+                return effect;
+            }
+            _window.MoveAndResize(RectOf(plan.Geometry.Final));
+            return Qualifies(plan, isCurrent, WindowTransferQualification.HasObservedResult)
+                ? WindowTransferEffect.Observed
+                : effect;
+        }
+        catch (COMException defect)
+        {
+            observeDefect(defect);
+        }
+        catch (InvalidOperationException defect)
+        {
+            observeDefect(defect);
+        }
+        catch (ArgumentException defect)
+        {
+            observeDefect(defect);
+        }
+        return effect;
+    }
+
+    private bool Qualifies(WindowTransferPlan plan, Func<bool> isCurrent,
+        Func<WindowTransferPlan, WindowPlacement, WindowTransferInput, bool> qualification)
+    {
+        if (!isCurrent())
+        {
+            return false;
+        }
+        WindowPlacement placement = Read();
+        WindowTransferInput input = ReadTransfer(isCurrent);
+        return isCurrent() && qualification(plan, placement, input);
+    }
     /// <summary>Applies one decided plan exactly as decided; a refused plan changes nothing.</summary>
     /// <param name="plan">Plan returned by the session for the placement read on the same keystroke.</param>
     internal void Apply(WindowAdjustmentPlan plan)

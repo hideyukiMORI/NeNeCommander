@@ -166,7 +166,7 @@ explicit bounded effect, not transactional multi-monitor movement.
 Background advice proposes n/p, geometric cycling and logical-size preservation.
 Engineering selects centered landing, normal-only admission, refusal rather than
 minimum-overflow, standard-key aliases and qualified apply receipts. Preserve the
-existing semantic helper, wrap panel, full localized status/automation text and
+existing semantic helper, full localized status/automation text and
 focus sink. No new color, spacing constant, overlay or visual family is introduced.
 The [engineering handoff](../design/2026-11-24-monitor-transfer-handoff.md) enumerates
 the hint/status states; final screen acceptance remains hide's separate observation.
@@ -201,3 +201,58 @@ Narrator, physical hold/focus and screen acceptance remain environmental limits.
 - [Investigation and raw proof](../quality/2026-11-22-monitor-transfer-investigation.md).
 - [GetForMonitor contract](https://learn.microsoft.com/en-us/windows/win32/api/windows.graphics.display.interop/nf-windows-graphics-display-interop-idisplayinformationstaticsinterop-getformonitor).
 - [RawPixelsPerViewPixel](https://learn.microsoft.com/en-us/uwp/api/windows.graphics.display.displayinformation.rawpixelsperviewpixel).
+
+## Responsive helper contract — accepted November24
+
+The helper has one bounded vertical ScrollViewer body containing icon/title, the
+complete wrapped outcome sentence, then the seven geometry hint groups in their
+canonical order. Only this helper uses a standard vertical StackPanel for those
+groups, with existing SpacingKeyHintGap and unchanged key/description templates.
+The SDK ScrollBarSize and ScrollViewerScrollBarMargin reserve a permanent gutter.
+Horizontal scrolling and text trimming are disabled; no font reduction or new
+visual token is introduced. The original shared KeyHintWrapPanel is unchanged.
+
+A fixed footer always shows the generated Esc/Done and PgUp/PgDn/Read help groups
+once each. Its height is independent of overflow. The existing nonvisual focus
+sink is in this fixed area; the body has no tab stop, interaction focus or automatic
+focus-follow scrolling. PageUp/PageDown are repeatable, unmodified Presentation
+view actions from the canonical binding table, never Application geometry actions.
+They preserve session outcome/owner, pane rows/selection/focus and settings.
+
+WindowAdjustmentView uses one TryResetScroll path after complete open rendering,
+on LayoutUpdated and after a page action updates layout. A new rendered owner
+clears any old pending/issued reset receipt. Once its exact current/rendered owner
+survives, the scroll is loaded and its viewport is positive, pending is cleared
+before one nonanimated ChangeView to0. Only a surviving owner receives the issued
+receipt; callers recheck the lifetime before further work. Closed/Stop clear both,
+and Stop unsubscribes. Unchanged result text does not require a later layout event.
+An issued receipt does not itself prove asynchronous completion. No product timer,
+retry loop, ViewChanged retry or overflow mutation is introduced.
+
+Page actions qualify the owner before/after UpdateLayout and require that owner's
+issued receipt. They advance half the current viewport to leave readable overlap,
+and clamp the destination to0..ScrollableHeight before the same ChangeView call.
+This conforms to the [SDK offset contract](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.scrollviewer.changeview).
+The scrollbar/wheel operate that same body. Physical delivery/hold and speech remain
+separate environmental proof.
+
+The baseline at500x400physical pixels/current system text scale on attached125%,
+150% and175% displays found19English/1Japanese clipped layouts among52per locale.
+Later concrete counterexamples include a full-viewport page gap and a wrapping
+panel measured at232DIP then arranged at its smaller natural width, adding a row
+outside its reported extent. The [quality record](../quality/2026-11-22-monitor-transfer-investigation.md)
+retains all failures, diagnostic calibration and chosen corrections. Standard
+vertical grouping costs some scrolling on wide windows but has one stable reading
+order and content-driven height. Background text-design consultation supports it;
+independent read-only engineering reviews resolve the required design questions.
+These reviews are not human screen acceptance.
+
+Selected real-control proof must show complete text at page stops (every body
+TextBlock is fully visible at least once), reachable final row, return to exact0,
+identical-result new-owner reset, fixed footer/client bounds, no glyph/scrollbar
+overlap, no horizontal overflow, retained sink/panes/settings and no post-stop or
+stale-owner repaint. The diagnostic observes asynchronous completion within a
+bounded interval without resending the request.500x400is a measurement condition,
+not a declared product minimum. Smaller clients,100%/200%/custom display scales,
+system text scaling, screen reader and physical/visible acceptance remain explicit
+limits until observed. No broader support claim is inferred from this matrix.

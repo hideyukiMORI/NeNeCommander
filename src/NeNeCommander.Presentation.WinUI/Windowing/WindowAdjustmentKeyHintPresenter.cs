@@ -33,7 +33,7 @@ public static class WindowAdjustmentKeyHintPresenter
         List<WindowAdjustmentKeyHint> hints = [];
         foreach (WindowAdjustmentHintGroup group in groups)
         {
-            hints.Add(new WindowAdjustmentKeyHint(caps[group].AsReadOnly(), group.LabelResourceKey));
+            hints.Add(new WindowAdjustmentKeyHint(caps[group].AsReadOnly(), group));
         }
         return hints.AsReadOnly();
     }

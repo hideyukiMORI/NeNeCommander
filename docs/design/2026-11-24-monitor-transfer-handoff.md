@@ -11,7 +11,7 @@ the monitor-transfer investigation. No source or local diagnostics were sent.
 Reuse WindowAdjustmentOverlay, WindowAdjustmentSurface, WindowAdjustmentHelper,
 WindowAdjustmentTitle, WindowAdjustmentOutcome and WindowAdjustmentKeyHints in
 CommanderWindow.xaml. Keep the existing focus sink, transparent scrim, upper-centred
-placement, KeyHintWrapPanel, tokenized border/padding/type/color and LiveSetting=Polite.
+placement, tokenized border/padding/type/color and LiveSetting=Polite. The responsive composition below owns this helper's panel choice.
 No fixed width/height, new icon asset, motion, color family or additional tab stop.
 The existing wrapped outcome TextBlock carries the full localized sentence; no
 ellipsis, line cap or hidden duplicate text is introduced. Its semantic text/warning
@@ -43,7 +43,7 @@ Existing maximized/minimized/not-overlapped refusals are retained.
 | Information unavailable | Display information is unavailable. | ディスプレイ情報を取得できません。 | 无法获取显示器信息。 |
 | Hidden refusal | Show the window before moving it. | ウィンドウを表示してから移動してください。 | 请先显示窗口再移动。 |
 | Minimum cannot fit | The target display cannot fit the window's minimum size. | 移動先の表示領域に最小サイズで収まりません。 | 目标显示区域无法容纳窗口的最小尺寸。 |
-| Facts changed before apply | The window or displays changed; the move was cancelled. | ウィンドウまたはディスプレイの状態が変わったため、移動を中止しました。 | 窗口或显示器状态已改变，移动已取消。 |
+| Not applied | The display move was cancelled before it started. | ディスプレイへの移動を開始前に中止しました。 | 显示器间的移动在开始前已取消。 |
 | Effect unconfirmed | Display move could not be confirmed. Check the window position. | ディスプレイへの移動を確認できませんでした。ウィンドウの位置を確認してください。 | 无法确认显示器间的移动。请检查窗口位置。 |
 
 Confirmed means the ADR's immediately observed qualification, never a promise about
@@ -85,3 +85,40 @@ Visible multi-monitor transitions, maximize/restore sequence, custom scale,
 disconnect/reconnect, native keyboard hold, Narrator and final screen acceptance
 remain separate. The old unshown24-case and minimum4-case probes support only the
 facts they observed. Existing normal settings and unfinished work remain retained.
+
+## Responsive helper composition — accepted engineering handoff
+
+Use one bounded body for icon/title, the complete wrapped outcome and seven
+vertically stacked geometry hint groups. Reuse WindowAdjustmentKeyHintTemplate,
+SpacingKeyHintGap and all current semantic typography/colors. Each group's key caps
+stay intact at the left and its description wraps at the right. A permanent native
+scrollbar gutter prevents text overlap. The shared wrap panel is unchanged.
+
+Always pin generated Esc/Done and PgUp/PgDn/Read help once in the footer. Keep the
+nonvisual focus sink there. The body adds no tab stop and no automatic focus-follow
+scrolling. Half-viewport paging overlaps, clamps at both ends and changes no window
+geometry, session outcome or settings. Every qualified new owner resets to the
+beginning, including identical text. The single pending/issued-owner reset path and
+reentrant stop/leave guards are specified in [ADR0092](../adr/0092-display-transfer-through-window-adjustment.md).
+
+The prior wrapping layout's measured/arranged-width mismatch hid the last Japanese
+row; a full-viewport step also split English text between page stops. Both concrete
+counterexamples and diagnostic calibration stay in the quality record. Background
+Claude text advice supports the vertical order, and independent review finds no
+required correction. The installed CLI's unsupported /design was handled by an
+explicit tools-disabled text consultation, not a claimed generated visual mockup.
+Only a generic authored brief was sent; no repository source or raw diagnostics.
+
+Common fixed-width key columns and a new minimum description width are unnecessary
+for this scoped handoff; measure the existing templates directly. Conditional pager
+visibility would reintroduce footer-height feedback, so the accepted fixed footer
+is retained. Long text must remain reachable without ellipsis/font reduction.
+
+Measure all13outcomes in3locales on the4attached displays at500x400physical/current
+system text scale. Every complete body TextBlock must be readable at a page stop;
+Esc/pager must remain inside the client, all rows reachable and PageUp return to0.
+Check focus, owner, pane contents, settings and reentrant stop/leave separately.
+The observer may await asynchronous scrolling within a bound but may not resend
+commands to manufacture success. Preserve failed trials and source/resource parity.
+Smaller clients, system text scaling, custom DPI, physical hold/IME/Narrator and
+hide's visible acceptance remain separate; this handoff does not claim them.

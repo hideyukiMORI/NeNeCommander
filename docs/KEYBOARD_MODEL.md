@@ -118,13 +118,16 @@ Direct shortcuts remain frozen while the palette owns input, and bookmark slots 
 | `j` or `Down` | move the window down by one adjustment step |
 | `k` or `Up` | move the window up by one adjustment step |
 | `l` or `Right` | move the window right by one adjustment step |
+| `p` or `Ctrl+Left` | move the visible normal window to the previous geometric display (ADR-0092) |
+| `n` or `Ctrl+Right` | move the visible normal window to the next geometric display (ADR-0092) |
+| `PageUp` / `PageDown` | scroll the mode explanation by half its visible height, clamped at both ends; does not move the window or leave the mode |
 | `+` | enlarge the window by one adjustment step in width and height, anchored at its top-left corner |
 | `-` | shrink the window by one adjustment step in width and height, anchored at its top-left corner |
 | `m` | maximize the window |
 | `r` | restore the window to its normal placement |
 | `Escape` or `Ctrl+W` | leave the mode and return focus to the file list of the pane active at entry |
 
-Letters and `+` and `-` are produced characters with Control and Alt absent (KBD-003); `=` is not an alias. Auto-repeat is accepted for move, enlarge, and shrink; a repeated `m`, `r`, `Escape`, or `Ctrl+W` is consumed without an action. In the `WindowAdjustment` context a declared key yields its action; an event the translator does not identify, which includes the raw virtual-key event that precedes a produced character, passes through to the mode's focus sink, which handles nothing; and every identified key the mode does not declare, and every declared key under an undeclared modifier, is consumed, so no pane, editor, or native control receives it. `Tab` is consumed, so focus cannot leave the mode. The helper's hints are generated from the same table, one hint per group with the arrow aliases and `Ctrl+W` shown under no cap of their own.
+Letters and `+` and `-` are produced characters with Control and Alt absent (KBD-003); `=` is not an alias. Auto-repeat is accepted for move, enlarge, and shrink; a repeated display-transfer key, `m`, `r`, `Escape`, or `Ctrl+W` is consumed without an action. Accepted display-transfer presses remain guarded across input-owner changes until the next initial event for that key. In the `WindowAdjustment` context a declared key yields its action; an event the translator does not identify, which includes the raw virtual-key event that precedes a produced character, passes through to the mode's focus sink, which handles nothing; and every identified key the mode does not declare, and every declared key under an undeclared modifier, is consumed, so no pane, editor, or native control receives it. `Tab` is consumed, so focus cannot leave the mode. The helper's hints are generated from the same table, one hint per group. Previous/next-display groups each show the letter and control-arrow cap; ordinary movement arrow aliases and `Ctrl+W` show no additional cap.
 
 `Escape` keeps its order. The mode cannot open while a file operation is running or awaiting a decision, so cancelling a running operation still comes first; inside the mode `Escape` and `Ctrl+W` have one meaning, leaving the mode, and leaving has no revert because every applied step already happened on the desktop.
 

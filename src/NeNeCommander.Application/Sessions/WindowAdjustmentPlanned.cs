@@ -10,12 +10,17 @@ public sealed record WindowAdjustmentPlanned : WindowAdjustmentDecision
     {
     }
 
-    internal WindowAdjustmentPlanned(WindowAdjustmentPlan plan)
+    internal WindowAdjustmentPlanned(WindowAdjustmentPlan plan, WindowAdjustmentOpen owner)
     {
         ArgumentNullException.ThrowIfNull(plan);
+        ArgumentNullException.ThrowIfNull(owner);
         Plan = plan;
+        Owner = owner;
     }
 
     /// <summary>Gets the decided plan, which may itself be a refusal the host only renders.</summary>
     public WindowAdjustmentPlan Plan { get; }
+
+    /// <summary>Gets the exact new state that may receive the qualified transfer observation.</summary>
+    public WindowAdjustmentOpen Owner { get; }
 }

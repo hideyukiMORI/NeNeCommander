@@ -821,4 +821,21 @@
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>アプリ全体のキー操作一覧</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>共通のブックマークを管理・移動先を選択</value></data>
   <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyLabelP" xml:space="preserve"><value>p</value></data>
+  <data name="KeyLabelN" xml:space="preserve"><value>n</value></data>
+  <data name="KeyLabelCtrlLeft" xml:space="preserve"><value>Ctrl+←</value></data>
+  <data name="KeyLabelCtrlRight" xml:space="preserve"><value>Ctrl+→</value></data>
+  <data name="WindowAdjustmentHintPreviousDisplay" xml:space="preserve"><value>前のディスプレイ</value></data>
+  <data name="WindowAdjustmentHintNextDisplay" xml:space="preserve"><value>次のディスプレイ</value></data>
+  <data name="WindowAdjustmentPlannedPreviousDisplay" xml:space="preserve"><value>前のディスプレイへ移動</value></data>
+  <data name="WindowAdjustmentPlannedNextDisplay" xml:space="preserve"><value>次のディスプレイへ移動</value></data>
+  <data name="WindowAdjustmentMovedPreviousDisplay" xml:space="preserve"><value>前のディスプレイへ移動しました。</value></data>
+  <data name="WindowAdjustmentMovedNextDisplay" xml:space="preserve"><value>次のディスプレイへ移動しました。</value></data>
+  <data name="WindowAdjustmentRefusedNoOtherDisplay" xml:space="preserve"><value>ほかに移動できるディスプレイがありません。</value></data>
+  <data name="WindowAdjustmentRefusedDisplayInformation" xml:space="preserve"><value>ディスプレイ情報を取得できません。</value></data>
+  <data name="WindowAdjustmentRefusedHidden" xml:space="preserve"><value>ウィンドウを表示してから移動してください。</value></data>
+  <data name="WindowAdjustmentRefusedTargetCannotFit" xml:space="preserve"><value>移動先の表示領域に最小サイズで収まりません。</value></data>
+  <data name="WindowAdjustmentTransferNotApplied" xml:space="preserve"><value>ディスプレイへの移動を開始前に中止しました。</value></data>
+  <data name="WindowAdjustmentTransferUnconfirmed" xml:space="preserve"><value>ディスプレイへの移動を確認できませんでした。ウィンドウの位置を確認してください。</value></data>
+  <data name="WindowAdjustmentHintScrollHelp" xml:space="preserve"><value>説明</value></data>
 </root>

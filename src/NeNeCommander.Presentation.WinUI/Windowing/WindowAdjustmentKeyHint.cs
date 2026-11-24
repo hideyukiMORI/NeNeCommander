@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NeNeCommander.Presentation.WinUI.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Windowing;
 
@@ -13,17 +14,20 @@ public sealed record WindowAdjustmentKeyHint
 {
     internal WindowAdjustmentKeyHint(
         IReadOnlyList<string> keyLabelResourceKeys,
-        string intentLabelResourceKey)
+        WindowAdjustmentHintGroup group)
     {
         ArgumentNullException.ThrowIfNull(keyLabelResourceKeys);
-        ArgumentException.ThrowIfNullOrWhiteSpace(intentLabelResourceKey);
+        ArgumentNullException.ThrowIfNull(group);
         KeyLabelResourceKeys = keyLabelResourceKeys;
-        IntentLabelResourceKey = intentLabelResourceKey;
+        Group = group;
     }
 
     /// <summary>Gets the key-cap resources of this hint, in the table's declaration order.</summary>
     public IReadOnlyList<string> KeyLabelResourceKeys { get; }
 
     /// <summary>Gets the localization resource that names what the hint's keys do.</summary>
-    public string IntentLabelResourceKey { get; }
+    public string IntentLabelResourceKey => Group.LabelResourceKey;
+
+    /// <summary>Gets the closed group used to place the one hint without matching localized text.</summary>
+    public WindowAdjustmentHintGroup Group { get; }
 }

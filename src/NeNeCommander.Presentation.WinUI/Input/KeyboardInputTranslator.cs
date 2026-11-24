@@ -70,6 +70,7 @@ internal static class KeyboardInputTranslator
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
             'm' => KeyboardKey.M,
+            'n' => KeyboardKey.N,
             'w' or '' => KeyboardKey.W,
             '+' => KeyboardKey.Plus,
             '-' => KeyboardKey.Minus,

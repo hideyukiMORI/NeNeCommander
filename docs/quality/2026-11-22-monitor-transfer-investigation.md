@@ -1,8 +1,7 @@
-# Monitor transfer: bounded hidden-window investigation
+# Monitor transfer: investigation, implementation and verification
 
 Issue #551 / 2026-11-22 / main input `7ef9b96`.
-Scope: diagnostic fixture and documentation only; no product implementation,
-accepted ADR, native-key proof, source publication, merge or release claim.
+Current status November24: local implementation and selected pure/isolated native proof complete under accepted technical ADR0092. Physical/visible acceptance, source publication and main integration remain pending. Dated sections below preserve the earlier investigation and failed trials.
 
 Evidence: `D:/NeNeCommander/evidence/monitor-transfer-20261122/`.
 Diagnostic output: `D:/NeNeCommander/outputs/monitor-transfer-20261122/probe/`.
@@ -250,3 +249,318 @@ No production edit, accepted design or new runtime trial is inferred.
 ## Technical mechanism acceptance - November24 17:35 JST
 
 Independent re-review at17:34:27 verifies proposed revision02 hash00765DEDD9558A5E10C9BEDEE4F6843F2E91500349CD340BDF2E9882DE94CDCA and finds no mandatory correction. The delegated engineering owner accepts ADR0092 for scoped implementation. This is neither product/native/visual acceptance nor publication/release authority. The required owner/stop/uncertain-effect/minimum details are explicit. The handoff preserves the existing helper; each new canonical group displays its letter and control-arrow cap, which existing hint-derived help can also show. Production inputs remain equal to f6c722c. The acceptance script's first exact-alias replacement failed after writing only the ADR status; it did not alter product, run checks or commit. Exact handoff text was inspected and corrected before this atomic documentation commit. All raw trials and review revisions remain.
+
+## Application implementation begins - November24 17:52 JST
+
+Technical contract commit6a7315c passes normal Commit conformance112/security24 and
+message checks. Production work then adds owned WindowDisplayIdentity/Display/
+Snapshot, closed transfer input/effect, two-rectangle geometry/plan and the existing
+window outcome's qualified transfer observation. WindowDisplaySnapshot privately
+owns its list and exposes only IReadOnlyList/enumerators, without ICollection.SyncRoot.
+The canonical planner alone admits PreviousDisplay/NextDisplay, checks consistent
+work areas, groups duplicate areas using the snapshot's identity order, cycles in
+left/top/width/height order and calls pure sizing. Both rectangles respect minimum
+and finite/narrowing/end-coordinate boundaries. No OS transfer or new key is wired yet.
+
+WindowAdjustmentRequest adds explicit transfer facts. Existing27calls are migrated
+to NotRequested, including the host's current ordinary route and tests; no compatibility
+overload is added. Planned decisions carry their exact new owner. ReportTransfer
+updates only that current owner when its prior outcome is a planned display action;
+ordinary/refused/stale/repeated reports cannot change it. CommanderSession forwards
+to that same owner. This new logic still needs its dedicated behavioral proof.
+
+Locked Release restore succeeds. application-build-01 fails5mandatory style findings
+(IDE0048two, IDE0305one, IDE0046two); failed source4files are archived before scoped
+style correction. application-build-02 compiles Application but fails one preexisting
+constructor null-guard fixture now missing the new owner argument. That fixture uses
+the existing reflection assertion for both missing plan/owner, and closed-case tests
+include the new actions/refusals/plan/outcome. application-build-03 succeeds with
+zero warnings/errors. The filtered existing WindowAdjustment Application suite then
+passes75/75with0skip at17:51:37. This proves existing compatibility only, not completed
+transfer behavior, adapter, keyboard, coverage or native acceptance.
+
+Exact commands:
+
+```powershell
+dotnet restore tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj --locked-mode --disable-parallel -p:Configuration=Release
+dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-restore
+dotnet format style src/NeNeCommander.Application/NeNeCommander.Application.csproj --no-restore --include <four exact archived files> --diagnostics IDE0046 IDE0305 IDE0048
+dotnet test --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build --no-restore --filter FullyQualifiedName~WindowAdjustment
+```
+
+The four formatter inputs are WindowTransferSizing.cs, WindowTransferPlanner.cs,
+WindowAdjustmentPlanner.cs and WindowDisplay.cs under Application/Windowing. Logs,
+ordinary-call-migration-01.json and failed-source archive preserve exact trials.
+Current implementation is uncommitted atop6a7315c; no whole-gate/product/feature
+acceptance is claimed. Next: dedicated model/order/sizing/receipt tests, pure apply
+qualification, mapper/resources/hints, guarded host application/stop and isolated
+actual-control proof. Do not rerun these75unchanged cases merely for a new phase.
+No external write, cleanup or new user approval occurred.
+
+## Implementation and focused proof - November24 18:20 JST
+
+Application adds pure WindowTransferQualification: CanStart compares complete source
+identity/topology/scale, exact bounds and declared minima; CanFinish requires the
+intended current target and unchanged minima, and HasObservedResult also requires
+exact final bounds. XAML scale is deliberately excluded. Shared area consistency
+lives in the owned snapshot. Available/receipt constructors now reject absent parts;
+receipt creation rejects ordinary actions. New model, permutation/duplicate cycle,
+scale/round/minimum/overflow, qualification and owner/session tests pass with the
+existing window cases:120passed/0failed/0skipped. application-window-coverage-01.xml
+reports branch-rate1 for every WindowAdjustment/Display/Transfer class. This is
+focused class proof, not whole-Application or a full-gate claim.
+
+Application build04 fails CA1062 on final-result null checks; the source is archived
+as qualification-build04.cs and explicit validation fixes it. Build05 fails redundant
+nongeneric enumeration cast plus3unused using directives; all4test sources are saved
+in application-build05-tests. The test now invokes the nongeneric enumerator directly.
+Build06 succeeds0warnings/errors, followed by application-transfer-tests-01/coverage.
+Complexity01 has exactly the existing5findings; no new Application finding. A later
+change adds closed input/effect case enumeration to the old model test and still
+needs that changed test compiled/executed.
+
+Presentation declares produced n, previous/next actions and2hint groups with p/n and
+Ctrl+Left/Right caps. The existing repeat guard retains accepted transfer presses
+across input-owner changes; ordinary repeats resume on the next initial event.
+Planned, four refusals, not-applied, uncertain and observed outcomes have distinct
+labels/tones.16resources are added consistently to each of3catalogs. Not-applied
+wording states cancellation before start without guessing a reason; handoff wording
+is aligned. KEYBOARD_MODEL reflects the same table. The old310-line keyboard test's
+exact binding declaration moves into WindowAdjustmentBindingTests before expansion.
+No new mapper/dispatch mechanism, input injection or UI execution is inferred.
+
+Presentation build01 succeeds; build02 fails CA1861 for2test arrays (source archived
+keyboard-build02.cs); named readonly arrays fix it and build03 succeeds. First scoped
+run71has69pass/2fail: old key-count48and oldcapindices are stale after n/fourbindings.
+The original test is saved keyboard-test01.cs; expected49keys/18bindings/11actions/
+8hintgroups plus transferred fixture are updated. Build04 succeeds0warnings/errors;
+second scoped run72/72passes0skip (presentation-transfer-tests-02), with window,
+translator/help/repeat filtering and coverage02. Wider shared keyboard boundaries
+and final coverage interpretation remain to be checked; no whole-Presentation claim.
+
+App adds guarded transfer-only SDK display reads (22621capability, no new import),
+qualified two-call apply and effect classification setUnconfirmed BEFOREentering
+first MoveAndResize, plus route receipt/reentrant geometry guard and narrow leave
+bridge. Stop invalidates route/view before FinishTracking. Initialapprestore succeeds.
+Appbuild01 fails IDE0046and missing SupportedOSPlatform declarations; adapter-build01
+is saved. Appbuild02 fixes OS attribute but a remaining simplifiable if fails; saved
+adapter-build02. Appbuild03 succeeds0warnings/errors. Changed-file whitespace and
+scopedIDE0046formatter attempts are logged; no dependency, gate or threshold changes.
+Conformance01passes112rules.
+
+Independent read-only review begins on current uncommitted implementation. Its first
+causal finding is that property-change callbacks can Stop during RenderOpen/Closed,
+after which later visibility/focus setters still ran. The prior source is saved as
+view-before-review01.cs. Rendering now checks stopping between text/automation updates,
+both visibility changes and focus/announcement, and between the two collapse setters.
+This correction still requires final build/complexity plus actual callback proof.
+No native trial, feature acceptance, publication, main merge, release or cleanup has
+occurred in this implementation segment. Allwork remains local/incomplete atop6a7315c.
+
+Exact scoped test commands are in application-transfer-tests-01/presentation-transfer-
+tests-01/02logs. The tests use dotnet test --project <layerTests> -c Release --no-build
+--no-restore --filter <WindowTransfer|WindowDisplay|WindowAdjustment for Application;
+WindowTransfer|WindowAdjustment|KeyboardInputTranslator|KeyboardHelp|Repeat for
+Presentation> -- --coverage --coverage-settings eng/coverage.settings
+--coverage-output-format cobertura --coverage-output <distinct evidence xml>.
+
+Independent review02 also identifies reentrant Leave/reopen during property callbacks:
+non-stopping alone cannot qualify an old render. The first corrected view is archived
+view-before-review02.cs. Open render now retains exact current AND rendered owner at
+each boundary; closed render requires the same closed current owner and no rendered
+replacement, so a reopened scope cannot be collapsed by its caller. The final
+review has this one required finding pending re-review/native proof; no other required
+pure/keyboard correction. The malformed n Markdown row from escaped script text was
+corrected using literal text; p/n/+ rows read back correctly. Additional shared-input
+boundary tests68pass/0fail/0skip (keyboard-boundaries-01), distinct from prior72cases.
+
+## Native product-route proof and causal rendering checks - November24 18:43 JST
+
+Product App build04 succeeds with0warnings/errors after exact current/rendered-owner
+render qualification. Independent read-only re-review03 finds no required correction;
+view SHA25659CAE469A9506F9E497A6455D24A7E7EA002084CA31069C7FC3A8C635969FE21.
+Complexity02 identified2new findings in the new presenter TEST's nested expectations.
+The prior test is archived; six explicit data cases replace nested conditionals.
+Complexity03 now has only4unchanged prior findings (2scope-owner parameter counts,
+help nesting and virtual-key translator41lines). The old310-line keyboard test is
+below its ceiling after moving the exact-table specification. No threshold changed.
+
+D output product-controls-01 copies172App inputs with matching hashes at copy. Only
+composition root/private settings/fake ports and project references differ;170remain
+exact, plus the added diagnostic partial files. The4Domain/Application/Infrastructure/
+Presentation DLLs match the product. All137XBF/PRI files match. The first displayed
+summary's equal counter used a literal-property comparison and printed0incorrectly;
+raw pairs correctly had0differences. view-baseline-restoration-01 corrects the count
+to137/137without rerunning product behavior. This diagnostic reuses the previous
+external fixture's compiler properties; product build04 remains the strict build.
+
+The new launcher creates NeNeCommander551Controls_20261124 without SWITCHDESKTOP
+rights and never sends global input. Its startup/runtime guard checks this is not
+the input desktop. Each attempt uses a fresh private settings file, fake30-row
+readers, a throwing file-operation port and a throwing Shell launcher. Native geometry
+and property callbacks run on the real owned window; calls are API/mapper driven,
+not physical keyboard or visible acceptance. Every run records normal-settings hash,
+mtime and length unchanged, input desktop Default unchanged, no timeout, and normal exit.
+
+Current successful en-US attempts:1standard56checks (8next/previous transfers across
+attached125/150/175% monitors, exact immediate bounds/typedObserved, focus/rows/selection
+and no transfer write, small500x400fit);2leave7;3nested8;4minimum6;5stop7;6view-stop-title3;
+7view-stop-sink3;8view-leave-title2;9view-reopen-collapse3. All corresponding JSON raw
+observations are retained. Native Changed callbacks really occurred inside transfer
+in2-5; minimum change yieldsUnconfirmed, exact incoming Escape leaves, nested geometry
+and value-equal staleLeave cannot replace owner, normal close stops further forward.
+No SDK-call-count claim is inferred from Changed event counts.
+
+Causal counterexamples: only diagnostic WindowAdjustmentView is replaced with saved
+view-before-review01 (not the product tree). Baseline build02 succeeds. Attempts10
+view-stop-title and11view-leave-title both exit2with the expected failed assertion:
+later view/focus mutation afterStop and stale reopening afterLeave. Their failure
+JSON/launcher receipts remain. Restore the current exact source, build03 succeeds;
+the restored managed App DLL A94B3961...970E4B equals the original passing diagnostic
+binary byte-for-byte. There is no reason to repeat unchanged passing scenarios.
+
+No publication/merge/release/cleanup or normal-settings write is claimed. Remaining:
+three-locale long/refusal text and minimum layout across attached scales; more actual
+visibility/collapse callbacks as needed, native p/n delivery if warranted, final
+source/resource/input reconciliation, changed formatting/conformance/record closure,
+and complete quality/state/handoff records. Physical Ctrl/IME/hold, unplug/reconnect,
+custom scale, speech and hide's screen acceptance remain environmental proof.
+
+## Responsive helper verification — November24 19:46 checkpoint
+
+The later focus fix moves the nonvisual ContentControl out of the scrolling body
+into the fixed footer Grid; the actual first focus and each page stop retain that
+sink. App scroll build06 and diagnostic build12 pass. English attempt18 at150%
+passes352checks, but exported top/bottom images expose text under the expanded
+native scrollbar. XAML reserves the SDK ScrollBarSize plus ScrollViewerScrollBarMargin
+in a separate column; product build07 and diagnostic13 pass. No new visual constant.
+
+Read-only review at19:27 identifies sole LayoutUpdated reset dependence and requests
+proof of intermediate body readability, not just the last row. Diagnostic build14
+adds identical-result owners and collection of full body TextBlocks observed at page
+stops. Attempt19 fails because the diagnostic includes the scrollbar's own glyphs;
+build15 narrows inspection to actual content/footer. English20passes373checks,
+including identical-result reset, with incidental layout; no causal claim about
+missing-notification independence is made. English21 at175% fails147checks into
+unconfirmed outcome: the h/j/k/l Move row straddles full-viewport page stops.
+
+WindowAdjustmentView now uses one qualified TryResetScroll from completed rendering,
+LayoutUpdated and page-action layout, checking exact current/rendered owner and
+nonstopping lifetime afterwards. Product08passes. Page step becomes half a viewport
+without a new geometry action. Product09 and diagnostic16pass0warnings/errors.
+English22 at175% passes683checks; images show clear text/bar separation. Independent
+read-only review at19:38has no required correction for that View hash84F54E2E...2376C7D.
+Final matrix/parity/physical/visual acceptance were not inferred by that review.
+
+Matrix01 English23/150% passes393checks, then English24/125% fails4checks because
+an unused zero-area native ScrollBar remains Visibility=Visible. That has no actual
+occluding area. Diagnostic17 corrects the overlap predicate; product unchanged.
+Matrix02 English26/125%passes373 and English25/150%passes393, then Japanese2/150%
+fails16checks: the final Restore row remains below the scrollable extent. Diagnostic18
+adds panel metrics; Japanese7reproduces. The panel is measured217.333328DIP wide and
+89.333336high but lays out an extra row. Diagnostic19 temporarily instruments only
+the copied KeyHintWrapPanel to record Measure/Arrange constraints and child desired
+sizes, so this copy is explicitly not source-parity-ready. Product panel unchanged.
+
+Changed-format04 fails only51ENDOFLINE diagnostics in WindowAdjustmentHelpScrollTests.
+Normalize that one file toCRLF; exact equality modulo line endings is recorded,
+format05passes. Reuse semantic test proof. Complexity05 exits1 with exactly the same
+4findings as04, including every field; View158logical lines. No clean-complexity
+claim or unrelated tests. Corrected stale keyboard fixture tests05passed2; the other
+58selected cases from04remain successful without changes. Record-closure01was already
+successful141abstractrecords/130closedroots and relevant model inputs are unchanged.
+
+All named-desktop launches retain normal settings/hash/mtime and input desktop;
+no SwitchDesktop or SendInput. Each raw launcher/result JSON/log/source trial stays
+preserved. Matrix01/02remain failed; no final three-locale completion is claimed.
+
+## Final responsive helper and source reconciliation — November24 20:00–20:57 JST
+
+The instrumented diagnostic identifies the actual Japanese clipping cause: the
+shared wrap panel measures the hint groups at one width and arranges them at a
+narrower width, adding a row beyond its desired height. The measured89.6667DIP
+versus arranged113.3333DIP example is retained. Only this helper's seven geometry
+hint groups now use standard StackPanel; the shared KeyHintWrapPanel is unchanged.
+Title/full outcome stay in the bounded body, generated Esc and paging hints plus
+the existing nonvisual focus sink stay in the fixed footer, and the SDK scrollbar
+gutter prevents text overlap. Half-viewport paging clamps within0..ScrollableHeight.
+No domain operation, second input route, fixed visual constant, timer or product
+retry is added. Owner reset/stop/leave qualification remains the single path in
+ADR0092 and the accepted engineering handoff.
+
+Independent read-only review at19:53 finds no required correction for the scoped
+StackPanel change and clamped page offset. The diagnostic's temporarily instrumented
+wrap panel is restored to exact product bytes before final parity. Product
+app-scroll-build-10 and diagnostic controls-scroll-build-23 succeed with0warnings/
+errors. controls-parity-summary-03 confirms170App source files,137XBF/PRI resources
+and4layer DLLs match; only private composition/project and diagnostic partials differ.
+
+Japanese9/10 retain failures where the observer assumed ChangeView completed after
+100ms; attempt9 still observed offset20.3333 after PageUp. Clamping is retained as
+an API-domain guard, but is not falsely credited with making asynchronous completion
+synchronous. Diagnostic23 awaits the observed target within a fixed20-observation
+bound, without reissuing the command. Japanese11 then passes623checks with at most
+one extra observation tick. The wrong-directory diagnostic build21 failsMSB1009
+and remains saved; corrected22 and final23 builds succeed. No product failure is
+hidden by these diagnostic corrections.
+
+Final matrix03 reuses Japanese11 and adds en27–30,ja12–14,zh2–5 on the four attached
+displays:150%,125%,150%,175%, each500x400physical at current system text scale.
+Each locale/display checks13outcomes plus an explicit same-text/new-owner update.
+All body TextBlocks become fully readable at overlapping page stops, every hint
+row is reachable, PageUp returns to0, Esc/pager remain inside the client, and focus,
+owner, pane data, settings and input desktop remain qualified. This totals156distinct
+locale/display/outcome cases plus12same-outcome updates and7556layout checks.
+Japanese15 and Chinese6 add the real owned-window transfer route,56checks each;
+final aggregate7668checks/0failures. The earlier English standard/stop/reentrant
+cases remain separately recorded and are not counted again in this aggregate.
+
+All owned launches exit normally and leave normal settings/hash/mtime and input
+desktop unchanged. Top/bottom PNGs are saved; final Japanese14/Chinese5 images show
+clear footer/last rows and no text under the scrollbar. These are isolated actual
+controls driven by API/mapper, not physical keyboard, IME, hold, Narrator, human
+screen acceptance, custom DPI, system text scaling, smaller client fit or display
+unplug/reconnect proof. Those environmental cases remain explicit limits.
+
+Exact final native commands (exit0):
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/monitor-transfer-20261124/run-product-controls-01.ps1 -Locale ja-JP -Attempt 11 -Scenario scroll-layout-0
+pwsh -NoProfile -File D:/NeNeCommander/evidence/monitor-transfer-20261124/run-scroll-matrix-03.ps1
+```
+
+The matrix script records its13additional exact locale/attempt/scenario calls;
+scroll-matrix-03-complete.json and all launcher/result receipts remain. The first
+aggregate serialized correct raw rows but OrderedDictionary projection produced
+null totals. The saved original is preserved as scroll-matrix-before-aggregate-
+correction.json; totals were recomputed from deserialized rows without rerunning
+any test. Final summary and every raw receipt hash reconcile.
+
+Final format05 passes after recorded CRLF-only normalization of the new scroll test;
+view-only format06 exits0 with the existing workspace-load warning preserved.
+Complexity06 exits1 with exactly4unchanged prior findings (all fields), no new
+finding, View159logical lines. Do not call this a clean complexity run. Conformance
+scroll02 passes112rules. The selected scroll tests retain58passes from04 and2corrected
+stale fixture passes from05; the failed04 remains evidence. Earlier Application120
+and3model cases, Presentation72 and68shared-boundary cases retain their recorded
+coverage/reuse scope; overlapping later selections are not summed as distinct tests.
+
+The final Presentation assembly adds two private sealed help-page cases after the
+first closure proof, so only the affected structural proof is refreshed:
+
+```powershell
+pwsh -NoProfile -File ./eng/verify-record-closure.ps1 -RepositoryRoot D:/NeNeCommander/worktrees/issue-551
+```
+
+record-closure-final-02 exits0 with141abstract records/130closed visible roots/0failures.
+No full gate, mutation, CI or successful unrelated behavior test is repeated.
+proof-inputs-02 freezes1268inputs; final-check02 and the20:55 pre-documentation check
+both match every hash. The change map retains15changed inputs since the earlier
+snapshot and4newly listed paths: one new test plus three unchanged tool/hook inputs
+that the older selection omitted. This is not a claim that those hooks changed.
+
+The release priority/pause interrupted documentation after the19:46 checkpoint;
+this section now preserves the remaining trials and final results. beta.4 was
+published separately from3909039 and contains none of this feature. Local save,
+physical/visible acceptance and a separately authorized feature publication remain
+the next steps; unfinished worktree/output and all raw evidence are retained.

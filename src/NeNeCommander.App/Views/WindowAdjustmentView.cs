@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
@@ -27,7 +29,11 @@ internal sealed class WindowAdjustmentView
     private readonly ContentControl _sink;
     private readonly TextBlock _title;
     private readonly TextBlock _outcome;
+    private readonly ScrollViewer _scroll;
+    private WindowAdjustmentOpen? _pendingScrollReset;
+    private WindowAdjustmentOpen? _resetIssuedFor;
     private WindowAdjustmentOpen? _rendered;
+    private bool _stopping;
 
     internal WindowAdjustmentView(
         Grid overlay,
@@ -46,7 +52,9 @@ internal sealed class WindowAdjustmentView
         _sink = Find<ContentControl>("WindowAdjustmentHelper");
         _title = Find<TextBlock>("WindowAdjustmentTitle");
         _outcome = Find<TextBlock>("WindowAdjustmentOutcome");
-        Find<ItemsControl>("WindowAdjustmentKeyHints").ItemsSource = WindowAdjustmentKeyHintPresenter.Present();
+        _scroll = Find<ScrollViewer>("WindowAdjustmentBody");
+        BindHints();
+        _scroll.LayoutUpdated += OnScrollLayoutUpdated;
         Find<Border>("WindowAdjustmentSurface").Tapped += OnSurfaceTapped;
         _overlay.Tapped += OnScrimTapped;
     }
@@ -57,6 +65,10 @@ internal sealed class WindowAdjustmentView
     /// </summary>
     internal void Render()
     {
+        if (_stopping)
+        {
+            return;
+        }
         if (_route.Current is WindowAdjustmentOpen open)
         {
             RenderOpen(open);
@@ -69,39 +81,67 @@ internal sealed class WindowAdjustmentView
     /// <param name="action">Mode action the key map produced.</param>
     internal void Forward(WindowAdjustmentKeyAction action)
     {
-        if (_rendered is not WindowAdjustmentOpen expected)
+        if (_stopping || _rendered is not WindowAdjustmentOpen expected)
         {
+            return;
+        }
+        if (action == WindowAdjustmentKeyAction.PreviousHelpPage || action == WindowAdjustmentKeyAction.NextHelpPage)
+        {
+            ScrollPage(expected, action);
             return;
         }
         if (action.WindowAction is WindowAdjustmentAction windowAction)
         {
             _route.Adjust(expected, windowAction);
         }
-        else
+        else if (action == WindowAdjustmentKeyAction.Leave)
         {
             _route.Leave(expected);
         }
         Render();
     }
 
+    /// <summary>Stops forwarding and rendering before close capture can reenter this view.</summary>
+    internal void Stop()
+    {
+        _stopping = true;
+        _rendered = null;
+        _pendingScrollReset = null;
+        _resetIssuedFor = null;
+        _scroll.LayoutUpdated -= OnScrollLayoutUpdated;
+        _route.Stop();
+    }
     private void RenderOpen(WindowAdjustmentOpen open)
     {
-        if (ReferenceEquals(open, _rendered))
+        if (_stopping || ReferenceEquals(open, _rendered) || !ReferenceEquals(open, _route.Current))
         {
             return;
         }
         bool opening = _rendered is null;
         _rendered = open;
-        WindowAdjustmentPresentation presentation = WindowAdjustmentPresenter.Present(open);
-        string title = _resources.GetString(presentation.TitleResourceKey);
-        string outcome = _resources.GetString(presentation.OutcomeResourceKey);
-        _title.Text = title;
-        _outcome.Text = outcome;
-        _outcome.Foreground = (Brush)Microsoft.UI.Xaml.Application.Current.Resources[presentation.OutcomeBrushResourceKey];
-        AutomationProperties.SetName(_sink, title);
-        AutomationProperties.SetHelpText(_sink, outcome);
+        _pendingScrollReset = null;
+        _resetIssuedFor = null;
+        RenderText(open, WindowAdjustmentPresenter.Present(open));
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
         _sink.Visibility = Visibility.Visible;
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
         _overlay.Visibility = Visibility.Visible;
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
+        _pendingScrollReset = open;
+        TryResetScroll();
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
         if (opening)
         {
             _ = _sink.Focus(FocusState.Programmatic);
@@ -110,25 +150,119 @@ internal sealed class WindowAdjustmentView
         FrameworkElementAutomationPeer.FromElement(_sink)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
     }
 
-    /// <summary>
-    /// Returns focus to the file list captured at entry before collapsing, because collapsing a
-    /// focused sink lets the framework focus the left address box and begin an address edit.
-    /// </summary>
+    private void RenderText(WindowAdjustmentOpen open, WindowAdjustmentPresentation presentation)
+    {
+        string title = _resources.GetString(presentation.TitleResourceKey);
+        string outcome = _resources.GetString(presentation.OutcomeResourceKey);
+        _title.Text = title;
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
+        _outcome.Text = outcome;
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
+        _outcome.Foreground = (Brush)Microsoft.UI.Xaml.Application.Current.Resources[presentation.OutcomeBrushResourceKey];
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
+        AutomationProperties.SetName(_sink, title);
+        if (!CanRenderOpen(open))
+        {
+            return;
+        }
+        AutomationProperties.SetHelpText(_sink, outcome);
+    }
+
+    private bool CanRenderOpen(WindowAdjustmentOpen open)
+    {
+        return !_stopping && ReferenceEquals(open, _rendered) && ReferenceEquals(open, _route.Current);
+    }
+
+    private bool CanRenderClosed(WindowAdjustmentState state)
+    {
+        return !_stopping && _rendered is null && ReferenceEquals(state, _route.Current);
+    }
+
+    /// <summary>Returns captured pane focus before collapse, unless a new owner or stop invalidates this render.</summary>
     private void RenderClosed(WindowAdjustmentState state)
     {
-        if (_rendered is null)
+        if (_stopping || _rendered is null || !ReferenceEquals(state, _route.Current))
         {
             return;
         }
         _rendered = null;
+        _pendingScrollReset = null;
+        _resetIssuedFor = null;
         if (state is WindowAdjustmentClosed { FileListFocusSide: PaneSide side })
         {
             _focusFileList(side);
         }
+        if (!CanRenderClosed(state))
+        {
+            return;
+        }
         _sink.Visibility = Visibility.Collapsed;
+        if (!CanRenderClosed(state))
+        {
+            return;
+        }
         _overlay.Visibility = Visibility.Collapsed;
     }
+    private void BindHints()
+    {
+        IReadOnlyList<WindowAdjustmentKeyHint> hints = WindowAdjustmentKeyHintPresenter.Present();
+        Find<ItemsControl>("WindowAdjustmentKeyHints").ItemsSource = hints.Where(hint =>
+            hint.Group != WindowAdjustmentHintGroup.Leave && hint.Group != WindowAdjustmentHintGroup.ScrollHelp).ToArray();
+        Find<ItemsControl>("WindowAdjustmentFooterHints").ItemsSource = hints.Where(hint =>
+            hint.Group == WindowAdjustmentHintGroup.Leave || hint.Group == WindowAdjustmentHintGroup.ScrollHelp).ToArray();
+    }
 
+    private void OnScrollLayoutUpdated(object? sender, object args)
+    {
+        _ = sender;
+        _ = args;
+        TryResetScroll();
+    }
+
+    private void TryResetScroll()
+    {
+        if (_pendingScrollReset is not WindowAdjustmentOpen expected || !CanRenderOpen(expected))
+        {
+            return;
+        }
+        if (!_scroll.IsLoaded || _scroll.ViewportHeight <= 0d)
+        {
+            return;
+        }
+        _pendingScrollReset = null;
+        _ = _scroll.ChangeView(null, 0d, null, true);
+        if (CanRenderOpen(expected))
+        {
+            _resetIssuedFor = expected;
+        }
+    }
+
+    private void ScrollPage(WindowAdjustmentOpen expected, WindowAdjustmentKeyAction action)
+    {
+        if (!CanRenderOpen(expected))
+        {
+            return;
+        }
+        _overlay.UpdateLayout();
+        TryResetScroll();
+        if (!CanRenderOpen(expected) || !ReferenceEquals(_resetIssuedFor, expected))
+        {
+            return;
+        }
+        double page = _scroll.ViewportHeight / 2d;
+        double delta = action == WindowAdjustmentKeyAction.PreviousHelpPage ? -page : page;
+        double offset = Math.Clamp(_scroll.VerticalOffset + delta, 0d, _scroll.ScrollableHeight);
+        _ = _scroll.ChangeView(null, offset, null, true);
+    }
     private void OnScrimTapped(object sender, TappedRoutedEventArgs args)
     {
         _ = sender;

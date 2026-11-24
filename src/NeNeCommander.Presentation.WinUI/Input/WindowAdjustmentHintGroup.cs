@@ -28,6 +28,15 @@ public abstract record WindowAdjustmentHintGroup
     /// <summary>Gets the hint that names leaving the mode.</summary>
     public static WindowAdjustmentHintGroup Leave { get; } = new LeaveGroup();
 
+    /// <summary>Gets the previous display action.</summary>
+    public static WindowAdjustmentHintGroup PreviousDisplay { get; } = new PreviousDisplayCase();
+
+    /// <summary>Gets the next display action.</summary>
+    public static WindowAdjustmentHintGroup NextDisplay { get; } = new NextDisplayCase();
+
+    /// <summary>Gets the hint that names paging through the mode's explanation.</summary>
+    public static WindowAdjustmentHintGroup ScrollHelp { get; } = new ScrollHelpCase();
+
     private WindowAdjustmentHintGroup()
     {
     }
@@ -87,5 +96,31 @@ public abstract record WindowAdjustmentHintGroup
         }
 
         public override string LabelResourceKey => "WindowAdjustmentHintLeave";
+    }
+    private sealed record PreviousDisplayCase : WindowAdjustmentHintGroup
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "WindowAdjustmentHintPreviousDisplay";
+    }
+
+    private sealed record NextDisplayCase : WindowAdjustmentHintGroup
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "WindowAdjustmentHintNextDisplay";
+    }
+
+    private sealed record ScrollHelpCase : WindowAdjustmentHintGroup
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "WindowAdjustmentHintScrollHelp";
     }
 }

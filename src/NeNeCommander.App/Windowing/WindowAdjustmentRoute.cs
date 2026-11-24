@@ -16,6 +16,9 @@ internal sealed class WindowAdjustmentRoute
     private readonly CommanderSession _session;
     private readonly AppWindowPlacementAdapter _adapter;
     private readonly Action<Exception> _defectObserver;
+    private WindowAdjustmentApplyReceipt? _receipt;
+    private bool _adjusting;
+    private bool _stopping;
 
     /// <summary>Initializes the route over the session, the window adapter, and the defect observer.</summary>
     /// <param name="session">Coordinator that decides every window action.</param>
@@ -42,17 +45,84 @@ internal sealed class WindowAdjustmentRoute
     /// <param name="action">Window action the key map produced.</param>
     internal void Adjust(WindowAdjustmentOpen expected, WindowAdjustmentAction action)
     {
-        WindowAdjustmentRequest request = WindowAdjustmentRequest.Create(expected, action, _adapter.Read());
+        ArgumentNullException.ThrowIfNull(expected);
+        ArgumentNullException.ThrowIfNull(action);
+        if (_adjusting || !IsCurrent(expected))
+        {
+            return;
+        }
+        _adjusting = true;
+        try
+        {
+            AdjustCurrent(expected, action);
+        }
+        finally
+        {
+            _receipt = null;
+            _adjusting = false;
+        }
+    }
+
+    private void AdjustCurrent(WindowAdjustmentOpen expected, WindowAdjustmentAction action)
+    {
+        WindowPlacement placement = _adapter.Read();
+        WindowTransferInput transfer = action.ChangesDisplay
+            ? _adapter.ReadTransfer(() => IsCurrent(expected))
+            : WindowTransferInput.NotRequested;
+        if (!IsCurrent(expected))
+        {
+            return;
+        }
+        WindowAdjustmentRequest request = WindowAdjustmentRequest.Create(expected, action, placement, transfer);
         if (_session.AdjustWindow(request) is WindowAdjustmentPlanned planned)
+        {
+            _receipt = new WindowAdjustmentApplyReceipt(expected, planned);
+            ApplyDecision(planned);
+        }
+    }
+
+    private void ApplyDecision(WindowAdjustmentPlanned planned)
+    {
+        if (planned.Plan is WindowTransferPlan transfer)
+        {
+            WindowTransferEffect effect = _adapter.ApplyTransfer(transfer, () => IsCurrent(planned.Owner), _defectObserver);
+            if (!_stopping)
+            {
+                _ = _session.ReportWindowTransfer(planned.Owner, effect);
+            }
+            return;
+        }
+        if (IsCurrent(planned.Owner))
         {
             Apply(planned.Plan);
         }
     }
 
+    /// <summary>Invalidates in-flight work before close tracking or any later render.</summary>
+    internal void Stop()
+    {
+        _stopping = true;
+        _receipt = null;
+    }
+
+    private bool IsCurrent(WindowAdjustmentOpen expected)
+    {
+        return !_stopping && ReferenceEquals(Current, expected);
+    }
     /// <summary>Leaves one qualified open mode; it reads no placement and cannot be refused.</summary>
     /// <param name="expected">Open state the host last rendered.</param>
     internal void Leave(WindowAdjustmentOpen expected)
     {
+        ArgumentNullException.ThrowIfNull(expected);
+        if (_stopping)
+        {
+            return;
+        }
+        if (_receipt is { Decision.Plan: WindowTransferPlan } receipt &&
+            ReferenceEquals(expected, receipt.Incoming) && IsCurrent(receipt.Decision.Owner))
+        {
+            expected = receipt.Decision.Owner;
+        }
         _ = _session.LeaveWindowAdjustment(expected);
     }
 

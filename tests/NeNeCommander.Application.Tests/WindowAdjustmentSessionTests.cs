@@ -70,7 +70,7 @@ public sealed class WindowAdjustmentSessionTests
         WindowPlacement placement = Placement(WindowPresenterState.Restored);
 
         WindowAdjustmentPlanned planned = Assert.IsInstanceOfType<WindowAdjustmentPlanned>(
-            session.Adjust(WindowAdjustmentRequest.Create(open, WindowAdjustmentAction.MoveRight, placement)));
+            session.Adjust(WindowAdjustmentRequest.Create(open, WindowAdjustmentAction.MoveRight, placement, WindowTransferInput.NotRequested)));
 
         WindowMovePlan move = Assert.IsInstanceOfType<WindowMovePlan>(planned.Plan);
         Assert.AreEqual(WindowBounds.Create(132, 100, 800, 600), move.Bounds);
@@ -93,7 +93,7 @@ public sealed class WindowAdjustmentSessionTests
             WindowAdjustmentRequest.Create(
                 open,
                 WindowAdjustmentAction.Restore,
-                Placement(WindowPresenterState.Restored))));
+                Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested)));
 
         Assert.AreSame(
             WindowAdjustmentRefusal.WindowIsRestored,
@@ -192,17 +192,18 @@ public sealed class WindowAdjustmentSessionTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Adjust(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => session.Leave(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowAdjustmentRequest.Create(null!, WindowAdjustmentAction.MoveLeft, placement));
+            () => WindowAdjustmentRequest.Create(null!, WindowAdjustmentAction.MoveLeft, placement, WindowTransferInput.NotRequested));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowAdjustmentRequest.Create(open, null!, placement));
+            () => WindowAdjustmentRequest.Create(open, null!, placement, WindowTransferInput.NotRequested));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowAdjustmentRequest.Create(open, WindowAdjustmentAction.MoveLeft, null!));
+            () => WindowAdjustmentRequest.Create(open, WindowAdjustmentAction.MoveLeft, null!, WindowTransferInput.NotRequested));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowAdjustmentOpen(null!, WindowAdjustmentOutcome.None));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowAdjustmentOpen(PaneSide.Left, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowActionPlanned(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowActionRefused(null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowAdjustmentPlanned(null!));
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(WindowAdjustmentPlanned), [null, open]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(WindowAdjustmentPlanned), [WindowAdjustmentPlan.Maximize, null]);
     }
 
     /// <summary>Proves a request keeps exactly the parts it qualifies.</summary>
@@ -216,7 +217,7 @@ public sealed class WindowAdjustmentSessionTests
         WindowAdjustmentRequest request = WindowAdjustmentRequest.Create(
             open,
             WindowAdjustmentAction.Shrink,
-            placement);
+            placement, WindowTransferInput.NotRequested);
 
         Assert.AreSame(request.ExpectedState, open);
         Assert.AreSame(WindowAdjustmentAction.Shrink, request.Action);
@@ -236,6 +237,6 @@ public sealed class WindowAdjustmentSessionTests
 
     private static WindowAdjustmentRequest Request(WindowAdjustmentOpen expected, WindowAdjustmentAction action)
     {
-        return WindowAdjustmentRequest.Create(expected, action, Placement(WindowPresenterState.Restored));
+        return WindowAdjustmentRequest.Create(expected, action, Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested);
     }
 }

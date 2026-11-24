@@ -33,6 +33,18 @@ public abstract record WindowAdjustmentRefusal
     /// <summary>Gets the refusal of every action while the placement could not be read.</summary>
     public static WindowAdjustmentRefusal PlacementUnavailable { get; } = new PlacementNotAvailable();
 
+    /// <summary>Gets refusal when no other distinct work area is available.</summary>
+    public static WindowAdjustmentRefusal NoOtherDisplay { get; } = new NoOtherDisplayCase();
+
+    /// <summary>Gets refusal when complete transfer display facts are unavailable.</summary>
+    public static WindowAdjustmentRefusal DisplayInformationUnavailable { get; } = new DisplayInformationUnavailableCase();
+
+    /// <summary>Gets refusal when transfer would act on a hidden window.</summary>
+    public static WindowAdjustmentRefusal WindowIsHidden { get; } = new WindowIsHiddenCase();
+
+    /// <summary>Gets refusal when both transfer rectangles cannot respect minimum and coordinate limits.</summary>
+    public static WindowAdjustmentRefusal TargetCannotFit { get; } = new TargetCannotFitCase();
+
     private WindowAdjustmentRefusal()
     {
     }
@@ -80,6 +92,34 @@ public abstract record WindowAdjustmentRefusal
         }
     }
     private sealed record PlacementNotAvailable : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record NoOtherDisplayCase : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record DisplayInformationUnavailableCase : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record WindowIsHiddenCase : WindowAdjustmentRefusal
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record TargetCannotFitCase : WindowAdjustmentRefusal
     {
         private protected override void RestrictDerivation()
         {

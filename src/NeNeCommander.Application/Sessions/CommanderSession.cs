@@ -237,6 +237,14 @@ public sealed class CommanderSession
         return _scopes.WindowAdjustment.Adjust(request);
     }
 
+    /// <summary>Records the effect of one qualified transfer through the existing window scope owner.</summary>
+    /// <param name="expected">Exact decided owner returned with the transfer plan.</param>
+    /// <param name="effect">Observation made by the sole window adapter.</param>
+    /// <returns>The current window-adjustment state; a stale receipt changes nothing.</returns>
+    public WindowAdjustmentState ReportWindowTransfer(WindowAdjustmentOpen expected, WindowTransferEffect effect)
+    {
+        return _scopes.WindowAdjustment.ReportTransfer(expected, effect);
+    }
     /// <summary>
     /// Leaves one qualified open window-adjustment mode and requests the one-time focus return. It
     /// reads no placement and cannot be refused, so the mode never traps the user.

@@ -389,6 +389,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     public async Task StopAsync()
     {
         _stopping = true;
+        _windowAdjustmentView.Stop();
         InputSurface.IsHitTestVisible = false;
         SavedWindowPlacement? placement = _placementAdapter.FinishTracking();
         try

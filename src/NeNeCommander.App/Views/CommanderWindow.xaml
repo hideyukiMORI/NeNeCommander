@@ -345,10 +345,13 @@
             </DataTemplate>
 
             <DataTemplate x:Key="WindowAdjustmentKeyHintTemplate">
-                <StackPanel
-                    Orientation="Horizontal"
-                    Spacing="{StaticResource SpacingKeyHintGap}"
+                <Grid
+                    ColumnSpacing="{StaticResource SpacingKeyHintGap}"
                     VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
                     <ItemsControl
                         IsTabStop="False"
                         ItemsSource="{Binding KeyLabelResourceKeys}"
@@ -379,13 +382,15 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <TextBlock
+                        Grid.Column="1"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding IntentLabelResourceKey}"
                         TextLineBounds="Tight"
+                        TextWrapping="Wrap"
                         VerticalAlignment="Center" />
-                </StackPanel>
+                </Grid>
             </DataTemplate>
 
             <DataTemplate
@@ -1808,66 +1813,104 @@
                 Margin="{StaticResource SpacingWindowOuter}"
                 Padding="{StaticResource SpacingOperationBar}"
                 VerticalAlignment="Top">
-                <StackPanel
+                <Grid
                     Padding="{StaticResource SpacingWindowOuter}"
-                    Spacing="{StaticResource SpacingOperationBarGap}">
-                    <Grid ColumnSpacing="{StaticResource SpacingOperationDetailGap}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel
-                            Orientation="Horizontal"
-                            Spacing="{StaticResource SpacingKeyHintGap}"
-                            VerticalAlignment="Center">
-                            <Grid>
-                                <ContentControl
-                                    x:Name="WindowAdjustmentHelper"
-                                    AutomationProperties.AutomationId="WindowAdjustmentHelper"
-                                    AutomationProperties.LiveSetting="Polite"
-                                    IsTabStop="True"
-                                    UseSystemFocusVisuals="False"
-                                    Visibility="Collapsed" />
-                                <Path
-                                    AutomationProperties.AccessibilityView="Raw"
-                                    Data="M2,3.5 L16,3.5 L16,14.5 L2,14.5 Z M2,6.5 L16,6.5"
-                                    Height="{StaticResource DensityOperationIconSize}"
-                                    Stroke="{StaticResource FocusRingBrush}"
-                                    StrokeLineJoin="Round"
-                                    StrokeThickness="{StaticResource DensityIconStrokeThickness}"
-                                    VerticalAlignment="Center"
-                                    Width="{StaticResource DensityOperationIconSize}" />
-                            </Grid>
-                            <TextBlock
-                                x:Name="WindowAdjustmentTitle"
-                                AutomationProperties.AccessibilityView="Raw"
-                                FontSize="{StaticResource TypographyBodySize}"
-                                FontWeight="Bold"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock
-                            x:Name="WindowAdjustmentOutcome"
-                            Grid.Column="1"
-                            AutomationProperties.AccessibilityView="Raw"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            TextWrapping="Wrap"
-                            VerticalAlignment="Center" />
-                    </Grid>
-                    <ItemsControl
-                        x:Name="WindowAdjustmentKeyHints"
-                        AutomationProperties.AccessibilityView="Raw"
+                    RowSpacing="{StaticResource SpacingOperationBarGap}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer
+                        x:Name="WindowAdjustmentBody"
+                        AllowFocusOnInteraction="False"
+                        AutomationProperties.AutomationId="WindowAdjustmentBody"
+                        BringIntoViewOnFocusChange="False"
+                        HorizontalScrollBarVisibility="Disabled"
+                        HorizontalScrollMode="Disabled"
                         IsTabStop="False"
-                        ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <views:KeyHintWrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-                </StackPanel>
+                        VerticalScrollBarVisibility="Auto"
+                        ZoomMode="Disabled">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                                <Grid ColumnSpacing="{StaticResource SpacingKeyHintGap}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid VerticalAlignment="Center">
+                                        <Path
+                                            AutomationProperties.AccessibilityView="Raw"
+                                            Data="M2,3.5 L16,3.5 L16,14.5 L2,14.5 Z M2,6.5 L16,6.5"
+                                            Height="{StaticResource DensityOperationIconSize}"
+                                            Stroke="{StaticResource FocusRingBrush}"
+                                            StrokeLineJoin="Round"
+                                            StrokeThickness="{StaticResource DensityIconStrokeThickness}"
+                                            VerticalAlignment="Center"
+                                            Width="{StaticResource DensityOperationIconSize}" />
+                                    </Grid>
+                                    <TextBlock
+                                        x:Name="WindowAdjustmentTitle"
+                                        Grid.Column="1"
+                                        AutomationProperties.AccessibilityView="Raw"
+                                        FontSize="{StaticResource TypographyBodySize}"
+                                        FontWeight="Bold"
+                                        Foreground="{StaticResource TextPrimaryBrush}"
+                                        TextWrapping="Wrap"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                                <TextBlock
+                                    x:Name="WindowAdjustmentOutcome"
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    TextWrapping="Wrap" />
+                                <ItemsControl
+                                    x:Name="WindowAdjustmentKeyHints"
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    IsTabStop="False"
+                                    ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="{StaticResource SpacingKeyHintGap}" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+                            <!-- Reserve the SDK template's full scrollbar lane, including its own margin. -->
+                            <Border
+                                Grid.Column="1"
+                                AutomationProperties.AccessibilityView="Raw"
+                                IsHitTestVisible="False"
+                                Margin="{ThemeResource ScrollViewerScrollBarMargin}"
+                                Width="{ThemeResource ScrollBarSize}" />
+                        </Grid>
+                    </ScrollViewer>
+                    <Grid Grid.Row="1">
+                        <ContentControl
+                            x:Name="WindowAdjustmentHelper"
+                            AutomationProperties.AutomationId="WindowAdjustmentHelper"
+                            AutomationProperties.LiveSetting="Polite"
+                            IsTabStop="True"
+                            UseSystemFocusVisuals="False"
+                            Visibility="Collapsed" />
+                        <ItemsControl
+                            x:Name="WindowAdjustmentFooterHints"
+                            AutomationProperties.AccessibilityView="Raw"
+                            IsTabStop="False"
+                            ItemTemplate="{StaticResource WindowAdjustmentKeyHintTemplate}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="{StaticResource SpacingKeyHintGap}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

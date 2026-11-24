@@ -1,5 +1,19 @@
 # モニター間移動 — 引き継ぎ
 
+最終更新: 2026-11-24 21:00 JST。Issue #551はローカル実装と対象検証まで完了。物理操作・画面受理・公開・main統合は未完。以下の古い調査時点は履歴として保持する。
+
+- 単一経路は既存WindowAdjustmentSession/Planner → WindowAdjustmentRoute → AppWindowPlacementAdapter。Applicationが純粋な画面順序・配置・資格条件を決め、Appだけが既存SDKで取得/適用する。新native import、provider経路、設定保存経路は追加していない。
+- Ctrl+Wのn/p・Ctrl+左右で隣の画面へ移動。exact owner、停止、途中leave、再入・最小サイズ変更と不確かな結果をtyped receiptで守る。ヘルプはこの面だけ縦7群＋スクロール本文、固定Esc/PgUp/PgDnとfocus sink。半ページ送り・上下限clamp・新ownerの先頭復帰を共通経路で扱う。
+- Application120＋3対象ケース、Presentation72＋68共有入力境界と後続scroll選択の記録を再利用。後続選択には重複があるので合計テスト数としない。App最終build10/診断23は警告・エラー0、112conformance、最終record閉包141/130/0fail。CS-013は既存4指摘と完全一致で成功扱いしない。
+- 最終3言語×4画面×13outcome＋同一文言の新owner12件で7556layout checks。日本語・中国語の実ウィンドウroute各56を加えて7668/0fail。500x400physical、125/150/150/175%、現在のtext scaleだけの証拠。
+- 170source・137XBF/PRI・4 DLL一致。1268入力を20:55に再照合し全一致。正常設定/hash/mtimeと入力desktopは全試行で不変。物理キー/IME/hold/speech/custom DPI/text scale/切断再接続/小さいclient/人間の画面受理は未確認。
+- 失敗試行は全保存。実欠陥はfull-viewportで行が跨ぐこと、共通wrap panelのmeasure/arrange幅差で日本語末尾行が届かないこと。誤判定はscrollbar自身/zero-area barの収集と100ms固定の完了待ち。後者は20回以内の観測だけに変更し要求再送なし。共有wrap panelは製品変更していない。
+
+作業コピーD:/NeNeCommander/worktrees/issue-551、証拠D:/NeNeCommander/evidence/monitor-transfer-20261124、診断出力D:/NeNeCommander/outputs/monitor-transfer-20261124を保持する。旧11月22日の証拠も残す。最新の[品質記録](../quality/2026-11-22-monitor-transfer-investigation.md)、[ADR0092](../adr/0092-display-transfer-through-window-adjustment.md)、[設計handoff](../design/2026-11-24-monitor-transfer-handoff.md)が技術判断の正本。
+
+次はこの実装と記録をlocal commitへ保存し、受理済みmainへの接続と対象外差分を確認する。画面試遊は用意してからhideの受理を得る。共有desktopへの入力/CUA、通常設定の置換は行わない。ソース公開の過去の拒否payloadを再送せず、新しい具体的feature payloadができてから承認範囲を照合する。beta.4は別の3909039から公開済みで、この機能は入っていない。
+
+## 過去の時系列記録
 Issue #551 / 2026-11-22。調査のみ完了。製品実装・技術ADR・デザイン・実画面受理は未完了。
 
 - worktree: `D:/NeNeCommander/worktrees/issue-551`

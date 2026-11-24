@@ -191,7 +191,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         WindowAdjustmentDecision staleAdjust = fixture.Session.AdjustWindow(WindowAdjustmentRequest.Create(
             first,
             WindowAdjustmentAction.Maximize,
-            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored)));
+            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested));
         WindowAdjustmentState staleLeave = fixture.Session.LeaveWindowAdjustment(first);
 
         Assert.AreSame(WindowAdjustmentDecision.NothingToApply, staleAdjust);
@@ -242,7 +242,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         WindowAdjustmentDecision adjusted = fixture.Session.AdjustWindow(WindowAdjustmentRequest.Create(
             old,
             WindowAdjustmentAction.MoveLeft,
-            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored)));
+            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested));
         WindowAdjustmentState left = fixture.Session.LeaveWindowAdjustment(old);
 
         Assert.AreSame(WindowAdjustmentDecision.NothingToApply, adjusted);
@@ -273,7 +273,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
                 WindowAdjustmentRequest.Create(
                     old,
                     action,
-                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored))));
+                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested)));
         }
         _ = fixture.Session.LeaveWindowAdjustment(old);
         CommanderSnapshot reopen = await fixture.HandleAsync(UserIntent.OpenWindowAdjustment);
@@ -311,7 +311,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
                 WindowAdjustmentRequest.Create(
                     fixture.CurrentOpen(),
                     action,
-                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored))));
+                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested)));
             CommanderWindowAdjustmentTestContext.AssertUnchanged(before, fixture.Session.Current);
         }
         WindowAdjustmentOpen beforeLeave = fixture.CurrentOpen();

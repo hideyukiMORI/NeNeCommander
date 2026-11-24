@@ -56,9 +56,9 @@ public sealed class WindowAdjustmentPlannerTests
         WindowPlacement placement = Restored(WindowBounds.Create(300, 200, 640, 480), 1.0, Desktop);
 
         WindowMovePlan left = Assert.IsInstanceOfType<WindowMovePlan>(
-            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveLeft));
+            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveLeft, WindowTransferInput.NotRequested));
         WindowMovePlan down = Assert.IsInstanceOfType<WindowMovePlan>(
-            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveDown));
+            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveDown, WindowTransferInput.NotRequested));
 
         Assert.AreEqual(WindowBounds.Create(268, 200, 640, 480), left.Bounds);
         Assert.AreEqual(WindowBounds.Create(300, 232, 640, 480), down.Bounds);
@@ -241,7 +241,7 @@ public sealed class WindowAdjustmentPlannerTests
         WindowPlacement placement = Restored(WindowBounds.Create(-50, 1000, 800, 600), 1.25, Desktop);
 
         WindowResizePlan plan = Assert.IsInstanceOfType<WindowResizePlan>(
-            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.Enlarge));
+            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.Enlarge, WindowTransferInput.NotRequested));
 
         Assert.AreEqual(WindowBounds.Create(-50, 1000, 840, 640), plan.Bounds);
     }
@@ -278,7 +278,7 @@ public sealed class WindowAdjustmentPlannerTests
         WindowPlacement placement = Restored(WindowBounds.Create(120, -40, 800, 600), 1.5, Desktop);
 
         WindowResizePlan plan = Assert.IsInstanceOfType<WindowResizePlan>(
-            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.Shrink));
+            WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.Shrink, WindowTransferInput.NotRequested));
 
         Assert.AreEqual(WindowBounds.Create(120, -40, 752, 552), plan.Bounds);
     }
@@ -343,7 +343,7 @@ public sealed class WindowAdjustmentPlannerTests
             AssertReason(WindowAdjustmentRefusal.PlacementUnavailable, Plan(WindowPresenterState.Unavailable, action));
             AssertReason(
                 WindowAdjustmentRefusal.PlacementUnavailable,
-                WindowAdjustmentPlanner.Plan(WindowPlacement.Unavailable, action));
+                WindowAdjustmentPlanner.Plan(WindowPlacement.Unavailable, action, WindowTransferInput.NotRequested));
         }
     }
 
@@ -369,8 +369,8 @@ public sealed class WindowAdjustmentPlannerTests
         WindowPlacement placement = Restored(WindowBounds.Create(0, 0, 100, 100), 1.0, Desktop);
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => WindowAdjustmentPlanner.Plan(null!, WindowAdjustmentAction.MoveLeft));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowAdjustmentPlanner.Plan(placement, null!));
+            () => WindowAdjustmentPlanner.Plan(null!, WindowAdjustmentAction.MoveLeft, WindowTransferInput.NotRequested));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowAdjustmentPlanner.Plan(placement, null!, WindowTransferInput.NotRequested));
     }
 
     internal static WindowPlacement Restored(
@@ -407,6 +407,8 @@ public sealed class WindowAdjustmentPlannerTests
             WindowAdjustmentAction.Shrink,
             WindowAdjustmentAction.Maximize,
             WindowAdjustmentAction.Restore,
+            WindowAdjustmentAction.PreviousDisplay,
+            WindowAdjustmentAction.NextDisplay,
         ];
     }
 
@@ -420,12 +422,14 @@ public sealed class WindowAdjustmentPlannerTests
             WindowAdjustmentAction.MoveRight,
             WindowAdjustmentAction.Enlarge,
             WindowAdjustmentAction.Shrink,
+            WindowAdjustmentAction.PreviousDisplay,
+            WindowAdjustmentAction.NextDisplay,
         ];
     }
 
     private static WindowAdjustmentPlan Plan(WindowPresenterState state, WindowAdjustmentAction action)
     {
-        return WindowAdjustmentPlanner.Plan(InState(state), action);
+        return WindowAdjustmentPlanner.Plan(InState(state), action, WindowTransferInput.NotRequested);
     }
 
     private static WindowPlacement Constrained(int width, int height, int minimumWidth, int minimumHeight)
@@ -444,7 +448,7 @@ public sealed class WindowAdjustmentPlannerTests
         int top)
     {
         WindowMovePlan plan = Assert.IsInstanceOfType<WindowMovePlan>(
-            WindowAdjustmentPlanner.Plan(placement, action));
+            WindowAdjustmentPlanner.Plan(placement, action, WindowTransferInput.NotRequested));
         Assert.AreEqual(
             WindowBounds.Create(left, top, placement.Bounds.Width, placement.Bounds.Height),
             plan.Bounds);
@@ -457,7 +461,7 @@ public sealed class WindowAdjustmentPlannerTests
         int height)
     {
         WindowResizePlan plan = Assert.IsInstanceOfType<WindowResizePlan>(
-            WindowAdjustmentPlanner.Plan(placement, action));
+            WindowAdjustmentPlanner.Plan(placement, action, WindowTransferInput.NotRequested));
         Assert.AreEqual(
             WindowBounds.Create(placement.Bounds.Left, placement.Bounds.Top, width, height),
             plan.Bounds);
@@ -468,7 +472,7 @@ public sealed class WindowAdjustmentPlannerTests
         WindowAdjustmentAction action,
         WindowAdjustmentRefusal expected)
     {
-        AssertReason(expected, WindowAdjustmentPlanner.Plan(placement, action));
+        AssertReason(expected, WindowAdjustmentPlanner.Plan(placement, action, WindowTransferInput.NotRequested));
     }
 
     private static void AssertReason(WindowAdjustmentRefusal expected, WindowAdjustmentPlan plan)

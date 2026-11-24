@@ -138,7 +138,7 @@ public sealed class KeyboardIntentMapper
     ]);
 
     /// <summary>
-    /// The dedicated table of the window-adjustment mode. Fourteen entries declare nine actions:
+    /// The dedicated table of the window-adjustment mode. Geometry, scope leave and help paging share one declaration:
     /// each arrow is an alias of the Vim direction beside it and <c>Ctrl+W</c> is an alias of
     /// <c>Escape</c>, so an alias declares no hint group and shows no cap (KBD-005).
     /// </summary>
@@ -153,12 +153,18 @@ public sealed class KeyboardIntentMapper
         new(KeyboardKey.Up, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, null),
         new(KeyboardKey.L, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, WindowAdjustmentHintGroup.Move),
         new(KeyboardKey.Right, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, null),
+        new(KeyboardKey.P, KeyboardModifier.None, WindowAdjustmentKeyAction.PreviousDisplay, WindowAdjustmentHintGroup.PreviousDisplay),
+        new(KeyboardKey.Left, KeyboardModifier.Control, WindowAdjustmentKeyAction.PreviousDisplay, WindowAdjustmentHintGroup.PreviousDisplay),
+        new(KeyboardKey.N, KeyboardModifier.None, WindowAdjustmentKeyAction.NextDisplay, WindowAdjustmentHintGroup.NextDisplay),
+        new(KeyboardKey.Right, KeyboardModifier.Control, WindowAdjustmentKeyAction.NextDisplay, WindowAdjustmentHintGroup.NextDisplay),
         new(KeyboardKey.Plus, KeyboardModifier.None, WindowAdjustmentKeyAction.Enlarge, WindowAdjustmentHintGroup.Enlarge),
         new(KeyboardKey.Minus, KeyboardModifier.None, WindowAdjustmentKeyAction.Shrink, WindowAdjustmentHintGroup.Shrink),
         new(KeyboardKey.M, KeyboardModifier.None, WindowAdjustmentKeyAction.Maximize, WindowAdjustmentHintGroup.Maximize),
         new(KeyboardKey.R, KeyboardModifier.None, WindowAdjustmentKeyAction.Restore, WindowAdjustmentHintGroup.Restore),
         new(KeyboardKey.Escape, KeyboardModifier.None, WindowAdjustmentKeyAction.Leave, WindowAdjustmentHintGroup.Leave),
         new(KeyboardKey.W, KeyboardModifier.Control, WindowAdjustmentKeyAction.Leave, null),
+        new(KeyboardKey.PageUp, KeyboardModifier.None, WindowAdjustmentKeyAction.PreviousHelpPage, WindowAdjustmentHintGroup.ScrollHelp),
+        new(KeyboardKey.PageDown, KeyboardModifier.None, WindowAdjustmentKeyAction.NextHelpPage, WindowAdjustmentHintGroup.ScrollHelp),
     ]);
 
     private readonly IClock _clock;
@@ -424,7 +430,9 @@ public sealed class KeyboardIntentMapper
         return repeatState == KeyRepeatState.Repeated &&
             (action == WindowAdjustmentKeyAction.Maximize ||
                 action == WindowAdjustmentKeyAction.Restore ||
-                action == WindowAdjustmentKeyAction.Leave);
+                action == WindowAdjustmentKeyAction.Leave ||
+                action == WindowAdjustmentKeyAction.PreviousDisplay ||
+                action == WindowAdjustmentKeyAction.NextDisplay);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)

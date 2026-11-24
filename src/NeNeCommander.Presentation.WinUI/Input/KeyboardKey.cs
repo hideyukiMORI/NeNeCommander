@@ -43,6 +43,9 @@ public abstract record KeyboardKey
     /// <summary>Gets the produced p key.</summary>
     public static KeyboardKey P { get; } = new PKey();
 
+    /// <summary>Gets the produced n key.</summary>
+    public static KeyboardKey N { get; } = new NKey();
+
     /// <summary>Gets the produced u key.</summary>
     public static KeyboardKey U { get; } = new UKey();
 
@@ -263,6 +266,14 @@ public abstract record KeyboardKey
         public override string LabelResourceKey => "KeyLabelP";
     }
 
+    private sealed record NKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelN";
+    }
     private sealed record UKey : KeyboardKey
     {
         private protected override void RestrictDerivation()

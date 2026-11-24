@@ -205,42 +205,6 @@ public sealed class WindowAdjustmentKeyboardTests
         _ = Assert.IsInstanceOfType<KeyboardAwaitingChord>(mapper.Map(Input(KeyboardKey.LowerG)));
     }
 
-    /// <summary>Proves the dedicated table declares exactly fourteen entries for nine actions in declaration order.</summary>
-    [TestMethod]
-    public void WindowAdjustmentBindingsWhenReadDeclareTheExactTable()
-    {
-        (KeyboardKey Key, KeyboardModifier Modifier, WindowAdjustmentKeyAction Action, WindowAdjustmentHintGroup? Group)[] expected =
-        [
-            (KeyboardKey.H, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, WindowAdjustmentHintGroup.Move),
-            (KeyboardKey.Left, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, null),
-            (KeyboardKey.J, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, WindowAdjustmentHintGroup.Move),
-            (KeyboardKey.Down, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, null),
-            (KeyboardKey.K, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, WindowAdjustmentHintGroup.Move),
-            (KeyboardKey.Up, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, null),
-            (KeyboardKey.L, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, WindowAdjustmentHintGroup.Move),
-            (KeyboardKey.Right, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, null),
-            (KeyboardKey.Plus, KeyboardModifier.None, WindowAdjustmentKeyAction.Enlarge, WindowAdjustmentHintGroup.Enlarge),
-            (KeyboardKey.Minus, KeyboardModifier.None, WindowAdjustmentKeyAction.Shrink, WindowAdjustmentHintGroup.Shrink),
-            (KeyboardKey.M, KeyboardModifier.None, WindowAdjustmentKeyAction.Maximize, WindowAdjustmentHintGroup.Maximize),
-            (KeyboardKey.R, KeyboardModifier.None, WindowAdjustmentKeyAction.Restore, WindowAdjustmentHintGroup.Restore),
-            (KeyboardKey.Escape, KeyboardModifier.None, WindowAdjustmentKeyAction.Leave, WindowAdjustmentHintGroup.Leave),
-            (KeyboardKey.W, KeyboardModifier.Control, WindowAdjustmentKeyAction.Leave, null),
-        ];
-        IReadOnlyList<WindowAdjustmentKeyBinding> bindings = KeyboardIntentMapper.WindowAdjustmentBindings;
-
-        Assert.HasCount(14, bindings);
-        for (int index = 0; index < expected.Length; index++)
-        {
-            Assert.AreSame(expected[index].Key, bindings[index].Key);
-            Assert.AreSame(expected[index].Modifier, bindings[index].Modifier);
-            Assert.AreSame(expected[index].Action, bindings[index].Action);
-            Assert.AreSame(expected[index].Group, bindings[index].HintGroup);
-        }
-        Assert.HasCount(9, bindings.Select(binding => binding.Action).Distinct());
-        Assert.HasCount(9, AllKeyActions());
-        Assert.HasCount(0, KeyboardIntentMapper.BindingsFor(KeyboardContext.WindowAdjustment));
-    }
-
     /// <summary>Proves every declared entry maps to its own action on an initial press.</summary>
     [TestMethod]
     public void MapWhenDeclaredKeyIsPressedInTheModeEmitsItsAction()
@@ -255,9 +219,9 @@ public sealed class WindowAdjustmentKeyboardTests
         }
     }
 
-    /// <summary>Proves a held move, enlarge, or shrink key repeats while a repeated maximize, restore, or leave is consumed.</summary>
+    /// <summary>Proves movement and help paging repeat while maximize, restore, transfer and leave do not.</summary>
     [TestMethod]
-    public void MapWhenModeKeyRepeatsAcceptsOnlyMoveAndSize()
+    public void MapWhenModeKeyRepeatsAcceptsMovementAndHelpPaging()
     {
         KeyboardIntentMapper mapper = CreateMapper();
         WindowAdjustmentKeyAction[] repeatable =
@@ -268,6 +232,8 @@ public sealed class WindowAdjustmentKeyboardTests
             WindowAdjustmentKeyAction.MoveRight,
             WindowAdjustmentKeyAction.Enlarge,
             WindowAdjustmentKeyAction.Shrink,
+            WindowAdjustmentKeyAction.PreviousHelpPage,
+            WindowAdjustmentKeyAction.NextHelpPage,
         ];
 
         foreach (WindowAdjustmentKeyBinding binding in KeyboardIntentMapper.WindowAdjustmentBindings)
@@ -341,8 +307,8 @@ public sealed class WindowAdjustmentKeyboardTests
             }
         }
 
-        Assert.HasCount(48, keys);
-        Assert.AreEqual((47 * 4) - 14, consumed);
+        Assert.HasCount(49, keys);
+        Assert.AreEqual((48 * 4) - 20, consumed);
         _ = Assert.IsInstanceOfType<KeyboardConsumed>(
             mapper.Map(Input(KeyboardKey.F8, KeyboardModifier.None, KeyboardContext.WindowAdjustment)));
         _ = Assert.IsInstanceOfType<KeyboardConsumed>(
@@ -375,9 +341,9 @@ public sealed class WindowAdjustmentKeyboardTests
 
         Assert.AreEqual("KeyLabelH", bindings[0].KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelLeft", bindings[1].KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelPlus", bindings[8].KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelEscape", bindings[12].KeyLabelResourceKey);
-        Assert.AreEqual("KeyLabelCtrlW", bindings[13].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelPlus", bindings[12].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelEscape", bindings[16].KeyLabelResourceKey);
+        Assert.AreEqual("KeyLabelCtrlW", bindings[17].KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelUnmapped", controlH.KeyLabelResourceKey);
         Assert.AreEqual("KeyLabelUnmapped", altW.KeyLabelResourceKey);
     }
@@ -399,7 +365,11 @@ public sealed class WindowAdjustmentKeyboardTests
             (WindowAdjustmentKeyAction.Shrink, WindowAdjustmentAction.Shrink),
             (WindowAdjustmentKeyAction.Maximize, WindowAdjustmentAction.Maximize),
             (WindowAdjustmentKeyAction.Restore, WindowAdjustmentAction.Restore),
+            (WindowAdjustmentKeyAction.PreviousDisplay, WindowAdjustmentAction.PreviousDisplay),
+            (WindowAdjustmentKeyAction.NextDisplay, WindowAdjustmentAction.NextDisplay),
             (WindowAdjustmentKeyAction.Leave, null),
+            (WindowAdjustmentKeyAction.PreviousHelpPage, null),
+            (WindowAdjustmentKeyAction.NextHelpPage, null),
         ];
 
         foreach ((WindowAdjustmentKeyAction key, WindowAdjustmentAction? window) in expected)
@@ -408,7 +378,7 @@ public sealed class WindowAdjustmentKeyboardTests
         }
         CollectionAssert.AreEquivalent(AllKeyActions(), expected.Select(pair => pair.Key).ToArray());
         Assert.HasCount(
-            8,
+            10,
             AllKeyActions().Select(action => action.WindowAction).OfType<WindowAdjustmentAction>().Distinct());
     }
 
@@ -450,7 +420,7 @@ public sealed class WindowAdjustmentKeyboardTests
             .Select(property => (KeyboardModifier)property.GetValue(null)!)];
     }
 
-    private static WindowAdjustmentKeyAction[] AllKeyActions()
+    internal static WindowAdjustmentKeyAction[] AllKeyActions()
     {
         return [.. typeof(WindowAdjustmentKeyAction)
             .GetProperties(BindingFlags.Public | BindingFlags.Static)

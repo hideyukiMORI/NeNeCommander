@@ -821,4 +821,21 @@
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>应用快捷键帮助</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>管理共用书签并选择位置</value></data>
   <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyLabelP" xml:space="preserve"><value>p</value></data>
+  <data name="KeyLabelN" xml:space="preserve"><value>n</value></data>
+  <data name="KeyLabelCtrlLeft" xml:space="preserve"><value>Ctrl+←</value></data>
+  <data name="KeyLabelCtrlRight" xml:space="preserve"><value>Ctrl+→</value></data>
+  <data name="WindowAdjustmentHintPreviousDisplay" xml:space="preserve"><value>上一个显示器</value></data>
+  <data name="WindowAdjustmentHintNextDisplay" xml:space="preserve"><value>下一个显示器</value></data>
+  <data name="WindowAdjustmentPlannedPreviousDisplay" xml:space="preserve"><value>移到上一个显示器</value></data>
+  <data name="WindowAdjustmentPlannedNextDisplay" xml:space="preserve"><value>移到下一个显示器</value></data>
+  <data name="WindowAdjustmentMovedPreviousDisplay" xml:space="preserve"><value>已移到上一个显示器。</value></data>
+  <data name="WindowAdjustmentMovedNextDisplay" xml:space="preserve"><value>已移到下一个显示器。</value></data>
+  <data name="WindowAdjustmentRefusedNoOtherDisplay" xml:space="preserve"><value>没有其他可用显示器。</value></data>
+  <data name="WindowAdjustmentRefusedDisplayInformation" xml:space="preserve"><value>无法获取显示器信息。</value></data>
+  <data name="WindowAdjustmentRefusedHidden" xml:space="preserve"><value>请先显示窗口再移动。</value></data>
+  <data name="WindowAdjustmentRefusedTargetCannotFit" xml:space="preserve"><value>目标显示区域无法容纳窗口的最小尺寸。</value></data>
+  <data name="WindowAdjustmentTransferNotApplied" xml:space="preserve"><value>显示器间的移动在开始前已取消。</value></data>
+  <data name="WindowAdjustmentTransferUnconfirmed" xml:space="preserve"><value>无法确认显示器间的移动。请检查窗口位置。</value></data>
+  <data name="WindowAdjustmentHintScrollHelp" xml:space="preserve"><value>说明</value></data>
 </root>

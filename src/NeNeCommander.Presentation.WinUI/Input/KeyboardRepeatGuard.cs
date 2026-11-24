@@ -28,6 +28,7 @@ internal sealed class KeyboardRepeatGuard
             MappedCommandPaletteAction palette => palette.Action == CommandPaletteKeyAction.Execute ||
                 palette.Action == CommandPaletteKeyAction.Cancel,
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
+            MappedWindowAdjustmentAction window => window.Action.WindowAction is { ChangesDisplay: true },
             KeyboardPassThrough => input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter,
             _ => false
         };
