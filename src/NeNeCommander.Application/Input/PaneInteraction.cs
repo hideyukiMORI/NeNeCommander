@@ -34,12 +34,12 @@ public abstract record PaneInteraction : UserIntent
     {
         get
         {
-            return this switch
+            if (this is PaneRowInteraction row)
             {
-                PaneRowInteraction row when row.Action == PaneEntryAction.Open => UserIntent.OpenFocused,
-                PaneSurfaceInteraction surface when surface.Action == PaneSurfaceAction.NavigateParent => UserIntent.NavigateParent,
-                _ => null,
-            };
+                return row.Action == PaneEntryAction.Open ? UserIntent.OpenFocused : null;
+            }
+            PaneSurfaceInteraction surface = (PaneSurfaceInteraction)this;
+            return surface.Action == PaneSurfaceAction.NavigateParent ? UserIntent.NavigateParent : null;
         }
     }
 

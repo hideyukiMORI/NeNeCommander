@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,8 +38,11 @@ public sealed class PanePointerBoundaryTests
     {
         DirectoryListing listing = Listing();
         ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         TaskCompletionSource<DirectoryReadOutcome> pending = port.EnqueuePending();
         PaneSession session = PaneSessionTestContext.CreateSession(port);
+        PaneSnapshot ready = await session.NavigateAsync(listing.Location, CancellationToken.None);
+        Assert.IsTrue(ready.CanNavigateParent);
         Task<PaneSnapshot> read = session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot before = session.Current;
 
@@ -46,9 +50,13 @@ public sealed class PanePointerBoundaryTests
             PaneSide.Left, before, PaneSurfaceAction.Activate), CancellationToken.None);
 
         Assert.AreSame(before, after);
-        Assert.HasCount(1, port.Requests);
+        Assert.AreSame(ready.Content, before.Content);
+        Assert.HasCount(2, port.Requests);
+        Assert.IsFalse(before.CanNavigateParent);
         pending.SetResult(DirectoryReadOutcome.Cancelled());
-        _ = await read;
+        PaneSnapshot completed = await read;
+        Assert.AreSame(ready.Content, completed.Content);
+        Assert.IsTrue(completed.CanNavigateParent);
     }
 
     /// <summary>Proves direct pane input cannot bypass the launch owner through a current snapshot.</summary>
@@ -70,8 +78,9 @@ public sealed class PanePointerBoundaryTests
 
         Assert.AreSame(before, after);
         Assert.HasCount(1, launcher.Targets);
+        Assert.IsFalse(before.CanNavigateParent);
         pending.SetResult(FileLaunchOutcome.Accepted());
-        _ = await launch;
+        Assert.IsTrue((await launch).CanNavigateParent);
     }
 
     /// <summary>Proves the reducer repairs an absent intermediate focus with the qualified range target.</summary>
@@ -109,6 +118,40 @@ public sealed class PanePointerBoundaryTests
 
         Assert.IsEmpty(state.Selection);
         Assert.IsNull(state.SelectionAnchor);
+    }
+
+    /// <summary>Supplies the surfaces that must never start a navigation or Shell handoff.</summary>
+    public static IEnumerable<object[]> PassiveSurfaces()
+    {
+        return [[PaneSurfaceAction.Activate], [PaneSurfaceAction.ClearSelection], [PaneSurfaceAction.OpenContextMenu]];
+    }
+
+    /// <summary>Proves a qualified passive surface cannot acquire the parent-navigation behavior.</summary>
+    [TestMethod]
+    [DynamicData(nameof(PassiveSurfaces))]
+    public async Task HandleAsyncWhenSurfaceIsPassiveDoesNotNavigateOrLaunchAsync(PaneSurfaceAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        DirectoryListing listing = Listing();
+        ScriptedDirectoryReadPort port = ScriptedDirectoryReadPort.Create();
+        port.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
+        ScriptedFileLauncher launcher = new();
+        PaneSession session = PaneSessionTestContext.CreateSession(port, launcher);
+        PaneSnapshot before = await session.NavigateAsync(listing.Location, CancellationToken.None);
+
+        PaneSnapshot after = await session.HandleAsync(UserIntent.InteractWithPaneSurface(
+            PaneSide.Left, before, action), CancellationToken.None);
+
+        Assert.AreNotSame(before, after);
+        PaneContentListed content = Assert.IsInstanceOfType<PaneContentListed>(after.Content);
+        PaneContentListed previous = Assert.IsInstanceOfType<PaneContentListed>(before.Content);
+        Assert.AreSame(listing, content.Listing);
+        Assert.AreSame(previous.State.FocusItem, content.State.FocusItem);
+        Assert.AreSame(previous.State.NavigationHistory, content.State.NavigationHistory);
+        Assert.AreSame(before.Activity, after.Activity);
+        Assert.IsTrue(after.CanNavigateParent);
+        Assert.HasCount(1, port.Requests);
+        Assert.IsEmpty(launcher.Targets);
     }
 
     private static DirectoryListing Listing()
