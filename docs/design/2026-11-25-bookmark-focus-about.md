@@ -1,6 +1,6 @@
 # Bookmark focus and About handoff — Issue #581
 
-Status: accepted direction; implemented with selected technical proof
+Status: accepted direction; paused with residual heading-accent motion unresolved
 
 Date: 2026-11-25 (request and design acceptance: November 24 JST).
 
@@ -30,13 +30,17 @@ controls. Its high-contrast image is a mock, not an OS contrast-theme observatio
 - Keep the category/list hierarchy, search and canonical bookmark key map.
 - The focused region's heading uses existing `FocusRingBrush` and
   `FocusSurfaceBrush`; inactive headings use `SurfacePaneBrush`.
-- Reserve the heading's left 3 DIP and bottom 2 DIP from the start through
+- Reserve the heading's left 2 DIP and bottom 1 DIP from the start through
   `BorderBookmarkRegionHeaderThickness`. Focus changes paint only; they do not
-  change padding, margins, widths, heights or transforms.
+  change padding, margins, widths, heights or transforms. The fixed heading
+  padding is 4 DIP above and below through SpacingBookmarkRegionHeader.
 - Keep the existing active/passive selected-row marks. Suppress the lists' and
   bookmark containers' large system focus outline and item-container transitions.
   Empty lists remain clearly identified by their heading; search retains its
-  native caret/focus treatment and both headings become inactive.
+  native caret/focus treatment and both headings become inactive. Its existing
+  focused template resolves TextControlBorderBrushFocused to the same live
+  FocusRingBrush and TextControlBorderThemeThicknessFocused to the existing
+  1 DIP BorderNameEntryThickness, scoped to BookmarkSearch only.
 - All key hints remain available and wrap naturally. Unlike the canvas's clipped
   demonstration band, implementation must preserve the November 19 wrapping
   contract. Reserve the maximum extent of the category/list/search hints using
@@ -57,3 +61,21 @@ Bookmark state, settings, navigation/deletion, focus restoration and the Help
 entry/close route remain owned by their existing mechanisms. This is an App
 adapter change, not a new Application/provider contract. The quality record
 separates automated control proof from physical input and human acceptance.
+## November25 visual correction
+
+hide's01:02:59 screenshot rejects the earlier cramped heading and thick horizontal
+rule, and reports no accent while search is focused. The B direction remains
+accepted; this is a requested refinement. The initial2DIP underline and zero
+vertical padding are replaced by the values above. Search retains the SDK native
+TextBox template, input/caret/IME/selection and focus transitions. Only its two
+focused-state resource aliases are scoped; no parallel focus listener, border
+wrapper or input route is introduced. The pinned WinUI generic.xaml declares
+both native template keys and consumes them in its Focused state. Rendered
+padding, focus state and invariant geometry are verified separately below.
+
+At the closing instruction hide confirms stable outer geometry but reports
+residual heading-accent jitter. The required focus treatment has no movement or
+animation during region changes. Cause and correction are deferred until hide
+resumes; geometry proof does not establish paint/compositor stability. Preserve
+this unresolved requirement alongside the technically verified padding/search
+correction; do not call the whole visual behavior accepted.

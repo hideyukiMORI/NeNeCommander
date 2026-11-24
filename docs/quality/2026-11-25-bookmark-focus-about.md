@@ -1,6 +1,6 @@
 # Bookmark focus and About — Issue #581
 
-Status: selected technical proof accepted; interactive03 launched; human acceptance pending
+Status: paused by hide; outer-frame movement accepted, heading-accent motion unresolved
 
 Request/design: November 24, 2026 JST. Implementation: November 25.
 Branch `fix/581-bookmark-focus-about`, worktree
@@ -168,6 +168,69 @@ at00:40:24 JST: PID13280, responsive title
 `NeNe Commander / UI trial #581 - bookmark focus and About`. No input is sent;
 no other app is terminated; ordinary settings hashes remain equal. Receipts and
 parity are in D:/NeNeCommander/evidence/ui-trial-20261124. This confirms delivery,
-not physical interaction or hide's acceptance. That optional question is pending.
+not physical interaction or hide's acceptance. That earlier optional question was answered by the visual feedback and stop instruction recorded below.
 The live trial and unfinished feature/release copies remain; no cleanup is due
 before integration and permanent artifact preservation.
+
+## November25 visual feedback, bounded correction and stop
+
+hide supplies the01:02:59 screenshot: the horizontal heading rule is too thick,
+text has insufficient padding, and focused bookmark search lacks an accent.
+Only DesignTokens.xaml and CommanderWindow.xaml change. Heading thickness becomes
+left2/bottom1 DIP; fixed top/bottom padding is4 DIP. The native TextBox's focused
+border resource aliases resolve to existing FocusRingBrush and 1 DIP
+BorderNameEntryThickness, scoped to BookmarkSearch. No C# body, dependency,
+command, focus listener, editor template or input route changes.
+
+`dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore`
+succeeds:0warnings/errors, polish-product-build-01.json/log. One subsequent XAML
+indentation correction has no executable effect. The separate accepted-controls-02
+observer builds successfully after locked restore; final build03 compiles the
+exact final XAML. Its disabled diagnostic analyzers do not replace the normal
+product build. Earlier C# format/complexity/behavior proof remains reusable;
+no C# input changes and no broad product suite, full gate or release CI is run.
+
+Native12 fails the observer's assumption that TextBlock.ActualHeight equals
+DesiredSize. Native13 adds a capture and detailed geometry before that assertion:
+the glyph extent is14.630859375 DIP and pixel-rounded DesiredSize is15.199999809 DIP
+at1.25scale. The heading is24 DIP with4 DIP padding; the rendered label is intact.
+Both failed receipts are retained. The observer is corrected to verify that the
+full desired label rectangle fits above the fixed bottom padding and actual
+pixel-rounded stroke. It also independently checks space above/below the glyphs;
+no production change or gate threshold reduction is made for this observer error.
+
+The exact final command is:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/bookmark-focus-20261124/run-accepted-controls-02.ps1 -Locale ja-JP -Attempt 14 -Scenario focus-polish
+```
+
+Native14 passes216 focused assertions,168 geometry samples,2widths (820/580 DIP),
+7focus phases and10render images. The search template uses the identical accent
+brush only in actual Keyboard/Pointer focus states, returning to its native
+unfocused brush after leaving. Body, hint band, search box and both headings
+retain geometry. Header glyph padding and full desired extents fit. The wide
+keyboard-search and narrow-category images are visually reviewed. Pointer focus
+is a native FocusState.Pointer call in the owned desktop, not physical mouse
+input. Normal settings and input desktop are unchanged; exit0.
+
+polish-final-source-parity-01.json freezes182App inputs,180exact diagnostic copies,
+2declared project/composition substitutions,4matching dependency DLLs and3fixture
+hashes. The supplied screenshot is preserved in the evidence directory with its
+hash. Source changes and these records are saved locally with the normal commit
+hooks. No extra independent review is added for these two bounded XAML changes.
+
+At approximately01:15 hide reports that the outer frame no longer shakes, but
+the heading's focus-accent region still jitters. hide wants no animation during
+focus movement and explicitly stops work until a later session. This is a real
+unresolved visual report: stable control rectangles and sparse rendered images
+do not prove compositor/paint stability. Do not label the remaining accent-motion
+problem fixed. The last visible version was interactive03 from4a15cd9; the later
+padding/search correction exists only in source and the diagnostic copy.
+Interactive04 was not created, built or launched before the stop.
+
+After stopping, only source/evidence preservation and daily-report/handoff work
+continue. No new rendering investigation, tests, CI, source publication, PR/main
+integration, version/tag/release or cleanup starts. At01:15 the process inventory
+shows no NeNeCommander.App process; no user trial or ordinary app was terminated
+by this closing step. Preserve all unfinished copies and settings regardless.

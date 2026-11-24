@@ -1252,7 +1252,12 @@
                                 Grid.Column="2"
                                 AutomationProperties.AutomationId="BookmarkSearch"
                                 VerticalAlignment="Center"
-                                Width="{StaticResource DensityBookmarkSearchWidth}" />
+                                Width="{StaticResource DensityBookmarkSearchWidth}">
+                                <TextBox.Resources>
+                                    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="FocusRingBrush" />
+                                    <StaticResource x:Key="TextControlBorderThemeThicknessFocused" ResourceKey="BorderNameEntryThickness" />
+                                </TextBox.Resources>
+                            </TextBox>
                         </Grid>
                     </Border>
                     <StackPanel
@@ -1292,7 +1297,8 @@
                                 </Grid.RowDefinitions>
                                 <Border
                                     x:Name="BookmarkCategoryHeading"
-                                    BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}">
+                                    BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}"
+                                    Padding="{StaticResource SpacingBookmarkRegionHeader}">
                                     <TextBlock
                                         views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryActionsHeader.Text"
                                         FontSize="{StaticResource TypographyKindLabelSize}"
@@ -1324,7 +1330,8 @@
                             </Grid.RowDefinitions>
                             <Border
                                 x:Name="BookmarkRowHeading"
-                                BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}">
+                                BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}"
+                                Padding="{StaticResource SpacingBookmarkRegionHeader}">
                                 <Grid
                                     AutomationProperties.AccessibilityView="Raw"
                                     ColumnSpacing="{StaticResource SpacingRowGap}"

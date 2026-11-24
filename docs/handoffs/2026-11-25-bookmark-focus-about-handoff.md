@@ -1,64 +1,96 @@
-# 2026-11-25 Bookmark focus and About handoff — Issue #581
+# 2026-11-25 引き継ぎ — ブックマークのアクセント揺れから再開
 
-Checkpoint: 00:41 JST. Selected technical proof accepted; interactive03 launched.
-Branch fix/581-bookmark-focus-about in D:/NeNeCommander/worktrees/issue-581,
-Product commit4a15cd9, base8d1c247. hide accepted B heading band and About at the end of existing Help.
-Do not ask again. Source remains local, with no feature push/PR/main integration.
+最終更新: 2026-11-25 01:19 JST。hideの明示指示で停止中。自動継続しない。
+[終了日報](../reports/2026-11-25-bookmark-focus-daily-report.md)と
+[品質記録](../quality/2026-11-25-bookmark-focus-about.md)が今回の終了正本。
+過去の「継続中」「承認待ち」「実行中」はその時点の履歴として読む。
 
-See ../design/2026-11-25-bookmark-focus-about.md and
-../quality/2026-11-25-bookmark-focus-about.md for canonical decisions and proof.
-Evidence: D:/NeNeCommander/evidence/bookmark-focus-20261124.
-Owned copies: D:/NeNeCommander/outputs/bookmark-focus-20261124.
-Canvas: design-consult/bookmark-focus-about.html under that output root.
-No cloud Canvas/share URL exists. No shared input, CUA/blue-frame operations or
-ordinary settings changes are authorized. Non-input desktop observers never
-call SendInput or SwitchDesktop. Preserve all live and unfinished copies.
+## 最新のhide指示
 
-## Implemented and verified
+- B案の見出し帯と、既存ヘルプ末尾のAboutは採用済み。再承認を求めない。
+- 01:02:59画像で、見出し線の太さ・文字余白不足・検索欄のフォーカス色不足を指摘。
+- 最終報告では外枠の上下移動は解消。一方、ヘッダーのアクセント色部分はまだ震える。
+  フォーカス移動時のアニメーションは不要で、全く震えない動きが希望。
+- アクセントの修正は明日以降。区切りで止めて日報と引き継ぎを書く。
 
-Fixed-size heading border paints existing closed PaneRowMark brushes. Existing
-bookmark focus and commands remain canonical. Inert loaded copies of one hint
-content template reserve maximum wrapped extent, accept no input and expose no
-accessible children; the one interactive band remains the command entry. Drafts
-collapse the entire band. About sits inside existing Help scrolling and reads
-executable metadata (currently beta.4), copyright and fixed selectable GitHub URL.
-No URL launcher, dependency or non-App production source change.
+## 現在の正本と試遊版の違い
 
-Baseline3 proved 8 DIP body/footer movement from wrapping, with constant modal
-geometry and border thickness. It does not prove a physical spring trajectory.
-Rejected detached-measure prototype4 and all build/observer/policy failures are
-retained. Final product-build03 and diagnostic-build04 pass0 warnings/errors.
-Native6/7/8/9 each pass107checks across3locales,2widths and empty/populated lists.
-Native10 passes64 draft/live-language checks; native11 final mapping passes107.
-Ordinary settings/input desktop are unchanged. Final182App parity is180exact
-plus2declared project/composition substitutions;4DLLs match and3fixtures frozen
-in final-source-parity-01.json. Whitespace03 and Commit-check02 pass. Complexity02
-retains exactly the3baseline findings. Read-only final independent review has no
-required correction. All previously running tool sessions completed; none need
-polling or duplication. The quality record contains exact commands and limits.
+作業先: D:/NeNeCommander/worktrees/issue-581
+branch: fix/581-bookmark-focus-about
+元の実装4a15cd9、試遊版03記録e52ad72。その後の2XAML修正を今回の終了commitで保存。
+この文書と同じcommitが停止時の最新。main Cはclean ccb303bのまま。
 
-## Next and retained work
+- 試遊版03は4a15cd9から作成した最後の可視版。About、見出し帯、折返し高さ確保を含む。
+  D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03。
+- ソースとaccepted-controls-02には、見出し線left2/bottom1 DIP・上下4 DIP余白と
+  検索欄のfocused resource aliasが入っている。03へは反映していない。
+- 試遊版04は作成・build・launchの全て未実施。止めた後に始めない。
+- 03は00:40にPID13280で起動したが、01:15inventoryにはApp自体がなかった。
+  サナは通常Appも試遊版も終了していない。古いPIDを再利用せず実パスから確認する。
+- Aboutのbeta.4表記は現行executable metadataどおり。beta.5のVersion変更は#580の工程。
+  著作権表記はAuthenticode署名を意味しない。
 
-Interactive03 at D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03
-is built from4a15cd9 with normal analyzers,0warnings/errors,182/180App parity,
-4matching actual reference-project DLLs and476verified payload files. A first
-comparison against cached precommit App dependencies was refused; the receipt
-records changed generated commit metadata and no dependency-source change.
-The full manifest and non-input startup pass. Normal settings/input desktop are
-unchanged. Trial03 is visibly launched at00:40:24, PID13280, title
-NeNe Commander / UI trial #581 - bookmark focus and About. No shared input or
-other-app termination was performed. An optional human-acceptance question is
-pending; do not infer a yes from time or launch success. Preserve this live copy.
-No active build/observer process remains. Do not repeat unchanged proof.
+## 確認済みの範囲と再実行しないもの
 
-MainC remains clean ccb303b. Published beta.4 tag/package3909039 is unchanged and
-its cleanup is complete. Release Issue580/worktreeissue-580 remains8d1c247;
-reconcile final581 before final release integration. Source publication/PR/main
-integration and beta.5 publication remain separate concrete payload actions.
-Actual OS contrast, other scales and physical input are not proven by the1.25
-scale observer. About reads realbeta.4metadata until release580 changes Version.
+元実装: native6/7/8/9各107checks、native10 draft/live-language64、native11最終mapping107。
+3言語、2幅、空/登録済み、既存hint Invoke、About/Help復帰の証拠。4a15の通常build成功。
+独立レビューはe52以前の実装まで必須修正なし。最後の2XAMLに追加委任はしていない。
 
-Prior interactive02 was no longer present in the00:40 process inventory; this
-session did not terminate it. The ordinary installed beta.4 PID45052 remains.
-Recheck exact path/process identity before any later process action. All
-unfinished feature copies/evidence remain. No completed-work cleanup is pending.
+最後の調整: polish-product-build-01は0warnings/errors。C#・依存は不変なので以前の
+format/complexity（既存3findings）と関連しないbehaviorを再利用。XAMLのindent1箇所
+だけは通常build後に整え、意味は同じ。diagnostic build03はその最終XAMLを使用。
+
+Native14: ja-JP/Ubuntu/1.25scale、820/580 DIP、216checks、168geometry samples、10images。
+実際のKeyboard/Pointer focus stateで検索のaccent brushが一致し、退出時に戻る。
+見出しの要求文字領域と余白、body/hints/search/headingsの座標不変を確認。exit0。
+Pointerは所有非入力desktop内のFocusState.Pointerであり、物理クリックの証明ではない。
+
+Native12/13の失敗はobserverのActualHeight/DesiredSize比較の誤り。13で実画像と
+14.630859/15.199999 DIP、1.25scaleを記録。14は要求文字矩形が丸めた下線と固定余白内に
+収まる検査へ修正した。失敗を削除/上書きせず、閾値やproductを都合で変えていない。
+
+全attemptで通常設定/input desktopは不変。polish-final-source-parity-01.jsonは
+182App inputs=180exact+2declared project/composition、4DLL、3fixturesを凍結。
+通常settingsを試遊設定へコピーしない。以前の専用設定だけを継ぐ。
+変更入力が同じなら、commit/工程が変わっただけで成功検証を再実行しない。
+停止後の保存では通常commit hooksだけ。新しいproduct test/CIは始めていない。
+
+## 再開時の最初の仕事
+
+1. hideの再開指示と実際のbranch/statusを確認する。最後の2XAMLと記録を消さない。
+2. 残る「アクセント部分の震え」を対象にする。現在の座標サンプルはcompositor/paintの
+   安定を保証しない。既存focus route、row retained selection、headingのBorderBrush/
+   Background切替、関連transition/animationを証拠に基づいて切り分ける。
+   詳細調査はまだしていないので原因を断定しない。新しいfocus/input経路を増やさない。
+3. 共有desktopへ入力せず、既存の専用非入力desktopで必要な描画列だけを取得する。
+   ラベル余白/検索focusの成功を反復せず、変えた描画境界を確認する。
+4. 揺れ修正が終わってから通常analyzersで試遊版04を作る。宣言済みのproject paths/
+   private settings/owned folders/title以外を変えず、source/DLL/manifestとisolated startupを確認。
+   hideの既存試遊表示・修正依頼は有効だが、停止中には表示しない。
+5. #580候補へ最終581を取り込み、承認された範囲の公開/PR/main統合とrelease proofへ戻る。
+   #532 drag/dropと#564全体の残機能は追加しない。beta.5は未公開・未tag。
+
+## 証拠と残すもの
+
+D:/NeNeCommander/evidence/bookmark-focus-20261124 が#581の恒久証拠。
+ユーザー画像hide-bookmark-polish-report-20261125-010259.png、全failed/passed receipt、
+polish-product-build-01、polish-controls-build01〜03、FixtureBookmarkFocus-polish-attempt12〜14、
+polish-final-source-parity-01.jsonとaccepted-ja-JP-14-polish-*.pngを保持。
+D:/NeNeCommander/outputs/bookmark-focus-20261124/accepted-controls-02 が最新診断コピー。
+以前のaccepted-controls-01、baseline/layout prototype、design-consultも履歴として保持。
+Canvasはdesign-consult/bookmark-focus-about.html。cloud Canvas/share URLは存在しない。
+
+D:/NeNeCommander/evidence/ui-trial-20261124 と同名outputsは6機能統合/試遊01〜03の正本。
+#580のworktreeは8d1c247で未変更。旧reuse assessmentの1252/1317一致・65changedは
+当時の候補27efbdcへの評価であり、最新581への自動承継は不可。Domain27inputsは当時
+全一致、Infrastructure own286inputsも一致だがApplication変更の推移影響は要照合。
+Application/Presentationの変更分、全必要threshold、CodeQL candidate ref、96時間鮮度、
+accepted-main package/extraction/startup、tag/publication/download確認は未完。
+
+未完worktrees: issue491/495/514/530/531/544/547/548/551/564-ui-trial/580/581とpr-498-review。
+D:/NeNeCommander/worktrees内のそれぞれを保持。関連outputsも未統合または証拠/試遊参照が
+あるため保持。今回削除しない。正式beta.4 source/tag3909039と公開資産は変更せず、
+そのrelease一時物の整理は既に完了。後片付け拒否やhide実行待ちは新たに発生していない。
+
+自分の実行中build/observer/CIはない。最後のexec sessions56961/68569/67888/4384は
+終了済みでpoll/再起動不要。青枠CUA、共有入力、通常設定変更、他案件干渉は禁止を維持。

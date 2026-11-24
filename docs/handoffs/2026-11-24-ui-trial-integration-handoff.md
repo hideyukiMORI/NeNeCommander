@@ -1,5 +1,7 @@
 # 2026-11-24 UI trial integration handoff — Issue #564
 
+2026-11-25停止追記: hideの指示で作業停止。最後の試遊版は03、見出しアクセントの震えが未解決。最新の[終了日報](../reports/2026-11-25-bookmark-focus-daily-report.md)と[再開引き継ぎ](../handoffs/2026-11-25-bookmark-focus-about-handoff.md)を先に読む。以下の実行中・承認待ち記述は各時点の履歴であり、再開や重複実行の指示ではない。
+
 Current checkpoint: November24 23:15 JST. HEAD27efbdc records productcd3ecab and
 verified visible interactive02 (PID49036). No required review correction remains.
 The interactive02 cutoff is accepted at23:20; human visible acceptance remains separate; no feature push/main merge
