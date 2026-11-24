@@ -117,7 +117,12 @@ public sealed class CommandPaletteSession
 
     internal static bool IsContextRequest(UserIntent intent)
     {
-        return intent == UserIntent.OpenContextMenu || intent is PaneInteraction { OpensContextMenu: true };
+        return intent switch
+        {
+            PaneRowInteraction row => row.Action == PaneEntryAction.OpenContextMenu,
+            PaneSurfaceInteraction surface => surface.Action == PaneSurfaceAction.OpenContextMenu,
+            _ => intent == UserIntent.OpenContextMenu,
+        };
     }
 
     /// <summary>Admits replacement only from a closed owner or an exact current context capture.</summary>

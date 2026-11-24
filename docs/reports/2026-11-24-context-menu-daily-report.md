@@ -32,3 +32,31 @@ Application1050/1051は旧設定reflection fixture1件が失敗。今回の二�
 公開候補・mainは変更しない。次は統合候補のcanonical1回と影響3層の深い検証。
 Domain mutation/adversarialと依存auditは関連入力が同じなら既存成功を再利用する。
 全体成功や新CI実行をまだ主張しない。送信承認待ちは別beta.4の解析ファイル登録。
+
+15:45追記: 統合候補20336c8のcanonicalはtheme importの書式差で停止し、
+値を変えず3言語XMLを正規化した。続く全通常テストは2746成功/0失敗/20環境skip。
+補助CodeQLの8件の式・テスト指摘を修正し、冗長分岐も整理した現候補では
+Application1080成功/100%、Infrastructure1026成功/20skip/94.6121%、
+Presentation461成功/96.9944%。全網羅率基準を満たす。原失敗と全試行を保存した。
+現在は入力1317件を固定し、異常系3反復・影響3層mutationと2方式のCodeQLを実行中。
+原gate/CI全体成功・技術完了は未主張。native境界4noteは理由とraw結果を保持する。
+実行driver17172とCodeQL39572を重複起動せず、evidence内のprogressと終了記録を読む。
+#531の公開・統合、物理/可視受理、別beta.4のSARIF登録承認はまだ残る。
+
+16:19追記: Application mutationが96.4197%/基準95%で成功（3425変異、27分25秒）。
+異常系3反復は全成功。Infrastructureを同driver17172で実行中、Presentationは後続。
+CodeQL compiler-fedは126raw＝生成122＋意図的native4で旧8指摘解消。
+ビルドなし解析は参照補完後164ルール/報告0件だがcompiler62/error通知12が残る。
+単独の完全抽出・canonical受理・API zero-openとは区別し、raw結果を保持する。
+16:14の独立レビューは7ファイル差分と1317入力一致を確認、必須修正なし。
+#531の技術完了・公開・統合はまだ主張しない。
+
+17:15追記（現在の状態）: 影響3層mutationはApplication96.4197%、Infrastructure92.2803%、
+Presentation92.3834%で全基準達成。Domain97.4747%とauditはexact入力対応で再利用。
+全1317入力は開始時と一致。失敗したcanonical01/remainder02を緑に変更せず、
+成功した各段階を組み合わせた証拠として保存。最後の変更箇所の書式はexit0、
+complexityはexit1・旧4件と位置/値/閾値まで一致。複雑度cleanとはしない。
+CodeQLのcanonical抽出診断・候補ref処理・物理/可視受理・実Explorerは残る。
+独立の最終証拠レビューを依頼中。外部公開/main統合/削除は行っていない。
+
+17:17独立最終レビュー: raw集計・1317入力・Domain/audit再利用に不一致/必須修正なし。全体受理とCodeQL/環境の残課題を分離した記録を確認。

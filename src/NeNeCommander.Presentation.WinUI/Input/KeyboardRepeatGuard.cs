@@ -31,16 +31,25 @@ internal sealed class KeyboardRepeatGuard
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
             MappedKeyboardFocusAction => true,
             MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu,
-            KeyboardPassThrough => (input.Context == KeyboardContext.ContextMenu &&
-                (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.Escape)) ||
-                (input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter) ||
-                (input.Context == KeyboardContext.CommandEntry && (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space)),
+            KeyboardPassThrough => IsNativeSingleShot(input),
             _ => false
         };
         if (singleShot)
         {
             _ = _singleShotKeys.Add(input.Key);
         }
+    }
+
+    private static bool IsNativeSingleShot(KeyboardInput input)
+    {
+        return input.Context switch
+        {
+            _ when input.Context == KeyboardContext.ContextMenu =>
+                input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.Escape,
+            _ when input.Context == KeyboardContext.BookmarkDraft => input.Key == KeyboardKey.Enter,
+            _ => input.Context == KeyboardContext.CommandEntry &&
+                (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space),
+        };
     }
 
     internal static KeyboardMappingOutcome MapNativeMenu(KeyboardInput input)

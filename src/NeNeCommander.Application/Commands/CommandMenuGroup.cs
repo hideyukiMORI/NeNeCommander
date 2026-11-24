@@ -27,9 +27,12 @@ public abstract record CommandMenuGroup
 
     internal bool AppearsOn(CommandSurface surface)
     {
-        return surface == CommandSurface.Palette ||
-            (surface == CommandSurface.ItemContext && this != PaletteOnly) ||
-            (surface == CommandSurface.FolderContext && (this == Folder || this == New));
+        return surface switch
+        {
+            _ when surface == CommandSurface.Palette => true,
+            _ when surface == CommandSurface.ItemContext => this != PaletteOnly,
+            _ => this == Folder || this == New,
+        };
     }
 
     private sealed record PaletteOnlyGroup : CommandMenuGroup

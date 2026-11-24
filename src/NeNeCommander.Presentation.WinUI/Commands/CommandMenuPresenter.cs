@@ -40,10 +40,12 @@ internal static class CommandMenuPresenter
         if (group == CommandMenuGroup.FocusedItem || group == CommandMenuGroup.Selection)
         {
             string name = pane.VisibleEntries.First(entry => ReferenceEquals(entry.Path, pane.FocusItem)).Name;
-            string key = group == CommandMenuGroup.Selection ? "CommandMenuFocusFallbackFormat" : "CommandMenuFocusFormat";
-            return string.Format(CultureInfo.InvariantCulture, localize(key), name);
+            string format = group == CommandMenuGroup.Selection
+                ? localize("CommandMenuFocusFallbackFormat") : localize("CommandMenuFocusFormat");
+            return string.Format(CultureInfo.InvariantCulture, format, name);
         }
-        return string.Format(CultureInfo.InvariantCulture,
-            localize(group == CommandMenuGroup.New ? "CommandMenuNewFormat" : "CommandMenuFolderFormat"), pane.Location.CanonicalText);
+        string folderFormat = group == CommandMenuGroup.New
+            ? localize("CommandMenuNewFormat") : localize("CommandMenuFolderFormat");
+        return string.Format(CultureInfo.InvariantCulture, folderFormat, pane.Location.CanonicalText);
     }
 }

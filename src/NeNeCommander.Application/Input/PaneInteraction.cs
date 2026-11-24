@@ -18,10 +18,6 @@ public abstract record PaneInteraction : UserIntent
         ExpectedSnapshot = expectedSnapshot;
     }
 
-    internal bool OpensContextMenu =>
-        (this is PaneRowInteraction row && row.Action == PaneEntryAction.OpenContextMenu) ||
-        (this is PaneSurfaceInteraction surface && surface.Action == PaneSurfaceAction.OpenContextMenu);
-
     /// <summary>Checks live ownership before either active-side or pane-local state can change.</summary>
     internal bool Matches(PaneSnapshot current)
     {

@@ -1,6 +1,10 @@
 # Context-menu design and implementation proof - 2026-11-24
 
-Status: mechanism design accepted; product implementation in progress; focused context/reveal proof passed; final host/deep review pending.
+Status: local implementation and assembled canonical/mutation component evidence complete; canonical CodeQL extraction, candidate processing and product acceptance remain pending.
+
+Latest: see the final November24 17:15 section. Earlier sections are dated investigation and execution history; the exact beta.4 source/PR publication completed at12:55 and is no longer awaiting approval. The separate candidate SARIF question remains unanswered.
+
+## Initial design and investigation history
 
 Issue531 is open. The dedicated worktree is D:/NeNeCommander/worktrees/issue-531,
 feat/531-context-menu, based on local technical pointer candidate76bff48. New-file
@@ -438,3 +442,164 @@ mapping under ADR0061. Do not repeat those successful tiers merely for a merge.
 Record this as assembled stage evidence; do not claim an unexecuted full deep-review
 script or CI workflow passed. Candidate CodeQL and physical/environmental tiers retain
 separate obligations. The existing source and earlier selected proofs remain retained.
+
+## Whole-feature proof and CodeQL correction — November24 15:45 JST
+
+The first canonical run on20336c8 fails deterministic theme-import parity after
+conformance112, all negative gate fixtures and security24/proofs pass. No build,
+test, coverage or mutation stage starts in that failed run. All owned processes
+end before source edits; exact1317-input checks and the controlled-stop receipt
+are retained. The three resource catalogs are normalized to the importer output
+with exact XML-tree equivalence. No translated value, threshold or importer changes.
+
+The supplemental compiler-traced CodeQL run completes164rules with134raw results:
+122generatedobj and12owned. Compiler/extractor errors are absent;42hidden compiler
+messages and the explicit unsupported-path-filtering notice remain in raw SARIF.
+Eight owned expression/test recommendations are addressed by seven changed files:
+format-key resolution before formatting, menu/repeat condition factoring, context
+recognition in its session owner, and observable test assertions/sequence mapping.
+Independent read-only review catches duplicate using/IDE0058 issues in unexecuted
+plans; only corrected plan05 executes. Earlier plans remain as rejected attempts.
+The guard introduced in that plan creates one unreachable FolderContext false edge
+following the other two closed cases. Remove that redundant edge, preserving the
+actual Folder/New membership and existing consumer tests; no artificial invalid
+surface, suppression or excluded coverage is introduced.
+
+Four note-level native-call advisories are retained as intentional boundaries:
+CoInitializeEx, CoUninitialize, RtlNtStatusToDosError and SHOpenFolderAndSelectItems.
+The first three predate this feature and are recorded by ADR0063/SEC014; the fourth
+is explicitly adopted by ADR0091. A managed substitute preserving these contracts
+is not established. The initial journal's GetVolumePathNameW label is corrected to
+RtlNtStatusToDosError from the exact SARIF/source location. The raw notes are not
+filtered, waived or described as fixed. A new compiler-traced analysis and a separate
+canonical build-mode:none analysis run against exact frozen inputs03; results remain
+pending. Neither local mode proves candidate-ref alert processing under ADR0031.
+
+Commands and staged results:
+
+- pwsh -NoProfile -File ./eng/check.ps1: failed theme parity as above; original log
+  deep-canonical-01.log and deep-progress-01.json remain failed.
+- pwsh -NoProfile -File run-canonical-remainder-02.ps1 (task evidence path): fresh
+  conformance/security, locked restore, whitespace, Release solution build and record
+  closure pass. Ordinary solution tests total2766:2746pass/0fail/20explicit environment
+  skips. Coverage Domain100% passes; Application1080tests pass but99.9386503067% fails
+  its100% threshold before the redundant-edge correction. The original log is retained.
+- dotnet build tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj
+  -c Release --no-restore: corrected build03 passes0warnings/0errors.
+- pwsh -NoProfile -File run-deep-remaining-03.ps1 (task evidence path): current
+  conformance and incremental consumer solution build pass. Canonical coverage args
+  run each affected Release/no-build/no-restore test project with eng/coverage.settings.
+  Application1080/0fail reaches100%; Infrastructure1026pass/20explicit environment skips
+  reaches94.6120689655%; Presentation461/0fail reaches96.9943644333%. All thresholds pass.
+  Three adversarial repetitions and Complete mutation95/90/90 follow on this frozen
+  candidate; they are not yet declared passed. Driver17172 starts15:43:47JST.
+- pwsh -NoProfile -File run-codeql-manual-02.ps1 (task evidence path): driver39572
+  starts15:44:26JST, copies exact inputs, traces a required compiler extraction build,
+  analyzes the164-rule suite, then separately creates/analyzes the canonical buildless
+  database. All outputs stay local. Original and corrected raw SARIF remain distinct.
+
+Manifest deep-inputs-03.json freezes1317inputs; deep-input-differences-03.json retains
+all10byte-level changes versus20336c8, including the three XML-equivalent resources.
+Domain mutation/adversarial and dependency audit retain their exact mapped inputs.
+Passed earlier stages with unchanged relevant inputs are reused under ADR0061; the
+failed original gate/CI is never relabeled green. No source edits occur during these
+runs. Documentation is outside this frozen product/tooling/test input set. Physical
+input/IME/visible/speech/high-contrast and real Explorer selection remain unproved.
+#531 source publication/integration and beta.4 analysis-upload approval remain separate.
+All unfinished worktree/output paths are retained; no completion cleanup is eligible.
+
+## Analysis readback and Application mutation — November24 16:19 JST
+
+Current compiler-traced CodeQL completes164rules/126raw results:122generatedobj
+and4intentional native-call notes. All8prior owned expression/test findings disappear.
+There are no compiler/extractor error notifications. The raw generated results and
+unsupported path-filtering notice remain; this supplemental mode is not the canonical
+buildless workflow. Canonical-mode attempt02 has1result in unchanged RecursionGraph,
+342compiler errors and31error-level extraction diagnostic notifications. Its missing
+Roslyn/reference metadata makes it insufficient standalone evidence. Seven existing
+managed references, including the pinned SDK's two Roslyn assemblies, are copied with
+assembly identities and exact hashes into the analysis copy only. No source, package,
+query, exclusion or threshold changes. Resolved attempt03 reports164rules/0results,
+with62compiler errors and12error-level extraction diagnostic notifications still
+explicitly retained. The unrelated RecursionGraph result disappears with references,
+not a source workaround. codeql-comparison-review-03.json indexes all three raw results.
+
+The resolved buildless result is not complete extraction, canonical acceptance or
+API zero-open proof. Keep its remaining diagnostics alongside compiler-traced source
+proof; candidate-ref processing/alert verification remains separate and unsent.
+At16:14 independent read-only review verifies the seven-file implementation/test diff
+and all1317 frozen hashes, with no mandatory correction. In particular, the sole
+AppearsOn caller is preceded by CommandPaletteSession.Open's existing null rejection;
+the final branch is the third closed surface, so removing its redundant guard does
+not weaken the admission boundary. No review edit or test run occurs.
+
+Application Complete mutation finishes16:13:39JST, exit0, score96.4196502914% against95%.
+All3425mutants are retained: CompileError481, Ignored542, Killed2293, NoCoverage2,
+Survived84, Timeout23. Time27m25s. All three affected adversarial repetitions passed
+before this tier. Infrastructure mutation is now running under the original driver17172;
+Presentation remains queued. Do not duplicate quiet long-running tests: read the exact
+process chain and final receipt/report. No complete deep/CI result is yet claimed.
+
+## Infrastructure mutation completion — November24 16:56 JST
+
+The original remaining03 driver completes Infrastructure with exit0 at16:56:39,
+elapsed42m59s. Independent raw-report counts:2960total,593CompileError,398Ignored,
+1804Killed,63NoCoverage,89Survived,13Timeout;1817/1969detected gives92.28034535%
+against90%. Original logs and all status classes remain, with report SHA256/counts
+in infrastructure-mutation-summary-03.json. This does not relabel the earlier failed
+canonical run. Presentation starts at16:56:40 through the same sequential driver and
+is still running at17:04. No source input is changed or duplicate verification run.
+
+## Final affected mutation and assembled stages - November24 17:15 JST
+
+The original sequential driver finishes Presentation at17:11:54JST with exit0,
+elapsed15m14s. Its2917raw mutants are239CompileError,341Ignored,2131Killed,
+17NoCoverage,161Survived and28Timeout. Thus2159/2337detected is92.3833975182%,
+above90%. Application96.4196502914%/95 and Infrastructure92.2803453530%/90 also
+pass. Domain97.4747474747%/95 is reused only with the exact unchanged Domain and
+runner input mapping in deep-reuse-inputs-01.json. All raw status classes and
+reports remain; safe-mode compilation diagnostics are not suppressed.
+
+The driver verifies all1317frozen inputs again after the last stage. An independent
+parent read at17:14 confirms the same count/hashes and recomputes all three scores
+from raw reports. final-stage-summary-03.json indexes report hashes, denominators,
+thresholds and the remaining CodeQL limit. The first console table selected fields
+from OrderedDictionary objects and displayed blanks; the stored JSON is correct,
+and a structured read confirms each value without repeating any runtime test.
+
+The assembled evidence now covers the canonical component stages and affected
+adversarial/mutation stages: initial negative gate and security proofs; corrected
+XML-equivalent theme parity; locked restore, format, build, record closure and
+ordinary tests; final affected build/coverage and three adversarial repetitions;
+current three mutation tiers; and exact-input Domain/audit reuse. The original
+canonical01 and remainder02 failures remain failed. This is stage-by-stage reuse
+underADR0061, not a successful invocation of the whole original gate or CI.
+Ordinary tests02 preceded only the redundant closed-surface guard removal; the
+current Application1080, Infrastructure1026/20environment skips and Presentation461
+consumer cases all pass under coverage03 at100%,94.6120689655% and96.9943644333%.
+
+The last changed guard receives a focused whitespace check after mutation ends:
+`dotnet format whitespace NeNeCommander.slnx --no-restore --include src/NeNeCommander.Application/Commands/CommandMenuGroup.cs --verify-no-changes`
+exits0. `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` exits1
+with exactly the same4findings, including identical paths/locations/values/limits,
+as menu-complexity-04.json. The raw current report is final-complexity-03.json.
+No threshold, suppression or baseline is introduced; this is not a clean complexity
+claim. CodeQL still has the documented incomplete canonical-mode extraction and no
+candidate-ref processing/open-alert proof. Technical acceptance, physical/visible
+acceptance, real Explorer display, publication and main integration remain pending.
+
+Independent final stage-evidence review is requested read-only. No source changed
+through the run, no duplicate mutation was started and no external write occurred.
+All unfinished copies and evidence remain. Read-only continuation also recorded
+absent guessed filenames and an initial sandbox-denied process query; the explicit
+owned-process query succeeded and observed active owned test hosts before normal
+completion. No approval rejection or cleanup hold was introduced.
+
+Independent read-only review completed2026-11-24 17:17:01JST.
+No mandatory correction, arithmetic error or input-mapping mismatch.
+Raw mutation scores: Application96.4196502914%, Infrastructure92.2803453530%,
+Presentation92.3833975182%; hashes/counts/thresholds match, all1317inputs unchanged.
+Domain/audit reuse is limited to unchanged-input successful stages. Original
+canonical01/remainder02 failures remain. CodeQL extraction limits, no candidate-ref
+processing and remaining environmental proof are explicit; no complete deep or
+technical acceptance is claimed. Reviewer performed no edit/build/test/send.

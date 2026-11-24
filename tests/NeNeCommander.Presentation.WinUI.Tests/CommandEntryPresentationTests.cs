@@ -63,11 +63,11 @@ public sealed class CommandEntryPresentationTests
             Assert.IsFalse(opened.IsEnabled);
             if (fixture.Session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen help)
             {
-                _ = fixture.Session.CloseKeyboardHelp(help);
+                Assert.IsTrue(fixture.Session.CloseKeyboardHelp(help) is KeyboardHelpClosed);
             }
             else
             {
-                _ = await fixture.HandleAsync(UserIntent.Escape);
+                Assert.IsTrue(CommandEntryPresenter.Present(await fixture.HandleAsync(UserIntent.Escape)).IsEnabled);
             }
 
             Assert.IsFalse(opened.IsEnabled);

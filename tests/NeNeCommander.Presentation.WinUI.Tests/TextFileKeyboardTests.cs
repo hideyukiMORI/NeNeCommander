@@ -47,10 +47,10 @@ public sealed class TextFileKeyboardTests
         KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
         foreach (KeyboardContext context in contexts)
         {
-            foreach (KeyRepeatState repeat in new[] { KeyRepeatState.Initial, KeyRepeatState.Repeated })
+            foreach (KeyboardMappingOutcome outcome in new[] { KeyRepeatState.Initial, KeyRepeatState.Repeated }
+                .Select(repeat => mapper.Map(KeyboardInput.Create(
+                    KeyboardKey.F7, KeyboardModifier.Control, repeat, context))))
             {
-                KeyboardMappingOutcome outcome = mapper.Map(KeyboardInput.Create(
-                    KeyboardKey.F7, KeyboardModifier.Control, repeat, context));
                 Assert.IsFalse(outcome is MappedKeyboardIntent mapped && mapped.Intent == UserIntent.CreateTextFile);
             }
         }
