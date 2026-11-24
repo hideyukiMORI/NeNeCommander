@@ -188,3 +188,80 @@ records exactly which inputs changed through the count merge/header addition.
 Native key/click/focus, UIA, narrow/high-contrast/DPI and actual screen acceptance
 remain pending. Source PR/integration and task cleanup remain incomplete. The
 usual App/settings, beta.3 and unrelated retained worktrees remain untouched.
+
+
+## Isolated actual-control continuation — 2026-11-24
+
+The unchanged accepted source65a6fb2 is still the head of open Draft PR558.
+The GitHub readback reports no merge and a conflicting base; no remote write,
+main integration or beta.4 inclusion occurs. All1092 earlier header proof inputs
+match exactly (`reused-inputs-01.json`), so successful managed/core proof is reused.
+ADR-0061 selects the previously missing actual-control boundary only.
+
+The dedicated copy at `D:/NeNeCommander/outputs/open-other-pane-20261124/control-fixture-01/`
+contains46 original App inputs, four unchanged production dependency DLLs and
+private schema4 settings/owned folders. Diagnostic substitutions are limited to
+composition paths/settings/lifecycle, project references and observation of the
+original host intent/admission. Product focus calls, XAML, button handler,
+mapper/session/reducer and resource resolution remain unchanged. The launcher
+requires its named non-input desktop, never switches desktops or injects shared
+input, and owns only its exact child process handle.
+
+| Trial | Result |
+|---|---|
+| Diagnostic build01 | C# path escaping fails; original copy/log retained. |
+| Build02 / launch1 | Build0warnings/errors; startup exits0xC000027B before a managed receipt. |
+| Build03 / launch2 | Build0warnings/errors; added startup trace reaches the desktop guard and stops at the diagnostic UWP language override. |
+| Build04 / launch3 | A newline-dependent attempted removal did not remove that override; the repeated failure and source are retained, not accepted. |
+| Build05 / launch4 | Exact-line removal verified first. Product resource resolution is retained. Forty-one assertions pass, then stage12 times out while expecting control-E navigation. |
+| Build06 / launch5 | The diagnostic preparation waits for its exact existing navigation Task, and records the original AsyncWorkOwner admission result. All49 checks/15 stages pass, process exit0, observed125percent scale. No product correction is made. |
+
+The final probe proves actual ButtonAutomationPeer invocation in both directions,
+exact source snapshot/selection/focus-control preservation, same-location exact
+no-op, active-only visibility, disabled action during name entry and refusal of a
+stale direct intent while that modal owns input. Both Japanese UIA names and
+tooltips contain the canonical Ctrl+E label. The24-DIP target fits its header at
+the initial window size and after a680-DIP outer-width resize. The keyboard segment
+calls the existing character-data translator and mapper: initial U+0005 dispatches
+once, repeated input is consumed, and fresh e with Control dispatches once again.
+This is not physical Control-key, mouse-hit, IME, screen-reader or visible proof.
+The total3126.1519ms is fixture duration, not operation latency.
+
+The final normal settings file remains623bytes, with unchanged timestamp and
+SHA-256561932A6530A6317499BAB59AD0735C8469869A15C6E6DA9BE3507B37AF557CE.
+The input desktop is Default before/after. Six owned folder files retain the exact
+expected paths/content. The successful child exits normally; prior failed children
+also have terminal receipts. No ordinary App or real Explorer is invoked.
+
+Raw evidence is under `D:/NeNeCommander/evidence/open-other-pane-20261124/`.
+`final-parity-01.json` reconciles46App inputs/three declared substitutions/fourDLLs.
+Fourteen of16XBF/PRI files match the earlier normal App byte-for-byte. The two
+mismatches are fully accounted for in `resource-parity-reconciled-01.json`: the
+32714-byte CommanderWindow XBF differs only in its64-character source-checksum
+field, which matches the exact current XAML; every other byte is identical. SDK
+MakePri detailed dumps are12032483bytes each and differ only in that embedded XBF.
+All localized candidates and the compiled XAML body therefore match. Raw files are
+retained; this is an explicit reconciliation, not a fabricated all-byte-equal claim.
+
+Exact commands, from the diagnostic root unless an absolute path is shown:
+
+```powershell
+dotnet restore App/NeNeCommander.App.csproj --locked-mode --disable-parallel -p:Configuration=Release
+dotnet build App/NeNeCommander.App.csproj -c Release --no-restore -maxcpucount:2
+pwsh -NoProfile -File D:/NeNeCommander/evidence/open-other-pane-20261124/run-controls-02.ps1 -Locale system -Attempt 5 -Scenario standard
+& 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/makepri.exe' dump /if <product-or-fixture-NeNeCommander.App.pri> /of <corresponding-evidence-xml> /dt detailed
+```
+
+Full command/argument paths and results are in the scripts, build logs and launch
+receipts. Diagnostic-only analyzer disabling does not change production build rules.
+This continuation does not add full suites, coverage, mutation or CI. The subsequent
+repository edit is documentation only and selects text/link/diff review plus the
+normal lightweight commit hook, not another product build/test.
+
+An initial attempt to create the journal was automatically rejected because its
+Set-Content could overwrite prior evidence. Read-only absence checks and an append-
+only journal write resolved that operation; no evidence was deleted or bypassed.
+Physical key/mouse/IME, English native labels, other DPI/high contrast, screen-reader
+speech and hide's visible acceptance remain separate. PR558 stays Draft; publication
+of these later records, base integration and task cleanup are unfinished. Retain the
+worktree/output/evidence; there is no cleanup rejection or cleanup task due here.

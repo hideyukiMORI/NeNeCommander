@@ -71,3 +71,20 @@ hideの「このブリーフをClaudeへ送信してよい」を受け、承認�
 提案はpathとstatusの間に予約slot、24px target/16px folder+direction glyph、非active側はslot維持、左右別の説明文。同一場所・busy・未取得は既存admissionを投影する。転送との誤認を避け「開く」と明示する。これらは相談案で、semantic resources/狭幅/高contrast/非focus click/UIAの実装・検証と実画面確認は未完了。/design生成物とは主張しない。
 
 #542はPR557/main b82aa1e統合済み。#528初回は簡体字、#527は共通125+既存4の129選択をhideが確定。
+
+
+## 2026-11-24 続行 — 実コントロール49項目成功
+
+製品65a6fb2と旧1092入力は不変。専用非入力デスクトップでUIA方向ボタン・
+両方向・元選択/実フォーカス・同一場所・モーダル拒否・125%/680DIP配置と
+正規文字データmapperの反復を49項目/15段階で確認、exit0。
+物理キー/マウス/IME/読み上げ/高コントラスト/他DPI/英語native/画面受理は未確認。
+診断初期化やTask待機の失敗は保存し、製品修正なし。通常設定/Default入力desktop不変。
+[11月24日レポート](../reports/2026-11-24-open-other-pane-report.md)と品質記録の最新追記を参照。
+
+証拠はD:/NeNeCommander/evidence/open-other-pane-20261124/、診断は
+D:/NeNeCommander/outputs/open-other-pane-20261124/control-fixture-01/。
+final-parity-01.jsonとresource-parity-reconciled-01.jsonでsource/DLL/XBF/PRIの
+対応を記録。既存成功試験を工程移行だけで再実行しない。
+PR558はDraft/open/head65a6fb2、mainとの競合あり。後続文書は未公開。
+base統合/必要な受理/成果物収載が済むまでworktreeと出力を保持。cleanup待ちはなし。

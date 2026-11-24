@@ -2,6 +2,8 @@
 
 Status: normative
 
+- On2026-11-24 the unchanged Issue547 candidate65a6fb2 passes49 isolated actual-control checks in15 stages with exit0. Both directional UIA invocations preserve source selection/actual focus; same-location, modal refusal,125percent/680-DIP layout and canonical character-data repeat handling pass. All1092 prior inputs match; four DLLs and all compiled/resource content are reconciled, with only the documented XBF source-checksum difference. Ordinary settings/input desktop remain unchanged. Physical input, other locales/DPI/high contrast/speech and visible acceptance remain unclaimed. PR558 is still open/Draft at65a6fb2 with base conflicts; new records are local and no beta.4 inclusion/integration/cleanup is claimed. See [report](reports/2026-11-24-open-other-pane-report.md) and the latest [quality appendix](quality/2026-11-22-open-other-pane-local.md).
+
 - Stage: `implementation`
 - Production code: `permitted`
 - Canonical gate: `pwsh -NoProfile -File ./eng/check.ps1`
