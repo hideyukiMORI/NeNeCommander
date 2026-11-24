@@ -130,3 +130,5 @@ Number allocation includes these reservations as well as the records already in 
 - [ADR-0086: Select the next-launch interface language through existing settings](0086-next-launch-interface-language.md)
 
 - [ADR-0089: Persist normal window placement and correct off-screen restoration](0089-persist-window-placement.md)
+
+- [ADR-0092: Transfer the normal window through the existing adjustment route](0092-display-transfer-through-window-adjustment.md)

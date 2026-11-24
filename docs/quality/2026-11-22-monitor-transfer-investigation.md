@@ -177,3 +177,76 @@ Application, and do not introduce a timer, retry loop or new window-operation pa
 Reserve the next truly free ADR number (0085 is now occupied;0091 is used by local531).
 No product test, full gate, mutation or CI is run for this documentation/diagnostic
 work. The new evidence/output and existing worktree are unfinished and retained.
+
+## Current-base connection and minimum-size API proof - November24 17:27 JST
+
+The existing docs-only branch e76a81c is connected to accepted release base f6c722c
+as8f34e7c. Only PROJECT_STATE conflicts; both dated records are retained. All product,
+test, dependency and gate inputs in the staged merge match f6c722c exactly. Normal
+Commit conformance112/security24/message checks pass. No product build/test is run
+for that input-identical connection, and main/release branches remain unchanged.
+
+Proposed ADR0092 selects the existing adjustment route, n/p with Ctrl+Right/Left
+aliases, deterministic geometric cycling, normal/visible admission, centered reported-
+logical-size preservation and two precomputed rectangles. It explicitly includes
+owner/topology/state revalidation and partial apply receipts. It remains proposed,
+with an independent read-only mechanism review pending and no production edits.
+GetForMonitor's documented22621 minimum refuses only transfer on earlier product-
+supported OS; ordinary adjustment/startup does not read that API. The source/SDK
+boundary and recorded custom-scale limits remain part of review.
+
+A newly isolated minimum-probe-01 resolves an actual open contract: whether an SDK
+preferred minimum changes with per-monitor DPI. It copies only the five pinned
+project/XAML/manifest/SDK/lock inputs from scale-probe and adds its own App source.
+Locked restore and Release build succeed with0warnings/errors. Four conditions are
+125%->175% and175%->125%, each with undeclared and500x400declared minima. The window
+is never shown/activated, and no keyboard/mouse event is generated.
+
+At17:26:50 owned process44796 exits0 without timeout. All20samples remain nonvisible,
+activations0, foreground unchanged, normal settings hash and write-time unchanged.
+The declared minimum reads500x400before/after both transfers. A300x200request is
+clamped to500x400at either source scale. Without a declared minimum, a600x450transfer
+becomes840x630from125%to175% and429x321in reverse. With minimum500x400, the reverse
+request is clamped to500x400rather than429x321. Thus the existing ADR0050 physical-
+minimum interpretation is supported by these cases; only the undeclared32-DIP floor
+uses the relevant reported scale. This is not a custom-DPI/visible/general timing
+proof. Do not multiply a declared minimum by the display scale.
+
+Exact build commands in D:/NeNeCommander/outputs/monitor-transfer-20261124/minimum-probe-01:
+
+```powershell
+dotnet restore MonitorProbe.csproj --locked-mode --disable-parallel -p:Configuration=Release
+dotnet build MonitorProbe.csproj -c Release --no-restore
+```
+
+The resulting bin/Release/net10.0-windows10.0.26100.0/win-x64/MonitorProbe.exe was
+launched with Start-Process -WindowStyle Hidden -PassThru, its returned process alone
+bounded by WaitForExit(20000). No timeout termination was needed. minimum-api-run-01
+contains exact source/binary hashes and settings evidence; minimum-api-observation-01
+contains every requested-stage/result/minimum/DPI sample. Both raw and source remain.
+Official preferred-minimum property pages supply no unit/transition guarantee beyond
+the property, so the above specific observations are reported separately rather than
+inferred from that documentation.
+
+Read-only continuation retains absent guessed filenames, one invalid rg shell glob,
+a sandbox-denied process query later performed through explicit read permission,
+and an initial blank OrderedDictionary console projection whose saved JSON was
+correct. No failed product trial is concealed or retried into success. All unfinished
+worktrees/outputs remain; no publication, accepted ADR, product implementation or
+completion cleanup is claimed.
+
+Independent read-only mechanism review17:26:38 found three mandatory details:
+1 qualify reentrant Escape from the still-rendered incoming owner and propagate
+stop before FinishTracking, preventing outer Forward repaint/focus after close;
+2 first-changing-call entry is the no-effect boundary; final observed receipt also
+requires owner/lifetime/visibility/presenter/target facts; 3 exact physical/undeclared
+minimum formulas and revalidation. Proposed revision02 now specifies all three.
+The first replacement script failed its exact-paragraph guard because a PowerShell
+nested-array expression combined the replacement pair; no file was written and the
+original ADR hash remained D35899A4...FF0. Explicit paragraph variables corrected the
+script, without changing a product input or executing another native trial.
+No production edit, accepted design or new runtime trial is inferred.
+
+## Technical mechanism acceptance - November24 17:35 JST
+
+Independent re-review at17:34:27 verifies proposed revision02 hash00765DEDD9558A5E10C9BEDEE4F6843F2E91500349CD340BDF2E9882DE94CDCA and finds no mandatory correction. The delegated engineering owner accepts ADR0092 for scoped implementation. This is neither product/native/visual acceptance nor publication/release authority. The required owner/stop/uncertain-effect/minimum details are explicit. The handoff preserves the existing helper; each new canonical group displays its letter and control-arrow cap, which existing hint-derived help can also show. Production inputs remain equal to f6c722c. The acceptance script's first exact-alias replacement failed after writing only the ADR status; it did not alter product, run checks or commit. Exact handoff text was inspected and corrected before this atomic documentation commit. All raw trials and review revisions remain.

@@ -42,3 +42,5 @@ tools/file access/session persistence無効。/design未対応は既知で、生
 新出力D:/NeNeCommander/outputs/monitor-transfer-20261124を保持。通常設定/入力不変、診断プロセスは終了。
 他作業：548はee1859aでlocal clean。531はApp/Infra mutation成功、Presentation実行中。571のf6push承認は
 12:55に解消済み、14:45のSARIFだけの質問は未回答。merge/tag/releaseは未実施。古い承認待ちを混同しない。
+
+17:35更新: f6基盤を8f34e7cへ製品同一で接続。ADR0092は独立再レビュー指摘なしを確認し技術受理。n/p＋Ctrl左右・通常表示状態・中央配置・単一ルートの二段階適用とowner/stop/partial receiptを実装する。minimum4条件は0警告/エラー、正常終了/通常設定・前面不変。製品実装・画面受理・公開/releaseは未完。次は所有者/計算のfocused proofから進める。
