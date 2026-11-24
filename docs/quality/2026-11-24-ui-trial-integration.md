@@ -313,3 +313,31 @@ MSTEST0017 finding is resolved;129distinct Application/47Presentation successes,
 identical3complexity findings,176App inputs/4DLLs/7fixture identities and all three
 56-check/exit0 native receipts reconcile. Physical input and human visible acceptance
 remain separate. Save this local revision and prepare interactive02 next.
+
+23:15 interactive02: product revision is saved ascd3ecab83a4215dd4172047a39c122bd13bdbb12
+with the normal conformance/security/commit-message hooks passing. The configured
+copy builds0warnings/errors with ordinary analyzers. Its178App inputs include176
+exact copies, with only declared project/composition substitutions;4dependency DLLs
+and all476output files match. No Fixture source or fake provider enters this copy.
+The old trial's dedicated preferences are copied with stable source/destination
+hash143542E3EC8DB78FC152C2D2297FB798A1AC175209EC69027FE557D47E965905;
+normal settings are never copied. The manifest hash is
+80387725DA54DE816CD54ACF2EE4A9B5DE396D0B0EB7B96774CB23799B49244E.
+
+`verify-interactive-startup-01.ps1` verifies interactive02's complete manifest and
+observes the exact unmodified binary twice more than3s apart on a non-input desktop.
+It terminates only that owned startup child; normal shutdown is not claimed. Its
+settings/input fingerprints remain unchanged. Then the standing visible-trial
+request and this explicit revision request are fulfilled by
+`launch-interactive-trial-02.ps1`: one responsive window is observed23:14:48JST,
+PID49036, HWND77925544, title「NeNe Commander / UI trial #564 - icons and parent」.
+No input is sent, no ordinary App is stopped, and normal-settings hashes match.
+Preserve the running binary, its owned folders and private settings at
+D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-02.
+See interactive-trial-parity-02.json, interactive-startup-02.json and
+interactive-visible-launch-02.json. All original source/fixture/trial01 outputs remain.
+
+hide's visible acceptance of this revision and the next release's cutoff are pending.
+At23:15 an optional scope question offers this trial's features as the next cutoff,
+adding drag/drop, or deciding later. No answer, new release authorization, public
+feature push, PR, main merge or new tag is inferred. beta.4 remains already published.
