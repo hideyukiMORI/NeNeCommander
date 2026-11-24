@@ -34,6 +34,8 @@ internal sealed record CommandPaletteContext
         {
             UserIntent value when value == UserIntent.Copy || value == UserIntent.Move =>
                 _activeSide == PaneSide.Left ? "CommandPaletteTransferLeftToRight" : "CommandPaletteTransferRightToLeft",
+            UserIntent value when value == UserIntent.OpenCurrentLocationInOtherPane =>
+                _activeSide == PaneSide.Left ? "CommandPaletteOpenOtherRightDetail" : "CommandPaletteOpenOtherLeftDetail",
             UserIntent value when value == UserIntent.ActivateOtherPane =>
                 _activeSide == PaneSide.Left ? "CommandPaletteActivateRight" : "CommandPaletteActivateLeft",
             UserIntent value when value == UserIntent.OpenSettings => "CommandPaletteSettingsDetail",

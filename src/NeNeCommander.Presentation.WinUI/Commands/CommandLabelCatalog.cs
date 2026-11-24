@@ -44,6 +44,7 @@ public static class CommandLabelCatalog
         new(UserIntent.Escape, "IntentLabelEscape"),
         new(UserIntent.Confirm, "IntentLabelConfirm"),
         new(UserIntent.OpenHelp, "IntentLabelOpenHelp"),
+        new(UserIntent.OpenCurrentLocationInOtherPane, "IntentLabelOpenCurrentLocationInOtherPane"),
         new(UserIntent.FocusFirst, "IntentLabelFocusFirst"),
         new(UserIntent.FocusLast, "IntentLabelFocusLast"),
         new(UserIntent.MoveHalfPageDown, "IntentLabelMoveHalfPageDown"),

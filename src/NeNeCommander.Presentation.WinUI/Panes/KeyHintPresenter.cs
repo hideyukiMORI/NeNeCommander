@@ -71,6 +71,7 @@ public static class KeyHintPresenter
             UserIntent.OpenBookmarks,
             UserIntent.OpenSettings,
             UserIntent.OpenHelp,
+            UserIntent.OpenCurrentLocationInOtherPane,
             UserIntent.Escape,
         ];
     }

@@ -32,6 +32,12 @@ public sealed record DualPaneSnapshot
     /// <summary>Gets the file-operation activity.</summary>
     public OperationActivity Operation { get; }
 
+    /// <summary>Gets whether this snapshot admits opening its listed active location in the opposite pane.</summary>
+    public bool CanOpenCurrentLocationInOtherPane =>
+        Of(ActiveSide).Content is PaneContentListed &&
+        Left.Activity is not (PaneLoading or PaneLaunching) &&
+        Right.Activity is not (PaneLoading or PaneLaunching) &&
+        Operation is not (OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
     /// <summary>Gets the snapshot of one side.</summary>
     /// <param name="side">Requested side.</param>
     /// <returns>The pane snapshot of that side.</returns>

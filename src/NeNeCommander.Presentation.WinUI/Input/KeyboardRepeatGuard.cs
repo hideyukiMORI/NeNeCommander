@@ -31,7 +31,8 @@ internal sealed class KeyboardRepeatGuard
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
             MappedWindowAdjustmentAction window => window.Action.WindowAction is { ChangesDisplay: true },
             MappedKeyboardFocusAction => true,
-            MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu,
+            MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu ||
+                mapped.Intent == UserIntent.OpenCurrentLocationInOtherPane,
             KeyboardPassThrough => IsNativeSingleShot(input),
             _ => false
         };

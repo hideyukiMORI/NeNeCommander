@@ -889,4 +889,10 @@
   <data name="CommandMenuFocusFallbackFormat" xml:space="preserve"><value>焦点项目（未选择）：{0}</value></data>
   <data name="CommandMenuNewFormat" xml:space="preserve"><value>新建于：{0}</value></data>
   <data name="CommandMenuFolderFormat" xml:space="preserve"><value>当前文件夹：{0}</value></data>
+  <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
+  <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>在另一窗格中打开当前文件夹</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>在右窗格中打开当前文件夹 ({0})</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>在左窗格中打开当前文件夹 ({0})</value></data>
+  <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>在右窗格中打开当前文件夹</value></data>
+  <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>在左窗格中打开当前文件夹</value></data>
 </root>

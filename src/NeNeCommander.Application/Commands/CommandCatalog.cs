@@ -38,6 +38,7 @@ public static class CommandCatalog
         new(UserIntent.OpenHelp, CommandMenuGroup.PaletteOnly),
         new(UserIntent.RevealFocused, CommandMenuGroup.FocusedItem),
         new(UserIntent.RevealLocation, CommandMenuGroup.Folder),
+        new(UserIntent.OpenCurrentLocationInOtherPane, CommandMenuGroup.PaletteOnly),
     ]);
 
     /// <summary>Gets the searchable commands in stable empty-query order.</summary>

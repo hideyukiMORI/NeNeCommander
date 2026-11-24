@@ -172,6 +172,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.OpenHelp,
                 UserIntent.RevealFocused,
                 UserIntent.RevealLocation,
+                UserIntent.OpenCurrentLocationInOtherPane,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

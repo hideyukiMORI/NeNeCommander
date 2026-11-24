@@ -136,6 +136,19 @@
         <Grid.Resources>
             <views:SemanticResourceConverter x:Key="SemanticResourceConverter" />
 
+            <Style x:Key="PaneNavigationButtonStyle" TargetType="Button">
+                <Setter Property="AllowFocusOnInteraction" Value="False" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="Background" Value="{StaticResource SurfacePaneBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
+                <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
+                <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
+                <Setter Property="Height" Value="{StaticResource DensityPaneNavigationTargetSize}" />
+                <Setter Property="Width" Value="{StaticResource DensityPaneNavigationTargetSize}" />
+            </Style>
+
             <Style x:Key="PlainTextEditorStyle" TargetType="TextBox">
                 <Setter Property="BorderThickness" Value="{StaticResource BorderNoneThickness}" />
                 <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
@@ -723,23 +736,51 @@
                                     FontWeight="Bold"
                                     Foreground="{StaticResource SurfacePaneBrush}" />
                             </Border>
-                            <TextBlock
-                                x:Name="LeftAddress"
-                                Grid.Column="1"
-                                AutomationProperties.AutomationId="LeftAddress"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                TextTrimming="CharacterEllipsis"
-                                VerticalAlignment="Center" />
-                            <TextBlock
-                                x:Name="LeftStatus"
-                                Grid.Column="2"
-                                AutomationProperties.AutomationId="LeftStatus"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                VerticalAlignment="Center" />
+                            <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="LeftAddress"
+                                    Grid.Column="0"
+                                    AutomationProperties.AutomationId="LeftAddress"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextTrimming="CharacterEllipsis"
+                                    VerticalAlignment="Center" />
+                                <Grid
+                                    Grid.Column="1"
+                                    Height="{StaticResource DensityPaneNavigationTargetSize}"
+                                    Width="{StaticResource DensityPaneNavigationTargetSize}"
+                                    VerticalAlignment="Center">
+                                    <Button
+                                        x:Name="LeftOpenOtherPane"
+                                        AutomationProperties.AutomationId="LeftOpenOtherPane"
+                                        Click="OnOpenOtherPaneClick"
+                                        IsEnabled="False"
+                                        Style="{StaticResource PaneNavigationButtonStyle}"
+                                        Visibility="Collapsed">
+                                        <PathIcon
+                                            AutomationProperties.AccessibilityView="Raw"
+                                            Data="F1 M1,3 H6.5 L8.5,5 H15 V8 H13.5 V6.5 H7.9 L5.9,4.5 H2.5 V12.5 H7.5 V14 H1 Z M11,8.5 L15.5,12 L11,15.5 L10,14.3 L12,12.75 H8.5 V11.25 H12 L10,9.7 Z"
+                                            Height="{StaticResource DensityKindIconSize}"
+                                            Width="{StaticResource DensityKindIconSize}"
+                                            RenderTransformOrigin="0.5,0.5">
+                                        </PathIcon>
+                                    </Button>
+                                </Grid>
+                                <TextBlock
+                                    x:Name="LeftStatus"
+                                    Grid.Column="2"
+                                    AutomationProperties.AutomationId="LeftStatus"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    VerticalAlignment="Center" />
+                            </Grid>
                         </Grid>
                     </Border>
                     <ListView
@@ -804,23 +845,54 @@
                                     FontWeight="Bold"
                                     Foreground="{StaticResource TextSecondaryBrush}" />
                             </Border>
-                            <TextBlock
-                                x:Name="RightAddress"
-                                Grid.Column="1"
-                                AutomationProperties.AutomationId="RightAddress"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                TextTrimming="CharacterEllipsis"
-                                VerticalAlignment="Center" />
-                            <TextBlock
-                                x:Name="RightStatus"
-                                Grid.Column="2"
-                                AutomationProperties.AutomationId="RightStatus"
-                                FontFamily="{StaticResource TypographyMonospaceFamily}"
-                                FontSize="{StaticResource TypographyMonospaceSize}"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                VerticalAlignment="Center" />
+                            <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="RightAddress"
+                                    Grid.Column="0"
+                                    AutomationProperties.AutomationId="RightAddress"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextTrimming="CharacterEllipsis"
+                                    VerticalAlignment="Center" />
+                                <Grid
+                                    Grid.Column="1"
+                                    Height="{StaticResource DensityPaneNavigationTargetSize}"
+                                    Width="{StaticResource DensityPaneNavigationTargetSize}"
+                                    VerticalAlignment="Center">
+                                    <Button
+                                        x:Name="RightOpenOtherPane"
+                                        AutomationProperties.AutomationId="RightOpenOtherPane"
+                                        Click="OnOpenOtherPaneClick"
+                                        IsEnabled="False"
+                                        Style="{StaticResource PaneNavigationButtonStyle}"
+                                        Visibility="Collapsed">
+                                        <PathIcon
+                                            AutomationProperties.AccessibilityView="Raw"
+                                            Data="F1 M1,3 H6.5 L8.5,5 H15 V8 H13.5 V6.5 H7.9 L5.9,4.5 H2.5 V12.5 H7.5 V14 H1 Z M11,8.5 L15.5,12 L11,15.5 L10,14.3 L12,12.75 H8.5 V11.25 H12 L10,9.7 Z"
+                                            Height="{StaticResource DensityKindIconSize}"
+                                            Width="{StaticResource DensityKindIconSize}"
+                                            RenderTransformOrigin="0.5,0.5">
+                                            <PathIcon.RenderTransform>
+                                                <ScaleTransform ScaleX="-1" />
+                                            </PathIcon.RenderTransform>
+                                        </PathIcon>
+                                    </Button>
+                                </Grid>
+                                <TextBlock
+                                    x:Name="RightStatus"
+                                    Grid.Column="2"
+                                    AutomationProperties.AutomationId="RightStatus"
+                                    FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                    FontSize="{StaticResource TypographyMonospaceSize}"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    VerticalAlignment="Center" />
+                            </Grid>
                         </Grid>
                     </Border>
                     <ListView

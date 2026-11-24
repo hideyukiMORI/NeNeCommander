@@ -1,5 +1,6 @@
 using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using NeNeCommander.Application.Panes;
@@ -13,6 +14,7 @@ internal sealed class CommanderPaneView
     private readonly FrameworkElement _root;
     private readonly ViewTextResources _resources;
     private readonly TextBlock _address;
+    private readonly Button _navigation;
     private readonly TextBlock _status;
     private readonly TextBlock _counts;
     private readonly ListView _fileList;
@@ -34,6 +36,7 @@ internal sealed class CommanderPaneView
         _resources = resources;
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
+        _navigation = Find<Button>(prefix + "OpenOtherPane");
         _status = Find<TextBlock>(prefix + "Status");
         _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");
@@ -46,7 +49,7 @@ internal sealed class CommanderPaneView
         _fileList.SelectionChanged += (_, _) => ReconcileSelection();
     }
 
-    internal void Render(PanePresentation presentation, PaneFrame frame)
+    internal void Render(PanePresentation presentation, PaneFrame frame, PaneNavigationAction navigation)
     {
         _rendering = true;
         try
@@ -63,10 +66,20 @@ internal sealed class CommanderPaneView
             _rendering = false;
         }
         ReconcileSelection();
+        RenderNavigation(navigation);
         _status.Text = PaneStatusLine.Compose(
             presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
         _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
         ToolTipService.SetToolTip(_counts, _counts.Text);
+    }
+
+    private void RenderNavigation(PaneNavigationAction navigation)
+    {
+        _navigation.Visibility = navigation.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        _navigation.IsEnabled = navigation.IsEnabled;
+        string navigationName = navigation.ComposeName(_resources.GetString);
+        AutomationProperties.SetName(_navigation, navigationName);
+        ToolTipService.SetToolTip(_navigation, navigationName);
     }
 
     private void RenderContents(PanePresentation presentation, PaneFrame frame)

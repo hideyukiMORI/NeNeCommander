@@ -391,6 +391,8 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
   <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
+  <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>現在のフォルダーを反対ペインで開く</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>件数未取得</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>ファイル {0:N0} · フォルダー {1:N0} · 選択 {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>表示: ファイル {0:N0}・フォルダー {1:N0} · 選択 {2:N0} · 取得: ファイル {3:N0}・フォルダー {4:N0}</value></data>
@@ -889,4 +891,8 @@
   <data name="CommandMenuFocusFallbackFormat" xml:space="preserve"><value>フォーカス項目（選択なし）: {0}</value></data>
   <data name="CommandMenuNewFormat" xml:space="preserve"><value>新規作成先: {0}</value></data>
   <data name="CommandMenuFolderFormat" xml:space="preserve"><value>現在のフォルダー: {0}</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>このフォルダーを右ペインで開く（{0}）</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>このフォルダーを左ペインで開く（{0}）</value></data>
+  <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>現在のフォルダーを右ペインで開く</value></data>
+  <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>現在のフォルダーを左ペインで開く</value></data>
 </root>
