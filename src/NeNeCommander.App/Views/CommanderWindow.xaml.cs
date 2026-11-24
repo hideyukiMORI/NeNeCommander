@@ -177,7 +177,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (IsTextComposing || _bookmarkView.HasOpenSelector)
         {
             _keyboardIntentMapper.ObserveNativeInput(input);
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
             return;
         }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
@@ -190,7 +190,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (!args.Handled &&
             (input.RepeatState == KeyRepeatState.Initial || input.Key != KeyboardKey.Other))
         {
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
         }
     }
 
@@ -206,7 +206,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         args.Handled = !IsTextComposing && ForwardOutcome(_keyboardIntentMapper.Map(input));
         if (!args.Handled)
         {
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
         }
     }
 

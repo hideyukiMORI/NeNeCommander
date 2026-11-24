@@ -125,9 +125,10 @@ internal sealed class BookmarkBrowseView
     /// <param name="region">Region that receives focus.</param>
     internal void Focus(BookmarkManagerRegion region)
     {
-        ShowFocus(region);
         ListView list = ListOf(region);
+        // Own the transition before replacing rows can notify the old region's native focus.
         FocusWhenRealized(list);
+        ShowFocus(region);
     }
 
     internal void FocusSearch()
@@ -140,9 +141,18 @@ internal sealed class BookmarkBrowseView
     internal void CancelPendingFocus()
     {
         _focus.Cancel();
+        // Native input can retain its control without another GotFocus to repair marks and context.
         if (SearchHasFocus)
         {
             ShowFocus(null);
+        }
+        else if (HoldsFocus(_categories))
+        {
+            OnRegionFocused(BookmarkManagerRegion.Categories);
+        }
+        else if (HoldsFocus(_rows))
+        {
+            OnRegionFocused(BookmarkManagerRegion.Bookmarks);
         }
     }
 
@@ -213,7 +223,10 @@ internal sealed class BookmarkBrowseView
                 return;
             }
             _focus.CancelRestoration();
-            ShowFocus(null);
+            if (!_focus.IsPending)
+            {
+                ShowFocus(null);
+            }
         };
         _categories.SelectionChanged += OnCategorySelectionChanged;
         _categories.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Categories);
@@ -231,6 +244,11 @@ internal sealed class BookmarkBrowseView
         if (!_isRendering())
         {
             _focus.CancelRestoration();
+            // CancelRestoration preserves only an explicit transition, whose paint must not revert.
+            if (_focus.IsPending)
+            {
+                return;
+            }
             SelectForFocus(ListOf(region));
         }
         ShowFocus(region);

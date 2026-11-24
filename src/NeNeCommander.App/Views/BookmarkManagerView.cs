@@ -69,27 +69,24 @@ internal sealed class BookmarkManagerView
 
     internal bool HasOpenSelector => IsOpen && _input.HasOpenSelector;
 
-    /// <summary>Preserves the current field after the key map yields actual input to it.</summary>
-    internal void ObserveNativeInput()
-    {
-        if (IsOpen)
-        {
-            _input.ObserveNativeInput();
-        }
-    }
-
-    /// <summary>Lets later native focus navigation supersede queued focus and guards pending confirmation.</summary>
-    internal bool ObserveInput(KeyboardInput input)
+    /// <summary>Preserves native input ownership after the canonical key map yields to the control.</summary>
+    internal void ObserveNativeInput(KeyboardInput input)
     {
         if (!IsOpen)
         {
-            return false;
+            return;
         }
         if (input.Key == KeyboardKey.Tab && input.RepeatState == KeyRepeatState.Initial)
         {
             CancelPendingFocus();
         }
-        return input.Key == KeyboardKey.Enter && _details.IsFocusPending;
+        _input.ObserveNativeInput();
+    }
+
+    /// <summary>Guards Enter until the requested confirmation control has received focus.</summary>
+    internal bool ObserveInput(KeyboardInput input)
+    {
+        return IsOpen && input.Key == KeyboardKey.Enter && _details.IsFocusPending;
     }
 
     /// <summary>
