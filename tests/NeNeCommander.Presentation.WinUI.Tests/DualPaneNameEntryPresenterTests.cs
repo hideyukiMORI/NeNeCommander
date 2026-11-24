@@ -40,7 +40,7 @@ public sealed class DualPaneNameEntryPresenterTests
         Assert.AreSame(OperationBarTone.AwaitingName, awaiting.Tone);
         Assert.HasCount(2, awaiting.KeyHints);
         Assert.AreSame(OperationBarTone.Idle, escaped.Tone);
-        Assert.AreEqual(string.Empty, Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText);
+        Assert.AreEqual(string.Empty, Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText.Resolve("localized suggestion"));
         Assert.AreSame(OperationDetail.None, awaiting.Detail);
         Assert.AreSame(NameEntryPresentation.Hidden, escaped.NameEntry);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);
@@ -142,7 +142,7 @@ public sealed class DualPaneNameEntryPresenterTests
         Assert.AreSame(OperationStatus.RenameAwaitingName, awaiting.OperationStatus);
         Assert.AreEqual(string.Empty, awaiting.DeletionConfirmationAutomationId);
         Assert.AreSame(KeyboardContext.Modal, awaiting.InputContext);
-        Assert.AreEqual("a.txt", Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText);
+        Assert.AreEqual("a.txt", Assert.IsInstanceOfType<ActiveNameEntry>(awaiting.NameEntry).InitialText.Resolve("localized suggestion"));
         Assert.AreSame(OperationDetail.None, awaiting.Detail);
         Assert.AreSame(NameEntryPresentation.Hidden, escaped.NameEntry);
         Assert.AreSame(KeyboardContext.FileList, escaped.InputContext);
@@ -229,7 +229,7 @@ public sealed class DualPaneNameEntryPresenterTests
     {
         ConstructorInfo constructor = typeof(ActiveNameEntry).GetConstructor(
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-            [typeof(string)]) ??
+            [typeof(NameEntryInitialText)]) ??
             throw new AssertFailedException("The active name entry constructor was not found.");
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(

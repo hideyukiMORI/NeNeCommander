@@ -7,7 +7,9 @@ Keyboard input is translated only by `KeyboardIntentMapper`. Arrow and function-
 The App registers its single preview-key and character handlers on the window's root
 content. Clicking blank pane space can leave focus on the framework root scroll host,
 outside the inner pane surface; that focus still uses the same input route and current
-session-owned active pane. Reactivation or a blank-area click does not change that pane.
+session-owned active pane. Reactivation alone does not change that pane. An admitted
+intentional row/header/list-background gesture activates its addressed pane through
+ADR-0090; stale, busy and unrelated scroll-control gestures do not.
 Before translating a file-list preview key, focus on a scroll host is returned through
 the existing active-file-list helper so the following character reaches the same owner.
 Text/IME, modal, repeat and shutdown guards continue to apply before dispatch.
@@ -78,6 +80,7 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F5` | copy selection, or the focus item when selection is empty, to the passive pane |
 | `F6` | move selection, or the focus item when selection is empty, to the passive pane |
 | `F7` | create a directory in the active pane |
+| `Ctrl+F7` | begin empty text-file creation in the captured active location, from FileList or NavigationSurface |
 | `F8` | request deletion under the provider's declared delete policy |
 | `Ctrl+L` | open the active pane path-input modal and select its current location |
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
@@ -274,7 +277,7 @@ When focus is inside an address, rename, search, settings, or dialog text editor
 - Status: **active**
 - Enforcement: mapper tests.
 
-A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns the keys of its own `Settings` context (ADR-0077): `Escape` closes it, it saves each selection immediately, and it never rolls a saved or pending selection back when it closes.
+A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The text-file name entry opened by `Ctrl+F7` is that same modal, with a localized editable `.txt` suggestion selected in full (ADR-0085); the submitted name is used unchanged and a held opening key does not reopen it. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns the keys of its own `Settings` context (ADR-0077): `Escape` closes it, it saves each selection immediately, and it never rolls a saved or pending selection back when it closes.
 
 ### KBD-003 — Key mapping is layout-safe
 
@@ -315,3 +318,70 @@ Theme hints derive their actual keys from `CommandPaletteBindings`.
 ## Accessibility
 
 Every Vim movement has a standard Windows keyboard alternative. Tab order, focus visuals, automation names, high-contrast resource use, and keyboard-only dialog completion are implementation requirements proven by mapper and presentation tests; their on-screen confirmation follows ADR-0054.
+
+## Pointer selection and command-entry focus (ADR-0090)
+
+Qualified plain row clicks replace explicit selection and set focus/anchor; Ctrl
+click toggles one entry and sets focus/anchor. Shift replaces the inclusive visible
+range and Ctrl+Shift adds it without duplicates. A missing anchor is established
+from pre-gesture focus (or target) on the first range gesture and persists for later
+ranges. Space sets that same anchor; movement preserves it; Escape/blank clearing
+removes it. Sort retains it, visibility/refresh recover its owned visible identity,
+and successful navigation clears it. Header activation preserves marks. ScrollBar/
+Thumb and interactive descendants are not blank-list targets. Terminal read/launch
+indications survive a pointer selection; Loading/Launching refuse it.
+
+A first Tapped must actually change the Application snapshot captured immediately
+inside admitted work before HandleAsync. A stale request returning a newer state
+with the same focused row is not acceptance. DoubleTapped requires the accepted
+first side/listing/entry, the current snapshot and visible entry, and consumes the
+candidate once. Other intents/owners/work/listings invalidate it. No click timer,
+framework selection owner or direct Shell route is added.
+
+Unmodified initial F10 from ordinary pane input enters the Bookmarks/Settings/Help
+button group. CommandEntry context exists only while those native controls own
+focus and loses precedence to every existing modal/editor/window scope. Native
+Tab/Shift+Tab cycles the three buttons; Enter/Space invokes their existing commands.
+File-list commands do not map there. F10/Escape returns to the active pane. The
+canonical mapper supplies focus actions and hint declarations. Its existing repeat
+guard holds F10/Escape and native Enter/Space across context changes, so a held key
+cannot reenter, clear pane marks or immediately invoke a newly opened surface.
+Queued/reactivation focus restoration rechecks context and leaves the group alone.
+An admitted synchronous row/header/background click returns to its explicit pane
+through the existing focus helper after rendering. The receipt requires the exact
+before/request owner, a new target snapshot, the matching active side and available
+input ownership; rejected or asynchronous Open results cannot request this return.
+The host checks stopping before consulting native context and rechecks current
+ownership before applying focus. Header and absent-content receipts preserve their
+content/activity/model identities while replacing the snapshot wrapper.
+
+Only raw F10 adds explicit Shift distinction: Shift+F10 opens context under ADR-0091,
+and Shift with Control/Alt remains an undeclared combination. Other
+virtual keys and produced characters keep their current Control/Alt mapping,
+including uppercase G, layout-produced symbols, IME and dead-key exclusions.
+This contract is under implementation; technical design acceptance does not claim
+native event-order, physical-key or visible-layout acceptance.
+
+## Context-menu input (ADR-0091)
+
+Initial Shift+F10 or Apps from FileList preserves the active pane and marks, opening
+item context when focus exists or folder context for an empty listed folder. Bare
+F10 and file-list Tab retain command-entry/pane-switch semantics. Positionless native
+ContextRequested events never reopen the context after this mapped key. Pointer
+requests use exact rendered row/background/header ownership and invalidate double tap.
+
+ContextMenu is a native-control input context over the existing command selection
+owner. Up/Down and submenu Left/Right remain native. Enter/Space and Escape pass only
+the initial event; the shared repeat guard consumes held repeats across submenu,
+root, replacement owner and returned pane. The first submenu Escape collapses only
+that submenu, and a fresh Escape dismisses root. No ordinary pane intent is mapped
+while ContextMenu owns input, and no extra popup/root key registration exists.
+Text/IME ownership and stopping keep precedence. Shift+F10/Apps captions are generated
+from canonical declarations; Reveal has no invented shortcut and renders an empty cap.
+
+Native Closed defers exact-owner cancellation until the current invocation turn ends.
+Click/Invoke may consume that same owner first; genuinely late invocation is rejected.
+Replacing, submitting, stopping or showing another surface detaches old callbacks;
+a departing surface cannot take focus from the new owner. Actual event ordering,
+physical modifiers/IME, layout/accessibility and visible acceptance retain distinct
+proof requirements in ADR-0091 and the feature quality record.

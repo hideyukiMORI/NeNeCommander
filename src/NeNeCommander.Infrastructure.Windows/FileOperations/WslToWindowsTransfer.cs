@@ -114,6 +114,15 @@ internal sealed class WslToWindowsTransfer : IFileOperationPort
         return FailedStep();
     }
 
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location, FileSystemPath target, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(target);
+        return FailedStep();
+    }
+
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source, FileSystemPath target, CancellationToken cancellationToken)
     {

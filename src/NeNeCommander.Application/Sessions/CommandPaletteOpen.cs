@@ -5,7 +5,7 @@ using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Sessions;
 
-/// <summary>Captures both pane endpoints and candidates for one open command palette.</summary>
+/// <summary>Captures both pane endpoints, surface and candidates for one command selection.</summary>
 public sealed record CommandPaletteOpen : CommandPaletteState
 {
     private protected override void RestrictDerivation()
@@ -13,18 +13,17 @@ public sealed record CommandPaletteOpen : CommandPaletteState
     }
 
     internal CommandPaletteOpen(
-        PaneSnapshot left,
-        PaneSnapshot right,
-        PaneSide activeSide,
+        DualPaneSnapshot panes,
+        CommandSurface surface,
         IReadOnlyList<CommandCandidate> candidates)
     {
-        ArgumentNullException.ThrowIfNull(left);
-        ArgumentNullException.ThrowIfNull(right);
-        ArgumentNullException.ThrowIfNull(activeSide);
+        ArgumentNullException.ThrowIfNull(panes);
+        ArgumentNullException.ThrowIfNull(surface);
         ArgumentNullException.ThrowIfNull(candidates);
-        Left = left;
-        Right = right;
-        ActiveSide = activeSide;
+        Left = panes.Left;
+        Right = panes.Right;
+        ActiveSide = panes.ActiveSide;
+        Surface = surface;
         Candidates = candidates;
     }
 
@@ -36,6 +35,9 @@ public sealed record CommandPaletteOpen : CommandPaletteState
 
     /// <summary>Gets the active command target captured at open.</summary>
     public PaneSide ActiveSide { get; }
+
+    /// <summary>Gets the sole surface permitted to render this captured selection.</summary>
+    public CommandSurface Surface { get; }
 
     /// <summary>Gets the stable catalog candidates and captured availability.</summary>
     public IReadOnlyList<CommandCandidate> Candidates { get; }

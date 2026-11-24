@@ -26,6 +26,7 @@ public sealed class KeyboardHelpTests
         "KeyboardHelpGroupBookmarks",
         "KeyboardHelpGroupCommandPalette",
         "KeyboardHelpGroupHelp",
+        "KeyboardHelpGroupCommandEntry",
     ];
     private static readonly string[] ChordCaps = ["KeyLabelChordGG"];
     private static readonly string[] SlotCaps = ["KeyLabelCtrl1To9"];
@@ -126,6 +127,7 @@ public sealed class KeyboardHelpTests
         List<string> declared = [.. bindings
             .Where(binding => binding.Intent is not BookmarkShortcutSelection)
             .Select(binding => binding.KeyLabelResourceKey)
+            .Concat(KeyboardIntentMapper.FocusBindings.Where(binding => binding.Context == KeyboardContext.FileList).Select(binding => binding.Key.LabelResourceKey))
             .Append("KeyLabelChordGG")
             .Append("KeyLabelCtrl1To9")];
         CollectionAssert.AreEquivalent(declared, shown);

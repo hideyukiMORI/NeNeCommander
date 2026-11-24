@@ -11,12 +11,15 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | passive pane | The other pane; the default destination for cross-pane operations. |
 | focus item | The single item addressed by movement and open commands. |
 | selection | The explicit set of items marked for a batch operation. |
+| selection anchor | The absent or exact owned visible path in PaneState from which consecutive pointer range selection is measured; only PaneReducer establishes, preserves, rebinds or clears it (ADR-0090). |
+| pane interaction | One closed row or passive-surface UserIntent qualified by explicit pane side and the exact rendered PaneSnapshot, with owned visible entry membership for a row (ADR-0090). |
+| command entry | The one application-level Bookmarks/Settings/Help button group and its Presentation-only native-focus context; it invokes existing intents and owns no Application modal (ADR-0090). |
 | filesystem path | A validated `FileSystemPath` value with a known provider boundary. |
 | provider boundary | `WindowsLocal`, `WindowsUnc`, or `Wsl`, including capabilities and semantics. |
 | intent | A UI-independent request for behavior. |
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
-| inspection purpose | The closed `FileInspectionPurpose` requested by the gateway: `IdentityOnly` for transfer, rename and directory creation, or `Deletion` for identity plus ordinary-deletion capability. The single provider inspection route owns both (ADR-0083). |
+| inspection purpose | The closed `FileInspectionPurpose` requested by the gateway: `IdentityOnly` for transfer, rename, directory creation and empty text-file creation, or `Deletion` for identity plus ordinary-deletion capability. The single provider inspection route owns both (ADR-0083). |
 | unrequested deletion capability | `DeletionCapability.NotRequested`: no ordinary-deletion capability was requested or granted. It is distinct from inspected `Recycle` and `PermanentOnly`; ordinary deletion rejects a batch containing it before any effect. Verified-copy deletion retains its separate receipt authority (ADR-0083). |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
 | closed record cases | Known sealed cases whose public abstract root prevents ordinary non-friend external C# code from adding another concrete case through an externally inaccessible abstract member (ADR-0073). External abstract derivation and trusted friend assemblies remain possible; this is not an in-process security sandbox. |
@@ -42,6 +45,8 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | verified copy receipt | Immutable workflow evidence from the shared copy verifier, binding one frozen source root to its exact target and recording descendant identities, kinds, membership and content evidence. Composite-move deletion revalidates it at the source provider; it is not a tree lock or a persisted authorization token (ADR-0069). |
 | source partially deleted | An explicit effect stating that some recorded descendants of a requested move source were removed before deletion stopped. Remaining source entries and the copy target are retained; it does not claim complete `SourceDeleted` or rollback (ADR-0069). |
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
+| empty text-file creation | One zero-byte direct child created exclusively through `CreateTextFileRequest` and `FileOperationGateway` (ADR-0085). The editable localized suggestion ends in `.txt`; the submitted name is used unchanged, no encoding is asserted and no editor is launched. |
+| file created | The `FileCreated(target)` effect published only after the provider's exclusive empty-file step succeeds, including success after late cancellation. It does not mean a later refresh succeeded. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
 | key binding | One declared entry of the canonical key map: a keyboard context, a layout-translated key, its explicit modifier state, and the single intent it emits. |
@@ -100,3 +105,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | `WslEntryMetadata` | Immutable internal group of a WSL entry identity, observed kind and raw attributes; its path and independently observed name remain owned by WslFileSystemEntry. |
 | `WindowsLocalOperationSteps` | Internal owner of the existing local mutation/capability/verification bodies, invoked only inside the Windows local adapter execution boundary. |
 | `WindowsLocalTransferPreflight` | One-call owner of ordered Windows local transfer reservations, choices and conflicts; retains no plan across calls and performs no mutation. |
+| command surface | One closed Palette, ItemContext or FolderContext case over the existing command-selection owner; it controls captured catalog membership and the sole visible adapter (ADR-0091). |
+| command context request | The immutable qualified PaneInteraction plus CommandSurface derived from captured pane state without effects; CommanderSession alone applies and captures synchronously (ADR-0091). |
+| command menu section | One localized explicit target heading with rows derived from the sole command catalog: focus, selection/focus fallback, New destination or current folder (ADR-0091). |
+| menu invocation qualifier | The adapter-only CommandMenuInvocation that orders one native flyout's same-turn Click/Closed callbacks against its existing exact open state; it is not a scope owner or dispatcher (ADR-0091). |
+| Explorer reveal | A user-requested path handoff through IFileLauncher.RevealAsync that asks Shell to select the exact path in its parent namespace; acceptance does not prove a selected window or stable target identity (ADR-0091). |
+| file launch purpose | The closed activation/reveal purpose carried by the one PaneLaunching, PaneLaunchFailed and PaneLaunchCancelled lifecycle; no parallel busy flag exists (ADR-0091). |

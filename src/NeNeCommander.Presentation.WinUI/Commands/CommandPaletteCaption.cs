@@ -29,8 +29,8 @@ internal sealed record CommandPaletteCaption
         ArgumentNullException.ThrowIfNull(bindings);
         ArgumentNullException.ThrowIfNull(localize);
         CommandLabel label = CommandLabelCatalog.LabelFor(intent);
-        string shortcut = intent == UserIntent.OpenColorSchemes ? string.Empty :
-            localize(bindings.First(binding => binding.Intent == intent).KeyLabelResourceKey);
+        KeyBinding? binding = bindings.FirstOrDefault(binding => binding.Intent == intent);
+        string shortcut = binding is null ? string.Empty : localize(binding.KeyLabelResourceKey);
         return new CommandPaletteCaption(
             localize(label.ResourceKey),
             shortcut,

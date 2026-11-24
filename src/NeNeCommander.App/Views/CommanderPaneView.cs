@@ -20,10 +20,12 @@ internal sealed class CommanderPaneView
     private readonly Border _header;
     private readonly Border _numberSurface;
     private readonly TextBlock _number;
+    private readonly PanePointerView _pointer;
     private PanePresentation? _rendered;
+    private bool _rendering;
 
 
-    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side)
+    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side, PanePointerBindings pointer)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -40,15 +42,27 @@ internal sealed class CommanderPaneView
         _header = Find<Border>(prefix + "PaneHeader");
         _numberSurface = Find<Border>(prefix + "PaneNumberSurface");
         _number = Find<TextBlock>(prefix + "PaneNumber");
+        _pointer = new PanePointerView(_fileList, _header, side, pointer);
+        _fileList.SelectionChanged += (_, _) => ReconcileSelection();
     }
 
     internal void Render(PanePresentation presentation, PaneFrame frame)
     {
-        if (!ReferenceEquals(_rendered, presentation))
+        _rendering = true;
+        try
         {
-            RenderContents(presentation, frame);
+            _pointer.Render(presentation);
+            if (!ReferenceEquals(_rendered, presentation))
+            {
+                RenderContents(presentation, frame);
+            }
             _rendered = presentation;
         }
+        finally
+        {
+            _rendering = false;
+        }
+        ReconcileSelection();
         _status.Text = PaneStatusLine.Compose(
             presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
         _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
@@ -69,6 +83,15 @@ internal sealed class CommanderPaneView
         }
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
+    }
+
+    private void ReconcileSelection()
+    {
+        if (!_rendering && _rendered is not null &&
+            !ReferenceEquals(_fileList.SelectedItem, _rendered.FocusRow))
+        {
+            _fileList.SelectedItem = _rendered.FocusRow;
+        }
     }
 
     private static void RenderFrame(PaneFrame frame, Border border, Border header)

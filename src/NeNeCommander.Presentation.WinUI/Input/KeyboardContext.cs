@@ -9,6 +9,9 @@ public abstract record KeyboardContext
     /// <summary>Gets the file-list context with file commands enabled.</summary>
     public static KeyboardContext FileList { get; } = new FileListContext();
 
+    /// <summary>Gets the native command-button focus context without file commands.</summary>
+    public static KeyboardContext CommandEntry { get; } = new CommandEntryContext();
+
     /// <summary>Gets a non-file navigation surface where refresh remains available.</summary>
     public static KeyboardContext NavigationSurface { get; } = new NavigationSurfaceContext();
 
@@ -51,11 +54,27 @@ public abstract record KeyboardContext
     /// <summary>Gets the bookmark draft context with explicit save and cancel keys.</summary>
     public static KeyboardContext BookmarkDraft { get; } = new BookmarkDraftContext();
 
+    /// <summary>Gets the native context menu whose navigation stays with its framework control.</summary>
+    public static KeyboardContext ContextMenu { get; } = new ContextMenuContext();
+
+    private sealed record ContextMenuContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private KeyboardContext()
     {
     }
 
     private sealed record FileListContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record CommandEntryContext : KeyboardContext
     {
         private protected override void RestrictDerivation()
         {

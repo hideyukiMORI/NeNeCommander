@@ -21,7 +21,7 @@ public sealed class CommandPaletteViewStateTests
 
         CommandPaletteViewState view = CommandPalettePresenter.Present(open, CommandPaletteTestContext.Localize);
 
-        Assert.HasCount(24, view.Rows);
+        Assert.HasCount(27, view.Rows);
         Assert.AreSame(open, view.SourceState);
         Assert.AreEqual(string.Empty, view.Query);
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
@@ -138,11 +138,11 @@ public sealed class CommandPaletteViewStateTests
 
         view.MovePrevious();
         Assert.AreSame(UserIntent.OpenFocused, view.SelectedRow!.Intent);
-        for (int index = 0; index < 23; index++)
+        for (int index = 0; index < view.Rows.Count; index++)
         {
             view.MoveNext();
         }
-        Assert.AreSame(UserIntent.OpenHelp, view.SelectedRow!.Intent);
+        Assert.AreSame(UserIntent.RevealLocation, view.SelectedRow!.Intent);
         view.UpdateQuery("IntentLabelNavigate");
         Assert.HasCount(3, view.Rows);
         Assert.AreSame(UserIntent.NavigateParent, view.SelectedRow!.Intent);

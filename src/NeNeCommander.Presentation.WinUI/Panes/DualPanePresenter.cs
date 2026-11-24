@@ -104,7 +104,9 @@ public static class DualPanePresenter
     private static NameEntryPresentation TranslateNameEntry(OperationActivity activity)
     {
         return activity is OperationAwaitingName awaiting
-            ? new ActiveNameEntry(awaiting.InitialName)
+            ? new ActiveNameEntry(awaiting.Kind == OperationKind.CreateTextFile
+                ? NameEntryInitialText.SuggestedTextFileName
+                : NameEntryInitialText.Create(awaiting.InitialName))
             : NameEntryPresentation.Hidden;
     }
 
@@ -166,7 +168,9 @@ public static class DualPanePresenter
     {
         return kind == OperationKind.CreateDirectory
             ? OperationStatus.CreateDirectoryAwaitingName
-            : OperationStatus.RenameAwaitingName;
+            : kind == OperationKind.CreateTextFile
+                ? OperationStatus.CreateTextFileAwaitingName
+                : OperationStatus.RenameAwaitingName;
     }
 
     private static OperationStatus TranslateRunning(OperationKind kind)
@@ -177,6 +181,7 @@ public static class DualPanePresenter
             OperationKind value when value == OperationKind.Copy => OperationStatus.Copying,
             OperationKind value when value == OperationKind.Delete => OperationStatus.Deleting,
             OperationKind value when value == OperationKind.CreateDirectory => OperationStatus.CreatingDirectory,
+            OperationKind value when value == OperationKind.CreateTextFile => OperationStatus.CreatingTextFile,
             _ => OperationStatus.Renaming,
         };
     }
@@ -189,6 +194,7 @@ public static class DualPanePresenter
             OperationKind value when value == OperationKind.Copy => OperationStatus.CopyRequestRejected,
             OperationKind value when value == OperationKind.Delete => OperationStatus.DeleteRequestRejected,
             OperationKind value when value == OperationKind.CreateDirectory => OperationStatus.CreateDirectoryRequestRejected,
+            OperationKind value when value == OperationKind.CreateTextFile => OperationStatus.CreateTextFileRequestRejected,
             _ => OperationStatus.RenameRequestRejected,
         };
     }
@@ -201,6 +207,7 @@ public static class DualPanePresenter
             OperationKind value when value == OperationKind.Copy => TranslateCopyCompletion(completion),
             OperationKind value when value == OperationKind.Delete => TranslateDeleteCompletion(completion),
             OperationKind value when value == OperationKind.CreateDirectory => TranslateCreateDirectoryCompletion(completion),
+            OperationKind value when value == OperationKind.CreateTextFile => TranslateCreateTextFileCompletion(completion),
             _ => TranslateRenameCompletion(completion),
         };
     }
@@ -212,6 +219,15 @@ public static class DualPanePresenter
             : completion == FileOperationCompletionKind.Cancelled
                 ? OperationStatus.CreateDirectoryCancelled
                 : OperationStatus.CreateDirectoryRejected;
+    }
+
+    private static OperationStatus TranslateCreateTextFileCompletion(FileOperationCompletionKind completion)
+    {
+        return completion == FileOperationCompletionKind.Succeeded
+            ? OperationStatus.TextFileCreated
+            : completion == FileOperationCompletionKind.Cancelled
+                ? OperationStatus.CreateTextFileCancelled
+                : OperationStatus.CreateTextFileRejected;
     }
 
     private static OperationStatus TranslateRenameCompletion(FileOperationCompletionKind completion)

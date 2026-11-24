@@ -167,6 +167,19 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     }
 
     /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(target);
+        return SourcePort(location.Path) is IFileOperationPort port
+            ? port.CreateEmptyFileAsync(location, target, cancellationToken)
+            : FailedStep();
+    }
+
+    /// <inheritdoc />
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,

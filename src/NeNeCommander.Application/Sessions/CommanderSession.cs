@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -37,19 +38,7 @@ public sealed class CommanderSession
     }
 
     /// <summary>Gets the current complete application-session snapshot.</summary>
-    public CommanderSnapshot Current
-    {
-        get
-        {
-            TransientScopeSnapshot scopes = new(
-                _scopes.AddressEditor.Current,
-                _scopes.CommandPalette.Current,
-                _scopes.WindowAdjustment.Current,
-                _scopes.Locations.Current,
-                _scopes.KeyboardHelp.Current);
-            return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
-        }
-    }
+    public CommanderSnapshot Current => new(_panes.Current, _settings.Current, _scopes.Capture());
 
     /// <summary>Reads one pane location unless another interaction owns modal input.</summary>
     public async Task<CommanderSnapshot> NavigateAsync(
@@ -81,6 +70,10 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
+        if (CommandPaletteSession.IsContextRequest(intent))
+        {
+            return OpenContextMenu(intent);
+        }
         if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
             _scopes.KeyboardHelp.Current is KeyboardHelpOpen)
         {
@@ -167,14 +160,16 @@ public sealed class CommanderSession
     /// </summary>
     private bool OpenScope(UserIntent intent)
     {
+        DualPaneSnapshot panes = _panes.Current;
+        InteractionOwnership ownership = PaletteOwnership(panes);
         Action? open = intent switch
         {
             _ when intent == UserIntent.OpenSettings => OpenSettingsEditor,
             _ when intent == UserIntent.OpenColorSchemes => OpenColorSchemePicker,
             _ when intent == UserIntent.OpenBookmarks => OpenBookmarkManager,
-            _ when intent == UserIntent.OpenCommandPalette => OpenCommandPalette,
-            _ when intent == UserIntent.OpenWindowAdjustment => OpenWindowAdjustment,
-            _ when intent == UserIntent.OpenHelp => OpenKeyboardHelp,
+            _ when intent == UserIntent.OpenCommandPalette => () => _scopes.CommandPalette.Open(panes, CommandSurface.Palette, ownership),
+            _ when intent == UserIntent.OpenWindowAdjustment => () => _scopes.WindowAdjustment.Open(panes.ActiveSide, ownership),
+            _ when intent == UserIntent.OpenHelp => () => _scopes.KeyboardHelp.Open(panes.ActiveSide, ownership),
             _ => null,
         };
         open?.Invoke();
@@ -425,33 +420,30 @@ public sealed class CommanderSession
         return panes.Left.Activity is PaneLoading || panes.Right.Activity is PaneLoading;
     }
 
-    private void OpenCommandPalette()
+    private CommanderSnapshot OpenContextMenu(UserIntent intent)
     {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.CommandPalette.Open(panes, PaletteOwnership(panes));
+        DualPaneSnapshot before = _panes.Current;
+        if (!CanAcquireContext(before) || CommandContextRequest.Create(intent, before) is not CommandContextRequest request)
+        {
+            return Current;
+        }
+        DualPaneSnapshot after = _panes.ApplyInteraction(request.Interaction);
+        if (!ReferenceEquals(before.Of(request.Interaction.Side), after.Of(request.Interaction.Side)))
+        {
+            _ = _scopes.CommandPalette.Open(after, request.Surface, InteractionOwnership.ScopeOwnsInput);
+        }
+        return Current;
     }
 
-    /// <summary>
-    /// Opens the window mode under the shared idle rule the palette already uses. An open palette
-    /// never reaches this point: <see cref="HandleAsync"/> routes every intent to the palette while
-    /// it is open, and the palette closes before it dispatches an accepted command. Listed pane
-    /// content is not part of the rule: a pane whose last read failed does not prevent moving the
-    /// window.
-    /// </summary>
-    private void OpenWindowAdjustment()
+    private bool CanAcquireContext(DualPaneSnapshot panes)
     {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, PaletteOwnership(panes));
-    }
-
-    /// <summary>
-    /// Opens the keyboard help under the same idle rule as the window mode (ADR-0076). An open palette
-    /// closes before it dispatches an accepted command, so it never reaches this point while open.
-    /// </summary>
-    private void OpenKeyboardHelp()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.KeyboardHelp.Open(panes.ActiveSide, PaletteOwnership(panes));
+        InteractionOwnership ownership = PaletteOwnership(panes);
+        return ownership == InteractionOwnership.ScopeOwnsInput &&
+            Volatile.Read(ref _bookmarkNavigationInProgress) == 0 &&
+            _scopes.WindowAdjustment.Current is not WindowAdjustmentOpen &&
+            _scopes.KeyboardHelp.Current is not KeyboardHelpOpen &&
+            _scopes.Locations.Current is LocationsClosed &&
+            _scopes.CommandPalette.CanAcquireContext(panes, ownership);
     }
 
     /// <summary>

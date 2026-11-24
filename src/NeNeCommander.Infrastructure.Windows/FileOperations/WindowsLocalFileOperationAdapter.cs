@@ -203,6 +203,20 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     }
 
     /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(target);
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(
+                () => WindowsLocalEmptyFileCreation.Execute(location, target, _driveBoundary),
+                FileOperationFailureKind.ProviderUnavailable));
+    }
+
+    /// <inheritdoc />
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,

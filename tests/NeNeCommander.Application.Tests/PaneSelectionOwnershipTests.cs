@@ -64,7 +64,7 @@ public sealed class PaneSelectionOwnershipTests
         PaneState original = CreateState(2);
         List<FileSystemPath> mutable = [.. original.Selection];
 
-        PaneState next = original.Transition(original.FocusItem, mutable);
+        PaneState next = original.Transition(original.FocusItem, mutable, original.SelectionAnchor);
         mutable.Clear();
 
         Assert.HasCount(2, original.Selection);
@@ -83,7 +83,7 @@ public sealed class PaneSelectionOwnershipTests
         List<FileSystemPath> mutable = [.. original.Selection];
         IReadOnlyList<FileSystemPath> input = mutable.AsReadOnly();
 
-        PaneState next = original.Transition(original.FocusItem, input);
+        PaneState next = original.Transition(original.FocusItem, input, original.SelectionAnchor);
         mutable.Clear();
 
         Assert.HasCount(2, original.Selection);

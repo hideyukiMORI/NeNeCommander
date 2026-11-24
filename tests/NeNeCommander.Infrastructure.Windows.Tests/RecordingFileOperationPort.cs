@@ -83,6 +83,14 @@ internal sealed class RecordingFileOperationPort : IFileOperationPort
         return Step("create");
     }
 
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        return Step("create-file");
+    }
+
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,

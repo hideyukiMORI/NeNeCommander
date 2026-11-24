@@ -22,6 +22,13 @@ public sealed record PaneSnapshot
     /// <summary>Gets the snapshot of a pane that has never read a location.</summary>
     public static PaneSnapshot Initial { get; } = new(PaneContent.Absent, PaneActivity.Idle);
 
+    /// <summary>Replaces accepted pane content while retaining its terminal activity indication.</summary>
+    internal PaneSnapshot WithContent(PaneContent content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return new PaneSnapshot(content, Activity);
+    }
+
     internal PaneSnapshot WithActivity(PaneActivity activity)
     {
         ArgumentNullException.ThrowIfNull(activity);

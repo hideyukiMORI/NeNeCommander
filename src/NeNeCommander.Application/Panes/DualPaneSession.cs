@@ -11,7 +11,7 @@ namespace NeNeCommander.Application.Panes;
 
 /// <summary>
 /// Coordinates the two pane sessions, the sole active side, and file operations between them.
-/// Only <see cref="UserIntent.ActivateOtherPane"/> changes the active side; every other pane intent
+/// <see cref="UserIntent.ActivateOtherPane"/> and admitted qualified pointer input change the active side; other pane intents
 /// reaches the active pane's session alone, so a read in flight always lands in the pane that
 /// started it. <see cref="UserIntent.Move"/>, <see cref="UserIntent.Copy"/>, and <see cref="UserIntent.Delete"/> run through the sole
 /// <see cref="FileOperationGateway"/>; every intent is frozen while an operation runs except
@@ -114,12 +114,41 @@ public sealed class DualPaneSession
         {
             return ResolveConflictAsync(awaitingConflict, intent, observer, cancellationToken);
         }
+        if (intent is PaneInteraction interaction)
+        {
+            return HandleInteractionAsync(interaction, cancellationToken);
+        }
         if (intent == UserIntent.ActivateOtherPane)
         {
             _activeSide = _activeSide.Other;
             return Task.FromResult(Current);
         }
         return RouteAsync(intent, observer, cancellationToken);
+    }
+
+    private Task<DualPaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
+    {
+        PaneSnapshot before = Current.Of(interaction.Side);
+        DualPaneSnapshot after = ApplyInteraction(interaction);
+        return !ReferenceEquals(before, after.Of(interaction.Side)) &&
+            interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
+                ? ReportAfterAsync(SessionOf(interaction.Side).HandleAsync(UserIntent.OpenFocused, cancellationToken))
+                : Task.FromResult(after);
+    }
+
+    /// <summary>Commits one qualified pointer transition without awaiting any external work.</summary>
+    internal DualPaneSnapshot ApplyInteraction(PaneInteraction interaction)
+    {
+        PaneSession target = SessionOf(interaction.Side);
+        if (IsFrozen || _left.Current.Activity is PaneLoading or PaneLaunching ||
+            _right.Current.Activity is PaneLoading or PaneLaunching ||
+            !interaction.Matches(target.Current))
+        {
+            return Current;
+        }
+        _ = target.ApplyInteraction(interaction);
+        _activeSide = interaction.Side;
+        return Current;
     }
 
     private Task<DualPaneSnapshot> RouteAsync(
@@ -137,18 +166,19 @@ public sealed class DualPaneSession
     }
 
     /// <summary>
-    /// Routes the two intents that need a typed name into the shared name entry, and every
+    /// Routes the intents that need a typed name into the shared name entry, and every
     /// remaining intent to the active pane's own session.
     /// </summary>
     private Task<DualPaneSnapshot> RouteNamedOperationAsync(UserIntent intent, CancellationToken cancellationToken)
     {
-        return intent == UserIntent.CreateDirectory
-            ? Task.FromResult(BeginDirectoryName())
-            : intent == UserIntent.Rename
-                ? Task.FromResult(BeginRenameName())
-                : intent is ResolvedBookmarkNavigation bookmark
-                    ? NavigateAsync(_activeSide, bookmark.Path, cancellationToken)
-                    : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+        return intent switch
+        {
+            _ when intent == UserIntent.CreateDirectory => Task.FromResult(BeginCreationName(OperationKind.CreateDirectory)),
+            _ when intent == UserIntent.CreateTextFile => Task.FromResult(BeginCreationName(OperationKind.CreateTextFile)),
+            _ when intent == UserIntent.Rename => Task.FromResult(BeginRenameName()),
+            ResolvedBookmarkNavigation bookmark => NavigateAsync(_activeSide, bookmark.Path, cancellationToken),
+            _ => ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken)),
+        };
     }
 
     private Task<DualPaneSnapshot> ResolveNameAsync(
@@ -171,15 +201,17 @@ public sealed class DualPaneSession
     {
         return awaiting.Kind == OperationKind.CreateDirectory
             ? CreateDirectoryRequest.Create(awaiting.Subject, name)
-            : RenameRequest.Create(awaiting.Subject, name);
+            : awaiting.Kind == OperationKind.CreateTextFile
+                ? CreateTextFileRequest.Create(awaiting.Subject, name)
+                : RenameRequest.Create(awaiting.Subject, name);
     }
 
-    private DualPaneSnapshot BeginDirectoryName()
+    private DualPaneSnapshot BeginCreationName(OperationKind kind)
     {
         if (SessionOf(_activeSide).Current.Content is PaneContentListed active)
         {
             _operation = new OperationAwaitingName(
-                OperationKind.CreateDirectory,
+                kind,
                 active.Listing.Location,
                 string.Empty);
         }
@@ -353,6 +385,7 @@ public sealed class DualPaneSession
         return request switch
         {
             CreateDirectoryRequest created => created.Target,
+            CreateTextFileRequest created => created.Target,
             RenameRequest renamed => renamed.Target,
             _ => null,
         };

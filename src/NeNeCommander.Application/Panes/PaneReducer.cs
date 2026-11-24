@@ -44,7 +44,7 @@ public static class PaneReducer
         }
         if (intent == UserIntent.Escape)
         {
-            return state.Transition(state.FocusItem, Array.Empty<FileSystemPath>());
+            return state.Transition(state.FocusItem, Array.Empty<FileSystemPath>(), null);
         }
 
         int offset = GetMovementOffset(state, intent);
@@ -57,7 +57,7 @@ public static class PaneReducer
         int targetIndex = intent == UserIntent.MoveNext || intent == UserIntent.MovePrevious
             ? (currentIndex + offset + state.VisibleEntries.Count) % state.VisibleEntries.Count
             : Math.Clamp(currentIndex + offset, 0, state.VisibleEntries.Count - 1);
-        return state.Transition(state.VisibleEntries[targetIndex].Path, state.Selection);
+        return state.Transition(state.VisibleEntries[targetIndex].Path, state.Selection, state.SelectionAnchor);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public static class PaneReducer
 
         PaneState state = PaneState.FromListing(listing, visiblePageCapacity, hiddenItemVisibility);
         FileSystemPath? recovered = RecoverFocus(state, preferredFocus);
-        return recovered is null ? state : state.Transition(recovered, state.Selection);
+        return recovered is null ? state : state.Transition(recovered, state.Selection, state.SelectionAnchor);
     }
 
     /// <summary>
@@ -101,6 +101,13 @@ public static class PaneReducer
         if (previousState is null)
         {
             return navigatedState;
+        }
+        if (action == PaneNavigationAction.Preserve)
+        {
+            navigatedState = navigatedState.Transition(
+                navigatedState.FocusItem,
+                navigatedState.Selection,
+                PaneSelection.RebindAnchor(navigatedState, previousState.SelectionAnchor));
         }
         if (action == PaneNavigationAction.Preserve ||
             FileSystemPathIdentityComparer.Instance.Equals(previousState.Location, navigatedState.Location))
@@ -142,7 +149,7 @@ public static class PaneReducer
             GetFocusIndex(previousState));
         return neighbour is null
             ? refreshedState
-            : refreshedState.Transition(neighbour, refreshedState.Selection);
+            : refreshedState.Transition(neighbour, refreshedState.Selection, refreshedState.SelectionAnchor);
     }
 
     private static PaneState CommitAppendedNavigation(PaneState previousState, PaneState navigatedState)
@@ -174,7 +181,8 @@ public static class PaneReducer
         PaneState rebuilt = state.WithHiddenItemVisibility(hiddenItemVisibility);
         return rebuilt.Transition(
             RecoverFocusOrFirst(rebuilt, state.FocusItem),
-            RetainVisibleSelection(rebuilt, state.Selection));
+            RetainVisibleSelection(rebuilt, state.Selection),
+            PaneSelection.RebindAnchor(rebuilt, state.SelectionAnchor));
     }
 
     /// <summary>
@@ -198,7 +206,7 @@ public static class PaneReducer
         ArgumentNullException.ThrowIfNull(sortOrder);
 
         PaneState rebuilt = state.WithSortOrder(sortOrder);
-        return rebuilt.Transition(RecoverFocusOrFirst(rebuilt, focusTarget), state.Selection);
+        return rebuilt.Transition(RecoverFocusOrFirst(rebuilt, focusTarget), state.Selection, state.SelectionAnchor);
     }
 
     private static FileSystemPath? RecoverFocusOrFirst(PaneState state, FileSystemPath? target)
@@ -325,22 +333,38 @@ public static class PaneReducer
 
     private static PaneState ToggleSelection(PaneState state)
     {
-        if (state.FocusItem is null)
-        {
-            return state;
-        }
+        return state.FocusItem is FileSystemPath focus
+            ? state.Transition(focus, PaneSelection.Toggle(state.Selection, focus), focus)
+            : state;
+    }
 
-        List<FileSystemPath> selection = [.. state.Selection];
-        int selectedIndex = selection.FindIndex(item =>
-            FileSystemPathIdentityComparer.Instance.Equals(item, state.FocusItem));
-        if (selectedIndex < 0)
+    /// <summary>Commits one already-qualified pointer action through this sole state owner.</summary>
+    internal static PaneState ApplyInteraction(PaneState state, PaneInteraction interaction)
+    {
+        return interaction is PaneRowInteraction row
+            ? ApplyRowInteraction(state, row)
+            : interaction is PaneSurfaceInteraction surface && surface.Action == PaneSurfaceAction.ClearSelection
+                ? state.Transition(state.FocusItem, Array.Empty<FileSystemPath>(), null)
+                : state;
+    }
+
+    private static PaneState ApplyRowInteraction(PaneState state, PaneRowInteraction row)
+    {
+        FileSystemPath focus = row.Entry.Path;
+        if (row.Action == PaneEntryAction.OpenContextMenu &&
+            state.Selection.Contains(focus, FileSystemPathIdentityComparer.Instance))
         {
-            selection.Add(state.FocusItem);
+            return state.Transition(focus, state.Selection, state.SelectionAnchor);
         }
-        else
+        if (row.Action == PaneEntryAction.ToggleSelection)
         {
-            selection.RemoveAt(selectedIndex);
+            return state.Transition(focus, PaneSelection.Toggle(state.Selection, focus), focus);
         }
-        return state.Transition(state.FocusItem, selection);
+        if (row.Action == PaneEntryAction.SelectRange || row.Action == PaneEntryAction.AddRange)
+        {
+            FileSystemPath anchor = state.SelectionAnchor ?? state.FocusItem ?? focus;
+            return state.Transition(focus, PaneSelection.Range(state, anchor, focus, row.Action), anchor);
+        }
+        return state.Transition(focus, [focus], focus);
     }
 }

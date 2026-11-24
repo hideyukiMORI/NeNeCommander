@@ -16,6 +16,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     private readonly Queue<ProviderStepOutcome> _copies;
     private readonly Queue<ProviderStepOutcome> _deletions;
     private readonly Queue<ProviderStepOutcome> _directoryCreations;
+    private readonly Queue<ProviderStepOutcome> _fileCreations = [];
     private readonly Queue<AtomicMoveCapabilityOutcome> _atomicMoveCapabilities;
     private readonly Queue<ProviderStepOutcome> _atomicMoves;
     private readonly Queue<FileInspectionOutcome> _inspections;
@@ -103,6 +104,11 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     internal void EnqueueDirectoryCreation(ProviderStepOutcome outcome)
     {
         _directoryCreations.Enqueue(outcome);
+    }
+
+    internal void EnqueueFileCreation(ProviderStepOutcome outcome)
+    {
+        _fileCreations.Enqueue(outcome);
     }
 
     internal void EnqueueRename(ProviderStepOutcome outcome)
@@ -230,6 +236,17 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
     {
         _calls.Add("CreateDirectory:" + target.CanonicalText);
         return Task.FromResult(_directoryCreations.Dequeue());
+    }
+
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        _calls.Add("CreateEmptyFile:" + target.CanonicalText);
+        ProviderStepOutcome outcome = _fileCreations.Dequeue();
+        InvokeCallback(ScriptedCallbackPoint.AfterFileCreation);
+        return Task.FromResult(outcome);
     }
 
     public Task<ProviderStepOutcome> RenameAsync(
