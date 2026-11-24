@@ -36,3 +36,5 @@ changing product inputs, prepare a separately configured interactive trial with 
 D folders/private settings, then obtain hide's physical/visible acceptance before
 feature publication/integration. No visible trial has been launched. No cleanup is
 eligible while this work is unfinished; beta.4 cleanup is already complete.
+
+Local integration saved as070f65952d349af07cd342eb545ee705316bd7e1. Current mainccb303b documentation is now connected additively; no product path differs from070f659.
