@@ -502,3 +502,49 @@ The release source remains3909039; this later documentation does not replace its
 manifest or package. Final receipt files retain exact paths/arguments/logs. Release
 worktree/output cleanup is performed only after this evidence is committed and
 integrated and unique results are preserved. Other unfinished feature copies remain.
+
+### 21:35 JST documentation integration and completed-output cleanup
+
+PR578 is squash-merged as1d0fa30342dff7d92153d33577ca13a83a886c80,
+tree-equal to document candidate17e2e3dcce3f320727bb71446a7022712da58d95.
+The published3909039 source/tag/assets are unchanged. No product test or CI is
+started for these documentation-only commits; normal commit checks are retained.
+
+The permanent release copy is
+`D:/NeNeCommander/releases/0.1.0-beta.4/candidate-20261124-01`.
+All57,577generated/ignored files (7,547,558,951bytes) and29link identities from
+the completed release worktree and two output roots are inventoried. The ZIP
+archive's first preflight refused reparse points; its script/receipt are retained.
+The final pass records their identities without traversal. The ZIP
+archive is read back entry by entry with original hashes verified; no link is
+followed. `completed-release-artifacts.zip` is4,419,156,546bytes with SHA256
+`d0854430eec1f3b25b7694cfa6ee48f56b614530e488ec78434fe9037b505ede`.
+Archive, inventory, source heads, unique-artifact preservation, clean integration,
+unchanged metadata and absence of live target references are retained in the
+release evidence directory before deletion. Branches and commits remain.
+
+The first native removal stops on the archived trailing-dot fixture path
+`test-temp-02/NeNeCommander-Test-0y5v5mno.bb1/src/tree./sub./inner`.
+This is an execution failure, not an automatic approval rejection. The original
+log is retained. Only1,752files/65,475,572bytes remain; each still matches its
+archived size/write time, with no remaining reparse points or unarchived file.
+One native directory-level removal against the same verified extended-length
+literal root completes at21:34:46. All three exact targets are now absent:
+
+- `D:/NeNeCommander/worktrees/issue-571`
+- `D:/NeNeCommander/outputs/release-beta4-20261123`
+- `D:/NeNeCommander/outputs/release-beta4-20261124`
+
+Commands, with `$e` the unchanged release evidence directory:
+
+```powershell
+python "$e/archive-completed-release.py"
+pwsh -NoProfile -File "$e/cleanup-completed-release.ps1"
+python "$e/verify-release-cleanup-remaining.py"
+pwsh -NoProfile -File "$e/cleanup-release-remaining.ps1"
+```
+
+`release-archive-manifest.json`, `release-cleanup-preflight.json`, the original
+failure log, `release-cleanup-remaining-preflight.json` and
+`release-cleanup-completion.json` own the exact paths/results. Unfinished feature
+worktrees/output are preserved. No release cleanup or hide execution is pending.
