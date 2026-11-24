@@ -196,3 +196,32 @@ This is local technical proof for the combined trial. The existing published
 beta.4 remains unchanged; #564 is the broader TODO tracker and is not closed by
 this integration. Physical/visible acceptance, feature publication/main integration
 and eventual cleanup remain distinct. All unfinished original copies are retained.
+
+## Configured interactive trial at22:34 JST
+
+The integration commit is070f65952d349af07cd342eb545ee705316bd7e1. Documentation-only
+main connection7701aa570b94a5e4fdc83e9fb656a3b92f7a881a imports acceptedccb303b;
+one additive Project State conflict retains both release-cleanup and feature records.
+All five resulting changed paths are documentation. Both local commits pass the normal
+112-rule/24-adversarial-case commit checks; no CI or behavior rerun is started.
+
+D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-01 is the configured
+interactive copy. It retains normal analyzers and changes only the App project reference
+paths plus composition: two owned initial folders, a dedicated settings path and native
+window title. No diagnostic Fixture source or fake provider is included. Locked restore
+and Release build pass0warnings/errors.178source inputs and176unchanged copies match;
+all476 output files match trial-manifest.json. This is a development trial, not the
+published package or a canonical release build.
+
+The exact built trial responds at two observations more than3seconds apart on a separate
+non-input desktop, after full manifest verification. Its owned child is then terminated;
+normal shutdown is not claimed. Normal settings and Default input desktop stay unchanged.
+The startup observer receives no interactive input and calls no desktop switch. Source
+7701aa5, manifest/binary/helper hashes, substitutions and result are in interactive-trial-
+parity-01.json and interactive-startup-01.json. The initial private settings remain under
+interactive-trial-01/settings; the normal settings resolver is absent from this copy's
+composition. Trial instructions are in the local Japanese text guide beside the manifest.
+
+At22:34 an explicit question asks hide whether this prepared private-settings trial may
+be displayed on the ordinary desktop. No visible launch is performed before that answer.
+Physical mouse/key/IME and visible acceptance remain pending; no ordinary App is stopped.

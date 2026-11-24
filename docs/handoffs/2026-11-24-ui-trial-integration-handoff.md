@@ -38,3 +38,14 @@ feature publication/integration. No visible trial has been launched. No cleanup 
 eligible while this work is unfinished; beta.4 cleanup is already complete.
 
 Local integration saved as070f65952d349af07cd342eb545ee705316bd7e1. Current mainccb303b documentation is now connected additively; no product path differs from070f659.
+
+22:34 update: current branch7701aa5 contains the local integration and documentation-only
+main connection. Interactive trial is built at
+D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-01/App/bin/Release/net10.0-windows10.0.26100.0/win-x64/NeNeCommander.App.exe.
+Its normal analyzers pass0warnings/errors;176source copies and476output files match,
+and exact-binary startup on a non-input desktop responds twice. Only that owned child
+was terminated; no normal-shutdown claim. Settings/input desktop remain unchanged.
+Private settings and owned left/right folders live under interactive-trial-01. No Fixture
+sources/fake providers are in this interactive copy. Its Japanese trial guide describes
+six features. hide's22:34 visible-launch question is pending; do not show a window or send
+shared input without the answer. No ordinary App is terminated. The source is not pushed.
