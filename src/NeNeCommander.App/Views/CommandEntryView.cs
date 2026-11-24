@@ -36,7 +36,6 @@ internal sealed class CommandEntryView
             Button button = _buttons[index];
             CommandEntryButton entry = presentation.Buttons[index];
             button.Tag = entry.Intent;
-            button.Content = _resources.GetString(entry.LabelResourceKey);
             button.IsEnabled = presentation.IsEnabled;
             AutomationProperties.SetName(button, _resources.GetString(entry.LabelResourceKey));
             AutomationProperties.SetAcceleratorKey(button, _resources.GetString(entry.ShortcutResourceKey));

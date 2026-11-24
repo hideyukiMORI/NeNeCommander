@@ -235,3 +235,29 @@ Visible acceptance and technical acceptance remain separate.
 Framework references (consulted November24; source documentation, not observed host proof):
 - [WinUI Tapped sequence](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.tapped).
 - [Tab focus navigation](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.tabfocusnavigation) and [Cycle semantics](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.input.keyboardnavigationmode).
+
+## November24 interactive-trial amendment — icons and qualified parent entry
+
+hide's22:41/22:43 trial feedback accepts the general visual direction and requests
+vector Bookmarks/Settings/Help with hover text plus one parent-folder entry per pane.
+This is scoped feedback, not blanket acceptance or publication of all trial features.
+Use authored monochrome PathIcon geometry, existing semantic dimensions/focus/states,
+and existing localized command tooltips and automation names. Each parent's up-arrow
+sits left of its path; the active-only opposite-pane action retains its own slot.
+
+Add NavigateParent to the existing closed PaneSurfaceAction. It captures side and
+exact rendered snapshot, rejects absent/root content before activation, and passes
+its admitted follow-up into the existing PaneSession UserIntent.NavigateParent path.
+That path remains the sole owner of provider parent, history, read, focus recovery,
+cancellation and failure. No activate-then-navigate event sequence is introduced.
+Both sessions share the qualified interaction's follow-up declaration; selection
+and context actions have no follow-up. Existing global read/launch/operation/modal
+admission remains authoritative. A parent completion cannot seed double tap or
+request the synchronous pointer-focus receipt. Ordinary render focus still applies.
+
+Focused proof covers either side/provider, roots/absent/stale/foreign owners, blocked
+scope/read/launch/operation, failure/cancel/reentry, existing row-open behavior and
+mapper receipts. Native control proof verifies icon retention across localized
+rendering, names/tooltips, per-pane button invocation and root state. Physical
+input and visible acceptance remain hide's operation. Preserve the live trial01
+and prepare a separate trial02; no shared input or normal-settings writes.

@@ -3,7 +3,7 @@ using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Input;
 
-/// <summary>Requests explicit pane activation through its blank background or header.</summary>
+/// <summary>Requests one qualified action from a pane background or header control.</summary>
 public sealed record PaneSurfaceInteraction : PaneInteraction
 {
     private protected override void RestrictDerivation()
@@ -17,6 +17,6 @@ public sealed record PaneSurfaceInteraction : PaneInteraction
         Action = action;
     }
 
-    /// <summary>Gets the closed passive-surface action.</summary>
+    /// <summary>Gets the closed pane-surface action.</summary>
     public PaneSurfaceAction Action { get; }
 }

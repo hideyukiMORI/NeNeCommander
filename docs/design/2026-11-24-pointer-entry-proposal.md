@@ -50,3 +50,18 @@ normal/hover/pressed/focus/disabled state, caption hit-test separation, long lab
 in three locales, existing minimum/narrow bounds, large text/DPI and hidden-footer
 mode. Do not claim native pointer/keyboard/focus, screen-reader speech or actual
 visible acceptance from pure tests or unshown control invocation.
+
+## hide feedback adopted at22:43 JST
+
+Replace the three text entries with original vector bookmark/gear/help icons in
+square DensityRowHeight targets; use DensityKindIconSize artwork and existing
+native button focus/hover/pressed/disabled resources. Localized names and canonical
+shortcut tooltips stay unchanged. This follows the earlier consultation and hide's
+explicit request. Keep the caption drag and system controls separate.
+
+Each pane receives an upward arrow before its path, using the existing semantic
+PaneNavigationButtonStyle/target/icon dimensions. Its localized name is「上の階層へ」
+(Japanese), “Go to parent folder” (English), “转到上级文件夹” (Simplified Chinese),
+with the canonical Alt+Up tooltip. It addresses that pane through ADR0090's qualified
+route. Roots/absent content and busy operation/read states disable it; all modal
+owners still reject it. This amendment adds no drag-and-drop or new visual theme.

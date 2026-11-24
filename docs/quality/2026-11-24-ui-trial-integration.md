@@ -225,3 +225,91 @@ composition. Trial instructions are in the local Japanese text guide beside the 
 At22:34 an explicit question asks hide whether this prepared private-settings trial may
 be displayed on the ordinary desktop. No visible launch is performed before that answer.
 Physical mouse/key/IME and visible acceptance remain pending; no ordinary App is stopped.
+
+### Approved visible trial
+
+At22:38 hide's explicit visible-launch answer is executed once. The exact configured
+trial runs as PID37744 (created22:38:20JST), with responsive native title
+NeNe Commander / UI trial #564 observed22:38:22. The prelaunch manifest/critical seven
+hashes match, normal-settings hash is unchanged, no shared input is sent and no ordinary
+App is terminated. A prior filename guard fails before launching (resources.pri versus
+the actual NeNeCommander.App.pri); it is retained and corrected using manifest identity.
+The live trial is left to hide. Visible launch is complete; human acceptance has not
+been reported. Its active output/private settings cannot be cleaned or rebuilt in place.
+
+## 23:09 — requested icon and parent-entry revision
+
+hide reports the general trial appearance close to the intended image at22:41,
+asks for vector Bookmarks/Settings/Help with hover text, then at22:43 asks for a
+parent-folder icon in each pane. This is scoped feedback, not acceptance of every
+feature or release approval. Drag-and-drop remains unimplemented in separate #532.
+
+ADR0090's amendment extends the same qualified surface action with NavigateParent.
+Exact snapshot ownership, provider parent availability and shared work/operation
+admission run before side activation. Both sessions use one follow-up declaration
+and the existing PaneSession navigation. Root/absent/stale input changes nothing.
+The pointer mapper rejects asynchronous parent completion as a synchronous focus
+receipt. The parent arrow precedes each path and reuses the existing navigation
+button tokens. The three title-bar buttons keep PathIcon content across rendering,
+localized tooltip/name/shortcut and existing native focus/key behavior. No dependency,
+provider, mutation gateway, normal setting or published beta.4 source is changed.
+
+Evidence root remains D:/NeNeCommander/evidence/ui-trial-20261124:
+
+- `dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore`
+  (`icons-parent-app-build-01`): success,0warnings/errors.
+- `run-icons-parent-proof-01/02/03/04.ps1` retain every exact invocation and outcome.
+  First Application test build fails CA1062 in the new test parameter; explicit
+  validation fixes it. The first selected run has123passed/1failed: the dynamic
+  PaneSide argument's generated ToString recurses while MSTest generates its name.
+  Replacing test arguments with declared left/right text resolves the fixture issue;
+  14/14parent cases pass. Across both runs129distinct selected cases pass, including
+  expanded modal/gateway rejection, existing pointer row-open and navigation consumers.
+  Successful unrelated cases are not repeated.
+- First Presentation build fails MSTEST0017 on the new assertion's inferred argument
+  naming. `expectedSnapshot` follows existing tests and build02 has0warnings/errors.
+  The selected mapper/receipt/command-entry/navigation run passes47/47.
+- `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` exits1 with exactly
+  the same3prior findings. `icons-parent-complexity-comparison.json` compares full
+  finding objects; no threshold/baseline is changed. Unresolved invocations remain
+  visible in the raw report. `dotnet format whitespace NeNeCommander.slnx --no-restore
+  --verify-no-changes --include <15changed C# paths>` succeeds; the ordinary
+  workspace-load warning is retained. Exact path arguments are in whitespace01.json.
+- The new isolated diagnostic copy verifies176exact App source files and4dependency
+  DLLs; project/composition substitutions and7Fixture sources are explicit in
+  `icons-parent-controls-parity-01/02.json`. Only dedicated D paths/settings and
+  a non-input desktop are used, with no synthetic shared input or desktop switch.
+- Native attempt1 passes52checks including3locale icon/name/tooltip retention, both
+  actual UIA parent Invokes, origin focus, root projection and modal rejection, then
+  fails because the diagnostic sends help Escape into the generic session route.
+  That does not own help closing. The fixture now uses the existing KeyboardHelpView
+  forwarder used by actual mapped help keys; no product correction is made. Original
+  source/failure/exit2 remain retained. Diagnostic build02 succeeds0warnings/errors.
+- `pwsh -NoProfile -File <evidence>/run-icons-parent-controls-01.ps1 -Locale en-US
+  -Attempt 2 -Scenario icons-parent` passes56checks/7stages and exits0. The same
+  command with ja-JP/3 and zh-Hans/4 also passes56each/exit0. All three before/after
+  ordinary-settings fingerprints match and input desktop remainsDefault. Exact
+  commands/arguments, raw outcomes and final close observations are retained.
+  Rendering screenshots are exported from the actual control tree; English/Japanese
+  are visually inspected. This is control/property/API proof, not physical input,
+  actual hover event delivery, screen-reader speech or visible human acceptance.
+
+Normal settings were already at hashC2ABA704FEC19E2FABA2FA87CD39C6851F034AE8B68A8F6D7B2B6FAF3EB2C3FA
+before this native run (write time23:02:34), different from the earlier22:38 trial
+baseline. No cause is attributed. Each native run's own before/after bytes/hash/time
+match; no restoration or overwrite is attempted. Live trial01 output is retained.
+Two source-comment clarifications after these tests name navigation/header controls
+more accurately; their executable bodies are unchanged and successful proof is reused.
+A first documentation append stops on the shell's default text decoder; source
+comments/glossary had already been written, and the remaining append explicitly
+uses UTF-8. No product edit or proof is hidden by that recording failure.
+
+Independent read-only ownership review finds no required product correction; its
+initial test-build naming finding is corrected as above. Final receipt reconciliation,
+updated interactive02 and local save follow. No trial push/main merge/tag/release.
+
+23:10 independent read-only final reconciliation: no required correction. The original
+MSTEST0017 finding is resolved;129distinct Application/47Presentation successes,
+identical3complexity findings,176App inputs/4DLLs/7fixture identities and all three
+56-check/exit0 native receipts reconcile. Physical input and human visible acceptance
+remain separate. Save this local revision and prepare interactive02 next.

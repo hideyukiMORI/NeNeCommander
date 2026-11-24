@@ -16,6 +16,7 @@ internal sealed class CommanderPaneView
     private readonly ViewTextResources _resources;
     private readonly TextBlock _address;
     private readonly Button _navigation;
+    private readonly Button _parent;
     private readonly TextBlock _status;
     private readonly TextBlock _counts;
     private readonly ListView _fileList;
@@ -48,6 +49,8 @@ internal sealed class CommanderPaneView
         _numberSurface = Find<Border>(prefix + "PaneNumberSurface");
         _number = Find<TextBlock>(prefix + "PaneNumber");
         _pointer = new PanePointerView(_fileList, _header, side, pointer);
+        _parent = Find<Button>(prefix + "NavigateParent");
+        _parent.Click += (_, _) => _pointer.NavigateParent();
         _fileList.SelectionChanged += (_, _) => ReconcileSelection();
     }
 
@@ -77,6 +80,10 @@ internal sealed class CommanderPaneView
 
     private void RenderNavigation(PaneNavigationAction navigation)
     {
+        _parent.IsEnabled = navigation.IsParentEnabled;
+        string parentName = PaneNavigationAction.ComposeParentName(_resources.GetString);
+        AutomationProperties.SetName(_parent, parentName);
+        ToolTipService.SetToolTip(_parent, parentName);
         _navigation.Visibility = navigation.IsVisible ? Visibility.Visible : Visibility.Collapsed;
         _navigation.IsEnabled = navigation.IsEnabled;
         string navigationName = navigation.ComposeName(_resources.GetString);

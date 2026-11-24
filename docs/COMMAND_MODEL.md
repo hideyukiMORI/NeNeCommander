@@ -63,6 +63,10 @@ refuses pointer interaction during pending/running operations or either pane's
 read/launch before activating the explicit side. PaneReducer alone commits focus,
 selection and the visible owned selection anchor. Opening reuses OpenFocused.
 Native ListView selection is only a projection and is reconciled after rejection.
+The per-pane parent button adds a NavigateParent surface action with the same exact
+owner. Absent content and provider roots reject before activation; admitted input
+uses the existing PaneSession NavigateParent command for read/history/origin focus.
+No UI-level activate-then-navigate sequence or provider-parent implementation is added.
 The accepted gesture, anchor and first-tap receipt rules are in ADR-0090.
 ### CMD-003 — UI emits intents, not decisions
 

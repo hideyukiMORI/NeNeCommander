@@ -397,3 +397,10 @@ Replacing, submitting, stopping or showing another surface detaches old callback
 a departing surface cannot take focus from the new owner. Actual event ordering,
 physical modifiers/IME, layout/accessibility and visible acceptance retain distinct
 proof requirements in ADR-0091 and the feature quality record.
+
+The per-pane parent arrow uses the same qualified pane interaction and existing
+NavigateParent route; Alt+Up, Backspace and h keep their existing keyboard meaning.
+Parent clicks never seed a double-tap candidate or return the synchronous pointer
+focus receipt after asynchronous navigation. The ordinary render/focus route applies.
+The three command entries use vector icons with localized hover text, accessible
+names and unchanged canonical shortcuts; F10/native Tab behavior is preserved.

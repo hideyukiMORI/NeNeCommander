@@ -895,4 +895,5 @@
   <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>Open this folder in the left pane ({0})</value></data>
   <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>Open the current folder in the right pane</value></data>
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>Open the current folder in the left pane</value></data>
+  <data name="PaneNavigateParent" xml:space="preserve"><value>Go to parent folder</value></data>
 </root>

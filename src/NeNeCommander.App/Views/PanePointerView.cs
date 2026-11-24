@@ -52,6 +52,14 @@ internal sealed class PanePointerView
         _rendered = presentation;
     }
 
+    internal void NavigateParent()
+    {
+        if (_rendered is not null)
+        {
+            Forward(_bindings.Mapper.MapParentNavigation(_side, _rendered));
+        }
+    }
+
     private void OnPointerPressed(object sender, PointerRoutedEventArgs args)
     {
         if (!args.GetCurrentPoint(_list).Properties.IsLeftButtonPressed)

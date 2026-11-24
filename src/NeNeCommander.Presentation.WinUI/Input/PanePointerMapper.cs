@@ -67,6 +67,15 @@ public sealed class PanePointerMapper
         return UserIntent.InteractWithPaneSurface(side, presentation.SourceSnapshot, PaneSurfaceAction.OpenContextMenu);
     }
 
+    /// <summary>Maps a parent button with its explicit pane and exact rendered owner.</summary>
+    public UserIntent MapParentNavigation(PaneSide side, PanePresentation presentation)
+    {
+        ArgumentNullException.ThrowIfNull(side);
+        ArgumentNullException.ThrowIfNull(presentation);
+        Reset();
+        return UserIntent.InteractWithPaneSurface(side, presentation.SourceSnapshot, PaneSurfaceAction.NavigateParent);
+    }
+
     /// <summary>Consumes an accepted first tap once and maps only the same listing-owned entry.</summary>
     public UserIntent? MapRowDoubleTap(PaneSide side, PanePresentation presentation, PaneRow row, PanePointerModifier modifier)
     {
@@ -87,7 +96,7 @@ public sealed class PanePointerMapper
 
     /// <summary>
     /// Observes the actual snapshots immediately before admitted handling and after its result.
-    /// A stale request cannot seed a double tap or request focus. Open completion never requests focus.
+    /// A stale request cannot seed a double tap or request focus. Navigation completion never requests focus.
     /// </summary>
     /// <returns>The admitted synchronous pointer target to focus, or null without such a receipt.</returns>
     public PaneSide? ObserveResult(UserIntent intent, CommanderSnapshot before, CommanderSnapshot after)
@@ -103,6 +112,7 @@ public sealed class PanePointerMapper
         ObserveSession(after);
         return intent is PaneInteraction interaction &&
             (interaction is not PaneRowInteraction rowAction || rowAction.Action != PaneEntryAction.Open) &&
+            (interaction is not PaneSurfaceInteraction surface || surface.Action != PaneSurfaceAction.NavigateParent) &&
             ReferenceEquals(PaneOf(before.Panes, interaction.Side), interaction.ExpectedSnapshot) &&
             !ReferenceEquals(PaneOf(before.Panes, interaction.Side), PaneOf(after.Panes, interaction.Side)) &&
             after.Panes.ActiveSide == interaction.Side && PaneInputOwnership.IsAvailable(after)

@@ -131,6 +131,7 @@ public sealed class CommanderPointerAdmissionTests
             UserIntent.InteractWithPaneEntry(PaneSide.Right, before.Panes.Right, entry, PaneEntryAction.Select),
             UserIntent.InteractWithPaneEntry(PaneSide.Left, before.Panes.Left, entry, PaneEntryAction.Open),
             UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Panes.Right, PaneSurfaceAction.ClearSelection),
+            UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Panes.Right, PaneSurfaceAction.NavigateParent),
             UserIntent.InteractWithPaneSurface(PaneSide.Left, before.Panes.Left, PaneSurfaceAction.Activate),
         ];
         foreach (UserIntent intent in attempts)

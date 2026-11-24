@@ -23,9 +23,24 @@ public abstract record PaneInteraction : UserIntent
     {
         return ReferenceEquals(current, ExpectedSnapshot) &&
             current.Activity is not (PaneLoading or PaneLaunching) &&
+            (this is not PaneSurfaceInteraction surface || surface.Action != PaneSurfaceAction.NavigateParent || current.CanNavigateParent) &&
             (this is not PaneRowInteraction row ||
                 (current.Content is PaneContentListed listed &&
                     listed.State.VisibleEntries.Any(entry => ReferenceEquals(entry, row.Entry))));
+    }
+
+    /// <summary>Names the existing pane command to run only after qualified admission.</summary>
+    internal UserIntent? NavigationIntent
+    {
+        get
+        {
+            return this switch
+            {
+                PaneRowInteraction row when row.Action == PaneEntryAction.Open => UserIntent.OpenFocused,
+                PaneSurfaceInteraction surface when surface.Action == PaneSurfaceAction.NavigateParent => UserIntent.NavigateParent,
+                _ => null,
+            };
+        }
     }
 
     /// <summary>Gets the pane explicitly addressed by the gesture.</summary>

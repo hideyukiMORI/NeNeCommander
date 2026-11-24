@@ -49,3 +49,38 @@ Private settings and owned left/right folders live under interactive-trial-01. N
 sources/fake providers are in this interactive copy. Its Japanese trial guide describes
 six features. hide's22:34 visible-launch question is pending; do not show a window or send
 shared input without the answer. No ordinary App is terminated. The source is not pushed.
+
+22:38 visible-trial update: hide explicitly selects「試遊画面を開く」for the prepared
+private-settings copy. Initial preflight stops before process creation because the
+guard names resources.pri while this build declares NeNeCommander.App.pri; the exact
+manifest paths correct that guard without changing any product/output bytes. The
+next attempt verifies the seven product exe/dll/pri hashes and opens exactly one
+responsive window titled「NeNe Commander / UI trial #564」at22:38:22JST. Owned PID37744
+was created22:38:20 and is deliberately left running for hide. No input is sent and
+no ordinary App is terminated. Normal settings hash remains561932A6530A6317499BAB59AD0735C8469869A15C6E6DA9BE3507B37AF557CE.
+The visible-launch permission is resolved; do not ask again. This observation is not
+hide's physical/visible acceptance. Preserve the live binary/output and private
+settings; do not rebuild, delete or stop this trial while hide is using it. See
+interactive-visible-launch-01.json and interactive-launch-preflight-01.json.
+
+23:09 icon/parent revision: hide's22:41/22:43 requests are implemented locally under
+ADR0090's qualified pane route. Bookmarks/Settings/Help are vectors with existing
+localized hover/name/shortcuts; each pane has its own parent arrow before the path.
+Root/absent/stale owner rejects before activation. Existing navigation, work/modal
+admission and asynchronous focus ownership are retained. App build0warnings/errors,
+129distinct selected Application cases and47Presentation cases pass across retained
+attempts. Test-only CA1062/MSTEST0017/ToString fixture failures are recorded. Whitespace
+passes; complexity has exactly3existing findings. Native attempt1 passes52checks but
+uses the wrong help-close fixture route; corrected English2/Japanese3/Chinese4 each
+pass56checks with exit0 and normal-settings/input-desktop fingerprints unchanged.
+Two later comment-only clarifications reuse successful executable proof. Exact
+commands, failed attempts, raw results and rendering images remain in the quality
+record/evidence root. Final independent receipt check, interactive02 and local save
+remain next. Preserve live trial01 and all earlier work. #532 drag/drop remains
+unimplemented and out of scope; no additional feature publication or release.
+
+23:10 independent read-only final reconciliation: no required correction. The original
+MSTEST0017 finding is resolved;129distinct Application/47Presentation successes,
+identical3complexity findings,176App inputs/4DLLs/7fixture identities and all three
+56-check/exit0 native receipts reconcile. Physical input and human visible acceptance
+remain separate. Save this local revision and prepare interactive02 next.

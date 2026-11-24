@@ -136,8 +136,8 @@ public sealed class DualPaneSession
         PaneSnapshot before = Current.Of(interaction.Side);
         DualPaneSnapshot after = ApplyInteraction(interaction);
         return !ReferenceEquals(before, after.Of(interaction.Side)) &&
-            interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
-                ? ReportAfterAsync(SessionOf(interaction.Side).HandleAsync(UserIntent.OpenFocused, cancellationToken))
+            interaction.NavigationIntent is UserIntent navigation
+                ? ReportAfterAsync(SessionOf(interaction.Side).HandleAsync(navigation, cancellationToken))
                 : Task.FromResult(after);
     }
 
@@ -145,8 +145,7 @@ public sealed class DualPaneSession
     internal DualPaneSnapshot ApplyInteraction(PaneInteraction interaction)
     {
         PaneSession target = SessionOf(interaction.Side);
-        if (IsFrozen || _left.Current.Activity is PaneLoading or PaneLaunching ||
-            _right.Current.Activity is PaneLoading or PaneLaunching ||
+        if (!Current.CanInteractWithPanes ||
             !interaction.Matches(target.Current))
         {
             return Current;

@@ -35,8 +35,11 @@ public sealed record DualPaneSnapshot
     /// <summary>Gets whether this snapshot admits opening its listed active location in the opposite pane.</summary>
     public bool CanOpenCurrentLocationInOtherPane =>
         Of(ActiveSide).Content is PaneContentListed &&
-        !HasExternalWork &&
-        Operation is not (OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
+        CanInteractWithPanes;
+
+    /// <summary>Gets whether shared pane work and operation decisions admit qualified pointer input.</summary>
+    public bool CanInteractWithPanes => !HasExternalWork && Operation is not (OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or OperationAwaitingConflict);
+
     internal bool HasExternalWork => Left.Activity is PaneLoading or PaneLaunching || Right.Activity is PaneLoading or PaneLaunching;
 
     internal bool HasReadInProgress => Left.Activity is PaneLoading || Right.Activity is PaneLoading;

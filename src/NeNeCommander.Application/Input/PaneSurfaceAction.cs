@@ -15,6 +15,16 @@ public abstract record PaneSurfaceAction
     /// <summary>Gets a folder-context capture preserving focus, selection and anchor.</summary>
     public static PaneSurfaceAction OpenContextMenu { get; } = new OpenContextMenuAction();
 
+    /// <summary>Gets parent navigation through the existing pane navigation route.</summary>
+    public static PaneSurfaceAction NavigateParent { get; } = new NavigateParentAction();
+
+    private sealed record NavigateParentAction : PaneSurfaceAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private PaneSurfaceAction()
     {
     }

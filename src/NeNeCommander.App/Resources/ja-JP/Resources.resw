@@ -895,4 +895,5 @@
   <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>このフォルダーを左ペインで開く（{0}）</value></data>
   <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>現在のフォルダーを右ペインで開く</value></data>
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>現在のフォルダーを左ペインで開く</value></data>
+  <data name="PaneNavigateParent" xml:space="preserve"><value>上の階層へ</value></data>
 </root>

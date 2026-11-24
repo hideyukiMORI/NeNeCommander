@@ -95,6 +95,7 @@ public sealed class PanePointerOperationTests
             UserIntent.InteractWithPaneEntry(PaneSide.Right, before.Right, entry, PaneEntryAction.Open),
             UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Right, PaneSurfaceAction.Activate),
             UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Right, PaneSurfaceAction.ClearSelection),
+            UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Right, PaneSurfaceAction.NavigateParent),
         ];
         foreach (UserIntent intent in intents)
         {

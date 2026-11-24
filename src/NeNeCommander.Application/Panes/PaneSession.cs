@@ -170,8 +170,8 @@ public sealed class PaneSession
         PaneSnapshot before = Current;
         _ = ApplyInteraction(interaction);
         return !ReferenceEquals(before, Current) &&
-            interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
-                ? OpenFocusedAsync((PaneContentListed)Current.Content, cancellationToken)
+            interaction.NavigationIntent is UserIntent navigation
+                ? HandleAsync(navigation, cancellationToken)
                 : Task.FromResult(Current);
     }
 

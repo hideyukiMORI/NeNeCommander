@@ -15,6 +15,7 @@ public sealed record PaneNavigationAction
 
     private PaneNavigationAction(DualPaneSnapshot snapshot, PaneSide side)
     {
+        IsParentEnabled = snapshot.CanInteractWithPanes && snapshot.Of(side).CanNavigateParent;
         IsVisible = snapshot.ActiveSide == side;
         IsEnabled = IsVisible && snapshot.CanOpenCurrentLocationInOtherPane;
         NameResourceKey = side == PaneSide.Left ? "OpenFolderInRightPaneFormat" : "OpenFolderInLeftPaneFormat";
@@ -26,7 +27,21 @@ public sealed record PaneNavigationAction
     /// <summary>Gets Application readiness for the visible action, including the available same-location no-op.</summary>
     public bool IsEnabled { get; }
 
+    /// <summary>Gets parent readiness for this explicit pane, whether active or passive.</summary>
+    public bool IsParentEnabled { get; }
+
     private string NameResourceKey { get; }
+
+    private static readonly string ParentShortcutResourceKey = KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList)
+        .Single(binding => binding.Intent == UserIntent.NavigateParent && binding.Modifier == KeyboardModifier.Alt).KeyLabelResourceKey;
+
+    /// <summary>Resolves the parent command's localized name and canonical shortcut.</summary>
+    public static string ComposeParentName(Func<string, string> localize)
+    {
+        ArgumentNullException.ThrowIfNull(localize);
+        return string.Format(CultureInfo.InvariantCulture, localize("CommandEntryToolTipFormat"),
+            localize("PaneNavigateParent"), localize(ParentShortcutResourceKey));
+    }
 
     /// <summary>Projects the current snapshot for one permanent header without reading or changing either pane.</summary>
     /// <param name="snapshot">The same snapshot used to render the two file lists.</param>

@@ -19,6 +19,9 @@ public sealed record PaneSnapshot
     /// <summary>Gets the read activity.</summary>
     public PaneActivity Activity { get; }
 
+    /// <summary>Gets whether the displayed location has a parent and no pane-local work owns input.</summary>
+    public bool CanNavigateParent => Activity is not (PaneLoading or PaneLaunching) && Content is PaneContentListed listed && listed.State.Location.Parent is not null;
+
     /// <summary>Gets the snapshot of a pane that has never read a location.</summary>
     public static PaneSnapshot Initial { get; } = new(PaneContent.Absent, PaneActivity.Idle);
 

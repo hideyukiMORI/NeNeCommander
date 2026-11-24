@@ -22,9 +22,8 @@
                 <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
                 <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
                 <Setter Property="Height" Value="{StaticResource DensityRowHeight}" />
-                <Setter Property="Padding" Value="{StaticResource SpacingPaneHeader}" />
-                <Setter Property="FontFamily" Value="{StaticResource TypographyMonospaceFamily}" />
-                <Setter Property="FontSize" Value="{StaticResource TypographyMonospaceSize}" />
+                <Setter Property="Width" Value="{StaticResource DensityRowHeight}" />
+                <Setter Property="Padding" Value="{StaticResource SpacingNone}" />
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="UseSystemFocusVisuals" Value="True" />
             </Style>
@@ -87,9 +86,21 @@
                     VerticalAlignment="Center" />
             </Grid>
             <StackPanel x:Name="CommandEntryButtons" Grid.Column="1" Orientation="Horizontal" TabFocusNavigation="Cycle">
-                <Button x:Name="CommandEntryBookmarks" AutomationProperties.AutomationId="CommandEntryBookmarks" Style="{StaticResource CommandEntryButtonStyle}" />
-                <Button x:Name="CommandEntrySettings" AutomationProperties.AutomationId="CommandEntrySettings" Style="{StaticResource CommandEntryButtonStyle}" />
-                <Button x:Name="CommandEntryHelp" AutomationProperties.AutomationId="CommandEntryHelp" Style="{StaticResource CommandEntryButtonStyle}" />
+                <Button x:Name="CommandEntryBookmarks" AutomationProperties.AutomationId="CommandEntryBookmarks" Style="{StaticResource CommandEntryButtonStyle}">
+                    <PathIcon AutomationProperties.AccessibilityView="Raw"
+                        Height="{StaticResource DensityKindIconSize}" Width="{StaticResource DensityKindIconSize}"
+                        Data="F0 M3,1 H13 V15 L8,11 L3,15 Z M4.5,2.5 V12 L8,9.5 L11.5,12 V2.5 Z" />
+                </Button>
+                <Button x:Name="CommandEntrySettings" AutomationProperties.AutomationId="CommandEntrySettings" Style="{StaticResource CommandEntryButtonStyle}">
+                    <PathIcon AutomationProperties.AccessibilityView="Raw"
+                        Height="{StaticResource DensityKindIconSize}" Width="{StaticResource DensityKindIconSize}"
+                        Data="F0 M6.5,0 H9.5 L10,2 L11.2,2.7 L13.2,2.2 L14.7,4.8 L13.2,6.2 V7.8 L14.7,9.2 L13.2,11.8 L11.2,11.3 L10,12 L9.5,14 H6.5 L6,12 L4.8,11.3 L2.8,11.8 L1.3,9.2 L2.8,7.8 V6.2 L1.3,4.8 L2.8,2.2 L4.8,2.7 L6,2 Z M8,4 A3,3 0 1 0 8,10 A3,3 0 1 0 8,4 Z" />
+                </Button>
+                <Button x:Name="CommandEntryHelp" AutomationProperties.AutomationId="CommandEntryHelp" Style="{StaticResource CommandEntryButtonStyle}">
+                    <PathIcon AutomationProperties.AccessibilityView="Raw"
+                        Height="{StaticResource DensityKindIconSize}" Width="{StaticResource DensityKindIconSize}"
+                        Data="F0 M8,0 A8,8 0 1 0 8,16 A8,8 0 1 0 8,0 Z M8,1.5 A6.5,6.5 0 1 1 8,14.5 A6.5,6.5 0 1 1 8,1.5 Z M5,5.5 C5,2 11,2 11,5.5 C11,7 9,7.5 8.75,8.5 V9.5 H7.25 V8.25 C7.25,6.5 9.5,6.5 9.5,5.5 C9.5,3.75 6.5,3.75 6.5,5.5 Z M7.25,11 H8.75 V12.5 H7.25 Z" />
+                </Button>
             </StackPanel>
             <StackPanel x:Name="CaptionButtons" Grid.Column="2" Orientation="Horizontal">
                 <Button
@@ -738,13 +749,21 @@
                             </Border>
                             <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+                                <Button x:Name="LeftNavigateParent" Grid.Column="0"
+                                    AutomationProperties.AutomationId="LeftNavigateParent"
+                                    IsEnabled="False" Style="{StaticResource PaneNavigationButtonStyle}">
+                                    <PathIcon AutomationProperties.AccessibilityView="Raw"
+                                        Height="{StaticResource DensityKindIconSize}" Width="{StaticResource DensityKindIconSize}"
+                                        Data="M7.25,15 V3.4 L3.1,7.55 L2,6.45 L8,0.45 L14,6.45 L12.9,7.55 L8.75,3.4 V15 Z" />
+                                </Button>
                                 <TextBlock
                                     x:Name="LeftAddress"
-                                    Grid.Column="0"
+                                    Grid.Column="1"
                                     AutomationProperties.AutomationId="LeftAddress"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -752,7 +771,7 @@
                                     TextTrimming="CharacterEllipsis"
                                     VerticalAlignment="Center" />
                                 <Grid
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     Height="{StaticResource DensityPaneNavigationTargetSize}"
                                     Width="{StaticResource DensityPaneNavigationTargetSize}"
                                     VerticalAlignment="Center">
@@ -773,7 +792,7 @@
                                 </Grid>
                                 <TextBlock
                                     x:Name="LeftStatus"
-                                    Grid.Column="2"
+                                    Grid.Column="3"
                                     AutomationProperties.AutomationId="LeftStatus"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -846,13 +865,21 @@
                             </Border>
                             <Grid Grid.Column="1" Grid.ColumnSpan="2" ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+                                <Button x:Name="RightNavigateParent" Grid.Column="0"
+                                    AutomationProperties.AutomationId="RightNavigateParent"
+                                    IsEnabled="False" Style="{StaticResource PaneNavigationButtonStyle}">
+                                    <PathIcon AutomationProperties.AccessibilityView="Raw"
+                                        Height="{StaticResource DensityKindIconSize}" Width="{StaticResource DensityKindIconSize}"
+                                        Data="M7.25,15 V3.4 L3.1,7.55 L2,6.45 L8,0.45 L14,6.45 L12.9,7.55 L8.75,3.4 V15 Z" />
+                                </Button>
                                 <TextBlock
                                     x:Name="RightAddress"
-                                    Grid.Column="0"
+                                    Grid.Column="1"
                                     AutomationProperties.AutomationId="RightAddress"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -860,7 +887,7 @@
                                     TextTrimming="CharacterEllipsis"
                                     VerticalAlignment="Center" />
                                 <Grid
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     Height="{StaticResource DensityPaneNavigationTargetSize}"
                                     Width="{StaticResource DensityPaneNavigationTargetSize}"
                                     VerticalAlignment="Center">
@@ -884,7 +911,7 @@
                                 </Grid>
                                 <TextBlock
                                     x:Name="RightStatus"
-                                    Grid.Column="2"
+                                    Grid.Column="3"
                                     AutomationProperties.AutomationId="RightStatus"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
