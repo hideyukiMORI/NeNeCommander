@@ -409,3 +409,32 @@ Configuration=Release plus the same75-file whitespace verification with diagnost
 verbosity passes0 with no load warning (menu-format-release-03.log/json). No product
 code changes or repeated behavioral tests are needed for this tooling clarification.
 The source/input and full/deep limitations above still apply.
+
+## Accepted base integration and remaining deep scope — November24 14:48 JST
+
+The reviewed feature is saved as3946dc4 (89files; normal Commit gate and commit-message
+check pass). To prepare its required whole-feature proof, the already accepted beta.4
+basef6c722c is merged into this feature branch only. This does not add the feature to
+the public release candidate or main. The merge preview reports exactly three
+conflicts: PROJECT_STATE preserves both chronological records, the palette catalog
+fixture keeps27feature commands rather than24base commands, and the PaneSession null
+fixture keeps the new purpose arguments while explicitly discarding the accepted
+helper's new return value. Product files have no merge conflict. This is dependency
+integration of an existing accepted fix, not suppression or a new unrelated repair.
+
+The integration brings the known UserSettings.Create fixture correction, accepted
+count formatter/one-pass count fixes, the placement/null-boundary tests and beta.4
+version. The exact file list is retained by the merge receipt and staged Git inspection.
+No dependency pin, exclusion, threshold, formatter or native host code is invented.
+
+The shared command-selection/catalog contract affects existing commands and input
+owners, while544 introduces a provider mutation and531 a new Shell handoff purpose.
+Focused cases alone do not establish their combined full-consumer/closure/adversarial
+impact. Therefore run the canonical eng/check.ps1 once on this combined candidate,
+then the changed Application/Infrastructure/Presentation adversarial repetitions and
+Complete mutation thresholds. The successful identical Domain mutation/adversarial
+and unchanged dependency-audit evidence may be reused after exact relevant-input
+mapping under ADR0061. Do not repeat those successful tiers merely for a merge.
+Record this as assembled stage evidence; do not claim an unexecuted full deep-review
+script or CI workflow passed. Candidate CodeQL and physical/environmental tiers retain
+separate obligations. The existing source and earlier selected proofs remain retained.

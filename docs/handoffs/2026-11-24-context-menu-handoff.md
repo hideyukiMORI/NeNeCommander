@@ -33,3 +33,10 @@
 
 詳細: [品質記録](../quality/2026-11-24-context-menu.md)、
 [日報](../reports/2026-11-24-context-menu-daily-report.md)。
+
+14:48追記: 機能commit3946dc4を保存し、既存の受理済みbeta.4基盤f6c722cを
+機能ブランチへ取り込んだ。旧設定fixture修正もこの依存更新に含まれる。
+27候補とpurpose引数を保つテスト競合2件、時点付き状態文書1件だけを解消。
+公開候補・mainは変更しない。次は統合候補のcanonical1回と影響3層の深い検証。
+Domain mutation/adversarialと依存auditは関連入力が同じなら既存成功を再利用する。
+全体成功や新CI実行をまだ主張しない。送信承認待ちは別beta.4の解析ファイル登録。

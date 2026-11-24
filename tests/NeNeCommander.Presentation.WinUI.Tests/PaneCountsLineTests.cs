@@ -140,6 +140,18 @@ public sealed class PaneCountsLineTests
         Assert.AreEqual("Loaded only: Files 10,000 / Folders 0 / Selected 0", text);
     }
 
+    /// <summary>Proves the ordinary count template cannot consume values reserved for the loaded-count variant.</summary>
+    [TestMethod]
+    public async Task ComposeAsyncWhenOrdinaryTemplateRequiresLoadedValuesRejectsTheMismatch()
+    {
+        PanePresentation presentation = PaneListingTestContext.Present(await PaneListingTestContext.ListAsync(
+            PaneListingTestContext.CreateMeasuredListing("C:\\root")));
+
+        _ = Assert.ThrowsExactly<FormatException>(() => PaneCountsLine.Compose(
+            presentation,
+            key => key == "PaneCountsFormat" ? Localize("PaneCountsVisibleFormat") : Localize(key)));
+    }
+
     /// <summary>Proves required formatter dependencies are validated before resource access.</summary>
     [TestMethod]
     public void ComposeWhenRequiredArgumentIsNullThrowsArgumentNullException()
