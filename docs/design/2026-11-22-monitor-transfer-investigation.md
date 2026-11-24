@@ -139,3 +139,24 @@ Framework references, checked 2026-11-22:
 [GetScaleFactorForMonitor](https://learn.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor).
 The documentation describes the APIs; only the local evidence establishes the
 observed pinned-runtime behavior. No timing guarantee is inferred from either.
+
+## November24 evidence supplement — still proposed
+
+The current public Issue551 remains open with no milestone. A tools-disabled
+background Claude consultation based only on its public requirements recommends
+one-shot n/p cycling inside Ctrl+W and logical-size preservation. It does not approve
+a final screen or choose the engineering contract. Its maximized-transfer and
+relative-position recommendations remain alternatives to the earlier centered,
+normal-only proposal. Current package APIs were inspected, and an owned unshown
+probe confirms GetForMonitor scale retrieval on the four available displays while
+GetForWindow returns E_NOTIMPL. The wrapper requires Windows11 build22621; product
+minimum22000 and custom scales remain explicit design concerns.
+
+A new compensated-first-request plus precomputed-final-rectangle candidate lands
+exactly in all24 normal/large ordered-pair cases, including the previous wrong-display
+counterexample. The first request alone misses exact dimensions once, so no one-call
+claim follows. No product source is changed and no asynchronous timing guarantee is
+inferred. See the updated quality record for all raw results, failures, API references,
+commands and remaining acceptance. ADR-0089 startup/settings tracking must now be
+preserved; the old0085 ADR suggestion is obsolete and the next free number must be
+checked across active worktrees. Technical design is still unresolved, not accepted.

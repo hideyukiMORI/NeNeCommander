@@ -32,3 +32,13 @@ ADR-0084はローカル#547が使用中。キー・順序・最大化/非表示�
 このworktree、出力、証拠は未完了のため保持。#525/#542/#547/#548の候補、#523、
 native#453/#491、AppSDK PR517、通常App/設定には触れない。main統合と恒久成果物の
 収載が済んでから、未保存物・参照・リンクを確認して正確な対象だけ整理する。
+
+2026-11-24 17:03 JST更新：現在の継続指示で調査を再開。D:/NeNeCommander/evidence/monitor-transfer-20261124
+のjournal.md、design-advice.md、scale-api-observation-01.json、transfer-compensated-summary-01.jsonを参照。
+製品変更/ADR受理/base統合なし。4画面倍率取得成功、window単位APIはE_NOTIMPL。新配置案24/24成功だが、
+最小サイズ・切断/再接続・OS下限22621・custom DPI・最大化・途中失敗と停止所有権は設計未確定。
+旧ソース送信拒否のpayloadは送っていない。公開Issueと一般UXだけの新規Claude文章相談を実施し、
+tools/file access/session persistence無効。/design未対応は既知で、生成画面とは主張しない。
+新出力D:/NeNeCommander/outputs/monitor-transfer-20261124を保持。通常設定/入力不変、診断プロセスは終了。
+他作業：548はee1859aでlocal clean。531はApp/Infra mutation成功、Presentation実行中。571のf6push承認は
+12:55に解消済み、14:45のSARIFだけの質問は未回答。merge/tag/releaseは未実施。古い承認待ちを混同しない。

@@ -84,3 +84,96 @@ fixture's arithmetic is not the accepted application algorithm. The design recor
 keeps two mechanisms unresolved; an accepted ADR and targeted product/native proof
 are still required. Retain unfinished output and the local branch; do not clean it
 as a completed feature or infer integration from this evidence.
+
+## November24 continuation: display-scale API and compensated landing
+
+hide's current milestone-continuation instruction supersedes the old stop. This
+section remains investigation/design evidence only: no production change, accepted
+monitor-transfer ADR, final visual acceptance, public source push or release.
+The retained issue551 worktree starts clean at eabae9e; all11 old investigation
+input hashes match. Current release-base f6c722c now also has ADR-0089 placement
+tracking/startup fitting, which a future implementation must preserve. No base
+integration or production edit has occurred in this continuation.
+
+Background Claude consultation completes16:50:59/exit0. The2851-byte brief contains
+only public Issue551 requirements and authored generic UX choices, not repository
+source, private layout or diagnostic contents. It runs in the dedicated empty D
+consult directory with safe mode, no tools, empty strict MCP config, no settings
+sources, no session persistence and one turn. The installed CLI's /design command
+was already observed unsupported in this session, so this is text advice rather
+than a generated design artifact. The earlier held repository-source payload was
+not retried. Exact brief/advice/invocation/hash are retained in the new evidence.
+
+The advice recommends n/p within Ctrl+W for one-shot next/previous geometric cycling,
+left-to-right then top-to-bottom order, logical-size preservation, existing helper
+hints and no new mouse entry. It prefers maximized transfer and relative landing,
+while explicitly allowing refusal when reliability cannot be proved. These are
+recommendations, not accepted behavior. The existing proposal uses centered landing
+and normal-only admission; engineering still must select and record that contract.
+
+Official API inspection distinguishes Microsoft.Graphics.Display.DisplayInformation
+(which exposes display/color information but no scale property in the inspected
+public surface) from Windows.Graphics.Display.DisplayInformationInterop. The latter
+has GetForMonitor/GetForWindow wrappers through the existing Windows SDK projection.
+Microsoft documents GetForMonitor as Windows11 build22621 or newer, with scale based
+on GetScaleFactorForMonitor. This is no proof of custom-scale precision or Windows11
+build22000 availability. Sources: [display class](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.graphics.display.displayinformation?view=windows-app-sdk-1.8),
+[C# wrappers](https://learn.microsoft.com/windows/apps/desktop/modernize/winrt-com-interop-csharp),
+[monitor contract](https://learn.microsoft.com/en-us/windows/win32/api/windows.graphics.display.interop/nf-windows-graphics-display-interop-idisplayinformationstaticsinterop-getformonitor).
+
+New scale-probe copies the existing pinned package lock, SDK and PerMonitorV2 manifest
+into D:/NeNeCommander/outputs/monitor-transfer-20261124/scale-probe. Locked restore
+and Release build both succeed, zero warnings/errors. At16:53 owned process11320
+exits0, no timeout, activations0, visible samples0 and unchanged foreground/settings.
+GetForMonitor reports1.5/1.75/1.5/1.25 for the four attached displays and agrees with
+the own-window native DPI after each move. GetForWindow fails all8 immediate/settled
+observations with E_NOTIMPL (-2147467263); this is retained and excluded as an API
+choice. Immediate XAML scale is stale in all4 tested transitions and settles later.
+The diagnostic-only native imports never enter product source.
+
+A separate transfer-probe-01 evaluates a new two-rectangle candidate against all12
+ordered display pairs at normal and oversized starting dimensions,24conditions.
+It precomputes a centered final rectangle by converting source physical dimensions
+through observed source/target scale and fitting each dimension to the target work
+area. The first request's dimensions compensate for that scale ratio; the second
+request applies the already-decided final physical rectangle. This is candidate
+arithmetic, not an accepted timing contract or an adapter-owned product decision.
+Locked restore/build succeed with0warnings/errors. At16:59 process25288 exits0,
+no timeout/activation/visibility/foreground/settings change. All24 final rectangles
+exactly equal the plan, fit the requested work area and have the intended native
+DPI. The first request alone is exact23/24; all24 already select the intended display.
+The prior primary-to-upper oversized neighbouring-display counterexample is avoided
+in this bounded candidate. Its earlier failure evidence remains unchanged.
+
+The first console summary used Select-Object directly on an OrderedDictionary and
+printed null fields. The saved JSON was correct; rereading it as a structured object
+confirms24/24. No runtime repeat occurred for this reporting correction. Read-only
+source discovery also records absent guessed route/ADR paths and truncated combined
+reads; exact files were then located. Remaining normative reading must be completed
+before any production edit; truncated text is not treated as read.
+
+Exact diagnostic commands (inside each dedicated probe):
+
+```powershell
+dotnet restore MonitorProbe.csproj --locked-mode --disable-parallel -p:Configuration=Release
+dotnet build MonitorProbe.csproj -c Release --no-restore
+```
+
+Each exact bin/Release/net10.0-windows10.0.26100.0/win-x64/MonitorProbe.exe is launched
+with Start-Process -WindowStyle Hidden -PassThru and bounded WaitForExit(20000) for
+scale-probe or25000 for transfer-probe-01. Only its returned process could be ended
+on timeout; neither timed out. Commands/results/source/managed-DLL hashes and normal
+settings hash are in scale-api-run-01 and transfer-compensated-run-01. Raw API errors,
+plans, before/immediate/final/settled samples and independent arithmetic summary are
+retained. Normal settings SHA256 is561932A6530A6317499BAB59AD0735C8469869A15C6E6DA9BE3507B37AF557CE.
+
+Next decisions before implementation: minimum size versus work-area fit, first-stage
+minimum and rounding, destination identity/topology revalidation, unsupported OS/API
+failure, custom scaling, maximized/minimized/hidden admission, partial effect/failure
+wording and exact ownership during reentrant/stopping events. A successful hidden
+probe does not establish visible/native-key/pane preservation or general OS timing.
+Use the existing WindowAdjustment planner/route/adapter, keep geometry policy in
+Application, and do not introduce a timer, retry loop or new window-operation path.
+Reserve the next truly free ADR number (0085 is now occupied;0091 is used by local531).
+No product test, full gate, mutation or CI is run for this documentation/diagnostic
+work. The new evidence/output and existing worktree are unfinished and retained.
