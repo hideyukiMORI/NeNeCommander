@@ -46,3 +46,20 @@ This API proof uses literal rows, forced status text and the actual templates; i
 is not product key routing, pointer, focus, scrim hit testing or screen acceptance.
 Other DPI/text scales, Narrator and visible interaction remain pending. No user App,
 settings, visible window or desktop input was touched.
+
+## November24 native-arrival correction
+
+Full product-control testing reproduces a41.83DIP hidden part of the selected last
+wrapped row when every key move resets ItemsSource. The original no-C# scope above
+is therefore superseded by one LocationsView display correction: preserve the actual
+row source only when exact item identities, order/count and every localized row value
+match; select from those retained rows and keep the single existing ScrollIntoView.
+No new focus, keyboard, catalog or navigation mechanism is added. Native sequential
+arrival/return, Enter/UIA selection and error/empty cases pass in all three shipped
+languages at125%; normal build, conformance and independent review pass. See the
+quality record for exact counts and preserved failures. Extremely short/narrow
+clients can have a row taller than the viewport; top/bottom text access through
+real UIA scrolling is proved separately, not asserted to be simultaneously visible.
+The baseline initial-list-focus defect, direct-API jump limit, other scales and
+physical/visible acceptance remain explicit. This is a local candidate, not final
+screen approval or release integration.
