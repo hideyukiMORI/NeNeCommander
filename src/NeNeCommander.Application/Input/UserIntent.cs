@@ -46,6 +46,12 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the focused item.</summary>
     public static UserIntent OpenFocused { get; } = new OpenFocusedIntent();
 
+    /// <summary>Gets selection of the focused entry in its Windows Shell parent.</summary>
+    public static UserIntent RevealFocused { get; } = new RevealFocusedIntent();
+
+    /// <summary>Gets selection of the active listed folder in its Windows Shell parent.</summary>
+    public static UserIntent RevealLocation { get; } = new RevealLocationIntent();
+
     /// <summary>Gets the intent to activate the other pane.</summary>
     public static UserIntent ActivateOtherPane { get; } = new ActivateOtherPaneIntent();
 
@@ -125,6 +131,9 @@ public abstract record UserIntent
 
     /// <summary>Gets the intent to open the session-owned command palette.</summary>
     public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
+
+    /// <summary>Gets keyboard context selection over the current active pane without changing its targets.</summary>
+    public static UserIntent OpenContextMenu { get; } = new OpenContextMenuIntent();
 
     /// <summary>Gets the intent to open the session-owned bookmark catalog editor.</summary>
     public static UserIntent OpenBookmarks { get; } = new OpenBookmarksIntent();
@@ -365,6 +374,20 @@ public abstract record UserIntent
         {
         }
     }
+    private sealed record RevealFocusedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record RevealLocationIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private sealed record OpenFocusedIntent : UserIntent
     {
         private protected override void RestrictDerivation()
@@ -480,6 +503,13 @@ public abstract record UserIntent
         {
         }
     }
+    private sealed record OpenContextMenuIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private sealed record OpenCommandPaletteIntent : UserIntent
     {
         private protected override void RestrictDerivation()

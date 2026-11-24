@@ -835,4 +835,41 @@
   <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>New text file</value></data>
   <data name="NameEntryTextFileDefault" xml:space="preserve"><value>New text file.txt</value></data>
   <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
+  <data name="IntentLabelRevealFocused" xml:space="preserve">
+    <value>Show focused item in Explorer</value>
+  </data>
+  <data name="IntentLabelRevealLocation" xml:space="preserve">
+    <value>Show current folder in Explorer</value>
+  </data>
+  <data name="IntentLabelOpenContextMenu" xml:space="preserve">
+    <value>Open context menu</value>
+  </data>
+  <data name="PaneStatusRevealing" xml:space="preserve">
+    <value>Requesting Explorer selection…</value>
+  </data>
+  <data name="PaneStatusRevealCancelled" xml:space="preserve">
+    <value>Explorer selection request cancelled</value>
+  </data>
+  <data name="PaneStatusRevealNotFound" xml:space="preserve">
+    <value>Explorer could not find the item</value>
+  </data>
+  <data name="PaneStatusRevealAccessDenied" xml:space="preserve">
+    <value>Explorer access denied</value>
+  </data>
+  <data name="PaneStatusRevealUnavailable" xml:space="preserve">
+    <value>Explorer could not show the item</value>
+  </data>
+  <data name="CommandPaletteRevealFocusedDetail" xml:space="preserve">
+    <value>Select the focused item in its Explorer parent folder.</value>
+  </data>
+  <data name="CommandPaletteRevealLocationDetail" xml:space="preserve">
+    <value>Select the current folder itself in its Explorer parent.</value>
+  </data>
+  <data name="KeyLabelApps" xml:space="preserve"><value>Menu</value></data>
+  <data name="KeyLabelShiftF10" xml:space="preserve"><value>Shift+F10</value></data>
+  <data name="CommandMenuFocusFormat" xml:space="preserve"><value>Focused item: {0}</value></data>
+  <data name="CommandMenuSelectionFormat" xml:space="preserve"><value>Selected items: {0}</value></data>
+  <data name="CommandMenuFocusFallbackFormat" xml:space="preserve"><value>Focused item (no selection): {0}</value></data>
+  <data name="CommandMenuNewFormat" xml:space="preserve"><value>New in: {0}</value></data>
+  <data name="CommandMenuFolderFormat" xml:space="preserve"><value>Current folder: {0}</value></data>
 </root>

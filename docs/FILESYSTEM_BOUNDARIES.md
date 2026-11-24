@@ -201,3 +201,24 @@ zero bytes and unchanged captured identity before registering the exact entry.
 Declared link targets are either an owned existing entry or an absent path; unlink
 verifies that expectation before and after removing only the link. An unexpected
 new target remains foreign residue and blocks recursive cleanup. The launcher runs all declared live cells by default. An explicit `-Case` list may select distinct declared cells for the affected boundary; unknown or duplicate selections are rejected. The record states both declared and selected counts and requires exactly the selected cells to pass, with no skip or absence. A selected run is evidence for those cells only, not a full live-tier result.
+
+## Explorer reveal (ADR-0091)
+
+RevealFocused and RevealLocation derive their path from the captured admitted pane
+and use the existing IFileLauncher/WindowsShellFileLauncher and STA Shell scheduler.
+Activation keeps its non-root/parent rule. Reveal may select an admitted provider root
+in its Shell parent namespace. Both preserve the original canonical Windows local,
+UNC or WSL text; reveal retains UNC/WSL length below260 and Windows-compatible WSL
+segments. There is no Exists/ACL/reparse/identity preflight, command line, custom verb,
+fallback activation, credential input or retry.
+
+WindowsShellItemSelection parses the exact path through SHParseDisplayName with null
+bind context/attributes0, selects that absolute PIDL using SHOpenFolderAndSelectItems
+with cidl0/null children/flags0, and frees the owned allocation exactly once even on
+failure/cancellation. Selecting a folder means showing that item in its Shell parent,
+not opening its contents. Native parse/select can block and are not interruptible;
+cancellation is observed before scheduling, parse and final handoff, with accepted
+handoff retained after late cancellation. PaneLaunching freezes input throughout.
+Acceptance is only a path-handoff receipt: Explorer can later resolve a replacement
+or refuse a missing item, and no stable identity, window/process lifetime or mutation
+capability is asserted. Native parse/free tests need no real Explorer display.

@@ -106,22 +106,17 @@ public sealed class CommandPalettePresenterTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => view.UpdateQuery(null!));
     }
 
-    /// <summary>
-    /// Proves every projected row reads its shortcut from the canonical file-list key map, so a
-    /// candidate the map does not declare fails loudly instead of rendering an absent shortcut.
-    /// </summary>
+    /// <summary>Proves unbound reveal commands render without inventing a canonical shortcut.</summary>
     [TestMethod]
-    public async Task PresentWhenCandidateHasNoCanonicalFileListShortcutThrowsAsync()
+    public async Task PresentWhenRevealHasNoDeclaredShortcutRendersEmptyHintAsync()
     {
-        CommandPaletteOpen template = await CommandPaletteTestContext.OpenPaletteAsync(null);
-        List<CommandCandidate> unbound =
-        [
-            CommandPaletteTestContext.CreateCandidate(UserIntent.Confirm, CommandAvailability.Available),
-        ];
-        CommandPaletteOpen open = CommandPaletteTestContext.CreateOpen(template, PaneSide.Left, unbound.AsReadOnly());
+        CommandPaletteOpen open = await CommandPaletteTestContext.OpenPaletteAsync(null);
 
-        _ = Assert.ThrowsExactly<InvalidOperationException>(() =>
-            CommandPalettePresenter.Present(open, CommandPaletteTestContext.ProjectResource));
+        CommandPaletteViewState view = CommandPalettePresenter.Present(open, CommandPaletteTestContext.ProjectResource);
+
+        Assert.AreEqual(string.Empty, view.Rows.Single(row => row.Intent == UserIntent.RevealFocused).Shortcut);
+        Assert.AreEqual(string.Empty, view.Rows.Single(row => row.Intent == UserIntent.RevealLocation).Shortcut);
+        Assert.AreEqual("<KeyLabelL>", view.Rows.Single(row => row.Intent == UserIntent.OpenFocused).Shortcut);
     }
 
     /// <summary>
@@ -178,6 +173,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.OpenBookmarks, "IntentLabelOpenBookmarks", "KeyLabelCtrlB"),
             (UserIntent.OpenWindowAdjustment, "IntentLabelOpenWindowAdjustment", "KeyLabelCtrlW"),
             (UserIntent.OpenHelp, "IntentLabelOpenHelp", "KeyLabelF1"),
+            (UserIntent.RevealFocused, "IntentLabelRevealFocused", string.Empty),
+            (UserIntent.RevealLocation, "IntentLabelRevealLocation", string.Empty),
         ];
     }
 }

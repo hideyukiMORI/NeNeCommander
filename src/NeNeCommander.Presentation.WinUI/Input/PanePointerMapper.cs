@@ -46,6 +46,27 @@ public sealed class PanePointerMapper
             : null;
     }
 
+    /// <summary>Maps a context request only for an exact row of its rendered projection.</summary>
+    public UserIntent? MapRowContext(PaneSide side, PanePresentation presentation, PaneRow row)
+    {
+        ArgumentNullException.ThrowIfNull(side);
+        ArgumentNullException.ThrowIfNull(presentation);
+        ArgumentNullException.ThrowIfNull(row);
+        Reset();
+        return presentation.Rows.Any(candidate => ReferenceEquals(candidate, row))
+            ? UserIntent.InteractWithPaneEntry(side, presentation.SourceSnapshot, row.Entry, PaneEntryAction.OpenContextMenu)
+            : null;
+    }
+
+    /// <summary>Maps a passive background or header context without changing its focus or selection.</summary>
+    public UserIntent MapSurfaceContext(PaneSide side, PanePresentation presentation)
+    {
+        ArgumentNullException.ThrowIfNull(side);
+        ArgumentNullException.ThrowIfNull(presentation);
+        Reset();
+        return UserIntent.InteractWithPaneSurface(side, presentation.SourceSnapshot, PaneSurfaceAction.OpenContextMenu);
+    }
+
     /// <summary>Consumes an accepted first tap once and maps only the same listing-owned entry.</summary>
     public UserIntent? MapRowDoubleTap(PaneSide side, PanePresentation presentation, PaneRow row, PanePointerModifier modifier)
     {

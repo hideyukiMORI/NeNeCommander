@@ -128,15 +128,27 @@ public sealed class DualPaneSession
 
     private Task<DualPaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
     {
+        PaneSnapshot before = Current.Of(interaction.Side);
+        DualPaneSnapshot after = ApplyInteraction(interaction);
+        return !ReferenceEquals(before, after.Of(interaction.Side)) &&
+            interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
+                ? ReportAfterAsync(SessionOf(interaction.Side).HandleAsync(UserIntent.OpenFocused, cancellationToken))
+                : Task.FromResult(after);
+    }
+
+    /// <summary>Commits one qualified pointer transition without awaiting any external work.</summary>
+    internal DualPaneSnapshot ApplyInteraction(PaneInteraction interaction)
+    {
         PaneSession target = SessionOf(interaction.Side);
-        if (_left.Current.Activity is PaneLoading or PaneLaunching ||
+        if (IsFrozen || _left.Current.Activity is PaneLoading or PaneLaunching ||
             _right.Current.Activity is PaneLoading or PaneLaunching ||
             !interaction.Matches(target.Current))
         {
-            return Task.FromResult(Current);
+            return Current;
         }
+        _ = target.ApplyInteraction(interaction);
         _activeSide = interaction.Side;
-        return ReportAfterAsync(target.HandleAsync(interaction, cancellationToken));
+        return Current;
     }
 
     private Task<DualPaneSnapshot> RouteAsync(

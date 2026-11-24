@@ -1,3 +1,5 @@
+using System;
+using Windows.Foundation;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -19,6 +21,8 @@ internal sealed class PanePointerView
     private readonly PaneSide _side;
     private readonly PanePointerBindings _bindings;
     private PanePresentation? _rendered;
+    private UIElement? _contextSource;
+    private Action? _cancelContext;
 
     internal PanePointerView(ListView list, Border header, PaneSide side, PanePointerBindings bindings)
     {
@@ -32,6 +36,15 @@ internal sealed class PanePointerView
         _list.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnPointerPressed), true);
         _list.PointerCanceled += (_, _) => _bindings.Mapper.Reset();
         _list.RightTapped += (_, _) => _bindings.Mapper.Reset();
+        _list.ContextRequested += OnContextRequested;
+        _header.ContextRequested += OnContextRequested;
+        _list.ContextCanceled += OnContextCanceled;
+        _header.ContextCanceled += OnContextCanceled;
+        foreach (UIElement surface in new UIElement[] { _list, _header })
+        {
+            surface.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(ResetContextGesture), true);
+            surface.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(ResetContextGesture), true);
+        }
     }
 
     internal void Render(PanePresentation presentation)
@@ -87,6 +100,44 @@ internal sealed class PanePointerView
             Forward(_bindings.Mapper.MapSurfaceTap(_side, _rendered, PanePointerSurface.Header,
                 WinUiPanePointerTranslator.GetModifier()));
         }
+    }
+
+    private void OnContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        _bindings.Mapper.Reset();
+        _cancelContext = null;
+        _contextSource = null;
+        args.Handled = true;
+        if (_rendered is null || !args.TryGetPosition(_list, out Point point))
+        {
+            return;
+        }
+        DependencyObject? target = FindPassiveTarget(args.OriginalSource as DependencyObject, sender);
+        UserIntent? intent = target is ListViewItem { Content: PaneRow row }
+            ? _bindings.Mapper.MapRowContext(_side, _rendered, row)
+            : ReferenceEquals(target, sender) ? _bindings.Mapper.MapSurfaceContext(_side, _rendered) : null;
+        if (intent is not null)
+        {
+            _cancelContext = _bindings.RequestContext(_list, point, intent);
+            _contextSource = sender;
+        }
+    }
+
+    private void OnContextCanceled(UIElement sender, RoutedEventArgs args)
+    {
+        if (ReferenceEquals(sender, _contextSource))
+        {
+            Action? cancel = _cancelContext;
+            _cancelContext = null;
+            _contextSource = null;
+            cancel?.Invoke();
+        }
+    }
+
+    private void ResetContextGesture(object sender, PointerRoutedEventArgs args)
+    {
+        _cancelContext = null;
+        _contextSource = null;
     }
 
     private void Forward(UserIntent? intent)

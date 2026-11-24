@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NeNeCommander.Application.Input;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
 
@@ -29,7 +30,10 @@ internal sealed class KeyboardRepeatGuard
                 palette.Action == CommandPaletteKeyAction.Cancel,
             MappedBookmarkManagerAction bookmark => !bookmark.Action.Repeats,
             MappedKeyboardFocusAction => true,
-            KeyboardPassThrough => (input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter) ||
+            MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu,
+            KeyboardPassThrough => (input.Context == KeyboardContext.ContextMenu &&
+                (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.Escape)) ||
+                (input.Context == KeyboardContext.BookmarkDraft && input.Key == KeyboardKey.Enter) ||
                 (input.Context == KeyboardContext.CommandEntry && (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space)),
             _ => false
         };
@@ -37,6 +41,15 @@ internal sealed class KeyboardRepeatGuard
         {
             _ = _singleShotKeys.Add(input.Key);
         }
+    }
+
+    internal static KeyboardMappingOutcome MapNativeMenu(KeyboardInput input)
+    {
+        return input.Key == KeyboardKey.F10 || input.Key == KeyboardKey.Apps ||
+            (input.RepeatState == KeyRepeatState.Repeated &&
+                (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.Escape))
+                    ? new KeyboardConsumed()
+                    : new KeyboardPassThrough();
     }
 
     internal void ObserveNative(KeyboardInput input)

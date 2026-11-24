@@ -351,6 +351,11 @@ public static class PaneReducer
     private static PaneState ApplyRowInteraction(PaneState state, PaneRowInteraction row)
     {
         FileSystemPath focus = row.Entry.Path;
+        if (row.Action == PaneEntryAction.OpenContextMenu &&
+            state.Selection.Contains(focus, FileSystemPathIdentityComparer.Instance))
+        {
+            return state.Transition(focus, state.Selection, state.SelectionAnchor);
+        }
         if (row.Action == PaneEntryAction.ToggleSelection)
         {
             return state.Transition(focus, PaneSelection.Toggle(state.Selection, focus), focus);

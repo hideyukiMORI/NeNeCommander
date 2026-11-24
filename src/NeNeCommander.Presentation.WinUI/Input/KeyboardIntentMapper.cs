@@ -23,6 +23,8 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static readonly IReadOnlyList<KeyBinding> DeclaredBindings =
     [
+        new(KeyboardContext.FileList, KeyboardKey.F10, KeyboardModifier.Shift, UserIntent.OpenContextMenu),
+        new(KeyboardContext.FileList, KeyboardKey.Apps, KeyboardModifier.None, UserIntent.OpenContextMenu),
         new(KeyboardContext.FileList, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.FileList, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.FileList, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
@@ -251,6 +253,7 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         return input.Context switch
         {
+            KeyboardContext context when context == KeyboardContext.ContextMenu => KeyboardRepeatGuard.MapNativeMenu(input),
             KeyboardContext context when context == KeyboardContext.CommandPalette => MapCommandPaletteKey(input),
             KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
@@ -307,7 +310,7 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         TimeSpan elapsed = _clock.GetMonotonicTime() - startedAt;
         return elapsed <= ChordLifetime && IsChordPrefix(input)
-            ? MapIntent(UserIntent.FocusFirst)
+            ? new MappedKeyboardIntent(UserIntent.FocusFirst)
             : null;
     }
 
@@ -333,7 +336,7 @@ public sealed class KeyboardIntentMapper
         }
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
-        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+        return binding is null ? new KeyboardPassThrough() : new MappedKeyboardIntent(binding.Intent);
     }
 
     private static KeyboardMappingOutcome MapCommandPaletteKey(KeyboardInput input)
@@ -450,7 +453,9 @@ public sealed class KeyboardIntentMapper
             binding.Context == input.Context &&
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
-        return binding is null ? KeyboardFocusMap.Map(input) : MapIntent(binding.Intent);
+        return binding is null ? KeyboardFocusMap.Map(input)
+            : binding.Intent == UserIntent.OpenContextMenu && input.RepeatState == KeyRepeatState.Repeated
+                ? new KeyboardConsumed() : new MappedKeyboardIntent(binding.Intent);
     }
 
     private static bool IsChordPrefix(KeyboardInput input)
@@ -472,8 +477,4 @@ public sealed class KeyboardIntentMapper
                 input.Key == KeyboardKey.F1);
     }
 
-    private static MappedKeyboardIntent MapIntent(UserIntent intent)
-    {
-        return new MappedKeyboardIntent(intent);
-    }
 }

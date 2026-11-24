@@ -9,51 +9,50 @@ namespace NeNeCommander.Application.Commands;
 /// <summary>Declares the sole stable subset of existing intents searchable by the command palette.</summary>
 public static class CommandCatalog
 {
-    private static readonly IReadOnlyList<UserIntent> DeclaredCommands = Array.AsReadOnly<UserIntent>(
+    private static readonly IReadOnlyList<CommandDefinition> DeclaredCommands = Array.AsReadOnly<CommandDefinition>(
     [
-        UserIntent.OpenFocused,
-        UserIntent.NavigateParent,
-        UserIntent.NavigateBack,
-        UserIntent.NavigateForward,
-        UserIntent.Refresh,
-        UserIntent.FocusAddress,
-        UserIntent.Rename,
-        UserIntent.Copy,
-        UserIntent.Move,
-        UserIntent.CreateDirectory,
-        UserIntent.CreateTextFile,
-        UserIntent.Delete,
-        UserIntent.ToggleSelection,
-        UserIntent.ToggleHiddenItems,
-        UserIntent.ActivateOtherPane,
-        UserIntent.OpenSettings,
-        UserIntent.OpenColorSchemes,
-        UserIntent.SortByName,
-        UserIntent.SortByExtension,
-        UserIntent.OpenLocations,
-        UserIntent.SortBySize,
-        UserIntent.SortByModified,
-        UserIntent.OpenBookmarks,
-        UserIntent.OpenWindowAdjustment,
-        UserIntent.OpenHelp,
+        new(UserIntent.OpenFocused, CommandMenuGroup.FocusedItem),
+        new(UserIntent.NavigateParent, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.NavigateBack, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.NavigateForward, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.Refresh, CommandMenuGroup.Folder),
+        new(UserIntent.FocusAddress, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.Rename, CommandMenuGroup.FocusedItem),
+        new(UserIntent.Copy, CommandMenuGroup.Selection),
+        new(UserIntent.Move, CommandMenuGroup.Selection),
+        new(UserIntent.CreateDirectory, CommandMenuGroup.New),
+        new(UserIntent.CreateTextFile, CommandMenuGroup.New),
+        new(UserIntent.Delete, CommandMenuGroup.Selection),
+        new(UserIntent.ToggleSelection, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.ToggleHiddenItems, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.ActivateOtherPane, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.OpenSettings, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.OpenColorSchemes, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.SortByName, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.SortByExtension, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.OpenLocations, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.SortBySize, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.SortByModified, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.OpenBookmarks, CommandMenuGroup.Folder),
+        new(UserIntent.OpenWindowAdjustment, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.OpenHelp, CommandMenuGroup.PaletteOnly),
+        new(UserIntent.RevealFocused, CommandMenuGroup.FocusedItem),
+        new(UserIntent.RevealLocation, CommandMenuGroup.Folder),
     ]);
 
     /// <summary>Gets the searchable commands in stable empty-query order.</summary>
-    public static IReadOnlyList<UserIntent> Commands { get; } = DeclaredCommands;
+    public static IReadOnlyList<UserIntent> Commands { get; } =
+        Array.AsReadOnly(DeclaredCommands.Select(command => command.Intent).ToArray());
 
-    internal static bool Contains(UserIntent intent)
-    {
-        return DeclaredCommands.Contains(intent);
-    }
-
-    internal static IReadOnlyList<CommandCandidate> Capture(DualPaneSnapshot panes)
+    internal static IReadOnlyList<CommandCandidate> Capture(DualPaneSnapshot panes, CommandSurface surface)
     {
         PaneContentListed active = (PaneContentListed)panes.Of(panes.ActiveSide).Content;
         PaneSnapshot passive = panes.Of(panes.ActiveSide.Other);
         List<CommandCandidate> candidates = [];
-        foreach (UserIntent intent in DeclaredCommands)
+        foreach (CommandDefinition command in DeclaredCommands.Where(command => command.Group.AppearsOn(surface)))
         {
-            candidates.Add(new CommandCandidate(intent, AvailabilityOf(intent, active, passive)));
+            candidates.Add(new CommandCandidate(command.Intent,
+                AvailabilityOf(command.Intent, active, passive), command.Group));
         }
         return candidates.AsReadOnly();
     }
@@ -75,7 +74,7 @@ public static class CommandCatalog
         bool transfers = intent == UserIntent.Copy || intent == UserIntent.Move;
         return intent switch
         {
-            _ when (intent == UserIntent.OpenFocused ||
+            _ when (intent == UserIntent.OpenFocused || intent == UserIntent.RevealFocused ||
                     intent == UserIntent.Rename ||
                     intent == UserIntent.ToggleSelection) && !hasFocus =>
                 CommandUnavailableReason.FocusRequired,

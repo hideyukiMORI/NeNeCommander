@@ -132,10 +132,10 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | settings persistence and atomic complete-document write | `ISettingsStore` boundary coordinated by `SettingsSession` |
 | immediate interface language | `InterfaceLanguageSelection` through the existing settings modal/queue; the window-owned `ViewTextResources` applies the current choice to its sole explicit MRT context and existing localized controls, retaining the original System qualifier (ADR-0086, ADR-0088) |
 | settings modal ownership and intent routing | `CommanderSession` over `DualPaneSession` and `SettingsSession` |
-| command-palette state, admission, and qualified validation | `CommandPaletteSession` with `CommandCatalog` |
-| dispatch of a validated palette intent | `CommanderSession` |
+| palette/context selection state, admission, and qualified validation | `CommandPaletteSession` with the surface/group metadata in `CommandCatalog` (ADR-0091) |
+| synchronous context acquisition and dispatch of a validated palette/context intent | `CommanderSession`; `CommandContextRequest` only derives the qualified target/surface (ADR-0091) |
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
-| localized command-palette filtering and selection | `CommandPalettePresenter` with `CommandPaletteViewState` |
+| localized command selection rendering | `CommandPalettePresenter` with `CommandPaletteViewState`; `CommandMenuPresenter` groups those same rows and `CommandMenuView` adapts native invocation callbacks (ADR-0091) |
 | startup and final window placement | `WindowRestorePlanner` decides one corrected normal rectangle; the existing `AppWindowPlacementAdapter` moves to the target display before applying it and tracks its own window. `CommanderSession.StopAsync` queues one changed final value and drains `SettingsSession`; stopping session/operation callbacks cannot rebuild content or refocus lists (ADR-0089) |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
 | framework asynchronous work | `AsyncWorkOwner`; Stop closes admission before cancelling and awaiting admitted work (ADR-0030, ADR-0071) |
@@ -145,9 +145,34 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | Locations picker state, admission, focus, and qualified validation | `LocationsSession` over `IDriveCatalog` and `IWslDistributionCatalog` |
 | window adjustment mode synchronous input route | `CommanderSession.AdjustWindow` and `CommanderSession.LeaveWindowAdjustment` |
 | color scheme | sole fixed ColorScheme catalog and constant resource projection, copied into the existing merged brushes by the composition root (ADR-0087); transient theme search never applies or saves |
-| focused file launch | `PaneSession` file/directory decision through `IFileLauncher`, with path admission owned by `WindowsShellFileLauncher` |
+| file activation and Explorer reveal | `PaneSession` through `IFileLauncher` and one purpose-qualified `PaneLaunching` lifecycle; `WindowsShellFileLauncher` owns admission; activation retains `ExecuteAsync`, while reveal uses the existing STA `ExecuteShellAsync` boundary (ADR-0091) |
 | time | `IClock` boundary |
 | identifiers | `IIdentifierSource` boundary, composed with `WindowsIdentifierSource`; settings writes request one candidate token per attempt (ADR-0070) |
 | object construction | `NeNeCommander.App` composition root |
 
 A new row requires an accepted ADR. Replacing a row is one migration: the old mechanism and compatibility path are removed in the same change.
+
+## Context surfaces and native invocation (ADR-0091)
+
+The palette, item context and folder context are closed CommandSurface cases over
+one CommandPaletteSession, CommandCatalog and CommanderSession dispatch path.
+CommandContextRequest derives a qualified pane interaction and surface without
+effects. CommanderSession validates current ownership, synchronously applies that
+interaction through the existing pane reducer, and captures the actual new endpoints
+before any await. Native row focus, path equality and native SelectedItem cannot
+substitute for the exact rendered snapshot and owned entry.
+
+CommandPaletteView renders only Palette; CommandMenuView renders the two context
+surfaces. CommandMenuPresenter groups the same canonical candidates by explicit
+focused item, selected batch/focus fallback, New destination and current folder.
+The adapter's CommandMenuInvocation only qualifies native callbacks: Closed queues
+one dispatcher finalizer, a same-turn Click consumes first, and detached/stopping
+callbacks cannot dispatch. Application revalidates exact open state and membership
+before every submission/cancellation. No menu-local dispatcher or state owner exists.
+
+Shift+F10 and Apps map from FileList to OpenContextMenu through the sole mapper.
+Positionless ContextRequested is handled/ignored; positioned events carry exact
+rendered ownership. Native navigation stays native in ContextMenu, while the existing
+KeyboardRepeatGuard retains Enter/Space/Escape and opener presses across owner changes.
+Only the existing WindowFrame preview/character route calls that mapper; no item or
+popup adds a private key table. Cancellation uses the existing guarded focus helper.

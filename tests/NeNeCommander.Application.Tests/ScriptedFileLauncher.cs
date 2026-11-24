@@ -14,6 +14,8 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
 
     internal List<FileSystemPath> Targets { get; } = [];
 
+    internal List<FileLaunchPurpose> Purposes { get; } = [];
+
     internal List<CancellationToken> CancellationTokens { get; } = [];
 
     internal void Enqueue(FileLaunchOutcome outcome)
@@ -34,7 +36,19 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
+        return HandoffAsync(target, FileLaunchPurpose.Activation, cancellationToken);
+    }
+
+    public Task<FileLaunchOutcome> RevealAsync(FileSystemPath target, CancellationToken cancellationToken)
+    {
+        return HandoffAsync(target, FileLaunchPurpose.Reveal, cancellationToken);
+    }
+
+    private Task<FileLaunchOutcome> HandoffAsync(
+        FileSystemPath target, FileLaunchPurpose purpose, CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(target);
+        Purposes.Add(purpose);
         Targets.Add(target);
         CancellationTokens.Add(cancellationToken);
         return _outcomes.Count > 0

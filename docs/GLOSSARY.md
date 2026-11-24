@@ -105,3 +105,9 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | `WslEntryMetadata` | Immutable internal group of a WSL entry identity, observed kind and raw attributes; its path and independently observed name remain owned by WslFileSystemEntry. |
 | `WindowsLocalOperationSteps` | Internal owner of the existing local mutation/capability/verification bodies, invoked only inside the Windows local adapter execution boundary. |
 | `WindowsLocalTransferPreflight` | One-call owner of ordered Windows local transfer reservations, choices and conflicts; retains no plan across calls and performs no mutation. |
+| command surface | One closed Palette, ItemContext or FolderContext case over the existing command-selection owner; it controls captured catalog membership and the sole visible adapter (ADR-0091). |
+| command context request | The immutable qualified PaneInteraction plus CommandSurface derived from captured pane state without effects; CommanderSession alone applies and captures synchronously (ADR-0091). |
+| command menu section | One localized explicit target heading with rows derived from the sole command catalog: focus, selection/focus fallback, New destination or current folder (ADR-0091). |
+| menu invocation qualifier | The adapter-only CommandMenuInvocation that orders one native flyout's same-turn Click/Closed callbacks against its existing exact open state; it is not a scope owner or dispatcher (ADR-0091). |
+| Explorer reveal | A user-requested path handoff through IFileLauncher.RevealAsync that asks Shell to select the exact path in its parent namespace; acceptance does not prove a selected window or stable target identity (ADR-0091). |
+| file launch purpose | The closed activation/reveal purpose carried by the one PaneLaunching, PaneLaunchFailed and PaneLaunchCancelled lifecycle; no parallel busy flag exists (ADR-0091). |

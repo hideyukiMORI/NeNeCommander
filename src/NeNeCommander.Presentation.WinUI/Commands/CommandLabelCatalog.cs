@@ -12,6 +12,9 @@ public static class CommandLabelCatalog
     private static readonly IReadOnlyList<CommandLabel> DeclaredLabels = new ReadOnlyCollection<CommandLabel>(
     [
         new(UserIntent.OpenFocused, "IntentLabelOpenFocused"),
+        new(UserIntent.RevealFocused, "IntentLabelRevealFocused"),
+        new(UserIntent.RevealLocation, "IntentLabelRevealLocation"),
+        new(UserIntent.OpenContextMenu, "IntentLabelOpenContextMenu"),
         new(UserIntent.NavigateParent, "IntentLabelNavigateParent"),
         new(UserIntent.NavigateBack, "IntentLabelNavigateBack"),
         new(UserIntent.NavigateForward, "IntentLabelNavigateForward"),

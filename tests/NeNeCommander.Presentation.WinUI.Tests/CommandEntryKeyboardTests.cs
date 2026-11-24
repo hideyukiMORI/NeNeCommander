@@ -80,9 +80,9 @@ public sealed class CommandEntryKeyboardTests
         }
     }
 
-    /// <summary>Proves Shift+F10 and modified combinations remain unassigned without changing produced characters.</summary>
+    /// <summary>Proves Shift+F10 carries its declared context-menu modifier without changing produced characters.</summary>
     [TestMethod]
-    public void TranslateWhenF10IsShiftedPreservesContextMenuReservation()
+    public void TranslateWhenF10IsShiftedPreservesContextMenuModifier()
     {
         KeyboardModifier shift = KeyboardInputTranslator.TranslateF10ModifierState(
             CoreVirtualKeyStates.None, CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down);
@@ -96,7 +96,7 @@ public sealed class CommandEntryKeyboardTests
         KeyboardInput input = KeyboardInputTranslator.TranslateKeyData((int)VirtualKey.F10,
             KeyRepeatState.Initial, KeyboardContext.FileList, shift);
         Assert.AreSame(KeyboardKey.F10, input.Key);
-        _ = Assert.IsInstanceOfType<KeyboardPassThrough>(KeyboardMappingTestContext.CreateMapper().Map(input));
+        KeyboardMappingTestContext.AssertMaps(KeyboardMappingTestContext.CreateMapper(), input, UserIntent.OpenContextMenu);
         Assert.AreSame(KeyboardKey.UpperG, KeyboardInputTranslator.TranslateCharacterData('G',
             KeyRepeatState.Initial, KeyboardContext.FileList, KeyboardModifier.None).Key);
         Assert.AreSame(KeyboardKey.Plus, KeyboardInputTranslator.TranslateCharacterData('+',

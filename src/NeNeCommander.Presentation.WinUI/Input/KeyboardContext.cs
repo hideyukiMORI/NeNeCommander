@@ -54,6 +54,16 @@ public abstract record KeyboardContext
     /// <summary>Gets the bookmark draft context with explicit save and cancel keys.</summary>
     public static KeyboardContext BookmarkDraft { get; } = new BookmarkDraftContext();
 
+    /// <summary>Gets the native context menu whose navigation stays with its framework control.</summary>
+    public static KeyboardContext ContextMenu { get; } = new ContextMenuContext();
+
+    private sealed record ContextMenuContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private KeyboardContext()
     {
     }

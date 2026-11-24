@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -182,8 +183,9 @@ public sealed class CommanderScopeNullGuardTests
 
     private static void AssertCommandPaletteArguments(CommandPaletteSession commandPalette, DualPaneSnapshot snapshot)
     {
-        NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Open(null!, InteractionOwnership.ScopeOwnsInput));
-        NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Open(snapshot, null!));
+        NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Open(null!, CommandSurface.Palette, InteractionOwnership.ScopeOwnsInput));
+        NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Open(snapshot, CommandSurface.Palette, null!));
+        NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Open(snapshot, null!, InteractionOwnership.ScopeOwnsInput));
         NullGuardAssertions.AssertNullGuard(() => _ = commandPalette.Validate(
             null!,
             snapshot,

@@ -41,6 +41,8 @@ internal sealed record CommandPaletteContext
             UserIntent value when value == UserIntent.OpenWindowAdjustment => "CommandPaletteWindowDetail",
             UserIntent value when value == UserIntent.OpenHelp => "CommandPaletteHelpDetail",
             UserIntent value when value == UserIntent.OpenBookmarks => "CommandPaletteBookmarksDetail",
+            UserIntent value when value == UserIntent.RevealFocused => "CommandPaletteRevealFocusedDetail",
+            UserIntent value when value == UserIntent.RevealLocation => "CommandPaletteRevealLocationDetail",
             _ => null,
         };
         return resourceKey is null ? null : localize(resourceKey);

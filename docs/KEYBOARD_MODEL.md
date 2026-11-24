@@ -352,9 +352,33 @@ The host checks stopping before consulting native context and rechecks current
 ownership before applying focus. Header and absent-content receipts preserve their
 content/activity/model identities while replacing the snapshot wrapper.
 
-Only raw F10 adds explicit Shift distinction: Shift+F10 is unassigned for future
-context-menu work, and Shift with Control/Alt is an undeclared combination. Other
+Only raw F10 adds explicit Shift distinction: Shift+F10 opens context under ADR-0091,
+and Shift with Control/Alt remains an undeclared combination. Other
 virtual keys and produced characters keep their current Control/Alt mapping,
 including uppercase G, layout-produced symbols, IME and dead-key exclusions.
 This contract is under implementation; technical design acceptance does not claim
 native event-order, physical-key or visible-layout acceptance.
+
+## Context-menu input (ADR-0091)
+
+Initial Shift+F10 or Apps from FileList preserves the active pane and marks, opening
+item context when focus exists or folder context for an empty listed folder. Bare
+F10 and file-list Tab retain command-entry/pane-switch semantics. Positionless native
+ContextRequested events never reopen the context after this mapped key. Pointer
+requests use exact rendered row/background/header ownership and invalidate double tap.
+
+ContextMenu is a native-control input context over the existing command selection
+owner. Up/Down and submenu Left/Right remain native. Enter/Space and Escape pass only
+the initial event; the shared repeat guard consumes held repeats across submenu,
+root, replacement owner and returned pane. The first submenu Escape collapses only
+that submenu, and a fresh Escape dismisses root. No ordinary pane intent is mapped
+while ContextMenu owns input, and no extra popup/root key registration exists.
+Text/IME ownership and stopping keep precedence. Shift+F10/Apps captions are generated
+from canonical declarations; Reveal has no invented shortcut and renders an empty cap.
+
+Native Closed defers exact-owner cancellation until the current invocation turn ends.
+Click/Invoke may consume that same owner first; genuinely late invocation is rejected.
+Replacing, submitting, stopping or showing another surface detaches old callbacks;
+a departing surface cannot take focus from the new owner. Actual event ordering,
+physical modifiers/IME, layout/accessibility and visible acceptance retain distinct
+proof requirements in ADR-0091 and the feature quality record.

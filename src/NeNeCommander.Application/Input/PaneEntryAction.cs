@@ -21,6 +21,9 @@ public abstract record PaneEntryAction
     /// <summary>Gets the Open action.</summary>
     public static PaneEntryAction Open { get; } = new OpenAction();
 
+    /// <summary>Gets focus with selected-batch preservation before an item-context capture.</summary>
+    public static PaneEntryAction OpenContextMenu { get; } = new OpenContextMenuAction();
+
     private PaneEntryAction()
     {
     }
@@ -50,6 +53,12 @@ public abstract record PaneEntryAction
         }
     }
     private sealed record OpenAction : PaneEntryAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenContextMenuAction : PaneEntryAction
     {
         private protected override void RestrictDerivation()
         {

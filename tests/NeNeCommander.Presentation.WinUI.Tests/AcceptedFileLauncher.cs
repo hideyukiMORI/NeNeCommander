@@ -16,4 +16,9 @@ internal sealed class AcceptedFileLauncher : IFileLauncher
         _ = cancellationToken;
         return Task.FromResult(FileLaunchOutcome.Accepted());
     }
+
+    public Task<FileLaunchOutcome> RevealAsync(FileSystemPath target, CancellationToken cancellationToken)
+    {
+        return LaunchAsync(target, cancellationToken);
+    }
 }

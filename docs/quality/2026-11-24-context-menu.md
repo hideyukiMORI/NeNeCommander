@@ -1,6 +1,6 @@
 # Context-menu design and implementation proof - 2026-11-24
 
-Status: mechanism design accepted; selected native framework prototype passed; product implementation pending.
+Status: mechanism design accepted; product implementation in progress; focused context/reveal proof passed; final host/deep review pending.
 
 Issue531 is open. The dedicated worktree is D:/NeNeCommander/worktrees/issue-531,
 feat/531-context-menu, based on local technical pointer candidate76bff48. New-file
@@ -178,3 +178,234 @@ no clean-complexity claim. Several read-only guessed path/glob probes fail witho
 changing source; subsequent discovery uses actual paths. All failed build/test
 attempts are retained. Context owner/menu/reveal product implementation is next;
 the imported keyboard/palette new-file core alone does not complete either issue.
+
+## Shared context/reveal implementation — November24 13:48 JST
+
+After integrationbf3c877 the sole CommandCatalog now declares surface/group metadata,
+CommandPaletteOpen captures its surface, and CommanderSession synchronously admits
+an exact context request through the existing PaneReducer before capturing candidates.
+Search/pointer/context candidates share one owner and exact candidate membership.
+Selected-row context preserves the batch/anchor, unselected context performs single
+selection, and background context preserves focus/selection while offering folder actions.
+PaneLaunching/failed/cancelled share an explicit launch/reveal purpose. Windows reveal
+uses the existing STA Shell scheduler and a narrow PIDL parse/select/free boundary;
+no real Explorer display is invoked. All launcher fakes and purpose-aware presenters
+are updated together. Initial fixture/build failures remain in the evidence folder.
+
+Selected Application context/reveal/direct-consumer tests pass152 distinct cases;
+Infrastructure81 pass including native owned-path PIDL parse/free without Explorer;
+Presentation44 distinct cases pass across the recorded attempts. Exact filters and
+build/test exits are context-application-selected-01/02/03.json,
+reveal-infrastructure-selected-01.json, reveal-consumers-selected-01.json and
+reveal-presentation-selected-02/03.json. Presentation's initial failures are stale
+catalog count/unbound shortcut assumptions; only changed cases rerun. No exclusion,
+threshold change, or unrelated window-planner repair is made. Complexity02 reports
+CommanderSession324 logical lines and context admission cognitive11; scope capture
+and existing owner wrappers are subsequently factored, with remeasurement pending.
+
+The native MenuFlyout adapter is now implemented against captured application state.
+Its four native target submenus name focused item, selected batch/focus fallback,
+New destination and current folder; children reuse canonical localized rows, reasons,
+shortcuts and full automation names. Three shipped locale catalogs receive the same
+headings. Pointer ContextRequested is qualified by rendered snapshot/owned row;
+positionless framework events are handled/ignored. Shift+F10 and Apps use the sole
+KeyboardIntentMapper. BareF10/Tab retain their prior entry/pane behavior. Native menu
+navigation passes through; Enter/Space/Escape repeat ownership persists across scopes.
+Exactly one WindowFrame preview/character route remains; no popup handler is added.
+
+CommandMenuInvocation is an adapter callback qualifier, not another command session.
+Closed queues one dispatcher finalizer; a same-turn Click consumes the exact owner
+first. Departing/stopping adapters detach pending callbacks. Both callback orders,
+genuine late clicks, foreign/disabled candidates, replacement scopes and held-input
+owner transitions are tested through the real Application owner. Initial build01
+fails on the MSTest null-assert return and two test analyzer diagnostics; build02
+passes0warnings/errors. Selected147 cases yield145pass/2fail solely from the newly
+expanded binding/key counts. App menu-app-build-01 passes0warnings/errors in19s.
+Presentation test additions03 have4 literal escaping errors;04 corrects those but
+finds unused using/assertion-name analyzer diagnostics. These attempts are retained,
+with the two expected counts and test-only diagnostics now corrected for attempt05.
+Actual final-product controls, menu layout/locale/DPI/disabled access, physical keys,
+IME/visible acceptance, focused coverage/conformance and completed-feature deep review
+remain pending. No whole-feature success or public integration is claimed.
+
+At13:45 hide asks whether push also creates the release. The answer records that
+PR573 publication is complete but tag/release is not automatic; candidate-ref CodeQL,
+main integration and final-package proof precede tagging/publication. This question
+is a status clarification, not a new release action or a stop to ongoing work. The
+public f6c722c release candidate and unfinished feature copies remain separate.
+
+## Product host verification and engineering corrections — November24 14:16 JST
+
+The callback/keyboard suite02 passes145/147. The two failures are explicit expanded
+binding/key counts; corrected counts and four new target-projection cases pass6/6
+in attempt05. Builds03/04 retain test literal/analyzer errors before that success.
+Conformance01 rejects the native HRESULT property named Result and a boolean test
+mode parameter. The property becomes HResult and the two event-order tests are
+separate methods. No task blocking call or production boolean mode was introduced.
+Conformance02 passes112rules. Complexity01 finds four newly exceeded budgets in
+addition to the four existing findings. Existing responsibilities are isolated:
+CommandContextRequest derives target/surface only, CommanderSession still applies
+and captures synchronously; PaneSession separates navigation from external handoff;
+KeyboardRepeatGuard owns native-repeat policy; window text initialization is named.
+Two refactor builds retain IDE0046 failures, then switch-based routing passes selected
+Application114 and Presentation34, with App build02 at0warnings/errors. Complexity03
+returns exactly the existing4findings. No threshold/suppression is added.
+
+The product-controls-01 diagnostic copies all177App inputs. Only composition startup
+and project-reference paths differ: owned D folders/settings, guarded non-input
+desktop activation, test callbacks, and a fake IFileLauncher that cannot display
+Explorer/external applications. Original product view/focus/mapper code is unmodified.
+Actual original provider creation remains active only on the owned fixture paths.
+Probe extra source and runtime identities are recorded separately. Normal App build03
+passes0warnings/errors; diagnostic builds retain their explicit analyzer-disabled scope.
+
+Native attempt1 reaches stage10: row/UIA Open, native Apps opener, New > Text file,
+existing localized name editor and actual Enter-driven exclusive zero-byte creation
+all run. Enter-down without key-up does not complete native invocation in that case,
+so the bounded fixture times out/child2. Attempt2 adds native event tracing and a
+normal Enter press/release, passes110checks, and separately proves uninterrupted
+Enter ownership by issuing UIA Invoke after the observed initial Enter-down and before
+any key-up. A replacement scope consumes the native repeat without another handoff.
+That transition is not misrepresented as physical Enter-down activation. Submenu
+Escape preserves root, held Escape stays consumed, fresh Escape closes root, and its
+held repeat cannot clear returned pane selection. Actual callback replacement and
+stopping/late-owner behavior also pass. The failed attempt/source/binaries remain.
+
+Attempt2 measurements reveal a1779.2DIP long-target menu in a529.6DIP viewport despite
+finite-geometry assertions. The product now constrains native presenter width to the
+actual window and overrides the framework's semantic MenuFlyoutItemTextTrimming from
+Clip to CharacterEllipsis; it keeps full group/command names and tooltip/HelpText.
+No final color, density or arbitrary new width token is introduced. The final probe
+requires width within viewport and real TextBlock ellipsis/trim state. English3,
+Japanese1 and SimplifiedChinese1 each pass144checks at125%; disabled-opposite-pane
+English4 passes5checks including disabled native/UIA state and full canonical reason.
+The same managed diagnostic binary runs all four. Every child exits0, input desktop
+stays Default, and normal settings bytes/hash/write time remain unchanged.
+
+product-controls-final-parity-01.json reconciles177App source inputs (only the2named
+composition/project differences),4dependency DLLs and137compiled XBF/PRI resources;
+no unexpected difference exists. review-production-inputs.json freezes795production
+inputs. Exact launcher: pwsh -NoProfile -File
+D:/NeNeCommander/evidence/context-menu-20261124/run-product-controls-01.ps1
+-Locale <locale> -Attempt <recorded number> [-Scenario disabled]. No physical pointer,
+physical Shift modifier, IME, visible/high-contrast/speech acceptance or real Explorer
+handoff is claimed. Geometry is tested on reopening at recorded sizes, not arbitrary
+resizing while an existing popup remains open.
+
+Seven additional menu-to-effect tests pass after preserving their initial path-literal
+build failure: copy/move retain the marked batch and captured opposite folder;
+permanent deletion uses the existing exact confirmation and cancellation; both New
+actions use the existing name owner; Refresh and Bookmarks use their existing routes.
+See menu-dispatch-selected-02.json and its exact filter/log. Required command/keyboard/
+filesystem/security/glossary records and existing threat definitions are updated.
+
+The existing independent reviewer now reviews the frozen production diff read-only.
+Affected final coverage, source formatting/conformance and complete shared-contract
+deep proof are still pending. Known unchanged-base Application window-fixture failures
+from#530 remain separate; do not suppress them or claim a green full gate. This local
+feature is not added to beta.4, publicly pushed, integrated or accepted visually. All
+unfinished worktrees/evidence remain retained; no cleanup request/rejection occurred.
+
+## Independent review, causal correction and selected coverage — November24 14:37 JST
+
+The independent read-only review identifies two mandatory host corrections and one
+normative wording correction. A raw ContextCanceled previously hid whichever menu
+was current; Render also requested current-pane focus for any closed state, including
+stale endpoints without a cancellation receipt. Request now returns a callback bound
+to the exact newly admitted invocation/menu, or null for a rejected request. The pane
+keeps it only for its own request surface and discards it at pointer press/release;
+old, foreign, replaced and stopped callbacks cannot close the current menu. Render
+returns focus only for CommandPaletteClosed.FileListFocusSide. The command-model and
+ADV-019 text now correctly distinguish unchanged activation ExecuteAsync from reveal
+ExecuteShellAsync on the existing STA scheduler. No activation implementation changed.
+
+The official ContextCanceled contract describes a request followed by manipulation
+before PointerReleased. The adapter tracks that gesture boundary; the callback itself
+retains the exact invocation. This is not a claim that the event supplies a gesture
+identifier, nor physical touch/pointer event-order proof.
+
+The new diagnostic review scenarios retain the existing non-input desktop, private
+settings/folders and fake external launcher. Baseline build01 fails on inaccessible
+Application constructors; test-only reflection fixes that in build02. Baseline cancel
+attempt5 reaches the rejected-request guard, but its immediate replacement assertions
+were too early to observe native closure. Build03 adds realized-menu/Closing observation;
+attempt7 then causally fails on old same-pane cancellation. Baseline focus attempt6
+fails on a closed state without a focus receipt. These logs, fixture sources and DLLs
+are retained in product-controls-before-review and product-review-causal-baseline.
+
+Fixed build01 accidentally reuses the baseline DLL because copy2 preserved older source
+write times. Attempts8/9 therefore run the same CABF8485... DLL and are not corrected
+product evidence. Updating only the copied input timestamps plus a runtime return-type
+trace forces compilation. Attempt10 passes11 cancellation/gesture/stop checks and exits0.
+Attempt11 passes5 assertions but exits0xC0000005 during native teardown after a probe's
+immediate repeated Show/Hide; it is not an accepted complete run. The diagnostic alone
+is staged to await each actual Closed event and retain its adapter. Fixed build03 and
+attempt12 pass5 focus/stop checks with exit0; attempt13 passes the existing144 actual
+control checks with exit0. No additional production fix is made for that diagnostic
+lifetime correction. All children leave Default input desktop and normal settings
+623 bytes/hash/write time unchanged. Commands:
+
+- dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore
+  → menu-review-app-build-01.log,0warnings/0errors.
+- dotnet build D:/NeNeCommander/outputs/context-menu-20261124/product-controls-01/App/NeNeCommander.App.csproj -c Release --no-restore
+  → product-review-baseline-build-01/02/03.log and product-review-fixed-build-01/02/03.log,
+  with the failure/reuse limits above; final diagnostic build0warnings/0errors.
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/context-menu-20261124/run-product-controls-01.ps1
+  -Locale en-US -Attempt 10 -Scenario review-cancel; the same launcher with
+  -Locale en-US -Attempt 12 -Scenario review-focus and
+  -Locale en-US -Attempt 13 -Scenario standard → accepted11/5/144 checks, each child exit0.
+
+Affected layer coverage uses run-coverage-selected-01.ps1 with canonical MTP coverage
+settings, Release/no-build/no-restore and D-owned process TEMP/TMP. Application1051:
+1050pass/1fail, branch99.9389499389%. The sole failure is the unchanged-base NullGuardTests
+reflection call to UserSettings.Create with three instead of four arguments. Its fix
+already exists in the separate beta.4 branch; it is not suppressed or independently
+rewritten here. Earlier records of two #530 baseline failures are not the results of
+this current run. Infrastructure1046:1026pass/20explicit environment skips, branch
+94.6120689655%; Presentation460/460pass, branch97.0056144729%. No live provider, real
+Explorer, or broad repeated test was added to resolve the unrelated fixture failure.
+
+The uncovered changed branch is the dual-pane coordinator's accepted row Open path,
+not the already-tested direct PaneSession route. A new consumer test opens the exact
+inactive-pane directory once, preserves the other pane and rejects the stale repeat.
+Two current/stale endpoint cases also verify cancel and submit close without a focus
+receipt. The exact focused command after its normal analyzer-enabled test build is:
+
+    dotnet run --project tests/NeNeCommander.Application.Tests/NeNeCommander.Application.Tests.csproj -c Release --no-build -- --filter "FullyQualifiedName~PanePointerOpenTests|FullyQualifiedName~CommanderContextOwnershipTests" --coverage --coverage-settings eng/coverage.settings --coverage-output-format cobertura --coverage-output D:/NeNeCommander/evidence/context-menu-20261124/menu-review-application.cobertura.xml
+
+All16 selected cases pass. Both direct and dual HandleInteractionAsync methods have
+6/6branches in this focused report. This supplements the changed-boundary proof; it
+is not relabeled as a successful full Application coverage run or full canonical gate.
+
+Conformance03 passes112rules. Complexity04 returns exactly the same4baseline findings
+(path/metric/value/limit), with no new finding or changed threshold. Changed-file format
+verification01 detects line endings/spacing; whitespace-only formatting of30 out of75
+selected C#files is reconciled in menu-format-input-comparison.json. Verification02
+passes, with a workspace-load warning retained for inspection. Non-whitespace content
+is unchanged, so successful behavior/native results are reused rather than replayed.
+
+review-production-inputs-02.json freezes795current product inputs. Updated parity02
+reconciles177App sources (2existing diagnostic composition/project differences and
+5whitespace-only differences),4dependency DLLs and137compiled XBF/PRI resources.
+Accepted receipts carry their own exact binary hashes; attempt11 is excluded. The
+three-locale/disabled wording and layout evidence remains from the preceding same
+resources/unchanged presenter; the corrected adapter additionally runs the English
+144-case scenario. Physical input/IME/visible/high-contrast/speech and real Shell
+selection remain unclaimed. Focus probe snapshots isolate the actual adapter callback
+contract; actual endpoint invalidation is proven by the separate Application cases.
+
+The combined shared-command/Shell/#544 feature still requires its one justified deep
+review before technical completion. Known baseline failure is recorded rather than
+rerunning an inevitably failing whole gate or fixing an unrelated case. Independent
+correction review, final engineering records and local commit remain next. No public
+source push, CI dispatch, main integration, tag/release or cleanup occurred for #531.
+
+At14:41 the independent correction review finds no remaining mandatory correction
+or evidence misstatement. It rechecks all795current product hashes, the three accepted
+receipt hashes and normal exits, and confirms that failed/stale executions and full
+technical acceptance remain separate. This is read-only review, not another test run.
+The formatter warning is traced to absent Debug reference binaries. Process-scoped
+Configuration=Release plus the same75-file whitespace verification with diagnostic
+verbosity passes0 with no load warning (menu-format-release-03.log/json). No product
+code changes or repeated behavioral tests are needed for this tooling clarification.
+The source/input and full/deep limitations above still apply.

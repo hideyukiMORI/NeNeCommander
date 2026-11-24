@@ -336,3 +336,25 @@ returns using the existing mapper/repeat owner and a qualified isolated native t
 Retain both callback-order tests, late/stale/replaced/finalized/stopping ownership,
 context-key/framework duplicate prevention, modifier/IME/focus cases and complete
 three-locale/target/accessibility/visual acceptance as implementation obligations.
+
+## Host callback qualification — November24 independent implementation review
+
+A positioned request returns a cancellation callback only for the native invocation
+created synchronously by that accepted request. The callback captures that exact
+invocation and menu. It does not look up and hide a later current menu. Pane adapters
+retain the receipt with its request surface, reject a foreign sender and discard it
+on pointer press/release. A rejected request receives no receipt. ContextCanceled
+cannot be used as an unqualified window-wide dismissal. Keyboard and other-pane
+replacement, consumed/stopped receipts and repeated old callbacks remain no-ops.
+
+Dismissal focus uses only CommandPaletteClosed.FileListFocusSide supplied by the
+Application cancellation validation, with the existing idle/text/modal/stopping guard.
+Any closed state without that receipt does not itself authorize pane focus. Successful
+command execution keeps its existing destination-owner rendering and native dismissal;
+it is not reinterpreted as a cancellation receipt.
+
+[ContextCanceled](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.contextcanceled?view=windows-app-sdk-1.8)
+describes manipulation after a context request and before PointerReleased. It carries
+no request ID. This gesture lifecycle qualifies retention; the exact returned callback
+qualifies the menu. Actual physical touch/drag ordering remains separate from the
+controlled adapter/native tests recorded in the quality report.

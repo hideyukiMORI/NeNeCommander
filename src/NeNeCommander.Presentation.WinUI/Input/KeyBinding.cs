@@ -42,6 +42,10 @@ public sealed record KeyBinding
                 [KeyboardKey.Eight] = "KeyLabelCtrl8",
                 [KeyboardKey.Nine] = "KeyLabelCtrl9",
             },
+            [KeyboardModifier.Shift] = new Dictionary<KeyboardKey, string>
+            {
+                [KeyboardKey.F10] = "KeyLabelShiftF10",
+            },
             [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
             {
                 [KeyboardKey.Up] = "KeyLabelAltUp",

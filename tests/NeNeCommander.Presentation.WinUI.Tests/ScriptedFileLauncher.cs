@@ -34,4 +34,9 @@ internal sealed class ScriptedFileLauncher : IFileLauncher
         _ = cancellationToken;
         return _outcomes.Dequeue();
     }
+
+    public Task<FileLaunchOutcome> RevealAsync(FileSystemPath target, CancellationToken cancellationToken)
+    {
+        return LaunchAsync(target, cancellationToken);
+    }
 }

@@ -170,6 +170,8 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.OpenBookmarks,
                 UserIntent.OpenWindowAdjustment,
                 UserIntent.OpenHelp,
+                UserIntent.RevealFocused,
+                UserIntent.RevealLocation,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

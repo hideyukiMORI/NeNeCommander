@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using NeNeCommander.App.Input;
 using NeNeCommander.App.Windowing;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -42,6 +43,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommandEntryView _commandEntryView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
+    private readonly CommandMenuView _contextView;
     private readonly OperationBarView _operationView;
     private readonly CommanderPaneView _leftPaneView;
     private readonly CommanderPaneView _rightPaneView;
@@ -70,9 +72,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _initialRightLocation = initialRightLocation;
         _paneWork = new AsyncWorkOwner(dependencies.DefectObserver);
         InitializeComponent();
-        _resources = (ViewTextResources)WindowFrame.Resources["ViewTextResources"];
-        _resources.ApplyLanguage(_session.Current.Settings.Settings.Display.InterfaceLanguage);
-        WindowFrame.Language = _resources.LanguageTag;
+        _resources = InitializeTextResources();
         _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
@@ -92,11 +92,20 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
-        PanePointerBindings pointer = new(_pointerMapper, ForwardIntent);
+        _contextView = new CommandMenuView(InputSurface, _resources, ForwardIntent, ReturnPointerFocus);
+        PanePointerBindings pointer = new(_pointerMapper, ForwardIntent, _contextView.Request);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left, pointer);
         _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right, pointer);
         _renderedScheme = dependencies.Session.Current.Settings.Settings.Display.ColorScheme;
         _placementAdapter.Initialize(_session.Current.Settings.Settings.WindowPlacement);
+    }
+
+    private ViewTextResources InitializeTextResources()
+    {
+        ViewTextResources resources = (ViewTextResources)WindowFrame.Resources["ViewTextResources"];
+        resources.ApplyLanguage(_session.Current.Settings.Settings.Display.InterfaceLanguage);
+        WindowFrame.Language = resources.LanguageTag;
+        return resources;
     }
 
     private CaptionBarView CreateCaptionBar(Action<Exception> defectObserver)
@@ -262,6 +271,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
         RenderSettingsSurfaces(snapshot.Settings);
         _paletteView.Render(snapshot);
+        _contextView.Render(snapshot);
         _addressView.Render(snapshot.Scopes.AddressEditor);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
@@ -450,6 +460,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     public async Task StopAsync()
     {
         _stopping = true;
+        _contextView.Stop();
         InputSurface.IsHitTestVisible = false;
         SavedWindowPlacement? placement = _placementAdapter.FinishTracking();
         try
@@ -469,6 +480,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             { WindowAdjustment: WindowAdjustmentOpen } => KeyboardContext.WindowAdjustment,
             { KeyboardHelp: KeyboardHelpOpen } => KeyboardContext.KeyboardHelp,
             { Locations: not LocationsClosed } => KeyboardContext.Locations,
+            { CommandPalette: CommandPaletteOpen open } when open.Surface != CommandSurface.Palette => KeyboardContext.ContextMenu,
             _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
             _ when _themePicker.IsOpen => KeyboardContext.CommandPalette,
             _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,

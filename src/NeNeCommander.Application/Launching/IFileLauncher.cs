@@ -21,4 +21,16 @@ public interface IFileLauncher
     public Task<FileLaunchOutcome> LaunchAsync(
         FileSystemPath target,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the exact admitted target in its Shell parent. Provider roots are allowed.
+    /// Cancellation before the final handoff prevents it; an accepted handoff remains accepted.
+    /// This promises neither a visible-window receipt nor stable filesystem identity.
+    /// </summary>
+    /// <param name="target">Validated item or current folder captured by the application.</param>
+    /// <param name="cancellationToken">Observed before parsing and before the final Shell call.</param>
+    /// <returns>The existing closed handoff outcome.</returns>
+    public Task<FileLaunchOutcome> RevealAsync(
+        FileSystemPath target,
+        CancellationToken cancellationToken);
 }

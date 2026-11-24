@@ -33,6 +33,7 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.F7 => KeyboardKey.F7,
             (int)VirtualKey.F8 => KeyboardKey.F8,
             (int)VirtualKey.F10 => KeyboardKey.F10,
+            (int)VirtualKey.Application => KeyboardKey.Apps,
             _ => modifier == KeyboardModifier.Control ? TranslateControlKey(virtualKey) : KeyboardKey.Other,
         };
         return KeyboardInput.Create(key, modifier, repeatState, context);

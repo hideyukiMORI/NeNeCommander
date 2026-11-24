@@ -11,13 +11,18 @@ public sealed record PaneLaunchFailed : PaneActivity
     {
     }
 
-    internal PaneLaunchFailed(FileSystemPath target, FileLaunchFailureKind failure)
+    internal PaneLaunchFailed(FileSystemPath target, FileLaunchPurpose purpose, FileLaunchFailureKind failure)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(failure);
+        ArgumentNullException.ThrowIfNull(purpose);
         Target = target;
+        Purpose = purpose;
         Failure = failure;
     }
+
+    /// <summary>Gets the purpose owning this external-handoff state.</summary>
+    public FileLaunchPurpose Purpose { get; }
 
     /// <summary>Gets the validated file path whose handoff failed.</summary>
     public FileSystemPath Target { get; }

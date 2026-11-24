@@ -12,6 +12,9 @@ public abstract record PaneSurfaceAction
     /// <summary>Gets the ClearSelection action.</summary>
     public static PaneSurfaceAction ClearSelection { get; } = new ClearSelectionAction();
 
+    /// <summary>Gets a folder-context capture preserving focus, selection and anchor.</summary>
+    public static PaneSurfaceAction OpenContextMenu { get; } = new OpenContextMenuAction();
+
     private PaneSurfaceAction()
     {
     }
@@ -23,6 +26,12 @@ public abstract record PaneSurfaceAction
         }
     }
     private sealed record ClearSelectionAction : PaneSurfaceAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenContextMenuAction : PaneSurfaceAction
     {
         private protected override void RestrictDerivation()
         {

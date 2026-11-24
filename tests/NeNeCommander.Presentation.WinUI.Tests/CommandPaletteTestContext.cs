@@ -122,7 +122,7 @@ internal static class CommandPaletteTestContext
         UserIntent intent,
         CommandAvailability availability)
     {
-        return InvokeInternal<CommandCandidate>(intent, availability);
+        return InvokeInternal<CommandCandidate>(intent, availability, CommandMenuGroup.PaletteOnly);
     }
 
     internal static CommandPaletteOpen CreateOpen(
@@ -130,11 +130,9 @@ internal static class CommandPaletteTestContext
         PaneSide activeSide,
         IReadOnlyList<CommandCandidate> candidates)
     {
-        return InvokeInternal<CommandPaletteOpen>(
-            template.Left,
-            template.Right,
-            activeSide,
-            candidates);
+        DualPaneSnapshot panes = InvokeInternal<DualPaneSnapshot>(
+            template.Left, template.Right, activeSide, OperationActivity.Idle);
+        return InvokeInternal<CommandPaletteOpen>(panes, template.Surface, candidates);
     }
 
     private static T InvokeInternal<T>(params object[] arguments)

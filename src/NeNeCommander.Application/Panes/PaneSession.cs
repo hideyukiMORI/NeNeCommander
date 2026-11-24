@@ -167,9 +167,21 @@ public sealed class PaneSession
     /// </summary>
     private Task<PaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
     {
+        PaneSnapshot before = Current;
+        _ = ApplyInteraction(interaction);
+        return !ReferenceEquals(before, Current) &&
+            interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
+                ? OpenFocusedAsync((PaneContentListed)Current.Content, cancellationToken)
+                : Task.FromResult(Current);
+    }
+
+    /// <summary>Applies the sole synchronous qualified selection transition and returns its receipt.</summary>
+    internal PaneSnapshot ApplyInteraction(PaneInteraction interaction)
+    {
+        ThrowOrphanedReadFault();
         if (!interaction.Matches(Current))
         {
-            return Task.FromResult(Current);
+            return Current;
         }
         PaneContent content = Current.Content;
         if (content is PaneContentListed listed)
@@ -181,9 +193,7 @@ public sealed class PaneSession
             }
         }
         Current = Current.WithContent(content);
-        return interaction is PaneRowInteraction row && row.Action == PaneEntryAction.Open
-            ? OpenFocusedAsync((PaneContentListed)Current.Content, cancellationToken)
-            : Task.FromResult(Current);
+        return Current;
     }
 
     /// <summary>Starts the existing external action requested by an ordinary pane intent.</summary>
@@ -192,10 +202,21 @@ public sealed class PaneSession
         UserIntent intent,
         CancellationToken cancellationToken)
     {
-        if (intent == UserIntent.OpenFocused)
+        return intent switch
         {
-            return OpenFocusedAsync(listed, cancellationToken);
-        }
+            _ when intent == UserIntent.OpenFocused => OpenFocusedAsync(listed, cancellationToken),
+            _ when intent == UserIntent.RevealLocation => HandoffAsync(listed.State.Location, FileLaunchPurpose.Reveal, cancellationToken),
+            _ when intent == UserIntent.RevealFocused && listed.State.FocusItem is FileSystemPath focus =>
+                HandoffAsync(focus, FileLaunchPurpose.Reveal, cancellationToken),
+            _ => StartNavigationAction(listed, intent, cancellationToken),
+        };
+    }
+
+    private Task<PaneSnapshot>? StartNavigationAction(
+        PaneContentListed listed,
+        UserIntent intent,
+        CancellationToken cancellationToken)
+    {
         if (intent == UserIntent.Refresh)
         {
             return NavigateAsync(
@@ -229,21 +250,24 @@ public sealed class PaneSession
             ? Task.FromResult(Current)
             : focused.Kind == DirectoryEntryKind.Directory
                 ? NavigateAsync(focused.Path, null, PaneNavigationAction.Append, cancellationToken)
-                : LaunchAsync(focused.Path, cancellationToken);
+                : HandoffAsync(focused.Path, FileLaunchPurpose.Activation, cancellationToken);
     }
 
-    private async Task<PaneSnapshot> LaunchAsync(
+    private async Task<PaneSnapshot> HandoffAsync(
         FileSystemPath target,
+        FileLaunchPurpose purpose,
         CancellationToken cancellationToken)
     {
         PaneContent content = Current.Content;
-        Current = Current.WithActivity(new PaneLaunching(target));
-        FileLaunchOutcome outcome = await _fileLauncher.LaunchAsync(target, cancellationToken);
+        Current = Current.WithActivity(new PaneLaunching(target, purpose));
+        FileLaunchOutcome outcome = purpose == FileLaunchPurpose.Activation
+            ? await _fileLauncher.LaunchAsync(target, cancellationToken)
+            : await _fileLauncher.RevealAsync(target, cancellationToken);
         Current = outcome switch
         {
             FileLaunchAccepted => PaneSnapshot.IdleWith(content),
-            FileLaunchCancelled => Current.WithActivity(new PaneLaunchCancelled(target)),
-            FileLaunchFailed failed => Current.WithActivity(new PaneLaunchFailed(target, failed.Failure)),
+            FileLaunchCancelled => Current.WithActivity(new PaneLaunchCancelled(target, purpose)),
+            FileLaunchFailed failed => Current.WithActivity(new PaneLaunchFailed(target, purpose, failed.Failure)),
             _ => throw new InvalidOperationException("The file launch outcome variant is not supported."),
         };
         return Current;

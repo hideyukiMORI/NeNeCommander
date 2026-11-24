@@ -33,6 +33,13 @@ public sealed record TransientScopeOwners
         KeyboardHelp = keyboardHelp;
     }
 
+    /// <summary>Captures the current immutable state of these sole registered owners.</summary>
+    internal TransientScopeSnapshot Capture()
+    {
+        return new TransientScopeSnapshot(AddressEditor.Current, CommandPalette.Current,
+            WindowAdjustment.Current, Locations.Current, KeyboardHelp.Current);
+    }
+
     /// <summary>Gets the sole address editor scope owner.</summary>
     public AddressEditorSession AddressEditor { get; }
 
