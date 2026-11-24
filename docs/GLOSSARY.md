@@ -19,7 +19,7 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | intent | A UI-independent request for behavior. |
 | command | Application-layer orchestration of one intent. |
 | operation | A filesystem mutation executed only by `FileOperationGateway`. |
-| inspection purpose | The closed `FileInspectionPurpose` requested by the gateway: `IdentityOnly` for transfer, rename and directory creation, or `Deletion` for identity plus ordinary-deletion capability. The single provider inspection route owns both (ADR-0083). |
+| inspection purpose | The closed `FileInspectionPurpose` requested by the gateway: `IdentityOnly` for transfer, rename, directory creation and empty text-file creation, or `Deletion` for identity plus ordinary-deletion capability. The single provider inspection route owns both (ADR-0083). |
 | unrequested deletion capability | `DeletionCapability.NotRequested`: no ordinary-deletion capability was requested or granted. It is distinct from inspected `Recycle` and `PermanentOnly`; ordinary deletion rejects a batch containing it before any effect. Verified-copy deletion retains its separate receipt authority (ADR-0083). |
 | outcome | A closed typed success, cancellation, conflict, or failure result. |
 | closed record cases | Known sealed cases whose public abstract root prevents ordinary non-friend external C# code from adding another concrete case through an externally inaccessible abstract member (ADR-0073). External abstract derivation and trusted friend assemblies remain possible; this is not an in-process security sandbox. |
@@ -45,6 +45,8 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | verified copy receipt | Immutable workflow evidence from the shared copy verifier, binding one frozen source root to its exact target and recording descendant identities, kinds, membership and content evidence. Composite-move deletion revalidates it at the source provider; it is not a tree lock or a persisted authorization token (ADR-0069). |
 | source partially deleted | An explicit effect stating that some recorded descendants of a requested move source were removed before deletion stopped. Remaining source entries and the copy target are retained; it does not claim complete `SourceDeleted` or rollback (ADR-0069). |
 | operation activity | The closed `OperationActivity` of the dual-pane session: idle, running with progress, awaiting confirmation, awaiting a name, completed with a gateway outcome, or request rejected. |
+| empty text-file creation | One zero-byte direct child created exclusively through `CreateTextFileRequest` and `FileOperationGateway` (ADR-0085). The editable localized suggestion ends in `.txt`; the submitted name is used unchanged, no encoding is asserted and no editor is launched. |
+| file created | The `FileCreated(target)` effect published only after the provider's exclusive empty-file step succeeds, including success after late cancellation. It does not mean a later refresh succeeded. |
 | operation progress | The closed `FileOperationProgress` the gateway reports once per source whose every step completed: completed and total source counts. |
 | design token | A semantic resource such as surface, spacing, typography, or state color. |
 | key binding | One declared entry of the canonical key map: a keyboard context, a layout-translated key, its explicit modifier state, and the single intent it emits. |

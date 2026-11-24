@@ -24,29 +24,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         using CommanderWindowAdjustmentTestContext fixture = await CommanderWindowAdjustmentTestContext.ListedAsync();
         CommanderSnapshot before = await fixture.HandleAsync(UserIntent.OpenWindowAdjustment);
         WindowAdjustmentOpen open = Assert.IsInstanceOfType<WindowAdjustmentOpen>(before.Scopes.WindowAdjustment);
-        UserIntent[] intents =
-        [
-            UserIntent.MoveNext,
-            UserIntent.ActivateOtherPane,
-            UserIntent.ToggleHiddenItems,
-            UserIntent.Refresh,
-            UserIntent.OpenFocused,
-            UserIntent.Escape,
-            UserIntent.Confirm,
-            UserIntent.Copy,
-            UserIntent.Move,
-            UserIntent.Delete,
-            UserIntent.Rename,
-            UserIntent.CreateDirectory,
-            UserIntent.FocusAddress,
-            UserIntent.OpenSettings,
-            UserIntent.OpenBookmarks,
-            UserIntent.OpenCommandPalette,
-            UserIntent.OpenWindowAdjustment,
-            UserIntent.BookmarkSlotOne,
-        ];
-
-        foreach (UserIntent intent in intents)
+        foreach (UserIntent intent in FrozenIntents())
         {
             CommanderSnapshot frozen = await fixture.HandleAsync(intent);
             CommanderWindowAdjustmentTestContext.AssertUnchanged(before, frozen);
@@ -348,4 +326,30 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         _ = Assert.IsInstanceOfType<PaneReadFailed>(completed.Right.Activity);
         Assert.AreSame(open, fixture.Session.Current.Scopes.WindowAdjustment);
     }
+    private static UserIntent[] FrozenIntents()
+    {
+        return
+        [
+            UserIntent.MoveNext,
+            UserIntent.ActivateOtherPane,
+            UserIntent.ToggleHiddenItems,
+            UserIntent.Refresh,
+            UserIntent.OpenFocused,
+            UserIntent.Escape,
+            UserIntent.Confirm,
+            UserIntent.Copy,
+            UserIntent.Move,
+            UserIntent.Delete,
+            UserIntent.Rename,
+            UserIntent.CreateDirectory,
+            UserIntent.CreateTextFile,
+            UserIntent.FocusAddress,
+            UserIntent.OpenSettings,
+            UserIntent.OpenBookmarks,
+            UserIntent.OpenCommandPalette,
+            UserIntent.OpenWindowAdjustment,
+            UserIntent.BookmarkSlotOne,
+        ];
+    }
+
 }

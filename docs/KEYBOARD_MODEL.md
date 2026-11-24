@@ -80,6 +80,7 @@ The `gg` chord expires after 750 ms, measured through the injected monotonic clo
 | `F5` | copy selection, or the focus item when selection is empty, to the passive pane |
 | `F6` | move selection, or the focus item when selection is empty, to the passive pane |
 | `F7` | create a directory in the active pane |
+| `Ctrl+F7` | begin empty text-file creation in the captured active location, from FileList or NavigationSurface |
 | `F8` | request deletion under the provider's declared delete policy |
 | `Ctrl+L` | open the active pane path-input modal and select its current location |
 | `Ctrl+R` or `F5` with no file-command context | refresh through an explicit context decision; plain `F5` always means copy in the file list |
@@ -273,7 +274,7 @@ When focus is inside an address, rename, search, settings, or dialog text editor
 - Status: **active**
 - Enforcement: mapper tests.
 
-A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns the keys of its own `Settings` context (ADR-0077): `Escape` closes it, it saves each selection immediately, and it never rolls a saved or pending selection back when it closes.
+A modal confirmation, conflict resolver, or settings editor receives only its documented keys. Destructive confirmation cannot be bypassed by the underlying file-list key map. The permanent-deletion confirmation owns a new initial `Enter` press (confirm) and `Escape` (cancel); a repeated `Enter` from the physical press that opened the modal is consumed before native control invocation and emits no intent. Every other key passes through and the file list stays frozen. The directory-name entry opened by `F7` owns the same two keys; every other key reaches the name editor, the file list stays frozen, and the host attaches the editor text to the confirmation as one typed name submission that the session validates. The text-file name entry opened by `Ctrl+F7` is that same modal, with a localized editable `.txt` suggestion selected in full (ADR-0085); the submitted name is used unchanged and a held opening key does not reopen it. The rename name entry opened by `F2` is the same modal and owns the same two keys; it differs only in the frozen subject and in starting the editor with the focus item's current name. The settings editor owns the keys of its own `Settings` context (ADR-0077): `Escape` closes it, it saves each selection immediately, and it never rolls a saved or pending selection back when it closes.
 
 ### KBD-003 — Key mapping is layout-safe
 

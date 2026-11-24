@@ -33,6 +33,7 @@ Number allocation includes these reservations as well as the records already in 
 - [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
 
 - [ADR-0088: Apply interface language through one live window resource context](0088-live-interface-language.md)
+- [ADR-0085: Create one empty text file through the existing mutation gateway](0085-create-empty-text-file.md)
 
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 

@@ -21,6 +21,7 @@ public static class CommandLabelCatalog
         new(UserIntent.Copy, "IntentLabelCopy"),
         new(UserIntent.Move, "IntentLabelMove"),
         new(UserIntent.CreateDirectory, "IntentLabelCreateDirectory"),
+        new(UserIntent.CreateTextFile, "IntentLabelCreateTextFile"),
         new(UserIntent.Delete, "IntentLabelDelete"),
         new(UserIntent.ToggleSelection, "IntentLabelToggleSelection"),
         new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),

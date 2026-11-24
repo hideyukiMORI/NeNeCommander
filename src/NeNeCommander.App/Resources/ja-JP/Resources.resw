@@ -826,4 +826,13 @@
   <data name="CommandEntryReturn" xml:space="preserve"><value>操作中のペインへ戻る</value></data>
   <data name="CommandEntryToolTipFormat" xml:space="preserve"><value>{0}（{1}）</value></data>
   <data name="KeyboardHelpGroupCommandEntry" xml:space="preserve"><value>アプリのコマンド</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>テキストファイルを作成中…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>新しいテキストファイルの名前を入力してください</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>テキストファイルを作成しました</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>テキストファイルの作成を中止しました</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>テキストファイルの作成は変更前に拒否されました</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>ファイル名が無効です</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>テキストファイルを作成</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>新しいテキスト.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
 </root>

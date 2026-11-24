@@ -136,3 +136,45 @@ It changes no worktree/index. The new-file core has80changed files; integration 
 preserve current pointer/language/theme/placement behavior and supply the third
 shipped resource catalog. Product validation follows actual merged inputs; old
 provider evidence is reused only if the relevant boundary inputs remain identical.
+
+## #544 dependency integration — November24 13:05 JST
+
+The exact accepted local coreb593ef498d299536c2091de0eec72cd8cdc78181 is merged into
+the feature from61b27e4 without touching main or the release candidate. The four
+expected conflicts are resolved: both additive PROJECT_STATE/ADR-index blocks stay,
+current en-US/ja-JP catalogs retain every existing552key/value and import only the9
+new-file keys. The incoming obsolete AddressEditorInput attached-key spelling is
+not reintroduced. Simplified Chinese receives the same9keys, including editable
+default 新建文本文档.txt. All3catalogs have561keys and unchanged prior values.
+
+Selected integration01 restores/builds all3test projects with0warnings/errors.
+Application164/165 and Presentation73/75 expose3integration fixture assumptions:
+two24-command counts and a fixed23-step last-row navigation. Infrastructure53/53
+passes, including owned Windows exclusive-create boundaries and WSL fake contracts.
+The fixtures now expect25commands and advance through the actual row count to
+prove clamping. Only those3changed cases rerun in integration02, allpass. The
+imported CreateTextFile window-mode-freeze case separately passes1/1. Thus distinct
+successful selected cases are Application166, Infrastructure53, Presentation75.
+The two known old window-planner fixture failures from#530 are not claimed repaired.
+
+Exact scripts/filters/commands/returns are run-integration-selected-01.ps1,
+run-integration-selected-02.ps1, integration-selected-01/02.json and
+integration-window-freeze-01.json/log in the task evidence directory. Default native
+filesystem test temporary roots are under the dedicated D output; no live WSL tier
+or shared desktop input is invoked. App locked restore and normal Release build
+both exit0 with0warnings/errors. No full gate, mutation or CI is repeated here.
+
+All FileOperations source in Application/Infrastructure, Domain Paths, the7existing
+live-WSL source/ownership fixture files, live-WSL launcher and pinned build/package/
+SDK declarations have an empty git diff againstb593ef4. Existing provider/live
+evidence retains its original scope; this source comparison does not claim new
+native UI acceptance. Changed session/catalog/keyboard/presentation consumers use
+the selected combined-source tests above. Full shared-contract deep review remains
+required after the actual context menu implementation is complete.
+
+CS-013 Inspect exits1 with exactly the same4pointer-baseline findings (all location,
+metric,value,limit fields equal),1599types/10087members. There is no new finding and
+no clean-complexity claim. Several read-only guessed path/glob probes fail without
+changing source; subsequent discovery uses actual paths. All failed build/test
+attempts are retained. Context owner/menu/reveal product implementation is next;
+the imported keyboard/palette new-file core alone does not complete either issue.

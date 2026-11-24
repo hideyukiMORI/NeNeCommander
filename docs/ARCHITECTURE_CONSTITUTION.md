@@ -60,7 +60,7 @@ Each mutable concept has one owner. Pane state is changed only by `PaneReducer`;
 - Status: **active**
 - Enforcement: forbidden-API scan and dependency boundaries.
 
-All copy, move, rename, create-directory, and delete behavior passes through `FileOperationGateway`. Presentation and application features must not call `System.IO`, Win32 file mutation APIs, shell operations, WSL commands, or provider-specific mutation APIs directly.
+All copy, move, rename, create-directory, create-text-file, and delete behavior passes through `FileOperationGateway`. Presentation and application features must not call `System.IO`, Win32 file mutation APIs, shell operations, WSL commands, or provider-specific mutation APIs directly.
 
 ### ARC-006 — Explicit composition
 

@@ -336,6 +336,11 @@ public sealed class VerifiedSourceDeletionBoundaryTests
             throw new InvalidOperationException("The frozen-source capture has no directory creation.");
         }
 
+        public Task<ProviderStepOutcome> CreateEmptyFileAsync(FileEntrySnapshot location, FileSystemPath target, CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException("The frozen-source capture has no directory creation.");
+        }
+
         public Task<ProviderStepOutcome> RenameAsync(FileEntrySnapshot source, FileSystemPath target, CancellationToken cancellationToken)
         {
             throw new InvalidOperationException("The frozen-source capture has no rename.");

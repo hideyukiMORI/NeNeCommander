@@ -154,18 +154,19 @@ public sealed class DualPaneSession
     }
 
     /// <summary>
-    /// Routes the two intents that need a typed name into the shared name entry, and every
+    /// Routes the intents that need a typed name into the shared name entry, and every
     /// remaining intent to the active pane's own session.
     /// </summary>
     private Task<DualPaneSnapshot> RouteNamedOperationAsync(UserIntent intent, CancellationToken cancellationToken)
     {
-        return intent == UserIntent.CreateDirectory
-            ? Task.FromResult(BeginDirectoryName())
-            : intent == UserIntent.Rename
-                ? Task.FromResult(BeginRenameName())
-                : intent is ResolvedBookmarkNavigation bookmark
-                    ? NavigateAsync(_activeSide, bookmark.Path, cancellationToken)
-                    : ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken));
+        return intent switch
+        {
+            _ when intent == UserIntent.CreateDirectory => Task.FromResult(BeginCreationName(OperationKind.CreateDirectory)),
+            _ when intent == UserIntent.CreateTextFile => Task.FromResult(BeginCreationName(OperationKind.CreateTextFile)),
+            _ when intent == UserIntent.Rename => Task.FromResult(BeginRenameName()),
+            ResolvedBookmarkNavigation bookmark => NavigateAsync(_activeSide, bookmark.Path, cancellationToken),
+            _ => ReportAfterAsync(SessionOf(_activeSide).HandleAsync(intent, cancellationToken)),
+        };
     }
 
     private Task<DualPaneSnapshot> ResolveNameAsync(
@@ -188,15 +189,17 @@ public sealed class DualPaneSession
     {
         return awaiting.Kind == OperationKind.CreateDirectory
             ? CreateDirectoryRequest.Create(awaiting.Subject, name)
-            : RenameRequest.Create(awaiting.Subject, name);
+            : awaiting.Kind == OperationKind.CreateTextFile
+                ? CreateTextFileRequest.Create(awaiting.Subject, name)
+                : RenameRequest.Create(awaiting.Subject, name);
     }
 
-    private DualPaneSnapshot BeginDirectoryName()
+    private DualPaneSnapshot BeginCreationName(OperationKind kind)
     {
         if (SessionOf(_activeSide).Current.Content is PaneContentListed active)
         {
             _operation = new OperationAwaitingName(
-                OperationKind.CreateDirectory,
+                kind,
                 active.Listing.Location,
                 string.Empty);
         }
@@ -370,6 +373,7 @@ public sealed class DualPaneSession
         return request switch
         {
             CreateDirectoryRequest created => created.Target,
+            CreateTextFileRequest created => created.Target,
             RenameRequest renamed => renamed.Target,
             _ => null,
         };

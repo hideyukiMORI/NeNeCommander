@@ -24,6 +24,15 @@ There is no direct UI-to-filesystem route.
 
 Every user-file mutation is represented by one typed operation request and executed by `FileOperationGateway`. The gateway owns preflight validation, conflict policy, progress, cancellation, provider dispatch, error normalization, and outcome creation. The sole settings document is a separate application-owned persistence concern and is written only as one complete typed value through `ISettingsStore` under ADR-0040.
 
+Empty text-file creation (ADR-0085) uses the existing name-entry state and
+`CreateTextFileRequest` to derive exactly one direct child of the captured active
+location. The gateway requests `IdentityOnly`, admits one `CreateEmptyFileAsync`
+step and, only on success, publishes `FileCreated(target)` with progress1/1. An
+admitted successful step remains successful if cancellation arrives during it.
+No overwrite, extension change, suffix retry, implicit opening or rollback deletion
+is added. The existing refresh focuses the created target while retaining the
+completed effect if a subsequent read fails.
+
 ### CMD-002 — Pane transitions use `PaneReducer`
 
 - Status: **active**

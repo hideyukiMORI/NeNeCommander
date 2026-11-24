@@ -826,4 +826,13 @@
   <data name="CommandEntryReturn" xml:space="preserve"><value>返回活动面板</value></data>
   <data name="CommandEntryToolTipFormat" xml:space="preserve"><value>{0}（{1}）</value></data>
   <data name="KeyboardHelpGroupCommandEntry" xml:space="preserve"><value>应用命令</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>正在创建文本文件…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>请输入新文本文件的名称</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>文本文件已创建</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>创建文本文件已取消</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>创建文本文件被拒绝，未作任何更改</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>文件名称无效</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>新建文本文件</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>新建文本文档.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
 </root>
