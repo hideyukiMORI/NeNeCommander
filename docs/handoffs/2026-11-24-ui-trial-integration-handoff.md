@@ -1,5 +1,12 @@
 # 2026-11-24 UI trial integration handoff — Issue #564
 
+Current checkpoint: November24 23:15 JST. HEAD27efbdc records productcd3ecab and
+verified visible interactive02 (PID49036). No required review correction remains.
+The interactive02 cutoff is accepted at23:20; human visible acceptance remains separate; no feature push/main merge
+or new tag. Preserve the running interactive02 and all unfinished feature worktrees.
+The later sections give current exact paths/receipts; earlier pending statements
+are historical attempts and do not supersede this checkpoint.
+
 Local technical verification is complete for the combined #530/#531/#544/#547/#548/#551
 trial. This is not publication, main integration, release or human acceptance.
 The broader #564 TODO remains open. beta.4 source/tag3909039 is unchanged.
@@ -112,3 +119,16 @@ hide's visible acceptance of this revision and the next release's cutoff are pen
 At23:15 an optional scope question offers this trial's features as the next cutoff,
 adding drag/drop, or deciding later. No answer, new release authorization, public
 feature push, PR, main merge or new tag is inferred. beta.4 remains already published.
+
+23:20 release cutoff: hide answers「今回の試遊版で区切る（推奨）」to the23:15
+scope question. The next release includes the current trial02 feature set; no new
+feature is added to that cutoff. Drag/drop#532 and the remaining broad#564TODO stay
+separate. Proceed with the existing PR/main integration and release-proof/package
+workflow. This answer establishes scope; the exact public payload and final release
+steps remain concrete actions with their applicable authorization/evidence checks.
+The read-only reuse assessment matches1252of1317previous context-menu inputs, with65
+changed and none missing. Domain's declared27proof inputs are all unchanged;
+Infrastructure's own286source/test inputs also match, but transitive Application
+relevance must be assessed before claiming its old mutation proof for the final
+candidate. Application26changed/27new and Presentation24changed/11new paths remain
+material. No new runtime verification, public source push or tag has started here.

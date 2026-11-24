@@ -1,6 +1,11 @@
 # 2026-11-24 UI trial integration — Issue #564
 
-Status: local integration in progress; no publication or human acceptance
+Status: local technical verification complete; interactive02 visible; human acceptance and publication pending
+
+Current checkpoint: November24 23:15 JST. The final sections record accepted local
+proof and the requested visible trial02. Earlier sections preserve the original
+attempts and pending states at those times. The next release cutoff is accepted at23:20 JST: the current interactive02 features.
+Published beta.4 remains unchanged.
 
 ## Scope and invariant
 
@@ -10,7 +15,8 @@ The local trial combines the existing #530 pointer entry, #531 context menu,
 Source copies remain separate and clean; this work owns only
 D:/NeNeCommander/worktrees/issue-564-ui-trial and matching ui-trial-20261124
 output/evidence directories. No shared-desktop input, CUA, ordinary App termination
-or user-settings write is permitted. A visible trial is not launched by this work.
+or user-settings write is permitted. The initial integration launched no visible
+trial; hide later requested trial01 and this icon/parent revision, observed below.
 
 The existing CommanderSession/CommandCatalog, pane owners, FileOperationGateway,
 keyboard mapper/repeat guard and window-adjustment route remain the sole mechanisms.
@@ -341,3 +347,16 @@ hide's visible acceptance of this revision and the next release's cutoff are pen
 At23:15 an optional scope question offers this trial's features as the next cutoff,
 adding drag/drop, or deciding later. No answer, new release authorization, public
 feature push, PR, main merge or new tag is inferred. beta.4 remains already published.
+
+23:20 release cutoff: hide answers「今回の試遊版で区切る（推奨）」to the23:15
+scope question. The next release includes the current trial02 feature set; no new
+feature is added to that cutoff. Drag/drop#532 and the remaining broad#564TODO stay
+separate. Proceed with the existing PR/main integration and release-proof/package
+workflow. This answer establishes scope; the exact public payload and final release
+steps remain concrete actions with their applicable authorization/evidence checks.
+The read-only reuse assessment matches1252of1317previous context-menu inputs, with65
+changed and none missing. Domain's declared27proof inputs are all unchanged;
+Infrastructure's own286source/test inputs also match, but transitive Application
+relevance must be assessed before claiming its old mutation proof for the final
+candidate. Application26changed/27new and Presentation24changed/11new paths remain
+material. No new runtime verification, public source push or tag has started here.
