@@ -1,6 +1,6 @@
 # モニター間移動 — 引き継ぎ
 
-最終更新: 2026-11-24 21:00 JST。Issue #551はローカル実装と対象検証まで完了。物理操作・画面受理・公開・main統合は未完。以下の古い調査時点は履歴として保持する。
+最終更新: 2026-11-24 21:06 JST。Issue #551はローカル実装と対象検証まで完了。物理操作・画面受理・公開・main統合は未完。以下の古い調査時点は履歴として保持する。
 
 - 単一経路は既存WindowAdjustmentSession/Planner → WindowAdjustmentRoute → AppWindowPlacementAdapter。Applicationが純粋な画面順序・配置・資格条件を決め、Appだけが既存SDKで取得/適用する。新native import、provider経路、設定保存経路は追加していない。
 - Ctrl+Wのn/p・Ctrl+左右で隣の画面へ移動。exact owner、停止、途中leave、再入・最小サイズ変更と不確かな結果をtyped receiptで守る。ヘルプはこの面だけ縦7群＋スクロール本文、固定Esc/PgUp/PgDnとfocus sink。半ページ送り・上下限clamp・新ownerの先頭復帰を共通経路で扱う。
@@ -11,7 +11,7 @@
 
 作業コピーD:/NeNeCommander/worktrees/issue-551、証拠D:/NeNeCommander/evidence/monitor-transfer-20261124、診断出力D:/NeNeCommander/outputs/monitor-transfer-20261124を保持する。旧11月22日の証拠も残す。最新の[品質記録](../quality/2026-11-22-monitor-transfer-investigation.md)、[ADR0092](../adr/0092-display-transfer-through-window-adjustment.md)、[設計handoff](../design/2026-11-24-monitor-transfer-handoff.md)が技術判断の正本。
 
-次はこの実装と記録をlocal commitへ保存し、受理済みmainへの接続と対象外差分を確認する。画面試遊は用意してからhideの受理を得る。共有desktopへの入力/CUA、通常設定の置換は行わない。ソース公開の過去の拒否payloadを再送せず、新しい具体的feature payloadができてから承認範囲を照合する。beta.4は別の3909039から公開済みで、この機能は入っていない。
+実装と記録は13b936aへ保存済み。branchはfeat/551-display-transfer、受理済みmain1d0fa30への接続はc09f355。接続の競合は4文書だけで、最新の公開記録と551固有の3項目を保持した。製品入力1260件のhashと全非文書diffが不変、通常hook成功。次は未実施の画面受理と、具体的な公開payloadの承認範囲を確認する。画面試遊は用意してからhideの受理を得る。共有desktopへの入力/CUA、通常設定の置換は行わない。ソース公開の過去の拒否payloadを再送せず、新しい具体的feature payloadができてから承認範囲を照合する。beta.4は別の3909039から公開済みで、この機能は入っていない。
 
 ## 過去の時系列記録
 Issue #551 / 2026-11-22。調査のみ完了。製品実装・技術ADR・デザイン・実画面受理は未完了。

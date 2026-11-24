@@ -564,3 +564,21 @@ this section now preserves the remaining trials and final results. beta.4 was
 published separately from3909039 and contains none of this feature. Local save,
 physical/visible acceptance and a separately authorized feature publication remain
 the next steps; unfinished worktree/output and all raw evidence are retained.
+
+## Local save and accepted-main connection — November24 21:06 JST
+
+Implementation/tests/documents are saved as13b936a5c2de4c42ce7192ea211686138bba0013
+on renamed local branchfeat/551-display-transfer (63files,2790insertions/197deletions).
+Normal Commit checks pass112conformance rules and registered24security cases; this
+is not a full-gate claim. Old wrap-panel references in the current design/ADR text
+are aligned with the final scoped StackPanel composition before saving.
+
+The pre-feature product base6a7315c and accepted main1d0fa30 differ only in documents.
+Normal merge encounters4document conflicts. Latest public release state/quality/
+daily/handoff are retained, plus all3unique Issue551state entries; old08:18/in-progress
+headers are superseded. Connectionc09f35510dbcd6faa669d9b1d1656ead4a05773f retains
+all1260selected non-document byte hashes and a zero complete non-document Git diff
+against13b936a. The broader1268proof-input snapshot also remains the final behavioral
+input mapping. No product fix, dependency change, physical acceptance, external
+source push, feature PR/main merge or release is implied by this local connection.
+All source commits, worktree, diagnostic outputs and raw evidence remain retained.
