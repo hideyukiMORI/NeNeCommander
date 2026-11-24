@@ -896,4 +896,5 @@
   <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>在右窗格中打开当前文件夹</value></data>
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>在左窗格中打开当前文件夹</value></data>
   <data name="PaneNavigateParent" xml:space="preserve"><value>转到上级文件夹</value></data>
+  <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>关于此应用</value></data>
 </root>

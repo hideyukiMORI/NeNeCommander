@@ -31,6 +31,7 @@
     <Thickness x:Key="BorderNameEntryThickness">1</Thickness>
     <Thickness x:Key="BorderBookmarkCategoryColumnThickness">0,0,1,0</Thickness>
     <Thickness x:Key="BorderBookmarkFooterThickness">0,1,0,0</Thickness>
+    <Thickness x:Key="BorderBookmarkRegionHeaderThickness">3,0,0,2</Thickness>
     <CornerRadius x:Key="RadiusPane">3</CornerRadius>
     <CornerRadius x:Key="RadiusOperationBar">3</CornerRadius>
     <CornerRadius x:Key="RadiusNameEntry">3</CornerRadius>

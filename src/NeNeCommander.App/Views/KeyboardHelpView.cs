@@ -45,6 +45,10 @@ internal sealed class KeyboardHelpView
         KeyboardHelpPresentation help = KeyboardHelpPresenter.Present();
         Find<ItemsControl>("KeyboardHelpPrimaryGroups").ItemsSource = help.PrimaryGroups;
         _secondary.ItemsSource = help.SecondaryGroups;
+        AppBuildIdentity identity = AppBuildIdentity.Read();
+        Find<TextBlock>("ApplicationAboutVersion").Text = identity.Version;
+        Find<TextBlock>("ApplicationAboutCopyright").Text = identity.Copyright;
+        Find<TextBlock>("ApplicationAboutRepository").Text = AppBuildIdentity.RepositoryUrl;
         Find<Border>("KeyboardHelpSurface").Tapped += OnSurfaceTapped;
         _overlay.Tapped += OnScrimTapped;
         _overlay.SizeChanged += OnOverlaySizeChanged;

@@ -533,9 +533,7 @@
                 <TextBlock Text="{x:Bind DisplayText}" TextTrimming="CharacterEllipsis" />
             </DataTemplate>
 
-            <Style x:Key="BookmarkRowContainerStyle" BasedOn="{StaticResource PaneRowContainerStyle}" TargetType="ListViewItem">
-                <Setter Property="UseSystemFocusVisuals" Value="True" />
-            </Style>
+            <Style x:Key="BookmarkRowContainerStyle" BasedOn="{StaticResource PaneRowContainerStyle}" TargetType="ListViewItem" />
 
             <Style x:Key="BookmarkKeyHintButtonStyle" TargetType="Button">
                 <Setter Property="AllowFocusOnInteraction" Value="False" />
@@ -552,6 +550,7 @@
                             <Grid Background="{TemplateBinding Background}">
                                 <ContentPresenter
                                     Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center" />
                             </Grid>
@@ -560,40 +559,54 @@
                 </Setter>
             </Style>
 
+            <ItemsPanelTemplate x:Key="BookmarkKeyHintItemsPanel">
+                <views:KeyHintWrapPanel />
+            </ItemsPanelTemplate>
+            <DataTemplate x:Key="BookmarkKeyHintContentTemplate" x:DataType="bookmarks:BookmarkManagerKeyHint">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingKeyHintGap}">
+                    <ItemsControl
+                        AutomationProperties.AccessibilityView="Raw"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource KeyboardHelpCapTemplate}"
+                        ItemsSource="{x:Bind KeyLabelResourceKeys}"
+                        VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource SpacingKeyHintGap}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <TextBlock
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                        FontSize="{StaticResource TypographyMonospaceSize}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding LabelResourceKey}"
+                        TextLineBounds="Tight"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+            <Style x:Key="BookmarkHintMeasureStyle" TargetType="views:BookmarkHintMeasure">
+                <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="Opacity" Value="0" />
+                <Setter Property="ItemTemplate" Value="{StaticResource BookmarkKeyHintContentTemplate}" />
+                <Setter Property="ItemsPanel" Value="{StaticResource BookmarkKeyHintItemsPanel}" />
+                <Setter Property="VerticalAlignment" Value="Top" />
+            </Style>
             <DataTemplate x:Key="BookmarkKeyHintTemplate" x:DataType="bookmarks:BookmarkManagerKeyHint">
                 <Button
                     AutomationProperties.AutomationId="{x:Bind AutomationId}"
                     views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="{Binding LabelResourceKey}"
                     Click="OnBookmarkKeyHintClick"
+                    Content="{Binding}"
+                    ContentTemplate="{StaticResource BookmarkKeyHintContentTemplate}"
                     IsEnabled="{x:Bind IsInvocable}"
-                    Style="{StaticResource BookmarkKeyHintButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingKeyHintGap}">
-                        <ItemsControl
-                            AutomationProperties.AccessibilityView="Raw"
-                            IsTabStop="False"
-                            ItemTemplate="{StaticResource KeyboardHelpCapTemplate}"
-                            ItemsSource="{x:Bind KeyLabelResourceKeys}"
-                            VerticalAlignment="Center">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="{StaticResource SpacingKeyHintGap}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                        <TextBlock
-                            AutomationProperties.AccessibilityView="Raw"
-                            FontFamily="{StaticResource TypographyMonospaceFamily}"
-                            FontSize="{StaticResource TypographyMonospaceSize}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="{Binding LabelResourceKey}"
-                            TextLineBounds="Tight"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                    Style="{StaticResource BookmarkKeyHintButtonStyle}" />
             </DataTemplate>
-
             <DataTemplate x:Key="BookmarkCategoryRowTemplate" x:DataType="bookmarks:BookmarkCategoryOption">
                 <Grid
                     Background="{Binding Mark.SurfaceBrushResourceKey, Converter={StaticResource SemanticResourceConverter}}"
@@ -1277,22 +1290,31 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
-                                <TextBlock
-                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryActionsHeader.Text"
-                                    FontSize="{StaticResource TypographyKindLabelSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    Padding="{StaticResource SpacingOperationBar}" />
+                                <Border
+                                    x:Name="BookmarkCategoryHeading"
+                                    BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}">
+                                    <TextBlock
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkCategoryActionsHeader.Text"
+                                        FontSize="{StaticResource TypographyKindLabelSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        Padding="{StaticResource SpacingOperationBar}" />
+                                </Border>
                                 <ListView
                                     x:Name="BookmarkCategories"
                                     views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkCategoriesRegion.AutomationProperties.Name"
                                     Grid.Row="1"
                                     AutomationProperties.AutomationId="BookmarkCategories"
-                                    BorderThickness="{StaticResource BorderOperationBarThickness}"
+                                    BorderThickness="{StaticResource BorderNoneThickness}"
                                     IsTabStop="True"
                                     ItemContainerStyle="{StaticResource BookmarkRowContainerStyle}"
                                     ItemTemplate="{StaticResource BookmarkCategoryRowTemplate}"
                                     Padding="{StaticResource SpacingPaneList}"
-                                    SelectionMode="Single" />
+                                    SelectionMode="Single"
+                                    UseSystemFocusVisuals="False">
+                                    <ListView.ItemContainerTransitions>
+                                        <TransitionCollection />
+                                    </ListView.ItemContainerTransitions>
+                                </ListView>
                             </Grid>
                         </Border>
                         <Grid Grid.Column="1">
@@ -1300,47 +1322,56 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <Grid
-                                AutomationProperties.AccessibilityView="Raw"
-                                ColumnSpacing="{StaticResource SpacingRowGap}"
-                                Padding="{StaticResource SpacingRowContent}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Width="{StaticResource DensityRowMarkerWidth}" />
-                                <TextBlock
-                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnSlot.Text"
-                                    Grid.Column="1"
-                                    FontSize="{StaticResource TypographyKindLabelSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    Width="{StaticResource DensityBookmarkSlotColumnWidth}" />
-                                <TextBlock
-                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnName.Text"
-                                    Grid.Column="2"
-                                    FontSize="{StaticResource TypographyKindLabelSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                    Width="{StaticResource DensityBookmarkNameColumnWidth}" />
-                                <TextBlock
-                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnPath.Text"
-                                    Grid.Column="3"
-                                    FontSize="{StaticResource TypographyKindLabelSize}"
-                                    Foreground="{StaticResource TextSecondaryBrush}" />
-                            </Grid>
+                            <Border
+                                x:Name="BookmarkRowHeading"
+                                BorderThickness="{StaticResource BorderBookmarkRegionHeaderThickness}">
+                                <Grid
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    ColumnSpacing="{StaticResource SpacingRowGap}"
+                                    Padding="{StaticResource SpacingRowContent}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="{StaticResource DensityRowMarkerWidth}" />
+                                    <TextBlock
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnSlot.Text"
+                                        Grid.Column="1"
+                                        FontSize="{StaticResource TypographyKindLabelSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        Width="{StaticResource DensityBookmarkSlotColumnWidth}" />
+                                    <TextBlock
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnName.Text"
+                                        Grid.Column="2"
+                                        FontSize="{StaticResource TypographyKindLabelSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        Width="{StaticResource DensityBookmarkNameColumnWidth}" />
+                                    <TextBlock
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="BookmarkColumnPath.Text"
+                                        Grid.Column="3"
+                                        FontSize="{StaticResource TypographyKindLabelSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}" />
+                                </Grid>
+                            </Border>
                             <ListView
                                 x:Name="BookmarkRows"
                                 views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkRowsRegion.AutomationProperties.Name"
                                 Grid.Row="1"
                                 AutomationProperties.AutomationId="BookmarkRows"
-                                BorderThickness="{StaticResource BorderOperationBarThickness}"
+                                BorderThickness="{StaticResource BorderNoneThickness}"
                                 IsDoubleTapEnabled="True"
                                 IsTabStop="True"
                                 ItemContainerStyle="{StaticResource BookmarkRowContainerStyle}"
                                 ItemTemplate="{StaticResource BookmarkRowTemplate}"
                                 Padding="{StaticResource SpacingPaneList}"
-                                SelectionMode="Single" />
+                                SelectionMode="Single"
+                                UseSystemFocusVisuals="False">
+                                <ListView.ItemContainerTransitions>
+                                    <TransitionCollection />
+                                </ListView.ItemContainerTransitions>
+                            </ListView>
                             <TextBlock
                                 x:Name="BookmarkEmptyContent"
                                 Grid.Row="1"
@@ -1411,20 +1442,19 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ItemsControl
-                                x:Name="BookmarkBrowseFooter"
-                                views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkKeyHintsRegion.AutomationProperties.Name"
-                                AutomationProperties.AutomationId="BookmarkKeyHints"
-                                IsTabStop="False"
-                                ItemTemplate="{StaticResource BookmarkKeyHintTemplate}"
-                                VerticalAlignment="Center">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <views:KeyHintWrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                            </ItemsControl>
-                            <StackPanel x:Name="BookmarkDraftFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
+                            <Grid x:Name="BookmarkBrowseFooterBand">
+                                <views:BookmarkHintMeasure x:Name="BookmarkCategoryHintMeasure" Style="{StaticResource BookmarkHintMeasureStyle}" />
+                                <views:BookmarkHintMeasure x:Name="BookmarkRowHintMeasure" Style="{StaticResource BookmarkHintMeasureStyle}" />
+                                <views:BookmarkHintMeasure x:Name="BookmarkSearchHintMeasure" Style="{StaticResource BookmarkHintMeasureStyle}" />
+                                <ItemsControl
+                                    x:Name="BookmarkBrowseFooter"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="BookmarkKeyHintsRegion.AutomationProperties.Name"
+                                    AutomationProperties.AutomationId="BookmarkKeyHints"
+                                    IsTabStop="False"
+                                    ItemTemplate="{StaticResource BookmarkKeyHintTemplate}"
+                                    ItemsPanel="{StaticResource BookmarkKeyHintItemsPanel}"
+                                    VerticalAlignment="Top" />
+                            </Grid>                            <StackPanel x:Name="BookmarkDraftFooter" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationBarGap}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
                                 <Button x:Name="BookmarkSave"  />
                                 <Button x:Name="BookmarkDraftCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="BookmarkCancel.Content" />
                             </StackPanel>
@@ -1874,27 +1904,66 @@
                         HorizontalScrollBarVisibility="Disabled"
                         IsTabStop="True"
                         VerticalScrollBarVisibility="Auto">
-                        <Grid x:Name="KeyboardHelpColumns">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <ItemsControl
-                                x:Name="KeyboardHelpPrimaryGroups"
-                                IsTabStop="False"
-                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
-                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
-                            <ItemsControl
-                                x:Name="KeyboardHelpSecondaryGroups"
-                                Grid.Column="1"
-                                IsTabStop="False"
-                                ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
-                                Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
-                        </Grid>
+                        <StackPanel>
+                            <Grid x:Name="KeyboardHelpColumns">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ItemsControl
+                                    x:Name="KeyboardHelpPrimaryGroups"
+                                    IsTabStop="False"
+                                    ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                    Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                                <ItemsControl
+                                    x:Name="KeyboardHelpSecondaryGroups"
+                                    Grid.Column="1"
+                                    IsTabStop="False"
+                                    ItemTemplate="{StaticResource KeyboardHelpGroupTemplate}"
+                                    Width="{StaticResource DensityKeyboardHelpColumnWidth}" />
+                            </Grid>
+                            <Border
+                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                BorderThickness="{StaticResource BorderBookmarkFooterThickness}"
+                                Margin="{StaticResource SpacingWindowOuter}"
+                                Padding="{StaticResource SpacingWindowOuter}">
+                                <StackPanel Spacing="{StaticResource SpacingKeyHintGap}">
+                                    <TextBlock
+                                        x:Name="ApplicationAboutTitle"
+                                        AutomationProperties.AutomationId="ApplicationAboutTitle"
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ApplicationAboutTitle.Text"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock
+                                        AutomationProperties.AutomationId="ApplicationAboutName"
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="CommanderWindowTitle"
+                                        Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock
+                                        x:Name="ApplicationAboutVersion"
+                                        AutomationProperties.AutomationId="ApplicationAboutVersion"
+                                        FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                        FontSize="{StaticResource TypographyMonospaceSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        x:Name="ApplicationAboutCopyright"
+                                        AutomationProperties.AutomationId="ApplicationAboutCopyright"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        x:Name="ApplicationAboutRepository"
+                                        AutomationProperties.AutomationId="ApplicationAboutRepository"
+                                        FontSize="{StaticResource TypographyMonospaceSize}"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        IsTextSelectionEnabled="True"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </ScrollViewer>
                     <TextBlock
                         views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="KeyboardHelpCloseNote.Text"

@@ -23,6 +23,7 @@ internal sealed class BookmarkBrowseView
     private readonly Func<bool> _isRendering;
     private readonly BookmarkFocusRestoration _focus;
     private readonly BookmarkBrowseRows _sources = new();
+    private readonly BookmarkRegionFocusView _regionFocus;
     private BookmarkBrowsePresentation? _renderedBrowse;
     private BookmarkManagerRegion? _focusedRegion = BookmarkManagerRegion.Bookmarks;
     private bool _renderingFocus;
@@ -46,6 +47,8 @@ internal sealed class BookmarkBrowseView
         Search = Find<TextBox>("BookmarkSearch");
         _categories = Find<ListView>("BookmarkCategories");
         _rows = Find<ListView>("BookmarkRows");
+        _regionFocus = new BookmarkRegionFocusView(
+            Find<Border>("BookmarkCategoryHeading"), Find<Border>("BookmarkRowHeading"));
         _emptyContent = Find<TextBlock>("BookmarkEmptyContent");
         _count = Find<TextBlock>("BookmarkCount");
         RowAutomationIdentity.Attach<BookmarkRow>(
@@ -260,8 +263,7 @@ internal sealed class BookmarkBrowseView
             _sources.Update(browse);
             _categories.SelectedItem = _sources.SelectedCategory;
             _rows.SelectedItem = _sources.SelectedRow;
-            _categories.BorderBrush = RegionBrush(BookmarkManagerRegion.Categories);
-            _rows.BorderBrush = RegionBrush(BookmarkManagerRegion.Bookmarks);
+            _regionFocus.Render(_focusedRegion);
             _renderedBrowse = browse;
         }
         finally
@@ -278,11 +280,6 @@ internal sealed class BookmarkBrowseView
         }
     }
 
-    private Brush RegionBrush(BookmarkManagerRegion region)
-    {
-        string key = _focusedRegion == region ? "FocusRingBrush" : "SurfacePaneBrush";
-        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[key];
-    }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs args)
     {

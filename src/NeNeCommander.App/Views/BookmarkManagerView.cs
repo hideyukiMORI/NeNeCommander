@@ -54,7 +54,7 @@ internal sealed class BookmarkManagerView
         _cancelNavigation = Find<Button>("BookmarkNavigationCancel");
         _browse = new BookmarkBrowseView(root, resources, forward, () => _rendering);
         _details = new BookmarkDetailsView(root, resources, forward, () => _rendering);
-        _keyboard = new BookmarkKeyboardView(_browse, Find<ItemsControl>("BookmarkBrowseFooter"), forward);
+        _keyboard = new BookmarkKeyboardView(_browse, new BookmarkKeyHintView(root), forward);
         _input = new BookmarkInputOwnership(root, CancelPendingFocus);
         _retryNavigation.Click += (_, _) => _browse.NavigateSelected();
         _cancelNavigation.Click += (_, _) => Submit(BookmarkEditorAction.Cancel);
