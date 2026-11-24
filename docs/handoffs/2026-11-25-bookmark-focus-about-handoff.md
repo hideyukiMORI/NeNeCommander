@@ -1,8 +1,8 @@
 # 2026-11-25 Bookmark focus and About handoff — Issue #581
 
-Checkpoint: 00:34 JST. Selected technical proof accepted; preparing interactive03.
+Checkpoint: 00:41 JST. Selected technical proof accepted; interactive03 launched.
 Branch fix/581-bookmark-focus-about in D:/NeNeCommander/worktrees/issue-581,
-base8d1c247. hide accepted B heading band and About at the end of existing Help.
+Product commit4a15cd9, base8d1c247. hide accepted B heading band and About at the end of existing Help.
 Do not ask again. Source remains local, with no feature push/PR/main integration.
 
 See ../design/2026-11-25-bookmark-focus-about.md and
@@ -39,17 +39,26 @@ polling or duplication. The quality record contains exact commands and limits.
 
 ## Next and retained work
 
-Commit with normal hooks; prepare interactive03 from finalsource with ordinary
-analyzers, only project paths/private settings/owned folders/window title changed.
-Copy stable interactive02 preferences, never ordinary settings; verify full
-manifest, source and dependencies, observe isolated startup, then launch under
-hide's existing visible-trial/revision instruction. Do not stop old trials.
-Record actual launch/acceptance separately. Actual OS contrast, other scales and
-physical input remain unproved by the1.25-scale observer.
+Interactive03 at D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03
+is built from4a15cd9 with normal analyzers,0warnings/errors,182/180App parity,
+4matching actual reference-project DLLs and476verified payload files. A first
+comparison against cached precommit App dependencies was refused; the receipt
+records changed generated commit metadata and no dependency-source change.
+The full manifest and non-input startup pass. Normal settings/input desktop are
+unchanged. Trial03 is visibly launched at00:40:24, PID13280, title
+NeNe Commander / UI trial #581 - bookmark focus and About. No shared input or
+other-app termination was performed. An optional human-acceptance question is
+pending; do not infer a yes from time or launch success. Preserve this live copy.
+No active build/observer process remains. Do not repeat unchanged proof.
 
 MainC remains clean ccb303b. Published beta.4 tag/package3909039 is unchanged and
 its cleanup is complete. Release Issue580/worktreeissue-580 remains8d1c247;
-reconcile this final feature before final release integration. Sourcepublication,
-PR and beta.5 publication remain separate concrete payload actions.
-Interactive02 was PID49036 at its recorded executable path; recheck identity
-before any process action. All unfinished feature copies and evidence remain.
+reconcile final581 before final release integration. Source publication/PR/main
+integration and beta.5 publication remain separate concrete payload actions.
+Actual OS contrast, other scales and physical input are not proven by the1.25
+scale observer. About reads realbeta.4metadata until release580 changes Version.
+
+Prior interactive02 was no longer present in the00:40 process inventory; this
+session did not terminate it. The ordinary installed beta.4 PID45052 remains.
+Recheck exact path/process identity before any later process action. All
+unfinished feature copies/evidence remain. No completed-work cleanup is pending.

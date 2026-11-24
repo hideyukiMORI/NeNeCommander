@@ -1,6 +1,6 @@
 # Bookmark focus and About — Issue #581
 
-Status: selected technical proof accepted; interactive trial pending
+Status: selected technical proof accepted; interactive03 launched; human acceptance pending
 
 Request/design: November 24, 2026 JST. Implementation: November 25.
 Branch `fix/581-bookmark-focus-about`, worktree
@@ -124,9 +124,50 @@ Commands run from the issue-581 worktree unless an absolute script path is shown
 
 ## Limits and pending work
 
-A separately configured interactive trial follows. No feature push, PR, main
+Interactive03 is available as recorded below. No feature push, PR, main
 integration or beta.5 release is claimed. About correctly displays the current
 executable's 0.1.0-beta.4 informational version; release Issue580 owns the later
 version change. This is author/copyright text, not an Authenticode signing claim.
 Actual OS high contrast, other scales and physical-input/human acceptance remain
 unproved by this 1.25-scale observer. The mock canvas proves none of those cases.
+
+## Interactive03 delivery
+
+Product source commit4a15cd9 is retained with normal Commit hooks. Interactive03
+uses that exact App source at
+D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03. The only source
+substitutions are project-reference paths, two owned initial folders, the private
+settings path and native window title. All182 App inputs are accounted for,
+180exact; no diagnostic fixture is included. The previous interactive02 private
+settings file is copied with unchanged before/copy/after hashes. Normal settings
+are neither copied into the trial nor written by it.
+
+Locked restore and `dotnet build App/NeNeCommander.App.csproj -c Release
+--no-restore` succeed with normal analyzers and0warnings/errors. The initial DLL
+comparison correctly refuses the cached precommit App output: its dependency
+informational version still names8d1c247, whereas the actual reference projects
+were rebuilt with4a15cd9. The correction records this failed comparison and
+compares the actual project-reference outputs. All4DLLs match; dependency source
+has no change from8d1c247. Previous observer binaries/evidence are retained;
+unchanged dependency behavior is not retested solely for a commit identifier.
+
+The476-file trial-manifest.json has SHA256
+A3AD8DA49B56857561523BABB33A6C9BE4C70FA659291C3D11DAA8636540E70B.
+The existing verify-interactive-startup-01.ps1 accepts all476 hashes and observes
+the responsive uninstrumented trial window twice, more than3seconds apart, on
+its dedicated non-input desktop. The owned observer process is terminated and
+ordinary settings/input desktop remain unchanged. The precise invocation is:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/ui-trial-20261124/verify-interactive-startup-01.ps1 -ManifestPath D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03/trial-manifest.json -PayloadDirectory D:/NeNeCommander/outputs/ui-trial-20261124/interactive-trial-03/App/bin/Release/net10.0-windows10.0.26100.0/win-x64 -ExpectedSource 4a15cd9c275c0d27653349effcf649e8adf51961 -ResultPath D:/NeNeCommander/evidence/ui-trial-20261124/interactive-startup-03.json
+pwsh -NoProfile -File D:/NeNeCommander/evidence/ui-trial-20261124/launch-interactive-trial-03.ps1
+```
+
+The visible launch under hide's existing trial/revision authorization succeeds
+at00:40:24 JST: PID13280, responsive title
+`NeNe Commander / UI trial #581 - bookmark focus and About`. No input is sent;
+no other app is terminated; ordinary settings hashes remain equal. Receipts and
+parity are in D:/NeNeCommander/evidence/ui-trial-20261124. This confirms delivery,
+not physical interaction or hide's acceptance. That optional question is pending.
+The live trial and unfinished feature/release copies remain; no cleanup is due
+before integration and permanent artifact preservation.
