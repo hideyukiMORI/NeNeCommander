@@ -1,6 +1,6 @@
 ﻿# Selection controls investigation — 2026-11-25
 
-Current status: selected technical proof complete; local commit/publication remain.
+Current status: accepted-main reconciliation and selected technical proof complete locally; feature publication, PR and main merge pending.
 The chronological proposal and initial failures below remain historical records.
 
 Issue #562 follows the active beta.5 release task in a separate D worktree. Base is
@@ -177,3 +177,107 @@ reused without additional product tests or CI. No new public write is performed.
 The first documentation script failed before writing because universal-newline
 reading altered one CRLF in the comparison; raw UTF-8 decoding confirms exact text.
 That failed attempt and its no-change commit result remain recorded separately.
+
+
+## November 26 resumption and accepted-main reconciliation
+
+hide resumes milestone work until stopped. The original feature branch remains at
+e76950a. In the same D worktree, feat/562-selection-integration starts at accepted
+main 9603e90 and cherry-picks the three selection commits. Two PROJECT_STATE insertion
+conflicts retain both complete release records and selection records; there is no
+product conflict. All normal commit hooks pass. The resulting head is 92beeed.
+
+The exact prior final manifest has 1,367 inputs: 1,361 match and six differ.
+The six are accepted-main CommandMenuView, the three PaneInteraction records,
+PaneNavigationAction and WindowDisplayModelTests. No selection implementation changes.
+input-correspondence-01.json retains every old/current hash. Prior unchanged selection,
+catalog, translation, formatting and closure evidence remains applicable; the new
+composition receives a normal App build and focused pointer/selection consumer tests.
+No full CI, coverage or mutation rerun is requested merely because the base changed.
+
+Commands and every exit are retained by run-verification-01.ps1 / verification-01.json
+under D:/NeNeCommander/evidence/selection-20261126. Its selected Application filter covers
+PanePointer, CommanderPointer, PaneKeyboardSelectionTests, PaneBulkSelectionTests and
+SelectionSessionTests. Presentation covers PanePointer, PaneNavigationActionTests and
+Selection. Normal Release App/test builds retain compiler/analyzer rules.
+
+An additional copied diagnostic App uses the exact current keyboard, selection and
+focus owners. Only startup locations, private settings, isolated activation/final-close
+observation and defect reporting are substituted; extra partial files observe results.
+The launcher creates a named non-input desktop without SWITCHDESKTOP rights and retains
+the exact child handle. A saved/restored thread-local keyboard table is verified through
+the real InputKeyboardSource before sending synchronous messages to the owned UI thread.
+Explicit produced characters prove that host route, not physical keyboard-layout/IME
+generation. Native results and source/DLL parity are pending at this checkpoint.
+
+Read-only path guesses and the sandbox Git ownership warning caused no source changes.
+Native preparation attempts 01/02 fail on regex/quoting before writing; attempt 03 uses
+literal replacements and successfully copies 182 App inputs. setup-attempts-01.json
+records these setup failures without treating them as product defects.
+
+Issue #562 remains open with the previously approved scope. No feature source push,
+PR, main integration, visible launch or release is performed during this checkpoint.
+The beta.5 cleanup-completion-04 receipt confirms its completed targets are absent;
+unfinished feature/native output stays retained. There is no cleanup approval hold.
+
+
+## Final integration proof — November 26, 07:45 JST
+
+Normal App Release build passes with zero warnings/errors. The selected Application
+boundary has 88 passed/0 failed/0 skipped; Presentation has 110/0/0. The exact commands,
+filters, start/end times and exits are in verification-01.json and its seven logs.
+The final code is unchanged from 92beeed; documentation alone follows. The original
+227/4 catalog, 225 Presentation, 57 translation and structural evidence remains
+reused for its unchanged inputs; these counts are not pooled as unique test cases.
+
+The first isolated native matrix (attempts 1/2/3) passes 131 checks each but initially
+records requested locale without asserting effective locale. Independent review
+identifies that proof gap and distinguishes Presentation row-mark counts from actual
+pixel rendering. Diagnostic source 02 adds effective-language and native binding
+observations. Attempt 4 stops at stage zero: strict ordinal comparison rejects the
+platform's uppercase language tags. Its source, binary and failed receipt remain.
+
+Diagnostic source 03 records values before asserting; the session's persisted
+language identifier must match exactly, and resource/root BCP-47 tags compare without
+case sensitivity. Final attempts 5/6/7 each pass 169 checks (507 total), with actual
+settings en-US/ja-JP/zh-Hans and effective tags EN-US/JA-JP/ZH-HANS. All exit zero.
+Each has 18 PreviewKeyDown and 6 CharacterReceived observations; actual modifier state
+matches the requested thread state for all sends, and the previous thread keyboard
+table is restored after every send. Selection count, exact focus, passive-pane identity,
+projected row marks and native ListView ItemsSource/SelectedItem identity agree.
+The native address TextBox consumes Ctrl+A as text selection without changing pane marks.
+
+Exact launch commands are:
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/selection-20261126/run-native-01.ps1 -Locale en-US -Attempt 5
+- the same command with -Locale ja-JP -Attempt 6
+- the same command with -Locale zh-Hans -Attempt 7
+
+Both diagnostic corrections use only
+dotnet build D:/NeNeCommander/outputs/selection-20261126/native-01/App/NeNeCommander.App.csproj -c Release --no-restore,
+recorded separately in verification-native-02/03.json, with zero warnings/errors.
+Successful normal product tests/build are not repeated after observer-only changes.
+
+native-parity-03.json proves 180/182 exact App inputs. The two declared substitutions
+are startup/private fixture wiring and diagnostic project-reference paths. All four
+dependency DLLs match the normal product build, and all final launches match the
+recorded diagnostic DLL and preserved observer source. The input desktop remains
+Default; the fixture runs on NeNeCommander562Selection_20261126 without switching it.
+No shared desktop input, external file activation or normal settings write is used.
+
+The normal settings fingerprint is identical before/after (one file, 627 bytes, exact
+SHA256). The first audit incorrectly compares JSON property order and records false;
+ordinary-settings-reconciliation-02.json corrects it by comparing path/length/hash.
+Both originals remain intact. This is an audit-script error, not a settings change.
+
+The repeat proof uses repeat-marked messages with a key-up after each send; it does
+not establish uninterrupted physical holding. Explicit WM_CHAR values do not prove
+layout/dead-key generation. Physical keyboard, IME, speech and human visible acceptance
+remain unperformed. Row/control binding observations do not claim pixel-render proof.
+The final fixture changes no product input route, focus implementation or settings policy.
+
+Independent integration review finds no product blocker in the six accepted-main
+differences. The native evidence review's language/binding limitations are addressed
+as above. No full CI, new release, source publication or main merge is yet claimed.
+Remote main remains 9603e90 and neither selection branch is remotely present at the
+07:40 readback. Keep this unfinished worktree and outputs until integration and
+verified permanent preservation; no cleanup approval is currently blocked.
