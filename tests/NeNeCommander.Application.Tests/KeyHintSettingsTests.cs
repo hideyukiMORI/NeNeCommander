@@ -20,7 +20,7 @@ public sealed class KeyHintSettingsTests
         using DualPaneSessionTestContext context = DualPaneSessionTestContext.Create();
         ScriptedSettingsStore store = new(SettingsReadOutcome.Absent());
         SettingsSession settings = new(store, SettingsReadOutcome.Absent(), static _ => { });
-        CommanderSession commander = new(context.Panes, settings, Scopes());
+        CommanderSession commander = new(context.Panes, settings, Scopes(), new CommanderBookmarkCommands(context.Panes, settings));
         RecordingCommanderObserver observer = new();
         UserIntent choice = UserIntent.SelectKeyHintVisibility(KeyHintVisibility.Hidden);
 
@@ -80,8 +80,6 @@ public sealed class KeyHintSettingsTests
 
     private static TransientScopeOwners Scopes()
     {
-        return new TransientScopeOwners(
-            new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-            new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new KeyboardHelpSession());
+        return new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession());
     }
 }

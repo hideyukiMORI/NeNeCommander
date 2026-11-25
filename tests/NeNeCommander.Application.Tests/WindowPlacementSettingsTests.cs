@@ -162,8 +162,6 @@ public sealed class WindowPlacementSettingsTests
         ScriptedDirectoryReadPort right = ScriptedDirectoryReadPort.Create();
         CommanderSessionTestComposition composition = new(left, right, gateway, new ScriptedSettingsStore(SettingsReadOutcome.Absent()));
         _ = composition.CreateSession(out NeNeCommander.Application.Panes.DualPaneSession panes);
-        return new CommanderSession(panes, settings, new TransientScopeOwners(
-            new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-            new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new KeyboardHelpSession()));
+        return new CommanderSession(panes, settings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(panes, settings));
     }
 }

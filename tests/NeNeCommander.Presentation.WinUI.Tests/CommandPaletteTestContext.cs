@@ -37,18 +37,12 @@ internal static class CommandPaletteTestContext
             new AcceptedFileLauncher(),
             PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(QueuedFileOperationPort.Create());
-        CommanderSession session = new(
-            new DualPaneSession(leftPane, rightPane, gateway),
-            new SettingsSession(
+        DualPaneSession bookmarkPanes = new(leftPane, rightPane, gateway);
+        SettingsSession bookmarkSettings = new(
                 new SuccessfulSettingsStore(),
                 SettingsReadOutcome.Absent(),
-                static _ => { }),
-            new TransientScopeOwners(
-                new AddressEditorSession(),
-                new CommandPaletteSession(),
-                new WindowAdjustmentSession(),
-                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+                static _ => { });
+        CommanderSession session = new(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
         _ = await session.NavigateAsync(PaneSide.Left, ParsePath("C:\\left"), CancellationToken.None);
         if (passiveListing is not null)
         {

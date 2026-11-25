@@ -65,14 +65,7 @@ internal sealed class CommanderSessionTestComposition
             rightLauncher,
             PaneSessionConfiguration.Create(CommanderSessionTestValues.Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         panes = new DualPaneSession(leftPane, rightPane, _gateway);
-        return new CommanderSession(
-            panes,
-            new SettingsSession(_store, initialOutcome, static _ => { }),
-            new TransientScopeOwners(
-                new AddressEditorSession(),
-                new CommandPaletteSession(),
-                new WindowAdjustmentSession(),
-                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+        SettingsSession bookmarkSettings = new(_store, initialOutcome, static _ => { });
+        return new CommanderSession(panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(panes, bookmarkSettings));
     }
 }

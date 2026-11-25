@@ -30,11 +30,14 @@ public sealed record PaneState
         Entries = EntryOrdering.Apply(entries, SortOrder);
         VisiblePageCapacity = visiblePageCapacity;
         HiddenItemVisibility = hiddenItemVisibility;
-        VisibleEntries = SelectVisible(Entries, hiddenItemVisibility);
+        VisibleEntries = SelectVisible(Entries, hiddenItemVisibility, NameFilter);
         FocusItem = VisibleEntries.Count == 0 ? null : VisibleEntries[0].Path;
         Selection = EmptySelection;
         NavigationHistory = PaneNavigationHistory.Create([location], 0);
     }
+
+    /// <summary>Gets the single applied query over the loaded entry names.</summary>
+    public PaneNameFilterQuery NameFilter { get; private init; } = PaneNameFilterQuery.Empty;
 
     /// <summary>Gets the current validated location.</summary>
     public FileSystemPath Location { get; }
@@ -172,7 +175,17 @@ public sealed record PaneState
         return this with
         {
             HiddenItemVisibility = hiddenItemVisibility,
-            VisibleEntries = SelectVisible(Entries, hiddenItemVisibility),
+            VisibleEntries = SelectVisible(Entries, hiddenItemVisibility, NameFilter),
+        };
+    }
+
+    /// <summary>Recomputes the sole visible projection before the reducer repairs focus and marks.</summary>
+    internal PaneState WithNameFilter(PaneNameFilterQuery query)
+    {
+        return this with
+        {
+            NameFilter = query,
+            VisibleEntries = SelectVisible(Entries, HiddenItemVisibility, query),
         };
     }
 
@@ -191,7 +204,7 @@ public sealed record PaneState
         {
             SortOrder = sortOrder,
             Entries = ordered,
-            VisibleEntries = SelectVisible(ordered, HiddenItemVisibility),
+            VisibleEntries = SelectVisible(ordered, HiddenItemVisibility, NameFilter),
         };
     }
 
@@ -212,11 +225,12 @@ public sealed record PaneState
 
     private static DirectoryEntrySnapshot SelectVisible(
         IReadOnlyList<DirectoryEntry> entries,
-        HiddenItemVisibility hiddenItemVisibility)
+        HiddenItemVisibility hiddenItemVisibility,
+        PaneNameFilterQuery query)
     {
         return DirectoryEntrySnapshot.Create(entries.Where(entry =>
-            hiddenItemVisibility == HiddenItemVisibility.Shown ||
-            entry.Metadata.Visibility == EntryVisibility.Normal));
+            (hiddenItemVisibility == HiddenItemVisibility.Shown ||
+                entry.Metadata.Visibility == EntryVisibility.Normal) && query.Matches(entry.Name)));
     }
 
     /// <summary>

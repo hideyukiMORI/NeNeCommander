@@ -149,13 +149,8 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
             CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
                 capacity, DirectoryListing.EntryBoundaryLimit, settings.Display.HiddenItemVisibility, settings.PaneSortOrders.Right)),
             _gateway);
-        TransientScopeOwners scopes = new(
-            new AddressEditorSession(),
-            new CommandPaletteSession(),
-            new WindowAdjustmentSession(),
-            new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()),
-            new KeyboardHelpSession());
-        CommanderSession session = new(panes, settingsSession, scopes);
+        TransientScopeOwners scopes = new(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new WindowsDriveCatalog(ioExecutionBoundary), new WslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession());
+        CommanderSession session = new(panes, settingsSession, scopes, new CommanderBookmarkCommands(panes, settingsSession));
         CommanderWindowDependencies dependencies = CommanderWindowDependencies.Create(
             keyboardIntentMapper, session, ReportDefect, TimeZoneInfo.Local);
         return new CommanderWindow(

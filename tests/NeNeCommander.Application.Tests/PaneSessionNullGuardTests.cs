@@ -152,24 +152,16 @@ public sealed class PaneSessionNullGuardTests
             new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
             SettingsReadOutcome.Absent(),
             static _ => { });
-        TransientScopeOwners scopes = new(
-            new AddressEditorSession(),
-            new CommandPaletteSession(),
-            new WindowAdjustmentSession(),
-            new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-            new KeyboardHelpSession());
-        TransientScopeSnapshot scopeStates = new(
-            AddressEditorState.Closed,
-            CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed,
-            LocationsState.Closed,
-            KeyboardHelpState.Closed);
+        TransientScopeOwners scopes = new(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession());
+        TransientScopeSnapshot scopeStates = new(new PaneScopeSnapshot(AddressEditorState.Closed, LocationsState.Closed, PaneFilterState.Closed), CommandPaletteState.Closed, WindowAdjustmentState.Closed, KeyboardHelpState.Closed);
+        CommanderBookmarkCommands bookmarks = new(panes, settings);
         ConstructorInfo commanderConstructor = typeof(CommanderSession).GetConstructor(
-            [typeof(DualPaneSession), typeof(SettingsSession), typeof(TransientScopeOwners)]) ??
+            [typeof(DualPaneSession), typeof(SettingsSession), typeof(TransientScopeOwners), typeof(CommanderBookmarkCommands)]) ??
             throw new AssertFailedException("The public application-session constructor was not found.");
-        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [null, settings, scopes]);
-        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, null, scopes]);
-        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, settings, null]);
+        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [null, settings, scopes, bookmarks]);
+        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, null, scopes, bookmarks]);
+        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, settings, null, bookmarks]);
+        NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, settings, scopes, null]);
         CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available, CommandMenuGroup.FocusedItem);
         IReadOnlyList<CommandCandidate> candidates = [candidate];
         CommandPaletteOpen open = new(

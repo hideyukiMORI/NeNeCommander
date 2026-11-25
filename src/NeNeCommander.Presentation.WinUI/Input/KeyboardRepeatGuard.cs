@@ -33,7 +33,8 @@ internal sealed class KeyboardRepeatGuard
             MappedKeyboardFocusAction => true,
             MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu ||
                 mapped.Intent == UserIntent.OpenCurrentLocationInOtherPane ||
-                mapped.Intent == UserIntent.SelectAll || mapped.Intent == UserIntent.InvertSelection,
+                mapped.Intent == UserIntent.SelectAll || mapped.Intent == UserIntent.InvertSelection ||
+                mapped.Intent == UserIntent.OpenPaneFilter || input.Context == KeyboardContext.PaneFilter,
             KeyboardPassThrough => IsNativeSingleShot(input),
             _ => false
         };

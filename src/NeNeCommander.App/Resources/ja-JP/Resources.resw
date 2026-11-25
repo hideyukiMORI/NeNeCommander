@@ -916,4 +916,16 @@
   <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>選択範囲を半ページ上へ</value></data>
   <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>先頭まで範囲選択</value></data>
   <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>末尾まで範囲選択</value></data>
+  <data name="IntentLabelOpenPaneFilter" xml:space="preserve"><value>このペインの名前を絞り込む</value></data>
+  <data name="IntentLabelClearPaneFilter" xml:space="preserve"><value>このペインの名前フィルターを解除</value></data>
+  <data name="KeyboardHelpGroupPaneFilter" xml:space="preserve"><value>名前フィルター</value></data>
+  <data name="PaneFilterKeepQuery" xml:space="preserve"><value>条件を保持して一覧へ戻る</value></data>
+  <data name="PaneFilterClearAndClose" xml:space="preserve"><value>条件を解除して一覧へ戻る</value></data>
+  <data name="PaneFilterLabel" xml:space="preserve"><value>名前フィルター</value></data>
+  <data name="PaneFilterOpenLabel" xml:space="preserve"><value>絞り込み</value></data>
+  <data name="PaneFilterClearLabel" xml:space="preserve"><value>解除</value></data>
+  <data name="PaneFilterPlaceholder" xml:space="preserve"><value>すべての語を名前に含む項目</value></data>
+  <data name="PaneFilterNoMatches" xml:space="preserve"><value>表示対象に条件と一致する名前はありません。</value></data>
+  <data name="PaneFilterEditingHint" xml:space="preserve"><value>すべての語を名前に含む項目を表示します。{0}: 条件を保持。{1}: 条件を解除。</value></data>
+  <data name="PaneFilterAppliedHint" xml:space="preserve"><value>名前で絞り込み中。入力欄をクリックすると編集できます。</value></data>
 </root>

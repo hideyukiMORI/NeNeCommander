@@ -30,6 +30,23 @@ public sealed class PanePointerFocusTests
         await AssertHeaderReceiptAsync(fixture);
     }
 
+    /// <summary>Proves rendering can return focus only to the active pane in an available native context.</summary>
+    [TestMethod]
+    public async Task CanReturnFocusWhenOwnerChangesRejectsStaleEffectsAsync()
+    {
+        using PanePointerTestContext fixture = new();
+        await fixture.LoadAsync();
+        CommanderSnapshot available = fixture.Session.Current;
+
+        Assert.IsTrue(PanePointerMapper.CanReturnFocus(available, PaneSide.Left, KeyboardContext.FileList));
+        Assert.IsTrue(PanePointerMapper.CanReturnFocus(available, PaneSide.Left, KeyboardContext.CommandEntry));
+        Assert.IsFalse(PanePointerMapper.CanReturnFocus(available, PaneSide.Right, KeyboardContext.FileList));
+        Assert.IsFalse(PanePointerMapper.CanReturnFocus(available, PaneSide.Left, KeyboardContext.PaneFilter));
+        Assert.IsFalse(PanePointerMapper.CanReturnFocus(available, PaneSide.Left, KeyboardContext.TextEntry));
+        CommanderSnapshot modal = await fixture.HandleAsync(UserIntent.OpenSettings);
+        Assert.IsFalse(PanePointerMapper.CanReturnFocus(modal, PaneSide.Left, KeyboardContext.FileList));
+    }
+
     private static async Task AssertHeaderReceiptAsync(PanePointerTestContext fixture)
     {
         PanePointerMapper mapper = new();

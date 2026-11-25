@@ -2,43 +2,43 @@ using System;
 
 namespace NeNeCommander.Application.Sessions;
 
-/// <summary>
-/// Represents the immutable state of every transient scope at one snapshot. It is the one place a
-/// later transient scope is added, so the session snapshot constructor keeps its arity.
-/// </summary>
+/// <summary>Carries the sole transient scope states through explicit composition.</summary>
 public sealed record TransientScopeSnapshot
 {
+    private readonly PaneScopeSnapshot _panes;
+
+    /// <summary>Receives pane scopes and each complete application-scope state.</summary>
     internal TransientScopeSnapshot(
-        AddressEditorState addressEditor,
+        PaneScopeSnapshot panes,
         CommandPaletteState commandPalette,
         WindowAdjustmentState windowAdjustment,
-        LocationsState locations,
         KeyboardHelpState keyboardHelp)
     {
-        ArgumentNullException.ThrowIfNull(addressEditor);
+        ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(commandPalette);
         ArgumentNullException.ThrowIfNull(windowAdjustment);
-        ArgumentNullException.ThrowIfNull(locations);
         ArgumentNullException.ThrowIfNull(keyboardHelp);
-        AddressEditor = addressEditor;
+        _panes = panes;
         CommandPalette = commandPalette;
         WindowAdjustment = windowAdjustment;
-        Locations = locations;
         KeyboardHelp = keyboardHelp;
     }
 
-    /// <summary>Gets the address editor scope state.</summary>
-    public AddressEditorState AddressEditor { get; }
+    /// <summary>Gets the sole AddressEditor scope state.</summary>
+    public AddressEditorState AddressEditor => _panes.AddressEditor;
 
-    /// <summary>Gets the command palette scope state.</summary>
+    /// <summary>Gets the sole CommandPalette scope state.</summary>
     public CommandPaletteState CommandPalette { get; }
 
-    /// <summary>Gets the window adjustment scope state.</summary>
+    /// <summary>Gets the sole WindowAdjustment scope state.</summary>
     public WindowAdjustmentState WindowAdjustment { get; }
 
-    /// <summary>Gets the Locations picker scope state.</summary>
-    public LocationsState Locations { get; }
+    /// <summary>Gets the sole Locations scope state.</summary>
+    public LocationsState Locations => _panes.Locations;
 
-    /// <summary>Gets the keyboard help scope state.</summary>
+    /// <summary>Gets the sole KeyboardHelp scope state.</summary>
     public KeyboardHelpState KeyboardHelp { get; }
+
+    /// <summary>Gets the sole NameFilter scope state.</summary>
+    public PaneFilterState NameFilter => _panes.NameFilter;
 }

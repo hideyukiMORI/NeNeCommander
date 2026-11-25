@@ -34,11 +34,31 @@ public static class PaneReducer
                 state.HiddenItemVisibility == HiddenItemVisibility.Hidden ? HiddenItemVisibility.Shown : HiddenItemVisibility.Hidden),
             _ when SortKeyRequestedBy(intent) is SortKey requested =>
                 ApplySortOrder(state, state.SortOrder.Toggle(requested), state.FocusItem),
-            _ when intent == UserIntent.Escape || intent == UserIntent.ClearSelection => ClearSelection(state),
+            _ when intent == UserIntent.Escape => DismissSelectionOrFilter(state),
+            _ when intent == UserIntent.ClearSelection => ClearSelection(state),
             _ when intent == UserIntent.SelectAll => state.Transition(state.FocusItem, PaneSelection.All(state), null),
             _ when intent == UserIntent.InvertSelection => state.Transition(state.FocusItem, PaneSelection.Invert(state), null),
             _ => ApplyMovement(state, intent),
         };
+    }
+
+    /// <summary>Applies the sole loaded-name projection and repairs visible focus, selection and anchor.</summary>
+    /// <param name="state">Current immutable pane.</param>
+    /// <param name="query">Already parsed committed text.</param>
+    /// <returns>The current or newly filtered valid pane.</returns>
+    public static PaneState ApplyNameFilter(PaneState state, PaneNameFilterQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(query);
+        if (state.NameFilter.Text == query.Text)
+        {
+            return state;
+        }
+        PaneState rebuilt = state.WithNameFilter(query);
+        return rebuilt.Transition(
+            RecoverFocusOrFirst(rebuilt, state.FocusItem),
+            RetainVisibleSelection(rebuilt, state.Selection),
+            PaneSelection.RebindAnchor(rebuilt, state.SelectionAnchor));
     }
 
     private static PaneState ApplyMovement(PaneState state, UserIntent intent)
@@ -314,6 +334,22 @@ public static class PaneReducer
         return intent == UserIntent.SelectRangeNext || intent == UserIntent.SelectRangePrevious ||
             intent == UserIntent.SelectRangeHalfPageDown || intent == UserIntent.SelectRangeHalfPageUp ||
             intent == UserIntent.SelectRangeFirst || intent == UserIntent.SelectRangeLast;
+    }
+
+    private static PaneState DismissSelectionOrFilter(PaneState state)
+    {
+        return state.Selection.Count == 0 && state.SelectionAnchor is null && state.NameFilter.Text.Length > 0
+            ? ApplyNameFilter(state, PaneNameFilterQuery.Empty)
+            : ClearSelection(state);
+    }
+
+    /// <summary>Retains the query only when the successful read still identifies the same location.</summary>
+    internal static PaneState CarryNameFilter(PaneState? previous, PaneState navigated)
+    {
+        return previous is not null &&
+            FileSystemPathIdentityComparer.Instance.Equals(previous.Location, navigated.Location)
+                ? ApplyNameFilter(navigated, previous.NameFilter)
+                : navigated;
     }
 
     private static PaneState ClearSelection(PaneState state)

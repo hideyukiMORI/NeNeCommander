@@ -916,4 +916,16 @@
   <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>Select range half a page up</value></data>
   <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>Select range to first item</value></data>
   <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>Select range to last item</value></data>
+  <data name="IntentLabelOpenPaneFilter" xml:space="preserve"><value>Filter names in this pane</value></data>
+  <data name="IntentLabelClearPaneFilter" xml:space="preserve"><value>Clear this pane’s name filter</value></data>
+  <data name="KeyboardHelpGroupPaneFilter" xml:space="preserve"><value>Name filter</value></data>
+  <data name="PaneFilterKeepQuery" xml:space="preserve"><value>Keep filter and return to list</value></data>
+  <data name="PaneFilterClearAndClose" xml:space="preserve"><value>Clear filter and return to list</value></data>
+  <data name="PaneFilterLabel" xml:space="preserve"><value>Name filter</value></data>
+  <data name="PaneFilterOpenLabel" xml:space="preserve"><value>Filter</value></data>
+  <data name="PaneFilterClearLabel" xml:space="preserve"><value>Clear</value></data>
+  <data name="PaneFilterPlaceholder" xml:space="preserve"><value>Names containing every word</value></data>
+  <data name="PaneFilterNoMatches" xml:space="preserve"><value>No visible items match this name filter.</value></data>
+  <data name="PaneFilterEditingHint" xml:space="preserve"><value>All words must occur in the name. {0}: keep filter. {1}: clear filter.</value></data>
+  <data name="PaneFilterAppliedHint" xml:space="preserve"><value>Name filter active. Click the field to edit it.</value></data>
 </root>

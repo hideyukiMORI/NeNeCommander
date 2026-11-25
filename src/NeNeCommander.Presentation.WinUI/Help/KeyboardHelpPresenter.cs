@@ -41,6 +41,7 @@ public static class KeyboardHelpPresenter
             new("KeyboardHelpGroupCommandPalette", CommandPaletteRows()),
             new("KeyboardHelpGroupHelp", ContextRows(KeyboardContext.KeyboardHelp, HelpLabelOf)),
             new("KeyboardHelpGroupCommandEntry", CommandEntryRows()),
+            new("KeyboardHelpGroupPaneFilter", ContextRows(KeyboardContext.PaneFilter, FilterLabelOf)),
         ];
         return new KeyboardHelpPresentation(primary.AsReadOnly(), secondary.AsReadOnly());
     }
@@ -125,6 +126,11 @@ public static class KeyboardHelpPresenter
     private static string LabelOf(UserIntent intent)
     {
         return CommandLabelCatalog.LabelFor(intent).ResourceKey;
+    }
+
+    private static string FilterLabelOf(UserIntent intent)
+    {
+        return intent == UserIntent.Confirm ? "PaneFilterKeepQuery" : "PaneFilterClearAndClose";
     }
 
     private static string HelpLabelOf(UserIntent intent)

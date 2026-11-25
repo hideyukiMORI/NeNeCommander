@@ -21,17 +21,24 @@ public sealed class CommanderSession
     private readonly DualPaneSession _panes;
     private readonly SettingsSession _settings;
     private readonly TransientScopeOwners _scopes;
-    private int _bookmarkNavigationInProgress;
+    private readonly CommanderBookmarkCommands _bookmarks;
 
     /// <summary>Initializes the application session over its declared state owners.</summary>
     /// <param name="panes">Sole dual-pane coordinator.</param>
     /// <param name="settings">Sole settings interaction owner.</param>
     /// <param name="scopes">Sole owners of the transient scopes.</param>
-    public CommanderSession(DualPaneSession panes, SettingsSession settings, TransientScopeOwners scopes)
+    /// <param name="bookmarks">Bookmark coordination composed over these exact pane and settings owners.</param>
+    public CommanderSession(DualPaneSession panes, SettingsSession settings, TransientScopeOwners scopes, CommanderBookmarkCommands bookmarks)
     {
         ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(scopes);
+        ArgumentNullException.ThrowIfNull(bookmarks);
+        if (!bookmarks.MatchesOwners(panes, settings))
+        {
+            throw new ArgumentException("Bookmark coordination must share the commander owners.", nameof(bookmarks));
+        }
+        _bookmarks = bookmarks;
         _panes = panes;
         _settings = settings;
         _scopes = scopes;
@@ -48,13 +55,14 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(side);
         ArgumentNullException.ThrowIfNull(location);
-        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 ||
+        if (_bookmarks.IsNavigating ||
             _settings.Current.Editor != SettingsEditorState.Closed ||
             _scopes.AddressEditor.Current is not AddressEditorClosed ||
             _scopes.CommandPalette.Current is CommandPaletteOpen ||
             _scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
             _scopes.KeyboardHelp.Current is KeyboardHelpOpen ||
-            _scopes.Locations.Current is not LocationsClosed)
+            _scopes.Locations.Current is not LocationsClosed ||
+            _scopes.NameFilter.Current is not PaneFilterClosed)
         {
             return Current;
         }
@@ -97,9 +105,20 @@ public sealed class CommanderSession
         return editor == SettingsEditorState.Bookmarks
             ? await HandleBookmarksModalIntentAsync(intent, observer, cancellationToken)
                 .ConfigureAwait(false)
-            : _scopes.AddressEditor.Current is not AddressEditorClosed
-                ? await HandleAddressIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false)
-                : await DispatchIdleIntentAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+            : await DispatchEditorOrIdleAsync(intent, observer, cancellationToken).ConfigureAwait(false);
+    }
+
+    private Task<CommanderSnapshot> DispatchEditorOrIdleAsync(
+        UserIntent intent,
+        ICommanderProgressObserver observer,
+        CancellationToken cancellationToken)
+    {
+        return _scopes.AddressEditor.Current is not AddressEditorClosed
+            ? HandleAddressIntentAsync(intent, observer, cancellationToken)
+            : _scopes.NameFilter.Current is PaneFilterEditing
+                ? Task.FromResult(ApplyPaneFilterDecision(_scopes.NameFilter.Validate(
+                    intent, _panes.Current, FilterOwnership(_panes.Current))))
+                : DispatchIdleIntentAsync(intent, observer, cancellationToken);
     }
 
     private async Task<CommanderSnapshot> HandleBookmarksModalIntentAsync(
@@ -107,12 +126,13 @@ public sealed class CommanderSession
         ICommanderProgressObserver observer,
         CancellationToken cancellationToken)
     {
-        return intent is BookmarkNavigationSelection managerNavigation
-            ? await NavigateManagerBookmarkAsync(
-                managerNavigation.Selection,
-                observer,
-                cancellationToken).ConfigureAwait(false)
-            : HandleBookmarkIntent(intent, observer, cancellationToken);
+        if (intent is BookmarkNavigationSelection managerNavigation)
+        {
+            await _bookmarks.NavigateManagerAsync(managerNavigation.Selection, observer, cancellationToken)
+                .ConfigureAwait(false);
+            return Current;
+        }
+        return HandleBookmarkIntent(intent, observer, cancellationToken);
     }
 
     private async Task<CommanderSnapshot> DispatchIdleIntentAsync(
@@ -120,15 +140,20 @@ public sealed class CommanderSession
         ICommanderProgressObserver observer,
         CancellationToken cancellationToken)
     {
+        if (intent is PaneFilterEntryRequest filterEntry)
+        {
+            return HandlePaneFilterEntry(filterEntry);
+        }
         if (intent is BookmarkShortcutSelection shortcut)
         {
             BookmarkEntry? bookmark = _settings.Current.Settings.Bookmarks.Find(shortcut.Slot);
-            return bookmark is null
-                ? Current
-                : await NavigateDirectBookmarkAsync(bookmark, observer, cancellationToken)
-                    .ConfigureAwait(false);
+            if (bookmark is not null)
+            {
+                await _bookmarks.NavigateDirectAsync(bookmark, observer, cancellationToken).ConfigureAwait(false);
+            }
+            return Current;
         }
-        if (Volatile.Read(ref _bookmarkNavigationInProgress) != 0 && intent != UserIntent.Escape)
+        if (_bookmarks.IsNavigating && intent != UserIntent.Escape)
         {
             return Current;
         }
@@ -164,6 +189,8 @@ public sealed class CommanderSession
         InteractionOwnership ownership = PaletteOwnership(panes);
         Action? open = intent switch
         {
+            _ when intent == UserIntent.OpenPaneFilter => () => _scopes.NameFilter.Open(panes, ownership),
+            _ when intent == UserIntent.ClearPaneFilter => () => ApplyPaneFilterDecision(_scopes.NameFilter.Clear(panes, ownership)),
             _ when intent == UserIntent.OpenSettings => OpenSettingsEditor,
             _ when intent == UserIntent.OpenColorSchemes => OpenColorSchemePicker,
             _ when intent == UserIntent.OpenBookmarks => OpenBookmarkManager,
@@ -194,7 +221,7 @@ public sealed class CommanderSession
 
     private void OpenBookmarkManager()
     {
-        if (!BookmarkInteractionIsFrozen())
+        if (!_bookmarks.IsInteractionFrozen)
         {
             _ = _settings.OpenBookmarks();
         }
@@ -307,105 +334,11 @@ public sealed class CommanderSession
         return Current;
     }
 
-    private async Task<CommanderSnapshot> NavigateDirectBookmarkAsync(
-        BookmarkEntry bookmark,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        if (!TryBeginBookmarkNavigation())
-        {
-            return Current;
-        }
-        try
-        {
-            if (BookmarkInteractionIsFrozen())
-            {
-                return Current;
-            }
-            _ = await _panes.HandleAsync(
-                new ResolvedBookmarkNavigation(bookmark.Path.Value),
-                observer,
-                cancellationToken).ConfigureAwait(false);
-            return Current;
-        }
-        finally
-        {
-            Volatile.Write(ref _bookmarkNavigationInProgress, 0);
-        }
-    }
-
-    private async Task<CommanderSnapshot> NavigateManagerBookmarkAsync(
-        BookmarkSelection selection,
-        ICommanderProgressObserver observer,
-        CancellationToken cancellationToken)
-    {
-        if (!TryBeginBookmarkNavigation())
-        {
-            return Current;
-        }
-        FileSystemPath navigationTarget = selection.Entry.Path.Value;
-        try
-        {
-            BookmarkNavigationStart start = _settings.BeginBookmarkNavigation(selection);
-            if (start is not BookmarkNavigationStart.Accepted accepted)
-            {
-                return Current;
-            }
-            navigationTarget = accepted.Entry.Path.Value;
-            PaneSide side = _panes.Current.ActiveSide;
-            DualPaneSnapshot result = await _panes.HandleAsync(
-                new ResolvedBookmarkNavigation(navigationTarget),
-                observer,
-                cancellationToken).ConfigureAwait(false);
-            PaneSnapshot pane = result.Of(side);
-            bool succeeded = pane.Activity == PaneActivity.Idle &&
-                pane.Content is PaneContentListed listed &&
-                FileSystemPathIdentityComparer.Instance.Equals(
-                    listed.Listing.Location,
-                    navigationTarget);
-            if (succeeded)
-            {
-                _settings.FinishBookmarkNavigationSucceeded();
-            }
-            else
-            {
-                _settings.FinishBookmarkNavigationFailed(
-                    BookmarkNavigationFailure(pane.Activity));
-            }
-            return Current;
-        }
-        catch (OperationCanceledException)
-        {
-            _settings.FinishBookmarkNavigationFailed(
-                new PaneReadCancelled(navigationTarget));
-            throw;
-        }
-        finally
-        {
-            Volatile.Write(ref _bookmarkNavigationInProgress, 0);
-        }
-    }
-
-    private static PaneActivity BookmarkNavigationFailure(PaneActivity activity)
-    {
-        return activity is PaneReadCancelled ? activity : (PaneReadFailed)activity;
-    }
-
-    private bool TryBeginBookmarkNavigation()
-    {
-        return Interlocked.CompareExchange(ref _bookmarkNavigationInProgress, 1, 0) == 0;
-    }
-
     private bool PaneInteractionIsFrozen()
     {
         return _panes.Current.Operation is
             OperationRunning or OperationAwaitingConfirmation or OperationAwaitingName or
             OperationAwaitingConflict;
-    }
-
-    private bool BookmarkInteractionIsFrozen()
-    {
-        return PaneInteractionIsFrozen() || _panes.Current.HasExternalWork;
     }
 
     private CommanderSnapshot OpenContextMenu(UserIntent intent)
@@ -427,7 +360,7 @@ public sealed class CommanderSession
     {
         InteractionOwnership ownership = PaletteOwnership(panes);
         return ownership == InteractionOwnership.ScopeOwnsInput &&
-            Volatile.Read(ref _bookmarkNavigationInProgress) == 0 &&
+            !_bookmarks.IsNavigating &&
             _scopes.WindowAdjustment.Current is not WindowAdjustmentOpen &&
             _scopes.KeyboardHelp.Current is not KeyboardHelpOpen &&
             _scopes.Locations.Current is LocationsClosed &&
@@ -469,12 +402,50 @@ public sealed class CommanderSession
 
     private InteractionOwnership PaletteOwnership(DualPaneSnapshot panes)
     {
+        return _scopes.NameFilter.Current is PaneFilterClosed
+            ? FilterOwnership(panes)
+            : InteractionOwnership.AnotherScopeOwnsInput;
+    }
+
+    private InteractionOwnership FilterOwnership(DualPaneSnapshot panes)
+    {
         return _settings.Current.Editor == SettingsEditorState.Closed &&
-            _scopes.AddressEditor.Current is AddressEditorClosed &&
-            !PaneInteractionIsFrozen() &&
-            !panes.HasExternalWork
+            _scopes.AddressEditor.Current is AddressEditorClosed && !_bookmarks.IsNavigating &&
+            panes.CanInteractWithPanes
                 ? InteractionOwnership.ScopeOwnsInput
                 : InteractionOwnership.AnotherScopeOwnsInput;
+    }
+
+    private CommanderSnapshot HandlePaneFilterEntry(PaneFilterEntryRequest request)
+    {
+        DualPaneSnapshot before = _panes.Current;
+        InteractionOwnership ownership = PaletteOwnership(before);
+        if (ownership == InteractionOwnership.AnotherScopeOwnsInput)
+        {
+            return Current;
+        }
+        DualPaneSnapshot after = _panes.ApplyInteraction(request.Interaction);
+        if (ReferenceEquals(before.Of(request.Interaction.Side), after.Of(request.Interaction.Side)))
+        {
+            return Current;
+        }
+        if (request.Action == PaneFilterEntryAction.Open)
+        {
+            _scopes.NameFilter.Open(after, ownership);
+            return Current;
+        }
+        return ApplyPaneFilterDecision(_scopes.NameFilter.Clear(after, ownership));
+    }
+
+    private CommanderSnapshot ApplyPaneFilterDecision(PaneFilterValidation validation)
+    {
+        if (validation is PaneFilterQueryAccepted accepted)
+        {
+            DualPaneSnapshot after = _panes.ApplyNameFilter(
+                accepted.Editor.Side, accepted.Editor.SourcePane, accepted.Query);
+            _scopes.NameFilter.Reconcile(accepted, after.Of(accepted.Editor.Side));
+        }
+        return Current;
     }
 
     private async Task<CommanderSnapshot> HandleAddressIntentAsync(

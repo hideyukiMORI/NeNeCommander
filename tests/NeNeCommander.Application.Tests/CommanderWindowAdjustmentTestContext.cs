@@ -37,20 +37,13 @@ internal sealed class CommanderWindowAdjustmentTestContext : System.IDisposable
         BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(BookmarkCatalog.Create(
             [],
             [BookmarkEntry.Create(name, path, null, BookmarkShortcutSlot.One)])).Catalog;
-        Session = new CommanderSession(
-            Panes,
-            new SettingsSession(
+        SettingsSession bookmarkSettings = new(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Read(UserSettings.Create(
                     DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
                     catalog, PaneSortPreferences.Default, null)),
-                static _ => { }),
-            new TransientScopeOwners(
-                new AddressEditorSession(),
-                new CommandPaletteSession(),
-                new WindowAdjustmentSession(),
-                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+                static _ => { });
+        Session = new CommanderSession(Panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(Panes, bookmarkSettings));
     }
 
     internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();

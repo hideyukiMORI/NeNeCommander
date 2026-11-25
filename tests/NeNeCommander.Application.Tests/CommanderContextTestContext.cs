@@ -19,14 +19,11 @@ internal sealed class CommanderContextTestContext : IDisposable
     {
         Panes = panes;
         Palette = new CommandPaletteSession();
-        Session = new CommanderSession(panes.Panes,
-            new SettingsSession(new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
-                SettingsReadOutcome.Absent(), static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), Palette,
-                new WindowAdjustmentSession(), new LocationsSession(
+        SettingsSession bookmarkSettings = new(new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+                SettingsReadOutcome.Absent(), static _ => { });
+        Session = new CommanderSession(panes.Panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(
                     ScriptedDriveCatalog.Completed(DriveCatalogOutcome.Succeeded([], 0)),
-                    ScriptedWslDistributionCatalog.Completed(WslDistributionCatalogOutcome.Succeeded([]))),
-                new KeyboardHelpSession()));
+                    ScriptedWslDistributionCatalog.Completed(WslDistributionCatalogOutcome.Succeeded([]))), new PaneFilterSession()), Palette, new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(panes.Panes, bookmarkSettings));
     }
 
     internal CommanderSession Session { get; }

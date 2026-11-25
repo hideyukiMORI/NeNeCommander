@@ -38,6 +38,8 @@ public sealed class CommandLabelCatalogTests
         return
         [
             (UserIntent.OpenFocused, "IntentLabelOpenFocused"),
+            (UserIntent.OpenPaneFilter, "IntentLabelOpenPaneFilter"),
+            (UserIntent.ClearPaneFilter, "IntentLabelClearPaneFilter"),
             (UserIntent.NavigateParent, "IntentLabelNavigateParent"),
             (UserIntent.NavigateBack, "IntentLabelNavigateBack"),
             (UserIntent.NavigateForward, "IntentLabelNavigateForward"),

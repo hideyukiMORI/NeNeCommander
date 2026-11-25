@@ -332,20 +332,14 @@ public sealed class CommanderSessionLocationsTests
             BookmarkCatalog catalog = Assert.IsInstanceOfType<BookmarkCatalogAccepted>(BookmarkCatalog.Create(
                 [],
                 [BookmarkEntry.Create(name, path, null, BookmarkShortcutSlot.One)])).Catalog;
-            Session = new CommanderSession(
-                new DualPaneSession(left, right, _gateway),
-                new SettingsSession(
+            DualPaneSession bookmarkPanes = new(left, right, _gateway);
+            SettingsSession bookmarkSettings = new(
                     new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                     SettingsReadOutcome.Read(UserSettings.Create(
                         DisplayPreferences.Create(ColorScheme.NeNeDark, HiddenItemVisibility.Hidden, KeyHintVisibility.Shown, InterfaceLanguage.System),
                         catalog, PaneSortPreferences.Default, null)),
-                    static _ => { }),
-                new TransientScopeOwners(
-                    new AddressEditorSession(),
-                    new CommandPaletteSession(),
-                    new WindowAdjustmentSession(),
-                    new LocationsSession(Drives, WslRoots),
-                    new KeyboardHelpSession()));
+                    static _ => { });
+            Session = new CommanderSession(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(Drives, WslRoots), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
         }
 
         internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();

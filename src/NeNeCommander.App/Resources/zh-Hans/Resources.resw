@@ -916,4 +916,16 @@
   <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>向上半页选择范围</value></data>
   <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>选择范围至首项</value></data>
   <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>选择范围至末项</value></data>
+  <data name="IntentLabelOpenPaneFilter" xml:space="preserve"><value>筛选此窗格中的名称</value></data>
+  <data name="IntentLabelClearPaneFilter" xml:space="preserve"><value>清除此窗格的名称筛选</value></data>
+  <data name="KeyboardHelpGroupPaneFilter" xml:space="preserve"><value>名称筛选</value></data>
+  <data name="PaneFilterKeepQuery" xml:space="preserve"><value>保留筛选并返回列表</value></data>
+  <data name="PaneFilterClearAndClose" xml:space="preserve"><value>清除筛选并返回列表</value></data>
+  <data name="PaneFilterLabel" xml:space="preserve"><value>名称筛选</value></data>
+  <data name="PaneFilterOpenLabel" xml:space="preserve"><value>筛选</value></data>
+  <data name="PaneFilterClearLabel" xml:space="preserve"><value>清除</value></data>
+  <data name="PaneFilterPlaceholder" xml:space="preserve"><value>名称包含所有词语的项目</value></data>
+  <data name="PaneFilterNoMatches" xml:space="preserve"><value>没有可见项目的名称符合此筛选条件。</value></data>
+  <data name="PaneFilterEditingHint" xml:space="preserve"><value>名称必须包含所有词语。{0}：保留筛选。{1}：清除筛选。</value></data>
+  <data name="PaneFilterAppliedHint" xml:space="preserve"><value>名称筛选已启用。点击输入框进行编辑。</value></data>
 </root>

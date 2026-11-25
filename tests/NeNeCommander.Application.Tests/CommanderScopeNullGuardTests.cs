@@ -29,18 +29,12 @@ public sealed class CommanderScopeNullGuardTests
             new ScriptedFileLauncher(),
             PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
-        CommanderSession commander = new(
-            new DualPaneSession(left, right, gateway),
-            new SettingsSession(
+        DualPaneSession bookmarkPanes = new(left, right, gateway);
+        SettingsSession bookmarkSettings = new(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
-                static _ => { }),
-            new TransientScopeOwners(
-                new AddressEditorSession(),
-                new CommandPaletteSession(),
-                new WindowAdjustmentSession(),
-                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+                static _ => { });
+        CommanderSession commander = new(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
 
         _ = await Assert.ThrowsExactlyAsync<ArgumentNullException>(
             () => commander.NavigateAsync(null!, NullGuardAssertions.ParsePath("C:\\source"), CancellationToken.None));
@@ -64,25 +58,19 @@ public sealed class CommanderScopeNullGuardTests
             VisiblePageCapacity.Create(2)).Capacity;
         ScriptedDirectoryReadPort left = ScriptedDirectoryReadPort.Create();
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
-        CommanderSession commander = new(
-            new DualPaneSession(
+        DualPaneSession bookmarkPanes = new(
                 new PaneSession(left,
             new ScriptedFileLauncher(),
             PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
                 new PaneSession(ScriptedDirectoryReadPort.Create(),
             new ScriptedFileLauncher(),
             PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default)),
-                gateway),
-            new SettingsSession(
+                gateway);
+        SettingsSession bookmarkSettings = new(
                 new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                 SettingsReadOutcome.Absent(),
-                static _ => { }),
-            new TransientScopeOwners(
-                new AddressEditorSession(),
-                new CommandPaletteSession(),
-                new WindowAdjustmentSession(),
-                new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+                static _ => { });
+        CommanderSession commander = new(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
         CommanderSnapshot opened = await commander.HandleAsync(
             UserIntent.OpenSettings,
             new RecordingCommanderObserver(),
@@ -128,11 +116,11 @@ public sealed class CommanderScopeNullGuardTests
         LocationsSession locations = new(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog());
         KeyboardHelpSession keyboardHelp = new();
 
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(null!, commandPalette, windowAdjustment, locations, keyboardHelp));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, null!, windowAdjustment, locations, keyboardHelp));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, null!, locations, keyboardHelp));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, windowAdjustment, null!, keyboardHelp));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(addressEditor, commandPalette, windowAdjustment, locations, null!));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(new PaneScopeOwners(null!, locations, new PaneFilterSession()), commandPalette, windowAdjustment, keyboardHelp));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(new PaneScopeOwners(addressEditor, locations, new PaneFilterSession()), null!, windowAdjustment, keyboardHelp));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(new PaneScopeOwners(addressEditor, locations, new PaneFilterSession()), commandPalette, null!, keyboardHelp));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(new PaneScopeOwners(addressEditor, null!, new PaneFilterSession()), commandPalette, windowAdjustment, keyboardHelp));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeOwners(new PaneScopeOwners(addressEditor, locations, new PaneFilterSession()), commandPalette, windowAdjustment, null!));
         AssertTransientScopeSnapshotArguments();
         AssertCommandPaletteArguments(commandPalette, snapshot);
         AssertAddressEditorArguments(addressEditor, snapshot);
@@ -149,36 +137,11 @@ public sealed class CommanderScopeNullGuardTests
 
     private static void AssertTransientScopeSnapshotArguments()
     {
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(
-            null!,
-            CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed,
-            LocationsState.Closed,
-            KeyboardHelpState.Closed));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(
-            AddressEditorState.Closed,
-            null!,
-            WindowAdjustmentState.Closed,
-            LocationsState.Closed,
-            KeyboardHelpState.Closed));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(
-            AddressEditorState.Closed,
-            CommandPaletteState.Closed,
-            null!,
-            LocationsState.Closed,
-            KeyboardHelpState.Closed));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(
-            AddressEditorState.Closed,
-            CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed,
-            null!,
-            KeyboardHelpState.Closed));
-        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(
-            AddressEditorState.Closed,
-            CommandPaletteState.Closed,
-            WindowAdjustmentState.Closed,
-            LocationsState.Closed,
-            null!));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(new PaneScopeSnapshot(null!, LocationsState.Closed, PaneFilterState.Closed), CommandPaletteState.Closed, WindowAdjustmentState.Closed, KeyboardHelpState.Closed));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(new PaneScopeSnapshot(AddressEditorState.Closed, LocationsState.Closed, PaneFilterState.Closed), null!, WindowAdjustmentState.Closed, KeyboardHelpState.Closed));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(new PaneScopeSnapshot(AddressEditorState.Closed, LocationsState.Closed, PaneFilterState.Closed), CommandPaletteState.Closed, null!, KeyboardHelpState.Closed));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(new PaneScopeSnapshot(AddressEditorState.Closed, null!, PaneFilterState.Closed), CommandPaletteState.Closed, WindowAdjustmentState.Closed, KeyboardHelpState.Closed));
+        NullGuardAssertions.AssertNullGuard(() => _ = new TransientScopeSnapshot(new PaneScopeSnapshot(AddressEditorState.Closed, LocationsState.Closed, PaneFilterState.Closed), CommandPaletteState.Closed, WindowAdjustmentState.Closed, null!));
     }
 
     private static void AssertCommandPaletteArguments(CommandPaletteSession commandPalette, DualPaneSnapshot snapshot)

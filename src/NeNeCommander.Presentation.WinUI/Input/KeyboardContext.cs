@@ -21,6 +21,16 @@ public abstract record KeyboardContext
     /// <summary>Gets the address editor context that owns only navigation submission keys.</summary>
     public static KeyboardContext AddressEntry { get; } = new AddressEntryContext();
 
+    /// <summary>Gets the native pane-filter editor context with qualified completion and cancellation.</summary>
+    public static KeyboardContext PaneFilter { get; } = new PaneFilterContext();
+
+    private sealed record PaneFilterContext : KeyboardContext
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Gets a modal context that blocks the underlying file-list map.</summary>
     public static KeyboardContext Modal { get; } = new ModalContext();
 
