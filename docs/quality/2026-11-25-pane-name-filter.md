@@ -1,6 +1,6 @@
 # Pane name-filter investigation — 2026-11-25
 
-Status: local technical proof complete; publication, integration and physical/actual IME acceptance remain pending.
+Status: accepted-main reconciliation and selected technical proof complete locally; publication/main integration and physical/actual IME acceptance remain pending.
 Issue545 is confirmed open through the GitHub connector. The active milestone includes
 basic current-folder filtering; recursive search536and frozen beta.5remain separate.
 
@@ -317,3 +317,56 @@ All new document links resolve. Successful layer25, adversarial26 and native pro
 are reused on these unchanged inputs. No runtime or test source changed after proof.
 
 The complete 91-file feature is saved locally as 08008241aecdafaeed6e3989c9c5be0edb04107f. Normal Commit-mode conformance/security/message hooks pass and the worktree is clean. local-commit-32.json/log preserve the exact result. No public update, PR, main integration or cleanup is performed. This documentation-only follow-up reuses all unchanged product proof.
+
+
+## November 26 accepted-main reconciliation
+
+Selection PR585 and its completion PR587 are integrated; main is f44f6f0. Issue545
+remains open. The existing D worktree keeps original branch feat/545-pane-name-filter
+at27b92cd and starts feat/545-name-filter-integration from accepted main. Only feature
+0800824 and documentation27b92cd are cherry-picked, yielding16e6c3d/1eea87a.
+One PROJECT_STATE insertion conflict retains all main and filter history in date order.
+There is no product conflict. The feature continuation runs normal Commit conformance112,
+security24 and message checks successfully. The resulting tree is clean.
+
+input-correspondence-01.json maps all1,398 frozen inputs:1,397 match. The sole difference
+is SelectionTranslationTests.cs, the already accepted selection correction that separates
+identical native-owner/navigation cases into DynamicData. Every production/configuration/
+tooling input matches the prior accepted filter proof. A complete src/tests/eng comparison
+against27b92cd likewise identifies only that test. No new product fix is applied.
+
+product-proof-reuse-01.json verifies all185 App sources and all four original normal,
+frozen and native-runtime dependency DLLs against native-parity-29. The pre-existing
+Application1273/100%branch, Presentation570/97.422969%, Architecture35, normal App,
+closure/conformance/format, selected three-repeat adversarial, native ordering/locales/
+six-image inspection and local reducer measurement remain evidence for matching inputs.
+These are reused results, not new executions or a claim of a newly measured aggregate.
+
+The changed test is compiled with all normal compiler/analyzer settings and existing
+exact product references, then run against the filter's new keyboard context:
+- dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-restore -p:BuildProjectReferences=false
+- dotnet test --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-build --no-restore --filter FullyQualifiedName~SelectionTranslationTests
+
+The test build has zero warnings/errors; all59 cases pass,0failed/0skipped. This avoids
+rebuilding unchanged product dependencies, whose four normal hashes remain exact after
+the test. The dynamic context data includes PaneFilter. The prior570-case coverage
+result is not relabelled as a new full-suite result after test parameterization.
+
+pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect returns1, retaining
+exactly the prior KeyboardHelpPresenter nesting4/limit3 finding at line136. The old
+test cognitive11 finding is gone with the already accepted parameterization. The full
+remaining finding object matches the prior record. No threshold or suppression changes;
+the result is explicitly not clean complexity.
+
+run-verification-01.ps1, verification-01.json, verification-summary-01.json and their
+logs retain precise commands, timings, exits and hashes under
+D:/NeNeCommander/evidence/pane-filter-20261126. A sandbox-only Python PATH miss was a
+read-only inspection setup error; PowerShell reads and the existing approved execution
+environment complete the audit. Inferred missing-file reads and reading a receipt before
+its producer finished caused no source change and no product failure.
+
+Independent read-only integration/evidence review at 08:14:39 JST requires no further correction and accepts the declared reuse scope. No
+new native invocation, product build/full suite, coverage, mutation, release or shared
+desktop input occurs in this resumption. Physical input, actual IME, speech and hide's
+visible acceptance retain their prior explicit limits. Preserve the unfinished worktree
+and all output until integration and verified permanent preservation permit cleanup.

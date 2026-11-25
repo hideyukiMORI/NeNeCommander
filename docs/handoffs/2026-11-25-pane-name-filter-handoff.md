@@ -1,8 +1,8 @@
 # Pane name-filter handoff — 2026-11-25
 
-Status: local technical proof complete; active milestone continues.
+Status: accepted-main reconciliation and selected technical proof complete locally; publication/main integration pending.
 
-Issue #545 uses D:/NeNeCommander/worktrees/issue-545, branch feat/545-pane-name-filter.
+Issue #545 uses D:/NeNeCommander/worktrees/issue-545, current branch feat/545-name-filter-integration. Original branch feat/545-pane-name-filter at27b92cd is preserved.
 Its basis 6ba4a1f combines selection 2cfc3b2 and reviewed release correction b72bbcc;
 filter and selection remain excluded from the frozen beta.5 candidate. Preserve the
 independent release/selection publication approval holds and their exact payloads.
@@ -40,3 +40,21 @@ copies/measurement: D:/NeNeCommander/outputs/pane-filter-20261125. Keep these an
 worktree until technical/main acceptance, permanent preservation and active-reference
 checks permit cleanup. No cleanup is currently due. Normal settings/input desktop and
 all other applications are unchanged by this proof.
+
+
+## Active checkpoint — November 26, 08:12 JST
+
+Accepted mainf44f6f0 already includes selection PR585 and completion PR587. The local
+filter integration head1eea87a contains only the feature and saved documentation applied
+to that main. The one PROJECT_STATE conflict preserves both histories; no product
+conflict/fix occurs. All1,398 old inputs are reconciled:1,397 exact plus the already
+accepted parameterized SelectionTranslationTests. All185 App inputs and the four
+normal/frozen/runtime DLLs still match. Reuse prior product/native/coverage evidence.
+
+Only the changed test project is built against those same product references:
+59translation cases pass, including the new dynamic context cases; normal warnings/
+errors are zero. Complexity Inspect retains exactly one original Help nesting finding,
+exit1. No full-suite/native/release rerun occurs. Current receipts are in
+evidence/pane-filter-20261126. Final independent reuse review at 08:14:39 JST accepts the scope without further correction; public payload,
+source push, PR/main integration and cleanup follow only after it is reconciled.
+Normal settings/input desktop and all prior explicit physical/IME limits are unchanged.
