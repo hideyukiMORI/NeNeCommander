@@ -1,8 +1,9 @@
 # Selection controls handoff — 2026-11-25
 
-Status: selected integration proof complete locally; Issue scope published with approval; feature source/PR/main integration pending.
-Worktree D:/NeNeCommander/worktrees/issue-562; current branch feat/562-selection-integration;
-current code92beeed on accepted main9603e90. Original selection branch e76950a is retained. Published beta.5 excludes this feature. ADR0093 and the quality record describe the single existing reducer,
+Status: integrated by PR #585; Issue #562 closed; completed copies archived and removed. No cleanup hold remains.
+Accepted source is mainfb4f2db, exactly tree-equal to reviewed1842c0e. Original
+feat/562-selection-controls at e76950a and integration branch1842c0e are retained.
+Published beta.5 excludes this later feature. ADR0093 and the quality record describe the single existing reducer,
 selection calculator, mapper/translator and repeat-owner mechanism.
 
 Ctrl+A selects visible entries; produced*inverts; palette ClearSelection uses idle
@@ -89,3 +90,23 @@ Source integration review requires no product correction. Final evidence review 
 three documents are changed. Source push, draft PR, main squash, Issue closure and
 cleanup remain. No new release is planned by this task. Physical input/IME/speech,
 uninterrupted physical repeat and pixel/human acceptance are not claimed.
+
+## Completed checkpoint — November 26, 08:00 JST
+
+PR585 is squash-merged asfb4f2db and Issue562 is closed; main-sync-01.json proves
+complete candidate/accepted tree equality and a clean fast-forward. The following
+completion-only Issue586 records the publication, connector403/CLI fallback and cleanup.
+Successful product/native proof is unchanged and is not rerun for these documents.
+
+All5,817 disposable files/581,927,878 bytes are preserved and individually verified in
+evidence/selection-20261126/completed-selection-artifacts-01.zip. The original raw
+evidence directories, retained branches and commits remain. At07:59:36JST the issue-562
+worktree and outputs/selection-20261125 and outputs/selection-20261126 are all absent.
+Archive hash, exact inventory, unchanged metadata, clean source, main integration,
+zero links and zero active references are checked before removal. See
+cleanup-completion-01.json and the quality record for exact paths/hash/commands.
+
+No cleanup remains for this selection task. #545 name filtering is the next local
+implementation awaiting accepted-main reconciliation/publication. Preserve every
+unfinished task and its evidence. Physical input/IME/speech/pixel/human acceptance
+remains unclaimed, and no new release is part of this completion.
