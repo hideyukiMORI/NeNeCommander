@@ -1,54 +1,52 @@
-# Preview beta.5 active handoff — 2026-11-25
+# Preview beta.5 handoff — 2026-11-25
 
-Status: active; local release-stage evidence accepted, exact public-payload approval pending.
+Status: published and public-download hashes verified; completion documentation and verified cleanup in progress under Issue #583.
 
-Worktree: `D:/NeNeCommander/worktrees/issue-580`; branch: `chore/580-preview-beta5`.
-Final measured product/test source: `b72bbcc2c3086338b2a530d6004440efec334905`.
-Subsequent documentation-only commits contain the final evidence. Do not include
-selection #562 or filter #545; neither belongs to hide's accepted beta.5 cutoff.
+The [public Preview](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.5)
+is published from PR #582 / accepted main
+`5727258e7b5558ccdf64cfba4e176ef907a18e4e`. The accepted candidate 3c4fb93 and main
+have exactly the same tree. Annotated tag `v0.1.0-beta.5` points to that source.
+Source/PR/SARIF approval was explicit at 19:59 JST, and final publication approval
+at 20:42 JST; these actions are complete and need no repeated permission question.
 
-The [quality record](../quality/2026-11-25-preview-beta5.md) retains every failed attempt
-and the final scope. Application passes 1,187 tests with 100% branch coverage;
-Presentation passes 508 with 97.2611077%. Consumer/App builds, record closure,
-conformance and format pass. The 29 Architecture cases and mapped unchanged foundation
-and provider proof remain applicable. Complexity 03 has exactly the prior 3 findings,
-with exit 1 explicit. Native menu attempt 2 passes 52 checks across four combinations;
-all six Closing callbacks occur synchronously inside outer Render. Product/DLL parity
-and private non-input-desktop/settings receipts remain. No physical input or visible
-acceptance is inferred.
+The [quality record](../quality/2026-11-25-preview-beta5.md) owns commands, hashes,
+original failures and scope. Final package generation, 588-file/ZIP/notice/source
+verification, 132 XBF resources, 603 strings per locale, separate extraction and
+unmodified startup all pass. Normal settings and the shared input desktop are
+unchanged. Candidate-ref CodeQL analysis 2247313539 reads back 164 rules/0 results/
+0 open alerts. All 1,360 fixed proof inputs match; all four mutation thresholds pass
+through individually mapped successful stages. The original whole failed runs,
+canonical extraction diagnostics and individually reviewed supplemental results
+remain explicit. No full-test rerun was needed merely for merge/publication.
 
-`remaining-progress-04.json` finishes at 11:04 JST. Both three-repeat adversarial tiers
-pass; Application Complete mutation is 96.03% against 95%, and Presentation is 92.28%
-against 90%. Prior identical Domain and Infrastructure 92.28% stages remain individually
-mapped, never a successful whole failed run. All 1,360 `proof-inputs-05.json` hashes
-match. The driver's start-base field `0e0829c` does not replace that manifest, which
-exactly matches committed `b72bbcc`. The oldest reused stage conservatively expires
-November 27 at 23:34:56 JST; recheck before release publication.
+The three published assets were downloaded again and match their permanent copies
+in `D:/NeNeCommander/releases/0.1.0-beta.5/candidate-20261125-01`.
+The ZIP is 114138401 bytes, SHA-256
+`84c73e4afcc01a27023d3601fed46dafae7cb50025750a594a21deb1696cdbaf`.
+Evidence lives in `D:/NeNeCommander/evidence/release-beta5-20261125`, including
+`publication-final-04.json`, `final-shipping-proof-01.json`, `final-verify-01`,
+`final-artifact-independent-review-04.json` and the original failed receipt.
+The provisional ZIP is not the public artifact.
 
-Final canonical CodeQL 03 has 164 rules and 0 results, with all 1,160 owned source
-notifications. It also retains 104 compiler diagnostics, 315 extractor messages and
-15 error-file notifications. Record the `PaneNavigationAction` name ambiguity and
-eng diagnostic limits explicitly. Supplemental compiler-traced 03 covers every one
-of the 1,131 owned product/test paths, with 0 compiler/extractor error notifications.
-Its 6 owned results are 2 infeasible fake-localizer formatting flows and 4 necessary,
-documented native-boundary notes; 123 generated results also remain. Independent review
-at 11:07 accepts the combined local evidence with these exact limits. No further
-product/test rewrite is made. SARIF hashes are recorded separately in
-`codeql-result-summary-03.json`; the completion receipt's hash is manual only.
+Remaining release administration: integrate this documentation, archive/verify the
+completed worktree ignored files and temporary outputs, inspect exact paths/links/
+unique files/live references and remove only eligible completed copies. The proposed
+scope is recorded in `completed-task-scope-04.json`; no deletion or rejection has
+occurred at this checkpoint. Keep branches, commits, permanent evidence and shipping
+assets. Keep issue-560, issue-562, issue-545 and issue-564-ui-trial, all unrelated
+unfinished work, `outputs/bookmark-focus-20261124` (interactive03), and
+`outputs/ui-trial-20261124`. If automatic review rejects deletion, follow the existing
+blocked-cleanup procedure rather than another mechanism.
 
-Automatic review rejected the original exact `43e8320` / 301-file public push before
-execution. That initial question has no answer. Current final source and Draft PR
-body supersede the old proposed payload; prepare the exact commit, count, body and
-hash, then ask hide to approve them. Do not push a different head using old payload
-approval. No alternate source/SARIF publication occurs. Remote main remains `ccb303b`
-and the candidate branch is absent at current readback. No PR exists yet. Source/PR
-approval does not implicitly approve later final tag/assets: make accepted-main
-artifacts concrete and reviewable first. Candidate-ref upload/open alerts,
-accepted-main integration/package, separate extraction, unmodified startup, freshness,
-tag/prerelease and downloaded hashes remain.
+Milestone work continues locally after release until hide stops. #560's internal
+owned-attempt/artifact/recovery-record completion append is committed at 2d8b3c8,
+with 79 distinct direct cases and independent read-only acceptance at 20:37 JST.
+It does not activate provider/UI effects, cleanup or source deletion. Its own
+worktree and handoff own further destructive-boundary admission work. #562 selection
+and #545 filter remain separate from beta.5. Do not infer their public integration.
 
-Retain interactive03 and every unfinished copy. No shared input, blue CUA, normal
-settings mutation or other-App termination is allowed. Native probes use exact owned
-processes on named non-input desktops. No cleanup is eligible or rejected. Release
-scripts, normal settings and published beta.4 remain unchanged. Continue milestone
-work locally while the concrete publication question is pending; no new stop was received.
+Issue #94's one-time confirmation is completed (November 19), but exact scale/captures
+are unavailable. This final release does not claim new physical-input, normal-shutdown,
+speech or every live-provider test. No shared input, blue desktop automation, normal
+settings mutation or other-application termination is allowed. Native proofs remain
+on owned non-input desktops/processes. No new feature belongs in beta.5.

@@ -324,3 +324,76 @@ Selection #562 and filter #545 remain separate and excluded. The oldest reused p
 conservatively expires November 27 at 23:34:56 JST and must be checked again before
 publication. No cleanup is eligible; ordinary settings and the shared input desktop
 remain untouched.
+
+## Accepted-main publication — November 25, 20:56 JST
+
+hide explicitly approved the exact final candidate source/PR/SARIF at 19:59 JST,
+then approved beta.5 publication through tag/assets at 20:42 JST. The earlier
+43e8320 automatic-approval rejection remains an unsuccessful historical attempt;
+it was not bypassed. GitHub connector writes returned integration HTTP 403, so the
+same approved payloads used the existing authenticated CLI. PR #582 is merged as
+`5727258e7b5558ccdf64cfba4e176ef907a18e4e`. Its tree
+`dbde3d24e4ba99e08f0fe4c04dbf492579d9cfd8` exactly equals accepted candidate
+`3c4fb93a3fef4c97d22dcb74c2182a80d54fa0de`. Dependency review 45607174484 passed;
+no duplicate full quality/deep-review run was started.
+
+Candidate CodeQL analysis 2247313539 is complete on 3c4fb93. The 20:53 JST readback
+has 164 rules, 0 results and 0 open candidate-ref alerts across all pages. Exact tree
+equality maps this proof to accepted main. The canonical extraction diagnostics,
+supplemental 6 owned dispositions/123 generated results and original failed runs
+above remain explicit. This is assembled successful stage evidence, not a claim
+that an earlier failed whole workflow succeeded. All 1,360 fixed inputs match main;
+the oldest reused stage was 45.3 hours old before publication and conservatively
+expires November 27 at 23:34:56 JST.
+
+The canonical final package command was:
+
+```powershell
+pwsh -NoProfile -File ./eng/publish-release.ps1 -OutputDirectory D:/NeNeCommander/outputs/release-beta5-20261125/package-final-01 -WindowsSdkLicensePath D:/NeNeCommander/evidence/issue-434/windows-sdk-license.rtf
+```
+
+It ran from the clean accepted-main worktree and exited 0 at 20:47:22 JST. The four
+existing proof scripts then exited 0: `verify-candidate.ps1`,
+`verify-pri-locales.ps1`, `verify-extracted-final.ps1`, and
+`verify-unmodified-startup.ps1`. Full arguments, timestamps, exits and logs are in
+`D:/NeNeCommander/evidence/release-beta5-20261125/final-verify-01/*-command.json`.
+The checks match 588 payload/ZIP files, 1,850 source inputs, 10 lock files,
+21 packages/51 package notice files, SDK and palette notices, 132 embedded XBF
+resources and all 603 strings in each of en-US, ja-JP and zh-Hans. The separate
+extraction matches 300,129,327 payload bytes. The executable reports
+`0.1.0-beta.5+5727258e7b5558ccdf64cfba4e176ef907a18e4e` and remains unsigned.
+
+The exact extracted, unmodified application responds twice more than 3 seconds
+apart on a named non-input desktop. Only the owned test child was terminated.
+Ordinary settings bytes/mtime/directory entries and the input desktop are unchanged;
+no physical input, desktop switching or normal-shutdown acceptance is inferred.
+The secondary thread-desktop query remains unavailable with error 5; ownership is
+established by enumeration on the owned desktop and the child PID. Independent
+read-only review at 20:53:51 JST accepts the final artifact delta without a must-fix.
+
+The annotated `v0.1.0-beta.5` tag peels to 5727258; tag object is
+`91c1f4d64d1b1e696c389e18c3f23f8fbc0838ed`. The
+[public Preview](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.5)
+was published at 20:55:19 JST with exactly three assets, `--prerelease` and
+`--latest=false`. Public description/readback and all three downloaded hashes match:
+
+| Asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `NeNeCommander-0.1.0-beta.5-win-x64.zip` | 114138401 | `84c73e4afcc01a27023d3601fed46dafae7cb50025750a594a21deb1696cdbaf` |
+| `release-manifest.json` | 445270 | `8a7539c5fffa77b3699d32e6dbb60598b8a4de29a36e7e19431b5ef7f7b064ec` |
+| `SHA256SUMS.txt` | 193 | `da25e383a9073f2369da37f8908a769414a213711ca09a9fc397c3265ccad60c` |
+
+Permanent shipping copies are in
+`D:/NeNeCommander/releases/0.1.0-beta.5/candidate-20261125-01`. The provisional ZIP
+was never uploaded. The first final receipt serialization failed because a regex
+replaced PowerShell's automatic Matches variable. `publication-receipt-failure-04.json`
+retains that failure; a distinct variable corrected only the receipt, without another
+network download, package build or product test. `publication-final-04.json` records
+the successful final readback at 20:56:56 JST.
+
+Issue #94's one-time display/keyboard/high-contrast confirmation was completed by
+hide on November 19; exact scale/captures are not recorded. This final beta.5 has
+no new physical-input, normal-shutdown, speech or all-live-provider evidence.
+#560/#562/#545, clipboard and drag/drop are excluded. Completed-work archive/cleanup
+follows Issue #583; unfinished work, branches/commits, trial interactive03, the
+bookmark-focus and UI-trial output roots remain. No cleanup rejection exists.
