@@ -53,7 +53,8 @@ still preserves every observed foreign entry and every rejected destination.
   rejection and effects. No retry loop, background cleanup, scheduler, or alternate
   writer is introduced.
 - CS-010 permits the direct `Guid.NewGuid()` call only at the exact repository
-  path of `WindowsIdentifierSource`, for this concern alone. References elsewhere,
+  path of `WindowsIdentifierSource`. ADR-0095 extends this same injected source to
+  one admitted transfer preparation token; no second generator is introduced. References elsewhere,
   including method groups,
   identifier type aliases and static imports are rejected. Other ambient APIs
   remain prohibited even inside that adapter. The existing raw-text language

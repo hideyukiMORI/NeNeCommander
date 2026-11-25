@@ -42,7 +42,7 @@ public sealed class DualPaneConflictPresenterTests
         FileSystemPath candidate = Assert.IsInstanceOfType<PathParseSuccess>(rightListing.Location.Child("a (2).txt")).Path;
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(source));
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([
-            TransferConflict.Create(source, target, candidate)]));
+            TransferConflict.Create(source, target, candidate, null)]));
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(
             UserIntent.Copy,
@@ -51,6 +51,7 @@ public sealed class DualPaneConflictPresenterTests
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 
         AssertPendingConflict(presentation, source, target, candidate);
+        Assert.AreSame(snapshot.Operation, ((ActiveConflictModal)presentation.ConflictModal).SourceState);
     }
 
     /// <summary>Proves a candidate race creates a new modal transition while repeated rendering stays stable.</summary>
@@ -80,7 +81,7 @@ public sealed class DualPaneConflictPresenterTests
             rightListing.Location.Child("a (2).txt")).Path;
         FileSystemPath racedCandidate = Assert.IsInstanceOfType<PathParseSuccess>(
             rightListing.Location.Child("a (3).txt")).Path;
-        TransferConflict firstConflict = TransferConflict.Create(source, target, firstCandidate);
+        TransferConflict firstConflict = TransferConflict.Create(source, target, firstCandidate, null);
         EnqueueConflictRace(port, firstConflict, racedCandidate);
 
         DualPaneSnapshot firstSnapshot = await panes.HandleAsync(
@@ -90,7 +91,8 @@ public sealed class DualPaneConflictPresenterTests
         DualPanePresentation first = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
         DualPanePresentation repeated = DualPanePresenter.Present(firstSnapshot, TestMetadataFormats.Utc, first, KeyHintVisibility.Shown);
         DualPaneSnapshot racedSnapshot = await panes.HandleAsync(
-            UserIntent.ResolveConflict(TransferConflictDecision.KeepBoth, TransferConflictScope.All),
+            UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(firstSnapshot.Operation),
+                TransferConflictDecision.KeepBoth, TransferConflictScope.All),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
         DualPanePresentation raced = DualPanePresenter.Present(racedSnapshot, TestMetadataFormats.Utc, repeated, KeyHintVisibility.Shown);
@@ -126,19 +128,7 @@ public sealed class DualPaneConflictPresenterTests
         Assert.AreSame(OperationStatus.CopyAwaitingConflict, presentation.OperationStatus);
         Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationBarTone.AwaitingConfirmation, presentation.Tone);
-        AssertConflictInputs(
-            (ConflictSet)TransferPreflightOutcome.Conflicted([TransferConflict.Create(source, target, candidate)]),
-            modal.Continuation);
-    }
-
-    private static void AssertConflictInputs(ConflictSet conflicts, TransferContinuation continuation)
-    {
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
-            null!, TransferConflictDecision.Cancel, continuation));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
-            conflicts, null!, continuation));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(
-            conflicts, TransferConflictDecision.Cancel, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(null!));
     }
 
     private static void EnqueueConflictRace(
@@ -149,6 +139,6 @@ public sealed class DualPaneConflictPresenterTests
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(firstConflict.Source));
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([firstConflict]));
         port.EnqueuePreflight((sources, _) => TransferPreflightOutcome.Conflicted([
-            TransferConflict.Create(sources[0], firstConflict.ExistingTarget, racedCandidate)]));
+            TransferConflict.Create(sources[0], firstConflict.ExistingTarget, racedCandidate, null)]));
     }
 }

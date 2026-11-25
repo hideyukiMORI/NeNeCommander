@@ -18,6 +18,20 @@
         PreviewKeyDown="OnKeyDown">
         <Grid.Resources>
             <views:ViewTextResources x:Key="ViewTextResources" />
+            <DataTemplate x:Key="ConflictModalTemplate">
+                <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                    <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictModalTitle.Text" FontSize="{StaticResource TypographyBodySize}" />
+                    <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                    <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                    <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
+                    <CheckBox x:Name="ConflictApplyToAll" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictApplyToAll.Content" IsChecked="False" />
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
+                        <Button x:Name="ConflictSkip" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictSkip.Content" />
+                        <Button x:Name="ConflictKeepBoth" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictKeepBoth.Content" />
+                        <Button x:Name="ConflictCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictCancel.Content" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
             <Style x:Key="CommandEntryButtonStyle" TargetType="Button">
                 <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
                 <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
@@ -1060,20 +1074,7 @@
             HorizontalAlignment="Center"
             Padding="{StaticResource SpacingOperationBar}"
             VerticalAlignment="Center"
-            Visibility="Collapsed">
-            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictModalTitle.Text" FontSize="{StaticResource TypographyBodySize}" />
-                <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <CheckBox x:Name="ConflictApplyToAll" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictApplyToAll.Content" IsChecked="False" />
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                    <Button x:Name="ConflictSkip" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictSkip.Content" />
-                    <Button x:Name="ConflictKeepBoth" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictKeepBoth.Content" />
-                    <Button x:Name="ConflictCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictCancel.Content" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
+            Visibility="Collapsed" />
 
         <Border
             x:Name="SettingsWarning"

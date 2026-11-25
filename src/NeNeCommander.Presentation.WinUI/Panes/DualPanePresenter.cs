@@ -117,7 +117,7 @@ public static class DualPanePresenter
             OperationAwaitingConfirmation pending => new OperationItemCountDetail(pending.Request.Sources.Count),
             OperationRunning running => new OperationProgressDetail(running.Progress),
             OperationCompleted completed when completed.Kind == OperationKind.Copy || completed.Kind == OperationKind.Move =>
-                TranslateTransferResult(completed.Outcome),
+                new TransferResultDetail(completed.Outcome),
             _ => OperationDetail.None,
         };
     }
@@ -145,23 +145,9 @@ public static class DualPanePresenter
         return activity is not OperationAwaitingConflict awaiting
             ? ConflictModalPresentation.Hidden
             : previous is ActiveConflictModal active &&
-                ReferenceEquals(active.Continuation, awaiting.Continuation)
+                ReferenceEquals(active.SourceState, awaiting)
                 ? active
-                : new ActiveConflictModal(
-                    awaiting.Conflicts,
-                    awaiting.InitialFocus,
-                    awaiting.Continuation);
-    }
-
-    private static TransferResultDetail TranslateTransferResult(FileOperationOutcome outcome)
-    {
-        return new TransferResultDetail(
-            outcome.NotTransferred.Count,
-            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Copied),
-            outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.Verified),
-            SourceDeletionCounts.Create(
-                outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourceDeleted),
-                outcome.Effects.Count(effect => effect.Kind == FileOperationEffectKind.SourcePartiallyDeleted)));
+                : new ActiveConflictModal(awaiting);
     }
 
     private static OperationStatus TranslateAwaitingName(OperationKind kind)

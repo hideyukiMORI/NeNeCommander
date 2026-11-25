@@ -18,7 +18,7 @@ public sealed class TransferInspectionPurposeTests
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(GatewayTestContext.Inspection(path, DeletionCapability.NotRequested)).Snapshot;
         FileSystemPath target = GatewayTestContext.ParsePath("D:\\destination\\source.txt");
         FileSystemPath candidate = GatewayTestContext.ParsePath("D:\\destination\\source (2).txt");
-        TransferConflict conflict = TransferConflict.Create(source, target, candidate);
+        TransferConflict conflict = TransferConflict.Create(source, target, candidate, null);
         TransferConflictChoice choice = TransferConflictChoice.Create(conflict, TransferConflictDecision.KeepBoth);
 
         FileEntrySnapshot annotated = source.WithTransferTarget(candidate).WithConflictChoice(choice);
@@ -43,7 +43,7 @@ public sealed class TransferInspectionPurposeTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\source.txt");
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(GatewayTestContext.Inspection(path, DeletionCapability.NotRequested)).Snapshot;
         FileSystemPath target = GatewayTestContext.ParsePath("D:\\destination\\source.txt");
-        TransferConflict conflict = TransferConflict.Create(source, target, GatewayTestContext.ParsePath("D:\\destination\\source (2).txt"));
+        TransferConflict conflict = TransferConflict.Create(source, target, GatewayTestContext.ParsePath("D:\\destination\\source (2).txt"), null);
         DeletionCapability capability = supplied == "Recycle" ? DeletionCapability.Recycle
             : supplied == "Permanent" ? DeletionCapability.PermanentOnly : DeletionCapability.NotRequested;
         FileEntrySnapshot resolved = FileEntrySnapshot.Create(path, source.Identity, capability)
@@ -77,10 +77,10 @@ public sealed class TransferInspectionPurposeTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\owned.txt");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.NotRequested));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(GatewayTestContext.CreateMove([path]), RecordingFileOperationProgress.Create(), CancellationToken.None);

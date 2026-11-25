@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using NeNeCommander.Application.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 
@@ -18,6 +19,8 @@ internal static partial class WindowsFileIdentifier
     private const uint FileAttributeReparsePoint = 0x00000400;
     private const uint OpenExisting = 3;
     private const int FileIdInfoClass = 18;
+    private const int FileStreamInfoClass = 7;
+    private const int FileCaseSensitiveInfoClass = 23;
     private const int FileIdInformationLength = 24;
     private const int FileBasicInfoClass = 0;
     private const int FileStandardInfoClass = 1;
@@ -153,6 +156,48 @@ internal static partial class WindowsFileIdentifier
             : (facts.Attributes & FileAttributeDirectory) != 0 ? DirectoryKind : FileKind;
     }
 
+    /// <summary>Reads local-provider identity and native metadata from the caller's held handle, without reopening its path.</summary>
+    internal static WindowsLocalHandleFacts ReadLocalFacts(SafeFileHandle handle)
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        FileObjectIdentity objectIdentity = FileObjectIdentity.Create(DescribeHandle(handle));
+        byte[] standard = QueryInformation(handle, FileStandardInfoClass, FileStandardInfoLength);
+        byte[] basic = QueryInformation(handle, FileBasicInfoClass, FileBasicInfoLength);
+        return new WindowsLocalHandleFacts(
+            objectIdentity,
+            new WindowsLocalBasicFacts(BitConverter.ToInt64(basic, 0), BitConverter.ToInt64(basic, 16),
+                BitConverter.ToInt64(basic, 24), BitConverter.ToUInt32(basic, 32)),
+            new WindowsLocalStandardFacts(BitConverter.ToInt64(standard, 8), BitConverter.ToUInt32(standard, 16),
+                standard[20], standard[21]),
+            ReadFileSystemName(handle));
+    }
+
+    /// <summary>Refuses failed, truncated, additional or mismatched stream observations on this exact held handle.</summary>
+    internal static void RequireUnnamedStream(SafeFileHandle handle, long expectedLength)
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        byte[] observation = QueryInformation(handle, FileStreamInfoClass, WindowsUnnamedStream.ObservationLength);
+        if (!WindowsUnnamedStream.Matches(observation, expectedLength))
+        {
+            throw CreateQueryFailure(ErrorNotSupported);
+        }
+    }
+
+    /// <summary>Refuses a case-sensitive or unrecognized native directory case observation before create-new effects.</summary>
+    internal static void RequireCaseInsensitiveDirectory(SafeFileHandle handle)
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        RequireCaseInsensitiveFlags(BitConverter.ToUInt32(QueryInformation(handle, FileCaseSensitiveInfoClass, sizeof(uint)), 0));
+    }
+
+    internal static void RequireCaseInsensitiveFlags(uint flags)
+    {
+        if (flags != 0)
+        {
+            throw CreateQueryFailure(ErrorNotSupported);
+        }
+    }
+
     private static WslHandleFacts ReadFacts(SafeFileHandle handle)
     {
         long inode = ReadInode(handle);
@@ -209,8 +254,9 @@ internal static partial class WindowsFileIdentifier
             : throw CreateQueryFailure();
     }
 
-    private static SafeFileHandle OpenForAttributes(string path)
+    internal static SafeFileHandle OpenForAttributes(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         SafeFileHandle handle = CreateFile(
             path,
             FileReadAttributes,

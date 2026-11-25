@@ -33,11 +33,14 @@ public sealed class ArgumentGuardParameterTests
     public void FileOperationEffectSummaryWhenCollectionIsNullNamesThatCollection()
     {
         TransferConflictTestContext.AssertNullParameter(
-            () => _ = FileOperationEffectSummary.Create(null!, []),
+            () => _ = FileOperationEffectSummary.Create(null!, [], []),
             "effects");
         TransferConflictTestContext.AssertNullParameter(
-            () => _ = FileOperationEffectSummary.Create([], null!),
+            () => _ = FileOperationEffectSummary.Create([], null!, []),
             "notTransferred");
+        TransferConflictTestContext.AssertNullParameter(
+            () => _ = FileOperationEffectSummary.Create([], [], null!),
+            "providerSteps");
     }
 
     /// <summary>Proves the verified boundary names an absent target ancestor list.</summary>

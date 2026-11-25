@@ -211,7 +211,7 @@ public sealed class WindowsLocalCopyTests
         ProviderStepOutcome outcome = await adapter.CopyAsync(source, destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("dest\\locked.txt")));
     }
 
@@ -242,7 +242,7 @@ public sealed class WindowsLocalCopyTests
             source, WindowsLocalOperationTestContext.ParsePath(target), new WindowsTreeCopyAccess(path => path.CanonicalText,
                 WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
 
         Assert.AreEqual("keep", File.ReadAllText(target));
     }

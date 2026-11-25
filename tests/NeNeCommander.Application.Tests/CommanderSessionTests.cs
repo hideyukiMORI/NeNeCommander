@@ -123,7 +123,7 @@ public sealed class CommanderSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            CommanderSessionTestValues.ParsePath("C:\\right\\item (2).txt"));
+            CommanderSessionTestValues.ParsePath("C:\\right\\item (2).txt"), null);
         port.EnqueueInspection(inspection);
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await session.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);

@@ -82,6 +82,19 @@ outcomes, and unsafe cleanup retains residue instead of widening deletion.
 
 Composite-move source deletion additionally consumes the exact descendant evidence returned by copy verification (ADR-0069). The shared verifier compares bytes and records provider identities, directory membership and SHA-256 content evidence. Source-provider deletion first validates the full evidence, then revalidates each known entry, its ancestors and its matching target at the effect boundary, and removes directories nonrecursively. External source and target ancestors, from the parent of the operation root up to the provider root, are matched during verification and deletion by their object component (Windows volume and file identifier; WSL distribution, inode, kind and reparse tag) and must remain non-link directories; their timestamps, link count and size are not compared, so unrelated sibling activity in an ancestor does not stop a transfer, while a replaced or linked ancestor does (ADR-0069 revision of Issue #388). An ancestor removed and recreated with a reused object component is not detected at the ancestor; the recorded entries below it are still refused by their full identity and content evidence. A detected source or target change stops further deletion; already removed source descendants are explicitly reported. Every surviving directory still requires its expected full identity, including WSL change time. Immediately after a successful direct-child deletion, only that parent may be recaptured between two equal full observations after validating the original object component and exact remaining membership. No unrelated or pre-effect baseline refresh is permitted. A reused inode after this recapture therefore fails the full identity check. ADR-0069 explicitly accepts the narrow owned-mutation-to-immediate-recapture interval as well as retaining the old final-query-to-path-mutation interval and existing 9P mount/clock scope; inside the operation tree an object component alone is not a lifetime identity. This is not a frozen tree or transactional guarantee.
 
+Transfer consent and verification boundaries retain owned ImmutableList snapshots:
+allowed decisions, pending conflicts, resolutions, complete plans, frozen sources,
+provider-facing resumed preflight batches, verified children and both ancestor lists.
+Validation reads that stored snapshot once; caller Count/second enumeration and
+ICollection.SyncRoot cannot remove or replace the validated facts (ADV-006/007/016).
+This strengthens existing transfer evidence and does not enable ADR-0095 overwrite.
+Conflict choices and resumed plans also retain the exact original target binding;
+a value-equal foreign binding is rejected before effects (ADV-006). Qualified file
+evidence refuses roots, remote paths, last-known paths, non-files, source/target
+aliases and mismatches with the frozen source or original target. These immutable
+facts alone grant no native overwrite capability. Exact modal ownership remains
+separately required.
+
 ### SEC-004 — CI and runtime use least privilege
 
 - Status: **active**
@@ -196,3 +209,37 @@ an in-flight synchronous native call or undo an accepted handoff. No shell comma
 verb, argument construction, fallback, credential retry, existence/identity preflight
 or stable-target promise is added. Tests use a bounded native seam and actual owned
 PIDL parse/free; real Explorer display is a separate environmental tier.
+
+The #560 conflict-modal preparation extends ADV-014: every delayed decision carries
+the exact rendered OperationAwaitingConflict and is rejected against any later or
+value-equal foreign owner. Native controls belong to one owner and cannot rebind old
+gestures after revalidation. Cancel buttons are qualified; the existing current-key
+Escape route is unchanged. No new filesystem effect or provider capability is enabled.
+
+ADR-0095's accepted, not-yet-implemented OverwriteContents contract extends the existing
+ADV-003/004/005/006/007/014/016/017/018/024 boundaries. Exact target consent, ordinary
+NTFS/default-only admission, original backup/content revalidation and source-delete
+stream/attribute checks precede destructive acceptance. The canonical receipt must
+record possible modification before a write/truncate call, retain artifact identities
+and qualified paths, and preserve a flushed append-only mapping before target mutation.
+Late aliases and final-check-to-mapped-write races are explicit distinct residuals.
+No copied security descriptor, privilege enabling, automatic recovery/scan, path-based
+cleanup or metadata-fidelity guarantee is permitted. The existing executable threat
+registry does not claim these future cases until tests accompany implementation.
+
+The implemented artifact receipt transport keeps a known stable object identified even
+when complete metadata is not yet observed. Closed full-identity knowledge, qualified
+path, content proof and link-cleanup observation remain independent. Target/duplicate
+artifact refusal uses stable identity regardless of full-metadata knowledge (ADV-005/006).
+The native artifact owner now registers a candidate before CREATE, retains a returned
+handle before queries and stores stable identity before full metadata. Later query
+failure or contradictory ID preserves all learned identity evidence and drops current-
+path qualification. One-shot creation and handle-only disposal never clean by path
+(ADV-004). Provider integration, byte preparation and actual cleanup remain future work.
+
+The pure ADR-0095 recovery codec bounds payload and total input before parsing, rejects
+invalid complete records and impossible partial headers, and binds completion to the
+exact initial-frame SHA-256 even when tokens repeat. Strict text/canonical schema and
+four distinct local paths/objects prevent hidden aliases or normalized mapping changes
+(ADV-005). Its decoded observations authorize no live recovery or deletion. Native
+preparation, recovery-file I/O, mutation and cleanup remain unimplemented at this step.

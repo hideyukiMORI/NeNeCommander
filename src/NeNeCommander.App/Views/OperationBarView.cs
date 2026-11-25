@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using NeNeCommander.Application.Input;
-using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Presentation.WinUI.Panes;
 
 namespace NeNeCommander.App.Views;
@@ -17,14 +16,7 @@ internal sealed class OperationBarView
 {
     private readonly Grid _root;
     private readonly ViewTextResources _resources;
-    private readonly Action<UserIntent> _forward;
-    private ActiveConflictModal? _renderedConflictModal;
-    private readonly Border _conflictModal;
-    private readonly TextBlock _conflictSource;
-    private readonly TextBlock _conflictExistingTarget;
-    private readonly TextBlock _conflictKeepBothCandidate;
-    private readonly CheckBox _conflictApplyToAll;
-    private readonly Button _conflictCancel;
+    private readonly ConflictModalView _conflict;
     private readonly Border _operationBar;
     private readonly Path _operationWarningIcon;
     private readonly Path _operationNameEntryIcon;
@@ -54,13 +46,8 @@ internal sealed class OperationBarView
         ArgumentNullException.ThrowIfNull(forward);
         _root = root;
         _resources = resources;
-        _forward = forward;
-        _conflictModal = Find<Border>("ConflictModal");
-        _conflictSource = Find<TextBlock>("ConflictSource");
-        _conflictExistingTarget = Find<TextBlock>("ConflictExistingTarget");
-        _conflictKeepBothCandidate = Find<TextBlock>("ConflictKeepBothCandidate");
-        _conflictApplyToAll = Find<CheckBox>("ConflictApplyToAll");
-        _conflictCancel = Find<Button>("ConflictCancel");
+        _conflict = new ConflictModalView(Find<Border>("ConflictModal"),
+            (DataTemplate)root.Resources["ConflictModalTemplate"], forward);
         _operationBar = Find<Border>("OperationBar");
         _operationWarningIcon = Find<Path>("OperationWarningIcon");
         _operationNameEntryIcon = Find<Path>("OperationNameEntryIcon");
@@ -82,9 +69,6 @@ internal sealed class OperationBarView
         _information = Find<KeyHintWrapPanel>("OperationInformation");
         _statusGroup = Find<Grid>("OperationStatusGroup");
         _counts = Find<StackPanel>("OperationCounts");
-        Find<Button>("ConflictSkip").Click += OnConflictSkip;
-        Find<Button>("ConflictKeepBoth").Click += OnConflictKeepBoth;
-        _conflictCancel.Click += OnConflictCancel;
     }
 
     internal void Render(DualPanePresentation presentation)
@@ -100,7 +84,7 @@ internal sealed class OperationBarView
         RenderNameEntry(presentation.NameEntry);
         RenderInformationVisibility();
         FocusNameEntry();
-        RenderConflict(presentation.ConflictModal);
+        _conflict.Render(presentation.ConflictModal);
     }
 
     private void RenderInformationVisibility()
@@ -199,50 +183,6 @@ internal sealed class OperationBarView
             _ = _nameEntry.Focus(FocusState.Programmatic);
             _nameEntry.SelectAll();
         }
-    }
-
-    private void RenderConflict(ConflictModalPresentation conflictModal)
-    {
-        if (conflictModal is not ActiveConflictModal active)
-        {
-            _conflictModal.Visibility = Visibility.Collapsed;
-            _renderedConflictModal = null;
-            return;
-        }
-        bool isNewConflict = !ReferenceEquals(_renderedConflictModal, active);
-        _conflictSource.Text = active.SourceText;
-        _conflictExistingTarget.Text = active.ExistingTargetText;
-        _conflictKeepBothCandidate.Text = active.KeepBothCandidateText;
-        _conflictModal.Visibility = Visibility.Visible;
-        if (isNewConflict)
-        {
-            _conflictApplyToAll.IsChecked = false;
-            _ = _conflictCancel.Focus(FocusState.Programmatic);
-        }
-        _renderedConflictModal = active;
-    }
-
-    private void OnConflictSkip(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.Skip);
-    }
-
-    private void OnConflictKeepBoth(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.KeepBoth);
-    }
-
-    private void OnConflictCancel(object _, RoutedEventArgs args)
-    {
-        ForwardConflictDecision(TransferConflictDecision.Cancel);
-    }
-
-    private void ForwardConflictDecision(TransferConflictDecision decision)
-    {
-        TransferConflictScope scope = _conflictApplyToAll.IsChecked is true
-            ? TransferConflictScope.All
-            : TransferConflictScope.Current;
-        _forward(UserIntent.ResolveConflict(decision, scope));
     }
 
     private static Brush ResolveBrush(string resourceKey)

@@ -1,3 +1,4 @@
+using System;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 
@@ -8,6 +9,10 @@ internal static class VerificationTestEvidence
 {
     internal static CopyVerificationOutcome FromStep(ProviderStepOutcome step, FileEntrySnapshot source, FileSystemPath destination)
     {
+        if (step.Completion == ProviderStepCompletion.Cancelled)
+        {
+            throw new ArgumentException("A cancelled mutation cannot supply verification evidence.", nameof(step));
+        }
         if (step.Failure is FileOperationFailureKind failure)
         {
             return CopyVerificationOutcome.Failed(failure);

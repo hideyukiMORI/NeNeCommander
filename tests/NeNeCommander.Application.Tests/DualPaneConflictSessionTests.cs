@@ -28,7 +28,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
 
@@ -48,7 +48,7 @@ public sealed class DualPaneConflictSessionTests
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightListing, null));
         DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
-            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.All),
+            UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(fixture.Panes.Current.Operation), TransferConflictDecision.Skip, TransferConflictScope.All),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
 
@@ -89,7 +89,7 @@ public sealed class DualPaneConflictSessionTests
         armed = true;
 
         DualPaneSnapshot completedSnapshot = await fixture.Panes.HandleAsync(
-            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
+            UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(fixture.Panes.Current.Operation), TransferConflictDecision.Skip, TransferConflictScope.Current),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
 
@@ -132,7 +132,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -143,7 +143,7 @@ public sealed class DualPaneConflictSessionTests
         armed = true;
 
         _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => fixture.Panes.HandleAsync(
-            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
+            UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(fixture.Panes.Current.Operation), TransferConflictDecision.Skip, TransferConflictScope.Current),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None));
 
@@ -163,7 +163,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(
@@ -194,7 +194,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -231,10 +231,10 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict repeatedConflict = TransferConflict.Create(
             resolvedCurrent,
             conflict.ExistingTarget,
-            conflict.KeepBothCandidate);
+            conflict.KeepBothCandidate, null);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([repeatedConflict]));
         DualPaneSnapshot repeatedSnapshot = await fixture.Panes.HandleAsync(
-            UserIntent.ResolveConflict(TransferConflictDecision.Skip, TransferConflictScope.Current),
+            UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(fixture.Panes.Current.Operation), TransferConflictDecision.Skip, TransferConflictScope.Current),
             RecordingDualPaneObserver.Create(),
             CancellationToken.None);
         _ = Assert.IsInstanceOfType<OperationAwaitingConflict>(repeatedSnapshot.Operation);

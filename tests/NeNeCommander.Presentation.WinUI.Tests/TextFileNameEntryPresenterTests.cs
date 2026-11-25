@@ -55,9 +55,9 @@ public sealed class TextFileNameEntryPresenterTests
         using CancellationTokenSource cancellation = new();
         await cancellation.CancelAsync();
         Assert.AreSame(OperationStatus.TextFileCreated, await CreateTextFileStatusAsync("new", port =>
-            port.EnqueueStep(ProviderStepOutcome.Succeeded()), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.CreateTextFileRejected, await CreateTextFileStatusAsync("new", port =>
-            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.CreateTextFileCancelled, await CreateTextFileStatusAsync("new", port => { }, cancellation.Token));
         Assert.AreSame(OperationStatus.CreateTextFileRequestRejected, await CreateTextFileStatusAsync("..", port => { }, CancellationToken.None));
     }

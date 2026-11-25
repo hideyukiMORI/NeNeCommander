@@ -18,7 +18,7 @@ public sealed class GatewayNameOperationTests
         CreateDirectoryRequest request = GatewayTestContext.CreateCreateDirectory(location, "child");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(location, DeletionCapability.PermanentOnly));
-        port.EnqueueDirectoryCreation(ProviderStepOutcome.Succeeded());
+        port.EnqueueDirectoryCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
 
@@ -26,6 +26,8 @@ public sealed class GatewayNameOperationTests
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(1, outcome.Effects);
+        Assert.HasCount(1, outcome.ProviderSteps);
+        Assert.AreSame(ProviderStepReceipt.Empty, outcome.ProviderSteps[0].Receipt);
         Assert.AreSame(FileOperationEffectKind.DirectoryCreated, outcome.Effects[0].Kind);
         Assert.AreSame(request.Target, outcome.Effects[0].Source);
         Assert.HasCount(2, port.Calls);
@@ -50,7 +52,7 @@ public sealed class GatewayNameOperationTests
         cancelled.EnqueueInspection(GatewayTestContext.Inspection(location, DeletionCapability.PermanentOnly));
         ScriptedFileOperationPort refused = ScriptedFileOperationPort.Create(null, null);
         refused.EnqueueInspection(GatewayTestContext.Inspection(location, DeletionCapability.PermanentOnly));
-        refused.EnqueueDirectoryCreation(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        refused.EnqueueDirectoryCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty));
         using FileOperationGateway missingGateway = new(missing);
         using FileOperationGateway cancelledGateway = new(cancelled);
         using FileOperationGateway refusedGateway = new(refused);
@@ -76,7 +78,7 @@ public sealed class GatewayNameOperationTests
         RenameRequest request = GatewayTestContext.CreateRename(source, "after.txt");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.PermanentOnly));
-        port.EnqueueRename(ProviderStepOutcome.Succeeded());
+        port.EnqueueRename(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
 
@@ -84,6 +86,8 @@ public sealed class GatewayNameOperationTests
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(1, outcome.Effects);
+        Assert.HasCount(1, outcome.ProviderSteps);
+        Assert.AreSame(ProviderStepReceipt.Empty, outcome.ProviderSteps[0].Receipt);
         Assert.AreSame(FileOperationEffectKind.Renamed, outcome.Effects[0].Kind);
         Assert.AreSame(request.Source, outcome.Effects[0].Source);
         Assert.HasCount(2, port.Calls);
@@ -108,7 +112,7 @@ public sealed class GatewayNameOperationTests
         cancelled.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.PermanentOnly));
         ScriptedFileOperationPort refused = ScriptedFileOperationPort.Create(null, null);
         refused.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.PermanentOnly));
-        refused.EnqueueRename(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        refused.EnqueueRename(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty));
         using FileOperationGateway missingGateway = new(missing);
         using FileOperationGateway cancelledGateway = new(cancelled);
         using FileOperationGateway refusedGateway = new(refused);

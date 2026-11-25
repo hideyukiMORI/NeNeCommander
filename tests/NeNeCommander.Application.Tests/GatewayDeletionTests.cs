@@ -62,13 +62,15 @@ public sealed class GatewayDeletionTests
         DeleteRequest confirmed = GatewayTestContext.CreateDelete([path], confirmation);
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.PermanentOnly));
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(confirmed, RecordingFileOperationProgress.Create(), CancellationToken.None);
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.AreSame(FileOperationEffectKind.PermanentlyDeleted, outcome.Effects[0].Kind);
+        Assert.HasCount(1, outcome.ProviderSteps);
+        Assert.AreSame(path, outcome.ProviderSteps[0].Source);
         Assert.AreEqual("Delete:" + path.CanonicalText, port.Calls[1]);
     }
 
@@ -79,7 +81,7 @@ public sealed class GatewayDeletionTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\source");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.Recycle));
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(GatewayTestContext.CreateDelete([path], null), RecordingFileOperationProgress.Create(), CancellationToken.None);
@@ -96,7 +98,7 @@ public sealed class GatewayDeletionTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\source");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.Recycle));
-        port.EnqueueDeletion(ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.Recycled));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Create([ProviderStepEffectKind.Recycled], null, [])));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(GatewayTestContext.CreateDelete([path], null), RecordingFileOperationProgress.Create(), CancellationToken.None);
@@ -119,8 +121,8 @@ public sealed class GatewayDeletionTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(ScriptedCallbackPoint.AfterDeletion, cancellation.Cancel);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.Recycle));
         port.EnqueueDeletion(receipt == "Confirmed"
-            ? ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.Recycled)
-            : ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Create([ProviderStepEffectKind.Recycled], null, []))
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(GatewayTestContext.CreateDelete([path], null), RecordingFileOperationProgress.Create(), cancellation.Token);
@@ -187,7 +189,7 @@ public sealed class GatewayDeletionTests
             cancellation.Cancel);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -207,7 +209,7 @@ public sealed class GatewayDeletionTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\source");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.Recycle));
-        port.EnqueueDeletion(ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.AccessDenied), ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace NeNeCommander.Application.FileOperations;
 
@@ -33,11 +34,12 @@ public abstract record VerifiedCopyEntry
     public static VerifiedCopyEntry Directory(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, IReadOnlyList<VerifiedCopyEntry> children)
     {
         ArgumentNullException.ThrowIfNull(children);
-        foreach (VerifiedCopyEntry child in children)
+        ImmutableList<VerifiedCopyEntry> snapshot = [.. children];
+        foreach (VerifiedCopyEntry child in snapshot)
         {
             ArgumentNullException.ThrowIfNull(child);
         }
-        return new VerifiedDirectory(source, target, children);
+        return new VerifiedDirectory(source, target, snapshot);
     }
 
     /// <summary>Represents a file and its SHA-256 evidence.</summary>
@@ -64,10 +66,10 @@ public abstract record VerifiedCopyEntry
         {
         }
 
-        internal VerifiedDirectory(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, IReadOnlyList<VerifiedCopyEntry> children)
+        internal VerifiedDirectory(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, ImmutableList<VerifiedCopyEntry> children)
             : base(source, target)
         {
-            Children = new List<VerifiedCopyEntry>(children).AsReadOnly();
+            Children = children;
         }
 
         /// <summary>Gets the exact verified children.</summary>

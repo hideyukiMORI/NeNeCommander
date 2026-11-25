@@ -231,7 +231,7 @@ public sealed class WindowsToWslTransferGatewayTests
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
         Assert.HasCount(0, outcome.Effects);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, copy.Failure);
-        Assert.IsNull(copy.Effect);
+        Assert.IsEmpty(copy.Receipt.Effects);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, verify.Failure);
         CollectionAssert.AreEquivalent(
             new[] { root.Resolve("tree\\top.txt") },

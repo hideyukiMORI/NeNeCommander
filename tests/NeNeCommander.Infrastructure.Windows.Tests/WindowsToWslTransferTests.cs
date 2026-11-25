@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
@@ -35,7 +36,7 @@ public sealed class WindowsToWslTransferTests
         CopyVerificationOutcome verify = await transfer.VerifyCopyAsync(file, Destination, CancellationToken.None);
 
         Assert.IsNull(copy.Failure);
-        Assert.IsNull(copy.Effect);
+        Assert.IsEmpty(copy.Receipt.Effects);
         Assert.IsNull(verify.Failure);
         Assert.HasCount(1, destination.CopiedFromWindowsLocal);
         Assert.AreEqual(sourcePath, destination.CopiedFromWindowsLocal[0].Source.FullName);
@@ -86,7 +87,7 @@ public sealed class WindowsToWslTransferTests
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, foreign.Failure);
         Assert.AreSame(FileOperationFailureKind.Copy, guarded.Failure);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, linked.Failure);
-        Assert.IsTrue(new[] { conflict, unusable, identity, foreign, guarded, linked }.All(step => step.Effect is null));
+        Assert.IsTrue(new[] { conflict, unusable, identity, foreign, guarded, linked }.All(step => step.Receipt.Effects.Count == 0));
         Assert.HasCount(0, taken.CopiedFromWindowsLocal);
         Assert.HasCount(0, usable.CopiedFromWindowsLocal);
     }
@@ -123,13 +124,13 @@ public sealed class WindowsToWslTransferTests
             CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Copy, noTarget.Failure);
-        Assert.IsNull(noTarget.Effect);
+        Assert.IsEmpty(noTarget.Receipt.Effects);
         Assert.AreSame(FileOperationFailureKind.Copy, partial.Failure);
-        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, partial.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.CopyTargetCreated }, new List<ProviderStepEffectKind>(partial.Receipt.Effects));
         Assert.AreSame(FileOperationFailureKind.AccessDenied, deniedNoTarget.Failure);
-        Assert.IsNull(deniedNoTarget.Effect);
+        Assert.IsEmpty(deniedNoTarget.Receipt.Effects);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, deniedPartial.Failure);
-        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, deniedPartial.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.CopyTargetCreated }, new List<ProviderStepEffectKind>(deniedPartial.Receipt.Effects));
     }
 
     /// <summary>Proves verification fails closed for every missing, linked, damaged, foreign, or changed condition.</summary>

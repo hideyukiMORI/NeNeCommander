@@ -7,6 +7,8 @@ namespace NeNeCommander.Application.FileOperations;
 
 /// <summary>
 /// Defines the sole provider-neutral side-effect boundary used by <see cref="FileOperationGateway"/>.
+/// An explicit provider cancellation is reported as ProviderStepCompletion.Cancelled with its
+/// full receipt. Absence of a failure alone never establishes successful completion.
 /// </summary>
 public interface IFileOperationPort
 {

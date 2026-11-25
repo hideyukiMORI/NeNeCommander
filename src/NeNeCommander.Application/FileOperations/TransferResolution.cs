@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.Linq;
 using NeNeCommander.Domain.Paths;
 
@@ -9,15 +9,15 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Holds the immutable, operation-scoped conflict choices already made.</summary>
 public sealed record TransferResolution
 {
-    private readonly ReadOnlyCollection<TransferConflictChoice> _choices;
+    private readonly ImmutableList<TransferConflictChoice> _choices;
 
-    private TransferResolution(ReadOnlyCollection<TransferConflictChoice> choices)
+    private TransferResolution(ImmutableList<TransferConflictChoice> choices)
     {
         _choices = choices;
     }
 
     /// <summary>Gets the initial resolution with no user choices.</summary>
-    public static TransferResolution None { get; } = new(Array.Empty<TransferConflictChoice>().ToList().AsReadOnly());
+    public static TransferResolution None { get; } = new([]);
     /// <summary>Gets the ordered operation-scoped choices.</summary>
     public IReadOnlyList<TransferConflictChoice> Choices => _choices;
 
@@ -33,9 +33,8 @@ public sealed record TransferResolution
         IEnumerable<TransferConflict> selected = scope == TransferConflictScope.All
             ? conflicts.Conflicts
             : conflicts.Conflicts.Take(1);
-        List<TransferConflictChoice> combined = [.. _choices];
-        combined.AddRange(selected.Select(conflict => TransferConflictChoice.Create(conflict, decision)));
-        return new TransferResolution(combined.AsReadOnly());
+        return new TransferResolution(_choices.AddRange(
+            selected.Select(conflict => TransferConflictChoice.Create(conflict, decision))));
     }
 
     /// <summary>Finds the latest choice for a source, or absence when it is unresolved.</summary>

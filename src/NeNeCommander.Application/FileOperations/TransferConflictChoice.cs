@@ -9,11 +9,13 @@ public sealed record TransferConflictChoice
     private TransferConflictChoice(
         FileSystemPath source,
         TransferConflictDecision decision,
-        FileSystemPath keepBothCandidate)
+        FileSystemPath keepBothCandidate,
+        TransferConflictTarget target)
     {
         Source = source;
         Decision = decision;
         KeepBothCandidate = keepBothCandidate;
+        Target = target;
     }
 
     /// <summary>Gets the source identity addressed by the choice.</summary>
@@ -22,6 +24,9 @@ public sealed record TransferConflictChoice
     public TransferConflictDecision Decision { get; }
     /// <summary>Gets the exact candidate accepted with KeepBoth.</summary>
     public FileSystemPath KeepBothCandidate { get; }
+
+    /// <summary>Gets the exact original conflict target binding accepted with this choice.</summary>
+    public TransferConflictTarget Target { get; }
 
     /// <summary>Creates a choice admitted by the supplied conflict.</summary>
     public static TransferConflictChoice Create(
@@ -33,6 +38,7 @@ public sealed record TransferConflictChoice
         return new TransferConflictChoice(
             conflict.Source.Path,
             decision,
-            conflict.KeepBothCandidate);
+            conflict.KeepBothCandidate,
+            conflict.Target);
     }
 }

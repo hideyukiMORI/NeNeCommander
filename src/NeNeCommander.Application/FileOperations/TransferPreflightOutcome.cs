@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace NeNeCommander.Application.FileOperations;
 
@@ -20,7 +21,12 @@ public abstract record TransferPreflightOutcome
     public static TransferPreflightOutcome Succeeded(IReadOnlyList<TransferPlanEntry> plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        return new TransferPreflightSucceeded(new List<TransferPlanEntry>(plan).AsReadOnly());
+        ImmutableList<TransferPlanEntry> snapshot = [.. plan];
+        foreach (TransferPlanEntry entry in snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+        }
+        return new TransferPreflightSucceeded(snapshot);
     }
 
     /// <summary>Creates a fail-closed preflight rejection.</summary>
@@ -34,9 +40,14 @@ public abstract record TransferPreflightOutcome
     public static TransferPreflightOutcome Conflicted(IReadOnlyList<TransferConflict> conflicts)
     {
         ArgumentNullException.ThrowIfNull(conflicts);
-        _ = conflicts.Count > 0
-            ? conflicts
+        ImmutableList<TransferConflict> snapshot = [.. conflicts];
+        foreach (TransferConflict conflict in snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(conflict);
+        }
+        _ = snapshot.Count > 0
+            ? snapshot
             : throw new ArgumentException("A conflict set requires at least one conflict.", nameof(conflicts));
-        return new ConflictSet(new List<TransferConflict>(conflicts).AsReadOnly());
+        return new ConflictSet(snapshot);
     }
 }

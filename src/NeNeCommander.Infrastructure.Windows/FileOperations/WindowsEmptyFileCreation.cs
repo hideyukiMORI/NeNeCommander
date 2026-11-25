@@ -19,8 +19,8 @@ internal static partial class WindowsEmptyFileCreation
             resolvedPath, GenericWrite, 0, IntPtr.Zero, CreateNew, NormalNoFollow, IntPtr.Zero);
         int error = Marshal.GetLastWin32Error();
         return handle.IsInvalid
-            ? ProviderStepOutcome.Failed(Failure(resolvedPath, error))
-            : ProviderStepOutcome.Succeeded();
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Failure(resolvedPath, error)), ProviderStepReceipt.Empty)
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private static FileOperationFailureKind Failure(string resolvedPath, int error)

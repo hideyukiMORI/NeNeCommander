@@ -319,7 +319,7 @@ public sealed class DualPaneSession
                 TransferConflictResponse.Create(TransferConflictDecision.Cancel, TransferConflictScope.Current),
                 observer,
                 cancellationToken)
-            : intent is ConflictDecisionSubmission submission
+            : intent is ConflictDecisionSubmission submission && ReferenceEquals(submission.ExpectedState, awaiting)
             ? ResumeConflictAsync(
                 awaiting,
                 TransferConflictResponse.Create(submission.Decision, submission.Scope),

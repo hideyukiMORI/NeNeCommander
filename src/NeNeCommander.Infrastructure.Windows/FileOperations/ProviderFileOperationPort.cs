@@ -216,6 +216,6 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
 
     private static Task<ProviderStepOutcome> FailedStep()
     {
-        return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty));
     }
 }

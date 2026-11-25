@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using NeNeCommander.Application.FileOperations;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
@@ -9,17 +11,25 @@ public sealed record TransferResultDetail : OperationDetail
     {
     }
 
-    internal TransferResultDetail(int notTransferred, int copied, int verified, SourceDeletionCounts sourceDeletion)
+    internal TransferResultDetail(FileOperationOutcome outcome)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(notTransferred);
-        ArgumentOutOfRangeException.ThrowIfNegative(copied);
-        ArgumentOutOfRangeException.ThrowIfNegative(verified);
-        ArgumentNullException.ThrowIfNull(sourceDeletion);
-        NotTransferred = notTransferred;
-        Copied = copied;
-        Verified = verified;
-        SourceDeletion = sourceDeletion;
+        ArgumentNullException.ThrowIfNull(outcome);
+        NotTransferred = outcome.NotTransferred.Count;
+        ProviderSteps = outcome.ProviderSteps;
+        int deleted = 0;
+        int partlyDeleted = 0;
+        foreach (FileOperationEffect effect in outcome.Effects)
+        {
+            Copied += effect.Kind == FileOperationEffectKind.Copied ? 1 : 0;
+            Verified += effect.Kind == FileOperationEffectKind.Verified ? 1 : 0;
+            deleted += effect.Kind == FileOperationEffectKind.SourceDeleted ? 1 : 0;
+            partlyDeleted += effect.Kind == FileOperationEffectKind.SourcePartiallyDeleted ? 1 : 0;
+        }
+        SourceDeletion = SourceDeletionCounts.Create(deleted, partlyDeleted);
     }
+
+    /// <summary>Gets the exact immutable provider facts retained for result disclosure.</summary>
+    public IReadOnlyList<OperationProviderStep> ProviderSteps { get; }
 
     /// <summary>Gets the explicit Skip count.</summary>
     public int NotTransferred { get; }

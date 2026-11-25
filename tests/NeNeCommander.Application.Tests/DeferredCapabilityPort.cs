@@ -29,9 +29,9 @@ internal sealed class DeferredCapabilityPort : IFileOperationPort
         Request = GatewayTestContext.CreateMove([first, second]);
         _inner.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.NotRequested));
         _inner.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.NotRequested));
-        _inner.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        _inner.EnqueueAtomicMove(ProviderStepOutcome.Succeeded());
-        _inner.EnqueueAtomicMove(ProviderStepOutcome.Succeeded());
+        _inner.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        _inner.EnqueueAtomicMove(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        _inner.EnqueueAtomicMove(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     internal MoveRequest Request { get; }

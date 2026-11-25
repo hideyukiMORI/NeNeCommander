@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 
 namespace NeNeCommander.Application.FileOperations;
 
@@ -10,7 +10,7 @@ public sealed record ConflictSet : TransferPreflightOutcome
     {
     }
 
-    internal ConflictSet(ReadOnlyCollection<TransferConflict> conflicts)
+    internal ConflictSet(ImmutableList<TransferConflict> conflicts)
     {
         Conflicts = conflicts;
     }

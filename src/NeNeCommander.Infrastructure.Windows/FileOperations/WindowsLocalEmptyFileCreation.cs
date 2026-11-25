@@ -12,7 +12,7 @@ internal static class WindowsLocalEmptyFileCreation
         FileEntrySnapshot location, FileSystemPath target, WindowsDriveBoundary driveBoundary)
     {
         return target is not WindowsLocalPath localTarget || !driveBoundary.AdmitsLocal(localTarget)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(location, driveBoundary,
                 entry => CreateBeneath(entry, location, localTarget, driveBoundary));
     }
@@ -22,22 +22,22 @@ internal static class WindowsLocalEmptyFileCreation
     {
         if (entry is not DirectoryInfo)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty);
         }
         if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (target.Parent is not FileSystemPath parent ||
             !FileSystemPathIdentityComparer.Instance.Equals(location.Path, parent))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty);
         }
         FileOperationFailureKind? failure = WindowsLocalTransferDestination.AncestorFailure((WindowsLocalPath)location.Path);
         return failure is not null
-            ? ProviderStepOutcome.Failed(failure)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty)
             : WindowsLocalTransferDestination.Exists(target)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(location, driveBoundary,
                 _ => WindowsEmptyFileCreation.Create(@"\\?\" + target.CanonicalText));
     }

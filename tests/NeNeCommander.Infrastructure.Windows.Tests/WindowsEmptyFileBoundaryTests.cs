@@ -44,7 +44,7 @@ public sealed class WindowsEmptyFileBoundaryTests
 
         Assert.AreEqual(2, parentQueries);
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         AssertPreservedCollision(root, kind);
     }
 
@@ -72,7 +72,7 @@ public sealed class WindowsEmptyFileBoundaryTests
         }
 
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("denied/new.txt")));
     }
 
@@ -106,7 +106,7 @@ public sealed class WindowsEmptyFileBoundaryTests
         ProviderStepOutcome outcome = WindowsEmptyFileCreation.Create(root.ResolveVerbatim("parent\\" + new string('n', 256)));
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsEmpty(Directory.GetFileSystemEntries(parent));
     }
 

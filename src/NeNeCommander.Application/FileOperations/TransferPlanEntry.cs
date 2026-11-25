@@ -23,6 +23,9 @@ public sealed record TransferPlanEntry
     /// <summary>Gets whether the source is transferred or skipped.</summary>
     public TransferDisposition Disposition { get; }
 
+    /// <summary>Gets the same confirmed target binding retained by the original choice, or absence for an unconflicted source.</summary>
+    public TransferConflictTarget? ConflictTarget => Source.ConflictChoice?.Target;
+
     /// <summary>Creates an entry that transfers to an exact target.</summary>
     public static TransferPlanEntry Transfer(FileEntrySnapshot source, FileSystemPath target)
     {

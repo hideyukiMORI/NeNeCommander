@@ -54,7 +54,7 @@ public sealed class DualPaneCreateTextFileTests
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateTextFile, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Location));
-        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         DirectoryListing leftAfter = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("new", DirectoryEntryKind.File));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
@@ -97,7 +97,7 @@ public sealed class DualPaneCreateTextFileTests
 
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateTextFile, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Location));
-        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
 

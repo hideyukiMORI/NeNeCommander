@@ -315,6 +315,6 @@ public sealed class MappedDriveLocalMutationBoundaryTests
     private static void AssertDenied(ProviderStepOutcome outcome)
     {
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
     }
 }

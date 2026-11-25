@@ -55,9 +55,9 @@ public sealed class DualPaneProgressPresenterTests
         FileIdentityAccepted identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("identity"));
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(
             FileEntrySnapshot.Create(leftListing.Entries[0].Path, identity.Identity, DeletionCapability.Recycle)));
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
 
         _ = await panes.HandleAsync(UserIntent.Copy, observer, CancellationToken.None);
@@ -125,8 +125,8 @@ public sealed class DualPaneProgressPresenterTests
             port.EnqueueInspection(FileInspectionOutcome.Succeeded(
                 FileEntrySnapshot.Create(entry.Path, identity.Identity, DeletionCapability.Recycle)));
         }
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
-        port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Empty));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
         DualPanePresentation beforeProgress = DualPanePresenter.Present(panes.Current, TestMetadataFormats.Utc, KeyHintVisibility.Shown);
 

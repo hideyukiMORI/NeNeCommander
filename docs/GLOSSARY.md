@@ -96,10 +96,12 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | location row | A localized `LocationRow` retaining the exact Application location item, its display/detail text and UIA name; its stable UIA ID is derived only from the validated display name. |
 | frozen transfer | The internal immutable `FrozenTransfer` holding the original validated request, owned ordered source snapshots and destination across gateway-issued continuations; resume never reinspects or replaces those facts. |
 | transfer conflict response | The immutable `TransferConflictResponse` pairing an explicit decision and its selected current/all scope; it grants no ownership of a continuation. |
+| conflict decision submission | The UI intent `ConflictDecisionSubmission` binding a decision and scope to the exact displayed `OperationAwaitingConflict`; it cannot authorize a later or value-equal foreign owner. |
+| conflict modal view | The App-owned `ConflictModalView` that creates native controls for one conflict owner and forwards only current, ready callbacks; it owns no session or provider effect. |
 | transfer execution | One internal `TransferExecution` attempt invoked only under FileOperationGateway's existing lease, owning its effects and skipped-source accounting without another lease or public mutation entry point. |
 | transfer preflight validation | The existing gateway admission predicates, owned by internal `TransferPreflightValidation`, that reject substituted/reordered sources, changed choices and out-of-destination targets. |
 | file entry transfer | The immutable `FileEntryTransfer` annotations for an entry's selected target and conflict choice; provider path, identity and deletion capability remain frozen. |
-| file operation effect summary | The immutable `FileOperationEffectSummary` owning ordered completed effects and explicitly untransferred sources in one outcome. |
+| file operation effect summary | The immutable `FileOperationEffectSummary` owning ordered completed effects, explicitly untransferred sources and source-qualified provider receipts in one outcome. |
 | transfer conflict pause | The internal `TransferConflictPause` pairing a returned conflict set with its exact gateway-issued continuation in an awaiting outcome. |
 | `WslRewriteFacts` | Immutable internal group of length, link count and write/change timestamps captured from the same opened WSL handle; WslHandleFacts preserves their existing projections and token order. |
 | `WslEntryMetadata` | Immutable internal group of a WSL entry identity, observed kind and raw attributes; its path and independently observed name remain owned by WslFileSystemEntry. |
@@ -116,3 +118,60 @@ Use these terms in code, documentation, tests, telemetry, and UI resources. Do n
 | filter editor | The exact PaneFilterEditing capture of side and source pane owned by PaneFilterSession; it controls temporary native editing but owns no duplicate applied query (ADR-0094). |
 | pane scope group | The immutable PaneScopeOwners and PaneScopeSnapshot composition carriers for address, Locations and name-filter scopes; their existing public snapshots remain the only access path (ADR-0094). |
 | bookmark command coordination | CommanderBookmarkCommands owns the existing bookmark navigation latch and direct/manager navigation bodies; CommanderSession remains the sole dispatcher (ADR-0094). |
+
+- **OverwriteContents**: ADR-0095's explicitly confirmed update of the same target file
+  object's contents, with observed capability and exact target evidence. It is not an
+  atomic pathname replacement; a newly created alias may see the same changed content.
+  The design is accepted while production implementation remains pending.
+- **Recovery mapping**: the bounded, append-only artifact record that relates a verified
+  original-content backup and prepared content to the original target before mutation.
+  It is evidence for manual inspection, not permission for automatic restoration.
+
+- **Provider step receipt**: the mandatory immutable `ProviderStepReceipt` returned
+  alongside explicit success, expected failure or cancellation. It retains ordered legacy effects, admitted target observations and preparation
+  inventory; runtime overwrite sequencing remains a separate implementation obligation.
+- **Operation provider step**: `OperationProviderStep` binds that exact receipt to the
+  original source, or to the requested target for entry creation, without inferring
+  path stability or a completed effect from the mere existence of a provider return.
+- **File operation effect journal**: the execution-owned `FileOperationEffectJournal`
+  accumulates gateway effects and provider receipts and publishes one immutable summary;
+  it is not another executor, operation state or public mutation entry point.
+
+- **Observed transfer entry**: an exact handle-derived full/stable identity snapshot with
+  CurrentPathVerified or LastKnownPath; neither means a perpetual pathname guarantee.
+- **Provider target observation**: the closed untouched, possibly changed, original-content
+  verified or desired-content verified state of an admitted existing target. Absence in
+  an unrelated provider receipt does not assert an untouched overwrite target.
+- **Transfer artifact receipt**: a role-qualified preparation observation, either an exact
+  identified object with content/link state or an unidentified attempted candidate. A
+  later failed query preserves a previously known identity with qualified path evidence.
+- **Recovery mapping content**: the initial validated frame and independent append state.
+  RecoveryFrameEvidence pins complete framed bytes; RecoveryFrameObservation separately
+  retains the native flush observation. Full readback is not a flush or power-loss claim.
+
+- **Provider step completion**: `ProviderStepCompletion` explicitly distinguishes a
+  succeeded, failed-with-reason or cancelled provider mutation. A cancelled step retains
+  its complete receipt; absence of failure alone does not mean success. The gateway
+  records that receipt before stopping without inventing copy, verification, source
+  removal or progress completion for an interrupted step.
+
+- **Windows local handle facts**: internal native observations of one held object's ID,
+  basic timestamps/attributes, standard length/link/delete/directory fields and filesystem
+  name. They do not certify path stability, local drive eligibility or a metadata freeze.
+- **Windows unnamed stream observation**: the bounded native membership check that accepts
+  only one complete default data-stream entry of the expected length. Extra, incomplete,
+  malformed or failed observations cannot authorize omission of other streams.
+
+- **Windows transfer path lease**: the internal owner of one existing transfer file and
+  every directory handle from its admitted drive root. Each component is opened relative
+  to its held parent; original identity, non-link shape and exact current path are
+  re-observed without resetting the baseline. It grants no overwrite capability alone.
+- **Windows transfer path observation**: an instantaneous held-handle normalized DOS
+  pathname and local volume-GUID-form check. It remains separate from object identity
+  and cannot promise permanent drive mapping, metadata or alias exclusion.
+
+- **Verified artifact content**: the last successful complete byte observation of an
+  owned preparation, retained as historical length/hash evidence across later read-only
+  verification failure. It does not establish current equality or mutation/cleanup
+  authority. The one-shot preparation refuses rewriting that verified baseline; fresh
+  current admission must compare exact bytes against it (ADR-0095).

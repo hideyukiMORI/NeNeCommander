@@ -54,7 +54,7 @@ public sealed class InspectionPurposeBoundaryTests
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, mode, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Inspection, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsEmpty(fileSystem.Deleted);
     }
 

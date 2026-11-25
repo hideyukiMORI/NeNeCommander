@@ -310,12 +310,13 @@ public abstract record UserIntent
         return new LocationsCancellation(expectedState);
     }
 
-    /// <summary>Creates an explicit conflict-resolution submission from the modal.</summary>
+    /// <summary>Creates a conflict decision qualified by the exact operation displayed by the modal.</summary>
     public static UserIntent ResolveConflict(
+        OperationAwaitingConflict expectedState,
         TransferConflictDecision decision,
         TransferConflictScope scope)
     {
-        return new ConflictDecisionSubmission(decision, scope);
+        return new ConflictDecisionSubmission(expectedState, decision, scope);
     }
 
     /// <summary>Creates an intent selecting one approved color scheme.</summary>

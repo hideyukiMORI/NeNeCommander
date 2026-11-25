@@ -24,7 +24,7 @@ internal sealed class WindowsLocalOperationSteps
     internal ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
     {
         return target is not WindowsLocalPath localTarget || !_driveBoundary.AdmitsLocal(localTarget)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, _driveBoundary, entry => RenameEntry(entry, source.Path, localTarget));
     }
 
@@ -73,7 +73,7 @@ internal sealed class WindowsLocalOperationSteps
     internal ProviderStepOutcome Move(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, _driveBoundary, entry => MoveEntry(entry, source, localDestination));
     }
 
@@ -85,31 +85,31 @@ internal sealed class WindowsLocalOperationSteps
         DirectoryInfo destinationDirectory = new(destination.CanonicalText);
         if (!destinationDirectory.Exists)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty);
         }
         if ((entry.Attributes & FileAttributes.ReparsePoint) != 0 ||
             (destinationDirectory.Attributes & FileAttributes.ReparsePoint) != 0 ||
             !WindowsLocalVolumeIdentity.SharesVolume(entry.FullName, destinationDirectory.FullName))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (BuildTarget(source, destination, entry) is not WindowsLocalPath target)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = target.CanonicalText;
         if (WindowsLocalTransferDestination.Exists(targetText))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (source.Path is not WindowsLocalPath localSource || !_driveBoundary.AdmitsLocal(localSource) ||
             !_driveBoundary.AdmitsLocal(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (entry is DirectoryInfo)
         {
@@ -119,31 +119,31 @@ internal sealed class WindowsLocalOperationSteps
         {
             File.Move(entry.FullName, targetText);
         }
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private ProviderStepOutcome RenameEntry(FileSystemInfo entry, FileSystemPath source, WindowsLocalPath target)
     {
         if (!SharesParent(source, target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty);
         }
         if (WindowsLocalTransferDestination.Exists(target.CanonicalText) && !IsSameEntryText(source, target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (source is not WindowsLocalPath localSource || !_driveBoundary.AdmitsLocal(localSource) ||
             !_driveBoundary.AdmitsLocal(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (entry is DirectoryInfo)
         {
             Directory.Move(entry.FullName, target.CanonicalText);
-            return ProviderStepOutcome.Succeeded();
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
         }
         File.Move(entry.FullName, target.CanonicalText);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ internal sealed class WindowsLocalOperationSteps
     internal ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
     {
         return target is not WindowsLocalPath localTarget || !_driveBoundary.AdmitsLocal(localTarget)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(location, _driveBoundary, entry => CreateDirectoryBeneath(entry, location.Path, localTarget));
     }
 
@@ -178,54 +178,54 @@ internal sealed class WindowsLocalOperationSteps
     {
         if (entry is not DirectoryInfo)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty);
         }
         if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (ProviderPathContainment.Evaluate(location, target) is not ContainedPath)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty);
         }
         if (WindowsLocalTransferDestination.Exists(target.CanonicalText))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (location is not WindowsLocalPath localLocation || !_driveBoundary.AdmitsLocal(localLocation) ||
             !_driveBoundary.AdmitsLocal(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         _ = Directory.CreateDirectory(target.CanonicalText);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     internal ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, _driveBoundary, entry =>
                 BuildTarget(source, localDestination, entry) is WindowsLocalPath target
                     ? CopyEntry(entry, target)
-                    : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+                    : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty));
     }
 
     private ProviderStepOutcome CopyEntry(FileSystemInfo entry, WindowsLocalPath target)
     {
         if (!_driveBoundary.AdmitsLocal(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = target.CanonicalText;
         if (WindowsLocalTransferDestination.Exists(targetText))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (WindowsLocalTreeCopy.ContainsReparsePoint(entry,
             source => WindowsLocalTreeCopy.InspectLocalSource(source, _driveBoundary)))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         try
         {
@@ -248,8 +248,8 @@ internal sealed class WindowsLocalOperationSteps
     private static ProviderStepOutcome FailedCopy(string targetText, FileOperationFailureKind failure)
     {
         return WindowsLocalTransferDestination.Exists(targetText)
-            ? ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated)
-            : ProviderStepOutcome.Failed(failure);
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.CopyTargetCreated], null, []))
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty);
     }
 
     internal CopyVerificationOutcome Verify(FileEntrySnapshot source, FileSystemPath destination)
@@ -275,9 +275,9 @@ internal sealed class WindowsLocalOperationSteps
         return mode is DeletionExecutionMode.VerifiedCopyMode verified
             ? source.Path is WindowsLocalPath
                 ? _wslFileSystem.DeleteVerifiedSource(source, verified.Receipt)
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+                : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : mode != DeletionExecutionMode.Permanent
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, _driveBoundary, entry => DeleteEntry(entry, (WindowsLocalPath)source.Path));
     }
 
@@ -285,7 +285,7 @@ internal sealed class WindowsLocalOperationSteps
     {
         if (!_driveBoundary.AdmitsLocal(source))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (entry is DirectoryInfo directory)
         {
@@ -295,7 +295,7 @@ internal sealed class WindowsLocalOperationSteps
         {
             entry.Delete();
         }
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private static WindowsLocalPath? BuildTarget(

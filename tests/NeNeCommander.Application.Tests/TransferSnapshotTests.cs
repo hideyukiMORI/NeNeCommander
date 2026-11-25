@@ -56,7 +56,7 @@ public sealed class TransferSnapshotTests
     {
         FileSystemPath path = TransferConflictTestContext.ParsePath("C:\\source.txt");
         FileOperationEffect effect = FileOperationEffect.Create(path, FileOperationEffectKind.Copied);
-        FileOperationOutcome original = FileOperationOutcome.Succeeded([effect], [path]);
+        FileOperationOutcome original = FileOperationOutcome.Succeeded(FileOperationEffectSummary.Create([effect], [path], []));
 
         FileOperationOutcome clone = original with { };
 

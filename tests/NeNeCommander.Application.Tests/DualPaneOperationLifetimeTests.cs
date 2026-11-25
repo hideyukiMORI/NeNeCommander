@@ -27,7 +27,7 @@ public sealed class DualPaneOperationLifetimeTests
         DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
 
@@ -44,9 +44,9 @@ public sealed class DualPaneOperationLifetimeTests
 
         running = null;
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File)), null));
 
@@ -72,9 +72,9 @@ public sealed class DualPaneOperationLifetimeTests
         DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File)), null));
 
@@ -106,11 +106,11 @@ public sealed class DualPaneOperationLifetimeTests
         {
             fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(entry.Path));
         }
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         for (int index = 0; index < 2; index++)
         {
-            fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-            fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+            fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+            fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         }
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
@@ -207,7 +207,7 @@ public sealed class DualPaneOperationLifetimeTests
         TaskCompletionSource<DirectoryReadOutcome> leftRead = fixture.Left.EnqueuePending();
         Task<DualPaneSnapshot> leftNavigation = fixture.Panes.NavigateAsync(PaneSide.Left, DualPaneSessionTestContext.ParsePath("C:\\left-target"), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
         running = fixture;
 

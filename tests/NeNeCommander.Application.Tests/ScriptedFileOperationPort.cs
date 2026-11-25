@@ -10,6 +10,7 @@ namespace NeNeCommander.Application.Tests;
 
 internal sealed class ScriptedFileOperationPort : IFileOperationPort
 {
+    private Action<IReadOnlyList<FileEntrySnapshot>>? _preflightSourceObserver;
     private readonly Action? _callback;
     private readonly ScriptedCallbackPoint? _callbackPoint;
     private readonly List<string> _calls;
@@ -54,6 +55,12 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         Action? callback)
     {
         return new ScriptedFileOperationPort(callbackPoint, callback);
+    }
+
+    internal void ObservePreflightSources(Action<IReadOnlyList<FileEntrySnapshot>> observer)
+    {
+        ArgumentNullException.ThrowIfNull(observer);
+        _preflightSourceObserver = observer;
     }
 
     internal void EnqueueInspection(FileInspectionOutcome outcome)
@@ -133,6 +140,7 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
+        _preflightSourceObserver?.Invoke(sources);
         _calls.Add("Preflight:" + destination.CanonicalText);
         TransferPreflightOutcome outcome;
         if (_transferPreflights.Count > 0)
@@ -142,6 +150,10 @@ internal sealed class ScriptedFileOperationPort : IFileOperationPort
         else
         {
             ProviderStepOutcome legacy = _preflights.Dequeue();
+            if (legacy.Completion == ProviderStepCompletion.Cancelled)
+            {
+                throw new InvalidOperationException("A cancelled mutation cannot supply preflight evidence.");
+            }
             outcome = legacy.Failure is FileOperationFailureKind failure
                 ? TransferPreflightOutcome.Rejected(failure)
                 : TransferPreflightOutcome.Succeeded(CreatePlan(sources, destination));

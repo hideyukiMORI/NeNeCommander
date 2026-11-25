@@ -12,7 +12,7 @@ internal static class WslEmptyFileCreation
         IWslFileSystem fileSystem, FileEntrySnapshot location, FileSystemPath target)
     {
         return target is not WslPath wslTarget
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WslFileOperationAdapter.WithRevalidatedEntry(fileSystem, location,
                 entry => CreateBeneath(fileSystem, entry, location, wslTarget));
     }
@@ -22,22 +22,22 @@ internal static class WslEmptyFileCreation
     {
         if (entry.Kind != DirectoryEntryKind.Directory)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty);
         }
         if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (target.Parent is not FileSystemPath parent ||
             !FileSystemPathIdentityComparer.Instance.Equals(location.Path, parent))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty);
         }
         FileOperationFailureKind? failure = AncestorFailure(fileSystem, (WslPath)location.Path);
         return failure is not null
-            ? ProviderStepOutcome.Failed(failure)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty)
             : fileSystem.TargetExists(target)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty)
             : WslFileOperationAdapter.WithRevalidatedEntry(fileSystem, location,
                 _ => fileSystem.CreateEmptyFile(target));
     }

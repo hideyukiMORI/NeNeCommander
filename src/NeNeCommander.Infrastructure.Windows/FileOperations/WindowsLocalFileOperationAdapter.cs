@@ -168,7 +168,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
         return !source.DeletionCapability.IsInspected && mode is not DeletionExecutionMode.VerifiedCopyMode
-            ? Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection))
+            ? Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty))
             : ScheduleDeletionAsync(source, mode, cancellationToken);
     }
 
@@ -185,7 +185,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return source.Path is WindowsLocalPath local && _driveBoundary.AdmitsLocal(local)
             ? _recycleBin.Recycle(source, cancellationToken)
-            : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
     }
 
     /// <inheritdoc />
@@ -277,7 +277,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return RevalidateLocal(source, driveBoundary) switch
         {
-            EntryRejected rejected => ProviderStepOutcome.Failed(rejected.Failure),
+            EntryRejected rejected => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(rejected.Failure), ProviderStepReceipt.Empty),
             EntryMatched matched => step(matched.Entry),
             _ => throw new InvalidOperationException("The revalidation outcome variant is not executable."),
         };
@@ -298,11 +298,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
         catch (UnauthorizedAccessException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
         catch (IOException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
     }
 

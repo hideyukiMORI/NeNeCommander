@@ -100,10 +100,10 @@ public static partial class WindowsLocalTreeCopy
         return target switch
         {
             _ when !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source) =>
-                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
             _ when TargetParentFailure(target, access) is FileOperationFailureKind failure =>
-                ProviderStepOutcome.Failed(failure),
-            _ when Exists(access.ResolveTarget(target)) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty),
+            _ when Exists(access.ResolveTarget(target)) => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty),
             _ when source is DirectoryInfo directory => CopyDirectory(directory, target, access),
             _ => CopyFile(source, target, access),
         };
@@ -140,19 +140,19 @@ public static partial class WindowsLocalTreeCopy
     {
         if (!access.InspectSource(source) || !access.AdmitsTarget(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = access.ResolveTarget(target);
         try
         {
             File.Copy(source.FullName, targetText, overwrite: false);
-            return ProviderStepOutcome.Succeeded();
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
         }
         catch (IOException exception) when (
             exception.HResult is unchecked((int)0x80070050) or unchecked((int)0x800700B7) || Directory.Exists(targetText))
         {
             // Exclusive file creation cannot have created the competing file or directory.
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
     }
 
@@ -163,17 +163,17 @@ public static partial class WindowsLocalTreeCopy
     {
         if (!access.InspectSource(source) || !access.AdmitsTarget(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = access.ResolveTarget(target);
         string nativeText = target is WindowsLocalPath ? @"\\?\" + targetText : targetText;
         if (!CreateDirectory(nativeText, IntPtr.Zero))
         {
             int error = Marshal.GetLastWin32Error();
-            return ProviderStepOutcome.Failed(error is 80 or 183
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(error is 80 or 183
                 ? FileOperationFailureKind.Conflict
                 : WindowsLocalFileOperationAdapter.Normalize(
-                    unchecked((int)(0x80070000u | (uint)error)), FileOperationFailureKind.Copy));
+                    unchecked((int)(0x80070000u | (uint)error)), FileOperationFailureKind.Copy)), ProviderStepReceipt.Empty);
         }
         return CopyChildren(Children(source), target, access);
     }
@@ -200,7 +200,7 @@ public static partial class WindowsLocalTreeCopy
                 return Partial(failure);
             }
         }
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private static FileOperationFailureKind? TargetParentFailure(
@@ -222,7 +222,7 @@ public static partial class WindowsLocalTreeCopy
 
     private static ProviderStepOutcome Partial(FileOperationFailureKind failure)
     {
-        return ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated);
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.CopyTargetCreated], null, []));
     }
 
     private static bool Exists(string path)

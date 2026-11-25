@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -54,7 +55,7 @@ public sealed class WindowsRecycleBinTests
         ScriptedWindowsShellOperation operation = new() { Perform = (_, _) => 0 };
         ProviderStepOutcome result = Execute(root, operation);
         Assert.AreSame(FileOperationFailureKind.Delete, result.Failure);
-        Assert.IsNull(result.Effect);
+        Assert.IsEmpty(result.Receipt.Effects);
         Assert.IsTrue(File.Exists(root.Resolve("source")));
     }
 
@@ -67,7 +68,7 @@ public sealed class WindowsRecycleBinTests
         ProviderStepOutcome result = Execute(root, operation);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, result.Failure);
         Assert.AreEqual(0, operation.PerformCount);
-        Assert.IsNull(result.Effect);
+        Assert.IsEmpty(result.Receipt.Effects);
     }
 
     /// <summary>Failure to set mandatory flags stops before queuing any effect.</summary>
@@ -87,7 +88,7 @@ public sealed class WindowsRecycleBinTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         ProviderStepOutcome result = Execute(root, new ScriptedWindowsShellOperation { Aborted = 1 });
         Assert.AreSame(FileOperationFailureKind.Delete, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 
     /// <summary>Query failure never masks a completed recycle or claims whole-step success.</summary>
@@ -97,7 +98,7 @@ public sealed class WindowsRecycleBinTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         ProviderStepOutcome result = Execute(root, new ScriptedWindowsShellOperation { AbortQueryResult = unchecked((int)0x80070005) });
         Assert.AreSame(FileOperationFailureKind.AccessDenied, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 
     /// <summary>Unavailable COM capability cannot imply that ordinary deletion is recoverable.</summary>

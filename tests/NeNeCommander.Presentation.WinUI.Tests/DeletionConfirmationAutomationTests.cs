@@ -39,7 +39,7 @@ public sealed class DeletionConfirmationAutomationTests
             FileEntrySnapshot.Create(listing.Entries[0].Path, identity, DeletionCapability.PermanentOnly));
         port.EnqueueInspection(inspection);
         port.EnqueueInspection(inspection);
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
 
         DualPanePresentation pending = DualPanePresenter.Present(
             await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);

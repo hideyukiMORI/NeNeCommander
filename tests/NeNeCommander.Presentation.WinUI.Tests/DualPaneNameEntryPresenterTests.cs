@@ -53,9 +53,9 @@ public sealed class DualPaneNameEntryPresenterTests
         using CancellationTokenSource cancellation = new();
         await cancellation.CancelAsync();
         Assert.AreSame(OperationStatus.DirectoryCreated, await CreateDirectoryStatusAsync("new", port =>
-            port.EnqueueStep(ProviderStepOutcome.Succeeded()), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.CreateDirectoryRejected, await CreateDirectoryStatusAsync("new", port =>
-            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.CreateDirectoryCancelled, await CreateDirectoryStatusAsync("new", port => { }, cancellation.Token));
         Assert.AreSame(OperationStatus.CreateDirectoryRequestRejected, await CreateDirectoryStatusAsync("..", port => { }, CancellationToken.None));
     }
@@ -155,9 +155,9 @@ public sealed class DualPaneNameEntryPresenterTests
         using CancellationTokenSource cancellation = new();
         await cancellation.CancelAsync();
         Assert.AreSame(OperationStatus.Renamed, await RenameStatusAsync("b.txt", port =>
-            port.EnqueueStep(ProviderStepOutcome.Succeeded()), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.RenameRejected, await RenameStatusAsync("b.txt", port =>
-            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict)), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.RenameCancelled, await RenameStatusAsync("b.txt", port => { }, cancellation.Token));
         Assert.AreSame(OperationStatus.RenameRequestRejected, await RenameStatusAsync("..", port => { }, CancellationToken.None));
     }

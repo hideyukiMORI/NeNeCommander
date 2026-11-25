@@ -93,7 +93,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
         _filterView = new PaneFilterView(InputSurface, _resources, ForwardIntent, ReturnFilterFocus);
-        _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
+        _operationView = new OperationBarView(WindowFrame, _resources, ForwardIntent);
         _contextView = new CommandMenuView(InputSurface, _resources, ForwardIntent, ReturnPointerFocus);
         PanePointerBindings pointer = new(_pointerMapper, ForwardIntent, _contextView.Request);
         _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left, pointer);

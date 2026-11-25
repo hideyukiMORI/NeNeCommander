@@ -19,7 +19,7 @@ internal static class TransferConflictTestContext
         return TransferConflict.Create(
             Inspection(source).Snapshot,
             ((PathParseSuccess)destination.Child(sourceName)).Path,
-            ((PathParseSuccess)destination.Child(candidateName)).Path);
+            ((PathParseSuccess)destination.Child(candidateName)).Path, null);
     }
 
     internal static FileInspectionSucceeded Inspection(FileSystemPath source)

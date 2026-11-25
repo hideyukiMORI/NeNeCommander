@@ -65,8 +65,8 @@ public sealed class PaneSelectionSessionTests
         Assert.AreSame(listing.Entries[1].Path, awaiting.Request.Sources[1]);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(listing.Entries[0].Path, DeletionCapability.PermanentOnly));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(listing.Entries[1].Path, DeletionCapability.PermanentOnly));
-        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\left", ("c.txt", DirectoryEntryKind.File)), null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
         DualPaneSnapshot confirmed = await fixture.Panes.HandleAsync(UserIntent.Confirm, observer, CancellationToken.None);

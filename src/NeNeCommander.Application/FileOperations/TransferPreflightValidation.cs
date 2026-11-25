@@ -76,6 +76,7 @@ internal static class TransferPreflightValidation
             : actual is not null &&
                 FileSystemPathIdentityComparer.Instance.Equals(expected.Source, actual.Source) &&
                 expected.Decision == actual.Decision &&
+                ReferenceEquals(expected.Target, actual.Target) &&
                 FileSystemPathIdentityComparer.Instance.Equals(
                     expected.KeepBothCandidate,
                     actual.KeepBothCandidate);
