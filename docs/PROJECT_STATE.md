@@ -2,6 +2,8 @@
 
 Status: normative
 
+- November 26, 08:00 JST: selection #562 is integrated by PR #585 as main `fb4f2db`, exactly tree-equal to reviewed `1842c0e`; Issue #562 is closed. Issue #586 records publication and completed cleanup. All 5,817 disposable files / 581,927,878 bytes are permanently archived and individually hash-verified; the selection worktree and both temporary output roots are absent, with branches, commits, raw evidence and unfinished tasks retained. No cleanup hold remains. The final selected proof is unchanged: Application88, Presentation110, normal App build and three-locale native169 each. Physical/IME/pixel/human acceptance and a new release remain separate. See the [quality record](quality/2026-11-25-selection-controls.md) and [handoff](handoffs/2026-11-25-selection-controls-handoff.md).
+
 - November 26, 07:45 JST: selection #562 accepted-main reconciliation has normal App build0warnings/errors, Application88 and Presentation110 focused cases passing. Final isolated native attempts5/6/7 pass169checks each with actual selected/effective locales and ListView row/focus binding; App180/182 inputs and4dependency DLLs match. The ordinal-language and JSON-property-order observer failures are preserved and corrected; normal settings/input desktop remain unchanged. No product correction follows source review. Physical/IME/visible acceptance and source publication/PR/main integration remain separate. See the [quality record](quality/2026-11-25-selection-controls.md).
 
 

@@ -1,6 +1,6 @@
 ﻿# Selection controls investigation — 2026-11-25
 
-Current status: accepted-main reconciliation and selected technical proof complete locally; feature publication, PR and main merge pending.
+Current status: feature integrated by PR #585; Issue #562 closed; verified cleanup complete. Issue #586 owns this completion record.
 The chronological proposal and initial failures below remain historical records.
 
 Issue #562 follows the active beta.5 release task in a separate D worktree. Base is
@@ -281,3 +281,52 @@ as above. No full CI, new release, source publication or main merge is yet claim
 Remote main remains 9603e90 and neither selection branch is remotely present at the
 07:40 readback. Keep this unfinished worktree and outputs until integration and
 verified permanent preservation; no cleanup approval is currently blocked.
+
+## Publication, integration and completed cleanup — November 26, 08:00 JST
+
+The final documentation commit1842c0e passes the normal Commit gate: 112 conformance
+rules, 24 registered security cases, whitespace and commit-message checks. The clean
+feature branch is pushed normally and its exact remote SHA read back. The GitHub
+connector's PR creation receives403 Resource not accessible by integration. This is
+a connector permission failure, not an automatic-approval rejection. The authenticated
+CLI creates Draft PR585 with the same saved body; exact body/head/base readback passes.
+The independent source/evidence reviews are complete and no unresolved GitHub review
+thread exists. Ready starts no full CI. A fresh CLEAN/MERGEABLE check and expected-head
+squash integrate the PR asfb4f2dba12980c108392f5bb0df32e853b22e2c7 at07:50:13JST.
+Issue562 is confirmed closed. Accepted main and candidate1842c0e have the exact same
+tree3ca5f67f9efd80d47459193d330dbee42f9b5315; local main fast-forwards cleanly.
+main-sync-01.json records the complete comparison.
+
+Issue586 tracks completion documentation and cleanup. Connector Issue creation also
+receives403; the same saved issue payload succeeds through the authenticated CLI.
+No release, tag, asset or shared-desktop action accompanies this integration.
+
+Cleanup fixes exactly three absolute targets:
+- D:/NeNeCommander/worktrees/issue-562
+- D:/NeNeCommander/outputs/selection-20261125
+- D:/NeNeCommander/outputs/selection-20261126
+
+The archived set contains all temporary-output files and4,338 ignored worktree files:
+5,817 files /581,927,878 bytes in total. Tracked source is preserved in the accepted
+commit and the retained original/integration branches. There are no reparse links.
+archive-selection-01.py saves every included file and reads each saved entry again
+to verify exact size/SHA256. The permanent archive is
+D:/NeNeCommander/evidence/selection-20261126/completed-selection-artifacts-01.zip,
+SHA256326b0fb4f18a638fef367b4777b54412a5b29bec1d776e856b8a9130e86de986.
+All raw November25/26 evidence remains outside the deletion scope.
+
+Before deletion, cleanup-selection-01.ps1 checks exact absolute parents and ancestors,
+clean saved source/head, accepted main/tree, the complete archive hash, unchanged
+file inventory/size/mtime and link identity, and zero active process references.
+It uses git worktree remove for the completed tree and PowerShell literal extended
+paths for the two outputs. At07:59:36JST all three are absent, exit0. Branches/commits
+and unfinished #545/#560/#564 and other tasks remain. No cleanup approval rejection
+or pending cleanup exists. cleanup-completion-01.json retains the exact final receipt.
+
+Commands and public readbacks: push-01.json/log, pr-connector-failure-01.json,
+pr-create-02.log, pr-readback-02.json (body exact), pr-ready-readback-01.json,
+pr-merged-readback-01.json, issue-closed-readback-01.json, main-sync-01.json,
+archive-selection-command-01.json and cleanup-command-01.json. GitHub state changes
+use the same normal gh PR/Issue route after the connector403; no policy or protection
+is bypassed. Documentation-only completion reuses all unchanged successful product
+proof and starts no build, product test, coverage, mutation or CI.
