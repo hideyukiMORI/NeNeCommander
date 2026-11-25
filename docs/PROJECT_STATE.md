@@ -2,6 +2,8 @@
 
 Status: normative
 
+- November 26, 08:55 JST: name-filter #545 is integrated by PR #588 as main ad85de1, exactly tree-equal to reviewed 5dd10db; Issue #545 is closed. Completion Issue #589 records publication and verified cleanup. All 9,187 disposable files / 1,146,169,557 bytes are permanently archived and individually hash-verified; the issue-545 worktree and pane-filter-20261125 output root are absent at 08:50:51. Branches, commits, raw evidence and unfinished work remain. Prior filter proof is reused with the new 59-case selection-test check; independent review requires no correction. No cleanup hold remains. Physical keys/actual IME/speech/human acceptance and a new release stay separate. See [quality](quality/2026-11-25-pane-name-filter.md) and [handoff](handoffs/2026-11-25-pane-name-filter-handoff.md).
+
 - November 26, 08:12 JST: filter #545 is reconciled onto accepted mainf44f6f0 as local1eea87a, preserving the original branch. No product conflict/change occurs:1,397 of1,398 proof inputs match; only the previously corrected selection test differs. The changed test passes59cases against exact existing product references; App185 inputs and four normal/frozen/runtime DLLs match. Complexity retains one original Help nesting finding, exit1. Prior filter layer/native/coverage evidence is reused; no new full suite/native/release is run. Source publication/PR/main integration remains pending. See [quality](quality/2026-11-25-pane-name-filter.md) and [handoff](handoffs/2026-11-25-pane-name-filter-handoff.md).
 
 
