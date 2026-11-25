@@ -1,4 +1,5 @@
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.Bookmarks;
 using NeNeCommander.Application.Locations;
 using NeNeCommander.Application.Panes;
@@ -45,8 +46,17 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the focused item.</summary>
     public static UserIntent OpenFocused { get; } = new OpenFocusedIntent();
 
+    /// <summary>Gets selection of the focused entry in its Windows Shell parent.</summary>
+    public static UserIntent RevealFocused { get; } = new RevealFocusedIntent();
+
+    /// <summary>Gets selection of the active listed folder in its Windows Shell parent.</summary>
+    public static UserIntent RevealLocation { get; } = new RevealLocationIntent();
+
     /// <summary>Gets the intent to activate the other pane.</summary>
     public static UserIntent ActivateOtherPane { get; } = new ActivateOtherPaneIntent();
+
+    /// <summary>Gets the intent to open the current listed location in the opposite pane without activating it.</summary>
+    public static UserIntent OpenCurrentLocationInOtherPane { get; } = new OpenCurrentLocationInOtherPaneIntent();
 
     /// <summary>Gets the intent to toggle explicit selection for the focus item.</summary>
     public static UserIntent ToggleSelection { get; } = new ToggleSelectionIntent();
@@ -94,6 +104,16 @@ public abstract record UserIntent
     /// <summary>Gets the intent to create a directory.</summary>
     public static UserIntent CreateDirectory { get; } = new CreateDirectoryIntent();
 
+    /// <summary>Gets the operation to create one empty text file.</summary>
+    public static UserIntent CreateTextFile { get; } = new CreateTextFileIntent();
+
+    private sealed record CreateTextFileIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Gets the intent to request deletion.</summary>
     public static UserIntent Delete { get; } = new DeleteIntent();
 
@@ -114,6 +134,9 @@ public abstract record UserIntent
 
     /// <summary>Gets the intent to open the session-owned command palette.</summary>
     public static UserIntent OpenCommandPalette { get; } = new OpenCommandPaletteIntent();
+
+    /// <summary>Gets keyboard context selection over the current active pane without changing its targets.</summary>
+    public static UserIntent OpenContextMenu { get; } = new OpenContextMenuIntent();
 
     /// <summary>Gets the intent to open the session-owned bookmark catalog editor.</summary>
     public static UserIntent OpenBookmarks { get; } = new OpenBookmarksIntent();
@@ -173,6 +196,25 @@ public abstract record UserIntent
     public static UserIntent SubmitName(string name)
     {
         return new NameSubmission(name);
+    }
+
+    /// <summary>Creates one row gesture qualified by the exact pane and owned entry it displayed.</summary>
+    public static UserIntent InteractWithPaneEntry(
+        PaneSide side,
+        PaneSnapshot expectedSnapshot,
+        DirectoryEntry entry,
+        PaneEntryAction action)
+    {
+        return new PaneRowInteraction(side, expectedSnapshot, entry, action);
+    }
+
+    /// <summary>Creates one blank-list or header gesture qualified by the exact rendered pane.</summary>
+    public static UserIntent InteractWithPaneSurface(
+        PaneSide side,
+        PaneSnapshot expectedSnapshot,
+        PaneSurfaceAction action)
+    {
+        return new PaneSurfaceInteraction(side, expectedSnapshot, action);
     }
 
     /// <summary>Creates an explicit address-edit start intent for the requested pane.</summary>
@@ -335,7 +377,27 @@ public abstract record UserIntent
         {
         }
     }
+    private sealed record RevealFocusedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record RevealLocationIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private sealed record OpenFocusedIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenCurrentLocationInOtherPaneIntent : UserIntent
     {
         private protected override void RestrictDerivation()
         {
@@ -450,6 +512,13 @@ public abstract record UserIntent
         {
         }
     }
+    private sealed record OpenContextMenuIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private sealed record OpenCommandPaletteIntent : UserIntent
     {
         private protected override void RestrictDerivation()

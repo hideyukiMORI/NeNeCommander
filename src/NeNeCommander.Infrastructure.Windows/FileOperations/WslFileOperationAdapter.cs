@@ -119,6 +119,18 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             () => Guarded(() => CreateDirectory(location, target), FileOperationFailureKind.ProviderUnavailable));
     }
 
+    /// <inheritdoc />
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(target);
+        return _executionBoundary.ExecuteAsync(
+            () => Guarded(() => WslEmptyFileCreation.Execute(_fileSystem, location, target), FileOperationFailureKind.ProviderUnavailable));
+    }
+
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,
@@ -436,11 +448,6 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return FailedStep();
-    }
-
-    private static Task<ProviderStepOutcome> FailedStep()
-    {
         return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
     }
 

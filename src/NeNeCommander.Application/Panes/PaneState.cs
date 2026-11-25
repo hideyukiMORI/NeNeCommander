@@ -74,6 +74,9 @@ public sealed record PaneState
     /// </summary>
     public IReadOnlyList<FileSystemPath> Selection { get; private init; }
 
+    /// <summary>Gets the visible owned path that anchors consecutive range gestures, or absence.</summary>
+    internal FileSystemPath? SelectionAnchor { get; private init; }
+
     /// <summary>
     /// Gets this pane's bounded successful-location sequence. Only the reducer replaces it.
     /// </summary>
@@ -146,11 +149,15 @@ public sealed record PaneState
     /// must already have been resolved by identity. Only this state's owned selection is reused;
     /// every other collection is copied so mutable caller storage cannot change either state.
     /// </summary>
-    internal PaneState Transition(FileSystemPath? focusItem, IReadOnlyList<FileSystemPath> selection)
+    internal PaneState Transition(
+        FileSystemPath? focusItem,
+        IReadOnlyList<FileSystemPath> selection,
+        FileSystemPath? selectionAnchor)
     {
         return this with
         {
             FocusItem = focusItem,
+            SelectionAnchor = selectionAnchor,
             Selection = ReferenceEquals(selection, Selection) ? Selection : SelectionSnapshot.Create(selection),
         };
     }

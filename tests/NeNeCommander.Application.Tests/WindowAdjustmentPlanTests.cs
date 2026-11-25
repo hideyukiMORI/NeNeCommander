@@ -14,7 +14,7 @@ public sealed class WindowAdjustmentPlanTests
         WindowBounds desktop = WindowBounds.Create(0, 0, 1920, 1080);
         WindowPlacement placement = WindowPlacement.Create(WindowBounds.Create(100, 100, 800, 600),
             WindowPresenterState.Restored, WindowSizeConstraint.Create(1, 0, 0), WindowWorkAreas.Create(desktop, [desktop]));
-        WindowAdjustmentPlan original = WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveLeft);
+        WindowAdjustmentPlan original = WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveLeft, WindowTransferInput.NotRequested);
         WindowMovePlan concrete = Assert.IsInstanceOfType<WindowMovePlan>(original);
 
         WindowAdjustmentPlan copied = original with { };
@@ -28,7 +28,7 @@ public sealed class WindowAdjustmentPlanTests
         Assert.AreNotSame(concrete, concreteCopy);
         Assert.AreSame(concrete.Bounds, concreteCopy.Bounds);
         Assert.AreEqual(68, concreteCopy.Bounds.Left);
-        Assert.AreNotEqual(original, WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveRight));
+        Assert.AreNotEqual(original, WindowAdjustmentPlanner.Plan(placement, WindowAdjustmentAction.MoveRight, WindowTransferInput.NotRequested));
     }
 
     /// <summary>Proves private nested cases keep their distinct types and value equality when copied.</summary>

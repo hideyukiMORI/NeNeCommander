@@ -33,6 +33,15 @@ public abstract record WindowAdjustmentAction
     /// <summary>Gets the action that restores the window to its normal placement.</summary>
     public static WindowAdjustmentAction Restore { get; } = new RestoreAction();
 
+    /// <summary>Gets one transfer to the previous geometric display slot.</summary>
+    public static WindowAdjustmentAction PreviousDisplay { get; } = new PreviousDisplayCase();
+
+    /// <summary>Gets one transfer to the next geometric display slot.</summary>
+    public static WindowAdjustmentAction NextDisplay { get; } = new NextDisplayCase();
+
+    /// <summary>Gets whether this action requires fresh transfer-only display facts.</summary>
+    public bool ChangesDisplay => this == PreviousDisplay || this == NextDisplay;
+
     private WindowAdjustmentAction()
     {
     }
@@ -80,6 +89,20 @@ public abstract record WindowAdjustmentAction
         }
     }
     private sealed record RestoreAction : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record PreviousDisplayCase : WindowAdjustmentAction
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record NextDisplayCase : WindowAdjustmentAction
     {
         private protected override void RestrictDerivation()
         {

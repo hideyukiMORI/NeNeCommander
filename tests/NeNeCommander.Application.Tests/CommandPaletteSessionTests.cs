@@ -25,8 +25,8 @@ public sealed class CommandPaletteSessionTests
         using FileOperationGateway gateway = new(ScriptedFileOperationPort.Create(null, null));
         DualPaneSnapshot panes = CreatePanes(gateway).Current;
         IReadOnlyList<CommandCandidate> candidates =
-            [new CommandCandidate(UserIntent.OpenFocused, CommandAvailability.Available)];
-        CommandPaletteOpen foreign = new(panes.Left, panes.Right, panes.ActiveSide, candidates);
+            [new CommandCandidate(UserIntent.OpenFocused, CommandAvailability.Available, CommandMenuGroup.FocusedItem)];
+        CommandPaletteOpen foreign = new(panes, CommandSurface.Palette, candidates);
         CommandPaletteSession owner = new();
 
         CommandPaletteValidation cancelled = owner.Validate(
@@ -56,7 +56,7 @@ public sealed class CommandPaletteSessionTests
         DualPaneSnapshot panes = CreatePanes(gateway).Current;
         CommandPaletteSession owner = new();
 
-        CommandPaletteState refused = owner.Open(panes, InteractionOwnership.ScopeOwnsInput);
+        CommandPaletteState refused = owner.Open(panes, CommandSurface.Palette, InteractionOwnership.ScopeOwnsInput);
 
         Assert.AreSame(CommandPaletteState.Closed, refused);
         Assert.AreSame(CommandPaletteState.Closed, owner.Current);

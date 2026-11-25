@@ -155,6 +155,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.Copy,
                 UserIntent.Move,
                 UserIntent.CreateDirectory,
+                UserIntent.CreateTextFile,
                 UserIntent.Delete,
                 UserIntent.ToggleSelection,
                 UserIntent.ToggleHiddenItems,
@@ -169,6 +170,9 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.OpenBookmarks,
                 UserIntent.OpenWindowAdjustment,
                 UserIntent.OpenHelp,
+                UserIntent.RevealFocused,
+                UserIntent.RevealLocation,
+                UserIntent.OpenCurrentLocationInOtherPane,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

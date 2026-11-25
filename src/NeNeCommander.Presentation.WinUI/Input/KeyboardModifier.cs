@@ -15,6 +15,9 @@ public abstract record KeyboardModifier
     /// <summary>Gets input modified by Alt.</summary>
     public static KeyboardModifier Alt { get; } = new AltModifier();
 
+    /// <summary>Gets Shift alone for the explicit F10 context-menu distinction.</summary>
+    public static KeyboardModifier Shift { get; } = new ShiftModifier();
+
     /// <summary>Gets a modifier combination that has no command mapping.</summary>
     public static KeyboardModifier Other { get; } = new OtherModifier();
 
@@ -41,6 +44,12 @@ public abstract record KeyboardModifier
         }
     }
     private sealed record OtherModifier : KeyboardModifier
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ShiftModifier : KeyboardModifier
     {
         private protected override void RestrictDerivation()
         {

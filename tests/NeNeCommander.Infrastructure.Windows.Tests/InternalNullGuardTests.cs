@@ -74,6 +74,7 @@ public sealed class InternalNullGuardTests
     [DataRow("PreflightToWindowsLocal.source")]
     [DataRow("CopyToWindowsLocal.source")]
     [DataRow("CreateDirectory.target")]
+    [DataRow("CreateEmptyFile.target")]
     [DataRow("Rename.target")]
     public void InvokeWhenWslFileSystemArgumentIsNullThrowsArgumentNullException(string argument)
     {
@@ -183,6 +184,7 @@ public sealed class InternalNullGuardTests
             "PreflightToWindowsLocal.source" => () => _ = fileSystem.PreflightToWindowsLocal(null!, local),
             "CopyToWindowsLocal.source" => () => _ = fileSystem.CopyToWindowsLocal(null!, local),
             "CreateDirectory.target" => () => fileSystem.CreateDirectory(null!),
+            "CreateEmptyFile.target" => () => fileSystem.CreateEmptyFile(null!),
             "Rename.target" => () => fileSystem.Rename(source, null!),
             _ => throw new AssertFailedException("The guarded argument is not declared."),
         };

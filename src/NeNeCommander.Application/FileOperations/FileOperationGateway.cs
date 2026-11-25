@@ -59,6 +59,7 @@ public sealed class FileOperationGateway : IDisposable
                 CopyRequest copyRequest => await ExecuteTransferAsync(copyRequest, progress, cancellationToken),
                 DeleteRequest deleteRequest => await ExecuteDeleteAsync(deleteRequest, progress, cancellationToken),
                 CreateDirectoryRequest createRequest => await ExecuteCreateDirectoryAsync(createRequest, progress, cancellationToken),
+                CreateTextFileRequest fileRequest => await ExecuteCreateTextFileAsync(fileRequest, progress, cancellationToken),
                 RenameRequest renameRequest => await ExecuteRenameAsync(renameRequest, progress, cancellationToken),
                 _ => throw new InvalidOperationException("The validated request variant is not executable."),
             };
@@ -238,6 +239,33 @@ public sealed class FileOperationGateway : IDisposable
             return FileOperationOutcome.Failed(effects, creation.Failure);
         }
         effects.Add(FileOperationEffect.Create(request.Target, FileOperationEffectKind.DirectoryCreated));
+        progress.Report(FileOperationProgress.Create(1, 1));
+        return FileOperationOutcome.Succeeded(effects);
+    }
+
+    private async Task<FileOperationOutcome> ExecuteCreateTextFileAsync(
+        CreateTextFileRequest request,
+        IFileOperationProgressObserver progress,
+        CancellationToken cancellationToken)
+    {
+        List<FileOperationEffect> effects = [];
+        FileInspectionOutcome inspection = await _port.InspectAsync(request.Location, FileInspectionPurpose.IdentityOnly, cancellationToken);
+        if (inspection is FileInspectionFailed failed)
+        {
+            return FileOperationOutcome.Failed(effects, failed.Failure);
+        }
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return FileOperationOutcome.Cancelled(effects);
+        }
+
+        FileEntrySnapshot location = ((FileInspectionSucceeded)inspection).Snapshot;
+        ProviderStepOutcome creation = await _port.CreateEmptyFileAsync(location, request.Target, cancellationToken);
+        if (creation.Failure is not null)
+        {
+            return FileOperationOutcome.Failed(effects, creation.Failure);
+        }
+        effects.Add(FileOperationEffect.Create(request.Target, FileOperationEffectKind.FileCreated));
         progress.Report(FileOperationProgress.Create(1, 1));
         return FileOperationOutcome.Succeeded(effects);
     }

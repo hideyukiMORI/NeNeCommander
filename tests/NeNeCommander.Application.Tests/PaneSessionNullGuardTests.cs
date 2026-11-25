@@ -105,10 +105,13 @@ public sealed class PaneSessionNullGuardTests
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneReadAbandoned), [null]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [null, FileOperationFailureKind.NotFound]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneReadFailed), [path, null]);
-        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunching), [null]);
-        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [null]);
-        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [null, FileLaunchFailureKind.NotFound]);
-        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunching), [null, FileLaunchPurpose.Activation]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [null, FileLaunchPurpose.Activation]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunching), [path, null]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchCancelled), [path, null]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, null, FileLaunchFailureKind.NotFound]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [null, FileLaunchPurpose.Activation, FileLaunchFailureKind.NotFound]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(PaneLaunchFailed), [path, FileLaunchPurpose.Activation, null]);
         _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.IdleWith), null, [null]);
         _ = NullGuardAssertions.AssertInternalMethodNullGuard(typeof(PaneSnapshot), nameof(PaneSnapshot.WithActivity), PaneSnapshot.Initial, [null]);
     }
@@ -167,12 +170,11 @@ public sealed class PaneSessionNullGuardTests
         NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [null, settings, scopes]);
         NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, null, scopes]);
         NullGuardAssertions.AssertConstructorNullGuard(commanderConstructor, [panes, settings, null]);
-        CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available);
+        CommandCandidate candidate = new(UserIntent.OpenFocused, CommandAvailability.Available, CommandMenuGroup.FocusedItem);
         IReadOnlyList<CommandCandidate> candidates = [candidate];
         CommandPaletteOpen open = new(
-            panes.Current.Left,
-            panes.Current.Right,
-            panes.Current.ActiveSide,
+            panes.Current,
+            CommandSurface.Palette,
             candidates);
         AssertCommanderSnapshotArguments(panes, settings, scopeStates);
         AssertPaletteRecordArguments(panes, candidates, open);
@@ -193,27 +195,25 @@ public sealed class PaneSessionNullGuardTests
             [panes.Current, settings.Current, null]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(
             typeof(CommandCandidate),
-            [null, CommandAvailability.Available]);
+            [null, CommandAvailability.Available, CommandMenuGroup.FocusedItem]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(
             typeof(CommandCandidate),
-            [UserIntent.OpenFocused, null]);
+            [UserIntent.OpenFocused, null, CommandMenuGroup.FocusedItem]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(
+            typeof(CommandCandidate), [UserIntent.OpenFocused, CommandAvailability.Available, null]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(CommandDefinition), [null, CommandMenuGroup.Folder]);
+        NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(CommandDefinition), [UserIntent.Refresh, null]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(CommandUnavailable), [null]);
     }
 
     private static void AssertPaletteRecordArguments(DualPaneSession panes, IReadOnlyList<CommandCandidate> candidates, CommandPaletteOpen open)
     {
         NullGuardAssertions.AssertInternalConstructorNullGuard(
-            typeof(CommandPaletteOpen),
-            [null, panes.Current.Right, panes.Current.ActiveSide, candidates]);
+            typeof(CommandPaletteOpen), [null, CommandSurface.Palette, candidates]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(
-            typeof(CommandPaletteOpen),
-            [panes.Current.Left, null, panes.Current.ActiveSide, candidates]);
+            typeof(CommandPaletteOpen), [panes.Current, null, candidates]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(
-            typeof(CommandPaletteOpen),
-            [panes.Current.Left, panes.Current.Right, null, candidates]);
-        NullGuardAssertions.AssertInternalConstructorNullGuard(
-            typeof(CommandPaletteOpen),
-            [panes.Current.Left, panes.Current.Right, panes.Current.ActiveSide, null]);
+            typeof(CommandPaletteOpen), [panes.Current, CommandSurface.Palette, null]);
         NullGuardAssertions.AssertInternalConstructorNullGuard(
             typeof(CommandPaletteSubmission),
             [null, UserIntent.OpenFocused]);

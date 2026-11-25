@@ -1,0 +1,124 @@
+# Display transfer in the existing window-adjustment helper
+
+Status: accepted engineering integration contract under ADR0092; product/visible proof remains
+
+Issue #551 / 2026-11-24. This is an extension of the accepted Direction A helper,
+not a new visual style. Background advice and raw consultation are retained with
+the monitor-transfer investigation. No source or local diagnostics were sent.
+
+## Components and resources
+
+Reuse WindowAdjustmentOverlay, WindowAdjustmentSurface, WindowAdjustmentHelper,
+WindowAdjustmentTitle, WindowAdjustmentOutcome and WindowAdjustmentKeyHints in
+CommanderWindow.xaml. Keep the existing focus sink, transparent scrim, upper-centred
+placement, tokenized border/padding/type/color and LiveSetting=Polite. The responsive composition below owns this helper's panel choice.
+No fixed width/height, new icon asset, motion, color family or additional tab stop.
+The existing wrapped outcome TextBlock carries the full localized sentence; no
+ellipsis, line cap or hidden duplicate text is introduced. Its semantic text/warning
+brush follows the typed outcome. Do not add a success color as the sole information.
+
+Add two groups after ordinary movement in the canonical binding table: p / previous
+display and n / next display. Ctrl+Left and Ctrl+Right are aliases in the same two hint groups. Each group
+displays its letter and control-arrow cap, so the aliases also appear through
+the existing generated keyboard help. Do not show duplicate
+hint controls. New plain caps are localized resources KeyLabelP and KeyLabelN;
+control caps use KeyLabelCtrlLeft and KeyLabelCtrlRight. Existing escape and all
+other hints retain order and wording. The production key table owns every mapping.
+
+## Complete state wording
+
+The following complete strings are authored engineering content, not concatenated
+fragments. Use stable resource keys and equivalent complete entries in all catalogs.
+Existing maximized/minimized/not-overlapped refusals are retained.
+
+| State | English | Japanese | Simplified Chinese |
+|---|---|---|---|
+| Previous hint | Previous display | 前のディスプレイ | 上一个显示器 |
+| Next hint | Next display | 次のディスプレイ | 下一个显示器 |
+| Previous planned | Move to previous display | 前のディスプレイへ移動 | 移到上一个显示器 |
+| Next planned | Move to next display | 次のディスプレイへ移動 | 移到下一个显示器 |
+| Previous confirmed immediately | Moved to previous display. | 前のディスプレイへ移動しました。 | 已移到上一个显示器。 |
+| Next confirmed immediately | Moved to next display. | 次のディスプレイへ移動しました。 | 已移到下一个显示器。 |
+| No other distinct work area | No other display is available. | ほかに移動できるディスプレイがありません。 | 没有其他可用显示器。 |
+| Information unavailable | Display information is unavailable. | ディスプレイ情報を取得できません。 | 无法获取显示器信息。 |
+| Hidden refusal | Show the window before moving it. | ウィンドウを表示してから移動してください。 | 请先显示窗口再移动。 |
+| Minimum cannot fit | The target display cannot fit the window's minimum size. | 移動先の表示領域に最小サイズで収まりません。 | 目标显示区域无法容纳窗口的最小尺寸。 |
+| Not applied | The display move was cancelled before it started. | ディスプレイへの移動を開始前に中止しました。 | 显示器间的移动在开始前已取消。 |
+| Effect unconfirmed | Display move could not be confirmed. Check the window position. | ディスプレイへの移動を確認できませんでした。ウィンドウの位置を確認してください。 | 无法确认显示器间的移动。请检查窗口位置。 |
+
+Confirmed means the ADR's immediately observed qualification, never a promise about
+later OS activity. Unconfirmed never asserts that an effect happened or did not happen.
+A stale result is not rendered over a replacement owner. A stop renders nothing.
+Do not expose internal IDs, rectangles, HRESULTs, API names, phase numbers or OS-build
+numbers in the helper. The quality record carries those implementation details.
+
+## Focus, input and responsiveness
+
+The existing sink receives initial mode focus. Transfer does not intentionally move
+keyboard focus or alter active pane, selection, row position, pending input or saved
+preferences. Tab remains consumed. Produced letters, control aliases, initial/held
+keys and IME admission follow the one mapper/repeat rule. Escape during a qualified
+in-flight receipt may leave through the narrow owner bridge in ADR0092. Close stops
+the view/route before tracking finalization; a returning Forward must not repaint.
+
+All hints wrap with existing spacing tokens at narrow widths. The outcome receives
+remaining width and wraps fully. Test long Japanese/Chinese refusals at the smallest
+actual test window and all attached125/150/175% scales without changing system DPI.
+Do not infer minimum-window fit from a wide English case. A helper too tall/narrow
+is a measured layout defect; preserve the failing sample and fix only this surface.
+
+## Selected proof and acceptance limits
+
+Pure tests cover exact generated keys/groups/labels, repeat suppression, control
+aliases, IME pass-through, no file-list chord change, and all typed outcome labels.
+Actual owned-window proof covers the helper on the named non-input desktop only,
+using private settings/fake pane readers and no real Shell/provider operation. Log
+actual geometry, source/XBF/dependency parity, owner/focus/selected rows, immediate
+and settled scale/rectangles, every failure, late/stop behavior and normal exit.
+A diagnostic that intentionally activates a window must do so only on that isolated
+non-input desktop, never on hide's interactive desktop. Never SwitchDesktop or
+SendInput. Direct API and targeted-message evidence stay explicitly distinct from
+physical key/IME/speech/visible acceptance. Do not force a hidden-window success
+through the production visibility refusal or describe unshown arithmetic as UI proof.
+
+Visible multi-monitor transitions, maximize/restore sequence, custom scale,
+disconnect/reconnect, native keyboard hold, Narrator and final screen acceptance
+remain separate. The old unshown24-case and minimum4-case probes support only the
+facts they observed. Existing normal settings and unfinished work remain retained.
+
+## Responsive helper composition — accepted engineering handoff
+
+Use one bounded body for icon/title, the complete wrapped outcome and seven
+vertically stacked geometry hint groups. Reuse WindowAdjustmentKeyHintTemplate,
+SpacingKeyHintGap and all current semantic typography/colors. Each group's key caps
+stay intact at the left and its description wraps at the right. A permanent native
+scrollbar gutter prevents text overlap. The shared wrap panel is unchanged.
+
+Always pin generated Esc/Done and PgUp/PgDn/Read help once in the footer. Keep the
+nonvisual focus sink there. The body adds no tab stop and no automatic focus-follow
+scrolling. Half-viewport paging overlaps, clamps at both ends and changes no window
+geometry, session outcome or settings. Every qualified new owner resets to the
+beginning, including identical text. The single pending/issued-owner reset path and
+reentrant stop/leave guards are specified in [ADR0092](../adr/0092-display-transfer-through-window-adjustment.md).
+
+The prior wrapping layout's measured/arranged-width mismatch hid the last Japanese
+row; a full-viewport step also split English text between page stops. Both concrete
+counterexamples and diagnostic calibration stay in the quality record. Background
+Claude text advice supports the vertical order, and independent review finds no
+required correction. The installed CLI's unsupported /design was handled by an
+explicit tools-disabled text consultation, not a claimed generated visual mockup.
+Only a generic authored brief was sent; no repository source or raw diagnostics.
+
+Common fixed-width key columns and a new minimum description width are unnecessary
+for this scoped handoff; measure the existing templates directly. Conditional pager
+visibility would reintroduce footer-height feedback, so the accepted fixed footer
+is retained. Long text must remain reachable without ellipsis/font reduction.
+
+Measure all13outcomes in3locales on the4attached displays at500x400physical/current
+system text scale. Every complete body TextBlock must be readable at a page stop;
+Esc/pager must remain inside the client, all rows reachable and PageUp return to0.
+Check focus, owner, pane contents, settings and reentrant stop/leave separately.
+The observer may await asynchronous scrolling within a bound but may not resend
+commands to manufacture success. Preserve failed trials and source/resource parity.
+Smaller clients, system text scaling, custom DPI, physical hold/IME/Narrator and
+hide's visible acceptance remain separate; this handoff does not claim them.

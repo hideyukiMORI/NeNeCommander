@@ -23,6 +23,8 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static readonly IReadOnlyList<KeyBinding> DeclaredBindings =
     [
+        new(KeyboardContext.FileList, KeyboardKey.F10, KeyboardModifier.Shift, UserIntent.OpenContextMenu),
+        new(KeyboardContext.FileList, KeyboardKey.Apps, KeyboardModifier.None, UserIntent.OpenContextMenu),
         new(KeyboardContext.FileList, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.FileList, KeyboardKey.Down, KeyboardModifier.None, UserIntent.MoveNext),
         new(KeyboardContext.FileList, KeyboardKey.K, KeyboardModifier.None, UserIntent.MovePrevious),
@@ -41,6 +43,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.F4, KeyboardModifier.Control, UserIntent.SortByExtension),
         new(KeyboardContext.FileList, KeyboardKey.F5, KeyboardModifier.Control, UserIntent.SortBySize),
         new(KeyboardContext.FileList, KeyboardKey.F6, KeyboardModifier.Control, UserIntent.SortByModified),
+        new(KeyboardContext.FileList, KeyboardKey.F7, KeyboardModifier.Control, UserIntent.CreateTextFile),
         new(KeyboardContext.FileList, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.FileList, KeyboardKey.F2, KeyboardModifier.None, UserIntent.Rename),
         new(KeyboardContext.FileList, KeyboardKey.F5, KeyboardModifier.None, UserIntent.Copy),
@@ -53,6 +56,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.FileList, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.FileList, KeyboardKey.E, KeyboardModifier.Control, UserIntent.OpenCurrentLocationInOtherPane),
         new(KeyboardContext.FileList, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
         new(KeyboardContext.FileList, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.FileList, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
@@ -60,6 +64,9 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.W, KeyboardModifier.Control, UserIntent.OpenWindowAdjustment),
         new(KeyboardContext.FileList, KeyboardKey.LowerG, KeyboardModifier.Control, UserIntent.OpenLocations),
         new(KeyboardContext.FileList, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
+        new(KeyboardContext.CommandEntry, KeyboardKey.B, KeyboardModifier.Control, UserIntent.OpenBookmarks),
+        new(KeyboardContext.CommandEntry, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
+        new(KeyboardContext.CommandEntry, KeyboardKey.F1, KeyboardModifier.None, UserIntent.OpenHelp),
         new(KeyboardContext.FileList, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.FileList, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.FileList, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -76,6 +83,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.D, KeyboardModifier.Control, UserIntent.MoveHalfPageDown),
         new(KeyboardContext.NavigationSurface, KeyboardKey.U, KeyboardModifier.Control, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.NavigationSurface, KeyboardKey.L, KeyboardModifier.Control, UserIntent.FocusAddress),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.E, KeyboardModifier.Control, UserIntent.OpenCurrentLocationInOtherPane),
         new(KeyboardContext.NavigationSurface, KeyboardKey.R, KeyboardModifier.Control, UserIntent.Refresh),
         new(KeyboardContext.NavigationSurface, KeyboardKey.P, KeyboardModifier.Control, UserIntent.OpenCommandPalette),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Comma, KeyboardModifier.Control, UserIntent.OpenSettings),
@@ -87,6 +95,7 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.NavigationSurface, KeyboardKey.F4, KeyboardModifier.Control, UserIntent.SortByExtension),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F5, KeyboardModifier.Control, UserIntent.SortBySize),
         new(KeyboardContext.NavigationSurface, KeyboardKey.F6, KeyboardModifier.Control, UserIntent.SortByModified),
+        new(KeyboardContext.NavigationSurface, KeyboardKey.F7, KeyboardModifier.Control, UserIntent.CreateTextFile),
         new(KeyboardContext.NavigationSurface, KeyboardKey.One, KeyboardModifier.Control, UserIntent.BookmarkSlotOne),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Two, KeyboardModifier.Control, UserIntent.BookmarkSlotTwo),
         new(KeyboardContext.NavigationSurface, KeyboardKey.Three, KeyboardModifier.Control, UserIntent.BookmarkSlotThree),
@@ -137,30 +146,6 @@ public sealed class KeyboardIntentMapper
         new(KeyboardKey.Tab, CommandPaletteKeyAction.MoveFocus),
     ]);
 
-    /// <summary>
-    /// The dedicated table of the window-adjustment mode. Fourteen entries declare nine actions:
-    /// each arrow is an alias of the Vim direction beside it and <c>Ctrl+W</c> is an alias of
-    /// <c>Escape</c>, so an alias declares no hint group and shows no cap (KBD-005).
-    /// </summary>
-    private static readonly IReadOnlyList<WindowAdjustmentKeyBinding> DeclaredWindowBindings =
-        Array.AsReadOnly<WindowAdjustmentKeyBinding>(
-    [
-        new(KeyboardKey.H, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, WindowAdjustmentHintGroup.Move),
-        new(KeyboardKey.Left, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveLeft, null),
-        new(KeyboardKey.J, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, WindowAdjustmentHintGroup.Move),
-        new(KeyboardKey.Down, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveDown, null),
-        new(KeyboardKey.K, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, WindowAdjustmentHintGroup.Move),
-        new(KeyboardKey.Up, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveUp, null),
-        new(KeyboardKey.L, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, WindowAdjustmentHintGroup.Move),
-        new(KeyboardKey.Right, KeyboardModifier.None, WindowAdjustmentKeyAction.MoveRight, null),
-        new(KeyboardKey.Plus, KeyboardModifier.None, WindowAdjustmentKeyAction.Enlarge, WindowAdjustmentHintGroup.Enlarge),
-        new(KeyboardKey.Minus, KeyboardModifier.None, WindowAdjustmentKeyAction.Shrink, WindowAdjustmentHintGroup.Shrink),
-        new(KeyboardKey.M, KeyboardModifier.None, WindowAdjustmentKeyAction.Maximize, WindowAdjustmentHintGroup.Maximize),
-        new(KeyboardKey.R, KeyboardModifier.None, WindowAdjustmentKeyAction.Restore, WindowAdjustmentHintGroup.Restore),
-        new(KeyboardKey.Escape, KeyboardModifier.None, WindowAdjustmentKeyAction.Leave, WindowAdjustmentHintGroup.Leave),
-        new(KeyboardKey.W, KeyboardModifier.Control, WindowAdjustmentKeyAction.Leave, null),
-    ]);
-
     private readonly IClock _clock;
     private TimeSpan? _pendingChordStartedAt;
     private readonly KeyboardRepeatGuard _repeatGuard = new();
@@ -193,13 +178,16 @@ public sealed class KeyboardIntentMapper
 
     /// <summary>Gets the keys owned by the window-adjustment mode in declaration order.</summary>
     public static IReadOnlyList<WindowAdjustmentKeyBinding> WindowAdjustmentBindings { get; } =
-        DeclaredWindowBindings;
+        WindowAdjustmentKeyMap.Bindings;
 
     /// <summary>
     /// Gets the keys owned by the bookmark manager's browse and search-field contexts in declaration
     /// order (ADR-0080). The list is the same data <see cref="Map"/> consults.
     /// </summary>
     public static IReadOnlyList<BookmarkManagerKeyBinding> BookmarkManagerBindings => BookmarkManagerKeyMap.Bindings;
+
+    /// <summary>Gets the canonical focus-only bindings used by mapping and displayed help.</summary>
+    public static IReadOnlyList<KeyboardFocusBinding> FocusBindings => KeyboardFocusMap.Bindings;
 
     /// <summary>Retains native Enter/Escape ownership until the next physical press.</summary>
     internal void ObserveNativeInput(KeyboardInput input)
@@ -243,11 +231,13 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         return input.Context switch
         {
+            KeyboardContext context when context == KeyboardContext.ContextMenu => KeyboardRepeatGuard.MapNativeMenu(input),
             KeyboardContext context when context == KeyboardContext.CommandPalette => MapCommandPaletteKey(input),
-            KeyboardContext context when context == KeyboardContext.WindowAdjustment => MapWindowAdjustmentKey(input),
+            KeyboardContext context when context == KeyboardContext.WindowAdjustment => WindowAdjustmentKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.Locations => MapLocationsKey(input),
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
+            KeyboardContext context when context == KeyboardContext.CommandEntry => MapCommandEntryKey(input),
             KeyboardContext context when BookmarkManagerKeyMap.Owns(context) => BookmarkManagerKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
@@ -298,13 +288,13 @@ public sealed class KeyboardIntentMapper
         _pendingChordStartedAt = null;
         TimeSpan elapsed = _clock.GetMonotonicTime() - startedAt;
         return elapsed <= ChordLifetime && IsChordPrefix(input)
-            ? MapIntent(UserIntent.FocusFirst)
+            ? new MappedKeyboardIntent(UserIntent.FocusFirst)
             : null;
     }
 
     private static bool IsDeclaredInContext(KeyboardInput input)
     {
-        return DeclaredBindings.Any(binding =>
+        return KeyboardFocusMap.BindingFor(input) is not null || DeclaredBindings.Any(binding =>
             binding.Context == input.Context &&
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
@@ -324,7 +314,7 @@ public sealed class KeyboardIntentMapper
         }
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
-        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+        return binding is null ? new KeyboardPassThrough() : new MappedKeyboardIntent(binding.Intent);
     }
 
     private static KeyboardMappingOutcome MapCommandPaletteKey(KeyboardInput input)
@@ -337,27 +327,6 @@ public sealed class KeyboardIntentMapper
                 input.RepeatState == KeyRepeatState.Repeated
                     ? new KeyboardConsumed()
                     : new MappedCommandPaletteAction(binding.Action);
-    }
-
-    /// <summary>
-    /// Maps one key while the window-adjustment mode owns input. A declared key yields its action;
-    /// every other identified key is consumed, so no pane, editor, or native control sees it, and
-    /// auto-repeat is accepted only for the actions a user holds down. The raw virtual-key event
-    /// that precedes a produced character is passed through untouched, exactly as everywhere else
-    /// in <see cref="Map"/>, because the mode's letters and symbols are produced characters
-    /// (KBD-003) and a handled virtual-key event would suppress them.
-    /// </summary>
-    private static KeyboardMappingOutcome MapWindowAdjustmentKey(KeyboardInput input)
-    {
-        if (input.Key == KeyboardKey.Other)
-        {
-            return new KeyboardPassThrough();
-        }
-        WindowAdjustmentKeyBinding? binding = DeclaredWindowBindings.FirstOrDefault(binding =>
-            binding.Key == input.Key && binding.Modifier == input.Modifier);
-        return binding is null || IsIgnoredWindowRepeat(binding.Action, input.RepeatState)
-            ? new KeyboardConsumed()
-            : new MappedWindowAdjustmentAction(binding.Action);
     }
 
     /// <summary>
@@ -417,14 +386,12 @@ public sealed class KeyboardIntentMapper
                 : declared;
     }
 
-    private static bool IsIgnoredWindowRepeat(
-        WindowAdjustmentKeyAction action,
-        KeyRepeatState repeatState)
+    private static KeyboardMappingOutcome MapCommandEntryKey(KeyboardInput input)
     {
-        return repeatState == KeyRepeatState.Repeated &&
-            (action == WindowAdjustmentKeyAction.Maximize ||
-                action == WindowAdjustmentKeyAction.Restore ||
-                action == WindowAdjustmentKeyAction.Leave);
+        return input.RepeatState == KeyRepeatState.Repeated &&
+            (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Space || input.Key == KeyboardKey.F1)
+                ? new KeyboardConsumed()
+                : MapDeclaredKey(input);
     }
 
     private static KeyboardMappingOutcome MapDeclaredKey(KeyboardInput input)
@@ -433,7 +400,9 @@ public sealed class KeyboardIntentMapper
             binding.Context == input.Context &&
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
-        return binding is null ? new KeyboardPassThrough() : MapIntent(binding.Intent);
+        return binding is null ? KeyboardFocusMap.Map(input)
+            : binding.Intent == UserIntent.OpenContextMenu && input.RepeatState == KeyRepeatState.Repeated
+                ? new KeyboardConsumed() : new MappedKeyboardIntent(binding.Intent);
     }
 
     private static bool IsChordPrefix(KeyboardInput input)
@@ -452,11 +421,8 @@ public sealed class KeyboardIntentMapper
                 input.Key == KeyboardKey.F6 ||
                 input.Key == KeyboardKey.F7 ||
                 input.Key == KeyboardKey.F8 ||
-                input.Key == KeyboardKey.F1);
+                input.Key == KeyboardKey.F1 ||
+                (input.Key == KeyboardKey.E && input.Modifier == KeyboardModifier.Control));
     }
 
-    private static MappedKeyboardIntent MapIntent(UserIntent intent)
-    {
-        return new MappedKeyboardIntent(intent);
-    }
 }

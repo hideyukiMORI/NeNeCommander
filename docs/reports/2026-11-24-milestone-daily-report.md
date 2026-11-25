@@ -1,5 +1,7 @@
 # 2026-11-24 日報 — マイルストーン継続
 
+2026-11-25停止追記: hideの指示で作業停止。最後の試遊版は03、見出しアクセントの震えが未解決。最新の[終了日報](../reports/2026-11-25-bookmark-focus-daily-report.md)と[再開引き継ぎ](../handoffs/2026-11-25-bookmark-focus-about-handoff.md)を先に読む。以下の実行中・承認待ち記述は各時点の履歴であり、再開や重複実行の指示ではない。
+
 最終更新: 2026-11-24 21:35 JST。beta.4公開・完了記録のmain反映・配布用一時物の整理まで完了。以下の「時系列記録」は過去の実行中・承認待ちを保存しており、現在の未完了状態を示さない。
 
 - hideの明示承認と20:26の再開指示に従い、PR #573をmain3909039へsquash統合。受理候補f6c722cと全tree一致。
@@ -18,6 +20,38 @@
 ## 時系列記録
 
 最終更新: 2026-11-24 08:50 JST。作業継続中。
+
+## 16:44 JST Locations checkpoint — historical
+
+最終更新: 2026-11-24 16:44 JST。hideの継続指示に沿って作業中。
+
+Locations幅調整 #548を、公開済みrelease候補f6c722cの基盤へ接続した。元の2XAML差分は
+そのまま保持。実際のキー移動を追加確認すると、折り返し行の再生成で選択末尾が
+約41.83DIP隠れるため、LocationsViewだけで同じ項目・表示値の行を保持する修正を加えた。
+既存のScrollIntoViewとセッション・catalog・移動経路は維持している。
+
+通常Appビルドは警告/エラー0、規約112件・変更箇所書式確認は成功。複雑度は既存5件と
+全項目一致。最終製品コードの英語122、日本語122、中国語128の実コントロール確認が成功。
+読み取り専用の独立レビューは必須修正なし。171ソース、137 XBF/PRI、4共通DLLを照合した。
+1249入力のmanifestを保存（従来1246に既存release文書3ファイルを追加した広い棚卸し）。
+
+端数0.114DIPは半物理ピクセルの基準で扱い、表示領域より高い中国語の長文行は
+16DIPスクロール後に下端を読めることを別に確認した。一度に全行が見えるとは主張しない。
+失敗した全試行・UpdateLayout案・直接API末尾ジャンプの限界を保持した。初期フォーカスは
+変更前でも下のファイル一覧に残るため、未解決として分離。物理キー/マウス、他の倍率、
+読み上げ、hideの画面受理も未実施。通常設定・入力デスクトップは全試行で不変。
+
+[品質記録](../quality/2026-11-22-compact-locations.md)と
+[設計記録](../design/2026-11-22-compact-locations-handoff.md)にcommandと証拠・限界を収載。
+公開・main統合は行わず、未完のD作業コピー/出力は保持。後片付け拒否はない。
+
+release #571は全4層mutationが完了し、12:55にhideの「送信して」でf6c722cとDraft PR573本文を
+公開済み。これはSARIF送信・merge・タグ・リリースの許可ではなく、解析結果送信の質問が
+別途保留中。#531は別候補のApplication mutationを通過し、Infrastructureを実行中。
+以下08:18の記録は当時の進捗であり、現在の実行状態として再利用しない。
+
+## 08:18 JST の経過記録
+最終更新: 2026-11-24 08:18 JST。作業継続中。
 
 hideの継続指示でbeta.4準備を再開した。前回の失敗はApplication mutation
 94.98%（必要95%）。前回成功した検証を保持し、未検出115件から直近の位置復元と
@@ -155,3 +189,17 @@ alerts. Original extractor/compiler diagnostic limits and combined unchanged-sou
 CI evidence remain explicit in the quality record. All mutation thresholds were
 already met. Integration, accepted-main package/extracted startup, freshness, tag
 and publication remain pending; no release is claimed. See candidate-sarif-complete.json.
+
+## 22:30 JST — 追加機能のローカル試遊候補
+
+#530/#531/#544/#547/#548/#551をまとめた試遊候補を070f659へ保存した。
+225件のApplication受付、162件の入力系、3言語各60項目の実コントロール確認が成功。
+メニュー終了中の再入2ケースを修正し、追加観測07/08は判定成功・終了0。
+旧06の早期teardownアクセス違反は失敗として保持し、その条件の解決とは記載しない。
+新規の複雑度超過3件は解消し、既存3件だけが残る。7ファイルの改行差だけを
+正規化して所定の書式検査が成功。通常設定・操作desktopは不変。
+
+現在は専用設定・左右フォルダーの対話用コピーをビルド中で、画面は起動していない。
+実機操作と表示の受理、機能公開・main統合は別途残る。beta.4は変更せず、#564全体も
+閉じない。[試遊候補の引き継ぎ](../handoffs/2026-11-24-ui-trial-integration-handoff.md)と
+[品質記録](../quality/2026-11-24-ui-trial-integration.md)を参照する。未完作業物は保持する。

@@ -33,22 +33,26 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
 
     private readonly WindowsLocalIoExecutionBoundary _executionBoundary;
     private readonly Func<ProcessStartInfo, IDisposable?> _start;
+    private readonly WindowsShellItemSelection _selection;
 
     /// <summary>Initializes a launcher scheduled through the shared Windows-local boundary.</summary>
     /// <param name="executionBoundary">Shared scheduler for synchronous Windows-side work.</param>
     public WindowsShellFileLauncher(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(executionBoundary, static startInfo => Process.Start(startInfo))
+        : this(executionBoundary, static startInfo => Process.Start(startInfo), new WindowsShellItemSelection())
     {
     }
 
     internal WindowsShellFileLauncher(
         WindowsLocalIoExecutionBoundary executionBoundary,
-        Func<ProcessStartInfo, IDisposable?> start)
+        Func<ProcessStartInfo, IDisposable?> start,
+        WindowsShellItemSelection selection)
     {
         ArgumentNullException.ThrowIfNull(executionBoundary);
         ArgumentNullException.ThrowIfNull(start);
         _executionBoundary = executionBoundary;
+        ArgumentNullException.ThrowIfNull(selection);
         _start = start;
+        _selection = selection;
     }
 
     /// <inheritdoc />
@@ -61,6 +65,17 @@ public sealed class WindowsShellFileLauncher : IFileLauncher
             ? Task.FromResult(FileLaunchOutcome.Cancelled())
             : IsSupportedTarget(target) && target.Parent is FileSystemPath parent
                 ? _executionBoundary.ExecuteAsync(() => Launch(target, parent, cancellationToken))
+                : Task.FromResult(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
+    }
+
+    /// <inheritdoc />
+    public Task<FileLaunchOutcome> RevealAsync(FileSystemPath target, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return cancellationToken.IsCancellationRequested
+            ? Task.FromResult(FileLaunchOutcome.Cancelled())
+            : IsSupportedTarget(target)
+                ? _executionBoundary.ExecuteShellAsync(() => _selection.Reveal(target, cancellationToken))
                 : Task.FromResult(FileLaunchOutcome.Failed(FileLaunchFailureKind.ProviderUnavailable));
     }
 

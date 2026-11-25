@@ -41,6 +41,16 @@ public abstract record FileOperationEffectKind
     /// <summary>Gets the effect indicating the entry at the effect's path was renamed inside its parent.</summary>
     public static FileOperationEffectKind Renamed { get; } = new RenamedEffect();
 
+    /// <summary>Gets the effect indicating one empty file was created at the effect's path.</summary>
+    public static FileOperationEffectKind FileCreated { get; } = new FileCreatedEffect();
+
+    private sealed record FileCreatedEffect : FileOperationEffectKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     private FileOperationEffectKind()
     {
     }

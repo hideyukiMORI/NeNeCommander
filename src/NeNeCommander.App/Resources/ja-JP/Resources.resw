@@ -391,6 +391,8 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>オフにしても、F1 ヘルプと確認・名前入力の Enter／Esc は表示します。</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>パスを入力して移動</value></data>
   <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>移動先の絶対パス</value></data>
+  <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
+  <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>現在のフォルダーを反対ペインで開く</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>件数未取得</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>ファイル {0:N0} · フォルダー {1:N0} · 選択 {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>表示: ファイル {0:N0}・フォルダー {1:N0} · 選択 {2:N0} · 取得: ファイル {3:N0}・フォルダー {4:N0}</value></data>
@@ -821,4 +823,78 @@
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>アプリ全体のキー操作一覧</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>共通のブックマークを管理・移動先を選択</value></data>
   <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyLabelP" xml:space="preserve"><value>p</value></data>
+  <data name="KeyLabelN" xml:space="preserve"><value>n</value></data>
+  <data name="KeyLabelCtrlLeft" xml:space="preserve"><value>Ctrl+←</value></data>
+  <data name="KeyLabelCtrlRight" xml:space="preserve"><value>Ctrl+→</value></data>
+  <data name="WindowAdjustmentHintPreviousDisplay" xml:space="preserve"><value>前のディスプレイ</value></data>
+  <data name="WindowAdjustmentHintNextDisplay" xml:space="preserve"><value>次のディスプレイ</value></data>
+  <data name="WindowAdjustmentPlannedPreviousDisplay" xml:space="preserve"><value>前のディスプレイへ移動</value></data>
+  <data name="WindowAdjustmentPlannedNextDisplay" xml:space="preserve"><value>次のディスプレイへ移動</value></data>
+  <data name="WindowAdjustmentMovedPreviousDisplay" xml:space="preserve"><value>前のディスプレイへ移動しました。</value></data>
+  <data name="WindowAdjustmentMovedNextDisplay" xml:space="preserve"><value>次のディスプレイへ移動しました。</value></data>
+  <data name="WindowAdjustmentRefusedNoOtherDisplay" xml:space="preserve"><value>ほかに移動できるディスプレイがありません。</value></data>
+  <data name="WindowAdjustmentRefusedDisplayInformation" xml:space="preserve"><value>ディスプレイ情報を取得できません。</value></data>
+  <data name="WindowAdjustmentRefusedHidden" xml:space="preserve"><value>ウィンドウを表示してから移動してください。</value></data>
+  <data name="WindowAdjustmentRefusedTargetCannotFit" xml:space="preserve"><value>移動先の表示領域に最小サイズで収まりません。</value></data>
+  <data name="WindowAdjustmentTransferNotApplied" xml:space="preserve"><value>ディスプレイへの移動を開始前に中止しました。</value></data>
+  <data name="WindowAdjustmentTransferUnconfirmed" xml:space="preserve"><value>ディスプレイへの移動を確認できませんでした。ウィンドウの位置を確認してください。</value></data>
+  <data name="WindowAdjustmentHintScrollHelp" xml:space="preserve"><value>説明</value></data>
+  <data name="KeyLabelF10" xml:space="preserve"><value>F10</value></data>
+  <data name="CommandEntryFocus" xml:space="preserve"><value>アプリのコマンドへ移動</value></data>
+  <data name="CommandEntryReturn" xml:space="preserve"><value>操作中のペインへ戻る</value></data>
+  <data name="CommandEntryToolTipFormat" xml:space="preserve"><value>{0}（{1}）</value></data>
+  <data name="KeyboardHelpGroupCommandEntry" xml:space="preserve"><value>アプリのコマンド</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>テキストファイルを作成中…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>新しいテキストファイルの名前を入力してください</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>テキストファイルを作成しました</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>テキストファイルの作成を中止しました</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>テキストファイルの作成は変更前に拒否されました</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>ファイル名が無効です</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>テキストファイルを作成</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>新しいテキスト.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
+  <data name="IntentLabelRevealFocused" xml:space="preserve">
+    <value>フォーカス項目をエクスプローラーで表示</value>
+  </data>
+  <data name="IntentLabelRevealLocation" xml:space="preserve">
+    <value>現在のフォルダーをエクスプローラーで表示</value>
+  </data>
+  <data name="IntentLabelOpenContextMenu" xml:space="preserve">
+    <value>コンテキストメニューを開く</value>
+  </data>
+  <data name="PaneStatusRevealing" xml:space="preserve">
+    <value>エクスプローラーに表示を要求しています…</value>
+  </data>
+  <data name="PaneStatusRevealCancelled" xml:space="preserve">
+    <value>エクスプローラーへの表示要求を取り消しました</value>
+  </data>
+  <data name="PaneStatusRevealNotFound" xml:space="preserve">
+    <value>エクスプローラーで項目が見つかりません</value>
+  </data>
+  <data name="PaneStatusRevealAccessDenied" xml:space="preserve">
+    <value>エクスプローラーでアクセスが拒否されました</value>
+  </data>
+  <data name="PaneStatusRevealUnavailable" xml:space="preserve">
+    <value>エクスプローラーで項目を表示できません</value>
+  </data>
+  <data name="CommandPaletteRevealFocusedDetail" xml:space="preserve">
+    <value>フォーカス項目を、エクスプローラーの親フォルダー内で選択して表示します。</value>
+  </data>
+  <data name="CommandPaletteRevealLocationDetail" xml:space="preserve">
+    <value>現在のフォルダー自体を、エクスプローラーの親フォルダー内で選択して表示します。</value>
+  </data>
+  <data name="KeyLabelApps" xml:space="preserve"><value>メニュー</value></data>
+  <data name="KeyLabelShiftF10" xml:space="preserve"><value>Shift+F10</value></data>
+  <data name="CommandMenuFocusFormat" xml:space="preserve"><value>フォーカス項目: {0}</value></data>
+  <data name="CommandMenuSelectionFormat" xml:space="preserve"><value>選択項目: {0} 件</value></data>
+  <data name="CommandMenuFocusFallbackFormat" xml:space="preserve"><value>フォーカス項目（選択なし）: {0}</value></data>
+  <data name="CommandMenuNewFormat" xml:space="preserve"><value>新規作成先: {0}</value></data>
+  <data name="CommandMenuFolderFormat" xml:space="preserve"><value>現在のフォルダー: {0}</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>このフォルダーを右ペインで開く（{0}）</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>このフォルダーを左ペインで開く（{0}）</value></data>
+  <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>現在のフォルダーを右ペインで開く</value></data>
+  <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>現在のフォルダーを左ペインで開く</value></data>
+  <data name="PaneNavigateParent" xml:space="preserve"><value>上の階層へ</value></data>
+  <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>このアプリについて</value></data>
 </root>

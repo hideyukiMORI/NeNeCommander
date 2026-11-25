@@ -18,6 +18,7 @@ public sealed record KeyBinding
             {
                 [KeyboardKey.D] = "KeyLabelCtrlD",
                 [KeyboardKey.Enter] = "KeyLabelCtrlEnter",
+                [KeyboardKey.E] = "KeyLabelCtrlE",
                 [KeyboardKey.B] = "KeyLabelCtrlB",
                 [KeyboardKey.LowerG] = "KeyLabelCtrlG",
                 [KeyboardKey.H] = "KeyLabelCtrlH",
@@ -31,6 +32,7 @@ public sealed record KeyBinding
                 [KeyboardKey.F4] = "KeyLabelCtrlF4",
                 [KeyboardKey.F5] = "KeyLabelCtrlF5",
                 [KeyboardKey.F6] = "KeyLabelCtrlF6",
+                [KeyboardKey.F7] = "KeyLabelCtrlF7",
                 [KeyboardKey.One] = "KeyLabelCtrl1",
                 [KeyboardKey.Two] = "KeyLabelCtrl2",
                 [KeyboardKey.Three] = "KeyLabelCtrl3",
@@ -40,6 +42,10 @@ public sealed record KeyBinding
                 [KeyboardKey.Seven] = "KeyLabelCtrl7",
                 [KeyboardKey.Eight] = "KeyLabelCtrl8",
                 [KeyboardKey.Nine] = "KeyLabelCtrl9",
+            },
+            [KeyboardModifier.Shift] = new Dictionary<KeyboardKey, string>
+            {
+                [KeyboardKey.F10] = "KeyLabelShiftF10",
             },
             [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
             {

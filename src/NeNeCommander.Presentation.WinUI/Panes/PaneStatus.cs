@@ -57,6 +57,21 @@ public sealed record PaneStatus
     /// <summary>Gets the status for raw address text rejected by the canonical parser.</summary>
     public static PaneStatus InvalidAddress { get; } = new("PaneStatusInvalidAddress");
 
+    /// <summary>Gets the status for an Explorer selection handoff in progress.</summary>
+    public static PaneStatus Revealing { get; } = new("PaneStatusRevealing");
+
+    /// <summary>Gets the status for cancellation before the Explorer selection handoff.</summary>
+    public static PaneStatus RevealCancelled { get; } = new("PaneStatusRevealCancelled");
+
+    /// <summary>Gets the status for a missing Explorer selection target.</summary>
+    public static PaneStatus RevealNotFound { get; } = new("PaneStatusRevealNotFound");
+
+    /// <summary>Gets the status for Explorer refusing access to the target.</summary>
+    public static PaneStatus RevealAccessDenied { get; } = new("PaneStatusRevealAccessDenied");
+
+    /// <summary>Gets the status for another normalized Explorer selection failure.</summary>
+    public static PaneStatus RevealUnavailable { get; } = new("PaneStatusRevealUnavailable");
+
     private PaneStatus(string resourceKey)
     {
         ResourceKey = resourceKey;

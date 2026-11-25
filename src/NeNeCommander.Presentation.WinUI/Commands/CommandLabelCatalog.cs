@@ -12,6 +12,9 @@ public static class CommandLabelCatalog
     private static readonly IReadOnlyList<CommandLabel> DeclaredLabels = new ReadOnlyCollection<CommandLabel>(
     [
         new(UserIntent.OpenFocused, "IntentLabelOpenFocused"),
+        new(UserIntent.RevealFocused, "IntentLabelRevealFocused"),
+        new(UserIntent.RevealLocation, "IntentLabelRevealLocation"),
+        new(UserIntent.OpenContextMenu, "IntentLabelOpenContextMenu"),
         new(UserIntent.NavigateParent, "IntentLabelNavigateParent"),
         new(UserIntent.NavigateBack, "IntentLabelNavigateBack"),
         new(UserIntent.NavigateForward, "IntentLabelNavigateForward"),
@@ -21,6 +24,7 @@ public static class CommandLabelCatalog
         new(UserIntent.Copy, "IntentLabelCopy"),
         new(UserIntent.Move, "IntentLabelMove"),
         new(UserIntent.CreateDirectory, "IntentLabelCreateDirectory"),
+        new(UserIntent.CreateTextFile, "IntentLabelCreateTextFile"),
         new(UserIntent.Delete, "IntentLabelDelete"),
         new(UserIntent.ToggleSelection, "IntentLabelToggleSelection"),
         new(UserIntent.ToggleHiddenItems, "IntentLabelToggleHiddenItems"),
@@ -40,6 +44,7 @@ public static class CommandLabelCatalog
         new(UserIntent.Escape, "IntentLabelEscape"),
         new(UserIntent.Confirm, "IntentLabelConfirm"),
         new(UserIntent.OpenHelp, "IntentLabelOpenHelp"),
+        new(UserIntent.OpenCurrentLocationInOtherPane, "IntentLabelOpenCurrentLocationInOtherPane"),
         new(UserIntent.FocusFirst, "IntentLabelFocusFirst"),
         new(UserIntent.FocusLast, "IntentLabelFocusLast"),
         new(UserIntent.MoveHalfPageDown, "IntentLabelMoveHalfPageDown"),

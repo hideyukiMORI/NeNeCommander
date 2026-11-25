@@ -20,6 +20,16 @@ public abstract record OperationKind
     /// <summary>Gets the kind for creating a directory in the active pane's location.</summary>
     public static OperationKind CreateDirectory { get; } = new CreateDirectoryKind();
 
+    /// <summary>Gets the operation to create one empty text file.</summary>
+    public static OperationKind CreateTextFile { get; } = new CreateTextFileKind();
+
+    private sealed record CreateTextFileKind : OperationKind
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Gets the kind for renaming the active pane's focus item inside its own parent.</summary>
     public static OperationKind Rename { get; } = new RenameKind();
 

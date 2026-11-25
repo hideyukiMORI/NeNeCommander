@@ -98,7 +98,7 @@ public sealed class WindowsShellFileLauncherTests
             {
                 starts++;
                 return null;
-            });
+            }, new WindowsShellItemSelection());
 
         FileLaunchOutcome outcome = await launcher.LaunchAsync(
             Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
@@ -125,7 +125,7 @@ public sealed class WindowsShellFileLauncherTests
             {
                 starts++;
                 return null;
-            });
+            }, new WindowsShellItemSelection());
         Task<FileLaunchOutcome> launch = launcher.LaunchAsync(
             Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path,
             cancellation.Token);
@@ -188,7 +188,7 @@ public sealed class WindowsShellFileLauncherTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => new WindowsShellFileLauncher(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WindowsShellFileLauncher(boundary, null!));
+            () => new WindowsShellFileLauncher(boundary, null!, new WindowsShellItemSelection()));
         WindowsShellFileLauncher launcher = CreateLauncher(_ => null);
         _ = Assert.ThrowsExactly<ArgumentNullException>(
             () => launcher.LaunchAsync(null!, CancellationToken.None));
@@ -251,7 +251,7 @@ public sealed class WindowsShellFileLauncherTests
         {
             starts++;
             return null;
-        });
+        }, new WindowsShellItemSelection());
         FileSystemPath target = Assert.IsInstanceOfType<PathParseSuccess>(FileSystemPath.Parse(path)).Path;
 
         FileLaunchOutcome outcome = await launcher.LaunchAsync(target, CancellationToken.None);
@@ -369,7 +369,7 @@ public sealed class WindowsShellFileLauncherTests
 
     private static WindowsShellFileLauncher CreateLauncher(Func<ProcessStartInfo, IDisposable?> start)
     {
-        return new WindowsShellFileLauncher(new WindowsLocalIoExecutionBoundary(), start);
+        return new WindowsShellFileLauncher(new WindowsLocalIoExecutionBoundary(), start, new WindowsShellItemSelection());
     }
 
     private static FileLaunchFailureKind ExpectedFailure(int nativeErrorCode)

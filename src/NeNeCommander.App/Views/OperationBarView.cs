@@ -187,7 +187,7 @@ internal sealed class OperationBarView
         }
         if (_nameEntryFrame.Visibility == Visibility.Collapsed)
         {
-            _nameEntry.Text = active.InitialText;
+            _nameEntry.Text = active.InitialText.Resolve(_resources.GetString("NameEntryTextFileDefault"));
             _nameEntryFrame.Visibility = Visibility.Visible;
         }
     }

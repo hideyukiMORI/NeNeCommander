@@ -169,6 +169,12 @@ internal sealed class WindowsWslFileSystem : IWslFileSystem
         _ = Directory.CreateDirectory(_resolvePath(target));
     }
 
+    public ProviderStepOutcome CreateEmptyFile(WslPath target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return WindowsEmptyFileCreation.Create(_resolvePath(target));
+    }
+
     public void Rename(WslFileSystemEntry source, WslPath target)
     {
         ArgumentNullException.ThrowIfNull(source);

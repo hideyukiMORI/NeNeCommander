@@ -18,9 +18,12 @@ internal static class PaneActivityStatusPresenter
             PaneReadCancelled => PaneStatus.Cancelled,
             PaneReadAbandoned => PaneStatus.ReadAbandoned,
             PaneReadFailed failed => PresentFailure(failed.Failure),
-            PaneLaunching => PaneStatus.Launching,
-            PaneLaunchCancelled => PaneStatus.LaunchCancelled,
-            PaneLaunchFailed failed => PresentLaunchFailure(failed.Failure),
+            PaneLaunching launching => launching.Purpose == FileLaunchPurpose.Reveal
+                ? PaneStatus.Revealing : PaneStatus.Launching,
+            PaneLaunchCancelled cancelled => cancelled.Purpose == FileLaunchPurpose.Reveal
+                ? PaneStatus.RevealCancelled : PaneStatus.LaunchCancelled,
+            PaneLaunchFailed failed => failed.Purpose == FileLaunchPurpose.Reveal
+                ? PresentRevealFailure(failed.Failure) : PresentLaunchFailure(failed.Failure),
             _ => idleStatus,
         };
     }
@@ -32,6 +35,15 @@ internal static class PaneActivityStatusPresenter
             : failure == FileOperationFailureKind.NotFound
                 ? PaneStatus.NotFound
                 : PaneStatus.ProviderUnavailable;
+    }
+
+    private static PaneStatus PresentRevealFailure(FileLaunchFailureKind failure)
+    {
+        return failure == FileLaunchFailureKind.NotFound
+            ? PaneStatus.RevealNotFound
+            : failure == FileLaunchFailureKind.AccessDenied
+                ? PaneStatus.RevealAccessDenied
+                : PaneStatus.RevealUnavailable;
     }
 
     private static PaneStatus PresentLaunchFailure(FileLaunchFailureKind failure)

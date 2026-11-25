@@ -66,11 +66,12 @@ public sealed class WindowAdjustmentSession
             {
                 return WindowAdjustmentDecision.NothingToApply;
             }
-            WindowAdjustmentPlan plan = WindowAdjustmentPlanner.Plan(request.Placement, request.Action);
-            _state = new WindowAdjustmentOpen(
+            WindowAdjustmentPlan plan = WindowAdjustmentPlanner.Plan(request.Placement, request.Action, request.Transfer);
+            WindowAdjustmentOpen owner = new(
                 request.ExpectedState.ActiveSide,
                 OutcomeOf(plan, request.Action));
-            return new WindowAdjustmentPlanned(plan);
+            _state = owner;
+            return new WindowAdjustmentPlanned(plan, owner);
         }
     }
 
@@ -94,6 +95,24 @@ public sealed class WindowAdjustmentSession
         }
     }
 
+    /// <summary>Records one transfer receipt only while its exact decided owner remains current.</summary>
+    /// <param name="expected">Exact new owner returned with the transfer plan.</param>
+    /// <param name="effect">Closed observation of this apply's effect boundary.</param>
+    /// <returns>The current state; stale, repeated and ordinary-action receipts change nothing.</returns>
+    public WindowAdjustmentState ReportTransfer(WindowAdjustmentOpen expected, WindowTransferEffect effect)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        ArgumentNullException.ThrowIfNull(effect);
+        lock (_sync)
+        {
+            if (ReferenceEquals(_state, expected) &&
+                expected.Outcome is WindowActionPlanned planned && planned.Action.ChangesDisplay)
+            {
+                _state = new WindowAdjustmentOpen(expected.ActiveSide, new WindowTransferReported(planned.Action, effect));
+            }
+            return _state;
+        }
+    }
     private static WindowAdjustmentOutcome OutcomeOf(
         WindowAdjustmentPlan plan,
         WindowAdjustmentAction action)

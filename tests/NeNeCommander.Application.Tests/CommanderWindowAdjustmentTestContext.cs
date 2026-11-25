@@ -110,7 +110,7 @@ internal sealed class CommanderWindowAdjustmentTestContext : System.IDisposable
     internal WindowAdjustmentPlan Plan(WindowAdjustmentAction action, WindowPlacement placement)
     {
         WindowAdjustmentDecision decision = Session.AdjustWindow(
-            WindowAdjustmentRequest.Create(CurrentOpen(), action, placement));
+            WindowAdjustmentRequest.Create(CurrentOpen(), action, placement, WindowTransferInput.NotRequested));
         WindowAdjustmentPlan plan = Assert.IsInstanceOfType<WindowAdjustmentPlanned>(decision).Plan;
         AssertOutcomeMatches(action, plan);
         return plan;

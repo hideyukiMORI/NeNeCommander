@@ -18,7 +18,7 @@ internal sealed class LiveWslTestRoot
     private readonly Dictionary<string, LiveWslRootEntry> _ownedEntries;
     private readonly WindowsWslFileSystem _fileSystem;
     private readonly Func<WslPath, string> _resolvePath;
-    private readonly Dictionary<string, WslPath> _linkTargets;
+    private readonly Dictionary<string, LiveWslLinkTarget> _linkTargets;
     private LiveWslRootEntry _configuredRootEntry;
 
     private LiveWslTestRoot(
@@ -32,7 +32,7 @@ internal sealed class LiveWslTestRoot
         _mechanism = mechanism;
         _fileSystem = mechanism.FileSystem;
         _resolvePath = mechanism.ResolvePath;
-        _linkTargets = new Dictionary<string, WslPath>(StringComparer.Ordinal);
+        _linkTargets = new Dictionary<string, LiveWslLinkTarget>(StringComparer.Ordinal);
         _ownedEntries = ownedEntries;
     }
 
@@ -134,30 +134,36 @@ internal sealed class LiveWslTestRoot
     internal WslPath CreateFileSymbolicLink(string relativePath, string targetRelativePath)
     {
         WslPath path = ResolveForCreation(relativePath);
-        WslPath target = ResolveExisting(targetRelativePath);
-        if (!_ownedEntries.ContainsKey(_resolvePath(target)))
-        {
-            throw new InvalidOperationException("The live link target is not owned by this run.");
-        }
+        return CreateLink(path, LiveWslLinkTarget.Existing(LiveWslRootPath.Resolve(RunRoot, targetRelativePath)));
+    }
+
+    internal WslPath CreateDanglingFileSymbolicLink(string relativePath, string targetRelativePath)
+    {
+        WslPath path = ResolveForCreation(relativePath);
+        return CreateLink(path, LiveWslLinkTarget.Absent(ResolveForCreation(targetRelativePath)));
+    }
+
+    private WslPath CreateLink(WslPath path, LiveWslLinkTarget target)
+    {
         if (ProviderPathContainment.Evaluate(RunRoot, path) is not ContainedPath ||
-            ProviderPathContainment.Evaluate(RunRoot, target) is not ContainedPath)
+            ProviderPathContainment.Evaluate(RunRoot, target.Path) is not ContainedPath ||
+            !target.Matches(_ownedEntries, _mechanism))
         {
-            throw new InvalidOperationException("The live link fixture escaped its run root.");
+            throw new InvalidOperationException("The live link fixture or its declared target is not owned.");
         }
         RequireVerifiedSetup();
-
-        // ADR-0043/ADR-0049: an unprivileged Windows process cannot create a link on the WSL
-        // share, so the live owner makes it inside the distribution. Cleanup still unlinks the
-        // link entry from the Windows side without following it.
-        _mechanism.CreateLink(target, path);
+        // ADR-0043/0049: create inside the distribution; cleanup unlinks only the owned entry.
+        _mechanism.CreateLink(target.Path, path);
         Register(path);
         _linkTargets.Add(_resolvePath(path), target);
-        return path;
+        return target.Matches(_ownedEntries, _mechanism)
+            ? path
+            : throw new InvalidOperationException("The live link target changed during setup.");
     }
 
     internal byte[] ReadFile(string relativePath)
     {
-        WslPath path = ResolveExisting(relativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, relativePath);
         RequireOwnedRead(path);
         return File.ReadAllBytes(_resolvePath(path));
     }
@@ -179,7 +185,7 @@ internal sealed class LiveWslTestRoot
     /// <returns>The validated WSL path of the owned entry.</returns>
     internal WslPath OwnedPath(string relativePath)
     {
-        WslPath path = ResolveExisting(relativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, relativePath);
         RequireVerifiedSetup();
         return _ownedEntries.ContainsKey(_resolvePath(path))
             ? path
@@ -188,7 +194,7 @@ internal sealed class LiveWslTestRoot
 
     internal IReadOnlyList<LiveWslDeclaredEntry> ReadDeclaredTree(string relativePath)
     {
-        WslPath path = ResolveExisting(relativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, relativePath);
         RequireVerifiedSetup();
         IReadOnlyList<LiveWslRootEntry> entries =
             LiveWslRootFileSystem.EnumerateTree(path, _fileSystem, _resolvePath);
@@ -199,7 +205,7 @@ internal sealed class LiveWslTestRoot
 
     internal bool Exists(string relativePath)
     {
-        WslPath path = ResolveExisting(relativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, relativePath);
         string resolved = _resolvePath(path);
         RequireVerifiedSetup();
         bool exists = File.Exists(resolved) || Directory.Exists(resolved);
@@ -208,13 +214,22 @@ internal sealed class LiveWslTestRoot
             : exists;
     }
 
+    internal void AdoptCreatedFile(string relativePath, FileOperationOutcome outcome)
+    {
+        WslPath target = LiveWslRootPath.Resolve(RunRoot, relativePath);
+        LiveWslRootEntry entry = LiveWslRootOwnership.RequireEmptyCreatedFile(outcome, target, _mechanism);
+        _ownedEntries.Add(entry.ResolvedPath, entry);
+        RecaptureOwnedDirectory(LiveWslRootPath.Parent(target));
+        RequireVerifiedSetup();
+    }
+
     internal void AdoptCopiedTree(
         string relativePath,
         IReadOnlyList<string> expectedEntries,
         FileOperationOutcome outcome,
         FileSystemPath source)
     {
-        LiveWslRootOwnership.RequireTransferEffects(
+        LiveWslRootOwnership.RequireEffects(
             outcome,
             source,
             [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified]);
@@ -227,7 +242,7 @@ internal sealed class LiveWslTestRoot
         FileOperationOutcome outcome,
         WindowsLocalPath source)
     {
-        LiveWslRootOwnership.RequireTransferEffects(
+        LiveWslRootOwnership.RequireEffects(
             outcome,
             source,
             [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
@@ -241,7 +256,7 @@ internal sealed class LiveWslTestRoot
         WslPath source)
     {
         ArgumentNullException.ThrowIfNull(move);
-        LiveWslRootOwnership.RequireTransferEffects(
+        LiveWslRootOwnership.RequireEffects(
             outcome,
             source,
             [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
@@ -251,14 +266,14 @@ internal sealed class LiveWslTestRoot
 
     internal void AdoptMovedOutTree(string sourceRelativePath, FileOperationOutcome outcome, WslPath source)
     {
-        LiveWslRootOwnership.RequireTransferEffects(outcome, source,
+        LiveWslRootOwnership.RequireEffects(outcome, source,
             [FileOperationEffectKind.Copied, FileOperationEffectKind.Verified, FileOperationEffectKind.SourceDeleted]);
         RetireMovedSource(sourceRelativePath);
     }
 
     private void RetireMovedSource(string sourceRelativePath)
     {
-        WslPath path = ResolveExisting(sourceRelativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, sourceRelativePath);
         string resolved = _resolvePath(path);
         if (File.Exists(resolved) || Directory.Exists(resolved))
         {
@@ -395,23 +410,14 @@ internal sealed class LiveWslTestRoot
 
     private LiveWslRootCleanupRejected? UnlinkOwnedEntry(LiveWslRootEntry link)
     {
-        if (_fileSystem.Find(link.Path) is not WslFileSystemEntry observed ||
-            LiveWslRootFileSystem.EntryKind(observed) != LiveWslRootEntryKind.Link ||
-            !_linkTargets.TryGetValue(link.ResolvedPath, out WslPath? target) ||
-            !_ownedEntries.TryGetValue(_resolvePath(target), out LiveWslRootEntry? targetEntry))
+        if (!_linkTargets.TryGetValue(link.ResolvedPath, out LiveWslLinkTarget? target))
         {
             return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
         }
-
-        // `unlink` removes the link entry itself and never follows it.
-        _mechanism.UnlinkEntry(link.Path);
-        if (_fileSystem.Find(link.Path) is not null)
+        LiveWslRootCleanupRejected? rejected = LiveWslRootOwnership.Unlink(link, target, _ownedEntries, _mechanism);
+        if (rejected is not null)
         {
-            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.CleanupFailed);
-        }
-        if (LiveWslRootFileSystem.VerifyEntries([targetEntry], _fileSystem) is LiveWslRootCheckRejected)
-        {
-            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
+            return rejected;
         }
         _ = _ownedEntries.Remove(link.ResolvedPath);
         _ = _linkTargets.Remove(link.ResolvedPath);
@@ -452,7 +458,7 @@ internal sealed class LiveWslTestRoot
     private void AdoptExpectedTree(string relativePath, IReadOnlyList<string> expectedEntries)
     {
         ArgumentNullException.ThrowIfNull(expectedEntries);
-        WslPath path = ResolveExisting(relativePath);
+        WslPath path = LiveWslRootPath.Resolve(RunRoot, relativePath);
 
         // ADR-0049: the product created the produced tree inside this owned parent, so the parent's
         // token changed with its direct children and is re-captured immediately after the mutation.
@@ -517,13 +523,5 @@ internal sealed class LiveWslTestRoot
         return LiveWslRootPath.Child(current, segments[^1]);
     }
 
-    private WslPath ResolveExisting(string relativePath)
-    {
-        WslPath current = RunRoot;
-        foreach (string segment in LiveWslRootPath.Segments(relativePath))
-        {
-            current = LiveWslRootPath.Child(current, segment);
-        }
-        return current;
-    }
+
 }

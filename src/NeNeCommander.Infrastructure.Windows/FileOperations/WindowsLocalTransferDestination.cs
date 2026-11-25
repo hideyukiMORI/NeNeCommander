@@ -16,10 +16,14 @@ internal static class WindowsLocalTransferDestination
 
     internal static FileOperationFailureKind? Failure(WindowsLocalPath destination, WindowsDriveBoundary driveBoundary)
     {
-        if (!AdmitsDrive(destination, driveBoundary))
-        {
-            return FileOperationFailureKind.ProviderUnavailable;
-        }
+        return AdmitsDrive(destination, driveBoundary)
+            ? AncestorFailure(destination)
+            : FileOperationFailureKind.ProviderUnavailable;
+    }
+
+    /// <summary>Checks the existing directory chain without imposing a transfer-specific drive policy.</summary>
+    internal static FileOperationFailureKind? AncestorFailure(WindowsLocalPath destination)
+    {
         FileSystemPath? current = destination;
         while (current is WindowsLocalPath location)
         {

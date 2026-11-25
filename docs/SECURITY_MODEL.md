@@ -175,3 +175,24 @@ The ADR-0063 recycle boundary uses source-generated COM interfaces and unique wr
 ## Hosting controls required before first push
 
 Under ADR-0061, retain required PRs, squash-only merging, resolved review threads, no bypass actors, and force-push/deletion protection. Remove unconditional required CI statuses so document-only PRs can merge without starting CI; the reviewer must inspect the evidence selected for the actual change. Retain dependency graph, Dependabot alerts/updates, CodeQL findings, secret scanning and push protection. Scheduled-security health is not a merge requirement because periodic execution is disabled.
+
+## Context and Explorer handoff extension (ADR-0091)
+
+Context events are untrusted presentation requests. Only an exact rendered snapshot
+and owned visible row can synchronously acquire targets; background context exposes
+folder commands only. A frozen selection scope retains both pane endpoints and only
+its captured candidates may submit. Stale/foreign/disabled/replaced/consumed callbacks
+cannot widen the batch, mutate a new target, cancel a replacement or steal its focus.
+This extends ADV-014/ADV-016 and existing text-input ADV-013; it creates no bypass of
+name entry, deletion confirmation, provider inspection or FileOperationGateway.
+
+ADV-019 also covers Explorer reveal as a separate explicit purpose through the same
+Shell boundary. RevealLocation may admit roots while activation still refuses them.
+The existing UNC/WSL length/name admission and current-logon authentication boundary
+remain. The exact path is parsed into one owned absolute PIDL on the existing STA,
+selected with cidl0/no child list/no flags, and freed on every native return path.
+Cancellation before parse/final handoff prevents the next phase, but cannot interrupt
+an in-flight synchronous native call or undo an accepted handoff. No shell command,
+verb, argument construction, fallback, credential retry, existence/identity preflight
+or stable-target promise is added. Tests use a bounded native seam and actual owned
+PIDL parse/free; real Explorer display is a separate environmental tier.

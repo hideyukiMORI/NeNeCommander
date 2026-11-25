@@ -16,10 +16,10 @@ namespace NeNeCommander.Application.Tests;
 [TestClass]
 public sealed class WindowAdjustmentModelTests
 {
-    /// <summary>Proves the refusal model holds exactly the eight declared reasons, each one distinct closed value.</summary>
+    /// <summary>Proves the refusal model holds exactly the declared reasons, each one distinct closed value.</summary>
     [TestMethod]
     [TestCategory("Adversarial")]
-    public void RefusalWhenEnumeratedIsExactlyTheEightDeclaredReasons()
+    public void RefusalWhenEnumeratedIsExactlyTheDeclaredReasons()
     {
         WindowAdjustmentRefusal[] reasons =
         [
@@ -31,6 +31,10 @@ public sealed class WindowAdjustmentModelTests
             WindowAdjustmentRefusal.WindowIsRestored,
             WindowAdjustmentRefusal.PresenterIsNotOverlapped,
             WindowAdjustmentRefusal.PlacementUnavailable,
+            WindowAdjustmentRefusal.NoOtherDisplay,
+            WindowAdjustmentRefusal.DisplayInformationUnavailable,
+            WindowAdjustmentRefusal.WindowIsHidden,
+            WindowAdjustmentRefusal.TargetCannotFit,
         ];
 
         AssertClosedValueSet(typeof(WindowAdjustmentRefusal), reasons);
@@ -63,7 +67,7 @@ public sealed class WindowAdjustmentModelTests
     {
         AssertCases(
             typeof(WindowAdjustmentOutcome),
-            [WindowAdjustmentOutcome.None.GetType(), typeof(WindowActionPlanned), typeof(WindowActionRefused)]);
+            [WindowAdjustmentOutcome.None.GetType(), typeof(WindowActionPlanned), typeof(WindowActionRefused), typeof(WindowTransferReported)]);
         AssertCases(
             typeof(WindowAdjustmentPlan),
             [
@@ -72,6 +76,7 @@ public sealed class WindowAdjustmentModelTests
                 typeof(WindowMovePlan),
                 typeof(WindowResizePlan),
                 typeof(WindowRefusedPlan),
+                typeof(WindowTransferPlan),
             ]);
         AssertCases(
             typeof(WindowAdjustmentDecision),
@@ -79,6 +84,10 @@ public sealed class WindowAdjustmentModelTests
         AssertCases(
             typeof(WindowAdjustmentState),
             [typeof(WindowAdjustmentClosed), typeof(WindowAdjustmentOpen)]);
+        AssertCases(typeof(WindowTransferInput),
+            [WindowTransferInput.NotRequested.GetType(), WindowTransferInput.Unavailable.GetType(), WindowTransferInput.Hidden.GetType(), typeof(WindowTransferAvailable)]);
+        AssertClosedValueSet(typeof(WindowTransferEffect),
+            new[] { WindowTransferEffect.NotApplied, WindowTransferEffect.Unconfirmed, WindowTransferEffect.Observed });
         Assert.AreNotSame(WindowAdjustmentPlan.Maximize, WindowAdjustmentPlan.Restore);
         Assert.AreNotEqual(WindowAdjustmentPlan.Maximize, WindowAdjustmentPlan.Restore);
     }

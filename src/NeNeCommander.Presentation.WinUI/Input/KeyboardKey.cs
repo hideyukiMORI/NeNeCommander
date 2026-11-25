@@ -10,6 +10,30 @@ public abstract record KeyboardKey
     /// <summary>Restricts concrete cases to this assembly and its trusted friends.</summary>
     private protected abstract void RestrictDerivation();
 
+    /// <summary>Gets the dedicated application context-menu key.</summary>
+    public static KeyboardKey Apps { get; } = new AppsKey();
+
+    private sealed record AppsKey : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelApps";
+
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    /// <summary>Gets the function key that moves focus to or from application command entry.</summary>
+    public static KeyboardKey F10 { get; } = new F10Key();
+
+    private sealed record F10Key : KeyboardKey
+    {
+        public override string LabelResourceKey => "KeyLabelF10";
+
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
     /// <summary>Gets the produced lower-case g key.</summary>
     public static KeyboardKey LowerG { get; } = new LowerGKey();
 
@@ -42,6 +66,9 @@ public abstract record KeyboardKey
 
     /// <summary>Gets the produced p key.</summary>
     public static KeyboardKey P { get; } = new PKey();
+
+    /// <summary>Gets the produced n key.</summary>
+    public static KeyboardKey N { get; } = new NKey();
 
     /// <summary>Gets the produced u key.</summary>
     public static KeyboardKey U { get; } = new UKey();
@@ -263,6 +290,14 @@ public abstract record KeyboardKey
         public override string LabelResourceKey => "KeyLabelP";
     }
 
+    private sealed record NKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelN";
+    }
     private sealed record UKey : KeyboardKey
     {
         private protected override void RestrictDerivation()

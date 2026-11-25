@@ -1,5 +1,7 @@
 # 2026-11-24 引き継ぎ — マイルストーン継続
 
+2026-11-25停止追記: hideの指示で作業停止。最後の試遊版は03、見出しアクセントの震えが未解決。最新の[終了日報](../reports/2026-11-25-bookmark-focus-daily-report.md)と[再開引き継ぎ](../handoffs/2026-11-25-bookmark-focus-about-handoff.md)を先に読む。以下の実行中・承認待ち記述は各時点の履歴であり、再開や重複実行の指示ではない。
+
 最終更新: 2026-11-24 21:35 JST。beta.4公開・完了記録のmain反映・配布用一時物の整理まで完了。以下の「時系列記録」は過去の実行中・承認待ちを保存しており、現在の未完了状態を示さない。
 
 - hideの明示承認と20:26の再開指示に従い、PR #573をmain3909039へsquash統合。受理候補f6c722cと全tree一致。
@@ -18,6 +20,40 @@
 ## 時系列記録
 
 最終更新: 2026-11-24 08:50 JST。hideの停止まで継続する指示が有効。
+
+## 16:44 JST Locations checkpoint — historical
+
+最終更新: 2026-11-24 16:44 JST。この枝の最新作業は #548。hideの停止まで継続する。
+
+- D:/NeNeCommander/worktrees/issue-548、feat/548-compact-locations。
+  接続HEAD4a57079以降の製品差分はLocationsView.cs。基盤f6比では2XAMLを含む3製品ファイル。
+  RenderRows/HasSameRowsがexact item参照と全row値で行保持を判定し、既存スクロールを使う。
+- 最終 normal App build02は0警告/エラー。conformance112・changed format成功。
+  complexityは旧5件とexact一致、独立レビュー必須修正なし。
+  英語11=122checks、日本語16=122、中国語15=128、すべてnormal exit0。
+  final-native-summary-01/final-product-parity-01/final-proof-inputs-01に照合済み証拠。
+- D:/NeNeCommander/evidence/compact-locations-20261124 を証拠正本とする。
+  全失敗と診断ソース、最終コピー/ハッシュを保持。D:/NeNeCommander/outputs/compact-locations-20261124
+  は未統合の検証コピー。物理入力・通常設定への書込みや共有画面操作は禁止を維持。
+- 再試験を始めない。製品/依存/検証入力が変わらなければ既存成功を再利用する。
+  en-US11は厳しい0.1DIP条件で成功。ja16/zh15は半物理ピクセル+0.02DIP条件。
+  高い行は同時全表示でなく、UIA Scrollの重なる上下領域で全文可読を証明。
+- 初期LocationsList焦点は変更前XAMLでも失敗する既存問題。今回直していない。
+  direct APIの末尾jumpも成功とはしない。physical/visible、他倍率、Narratorは未実施。
+  画面受理・公開・main統合・完了cleanupは別。未完のコピーを削除しない。
+- release #571は f6c722c/PR573本文が12:55に明示許可で公開済み。古いpush承認待ちは解消。
+  14:45の候補SARIFだけの送信質問は未回答。upload/Ready/merge/tag/releaseを行わない。
+  全4mutation閾値を達成済み、候補ref処理・正式main配布物・freshness等が残る。
+  release worktreeの後続4文書変更は保持する。古い実行session32171は終了済み。
+- #531の hidden driver17172はInfrastructure mutationを継続中（16:38確認）、Presentation待ち。
+  D:/NeNeCommander/evidence/context-menu-20261124/deep-remaining-progress-03.json を確認する。
+  1317inputs凍結、ソースを変更/重複実行しない。CodeQLはmanual/buildless両方の診断限界を記録済み。
+
+[品質記録](../quality/2026-11-22-compact-locations.md)に全attempt、exact commandsと残課題。
+新しい後片付け拒否はない。以下は08:18時点の履歴で、runner/push状態を現在へ継承しない。
+
+## 08:18 JST の引き継ぎ履歴
+最終更新: 2026-11-24 08:18 JST。hideの停止まで継続する指示が有効。
 
 1. 現在は既存Issue571/PR573のbeta.4準備。作業コピーは
    D:/NeNeCommander/worktrees/issue-571、branch chore/571-preview-beta4。
@@ -166,3 +202,17 @@ alerts. Original extractor/compiler diagnostic limits and combined unchanged-sou
 CI evidence remain explicit in the quality record. All mutation thresholds were
 already met. Integration, accepted-main package/extracted startup, freshness, tag
 and publication remain pending; no release is claimed. See candidate-sarif-complete.json.
+
+## 22:30 JST — 追加機能のローカル試遊候補
+
+#530/#531/#544/#547/#548/#551をまとめた試遊候補を070f659へ保存した。
+225件のApplication受付、162件の入力系、3言語各60項目の実コントロール確認が成功。
+メニュー終了中の再入2ケースを修正し、追加観測07/08は判定成功・終了0。
+旧06の早期teardownアクセス違反は失敗として保持し、その条件の解決とは記載しない。
+新規の複雑度超過3件は解消し、既存3件だけが残る。7ファイルの改行差だけを
+正規化して所定の書式検査が成功。通常設定・操作desktopは不変。
+
+現在は専用設定・左右フォルダーの対話用コピーをビルド中で、画面は起動していない。
+実機操作と表示の受理、機能公開・main統合は別途残る。beta.4は変更せず、#564全体も
+閉じない。[試遊候補の引き継ぎ](../handoffs/2026-11-24-ui-trial-integration-handoff.md)と
+[品質記録](../quality/2026-11-24-ui-trial-integration.md)を参照する。未完作業物は保持する。

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.Bookmarks;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -37,19 +38,7 @@ public sealed class CommanderSession
     }
 
     /// <summary>Gets the current complete application-session snapshot.</summary>
-    public CommanderSnapshot Current
-    {
-        get
-        {
-            TransientScopeSnapshot scopes = new(
-                _scopes.AddressEditor.Current,
-                _scopes.CommandPalette.Current,
-                _scopes.WindowAdjustment.Current,
-                _scopes.Locations.Current,
-                _scopes.KeyboardHelp.Current);
-            return new CommanderSnapshot(_panes.Current, _settings.Current, scopes);
-        }
-    }
+    public CommanderSnapshot Current => new(_panes.Current, _settings.Current, _scopes.Capture());
 
     /// <summary>Reads one pane location unless another interaction owns modal input.</summary>
     public async Task<CommanderSnapshot> NavigateAsync(
@@ -81,6 +70,10 @@ public sealed class CommanderSession
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(observer);
+        if (CommandPaletteSession.IsContextRequest(intent))
+        {
+            return OpenContextMenu(intent);
+        }
         if (_scopes.WindowAdjustment.Current is WindowAdjustmentOpen ||
             _scopes.KeyboardHelp.Current is KeyboardHelpOpen)
         {
@@ -167,14 +160,16 @@ public sealed class CommanderSession
     /// </summary>
     private bool OpenScope(UserIntent intent)
     {
+        DualPaneSnapshot panes = _panes.Current;
+        InteractionOwnership ownership = PaletteOwnership(panes);
         Action? open = intent switch
         {
             _ when intent == UserIntent.OpenSettings => OpenSettingsEditor,
             _ when intent == UserIntent.OpenColorSchemes => OpenColorSchemePicker,
             _ when intent == UserIntent.OpenBookmarks => OpenBookmarkManager,
-            _ when intent == UserIntent.OpenCommandPalette => OpenCommandPalette,
-            _ when intent == UserIntent.OpenWindowAdjustment => OpenWindowAdjustment,
-            _ when intent == UserIntent.OpenHelp => OpenKeyboardHelp,
+            _ when intent == UserIntent.OpenCommandPalette => () => _scopes.CommandPalette.Open(panes, CommandSurface.Palette, ownership),
+            _ when intent == UserIntent.OpenWindowAdjustment => () => _scopes.WindowAdjustment.Open(panes.ActiveSide, ownership),
+            _ when intent == UserIntent.OpenHelp => () => _scopes.KeyboardHelp.Open(panes.ActiveSide, ownership),
             _ => null,
         };
         open?.Invoke();
@@ -237,6 +232,14 @@ public sealed class CommanderSession
         return _scopes.WindowAdjustment.Adjust(request);
     }
 
+    /// <summary>Records the effect of one qualified transfer through the existing window scope owner.</summary>
+    /// <param name="expected">Exact decided owner returned with the transfer plan.</param>
+    /// <param name="effect">Observation made by the sole window adapter.</param>
+    /// <returns>The current window-adjustment state; a stale receipt changes nothing.</returns>
+    public WindowAdjustmentState ReportWindowTransfer(WindowAdjustmentOpen expected, WindowTransferEffect effect)
+    {
+        return _scopes.WindowAdjustment.ReportTransfer(expected, effect);
+    }
     /// <summary>
     /// Leaves one qualified open window-adjustment mode and requests the one-time focus return. It
     /// reads no placement and cannot be refused, so the mode never traps the user.
@@ -402,48 +405,33 @@ public sealed class CommanderSession
 
     private bool BookmarkInteractionIsFrozen()
     {
-        return PaneInteractionIsFrozen() || AnyPaneExternalWorkIsRunning(_panes.Current);
+        return PaneInteractionIsFrozen() || _panes.Current.HasExternalWork;
     }
 
-    private static bool AnyPaneExternalWorkIsRunning(DualPaneSnapshot panes)
+    private CommanderSnapshot OpenContextMenu(UserIntent intent)
     {
-        return panes.Left.Activity is PaneLoading or PaneLaunching ||
-            panes.Right.Activity is PaneLoading or PaneLaunching;
+        DualPaneSnapshot before = _panes.Current;
+        if (!CanAcquireContext(before) || CommandContextRequest.Create(intent, before) is not CommandContextRequest request)
+        {
+            return Current;
+        }
+        DualPaneSnapshot after = _panes.ApplyInteraction(request.Interaction);
+        if (!ReferenceEquals(before.Of(request.Interaction.Side), after.Of(request.Interaction.Side)))
+        {
+            _ = _scopes.CommandPalette.Open(after, request.Surface, InteractionOwnership.ScopeOwnsInput);
+        }
+        return Current;
     }
 
-    private bool AnyPaneReadIsRunning()
+    private bool CanAcquireContext(DualPaneSnapshot panes)
     {
-        DualPaneSnapshot panes = _panes.Current;
-        return panes.Left.Activity is PaneLoading || panes.Right.Activity is PaneLoading;
-    }
-
-    private void OpenCommandPalette()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.CommandPalette.Open(panes, PaletteOwnership(panes));
-    }
-
-    /// <summary>
-    /// Opens the window mode under the shared idle rule the palette already uses. An open palette
-    /// never reaches this point: <see cref="HandleAsync"/> routes every intent to the palette while
-    /// it is open, and the palette closes before it dispatches an accepted command. Listed pane
-    /// content is not part of the rule: a pane whose last read failed does not prevent moving the
-    /// window.
-    /// </summary>
-    private void OpenWindowAdjustment()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.WindowAdjustment.Open(panes.ActiveSide, PaletteOwnership(panes));
-    }
-
-    /// <summary>
-    /// Opens the keyboard help under the same idle rule as the window mode (ADR-0076). An open palette
-    /// closes before it dispatches an accepted command, so it never reaches this point while open.
-    /// </summary>
-    private void OpenKeyboardHelp()
-    {
-        DualPaneSnapshot panes = _panes.Current;
-        _ = _scopes.KeyboardHelp.Open(panes.ActiveSide, PaletteOwnership(panes));
+        InteractionOwnership ownership = PaletteOwnership(panes);
+        return ownership == InteractionOwnership.ScopeOwnsInput &&
+            Volatile.Read(ref _bookmarkNavigationInProgress) == 0 &&
+            _scopes.WindowAdjustment.Current is not WindowAdjustmentOpen &&
+            _scopes.KeyboardHelp.Current is not KeyboardHelpOpen &&
+            _scopes.Locations.Current is LocationsClosed &&
+            _scopes.CommandPalette.CanAcquireContext(panes, ownership);
     }
 
     /// <summary>
@@ -484,7 +472,7 @@ public sealed class CommanderSession
         return _settings.Current.Editor == SettingsEditorState.Closed &&
             _scopes.AddressEditor.Current is AddressEditorClosed &&
             !PaneInteractionIsFrozen() &&
-            !AnyPaneExternalWorkIsRunning(panes)
+            !panes.HasExternalWork
                 ? InteractionOwnership.ScopeOwnsInput
                 : InteractionOwnership.AnotherScopeOwnsInput;
     }
@@ -529,7 +517,7 @@ public sealed class CommanderSession
 
     private InteractionOwnership AddressOwnership()
     {
-        return PaneInteractionIsFrozen() || AnyPaneReadIsRunning()
+        return PaneInteractionIsFrozen() || _panes.Current.HasReadInProgress
             ? InteractionOwnership.AnotherScopeOwnsInput
             : InteractionOwnership.ScopeOwnsInput;
     }

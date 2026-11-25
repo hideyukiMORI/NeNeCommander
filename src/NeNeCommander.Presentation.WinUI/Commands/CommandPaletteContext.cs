@@ -34,6 +34,8 @@ internal sealed record CommandPaletteContext
         {
             UserIntent value when value == UserIntent.Copy || value == UserIntent.Move =>
                 _activeSide == PaneSide.Left ? "CommandPaletteTransferLeftToRight" : "CommandPaletteTransferRightToLeft",
+            UserIntent value when value == UserIntent.OpenCurrentLocationInOtherPane =>
+                _activeSide == PaneSide.Left ? "CommandPaletteOpenOtherRightDetail" : "CommandPaletteOpenOtherLeftDetail",
             UserIntent value when value == UserIntent.ActivateOtherPane =>
                 _activeSide == PaneSide.Left ? "CommandPaletteActivateRight" : "CommandPaletteActivateLeft",
             UserIntent value when value == UserIntent.OpenSettings => "CommandPaletteSettingsDetail",
@@ -41,6 +43,8 @@ internal sealed record CommandPaletteContext
             UserIntent value when value == UserIntent.OpenWindowAdjustment => "CommandPaletteWindowDetail",
             UserIntent value when value == UserIntent.OpenHelp => "CommandPaletteHelpDetail",
             UserIntent value when value == UserIntent.OpenBookmarks => "CommandPaletteBookmarksDetail",
+            UserIntent value when value == UserIntent.RevealFocused => "CommandPaletteRevealFocusedDetail",
+            UserIntent value when value == UserIntent.RevealLocation => "CommandPaletteRevealLocationDetail",
             _ => null,
         };
         return resourceKey is null ? null : localize(resourceKey);

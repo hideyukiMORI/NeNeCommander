@@ -22,11 +22,19 @@ Number allocation includes these reservations as well as the records already in 
 
 ## Proposed decisions
 
+- [ADR-0091: Share command selection between the palette and context menu](0091-context-menu-through-command-selection.md)
+
+- [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
+
 - [ADR-0087: Extend the existing closed color-scheme catalog](0087-closed-theme-catalog.md).
 
 ## Accepted decisions
 
+- [ADR-0090: Qualify pointer pane interaction through the existing owners](0090-pointer-pane-interaction.md)
+
 - [ADR-0088: Apply interface language through one live window resource context](0088-live-interface-language.md)
+- [ADR-0085: Create one empty text file through the existing mutation gateway](0085-create-empty-text-file.md)
+- [ADR-0084: Open the active location in the opposite pane through existing navigation](0084-open-current-location-in-other-pane.md)
 
 - [ADR-0083: Request deletion capability only for ordinary deletion](0083-operation-specific-inspection.md)
 
@@ -130,3 +138,5 @@ Number allocation includes these reservations as well as the records already in 
 - [ADR-0086: Select the next-launch interface language through existing settings](0086-next-launch-interface-language.md)
 
 - [ADR-0089: Persist normal window placement and correct off-screen restoration](0089-persist-window-placement.md)
+
+- [ADR-0092: Transfer the normal window through the existing adjustment route](0092-display-transfer-through-window-adjustment.md)

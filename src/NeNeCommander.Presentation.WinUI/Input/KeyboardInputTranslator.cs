@@ -32,22 +32,32 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.F6 => KeyboardKey.F6,
             (int)VirtualKey.F7 => KeyboardKey.F7,
             (int)VirtualKey.F8 => KeyboardKey.F8,
-            (int)VirtualKey.B when modifier == KeyboardModifier.Control => KeyboardKey.B,
-            (int)VirtualKey.W when modifier == KeyboardModifier.Control => KeyboardKey.W,
-            (int)VirtualKey.G when modifier == KeyboardModifier.Control => KeyboardKey.LowerG,
-            (int)VirtualKey.Number1 when modifier == KeyboardModifier.Control => KeyboardKey.One,
-            (int)VirtualKey.Number2 when modifier == KeyboardModifier.Control => KeyboardKey.Two,
-            (int)VirtualKey.Number3 when modifier == KeyboardModifier.Control => KeyboardKey.Three,
-            (int)VirtualKey.Number4 when modifier == KeyboardModifier.Control => KeyboardKey.Four,
-            (int)VirtualKey.Number5 when modifier == KeyboardModifier.Control => KeyboardKey.Five,
-            (int)VirtualKey.Number6 when modifier == KeyboardModifier.Control => KeyboardKey.Six,
-            (int)VirtualKey.Number7 when modifier == KeyboardModifier.Control => KeyboardKey.Seven,
-            (int)VirtualKey.Number8 when modifier == KeyboardModifier.Control => KeyboardKey.Eight,
-            (int)VirtualKey.Number9 when modifier == KeyboardModifier.Control => KeyboardKey.Nine,
-            188 when modifier == KeyboardModifier.Control => KeyboardKey.Comma,
-            _ => KeyboardKey.Other,
+            (int)VirtualKey.F10 => KeyboardKey.F10,
+            (int)VirtualKey.Application => KeyboardKey.Apps,
+            _ => modifier == KeyboardModifier.Control ? TranslateControlKey(virtualKey) : KeyboardKey.Other,
         };
         return KeyboardInput.Create(key, modifier, repeatState, context);
+    }
+
+    private static KeyboardKey TranslateControlKey(int virtualKey)
+    {
+        return virtualKey switch
+        {
+            (int)VirtualKey.B => KeyboardKey.B,
+            (int)VirtualKey.W => KeyboardKey.W,
+            (int)VirtualKey.G => KeyboardKey.LowerG,
+            (int)VirtualKey.Number1 => KeyboardKey.One,
+            (int)VirtualKey.Number2 => KeyboardKey.Two,
+            (int)VirtualKey.Number3 => KeyboardKey.Three,
+            (int)VirtualKey.Number4 => KeyboardKey.Four,
+            (int)VirtualKey.Number5 => KeyboardKey.Five,
+            (int)VirtualKey.Number6 => KeyboardKey.Six,
+            (int)VirtualKey.Number7 => KeyboardKey.Seven,
+            (int)VirtualKey.Number8 => KeyboardKey.Eight,
+            (int)VirtualKey.Number9 => KeyboardKey.Nine,
+            188 => KeyboardKey.Comma,
+            _ => KeyboardKey.Other,
+        };
     }
 
     internal static KeyboardInput TranslateCharacterData(
@@ -61,6 +71,7 @@ internal static class KeyboardInputTranslator
             'a' => KeyboardKey.A,
             'd' or '\u0004' => KeyboardKey.D,
             'e' => KeyboardKey.E,
+            '\u0005' when modifier == KeyboardModifier.Control => KeyboardKey.E,
             '/' => KeyboardKey.Slash,
             'b' or '\u0002' => KeyboardKey.B,
             'G' => KeyboardKey.UpperG,
@@ -70,6 +81,7 @@ internal static class KeyboardInputTranslator
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
             'm' => KeyboardKey.M,
+            'n' => KeyboardKey.N,
             'w' or '' => KeyboardKey.W,
             '+' => KeyboardKey.Plus,
             '-' => KeyboardKey.Minus,
@@ -108,5 +120,16 @@ internal static class KeyboardInputTranslator
     private static bool IsPressed(CoreVirtualKeyStates state)
     {
         return (state & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+    }
+
+    internal static KeyboardModifier TranslateF10ModifierState(
+        CoreVirtualKeyStates controlState,
+        CoreVirtualKeyStates altState,
+        CoreVirtualKeyStates shiftState)
+    {
+        KeyboardModifier commandModifier = TranslateModifierState(controlState, altState);
+        return !IsPressed(shiftState)
+            ? commandModifier
+            : commandModifier == KeyboardModifier.None ? KeyboardModifier.Shift : KeyboardModifier.Other;
     }
 }

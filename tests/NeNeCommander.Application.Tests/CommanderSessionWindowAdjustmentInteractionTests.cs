@@ -24,29 +24,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         using CommanderWindowAdjustmentTestContext fixture = await CommanderWindowAdjustmentTestContext.ListedAsync();
         CommanderSnapshot before = await fixture.HandleAsync(UserIntent.OpenWindowAdjustment);
         WindowAdjustmentOpen open = Assert.IsInstanceOfType<WindowAdjustmentOpen>(before.Scopes.WindowAdjustment);
-        UserIntent[] intents =
-        [
-            UserIntent.MoveNext,
-            UserIntent.ActivateOtherPane,
-            UserIntent.ToggleHiddenItems,
-            UserIntent.Refresh,
-            UserIntent.OpenFocused,
-            UserIntent.Escape,
-            UserIntent.Confirm,
-            UserIntent.Copy,
-            UserIntent.Move,
-            UserIntent.Delete,
-            UserIntent.Rename,
-            UserIntent.CreateDirectory,
-            UserIntent.FocusAddress,
-            UserIntent.OpenSettings,
-            UserIntent.OpenBookmarks,
-            UserIntent.OpenCommandPalette,
-            UserIntent.OpenWindowAdjustment,
-            UserIntent.BookmarkSlotOne,
-        ];
-
-        foreach (UserIntent intent in intents)
+        foreach (UserIntent intent in FrozenIntents())
         {
             CommanderSnapshot frozen = await fixture.HandleAsync(intent);
             CommanderWindowAdjustmentTestContext.AssertUnchanged(before, frozen);
@@ -191,7 +169,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         WindowAdjustmentDecision staleAdjust = fixture.Session.AdjustWindow(WindowAdjustmentRequest.Create(
             first,
             WindowAdjustmentAction.Maximize,
-            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored)));
+            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested));
         WindowAdjustmentState staleLeave = fixture.Session.LeaveWindowAdjustment(first);
 
         Assert.AreSame(WindowAdjustmentDecision.NothingToApply, staleAdjust);
@@ -242,7 +220,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         WindowAdjustmentDecision adjusted = fixture.Session.AdjustWindow(WindowAdjustmentRequest.Create(
             old,
             WindowAdjustmentAction.MoveLeft,
-            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored)));
+            WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested));
         WindowAdjustmentState left = fixture.Session.LeaveWindowAdjustment(old);
 
         Assert.AreSame(WindowAdjustmentDecision.NothingToApply, adjusted);
@@ -273,7 +251,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
                 WindowAdjustmentRequest.Create(
                     old,
                     action,
-                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored))));
+                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested)));
         }
         _ = fixture.Session.LeaveWindowAdjustment(old);
         CommanderSnapshot reopen = await fixture.HandleAsync(UserIntent.OpenWindowAdjustment);
@@ -311,7 +289,7 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
                 WindowAdjustmentRequest.Create(
                     fixture.CurrentOpen(),
                     action,
-                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored))));
+                    WindowAdjustmentSessionTests.Placement(WindowPresenterState.Restored), WindowTransferInput.NotRequested)));
             CommanderWindowAdjustmentTestContext.AssertUnchanged(before, fixture.Session.Current);
         }
         WindowAdjustmentOpen beforeLeave = fixture.CurrentOpen();
@@ -348,4 +326,30 @@ public sealed class CommanderSessionWindowAdjustmentInteractionTests
         _ = Assert.IsInstanceOfType<PaneReadFailed>(completed.Right.Activity);
         Assert.AreSame(open, fixture.Session.Current.Scopes.WindowAdjustment);
     }
+    private static UserIntent[] FrozenIntents()
+    {
+        return
+        [
+            UserIntent.MoveNext,
+            UserIntent.ActivateOtherPane,
+            UserIntent.ToggleHiddenItems,
+            UserIntent.Refresh,
+            UserIntent.OpenFocused,
+            UserIntent.Escape,
+            UserIntent.Confirm,
+            UserIntent.Copy,
+            UserIntent.Move,
+            UserIntent.Delete,
+            UserIntent.Rename,
+            UserIntent.CreateDirectory,
+            UserIntent.CreateTextFile,
+            UserIntent.FocusAddress,
+            UserIntent.OpenSettings,
+            UserIntent.OpenBookmarks,
+            UserIntent.OpenCommandPalette,
+            UserIntent.OpenWindowAdjustment,
+            UserIntent.BookmarkSlotOne,
+        ];
+    }
+
 }

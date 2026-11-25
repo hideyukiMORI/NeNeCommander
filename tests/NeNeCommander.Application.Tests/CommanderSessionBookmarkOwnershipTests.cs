@@ -219,7 +219,7 @@ public sealed class CommanderSessionBookmarkOwnershipTests
 
         Assert.AreSame(palette, slotRejected.Scopes.CommandPalette);
         Assert.AreSame(SettingsEditorState.Closed, slotRejected.Settings.Editor);
-        Assert.HasCount(24, CommandCatalog.Commands);
+        Assert.HasCount(28, CommandCatalog.Commands);
         Assert.IsFalse(CommandCatalog.Commands.Contains(UserIntent.BookmarkSlotOne));
         Assert.HasCount(1, left.Requests);
     }

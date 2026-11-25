@@ -25,13 +25,16 @@ public sealed class WindowAdjustmentPresenterTests
     {
         IReadOnlyList<WindowAdjustmentKeyHint> hints = WindowAdjustmentKeyHintPresenter.Present();
 
-        Assert.HasCount(6, hints);
+        Assert.HasCount(9, hints);
         AssertHint(hints[0], "WindowAdjustmentHintMove", "KeyLabelH", "KeyLabelJ", "KeyLabelK", "KeyLabelL");
-        AssertHint(hints[1], "WindowAdjustmentHintEnlarge", "KeyLabelPlus");
-        AssertHint(hints[2], "WindowAdjustmentHintShrink", "KeyLabelMinus");
-        AssertHint(hints[3], "WindowAdjustmentHintMaximize", "KeyLabelM");
-        AssertHint(hints[4], "WindowAdjustmentHintRestore", "KeyLabelR");
-        AssertHint(hints[5], "WindowAdjustmentHintLeave", "KeyLabelEscape");
+        AssertHint(hints[1], "WindowAdjustmentHintPreviousDisplay", "KeyLabelP", "KeyLabelCtrlLeft");
+        AssertHint(hints[2], "WindowAdjustmentHintNextDisplay", "KeyLabelN", "KeyLabelCtrlRight");
+        AssertHint(hints[3], "WindowAdjustmentHintEnlarge", "KeyLabelPlus");
+        AssertHint(hints[4], "WindowAdjustmentHintShrink", "KeyLabelMinus");
+        AssertHint(hints[5], "WindowAdjustmentHintMaximize", "KeyLabelM");
+        AssertHint(hints[6], "WindowAdjustmentHintRestore", "KeyLabelR");
+        AssertHint(hints[7], "WindowAdjustmentHintLeave", "KeyLabelEscape");
+        AssertHint(hints[8], "WindowAdjustmentHintScrollHelp", "KeyLabelPageUp", "KeyLabelPageDown");
         Assert.IsFalse(hints.SelectMany(hint => hint.KeyLabelResourceKeys).Any(label =>
             label is "KeyLabelLeft" or "KeyLabelDown" or "KeyLabelUp" or "KeyLabelRight" or "KeyLabelCtrlW"));
     }
@@ -47,7 +50,7 @@ public sealed class WindowAdjustmentPresenterTests
         ];
 
         Assert.HasCount(grouped.Length, hints.SelectMany(hint => hint.KeyLabelResourceKeys));
-        Assert.HasCount(6, grouped.Select(binding => binding.HintGroup).Distinct());
+        Assert.HasCount(9, grouped.Select(binding => binding.HintGroup).Distinct());
     }
 
     /// <summary>Proves each hint group names its own label resource.</summary>
@@ -153,8 +156,7 @@ public sealed class WindowAdjustmentPresenterTests
         IReadOnlyList<WindowAdjustmentKeyHint> hints = [];
 
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => WindowAdjustmentPresenter.Present(null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowAdjustmentKeyHint(null!, "Label"));
-        _ = Assert.ThrowsExactly<ArgumentException>(() => new WindowAdjustmentKeyHint([], " "));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowAdjustmentKeyHint(null!, WindowAdjustmentHintGroup.Leave));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new WindowAdjustmentKeyHint([], null!));
         _ = Assert.ThrowsExactly<ArgumentException>(() => new WindowAdjustmentPresentation(" ", "O", "B", hints));
         _ = Assert.ThrowsExactly<ArgumentException>(() => new WindowAdjustmentPresentation("T", " ", "B", hints));
@@ -173,7 +175,7 @@ public sealed class WindowAdjustmentPresenterTests
         WindowAdjustmentSession session = new();
         WindowAdjustmentOpen open = Opened(session);
         _ = Assert.IsInstanceOfType<WindowAdjustmentPlanned>(
-            session.Adjust(WindowAdjustmentRequest.Create(open, action, placement)));
+            session.Adjust(WindowAdjustmentRequest.Create(open, action, placement, WindowTransferInput.NotRequested)));
         return Assert.IsInstanceOfType<WindowAdjustmentOpen>(session.Current);
     }
 
@@ -194,6 +196,7 @@ public sealed class WindowAdjustmentPresenterTests
     private static void AssertHint(WindowAdjustmentKeyHint hint, string label, params string[] caps)
     {
         Assert.AreEqual(label, hint.IntentLabelResourceKey);
+        Assert.AreEqual(hint.Group.LabelResourceKey, hint.IntentLabelResourceKey);
         CollectionAssert.AreEqual(caps, hint.KeyLabelResourceKeys.ToArray());
     }
 

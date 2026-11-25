@@ -69,6 +69,24 @@ public sealed record OperationStatus
     /// <summary>Gets the status when the directory name was invalid and never reached the gateway.</summary>
     public static OperationStatus CreateDirectoryRequestRejected { get; } = new("OperationStatusCreateDirectoryRequestRejected");
 
+    /// <summary>Gets the status while an empty text file is being created.</summary>
+    public static OperationStatus CreatingTextFile { get; } = new("OperationStatusCreatingTextFile");
+
+    /// <summary>Gets the status while the session waits for the new text file's name.</summary>
+    public static OperationStatus CreateTextFileAwaitingName { get; } = new("OperationStatusCreateTextFileAwaitingName");
+
+    /// <summary>Gets the status when the empty text file was created.</summary>
+    public static OperationStatus TextFileCreated { get; } = new("OperationStatusTextFileCreated");
+
+    /// <summary>Gets the status when cancellation stopped text-file creation.</summary>
+    public static OperationStatus CreateTextFileCancelled { get; } = new("OperationStatusCreateTextFileCancelled");
+
+    /// <summary>Gets the status when the gateway rejected text-file creation before any effect.</summary>
+    public static OperationStatus CreateTextFileRejected { get; } = new("OperationStatusCreateTextFileRejected");
+
+    /// <summary>Gets the status when the new filename was invalid and never reached the gateway.</summary>
+    public static OperationStatus CreateTextFileRequestRejected { get; } = new("OperationStatusCreateTextFileRequestRejected");
+
     /// <summary>Gets the status while a rename runs.</summary>
     public static OperationStatus Renaming { get; } = new("OperationStatusRenaming");
 

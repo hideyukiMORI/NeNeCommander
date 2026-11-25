@@ -21,6 +21,8 @@ public static class WindowAdjustmentPresenter
         [WindowAdjustmentAction.Shrink] = "WindowAdjustmentPlannedShrink",
         [WindowAdjustmentAction.Maximize] = "WindowAdjustmentPlannedMaximize",
         [WindowAdjustmentAction.Restore] = "WindowAdjustmentPlannedRestore",
+        [WindowAdjustmentAction.PreviousDisplay] = "WindowAdjustmentPlannedPreviousDisplay",
+        [WindowAdjustmentAction.NextDisplay] = "WindowAdjustmentPlannedNextDisplay",
     };
 
     private static readonly Dictionary<WindowAdjustmentRefusal, string> RefusedLabels = new()
@@ -33,6 +35,10 @@ public static class WindowAdjustmentPresenter
         [WindowAdjustmentRefusal.WindowIsRestored] = "WindowAdjustmentRefusedRestored",
         [WindowAdjustmentRefusal.PresenterIsNotOverlapped] = "WindowAdjustmentRefusedNotOverlapped",
         [WindowAdjustmentRefusal.PlacementUnavailable] = "WindowAdjustmentRefusedUnavailable",
+        [WindowAdjustmentRefusal.NoOtherDisplay] = "WindowAdjustmentRefusedNoOtherDisplay",
+        [WindowAdjustmentRefusal.DisplayInformationUnavailable] = "WindowAdjustmentRefusedDisplayInformation",
+        [WindowAdjustmentRefusal.WindowIsHidden] = "WindowAdjustmentRefusedHidden",
+        [WindowAdjustmentRefusal.TargetCannotFit] = "WindowAdjustmentRefusedTargetCannotFit",
     };
 
     /// <summary>Creates the helper presentation of one Application-owned open mode.</summary>
@@ -50,20 +56,36 @@ public static class WindowAdjustmentPresenter
 
     private static string OutcomeResourceKey(WindowAdjustmentOutcome outcome)
     {
-        return outcome is WindowActionPlanned planned
-            ? Declared(PlannedLabels, planned.Action)
-            : outcome is WindowActionRefused refused
-                ? Declared(RefusedLabels, refused.Reason)
-                : "WindowAdjustmentOutcomeIdle";
+        return outcome switch
+        {
+            WindowActionPlanned planned => Declared(PlannedLabels, planned.Action),
+            WindowActionRefused refused => Declared(RefusedLabels, refused.Reason),
+            WindowTransferReported reported => TransferResourceKey(reported),
+            _ => "WindowAdjustmentOutcomeIdle",
+        };
     }
 
     private static string OutcomeBrushResourceKey(WindowAdjustmentOutcome outcome)
     {
-        return outcome is WindowActionPlanned
-            ? "TextPrimaryBrush"
-            : outcome is WindowActionRefused ? "StatusWarningBrush" : "TextSecondaryBrush";
+        return outcome switch
+        {
+            WindowActionPlanned => "TextPrimaryBrush",
+            WindowActionRefused => "StatusWarningBrush",
+            WindowTransferReported reported => reported.Effect == WindowTransferEffect.Observed ? "TextPrimaryBrush" : "StatusWarningBrush",
+            _ => "TextSecondaryBrush",
+        };
     }
 
+    private static string TransferResourceKey(WindowTransferReported reported)
+    {
+        return reported.Effect == WindowTransferEffect.Observed
+            ? reported.Action == WindowAdjustmentAction.PreviousDisplay
+                ? "WindowAdjustmentMovedPreviousDisplay"
+                : "WindowAdjustmentMovedNextDisplay"
+            : reported.Effect == WindowTransferEffect.Unconfirmed
+                ? "WindowAdjustmentTransferUnconfirmed"
+                : "WindowAdjustmentTransferNotApplied";
+    }
     private static string Declared<TKey>(Dictionary<TKey, string> labels, TKey key)
         where TKey : notnull
     {

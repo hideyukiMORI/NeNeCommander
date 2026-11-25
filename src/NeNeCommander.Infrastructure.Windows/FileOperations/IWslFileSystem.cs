@@ -33,6 +33,8 @@ internal interface IWslFileSystem
 
     internal void CreateDirectory(WslPath target);
 
+    internal ProviderStepOutcome CreateEmptyFile(WslPath target);
+
     internal void Rename(WslFileSystemEntry source, WslPath target);
 
     internal void Delete(WslFileSystemEntry source);

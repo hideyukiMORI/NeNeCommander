@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
@@ -81,7 +82,7 @@ internal sealed class CommandPaletteView
     internal void Render(CommanderSnapshot snapshot)
     {
         CommandPaletteState state = snapshot.Scopes.CommandPalette;
-        if (state is not CommandPaletteOpen open)
+        if (state is not CommandPaletteOpen open || open.Surface != CommandSurface.Palette)
         {
             bool wasOpen = _commandPaletteView is not null;
             _commandPaletteView = null;
@@ -92,7 +93,7 @@ internal sealed class CommandPaletteView
             {
                 _focusFileList(focusSide);
             }
-            else if (wasOpen && PaletteExecutionLeavesFileListOwner(snapshot))
+            else if (wasOpen && state is CommandPaletteClosed && PaletteExecutionLeavesFileListOwner(snapshot))
             {
                 _focusFileList(snapshot.Panes.ActiveSide);
             }

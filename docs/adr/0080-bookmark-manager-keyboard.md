@@ -158,6 +158,16 @@ under the existing owner. When actual search text/IME input cancels deferred res
 visible focus marks follow Search. Closing the manager restores the active file list before
 collapsing the focused overlay. This changes no filter, selection, save or navigation policy.
 
+
+Issue #581 keeps explicit region paint owned by the existing deferred focus request.
+The request is registered before marked row replacement; incidental native focus
+notifications may cancel passive restoration but cannot repaint an explicit pending
+transition. Later native input still cancels it. Cancellation reconciles marks and
+keyboard context with the actual search/category/list focus, including the case
+where that control retains focus and no further GotFocus notification occurs.
+Initial Tab cancellation belongs to the host notification after the canonical mapper
+yields input to native controls; mapped Tab transitions retain the latest request.
+The host passes its existing KeyboardInput and retains pending confirmation Enter protection.
 ## Rejected alternatives
 
 - **Direction B (a single column like the command palette, categories as headings inside the

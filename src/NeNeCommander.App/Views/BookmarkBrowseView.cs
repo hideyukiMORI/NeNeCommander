@@ -23,6 +23,7 @@ internal sealed class BookmarkBrowseView
     private readonly Func<bool> _isRendering;
     private readonly BookmarkFocusRestoration _focus;
     private readonly BookmarkBrowseRows _sources = new();
+    private readonly BookmarkRegionFocusView _regionFocus;
     private BookmarkBrowsePresentation? _renderedBrowse;
     private BookmarkManagerRegion? _focusedRegion = BookmarkManagerRegion.Bookmarks;
     private bool _renderingFocus;
@@ -46,6 +47,8 @@ internal sealed class BookmarkBrowseView
         Search = Find<TextBox>("BookmarkSearch");
         _categories = Find<ListView>("BookmarkCategories");
         _rows = Find<ListView>("BookmarkRows");
+        _regionFocus = new BookmarkRegionFocusView(
+            Find<Border>("BookmarkCategoryHeading"), Find<Border>("BookmarkRowHeading"));
         _emptyContent = Find<TextBlock>("BookmarkEmptyContent");
         _count = Find<TextBlock>("BookmarkCount");
         RowAutomationIdentity.Attach<BookmarkRow>(
@@ -122,9 +125,10 @@ internal sealed class BookmarkBrowseView
     /// <param name="region">Region that receives focus.</param>
     internal void Focus(BookmarkManagerRegion region)
     {
-        ShowFocus(region);
         ListView list = ListOf(region);
+        // Own the transition before replacing rows can notify the old region's native focus.
         FocusWhenRealized(list);
+        ShowFocus(region);
     }
 
     internal void FocusSearch()
@@ -137,9 +141,18 @@ internal sealed class BookmarkBrowseView
     internal void CancelPendingFocus()
     {
         _focus.Cancel();
+        // Native input can retain its control without another GotFocus to repair marks and context.
         if (SearchHasFocus)
         {
             ShowFocus(null);
+        }
+        else if (HoldsFocus(_categories))
+        {
+            OnRegionFocused(BookmarkManagerRegion.Categories);
+        }
+        else if (HoldsFocus(_rows))
+        {
+            OnRegionFocused(BookmarkManagerRegion.Bookmarks);
         }
     }
 
@@ -210,7 +223,10 @@ internal sealed class BookmarkBrowseView
                 return;
             }
             _focus.CancelRestoration();
-            ShowFocus(null);
+            if (!_focus.IsPending)
+            {
+                ShowFocus(null);
+            }
         };
         _categories.SelectionChanged += OnCategorySelectionChanged;
         _categories.GotFocus += (_, _) => OnRegionFocused(BookmarkManagerRegion.Categories);
@@ -228,6 +244,11 @@ internal sealed class BookmarkBrowseView
         if (!_isRendering())
         {
             _focus.CancelRestoration();
+            // CancelRestoration preserves only an explicit transition, whose paint must not revert.
+            if (_focus.IsPending)
+            {
+                return;
+            }
             SelectForFocus(ListOf(region));
         }
         ShowFocus(region);
@@ -260,8 +281,7 @@ internal sealed class BookmarkBrowseView
             _sources.Update(browse);
             _categories.SelectedItem = _sources.SelectedCategory;
             _rows.SelectedItem = _sources.SelectedRow;
-            _categories.BorderBrush = RegionBrush(BookmarkManagerRegion.Categories);
-            _rows.BorderBrush = RegionBrush(BookmarkManagerRegion.Bookmarks);
+            _regionFocus.Render(_focusedRegion);
             _renderedBrowse = browse;
         }
         finally
@@ -278,11 +298,6 @@ internal sealed class BookmarkBrowseView
         }
     }
 
-    private Brush RegionBrush(BookmarkManagerRegion region)
-    {
-        string key = _focusedRegion == region ? "FocusRingBrush" : "SurfacePaneBrush";
-        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[key];
-    }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs args)
     {

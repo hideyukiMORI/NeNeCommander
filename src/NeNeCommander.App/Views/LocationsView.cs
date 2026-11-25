@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -88,13 +90,42 @@ internal sealed class LocationsView
         RenderText(_drives, presentation.Texts.Drives);
         RenderText(_wslRoots, presentation.Texts.WslRoots);
         Find<ItemsControl>("LocationsKeyHints").ItemsSource = presentation.KeyHints;
-        _list.ItemsSource = presentation.Rows;
-        _list.SelectedItem = presentation.FocusRow;
-        if (presentation.FocusRow is LocationRow focus)
+        RenderRows(presentation);
+        _overlay.Visibility = Visibility.Visible;
+    }
+
+    private void RenderRows(LocationsPresentation presentation)
+    {
+        // Retain measured containers during selection moves; resetting ItemsSource loses
+        // variable row heights and can leave the selected wrapped row outside the viewport.
+        if (!HasSameRows(presentation.Rows))
+        {
+            _list.ItemsSource = presentation.Rows;
+        }
+        LocationRow? selected = presentation.FocusRow is LocationRow target
+            ? _list.Items.Cast<LocationRow>().First(row => ReferenceEquals(row.Item, target.Item))
+            : null;
+        _list.SelectedItem = selected;
+        if (selected is LocationRow focus)
         {
             _list.ScrollIntoView(focus);
         }
-        _overlay.Visibility = Visibility.Visible;
+    }
+
+    private bool HasSameRows(IReadOnlyList<LocationRow> rows)
+    {
+        if (_list.ItemsSource is not IReadOnlyList<LocationRow> previous || previous.Count != rows.Count)
+        {
+            return false;
+        }
+        for (int index = 0; index < rows.Count; index++)
+        {
+            if (!ReferenceEquals(previous[index].Item, rows[index].Item) || previous[index] != rows[index])
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>

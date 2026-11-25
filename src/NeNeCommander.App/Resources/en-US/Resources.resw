@@ -391,6 +391,8 @@
   <data name="SettingsKeyHintExplanation.Text" xml:space="preserve"><value>When off, F1 help and Enter/Esc hints for confirmation or name entry remain visible.</value></data>
   <data name="AddressEditorTitle.Text" xml:space="preserve"><value>Go to location</value></data>
   <data name="AddressEditorInput.AutomationProperties.Name" xml:space="preserve"><value>Absolute location</value></data>
+  <data name="KeyLabelCtrlE" xml:space="preserve"><value>Ctrl+E</value></data>
+  <data name="IntentLabelOpenCurrentLocationInOtherPane" xml:space="preserve"><value>Open current folder in the other pane</value></data>
   <data name="PaneCountsUnavailable" xml:space="preserve"><value>Counts unavailable</value></data>
   <data name="PaneCountsFormat" xml:space="preserve"><value>Files {0:N0} · Folders {1:N0} · Selected {2:N0}</value></data>
   <data name="PaneCountsVisibleFormat" xml:space="preserve"><value>Shown: files {0:N0}, folders {1:N0} · Selected {2:N0} · Loaded: files {3:N0}, folders {4:N0}</value></data>
@@ -821,4 +823,78 @@
   <data name="CommandPaletteHelpDetail" xml:space="preserve"><value>Application keyboard help</value></data>
   <data name="CommandPaletteBookmarksDetail" xml:space="preserve"><value>Manage shared bookmarks and choose a location</value></data>
   <data name="BookmarkSaveShortcutFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyLabelP" xml:space="preserve"><value>p</value></data>
+  <data name="KeyLabelN" xml:space="preserve"><value>n</value></data>
+  <data name="KeyLabelCtrlLeft" xml:space="preserve"><value>Ctrl+←</value></data>
+  <data name="KeyLabelCtrlRight" xml:space="preserve"><value>Ctrl+→</value></data>
+  <data name="WindowAdjustmentHintPreviousDisplay" xml:space="preserve"><value>Previous display</value></data>
+  <data name="WindowAdjustmentHintNextDisplay" xml:space="preserve"><value>Next display</value></data>
+  <data name="WindowAdjustmentPlannedPreviousDisplay" xml:space="preserve"><value>Move to previous display</value></data>
+  <data name="WindowAdjustmentPlannedNextDisplay" xml:space="preserve"><value>Move to next display</value></data>
+  <data name="WindowAdjustmentMovedPreviousDisplay" xml:space="preserve"><value>Moved to previous display.</value></data>
+  <data name="WindowAdjustmentMovedNextDisplay" xml:space="preserve"><value>Moved to next display.</value></data>
+  <data name="WindowAdjustmentRefusedNoOtherDisplay" xml:space="preserve"><value>No other display is available.</value></data>
+  <data name="WindowAdjustmentRefusedDisplayInformation" xml:space="preserve"><value>Display information is unavailable.</value></data>
+  <data name="WindowAdjustmentRefusedHidden" xml:space="preserve"><value>Show the window before moving it.</value></data>
+  <data name="WindowAdjustmentRefusedTargetCannotFit" xml:space="preserve"><value>The target display cannot fit the window&apos;s minimum size.</value></data>
+  <data name="WindowAdjustmentTransferNotApplied" xml:space="preserve"><value>The display move was cancelled before it started.</value></data>
+  <data name="WindowAdjustmentTransferUnconfirmed" xml:space="preserve"><value>Display move could not be confirmed. Check the window position.</value></data>
+  <data name="WindowAdjustmentHintScrollHelp" xml:space="preserve"><value>Read help</value></data>
+  <data name="KeyLabelF10" xml:space="preserve"><value>F10</value></data>
+  <data name="CommandEntryFocus" xml:space="preserve"><value>Focus application commands</value></data>
+  <data name="CommandEntryReturn" xml:space="preserve"><value>Return to active pane</value></data>
+  <data name="CommandEntryToolTipFormat" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="KeyboardHelpGroupCommandEntry" xml:space="preserve"><value>Application commands</value></data>
+  <data name="OperationStatusCreatingTextFile" xml:space="preserve"><value>Creating text file…</value></data>
+  <data name="OperationStatusCreateTextFileAwaitingName" xml:space="preserve"><value>Enter a name for the new text file</value></data>
+  <data name="OperationStatusTextFileCreated" xml:space="preserve"><value>Text file created</value></data>
+  <data name="OperationStatusCreateTextFileCancelled" xml:space="preserve"><value>Text-file creation cancelled</value></data>
+  <data name="OperationStatusCreateTextFileRejected" xml:space="preserve"><value>Text-file creation was rejected before any change</value></data>
+  <data name="OperationStatusCreateTextFileRequestRejected" xml:space="preserve"><value>File name is not valid</value></data>
+  <data name="IntentLabelCreateTextFile" xml:space="preserve"><value>New text file</value></data>
+  <data name="NameEntryTextFileDefault" xml:space="preserve"><value>New text file.txt</value></data>
+  <data name="KeyLabelCtrlF7" xml:space="preserve"><value>Ctrl+F7</value></data>
+  <data name="IntentLabelRevealFocused" xml:space="preserve">
+    <value>Show focused item in Explorer</value>
+  </data>
+  <data name="IntentLabelRevealLocation" xml:space="preserve">
+    <value>Show current folder in Explorer</value>
+  </data>
+  <data name="IntentLabelOpenContextMenu" xml:space="preserve">
+    <value>Open context menu</value>
+  </data>
+  <data name="PaneStatusRevealing" xml:space="preserve">
+    <value>Requesting Explorer selection…</value>
+  </data>
+  <data name="PaneStatusRevealCancelled" xml:space="preserve">
+    <value>Explorer selection request cancelled</value>
+  </data>
+  <data name="PaneStatusRevealNotFound" xml:space="preserve">
+    <value>Explorer could not find the item</value>
+  </data>
+  <data name="PaneStatusRevealAccessDenied" xml:space="preserve">
+    <value>Explorer access denied</value>
+  </data>
+  <data name="PaneStatusRevealUnavailable" xml:space="preserve">
+    <value>Explorer could not show the item</value>
+  </data>
+  <data name="CommandPaletteRevealFocusedDetail" xml:space="preserve">
+    <value>Select the focused item in its Explorer parent folder.</value>
+  </data>
+  <data name="CommandPaletteRevealLocationDetail" xml:space="preserve">
+    <value>Select the current folder itself in its Explorer parent.</value>
+  </data>
+  <data name="KeyLabelApps" xml:space="preserve"><value>Menu</value></data>
+  <data name="KeyLabelShiftF10" xml:space="preserve"><value>Shift+F10</value></data>
+  <data name="CommandMenuFocusFormat" xml:space="preserve"><value>Focused item: {0}</value></data>
+  <data name="CommandMenuSelectionFormat" xml:space="preserve"><value>Selected items: {0}</value></data>
+  <data name="CommandMenuFocusFallbackFormat" xml:space="preserve"><value>Focused item (no selection): {0}</value></data>
+  <data name="CommandMenuNewFormat" xml:space="preserve"><value>New in: {0}</value></data>
+  <data name="CommandMenuFolderFormat" xml:space="preserve"><value>Current folder: {0}</value></data>
+  <data name="OpenFolderInRightPaneFormat" xml:space="preserve"><value>Open this folder in the right pane ({0})</value></data>
+  <data name="OpenFolderInLeftPaneFormat" xml:space="preserve"><value>Open this folder in the left pane ({0})</value></data>
+  <data name="CommandPaletteOpenOtherRightDetail" xml:space="preserve"><value>Open the current folder in the right pane</value></data>
+  <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>Open the current folder in the left pane</value></data>
+  <data name="PaneNavigateParent" xml:space="preserve"><value>Go to parent folder</value></data>
+  <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>About this app</value></data>
 </root>

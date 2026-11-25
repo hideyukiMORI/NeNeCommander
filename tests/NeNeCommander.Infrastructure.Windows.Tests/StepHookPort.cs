@@ -106,6 +106,14 @@ internal sealed class StepHookPort : IFileOperationPort
         return _inner.CreateDirectoryAsync(location, target, cancellationToken);
     }
 
+    public Task<ProviderStepOutcome> CreateEmptyFileAsync(
+        FileEntrySnapshot location,
+        FileSystemPath target,
+        CancellationToken cancellationToken)
+    {
+        return _inner.CreateEmptyFileAsync(location, target, cancellationToken);
+    }
+
     public Task<ProviderStepOutcome> RenameAsync(
         FileEntrySnapshot source,
         FileSystemPath target,

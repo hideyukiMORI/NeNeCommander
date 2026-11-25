@@ -81,7 +81,7 @@ requirements remain stricter than the general local drive observation.
 Windows recycle capability (ADR-0063) requires an existing non-root entry on a fixed drive, non-link ancestors and source tree, Shell filesystem/delete attributes, and an available volume recycle namespace. This admits a recycle-only attempt; it does not promise unchanged quota or permissions. Removable and network drives are not admitted by this capability.
 
 ADR-0083 makes the requested observation explicit on the existing inspection port. Copy, move,
-rename and directory creation request identity only; Windows/WSL return `NotRequested` for ordinary
+rename, directory creation and empty text-file creation request identity only; Windows/WSL return `NotRequested` for ordinary
 deletion capability while preserving the same admitted identity capture. Ordinary deletion requests
 the existing capability observation for every source and rejects any uninspected result before the
 first effect, regardless of confirmation. Provider ordinary-delete entry points also refuse it.
@@ -101,6 +101,18 @@ it does not require or infer permission to perform ordinary deletion from that c
 - Enforcement: recursive-operation tests.
 
 Recursive enumerate, copy, move fallback, and delete do not follow symbolic links, junctions, or reparse points by default. They operate on the link entry. A future follow-links feature requires an ADR, cycle detection, root containment proof, and new destructive tests.
+
+Empty text-file creation (ADR-0085) revalidates the original parent snapshot, its
+non-link directory/ancestor shape and the target's exact direct-parent identity.
+Windows local admission uses the existing general local-drive boundary; WSL uses
+the existing9P identity and extended-length resolver. UNC remains unavailable.
+The one native primitive uses `CREATE_NEW | FILE_FLAG_OPEN_REPARSE_POINT`, closes
+its handle without writing and creates zero bytes without BOM. An existing final
+entry, including a dangling link, is a conflict. Error5 is a conflict only when the
+target is observed to exist; otherwise it remains AccessDenied. No provider retries,
+replaces, follows a final link, opens an editor or deletes after cancellation.
+The final flag does not protect ancestors: the declared last-query-to-path-open
+race remains. Selected real WSL proof is required before accepting this operation.
 
 ### FS-005 — Cross-provider move is explicit
 
@@ -184,4 +196,29 @@ ADR-0069 strengthens all supported transfer pairs with one verified-descendant r
 
 Live filesystem integration is split from deterministic provider contract tests. Live WSL mutation tests are opt-in and require `NENE_COMMANDER_WSL_TEST_ROOT` to identify an existing, dedicated, empty direct child of `/tmp` named with the `NeNeCommander-Live-` prefix in a registered distribution. The harness rejects every other shape, including a distribution root, `/home`, a user home, `/mnt`, the repository, or any ancestor of them. Setup and cleanup revalidate the non-link ancestor chain, configured-root identity, create-new ownership marker, run-child identity, containment, and the identity of every owned entry. Cleanup unlinks a verified test-created link without following it, revalidates the child, and deletes only that run child. It retains the configured root. Ambiguity, replacement, foreign residue, or cleanup failure leaves the remaining tree in place and reports a closed reason.
 
-The harness takes every identity from the production `WindowsWslFileSystem` on the entry's own path under ADR-0049, never from `WindowsFileIdentifier` directly, from enumeration, or from a runner-owned query; the 2026-09-07 attempt that stopped at the unsupported `FileIdInfo` query is superseded by that decision. Because a directory's `wsl-v2` identity changes whenever its direct children change, the harness re-captures an owned directory immediately after each mutation it performs and compares against that capture, while file and link identities stay stable across reads. A legacy file index with a zero volume serial is not accepted as a fallback. The live tier also proves read-only that an owned fixture's inode, link count, and change time equal a read-only `stat` inside the configured distribution, that a link and its target differ, and that an unchanged entry repeats one identity. The launcher runs all declared live cells by default. An explicit `-Case` list may select distinct declared cells for the affected boundary; unknown or duplicate selections are rejected. The record states both declared and selected counts and requires exactly the selected cells to pass, with no skip or absence. A selected run is evidence for those cells only, not a full live-tier result.
+The harness takes every identity from the production `WindowsWslFileSystem` on the entry's own path under ADR-0049, never from `WindowsFileIdentifier` directly, from enumeration, or from a runner-owned query; the 2026-09-07 attempt that stopped at the unsupported `FileIdInfo` query is superseded by that decision. Because a directory's `wsl-v2` identity changes whenever its direct children change, the harness re-captures an owned directory immediately after each mutation it performs and compares against that capture, while file and link identities stay stable across reads. A legacy file index with a zero volume serial is not accepted as a fallback. The live tier also proves read-only that an owned fixture's inode, link count, and change time equal a read-only `stat` inside the configured distribution, that a link and its target differ, and that an unchanged entry repeats one identity. For an empty-file receipt the owner validates the matching effect, regular kind,
+zero bytes and unchanged captured identity before registering the exact entry.
+Declared link targets are either an owned existing entry or an absent path; unlink
+verifies that expectation before and after removing only the link. An unexpected
+new target remains foreign residue and blocks recursive cleanup. The launcher runs all declared live cells by default. An explicit `-Case` list may select distinct declared cells for the affected boundary; unknown or duplicate selections are rejected. The record states both declared and selected counts and requires exactly the selected cells to pass, with no skip or absence. A selected run is evidence for those cells only, not a full live-tier result.
+
+## Explorer reveal (ADR-0091)
+
+RevealFocused and RevealLocation derive their path from the captured admitted pane
+and use the existing IFileLauncher/WindowsShellFileLauncher and STA Shell scheduler.
+Activation keeps its non-root/parent rule. Reveal may select an admitted provider root
+in its Shell parent namespace. Both preserve the original canonical Windows local,
+UNC or WSL text; reveal retains UNC/WSL length below260 and Windows-compatible WSL
+segments. There is no Exists/ACL/reparse/identity preflight, command line, custom verb,
+fallback activation, credential input or retry.
+
+WindowsShellItemSelection parses the exact path through SHParseDisplayName with null
+bind context/attributes0, selects that absolute PIDL using SHOpenFolderAndSelectItems
+with cidl0/null children/flags0, and frees the owned allocation exactly once even on
+failure/cancellation. Selecting a folder means showing that item in its Shell parent,
+not opening its contents. Native parse/select can block and are not interruptible;
+cancellation is observed before scheduling, parse and final handoff, with accepted
+handoff retained after late cancellation. PaneLaunching freezes input throughout.
+Acceptance is only a path-handoff receipt: Explorer can later resolve a replacement
+or refuse a missing item, and no stable identity, window/process lifetime or mutation
+capability is asserted. Native parse/free tests need no real Explorer display.

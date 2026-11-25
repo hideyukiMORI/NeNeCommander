@@ -16,6 +16,7 @@ retain title, unavailable marker/reason, shortcut and full-title tooltip.
 
 Ordinary pane commands have no redundant selected-row scope detail. Transfers
 name their actual source and destination, switching panes names the destination,
+opening the current folder in the opposite pane names that destination,
 and settings/theme/help/window adjustment/bookmarks name their true scope.
 Bookmarks describes the shared manager, not a newly frozen navigation target.
 Unavailable reasons remain in the row, selected detail and accessible name.

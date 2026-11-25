@@ -7,12 +7,14 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using NeNeCommander.App.Input;
 using NeNeCommander.App.Windowing;
+using NeNeCommander.Application.Commands;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Application.Settings;
 using NeNeCommander.Application.Windowing;
 using NeNeCommander.Domain.Paths;
+using NeNeCommander.Presentation.WinUI.Commands;
 using NeNeCommander.Presentation.WinUI.Input;
 using NeNeCommander.Presentation.WinUI.Lifecycle;
 using NeNeCommander.Presentation.WinUI.Locations;
@@ -27,6 +29,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly FileSystemPath _initialLeftLocation;
     private readonly FileSystemPath _initialRightLocation;
     private readonly KeyboardIntentMapper _keyboardIntentMapper;
+    private readonly PanePointerMapper _pointerMapper = new();
     private readonly CommanderSession _session;
     private readonly ViewTextResources _resources;
     private readonly AsyncWorkOwner _paneWork;
@@ -37,8 +40,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly SettingsEditorView _settingsView;
     private readonly SettingsThemePickerView _themePicker;
     private readonly CaptionBarView _captionBarView;
+    private readonly CommandEntryView _commandEntryView;
     private readonly LocationsView _locationsView;
     private readonly CommandPaletteView _paletteView;
+    private readonly CommandMenuView _contextView;
     private readonly OperationBarView _operationView;
     private readonly CommanderPaneView _leftPaneView;
     private readonly CommanderPaneView _rightPaneView;
@@ -67,9 +72,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _initialRightLocation = initialRightLocation;
         _paneWork = new AsyncWorkOwner(dependencies.DefectObserver);
         InitializeComponent();
-        _resources = (ViewTextResources)WindowFrame.Resources["ViewTextResources"];
-        _resources.ApplyLanguage(_session.Current.Settings.Settings.Display.InterfaceLanguage);
-        WindowFrame.Language = _resources.LanguageTag;
+        _resources = InitializeTextResources();
         _metadataFormat = EntryMetadataFormat.Create(dependencies.LocalZone, _resources.GetString);
         _bookmarkView = new BookmarkManagerView(BookmarkOverlay, _resources, ForwardIntent,
             () => FocusFileList(_session.Current.Panes.ActiveSide));
@@ -85,13 +88,24 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             () => FocusFileList(_session.Current.Panes.ActiveSide));
         _themePicker = new SettingsThemePickerView(ThemePickerOverlay, _resources, ForwardIntent, RenderColorScheme);
         _captionBarView = CreateCaptionBar(dependencies.DefectObserver);
+        _commandEntryView = CreateCommandEntry();
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
-        _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left);
-        _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right);
+        _contextView = new CommandMenuView(InputSurface, _resources, ForwardIntent, ReturnPointerFocus);
+        PanePointerBindings pointer = new(_pointerMapper, ForwardIntent, _contextView.Request);
+        _leftPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Left, pointer);
+        _rightPaneView = new CommanderPaneView(InputSurface, _resources, PaneSide.Right, pointer);
         _renderedScheme = dependencies.Session.Current.Settings.Settings.Display.ColorScheme;
         _placementAdapter.Initialize(_session.Current.Settings.Settings.WindowPlacement);
+    }
+
+    private ViewTextResources InitializeTextResources()
+    {
+        ViewTextResources resources = (ViewTextResources)WindowFrame.Resources["ViewTextResources"];
+        resources.ApplyLanguage(_session.Current.Settings.Settings.Display.InterfaceLanguage);
+        WindowFrame.Language = resources.LanguageTag;
+        return resources;
     }
 
     private CaptionBarView CreateCaptionBar(Action<Exception> defectObserver)
@@ -99,6 +113,13 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         Title = _resources.GetString("CommanderWindowTitle");
         return new CaptionBarView(CaptionBar, _resources,
             new AppWindowCaptionAdapter(AppWindow, CaptionDragArea, CaptionButtons, defectObserver));
+    }
+
+    private CommandEntryView CreateCommandEntry()
+    {
+        CommandEntryView view = new(CommandEntryButtons, _resources, ForwardIntent);
+        view.Render(CommandEntryPresenter.Present(_session.Current));
+        return view;
     }
 
     /// <summary>Occurs when the host previews or displays an accepted scheme through the composition root.</summary>
@@ -129,6 +150,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnActivated(object _, WindowActivatedEventArgs args)
     {
+        _pointerMapper.Reset();
         _captionBarView.RenderActivation(args.WindowActivationState);
         if (args.WindowActivationState != WindowActivationState.Deactivated)
         {
@@ -138,6 +160,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private void OnKeyDown(object _, KeyRoutedEventArgs args)
     {
+        _pointerMapper.Reset();
         if (_stopping)
         {
             args.Handled = true;
@@ -154,7 +177,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (IsTextComposing || _bookmarkView.HasOpenSelector)
         {
             _keyboardIntentMapper.ObserveNativeInput(input);
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
             return;
         }
         KeyboardMappingOutcome outcome = _keyboardIntentMapper.Map(input);
@@ -167,12 +190,13 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         if (!args.Handled &&
             (input.RepeatState == KeyRepeatState.Initial || input.Key != KeyboardKey.Other))
         {
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
         }
     }
 
     private void OnCharacterReceived(object _, CharacterReceivedRoutedEventArgs args)
     {
+        _pointerMapper.Reset();
         if (_stopping)
         {
             args.Handled = true;
@@ -182,7 +206,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         args.Handled = !IsTextComposing && ForwardOutcome(_keyboardIntentMapper.Map(input));
         if (!args.Handled)
         {
-            _bookmarkView.ObserveNativeInput();
+            _bookmarkView.ObserveNativeInput(input);
         }
     }
 
@@ -205,6 +229,32 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderSession(snapshot);
     }
 
+    private async Task RenderIntentAsync(UserIntent intent, CancellationToken cancellationToken)
+    {
+        CommanderSnapshot before = _session.Current;
+        Task<CommanderSnapshot> work = _session.HandleAsync(intent, this, cancellationToken);
+        RenderSession(_session.Current);
+        CommanderSnapshot after = await work;
+        PaneSide? focusSide = _pointerMapper.ObserveResult(intent, before, after);
+        RenderSession(after);
+        ReturnPointerFocus(focusSide);
+    }
+
+    private void ReturnPointerFocus(PaneSide? side)
+    {
+        if (_stopping || side is null)
+        {
+            return;
+        }
+        KeyboardContext context = GetKeyboardContext();
+        if (_session.Current.Panes.ActiveSide == side &&
+            (context == KeyboardContext.FileList || context == KeyboardContext.CommandEntry) &&
+            CommandEntryPresenter.Present(_session.Current).IsEnabled)
+        {
+            FocusFileList(side);
+        }
+    }
+
     private void RenderSession(CommanderSnapshot snapshot)
     {
         // The final settings write still drains, but its queued observer cannot rebuild closing content.
@@ -212,13 +262,16 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
+        _pointerMapper.ObserveSession(snapshot);
         _resources.ApplyLanguage(snapshot.Settings.Settings.Display.InterfaceLanguage);
         WindowFrame.Language = _resources.LanguageTag;
         _captionBarView.RenderLanguage();
+        _commandEntryView.Render(CommandEntryPresenter.Present(snapshot));
         bool returningFromPicker = _themePicker.IsOpen && snapshot.Settings.Editor == SettingsEditorState.Closed;
         RenderPanes(snapshot.Panes, snapshot.Settings.Settings.Display.KeyHintVisibility);
         RenderSettingsSurfaces(snapshot.Settings);
         _paletteView.Render(snapshot);
+        _contextView.Render(snapshot);
         _addressView.Render(snapshot.Scopes.AddressEditor);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
@@ -258,8 +311,10 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
         DualPanePresentation presentation = DualPanePresenter.Present(snapshot, _metadataFormat, _presentation, keyHintVisibility);
         _presentation = presentation;
-        _leftPaneView.Render(presentation.Left, presentation.LeftFrame);
-        _rightPaneView.Render(presentation.Right, presentation.RightFrame);
+        _leftPaneView.Render(presentation.Left, presentation.LeftFrame,
+            PaneNavigationAction.Create(snapshot, PaneSide.Left));
+        _rightPaneView.Render(presentation.Right, presentation.RightFrame,
+            PaneNavigationAction.Create(snapshot, PaneSide.Right));
         _operationView.Render(presentation);
         _operationContext = presentation.InputContext;
         if (GetKeyboardContext() == KeyboardContext.FileList)
@@ -282,6 +337,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private bool ForwardOutcome(KeyboardMappingOutcome outcome)
     {
+        if (outcome is MappedKeyboardFocusAction focus)
+        {
+            ForwardFocus(focus.Action);
+            return true;
+        }
         if (outcome is MappedWindowAdjustmentAction windowAction)
         {
             _windowAdjustmentView.Forward(windowAction.Action);
@@ -320,8 +380,25 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         return _themePicker.IsOpen ? _themePicker.Forward(action) : _paletteView.Forward(action);
     }
 
+    private void ForwardFocus(KeyboardFocusAction action)
+    {
+        if (action == KeyboardFocusAction.ActivePane)
+        {
+            FocusFileList(_session.Current.Panes.ActiveSide);
+        }
+        else if (GetKeyboardContext() == KeyboardContext.FileList)
+        {
+            _commandEntryView.Render(CommandEntryPresenter.Present(_session.Current));
+            _commandEntryView.FocusFirst();
+        }
+    }
+
     private void ForwardIntent(UserIntent intent)
     {
+        if (intent is not PaneInteraction)
+        {
+            _pointerMapper.Reset();
+        }
         if (_stopping)
         {
             return;
@@ -332,8 +409,11 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return;
         }
         UserIntent forwarded = CreateForwardedIntent(intent);
-        _ = _paneWork.TryStartIntent(forwarded, cancellationToken =>
-            RenderAfterAsync(_session.HandleAsync(forwarded, this, cancellationToken)));
+        if (!_paneWork.TryStartIntent(forwarded, cancellationToken => RenderIntentAsync(forwarded, cancellationToken)))
+        {
+            _pointerMapper.Reset();
+            RenderSession(_session.Current);
+        }
     }
 
     private UserIntent CreateForwardedIntent(UserIntent intent)
@@ -343,13 +423,6 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             : intent == UserIntent.Confirm && NameEntryFrame.Visibility == Visibility.Visible
                 ? UserIntent.SubmitName(NameEntry.Text)
                 : intent;
-    }
-
-    private void OnPathDisplayPointerPressed(object sender, PointerRoutedEventArgs args)
-    {
-        _ = sender;
-        args.Handled = true;
-        FocusActiveFileListWhenIdle();
     }
 
     private void OnBookmarkKeyHintClick(object sender, RoutedEventArgs args)
@@ -389,6 +462,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     public async Task StopAsync()
     {
         _stopping = true;
+        _windowAdjustmentView.Stop();
+        _contextView.Stop();
         InputSurface.IsHitTestVisible = false;
         SavedWindowPlacement? placement = _placementAdapter.FinishTracking();
         try
@@ -408,6 +483,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             { WindowAdjustment: WindowAdjustmentOpen } => KeyboardContext.WindowAdjustment,
             { KeyboardHelp: KeyboardHelpOpen } => KeyboardContext.KeyboardHelp,
             { Locations: not LocationsClosed } => KeyboardContext.Locations,
+            { CommandPalette: CommandPaletteOpen open } when open.Surface != CommandSurface.Palette => KeyboardContext.ContextMenu,
             _ when CommandPaletteOverlay.Visibility == Visibility.Visible => KeyboardContext.CommandPalette,
             _ when _themePicker.IsOpen => KeyboardContext.CommandPalette,
             _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
@@ -422,7 +498,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
         return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
             ? KeyboardContext.TextEntry
-            : KeyboardContext.FileList;
+            : _commandEntryView.ContainsFocus(focused) ? KeyboardContext.CommandEntry : KeyboardContext.FileList;
     }
 
     private void FocusFileList(PaneSide side)
@@ -431,6 +507,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         {
             return;
         }
+        _commandEntryView.Render(CommandEntryPresenter.Present(_session.Current));
         ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
         Control target = fileList.SelectedItem is object selected && fileList.ContainerFromItem(selected) is ListViewItem row
             ? row

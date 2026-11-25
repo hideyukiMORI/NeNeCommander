@@ -10,6 +10,10 @@ internal abstract record ScriptedCallbackPoint
     internal static ScriptedCallbackPoint AfterVerification { get; } = new AfterVerificationPoint();
     internal static ScriptedCallbackPoint AfterDeletion { get; } = new AfterDeletionPoint();
 
+    internal static ScriptedCallbackPoint AfterFileCreation { get; } = new AfterFileCreationPoint();
+
+    private sealed record AfterFileCreationPoint : ScriptedCallbackPoint;
+
     private ScriptedCallbackPoint()
     {
     }

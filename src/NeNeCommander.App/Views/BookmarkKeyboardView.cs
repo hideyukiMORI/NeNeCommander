@@ -1,5 +1,4 @@
 using System;
-using Microsoft.UI.Xaml.Controls;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Presentation.WinUI.Bookmarks;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -15,11 +14,11 @@ namespace NeNeCommander.App.Views;
 internal sealed class BookmarkKeyboardView
 {
     private readonly BookmarkBrowseView _browse;
-    private readonly ItemsControl _hints;
+    private readonly BookmarkKeyHintView _hints;
     private readonly Action<UserIntent> _forward;
     private BookmarkManagerRegion _region = BookmarkManagerRegion.Bookmarks;
 
-    internal BookmarkKeyboardView(BookmarkBrowseView browse, ItemsControl hints, Action<UserIntent> forward)
+    internal BookmarkKeyboardView(BookmarkBrowseView browse, BookmarkKeyHintView hints, Action<UserIntent> forward)
     {
         ArgumentNullException.ThrowIfNull(browse);
         ArgumentNullException.ThrowIfNull(hints);
@@ -28,7 +27,7 @@ internal sealed class BookmarkKeyboardView
         _hints = hints;
         _forward = forward;
         _browse.RegionFocused += (_, region) => ShowRegion(region);
-        _browse.Search.GotFocus += (_, _) => _hints.ItemsSource = BookmarkManagerKeyHintPresenter.PresentSearch();
+        _browse.Search.GotFocus += (_, _) => _hints.RenderSearch();
         RenderHints();
     }
 
@@ -97,8 +96,11 @@ internal sealed class BookmarkKeyboardView
 
     private void RenderHints()
     {
-        _hints.ItemsSource = _browse.SearchHasFocus
-            ? BookmarkManagerKeyHintPresenter.PresentSearch()
-            : BookmarkManagerKeyHintPresenter.Present(_region);
+        if (_browse.SearchHasFocus)
+        {
+            _hints.RenderSearch();
+            return;
+        }
+        _hints.Render(_region);
     }
 }

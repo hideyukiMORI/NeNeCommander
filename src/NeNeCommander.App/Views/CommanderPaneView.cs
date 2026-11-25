@@ -1,7 +1,9 @@
 using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Panes;
 
@@ -13,6 +15,8 @@ internal sealed class CommanderPaneView
     private readonly FrameworkElement _root;
     private readonly ViewTextResources _resources;
     private readonly TextBlock _address;
+    private readonly Button _navigation;
+    private readonly Button _parent;
     private readonly TextBlock _status;
     private readonly TextBlock _counts;
     private readonly ListView _fileList;
@@ -20,10 +24,12 @@ internal sealed class CommanderPaneView
     private readonly Border _header;
     private readonly Border _numberSurface;
     private readonly TextBlock _number;
+    private readonly PanePointerView _pointer;
     private PanePresentation? _rendered;
+    private bool _rendering;
 
 
-    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side)
+    internal CommanderPaneView(FrameworkElement root, ViewTextResources resources, PaneSide side, PanePointerBindings pointer)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(resources);
@@ -32,6 +38,8 @@ internal sealed class CommanderPaneView
         _resources = resources;
         string prefix = side == PaneSide.Left ? "Left" : "Right";
         _address = Find<TextBlock>(prefix + "Address");
+        _navigation = Find<Button>(prefix + "OpenOtherPane");
+        _navigation.Click += (_, _) => pointer.Forward(UserIntent.OpenCurrentLocationInOtherPane);
         _status = Find<TextBlock>(prefix + "Status");
         _counts = Find<TextBlock>(prefix + "Counts");
         _fileList = Find<ListView>(prefix + "FileList");
@@ -40,19 +48,47 @@ internal sealed class CommanderPaneView
         _header = Find<Border>(prefix + "PaneHeader");
         _numberSurface = Find<Border>(prefix + "PaneNumberSurface");
         _number = Find<TextBlock>(prefix + "PaneNumber");
+        _pointer = new PanePointerView(_fileList, _header, side, pointer);
+        _parent = Find<Button>(prefix + "NavigateParent");
+        _parent.Click += (_, _) => _pointer.NavigateParent();
+        _fileList.SelectionChanged += (_, _) => ReconcileSelection();
     }
 
-    internal void Render(PanePresentation presentation, PaneFrame frame)
+    internal void Render(PanePresentation presentation, PaneFrame frame, PaneNavigationAction navigation)
     {
-        if (!ReferenceEquals(_rendered, presentation))
+        _rendering = true;
+        try
         {
-            RenderContents(presentation, frame);
+            _pointer.Render(presentation);
+            if (!ReferenceEquals(_rendered, presentation))
+            {
+                RenderContents(presentation, frame);
+            }
             _rendered = presentation;
         }
+        finally
+        {
+            _rendering = false;
+        }
+        ReconcileSelection();
+        RenderNavigation(navigation);
         _status.Text = PaneStatusLine.Compose(
             presentation.Status, presentation.SortStatus, presentation.LocationStatus, _resources.GetString);
         _counts.Text = PaneCountsLine.Compose(presentation, _resources.GetString);
         ToolTipService.SetToolTip(_counts, _counts.Text);
+    }
+
+    private void RenderNavigation(PaneNavigationAction navigation)
+    {
+        _parent.IsEnabled = navigation.IsParentEnabled;
+        string parentName = PaneNavigationAction.ComposeParentName(_resources.GetString);
+        AutomationProperties.SetName(_parent, parentName);
+        ToolTipService.SetToolTip(_parent, parentName);
+        _navigation.Visibility = navigation.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+        _navigation.IsEnabled = navigation.IsEnabled;
+        string navigationName = navigation.ComposeName(_resources.GetString);
+        AutomationProperties.SetName(_navigation, navigationName);
+        ToolTipService.SetToolTip(_navigation, navigationName);
     }
 
     private void RenderContents(PanePresentation presentation, PaneFrame frame)
@@ -69,6 +105,15 @@ internal sealed class CommanderPaneView
         }
         RenderFrame(frame, _border, _header);
         RenderNumber(frame, _numberSurface, _number);
+    }
+
+    private void ReconcileSelection()
+    {
+        if (!_rendering && _rendered is not null &&
+            !ReferenceEquals(_fileList.SelectedItem, _rendered.FocusRow))
+        {
+            _fileList.SelectedItem = _rendered.FocusRow;
+        }
     }
 
     private static void RenderFrame(PaneFrame frame, Border border, Border header)

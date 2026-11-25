@@ -14,6 +14,8 @@ public sealed record WindowAdjustmentKeyBinding
     private static readonly Dictionary<KeyboardKey, string> ControlKeyLabels = new()
     {
         [KeyboardKey.W] = "KeyLabelCtrlW",
+        [KeyboardKey.Left] = "KeyLabelCtrlLeft",
+        [KeyboardKey.Right] = "KeyLabelCtrlRight",
     };
 
     internal WindowAdjustmentKeyBinding(

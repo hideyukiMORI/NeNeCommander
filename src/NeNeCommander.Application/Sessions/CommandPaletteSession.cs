@@ -31,22 +31,20 @@ public sealed class CommandPaletteSession
 
     /// <summary>Opens the palette over both captured endpoints when this scope may own input.</summary>
     /// <param name="panes">Pane snapshot captured by the scope and compared on every later decision.</param>
+    /// <param name="surface">Closed selection surface whose catalog candidates are captured.</param>
     /// <param name="ownership">Input ownership the session derived for this scope.</param>
     /// <returns>The state current after this admission decision.</returns>
-    public CommandPaletteState Open(DualPaneSnapshot panes, InteractionOwnership ownership)
+    public CommandPaletteState Open(DualPaneSnapshot panes, CommandSurface surface, InteractionOwnership ownership)
     {
         ArgumentNullException.ThrowIfNull(panes);
+        ArgumentNullException.ThrowIfNull(surface);
         ArgumentNullException.ThrowIfNull(ownership);
         lock (_sync)
         {
             if (ownership == InteractionOwnership.ScopeOwnsInput &&
                 panes.Of(panes.ActiveSide).Content is PaneContentListed)
             {
-                _state = new CommandPaletteOpen(
-                    panes.Left,
-                    panes.Right,
-                    panes.ActiveSide,
-                    CommandCatalog.Capture(panes));
+                _state = new CommandPaletteOpen(panes, surface, CommandCatalog.Capture(panes, surface));
             }
             return _state;
         }
@@ -98,7 +96,7 @@ public sealed class CommandPaletteSession
         InteractionOwnership ownership)
     {
         CommandPaletteOpen expected = submission.ExpectedState;
-        if (!ReferenceEquals(_state, expected) || !CommandCatalog.Contains(submission.SelectedIntent))
+        if (!ReferenceEquals(_state, expected))
         {
             return CommandPaletteValidation.NothingToDispatch;
         }
@@ -107,14 +105,35 @@ public sealed class CommandPaletteSession
             _state = CommandPaletteState.Closed;
             return CommandPaletteValidation.NothingToDispatch;
         }
-        CommandCandidate candidate = expected.Candidates.First(candidate =>
+        CommandCandidate? candidate = expected.Candidates.FirstOrDefault(candidate =>
             candidate.Intent == submission.SelectedIntent);
-        if (candidate.Availability != CommandAvailability.Available)
+        if (candidate is null || candidate.Availability != CommandAvailability.Available)
         {
             return CommandPaletteValidation.NothingToDispatch;
         }
         _state = CommandPaletteState.Closed;
         return new CommandPaletteIntentAccepted(submission.SelectedIntent);
+    }
+
+    internal static bool IsContextRequest(UserIntent intent)
+    {
+        return intent switch
+        {
+            PaneRowInteraction row => row.Action == PaneEntryAction.OpenContextMenu,
+            PaneSurfaceInteraction surface => surface.Action == PaneSurfaceAction.OpenContextMenu,
+            _ => intent == UserIntent.OpenContextMenu,
+        };
+    }
+
+    /// <summary>Admits replacement only from a closed owner or an exact current context capture.</summary>
+    internal bool CanAcquireContext(DualPaneSnapshot panes, InteractionOwnership ownership)
+    {
+        lock (_sync)
+        {
+            return _state is CommandPaletteClosed ||
+                (_state is CommandPaletteOpen open && open.Surface != CommandSurface.Palette &&
+                    RetainsInput(open, panes, ownership));
+        }
     }
 
     private static bool RetainsInput(

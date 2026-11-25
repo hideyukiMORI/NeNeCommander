@@ -116,7 +116,35 @@ internal static class LiveWslRootOwnership
             : LiveWslRootFileSystem.VerifyShape(anchor.OuterAncestors, mechanism.FileSystem);
     }
 
-    internal static void RequireTransferEffects(
+    internal static LiveWslRootEntry RequireEmptyCreatedFile(
+        FileOperationOutcome outcome, WslPath target, LiveWslRootMechanism mechanism)
+    {
+        RequireEffects(outcome, target, [FileOperationEffectKind.FileCreated]);
+        LiveWslRootEntry before = LiveWslRootFileSystem.CaptureEntry(target, mechanism.FileSystem, mechanism.ResolvePath);
+        return before.Kind != LiveWslRootEntryKind.File || File.ReadAllBytes(mechanism.ResolvePath(target)).Length != 0 ||
+            LiveWslRootFileSystem.VerifyEntries([before], mechanism.FileSystem) is LiveWslRootCheckRejected
+            ? throw new InvalidOperationException("The produced live entry is not the unchanged empty regular file.")
+            : before;
+    }
+
+    internal static LiveWslRootCleanupRejected? Unlink(
+        LiveWslRootEntry link, LiveWslLinkTarget target,
+        IReadOnlyDictionary<string, LiveWslRootEntry> ownedEntries, LiveWslRootMechanism mechanism)
+    {
+        if (LiveWslRootFileSystem.VerifyEntries([link], mechanism.FileSystem) is LiveWslRootCheckRejected ||
+            !target.Matches(ownedEntries, mechanism))
+        {
+            return new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
+        }
+        mechanism.UnlinkEntry(link.Path);
+        return mechanism.FileSystem.Find(link.Path) is not null
+            ? new LiveWslRootCleanupRejected(LiveWslRootFailureKind.CleanupFailed)
+            : target.Matches(ownedEntries, mechanism)
+                ? null
+                : new LiveWslRootCleanupRejected(LiveWslRootFailureKind.IdentityChanged);
+    }
+
+    internal static void RequireEffects(
         FileOperationOutcome outcome,
         FileSystemPath source,
         IReadOnlyList<FileOperationEffectKind> expected)
