@@ -32,7 +32,8 @@ internal sealed class KeyboardRepeatGuard
             MappedWindowAdjustmentAction window => window.Action.WindowAction is { ChangesDisplay: true },
             MappedKeyboardFocusAction => true,
             MappedKeyboardIntent mapped => mapped.Intent == UserIntent.OpenContextMenu ||
-                mapped.Intent == UserIntent.OpenCurrentLocationInOtherPane,
+                mapped.Intent == UserIntent.OpenCurrentLocationInOtherPane ||
+                mapped.Intent == UserIntent.SelectAll || mapped.Intent == UserIntent.InvertSelection,
             KeyboardPassThrough => IsNativeSingleShot(input),
             _ => false
         };

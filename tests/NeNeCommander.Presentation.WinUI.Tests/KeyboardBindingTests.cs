@@ -54,7 +54,7 @@ public sealed class KeyboardBindingTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(50, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(58, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
         Assert.HasCount(29, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
         Assert.HasCount(10, KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp));

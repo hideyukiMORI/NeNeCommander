@@ -21,6 +21,8 @@ internal static class KeyboardInputTranslator
             (int)VirtualKey.Enter => KeyboardKey.Enter,
             (int)VirtualKey.PageDown => KeyboardKey.PageDown,
             (int)VirtualKey.PageUp => KeyboardKey.PageUp,
+            (int)VirtualKey.Home => KeyboardKey.Home,
+            (int)VirtualKey.End => KeyboardKey.End,
             (int)VirtualKey.Tab => KeyboardKey.Tab,
             (int)VirtualKey.Space => KeyboardKey.Space,
             (int)VirtualKey.Escape => KeyboardKey.Escape,
@@ -69,15 +71,14 @@ internal static class KeyboardInputTranslator
         KeyboardKey key = character switch
         {
             'a' => KeyboardKey.A,
+            '*' => KeyboardKey.Star,
             'd' or '\u0004' => KeyboardKey.D,
             'e' => KeyboardKey.E,
-            '\u0005' when modifier == KeyboardModifier.Control => KeyboardKey.E,
             '/' => KeyboardKey.Slash,
             'b' or '\u0002' => KeyboardKey.B,
             'G' => KeyboardKey.UpperG,
             'g' or '\u0007' => KeyboardKey.LowerG,
             'h' => KeyboardKey.H,
-            '\u0008' when modifier == KeyboardModifier.Control => KeyboardKey.H,
             'j' => KeyboardKey.J,
             'k' => KeyboardKey.K,
             'm' => KeyboardKey.M,
@@ -99,9 +100,20 @@ internal static class KeyboardInputTranslator
             '7' => KeyboardKey.Seven,
             '8' => KeyboardKey.Eight,
             '9' => KeyboardKey.Nine,
-            _ => KeyboardKey.Other,
+            _ => TranslateControlCharacter(character, context, modifier),
         };
         return KeyboardInput.Create(key, modifier, repeatState, context);
+    }
+
+    private static KeyboardKey TranslateControlCharacter(char character, KeyboardContext context, KeyboardModifier modifier)
+    {
+        return modifier != KeyboardModifier.Control ? KeyboardKey.Other : character switch
+        {
+            '\u0005' => KeyboardKey.E,
+            '\u0008' => KeyboardKey.H,
+            'A' or '\u0001' when context == KeyboardContext.FileList => KeyboardKey.A,
+            _ => KeyboardKey.Other,
+        };
     }
 
     internal static KeyboardModifier TranslateModifierState(
@@ -122,7 +134,19 @@ internal static class KeyboardInputTranslator
         return (state & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
     }
 
-    internal static KeyboardModifier TranslateF10ModifierState(
+    internal static bool RequiresShiftState(int virtualKey, KeyboardContext context)
+    {
+        return virtualKey == (int)VirtualKey.F10 || (context == KeyboardContext.FileList &&
+            virtualKey is (int)VirtualKey.Up or (int)VirtualKey.Down or (int)VirtualKey.PageUp or
+                (int)VirtualKey.PageDown or (int)VirtualKey.Home or (int)VirtualKey.End);
+    }
+
+    internal static bool RequiresCharacterShiftState(char character, KeyboardContext context)
+    {
+        return context == KeyboardContext.FileList && character is 'a' or 'A' or '\u0001';
+    }
+
+    internal static KeyboardModifier TranslateShiftModifierState(
         CoreVirtualKeyStates controlState,
         CoreVirtualKeyStates altState,
         CoreVirtualKeyStates shiftState)

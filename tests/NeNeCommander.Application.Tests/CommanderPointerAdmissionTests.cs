@@ -125,6 +125,10 @@ public sealed class CommanderPointerAdmissionTests
     private static async Task AssertPointerFrozenAsync(CommanderSession session, CommanderSnapshot before, DirectoryEntry entry)
     {
         UserIntent[] attempts = [
+            UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection,
+            UserIntent.SelectRangeNext, UserIntent.SelectRangePrevious,
+            UserIntent.SelectRangeHalfPageDown, UserIntent.SelectRangeHalfPageUp,
+            UserIntent.SelectRangeFirst, UserIntent.SelectRangeLast,
             UserIntent.OpenContextMenu,
             UserIntent.InteractWithPaneEntry(PaneSide.Right, before.Panes.Right, entry, PaneEntryAction.OpenContextMenu),
             UserIntent.InteractWithPaneSurface(PaneSide.Left, before.Panes.Left, PaneSurfaceAction.OpenContextMenu),

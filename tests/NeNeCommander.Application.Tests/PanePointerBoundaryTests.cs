@@ -45,6 +45,12 @@ public sealed class PanePointerBoundaryTests
         Assert.IsTrue(ready.CanNavigateParent);
         Task<PaneSnapshot> read = session.NavigateAsync(listing.Location, CancellationToken.None);
         PaneSnapshot before = session.Current;
+        foreach (UserIntent selection in new[] { UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection,
+            UserIntent.SelectRangeNext, UserIntent.SelectRangePrevious, UserIntent.SelectRangeHalfPageDown,
+            UserIntent.SelectRangeHalfPageUp, UserIntent.SelectRangeFirst, UserIntent.SelectRangeLast })
+        {
+            Assert.AreSame(before, await session.HandleAsync(selection, CancellationToken.None));
+        }
 
         PaneSnapshot after = await session.HandleAsync(UserIntent.InteractWithPaneSurface(
             PaneSide.Left, before, PaneSurfaceAction.Activate), CancellationToken.None);
@@ -72,6 +78,12 @@ public sealed class PanePointerBoundaryTests
         _ = await session.NavigateAsync(listing.Location, CancellationToken.None);
         Task<PaneSnapshot> launch = session.HandleAsync(UserIntent.OpenFocused, CancellationToken.None);
         PaneSnapshot before = session.Current;
+        foreach (UserIntent selection in new[] { UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection,
+            UserIntent.SelectRangeNext, UserIntent.SelectRangePrevious, UserIntent.SelectRangeHalfPageDown,
+            UserIntent.SelectRangeHalfPageUp, UserIntent.SelectRangeFirst, UserIntent.SelectRangeLast })
+        {
+            Assert.AreSame(before, await session.HandleAsync(selection, CancellationToken.None));
+        }
 
         PaneSnapshot after = await session.HandleAsync(UserIntent.InteractWithPaneSurface(
             PaneSide.Left, before, PaneSurfaceAction.ClearSelection), CancellationToken.None);

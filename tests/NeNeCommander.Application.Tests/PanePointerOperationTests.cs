@@ -91,6 +91,10 @@ public sealed class PanePointerOperationTests
     private static async Task AssertFrozenAsync(DualPaneSession panes, DualPaneSnapshot before, DirectoryEntry entry)
     {
         UserIntent[] intents = [
+            UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection,
+            UserIntent.SelectRangeNext, UserIntent.SelectRangePrevious,
+            UserIntent.SelectRangeHalfPageDown, UserIntent.SelectRangeHalfPageUp,
+            UserIntent.SelectRangeFirst, UserIntent.SelectRangeLast,
             UserIntent.InteractWithPaneEntry(PaneSide.Right, before.Right, entry, PaneEntryAction.Select),
             UserIntent.InteractWithPaneEntry(PaneSide.Right, before.Right, entry, PaneEntryAction.Open),
             UserIntent.InteractWithPaneSurface(PaneSide.Right, before.Right, PaneSurfaceAction.Activate),

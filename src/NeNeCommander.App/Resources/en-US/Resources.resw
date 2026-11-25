@@ -897,4 +897,23 @@
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>Open the current folder in the left pane</value></data>
   <data name="PaneNavigateParent" xml:space="preserve"><value>Go to parent folder</value></data>
   <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>About this app</value></data>
+  <data name="KeyLabelStar" xml:space="preserve"><value>*</value></data>
+  <data name="KeyLabelHome" xml:space="preserve"><value>Home</value></data>
+  <data name="KeyLabelEnd" xml:space="preserve"><value>End</value></data>
+  <data name="KeyLabelCtrlA" xml:space="preserve"><value>Ctrl+A</value></data>
+  <data name="KeyLabelShiftDown" xml:space="preserve"><value>Shift+↓</value></data>
+  <data name="KeyLabelShiftUp" xml:space="preserve"><value>Shift+↑</value></data>
+  <data name="KeyLabelShiftPageDown" xml:space="preserve"><value>Shift+PageDown</value></data>
+  <data name="KeyLabelShiftPageUp" xml:space="preserve"><value>Shift+PageUp</value></data>
+  <data name="KeyLabelShiftHome" xml:space="preserve"><value>Shift+Home</value></data>
+  <data name="KeyLabelShiftEnd" xml:space="preserve"><value>Shift+End</value></data>
+  <data name="IntentLabelSelectAll" xml:space="preserve"><value>Select all visible items</value></data>
+  <data name="IntentLabelInvertSelection" xml:space="preserve"><value>Invert visible selection</value></data>
+  <data name="IntentLabelClearSelection" xml:space="preserve"><value>Clear selection</value></data>
+  <data name="IntentLabelSelectRangeNext" xml:space="preserve"><value>Select range down</value></data>
+  <data name="IntentLabelSelectRangePrevious" xml:space="preserve"><value>Select range up</value></data>
+  <data name="IntentLabelSelectRangeHalfPageDown" xml:space="preserve"><value>Select range half a page down</value></data>
+  <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>Select range half a page up</value></data>
+  <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>Select range to first item</value></data>
+  <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>Select range to last item</value></data>
 </root>

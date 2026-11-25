@@ -16,6 +16,7 @@ public sealed record KeyBinding
         {
             [KeyboardModifier.Control] = new Dictionary<KeyboardKey, string>
             {
+                [KeyboardKey.A] = "KeyLabelCtrlA",
                 [KeyboardKey.D] = "KeyLabelCtrlD",
                 [KeyboardKey.Enter] = "KeyLabelCtrlEnter",
                 [KeyboardKey.E] = "KeyLabelCtrlE",
@@ -46,6 +47,12 @@ public sealed record KeyBinding
             [KeyboardModifier.Shift] = new Dictionary<KeyboardKey, string>
             {
                 [KeyboardKey.F10] = "KeyLabelShiftF10",
+                [KeyboardKey.Down] = "KeyLabelShiftDown",
+                [KeyboardKey.Up] = "KeyLabelShiftUp",
+                [KeyboardKey.PageDown] = "KeyLabelShiftPageDown",
+                [KeyboardKey.PageUp] = "KeyLabelShiftPageUp",
+                [KeyboardKey.Home] = "KeyLabelShiftHome",
+                [KeyboardKey.End] = "KeyLabelShiftEnd",
             },
             [KeyboardModifier.Alt] = new Dictionary<KeyboardKey, string>
             {

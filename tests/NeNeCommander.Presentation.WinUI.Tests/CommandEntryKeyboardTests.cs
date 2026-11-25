@@ -84,14 +84,14 @@ public sealed class CommandEntryKeyboardTests
     [TestMethod]
     public void TranslateWhenF10IsShiftedPreservesContextMenuModifier()
     {
-        KeyboardModifier shift = KeyboardInputTranslator.TranslateF10ModifierState(
+        KeyboardModifier shift = KeyboardInputTranslator.TranslateShiftModifierState(
             CoreVirtualKeyStates.None, CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down);
         Assert.AreSame(KeyboardModifier.Shift, shift);
-        Assert.AreSame(KeyboardModifier.Other, KeyboardInputTranslator.TranslateF10ModifierState(
+        Assert.AreSame(KeyboardModifier.Other, KeyboardInputTranslator.TranslateShiftModifierState(
             CoreVirtualKeyStates.Down, CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down));
-        Assert.AreSame(KeyboardModifier.Other, KeyboardInputTranslator.TranslateF10ModifierState(
+        Assert.AreSame(KeyboardModifier.Other, KeyboardInputTranslator.TranslateShiftModifierState(
             CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down, CoreVirtualKeyStates.Down));
-        Assert.AreSame(KeyboardModifier.None, KeyboardInputTranslator.TranslateF10ModifierState(
+        Assert.AreSame(KeyboardModifier.None, KeyboardInputTranslator.TranslateShiftModifierState(
             CoreVirtualKeyStates.None, CoreVirtualKeyStates.None, CoreVirtualKeyStates.Locked));
         KeyboardInput input = KeyboardInputTranslator.TranslateKeyData((int)VirtualKey.F10,
             KeyRepeatState.Initial, KeyboardContext.FileList, shift);

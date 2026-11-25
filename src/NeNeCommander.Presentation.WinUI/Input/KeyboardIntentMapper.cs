@@ -38,6 +38,14 @@ public sealed class KeyboardIntentMapper
         new(KeyboardContext.FileList, KeyboardKey.PageUp, KeyboardModifier.None, UserIntent.MoveHalfPageUp),
         new(KeyboardContext.FileList, KeyboardKey.Tab, KeyboardModifier.None, UserIntent.ActivateOtherPane),
         new(KeyboardContext.FileList, KeyboardKey.Space, KeyboardModifier.None, UserIntent.ToggleSelection),
+        new(KeyboardContext.FileList, KeyboardKey.A, KeyboardModifier.Control, UserIntent.SelectAll),
+        new(KeyboardContext.FileList, KeyboardKey.Star, KeyboardModifier.None, UserIntent.InvertSelection),
+        new(KeyboardContext.FileList, KeyboardKey.Down, KeyboardModifier.Shift, UserIntent.SelectRangeNext),
+        new(KeyboardContext.FileList, KeyboardKey.Up, KeyboardModifier.Shift, UserIntent.SelectRangePrevious),
+        new(KeyboardContext.FileList, KeyboardKey.PageDown, KeyboardModifier.Shift, UserIntent.SelectRangeHalfPageDown),
+        new(KeyboardContext.FileList, KeyboardKey.PageUp, KeyboardModifier.Shift, UserIntent.SelectRangeHalfPageUp),
+        new(KeyboardContext.FileList, KeyboardKey.Home, KeyboardModifier.Shift, UserIntent.SelectRangeFirst),
+        new(KeyboardContext.FileList, KeyboardKey.End, KeyboardModifier.Shift, UserIntent.SelectRangeLast),
         new(KeyboardContext.FileList, KeyboardKey.H, KeyboardModifier.Control, UserIntent.ToggleHiddenItems),
         new(KeyboardContext.FileList, KeyboardKey.F3, KeyboardModifier.Control, UserIntent.SortByName),
         new(KeyboardContext.FileList, KeyboardKey.F4, KeyboardModifier.Control, UserIntent.SortByExtension),
@@ -401,7 +409,8 @@ public sealed class KeyboardIntentMapper
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
         return binding is null ? KeyboardFocusMap.Map(input)
-            : binding.Intent == UserIntent.OpenContextMenu && input.RepeatState == KeyRepeatState.Repeated
+            : (binding.Intent == UserIntent.OpenContextMenu || binding.Intent == UserIntent.SelectAll ||
+                binding.Intent == UserIntent.InvertSelection) && input.RepeatState == KeyRepeatState.Repeated
                 ? new KeyboardConsumed() : new MappedKeyboardIntent(binding.Intent);
     }
 
