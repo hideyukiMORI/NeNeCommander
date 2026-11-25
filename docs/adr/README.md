@@ -140,3 +140,4 @@ Number allocation includes these reservations as well as the records already in 
 - [ADR-0089: Persist normal window placement and correct off-screen restoration](0089-persist-window-placement.md)
 
 - [ADR-0092: Transfer the normal window through the existing adjustment route](0092-display-transfer-through-window-adjustment.md)
+- [ADR-0093: Extend visible selection through the existing pane reducer](0093-visible-selection-controls.md)

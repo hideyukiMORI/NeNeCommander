@@ -897,4 +897,23 @@
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>現在のフォルダーを左ペインで開く</value></data>
   <data name="PaneNavigateParent" xml:space="preserve"><value>上の階層へ</value></data>
   <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>このアプリについて</value></data>
+  <data name="KeyLabelStar" xml:space="preserve"><value>*</value></data>
+  <data name="KeyLabelHome" xml:space="preserve"><value>Home</value></data>
+  <data name="KeyLabelEnd" xml:space="preserve"><value>End</value></data>
+  <data name="KeyLabelCtrlA" xml:space="preserve"><value>Ctrl+A</value></data>
+  <data name="KeyLabelShiftDown" xml:space="preserve"><value>Shift+↓</value></data>
+  <data name="KeyLabelShiftUp" xml:space="preserve"><value>Shift+↑</value></data>
+  <data name="KeyLabelShiftPageDown" xml:space="preserve"><value>Shift+PageDown</value></data>
+  <data name="KeyLabelShiftPageUp" xml:space="preserve"><value>Shift+PageUp</value></data>
+  <data name="KeyLabelShiftHome" xml:space="preserve"><value>Shift+Home</value></data>
+  <data name="KeyLabelShiftEnd" xml:space="preserve"><value>Shift+End</value></data>
+  <data name="IntentLabelSelectAll" xml:space="preserve"><value>表示項目をすべて選択</value></data>
+  <data name="IntentLabelInvertSelection" xml:space="preserve"><value>表示項目の選択を反転</value></data>
+  <data name="IntentLabelClearSelection" xml:space="preserve"><value>選択を解除</value></data>
+  <data name="IntentLabelSelectRangeNext" xml:space="preserve"><value>選択範囲を1行下へ</value></data>
+  <data name="IntentLabelSelectRangePrevious" xml:space="preserve"><value>選択範囲を1行上へ</value></data>
+  <data name="IntentLabelSelectRangeHalfPageDown" xml:space="preserve"><value>選択範囲を半ページ下へ</value></data>
+  <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>選択範囲を半ページ上へ</value></data>
+  <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>先頭まで範囲選択</value></data>
+  <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>末尾まで範囲選択</value></data>
 </root>

@@ -38,7 +38,7 @@ completed effect if a subsequent read fails.
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Movement preserves selection and uses the exact path owned by a visible entry. The active side is held only by `DualPaneSession` and changes on `ActivateOtherPane` or an admitted exact-owner pointer interaction (ADR-0090). `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
+Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Ordinary movement preserves selection and uses the exact path owned by a visible entry; explicit keyboard range movement replaces the inclusive anchored interval and always clamps (ADR-0093). The active side is held only by `DualPaneSession` and changes on `ActivateOtherPane` or an admitted exact-owner pointer interaction (ADR-0090). `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
 `OpenCurrentLocationInOtherPane` (ADR-0084) is the explicit cross-pane navigation intent.
 `DualPaneSession` captures the active pane's currently listed location and opposite side,
@@ -63,6 +63,14 @@ refuses pointer interaction during pending/running operations or either pane's
 read/launch before activating the explicit side. PaneReducer alone commits focus,
 selection and the visible owned selection anchor. Opening reuses OpenFocused.
 Native ListView selection is only a projection and is reconciled after rejection.
+
+ADR-0093 extends these same owners with visible select-all, inversion, explicit
+clear and six keyboard range intents. PaneSelection calculates values without
+committing state. PaneReducer alone applies them to owned visible paths and the
+same pointer/keyboard anchor. Bulk operations clear the anchor and preserve focus;
+ranges clamp and replace the current interval. All admission remains in the existing
+CommanderSession / DualPaneSession / PaneSession route, and batch commands still
+capture their targets through the existing FileOperationGateway path.
 The per-pane parent button adds a NavigateParent surface action with the same exact
 owner. Absent content and provider roots reject before activation; admitted input
 uses the existing PaneSession NavigateParent command for read/history/origin focus.

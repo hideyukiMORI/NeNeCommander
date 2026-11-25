@@ -45,6 +45,17 @@ internal static class PaneSelection
         return selection;
     }
 
+    internal static IReadOnlyList<FileSystemPath> All(PaneState state)
+    {
+        return [.. state.VisibleEntries.Select(entry => entry.Path)];
+    }
+
+    internal static IReadOnlyList<FileSystemPath> Invert(PaneState state)
+    {
+        HashSet<FileSystemPath> selected = new(state.Selection, FileSystemPathIdentityComparer.Instance);
+        return [.. state.VisibleEntries.Select(entry => entry.Path).Where(path => !selected.Contains(path))];
+    }
+
     internal static FileSystemPath? RebindAnchor(PaneState state, FileSystemPath? anchor)
     {
         return state.VisibleEntries.FirstOrDefault(entry =>

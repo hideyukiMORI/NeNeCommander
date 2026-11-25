@@ -27,26 +27,22 @@ public static class PaneReducer
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(intent);
 
-        if (intent == UserIntent.ToggleSelection)
+        return intent switch
         {
-            return ToggleSelection(state);
-        }
-        if (intent == UserIntent.ToggleHiddenItems)
-        {
-            HiddenItemVisibility next = state.HiddenItemVisibility == HiddenItemVisibility.Hidden
-                ? HiddenItemVisibility.Shown
-                : HiddenItemVisibility.Hidden;
-            return ApplyHiddenItemVisibility(state, next);
-        }
-        if (SortKeyRequestedBy(intent) is SortKey requested)
-        {
-            return ApplySortOrder(state, state.SortOrder.Toggle(requested), state.FocusItem);
-        }
-        if (intent == UserIntent.Escape)
-        {
-            return state.Transition(state.FocusItem, Array.Empty<FileSystemPath>(), null);
-        }
+            _ when intent == UserIntent.ToggleSelection => ToggleSelection(state),
+            _ when intent == UserIntent.ToggleHiddenItems => ApplyHiddenItemVisibility(state,
+                state.HiddenItemVisibility == HiddenItemVisibility.Hidden ? HiddenItemVisibility.Shown : HiddenItemVisibility.Hidden),
+            _ when SortKeyRequestedBy(intent) is SortKey requested =>
+                ApplySortOrder(state, state.SortOrder.Toggle(requested), state.FocusItem),
+            _ when intent == UserIntent.Escape || intent == UserIntent.ClearSelection => ClearSelection(state),
+            _ when intent == UserIntent.SelectAll => state.Transition(state.FocusItem, PaneSelection.All(state), null),
+            _ when intent == UserIntent.InvertSelection => state.Transition(state.FocusItem, PaneSelection.Invert(state), null),
+            _ => ApplyMovement(state, intent),
+        };
+    }
 
+    private static PaneState ApplyMovement(PaneState state, UserIntent intent)
+    {
         int offset = GetMovementOffset(state, intent);
         if (offset == 0 || state.VisibleEntries.Count == 0)
         {
@@ -57,7 +53,13 @@ public static class PaneReducer
         int targetIndex = intent == UserIntent.MoveNext || intent == UserIntent.MovePrevious
             ? (currentIndex + offset + state.VisibleEntries.Count) % state.VisibleEntries.Count
             : Math.Clamp(currentIndex + offset, 0, state.VisibleEntries.Count - 1);
-        return state.Transition(state.VisibleEntries[targetIndex].Path, state.Selection, state.SelectionAnchor);
+        FileSystemPath target = state.VisibleEntries[targetIndex].Path;
+        if (IsRangeMovement(intent))
+        {
+            FileSystemPath anchor = state.SelectionAnchor ?? state.VisibleEntries[currentIndex].Path;
+            return state.Transition(target, PaneSelection.Range(state, anchor, target, PaneEntryAction.SelectRange), anchor);
+        }
+        return state.Transition(target, state.Selection, state.SelectionAnchor);
     }
 
     /// <summary>
@@ -294,27 +296,29 @@ public static class PaneReducer
 
     private static int GetMovementOffset(PaneState state, UserIntent intent)
     {
-        if (intent == UserIntent.MoveNext)
-        {
-            return 1;
-        }
-        if (intent == UserIntent.MovePrevious)
-        {
-            return -1;
-        }
-        if (intent == UserIntent.FocusFirst)
-        {
-            return -state.VisibleEntries.Count;
-        }
-        if (intent == UserIntent.FocusLast)
-        {
-            return state.VisibleEntries.Count;
-        }
-
         int halfPage = Math.Max(1, state.VisiblePageCapacity.Value / 2);
-        return intent == UserIntent.MoveHalfPageDown
-            ? halfPage
-            : intent == UserIntent.MoveHalfPageUp ? -halfPage : 0;
+        return intent switch
+        {
+            _ when intent == UserIntent.MoveNext || intent == UserIntent.SelectRangeNext => 1,
+            _ when intent == UserIntent.MovePrevious || intent == UserIntent.SelectRangePrevious => -1,
+            _ when intent == UserIntent.FocusFirst || intent == UserIntent.SelectRangeFirst => -state.VisibleEntries.Count,
+            _ when intent == UserIntent.FocusLast || intent == UserIntent.SelectRangeLast => state.VisibleEntries.Count,
+            _ when intent == UserIntent.MoveHalfPageDown || intent == UserIntent.SelectRangeHalfPageDown => halfPage,
+            _ when intent == UserIntent.MoveHalfPageUp || intent == UserIntent.SelectRangeHalfPageUp => -halfPage,
+            _ => 0,
+        };
+    }
+
+    private static bool IsRangeMovement(UserIntent intent)
+    {
+        return intent == UserIntent.SelectRangeNext || intent == UserIntent.SelectRangePrevious ||
+            intent == UserIntent.SelectRangeHalfPageDown || intent == UserIntent.SelectRangeHalfPageUp ||
+            intent == UserIntent.SelectRangeFirst || intent == UserIntent.SelectRangeLast;
+    }
+
+    private static PaneState ClearSelection(PaneState state)
+    {
+        return state.Transition(state.FocusItem, Array.Empty<FileSystemPath>(), null);
     }
 
     private static int GetFocusIndex(PaneState state)
@@ -344,7 +348,7 @@ public static class PaneReducer
         return interaction is PaneRowInteraction row
             ? ApplyRowInteraction(state, row)
             : interaction is PaneSurfaceInteraction surface && surface.Action == PaneSurfaceAction.ClearSelection
-                ? state.Transition(state.FocusItem, Array.Empty<FileSystemPath>(), null)
+                ? ClearSelection(state)
                 : state;
     }
 

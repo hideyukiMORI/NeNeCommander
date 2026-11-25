@@ -31,6 +31,11 @@ Text/IME, modal, repeat and shutdown guards continue to apply before dispatch.
 | `Tab` | activate the other pane without changing either pane's focus item |
 | `Ctrl+E` | open the current listed folder in the opposite pane, preserving active side and source focus/selection |
 | `Space` | toggle selection of the focus item without moving focus |
+| `Ctrl+A` | select all currently visible entries without moving focus |
+| produced `*` | invert selection over currently visible entries without moving focus |
+| `Shift+Up` / `Shift+Down` | replace selection with the inclusive anchored range one row up/down, clamped |
+| `Shift+PageUp` / `Shift+PageDown` | replace the anchored range half a visible page up/down, clamped |
+| `Shift+Home` / `Shift+End` | replace the anchored range to the first/last visible entry |
 | `Ctrl+H` | toggle hidden and system entries in the active pane |
 | `Ctrl+F3` | sort the active pane by name; again reverses the direction, from another key starts ascending |
 | `Ctrl+F4` | sort the active pane by extension; again reverses the direction, from another key starts ascending |
@@ -303,7 +308,7 @@ Letter commands use the produced character with explicit modifier state; functio
 - Status: **active**
 - Enforcement: reducer tests.
 
-Movement changes the focus item and preserves explicit selection. File commands operate on selection when non-empty, otherwise on the focus item. Navigation clears selection only after a successful location change.
+Ordinary movement changes the focus item and preserves explicit selection. The explicit Shift range intents move focus and replace selection with an inclusive interval through the same reducer and anchor (ADR-0093). File commands operate on selection when non-empty, otherwise on the focus item. Navigation clears selection only after a successful location change.
 
 ### KBD-005 — Every binding has one intent
 
@@ -367,10 +372,12 @@ The host checks stopping before consulting native context and rechecks current
 ownership before applying focus. Header and absent-content receipts preserve their
 content/activity/model identities while replacing the snapshot wrapper.
 
-Only raw F10 adds explicit Shift distinction: Shift+F10 opens context under ADR-0091,
-and Shift with Control/Alt remains an undeclared combination. Other
-virtual keys and produced characters keep their current Control/Alt mapping,
-including uppercase G, layout-produced symbols, IME and dead-key exclusions.
+Raw F10 retains explicit Shift distinction in every context: Shift+F10 opens context
+under ADR-0091. ADR-0093 adds Shift distinction for Up/Down/PageUp/PageDown/Home/End
+only in FileList, and for produced a/A/U+0001 only in FileList. Shift with Control/Alt
+remains undeclared, so Ctrl+Shift+A cannot select all. Other contexts, virtual keys
+and produced characters retain their Control/Alt mapping, including uppercase G,
+layout-produced symbols, IME and dead-key exclusions.
 This contract is under implementation; technical design acceptance does not claim
 native event-order, physical-key or visible-layout acceptance.
 
@@ -404,3 +411,28 @@ Parent clicks never seed a double-tap candidate or return the synchronous pointe
 focus receipt after asynchronous navigation. The ordinary render/focus route applies.
 The three command entries use vector icons with localized hover text, accessible
 names and unchanged canonical shortcuts; F10/native Tab behavior is preserved.
+
+## Visible selection controls (ADR-0093)
+
+The new range and bulk bindings belong only to FileList. Text fields retain native
+Ctrl+A and Shift editing. Ctrl+A uses produced a, Control-qualified A or U+0001;
+raw virtual A and Multiply remain precursor events. Invert uses produced `*`, with
+Control/Alt absent, and is consumed on repeat even without an earlier accepted
+press. All and invert retain their accepted press across owner changes until a new
+initial event for that key. Range keys repeat and always clamp; ordinary j/k/arrows
+still cycle. Plain Home/End, Shift+j/k and Control+Shift navigation are unassigned.
+A declared selection key cancels a pending gg prefix and is then processed normally.
+
+Pointer and keyboard use the same owned SelectionAnchor. A missing anchor falls
+back to focus before the range and is committed. Repeated ranges can grow, shrink
+and cross it. Space and plain/Ctrl click establish it; movement and sort preserve it;
+hiding removes invisible marks/anchors; refresh clears marks and rebinds only a
+surviving anchor; successful navigation clears both. All, invert and palette clear
+reset the anchor, preserve focus and affect only current visible entries in the
+active pane. The passive pane and provider identity rules are unchanged.
+
+SelectAll, InvertSelection and ClearSelection are palette-only commands. Clear
+shares the idle Escape clearing transition; it never cancels work or a modal. Existing
+read, launch, transient-scope, operation and shutdown admission applies to all nine
+new intents. F1 reads the canonical bindings; no additional normal-footer hint is
+introduced. No operation is queued behind another owner.

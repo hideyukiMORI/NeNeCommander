@@ -176,6 +176,9 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.RevealFocused, "IntentLabelRevealFocused", string.Empty),
             (UserIntent.RevealLocation, "IntentLabelRevealLocation", string.Empty),
             (UserIntent.OpenCurrentLocationInOtherPane, "IntentLabelOpenCurrentLocationInOtherPane", "KeyLabelCtrlE"),
+            (UserIntent.SelectAll, "IntentLabelSelectAll", "KeyLabelCtrlA"),
+            (UserIntent.InvertSelection, "IntentLabelInvertSelection", "KeyLabelStar"),
+            (UserIntent.ClearSelection, "IntentLabelClearSelection", string.Empty),
         ];
     }
 }

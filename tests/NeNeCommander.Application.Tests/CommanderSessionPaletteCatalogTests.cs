@@ -161,7 +161,7 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.ToggleHiddenItems,
                 UserIntent.ActivateOtherPane,
                 UserIntent.OpenSettings,
-            UserIntent.OpenColorSchemes,
+                UserIntent.OpenColorSchemes,
                 UserIntent.SortByName,
                 UserIntent.SortByExtension,
                 UserIntent.OpenLocations,
@@ -173,6 +173,9 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.RevealFocused,
                 UserIntent.RevealLocation,
                 UserIntent.OpenCurrentLocationInOtherPane,
+                UserIntent.SelectAll,
+                UserIntent.InvertSelection,
+                UserIntent.ClearSelection,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

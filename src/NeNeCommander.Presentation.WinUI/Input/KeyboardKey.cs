@@ -563,4 +563,39 @@ public abstract record KeyboardKey
 
         public override string LabelResourceKey => "KeyLabelUnmapped";
     }
+    /// <summary>Gets the produced asterisk used for visible selection inversion.</summary>
+    public static KeyboardKey Star { get; } = new StarKey();
+
+    private sealed record StarKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelStar";
+    }
+
+    /// <summary>Gets the Home navigation key.</summary>
+    public static KeyboardKey Home { get; } = new HomeKey();
+
+    private sealed record HomeKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelHome";
+    }
+
+    /// <summary>Gets the End navigation key.</summary>
+    public static KeyboardKey End { get; } = new EndKey();
+
+    private sealed record EndKey : KeyboardKey
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+
+        public override string LabelResourceKey => "KeyLabelEnd";
+    }
 }

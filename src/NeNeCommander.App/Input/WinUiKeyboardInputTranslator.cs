@@ -17,7 +17,7 @@ internal static class WinUiKeyboardInputTranslator
             (int)args.Key,
             repeatState,
             context,
-            args.Key == VirtualKey.F10 ? GetF10Modifier() : GetModifier());
+            KeyboardInputTranslator.RequiresShiftState((int)args.Key, context) ? GetShiftModifier() : GetModifier());
     }
 
     internal static KeyboardInput TranslateCharacter(
@@ -31,7 +31,7 @@ internal static class WinUiKeyboardInputTranslator
             args.Character,
             repeatState,
             context,
-            GetModifier());
+            KeyboardInputTranslator.RequiresCharacterShiftState(args.Character, context) ? GetShiftModifier() : GetModifier());
     }
 
     private static KeyboardModifier GetModifier()
@@ -41,9 +41,9 @@ internal static class WinUiKeyboardInputTranslator
         return KeyboardInputTranslator.TranslateModifierState(control, alt);
     }
 
-    private static KeyboardModifier GetF10Modifier()
+    private static KeyboardModifier GetShiftModifier()
     {
-        return KeyboardInputTranslator.TranslateF10ModifierState(
+        return KeyboardInputTranslator.TranslateShiftModifierState(
             InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control),
             InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu),
             InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift));

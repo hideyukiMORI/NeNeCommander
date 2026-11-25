@@ -61,6 +61,33 @@ public abstract record UserIntent
     /// <summary>Gets the intent to toggle explicit selection for the focus item.</summary>
     public static UserIntent ToggleSelection { get; } = new ToggleSelectionIntent();
 
+    /// <summary>Gets the intent to select every currently visible entry without moving focus.</summary>
+    public static UserIntent SelectAll { get; } = new SelectAllIntent();
+
+    /// <summary>Gets the intent to invert selection over currently visible entries without moving focus.</summary>
+    public static UserIntent InvertSelection { get; } = new InvertSelectionIntent();
+
+    /// <summary>Gets the intent to clear idle selection and its anchor without moving focus.</summary>
+    public static UserIntent ClearSelection { get; } = new ClearSelectionIntent();
+
+    /// <summary>Gets the intent to extend or shrink the inclusive anchored range one row forward without wrapping.</summary>
+    public static UserIntent SelectRangeNext { get; } = new SelectRangeNextIntent();
+
+    /// <summary>Gets the intent to extend or shrink the inclusive anchored range one row backward without wrapping.</summary>
+    public static UserIntent SelectRangePrevious { get; } = new SelectRangePreviousIntent();
+
+    /// <summary>Gets the intent to extend or shrink the anchored range down by half the visible page.</summary>
+    public static UserIntent SelectRangeHalfPageDown { get; } = new SelectRangeHalfPageDownIntent();
+
+    /// <summary>Gets the intent to extend or shrink the anchored range up by half the visible page.</summary>
+    public static UserIntent SelectRangeHalfPageUp { get; } = new SelectRangeHalfPageUpIntent();
+
+    /// <summary>Gets the intent to select the inclusive anchored range to the first visible entry.</summary>
+    public static UserIntent SelectRangeFirst { get; } = new SelectRangeFirstIntent();
+
+    /// <summary>Gets the intent to select the inclusive anchored range to the last visible entry.</summary>
+    public static UserIntent SelectRangeLast { get; } = new SelectRangeLastIntent();
+
     /// <summary>Gets the intent to toggle hidden and system entries in the active pane.</summary>
     public static UserIntent ToggleHiddenItems { get; } = new ToggleHiddenItemsIntent();
 
@@ -544,6 +571,60 @@ public abstract record UserIntent
         }
     }
     private sealed record OpenLocationsIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectAllIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record InvertSelectionIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record ClearSelectionIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangeNextIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangePreviousIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangeHalfPageDownIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangeHalfPageUpIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangeFirstIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record SelectRangeLastIntent : UserIntent
     {
         private protected override void RestrictDerivation()
         {

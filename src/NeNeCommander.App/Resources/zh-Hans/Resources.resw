@@ -897,4 +897,23 @@
   <data name="CommandPaletteOpenOtherLeftDetail" xml:space="preserve"><value>在左窗格中打开当前文件夹</value></data>
   <data name="PaneNavigateParent" xml:space="preserve"><value>转到上级文件夹</value></data>
   <data name="ApplicationAboutTitle.Text" xml:space="preserve"><value>关于此应用</value></data>
+  <data name="KeyLabelStar" xml:space="preserve"><value>*</value></data>
+  <data name="KeyLabelHome" xml:space="preserve"><value>Home</value></data>
+  <data name="KeyLabelEnd" xml:space="preserve"><value>End</value></data>
+  <data name="KeyLabelCtrlA" xml:space="preserve"><value>Ctrl+A</value></data>
+  <data name="KeyLabelShiftDown" xml:space="preserve"><value>Shift+↓</value></data>
+  <data name="KeyLabelShiftUp" xml:space="preserve"><value>Shift+↑</value></data>
+  <data name="KeyLabelShiftPageDown" xml:space="preserve"><value>Shift+PageDown</value></data>
+  <data name="KeyLabelShiftPageUp" xml:space="preserve"><value>Shift+PageUp</value></data>
+  <data name="KeyLabelShiftHome" xml:space="preserve"><value>Shift+Home</value></data>
+  <data name="KeyLabelShiftEnd" xml:space="preserve"><value>Shift+End</value></data>
+  <data name="IntentLabelSelectAll" xml:space="preserve"><value>选择所有可见项</value></data>
+  <data name="IntentLabelInvertSelection" xml:space="preserve"><value>反选可见项</value></data>
+  <data name="IntentLabelClearSelection" xml:space="preserve"><value>清除选择</value></data>
+  <data name="IntentLabelSelectRangeNext" xml:space="preserve"><value>向下选择范围</value></data>
+  <data name="IntentLabelSelectRangePrevious" xml:space="preserve"><value>向上选择范围</value></data>
+  <data name="IntentLabelSelectRangeHalfPageDown" xml:space="preserve"><value>向下半页选择范围</value></data>
+  <data name="IntentLabelSelectRangeHalfPageUp" xml:space="preserve"><value>向上半页选择范围</value></data>
+  <data name="IntentLabelSelectRangeFirst" xml:space="preserve"><value>选择范围至首项</value></data>
+  <data name="IntentLabelSelectRangeLast" xml:space="preserve"><value>选择范围至末项</value></data>
 </root>
