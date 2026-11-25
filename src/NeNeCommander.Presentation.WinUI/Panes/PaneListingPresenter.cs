@@ -82,8 +82,8 @@ public static class PaneListingPresenter
 
     /// <summary>
     /// Decides whether the previous rows still hold the visible set in its order. The same
-    /// listing with the same visible count holds the same entries, because every visible set is a
-    /// subset of that listing; the same sort order then places them in the same order. A new
+    /// listing, query and visible count hold the same entries, because hidden visibility can only
+    /// add or remove entries from that fixed query result; the same sort order then places them in the same order. A new
     /// order rebuilds every row (ADR-0053). The caller has already rejected rows projected with
     /// another metadata format, so the same entries also still have the same size and
     /// modification texts.
@@ -93,6 +93,7 @@ public static class PaneListingPresenter
         return previous.SourceSnapshot.Content is PaneContentListed prior &&
             ReferenceEquals(prior.Listing, listed.Listing) &&
             prior.State.SortOrder == listed.State.SortOrder &&
+            prior.State.NameFilter.Text == listed.State.NameFilter.Text &&
             previous.Rows.Count == listed.State.VisibleEntries.Count;
     }
 

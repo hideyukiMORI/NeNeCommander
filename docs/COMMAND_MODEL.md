@@ -38,7 +38,7 @@ completed effect if a subsequent read fails.
 - Status: **active**
 - Enforcement: state-surface scan and reducer tests.
 
-Navigation, focus, selection, sorting, hidden-item visibility, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Ordinary movement preserves selection and uses the exact path owned by a visible entry; explicit keyboard range movement replaces the inclusive anchored interval and always clamps (ADR-0093). The active side is held only by `DualPaneSession` and changes on `ActivateOtherPane` or an admitted exact-owner pointer interaction (ADR-0090). `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
+Navigation, focus, selection, sorting, hidden-item visibility, name filtering, history, and refresh state are transitions applied only by `PaneReducer` to an immutable `PaneState`. Single-step next/previous focus cycles through the current visible projected order; paging and explicit first/last targeting retain their existing boundaries. Ordinary movement preserves selection and uses the exact path owned by a visible entry; explicit keyboard range movement replaces the inclusive anchored interval and always clamps (ADR-0093). The active side is held only by `DualPaneSession` and changes on `ActivateOtherPane` or an admitted exact-owner pointer interaction (ADR-0090). `PaneSession` resolves `OpenFocused` once: a directory uses the existing navigation path, while every file uses the sole `IFileLauncher` handoff (ADR-0065). Its existing Windows Shell adapter owns path admission: local, UNC and compatible WSL paths are supported; unsupported variants, roots, excessive UNC/WSL lengths and incompatible WSL names are refused before scheduling, and pane content remains unchanged by every launch outcome.
 
 `OpenCurrentLocationInOtherPane` (ADR-0084) is the explicit cross-pane navigation intent.
 `DualPaneSession` captures the active pane's currently listed location and opposite side,
@@ -76,6 +76,14 @@ owner. Absent content and provider roots reject before activation; admitted inpu
 uses the existing PaneSession NavigateParent command for read/history/origin focus.
 No UI-level activate-then-navigate sequence or provider-parent implementation is added.
 The accepted gesture, anchor and first-tap receipt rules are in ADR-0090.
+ADR-0094 extends the same projection with PaneState.NameFilter. The immutable query
+compiles literal OrdinalIgnoreCase whitespace-separated AND terms; filtering touches
+only the loaded eligible listing. PaneReducer repairs focus, removes invisible marks
+and anchors, and never restores them when clearing. Refresh/same-location navigation
+retain the query; a true provider-identity location change clears it. Query-only updates
+retain cancelled/failed/abandoned read activity and do not call a provider. File commands
+continue to consume the same visible owned selection and existing gateway.
+
 ### CMD-003 — UI emits intents, not decisions
 
 - Status: **active**
@@ -162,6 +170,9 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | palette/context selection state, admission, and qualified validation | `CommandPaletteSession` with the surface/group metadata in `CommandCatalog` (ADR-0091) |
 | synchronous context acquisition and dispatch of a validated palette/context intent | `CommanderSession`; `CommandContextRequest` only derives the qualified target/surface (ADR-0091) |
 | address-editor state, admission, and submission validation | `AddressEditorSession` |
+| applied pane name filter and visible membership | `PaneState.NameFilter` and `PaneReducer.ApplyNameFilter`, over the existing loaded listing (ADR-0094) |
+| native name-filter editing and qualified completion | `PaneFilterSession`; `CommanderSession` applies accepted queries through the existing pane route (ADR-0094) |
+| bookmark navigation coordination | `CommanderBookmarkCommands`, composed with the same panes/settings and invoked only by `CommanderSession` (ADR-0094) |
 | localized command selection rendering | `CommandPalettePresenter` with `CommandPaletteViewState`; `CommandMenuPresenter` groups those same rows and `CommandMenuView` adapts native invocation callbacks (ADR-0091) |
 | startup and final window placement | `WindowRestorePlanner` decides one corrected normal rectangle; the existing `AppWindowPlacementAdapter` moves to the target display before applying it and tracks its own window. `CommanderSession.StopAsync` queues one changed final value and drains `SettingsSession`; stopping session/operation callbacks cannot rebuild content or refocus lists (ADR-0089) |
 | window placement translation | `AppWindowPlacementAdapter` in the App host; it reads and applies placement and decides nothing |
@@ -203,3 +214,19 @@ rendered ownership. Native navigation stays native in ContextMenu, while the exi
 KeyboardRepeatGuard retains Enter/Space/Escape and opener presses across owner changes.
 Only the existing WindowFrame preview/character route calls that mapper; no item or
 popup adds a private key table. Cancellation uses the existing guarded focus helper.
+
+## Native name-filter scope (ADR-0094)
+
+PaneFilterSession owns only Closed/Editing and exact-state admission. PaneScopeOwners
+and PaneScopeSnapshot group address, Locations and filter composition without another
+registry or lifetime. CommanderSession keeps all dispatch and precedence; bookmark
+navigation coordination is one cohesive dependency with the original latch and route.
+
+Text callbacks carry the exact editor. Commit/Blur also carry native committed text
+so a deferred TextChanged cannot lose the last edit. Exact owner, active side, exact
+source pane and ordinary admission precede reducer application. Stale-pane Blur retires
+without applying; stale owners do nothing; Cancel ignores text and clears. The native
+adapter preserves pending text during ordinary render and excludes IME intermediates.
+Enter/Cancel return file-list focus through an exact current closed receipt; Blur has
+no focus effect. An external qualified entry finishes that exact editor before its
+original request and never rebinds a now-stale request to a newer pane snapshot.

@@ -176,6 +176,8 @@ public sealed class CommanderSessionPaletteCatalogTests
                 UserIntent.SelectAll,
                 UserIntent.InvertSelection,
                 UserIntent.ClearSelection,
+                UserIntent.OpenPaneFilter,
+                UserIntent.ClearPaneFilter,
             },
             palette.Candidates.Select(candidate => candidate.Intent).ToArray());
     }

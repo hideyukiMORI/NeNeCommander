@@ -36,12 +36,13 @@ Text/IME, modal, repeat and shutdown guards continue to apply before dispatch.
 | `Shift+Up` / `Shift+Down` | replace selection with the inclusive anchored range one row up/down, clamped |
 | `Shift+PageUp` / `Shift+PageDown` | replace the anchored range half a visible page up/down, clamped |
 | `Shift+Home` / `Shift+End` | replace the anchored range to the first/last visible entry |
+| produced `/` | edit the active pane name filter over its loaded visible entries |
 | `Ctrl+H` | toggle hidden and system entries in the active pane |
 | `Ctrl+F3` | sort the active pane by name; again reverses the direction, from another key starts ascending |
 | `Ctrl+F4` | sort the active pane by extension; again reverses the direction, from another key starts ascending |
 | `Ctrl+F5` | sort the active pane by size, unknown sizes last; again reverses the direction, from another key starts ascending |
 | `Ctrl+F6` | sort the active pane by modification time, unknown times last; again reverses the direction, from another key starts ascending |
-| `Escape` | cancel a running file operation, then abandon the active pane's loading read (or the exact passive read owned by Ctrl+E), then cancel pending chord, then close transient UI, then clear selection |
+| `Escape` | cancel a running file operation, then abandon the active pane's loading read (or the exact passive read owned by Ctrl+E), then cancel pending chord, then close transient UI, then clear selection/anchor, then clear an applied name filter |
 
 `Ctrl+E` is declared in FileList and NavigationSurface only (ADR-0084). Its produced `e`
 with Control, or control character U+0005 with Control, uses the existing translated E key;
@@ -436,3 +437,21 @@ shares the idle Escape clearing transition; it never cancels work or a modal. Ex
 read, launch, transient-scope, operation and shutdown admission applies to all nine
 new intents. F1 reads the canonical bindings; no additional normal-footer hint is
 introduced. No operation is queued behind another owner.
+
+## Loaded name-filter input (ADR-0094)
+
+Produced `/` opens the active pane's inline editor only in FileList. The header action
+and palette OpenPaneFilter use the same scope; ClearPaneFilter uses the same reducer.
+Ctrl+F remains unassigned. PaneFilter's only mapped exits are Enter and Escape. Enter
+keeps the latest committed native text and returns to the list; editor Escape clears
+the query and returns. Ordinary focus loss keeps committed text without taking focus
+back. The repeat guard retains opener/exit presses across owner changes, so held Enter
+cannot open a file and held Escape cannot clear a later list selection.
+
+Native text owns Space, Ctrl+A, slash/star and navigation. Composition intermediates
+never change the applied query, and IME Enter/Escape stay native. File-list Escape
+first clears marks/anchor; a subsequent idle Escape clears the filter. Explicit
+ClearSelection only clears marks. A pending chord, work, modal or another scope retains
+its prior precedence. Both panes keep independent queries. No per-key enumeration,
+recursive search, settings persistence or additional footer shortcut is introduced.
+Localized inline key captions, palette labels and F1 read the canonical mapper/catalog.

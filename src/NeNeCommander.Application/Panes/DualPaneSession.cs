@@ -131,6 +131,16 @@ public sealed class DualPaneSession
         return RouteAsync(intent, observer, cancellationToken);
     }
 
+    /// <summary>Applies one qualified query to the active pane while pane input remains admitted.</summary>
+    internal DualPaneSnapshot ApplyNameFilter(PaneSide side, PaneSnapshot expected, PaneNameFilterQuery query)
+    {
+        if (_activeSide == side && Current.CanInteractWithPanes)
+        {
+            _ = SessionOf(side).ApplyNameFilter(expected, query);
+        }
+        return Current;
+    }
+
     private Task<DualPaneSnapshot> HandleInteractionAsync(PaneInteraction interaction, CancellationToken cancellationToken)
     {
         PaneSnapshot before = Current.Of(interaction.Side);

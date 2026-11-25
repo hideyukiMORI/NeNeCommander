@@ -49,6 +49,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
     private readonly CommanderPaneView _rightPaneView;
     private readonly EntryMetadataFormat _metadataFormat;
     private readonly AddressEditorView _addressView;
+    private readonly PaneFilterView _filterView;
     private KeyboardContext _operationContext = KeyboardContext.FileList;
     private DualPanePresentation? _presentation;
     private ColorScheme? _renderedScheme;
@@ -91,6 +92,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _commandEntryView = CreateCommandEntry();
         _paletteView = new CommandPaletteView(CommandPaletteOverlay, _resources, ForwardIntent, FocusFileList);
         _addressView = new AddressEditorView(AddressEditorOverlay, _resources, ForwardIntent, FocusFileList);
+        _filterView = new PaneFilterView(InputSurface, _resources, ForwardIntent, ReturnFilterFocus);
         _operationView = new OperationBarView(InputSurface, _resources, ForwardIntent);
         _contextView = new CommandMenuView(InputSurface, _resources, ForwardIntent, ReturnPointerFocus);
         PanePointerBindings pointer = new(_pointerMapper, ForwardIntent, _contextView.Request);
@@ -210,7 +212,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         }
     }
 
-    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing || _themePicker.IsComposing;
+    private bool IsTextComposing => _paletteView.IsComposing || _bookmarkView.IsComposing || _addressView.IsComposing || _themePicker.IsComposing || _filterView.IsComposing;
 
     private async Task<CommanderSnapshot> LoadInitialLocationsAsync(CancellationToken cancellationToken)
     {
@@ -229,9 +231,22 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         RenderSession(snapshot);
     }
 
-    private async Task RenderIntentAsync(UserIntent intent, CancellationToken cancellationToken)
+    private async Task RenderIntentAsync(UserIntent intent, PaneFilterEditSubmission? leavingFilter, CancellationToken cancellationToken)
     {
         CommanderSnapshot before = _session.Current;
+        if (leavingFilter is not null)
+        {
+            if (!ReferenceEquals(before.Scopes.NameFilter, leavingFilter.ExpectedState))
+            {
+                return;
+            }
+            before = await _session.HandleAsync(leavingFilter, this, cancellationToken);
+            if (before.Scopes.NameFilter is not PaneFilterClosed ||
+                !ReferenceEquals(before.Scopes.NameFilter, _session.Current.Scopes.NameFilter))
+            {
+                return;
+            }
+        }
         Task<CommanderSnapshot> work = _session.HandleAsync(intent, this, cancellationToken);
         RenderSession(_session.Current);
         CommanderSnapshot after = await work;
@@ -240,16 +255,18 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         ReturnPointerFocus(focusSide);
     }
 
+    private void ReturnFilterFocus(PaneFilterClosed expected)
+    {
+        FocusFileList(PaneFilterPresenter.FocusTarget(expected, _session.Current, GetKeyboardContext()));
+    }
+
     private void ReturnPointerFocus(PaneSide? side)
     {
         if (_stopping || side is null)
         {
             return;
         }
-        KeyboardContext context = GetKeyboardContext();
-        if (_session.Current.Panes.ActiveSide == side &&
-            (context == KeyboardContext.FileList || context == KeyboardContext.CommandEntry) &&
-            CommandEntryPresenter.Present(_session.Current).IsEnabled)
+        if (PanePointerMapper.CanReturnFocus(_session.Current, side, GetKeyboardContext()))
         {
             FocusFileList(side);
         }
@@ -273,6 +290,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _paletteView.Render(snapshot);
         _contextView.Render(snapshot);
         _addressView.Render(snapshot.Scopes.AddressEditor);
+        _filterView.Render(snapshot);
         _locationsView.Render(snapshot.Scopes.Locations);
         _windowAdjustmentView.Render();
         _keyboardHelpView.Render();
@@ -347,37 +365,33 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _windowAdjustmentView.Forward(windowAction.Action);
             return true;
         }
-        if (outcome is MappedCommandPaletteAction paletteAction)
+        return outcome switch
         {
-            return ForwardPaletteAction(paletteAction.Action);
-        }
-        if (outcome is MappedBookmarkManagerAction bookmarkAction)
-        {
-            return _bookmarkView.Forward(bookmarkAction.Action);
-        }
-        if (outcome is MappedKeyboardIntent setting &&
-            SettingsOverlay.Visibility == Visibility.Visible &&
-            _settingsView.Forward(setting.Intent))
-        {
-            return true;
-        }
-        if (outcome is MappedKeyboardIntent help &&
-            _session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen)
-        {
-            _keyboardHelpView.Forward(help.Intent);
-            return true;
-        }
-        if (outcome is MappedKeyboardIntent mapped)
-        {
-            ForwardIntent(LocationsPresenter.Qualify(mapped.Intent, _locationsView.Rendered));
-            return true;
-        }
-        return outcome is KeyboardAwaitingChord or KeyboardConsumed;
+            MappedCommandPaletteAction paletteAction => _themePicker.IsOpen ? _themePicker.Forward(paletteAction.Action) : _paletteView.Forward(paletteAction.Action),
+            MappedBookmarkManagerAction bookmarkAction => _bookmarkView.Forward(bookmarkAction.Action),
+            MappedKeyboardIntent mapped => ForwardMappedIntent(mapped.Intent),
+            _ => outcome is KeyboardAwaitingChord or KeyboardConsumed,
+        };
     }
 
-    private bool ForwardPaletteAction(CommandPaletteKeyAction action)
+    private bool ForwardMappedIntent(UserIntent intent)
     {
-        return _themePicker.IsOpen ? _themePicker.Forward(action) : _paletteView.Forward(action);
+        if (SettingsOverlay.Visibility == Visibility.Visible && _settingsView.Forward(intent))
+        {
+            return true;
+        }
+        if (_session.Current.Scopes.KeyboardHelp is KeyboardHelpOpen)
+        {
+            _keyboardHelpView.Forward(intent);
+            return true;
+        }
+        if (GetKeyboardContext() == KeyboardContext.PaneFilter)
+        {
+            _filterView.Forward(intent);
+            return true;
+        }
+        ForwardIntent(LocationsPresenter.Qualify(intent, _locationsView.Rendered));
+        return true;
     }
 
     private void ForwardFocus(KeyboardFocusAction action)
@@ -409,7 +423,8 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             return;
         }
         UserIntent forwarded = CreateForwardedIntent(intent);
-        if (!_paneWork.TryStartIntent(forwarded, cancellationToken => RenderIntentAsync(forwarded, cancellationToken)))
+        PaneFilterEditSubmission? leavingFilter = _filterView.CaptureExternalExit(forwarded);
+        if (!_paneWork.TryStartIntent(forwarded, cancellationToken => RenderIntentAsync(forwarded, leavingFilter, cancellationToken)))
         {
             _pointerMapper.Reset();
             RenderSession(_session.Current);
@@ -464,6 +479,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
         _stopping = true;
         _windowAdjustmentView.Stop();
         _contextView.Stop();
+        _filterView.Stop();
         InputSurface.IsHitTestVisible = false;
         SavedWindowPlacement? placement = _placementAdapter.FinishTracking();
         try
@@ -489,32 +505,18 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
             _ when SettingsOverlay.Visibility == Visibility.Visible => KeyboardContext.Settings,
             _ when _operationContext == KeyboardContext.Modal => _bookmarkView.OwnedKeyboardContext ?? KeyboardContext.Modal,
             { AddressEditor: not AddressEditorClosed } => KeyboardContext.AddressEntry,
-            _ => GetFocusedControlContext(),
+            { NameFilter: PaneFilterEditing } => KeyboardContext.PaneFilter,
+            _ => CommanderFocusView.CurrentContext(InputSurface, _commandEntryView, _filterView),
         };
     }
 
-    private KeyboardContext GetFocusedControlContext()
+    private void FocusFileList(PaneSide? side)
     {
-        object? focused = FocusManager.GetFocusedElement(Content.XamlRoot);
-        return focused is TextBox or RichEditBox or PasswordBox or AutoSuggestBox
-            ? KeyboardContext.TextEntry
-            : _commandEntryView.ContainsFocus(focused) ? KeyboardContext.CommandEntry : KeyboardContext.FileList;
-    }
-
-    private void FocusFileList(PaneSide side)
-    {
-        if (_stopping)
+        if (_stopping || side is null)
         {
             return;
         }
         _commandEntryView.Render(CommandEntryPresenter.Present(_session.Current));
-        ListView fileList = side == PaneSide.Left ? LeftFileList : RightFileList;
-        Control target = fileList.SelectedItem is object selected && fileList.ContainerFromItem(selected) is ListViewItem row
-            ? row
-            : fileList;
-        if (!target.Focus(FocusState.Programmatic))
-        {
-            _ = fileList.Focus(FocusState.Programmatic);
-        }
+        CommanderFocusView.FocusFileList(side == PaneSide.Left ? LeftFileList : RightFileList);
     }
 }

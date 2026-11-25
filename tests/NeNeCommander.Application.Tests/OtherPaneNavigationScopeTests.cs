@@ -31,10 +31,8 @@ public sealed class OtherPaneNavigationScopeTests
         ScriptedDirectoryReadPort right = fixture.Right;
         ScriptedDriveCatalog drives = new();
         ScriptedWslDistributionCatalog wsl = new();
-        CommanderSession session = new(fixture.Panes,
-            new SettingsSession(new ScriptedSettingsStore(SettingsReadOutcome.Absent()), SettingsReadOutcome.Absent(), static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-                new LocationsSession(drives, wsl), new KeyboardHelpSession()));
+        SettingsSession bookmarkSettings = new(new ScriptedSettingsStore(SettingsReadOutcome.Absent()), SettingsReadOutcome.Absent(), static _ => { });
+        CommanderSession session = new(fixture.Panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(drives, wsl), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(fixture.Panes, bookmarkSettings));
         DirectoryListing listing = DualPaneSessionTestContext.Listing(@"C:\source", ("source.txt", DirectoryEntryKind.File));
         left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         _ = await session.NavigateAsync(PaneSide.Left, listing.Location, CancellationToken.None);

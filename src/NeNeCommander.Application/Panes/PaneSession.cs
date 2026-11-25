@@ -154,12 +154,37 @@ public sealed class PaneSession
             return external;
         }
 
+        ApplyReducerTransition(listed, intent);
+        return Task.FromResult(Current);
+    }
+
+    private void ApplyReducerTransition(PaneContentListed listed, UserIntent intent)
+    {
         PaneState next = PaneReducer.Apply(listed.State, intent);
         if (!ReferenceEquals(next, listed.State))
         {
-            Current = PaneSnapshot.IdleWith(new PaneContentListed(next, listed.Listing, listed.DriveKind));
+            PaneContentListed content = new(next, listed.Listing, listed.DriveKind);
+            Current = ReferenceEquals(next.NameFilter, listed.State.NameFilter)
+                ? PaneSnapshot.IdleWith(content)
+                : Current.WithContent(content);
         }
-        return Task.FromResult(Current);
+    }
+
+    /// <summary>Applies a qualified committed query without a provider read or a second projection.</summary>
+    internal PaneSnapshot ApplyNameFilter(PaneSnapshot expected, PaneNameFilterQuery query)
+    {
+        ThrowOrphanedReadFault();
+        if (!ReferenceEquals(expected, Current) || Current.Activity is PaneLoading or PaneLaunching ||
+            Current.Content is not PaneContentListed listed)
+        {
+            return Current;
+        }
+        PaneState next = PaneReducer.ApplyNameFilter(listed.State, query);
+        if (!ReferenceEquals(next, listed.State))
+        {
+            Current = Current.WithContent(new PaneContentListed(next, listed.Listing, listed.DriveKind));
+        }
+        return Current;
     }
 
     /// <summary>
@@ -373,8 +398,9 @@ public sealed class PaneSession
             _visiblePageCapacity,
             preferredFocus,
             ResolveHiddenItemVisibility());
+        PaneState filtered = PaneReducer.CarryNameFilter(previousState, navigated);
         PaneState ordered = PaneReducer.ApplySortOrder(
-            navigated,
+            filtered,
             previousState?.SortOrder ?? _initialSortOrder,
             preferredFocus);
         if (action == PaneNavigationAction.Preserve && previousState is not null)

@@ -27,6 +27,7 @@ public sealed class KeyboardHelpTests
         "KeyboardHelpGroupCommandPalette",
         "KeyboardHelpGroupHelp",
         "KeyboardHelpGroupCommandEntry",
+        "KeyboardHelpGroupPaneFilter",
     ];
     private static readonly string[] ChordCaps = ["KeyLabelChordGG"];
     private static readonly string[] SlotCaps = ["KeyLabelCtrl1To9"];

@@ -178,18 +178,12 @@ public sealed class CommanderSessionKeyboardHelpTests
                 Right,
                 new ScriptedFileLauncher(),
                 PaneSessionConfiguration.Create(Capacity(), DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default));
-            Session = new CommanderSession(
-                new DualPaneSession(left, right, _gateway),
-                new SettingsSession(
+            DualPaneSession bookmarkPanes = new(left, right, _gateway);
+            SettingsSession bookmarkSettings = new(
                     new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
                     SettingsReadOutcome.Absent(),
-                    static _ => { }),
-                new TransientScopeOwners(
-                    new AddressEditorSession(),
-                    new CommandPaletteSession(),
-                    new WindowAdjustmentSession(),
-                    new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()),
-                    new KeyboardHelpSession()));
+                    static _ => { });
+            Session = new CommanderSession(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
         }
 
         internal ScriptedDirectoryReadPort Left { get; } = ScriptedDirectoryReadPort.Create();

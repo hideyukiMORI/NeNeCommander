@@ -23,6 +23,9 @@ public sealed class KeyboardIntentMapper
     /// </summary>
     private static readonly IReadOnlyList<KeyBinding> DeclaredBindings =
     [
+        new(KeyboardContext.FileList, KeyboardKey.Slash, KeyboardModifier.None, UserIntent.OpenPaneFilter),
+        new(KeyboardContext.PaneFilter, KeyboardKey.Enter, KeyboardModifier.None, UserIntent.Confirm),
+        new(KeyboardContext.PaneFilter, KeyboardKey.Escape, KeyboardModifier.None, UserIntent.Escape),
         new(KeyboardContext.FileList, KeyboardKey.F10, KeyboardModifier.Shift, UserIntent.OpenContextMenu),
         new(KeyboardContext.FileList, KeyboardKey.Apps, KeyboardModifier.None, UserIntent.OpenContextMenu),
         new(KeyboardContext.FileList, KeyboardKey.J, KeyboardModifier.None, UserIntent.MoveNext),
@@ -246,6 +249,7 @@ public sealed class KeyboardIntentMapper
             KeyboardContext context when context == KeyboardContext.KeyboardHelp => MapKeyboardHelpKey(input),
             KeyboardContext context when context == KeyboardContext.Settings => MapSettingsKey(input),
             KeyboardContext context when context == KeyboardContext.CommandEntry => MapCommandEntryKey(input),
+            KeyboardContext context when context == KeyboardContext.PaneFilter => MapPaneFilterKey(input),
             KeyboardContext context when BookmarkManagerKeyMap.Owns(context) => BookmarkManagerKeyMap.Map(input),
             KeyboardContext context when context == KeyboardContext.TextEntry || context == KeyboardContext.Modal =>
                 MapOwnedKey(input),
@@ -323,6 +327,14 @@ public sealed class KeyboardIntentMapper
         KeyBinding? binding = DeclaredBindings.FirstOrDefault(binding =>
             binding.Context == input.Context && binding.Key == input.Key);
         return binding is null ? new KeyboardPassThrough() : new MappedKeyboardIntent(binding.Intent);
+    }
+
+    private static KeyboardMappingOutcome MapPaneFilterKey(KeyboardInput input)
+    {
+        return input.RepeatState == KeyRepeatState.Repeated &&
+            (input.Key == KeyboardKey.Enter || input.Key == KeyboardKey.Escape)
+                ? new KeyboardConsumed()
+                : MapOwnedKey(input);
     }
 
     private static KeyboardMappingOutcome MapCommandPaletteKey(KeyboardInput input)
@@ -409,7 +421,8 @@ public sealed class KeyboardIntentMapper
             binding.Key == input.Key &&
             binding.Modifier == input.Modifier);
         return binding is null ? KeyboardFocusMap.Map(input)
-            : (binding.Intent == UserIntent.OpenContextMenu || binding.Intent == UserIntent.SelectAll ||
+            : (binding.Intent == UserIntent.OpenContextMenu || binding.Intent == UserIntent.OpenPaneFilter ||
+                binding.Intent == UserIntent.SelectAll ||
                 binding.Intent == UserIntent.InvertSelection) && input.RepeatState == KeyRepeatState.Repeated
                 ? new KeyboardConsumed() : new MappedKeyboardIntent(binding.Intent);
     }

@@ -23,11 +23,9 @@ internal sealed class PanePointerTestContext : IDisposable
         _gateway = gateway;
         Left = left;
         Right = right;
-        Session = new CommanderSession(panes, new SettingsSession(new SuccessfulStore(),
-            SettingsReadOutcome.Absent(), static _ => { }), new TransientScopeOwners(
-                new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()),
-                new KeyboardHelpSession()));
+        SettingsSession bookmarkSettings = new(new SuccessfulStore(),
+            SettingsReadOutcome.Absent(), static _ => { });
+        Session = new CommanderSession(panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(panes, bookmarkSettings));
     }
 
     internal ScriptedDirectoryReadPort Left { get; }

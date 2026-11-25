@@ -733,6 +733,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
                         x:Name="LeftPaneHeader"
@@ -764,6 +765,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -803,9 +805,20 @@
                                         </PathIcon>
                                     </Button>
                                 </Grid>
+                                <Button x:Name="LeftOpenFilter" Grid.Column="3"
+                                    AutomationProperties.AutomationId="LeftOpenFilter"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                    views:LocalizedText.NameKey="IntentLabelOpenPaneFilter"
+                                    MinHeight="{StaticResource DensityNone}" MinWidth="{StaticResource DensityNone}"
+                                    Height="{StaticResource DensityPaneNavigationTargetSize}"
+                                    Padding="{StaticResource SpacingNameEntry}" VerticalAlignment="Center">
+                                    <TextBlock TextWrapping="Wrap"
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                        views:LocalizedText.TextKey="PaneFilterOpenLabel" />
+                                </Button>
                                 <TextBlock
                                     x:Name="LeftStatus"
-                                    Grid.Column="3"
+                                    Grid.Column="4"
                                     AutomationProperties.AutomationId="LeftStatus"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -823,9 +836,43 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <StackPanel x:Name="LeftFilterBar" Grid.Row="2" Visibility="Collapsed"
+                        AutomationProperties.AutomationId="LeftFilterBar"
+                        Margin="{StaticResource SpacingPaneHeader}" Spacing="{StaticResource SpacingKeyHintGap}">
+                        <TextBlock x:Name="LeftFilterLabel" TextWrapping="Wrap"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                            views:LocalizedText.TextKey="PaneFilterLabel"
+                            Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Grid ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="LeftFilterInput" Grid.Column="0"
+                                AutomationProperties.AutomationId="LeftFilterInput"
+                                AutomationProperties.LabeledBy="{Binding ElementName=LeftFilterLabel}"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                views:LocalizedText.PlaceholderKey="PaneFilterPlaceholder"
+                                FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                FontSize="{StaticResource TypographyMonospaceSize}"
+                                IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                            <Button x:Name="LeftClearFilter" Grid.Column="1"
+                                AutomationProperties.AutomationId="LeftClearFilter"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                views:LocalizedText.NameKey="IntentLabelClearPaneFilter">
+                                <TextBlock TextWrapping="Wrap"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                    views:LocalizedText.TextKey="PaneFilterClearLabel" />
+                            </Button>
+                        </Grid>
+                        <TextBlock x:Name="LeftFilterHint" TextWrapping="Wrap"
+                            AutomationProperties.AutomationId="LeftFilterHint"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            FontSize="{StaticResource TypographyMonospaceSize}" />
+                    </StackPanel>
                     <TextBlock
                         x:Name="LeftCounts"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         AutomationProperties.AutomationId="LeftPaneCounts"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"
@@ -848,6 +895,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border
@@ -880,6 +928,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -922,9 +971,20 @@
                                         </PathIcon>
                                     </Button>
                                 </Grid>
+                                <Button x:Name="RightOpenFilter" Grid.Column="3"
+                                    AutomationProperties.AutomationId="RightOpenFilter"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                    views:LocalizedText.NameKey="IntentLabelOpenPaneFilter"
+                                    MinHeight="{StaticResource DensityNone}" MinWidth="{StaticResource DensityNone}"
+                                    Height="{StaticResource DensityPaneNavigationTargetSize}"
+                                    Padding="{StaticResource SpacingNameEntry}" VerticalAlignment="Center">
+                                    <TextBlock TextWrapping="Wrap"
+                                        views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                        views:LocalizedText.TextKey="PaneFilterOpenLabel" />
+                                </Button>
                                 <TextBlock
                                     x:Name="RightStatus"
-                                    Grid.Column="3"
+                                    Grid.Column="4"
                                     AutomationProperties.AutomationId="RightStatus"
                                     FontFamily="{StaticResource TypographyMonospaceFamily}"
                                     FontSize="{StaticResource TypographyMonospaceSize}"
@@ -942,9 +1002,43 @@
                         ItemTemplate="{StaticResource PaneRowTemplate}"
                         Padding="{StaticResource SpacingPaneList}"
                         SelectionMode="Single" />
+                    <StackPanel x:Name="RightFilterBar" Grid.Row="2" Visibility="Collapsed"
+                        AutomationProperties.AutomationId="RightFilterBar"
+                        Margin="{StaticResource SpacingPaneHeader}" Spacing="{StaticResource SpacingKeyHintGap}">
+                        <TextBlock x:Name="RightFilterLabel" TextWrapping="Wrap"
+                            views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                            views:LocalizedText.TextKey="PaneFilterLabel"
+                            Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Grid ColumnSpacing="{StaticResource SpacingPaneNavigationGap}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="RightFilterInput" Grid.Column="0"
+                                AutomationProperties.AutomationId="RightFilterInput"
+                                AutomationProperties.LabeledBy="{Binding ElementName=RightFilterLabel}"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                views:LocalizedText.PlaceholderKey="PaneFilterPlaceholder"
+                                FontFamily="{StaticResource TypographyMonospaceFamily}"
+                                FontSize="{StaticResource TypographyMonospaceSize}"
+                                IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                            <Button x:Name="RightClearFilter" Grid.Column="1"
+                                AutomationProperties.AutomationId="RightClearFilter"
+                                views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                views:LocalizedText.NameKey="IntentLabelClearPaneFilter">
+                                <TextBlock TextWrapping="Wrap"
+                                    views:LocalizedText.Resources="{StaticResource ViewTextResources}"
+                                    views:LocalizedText.TextKey="PaneFilterClearLabel" />
+                            </Button>
+                        </Grid>
+                        <TextBlock x:Name="RightFilterHint" TextWrapping="Wrap"
+                            AutomationProperties.AutomationId="RightFilterHint"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            FontSize="{StaticResource TypographyMonospaceSize}" />
+                    </StackPanel>
                     <TextBlock
                         x:Name="RightCounts"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         AutomationProperties.AutomationId="RightPaneCounts"
                         FontFamily="{StaticResource TypographyMonospaceFamily}"
                         FontSize="{StaticResource TypographyMonospaceSize}"

@@ -21,6 +21,7 @@ public sealed class KeyboardBindingTests
             KeyboardContext.Modal,
             KeyboardContext.TextEntry,
             KeyboardContext.AddressEntry,
+            KeyboardContext.PaneFilter,
         ];
 
         foreach (KeyboardContext context in contexts)
@@ -40,6 +41,7 @@ public sealed class KeyboardBindingTests
             KeyboardContext.Modal,
             KeyboardContext.TextEntry,
             KeyboardContext.AddressEntry,
+            KeyboardContext.PaneFilter,
             KeyboardContext.KeyboardHelp,
             KeyboardContext.Settings,
         ];
@@ -54,7 +56,7 @@ public sealed class KeyboardBindingTests
     [TestMethod]
     public void BindingsForWhenContextIsFileListDeclaresTheDocumentedCount()
     {
-        Assert.HasCount(58, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
+        Assert.HasCount(59, KeyboardIntentMapper.BindingsFor(KeyboardContext.FileList));
         Assert.HasCount(29, KeyboardIntentMapper.BindingsFor(KeyboardContext.NavigationSurface));
         Assert.HasCount(6, KeyboardIntentMapper.BindingsFor(KeyboardContext.Locations));
         Assert.HasCount(10, KeyboardIntentMapper.BindingsFor(KeyboardContext.KeyboardHelp));
@@ -63,6 +65,7 @@ public sealed class KeyboardBindingTests
         Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.Modal));
         Assert.HasCount(1, KeyboardIntentMapper.BindingsFor(KeyboardContext.TextEntry));
         Assert.HasCount(3, KeyboardIntentMapper.BindingsFor(KeyboardContext.AddressEntry));
+        Assert.HasCount(2, KeyboardIntentMapper.BindingsFor(KeyboardContext.PaneFilter));
     }
 
     /// <summary>Proves every key identity names one distinct key-cap label resource.</summary>

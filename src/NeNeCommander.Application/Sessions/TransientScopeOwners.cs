@@ -2,56 +2,50 @@ using System;
 
 namespace NeNeCommander.Application.Sessions;
 
-/// <summary>
-/// Carries the owners of every transient scope the application session coordinates. It is the one
-/// place a later transient scope is added, so the session constructor keeps its arity.
-/// </summary>
+/// <summary>Carries the sole transient scope owners through explicit composition.</summary>
 public sealed record TransientScopeOwners
 {
-    /// <summary>Initializes the set of transient scope owners the composition root created.</summary>
-    /// <param name="addressEditor">Sole address editor scope owner.</param>
-    /// <param name="commandPalette">Sole command palette scope owner.</param>
-    /// <param name="windowAdjustment">Sole window adjustment scope owner.</param>
-    /// <param name="locations">Sole Locations picker scope owner.</param>
-    /// <param name="keyboardHelp">Sole keyboard help scope owner.</param>
+    private readonly PaneScopeOwners _panes;
+
+    /// <summary>Receives pane scopes and each complete application-scope owner.</summary>
     public TransientScopeOwners(
-        AddressEditorSession addressEditor,
+        PaneScopeOwners panes,
         CommandPaletteSession commandPalette,
         WindowAdjustmentSession windowAdjustment,
-        LocationsSession locations,
         KeyboardHelpSession keyboardHelp)
     {
-        ArgumentNullException.ThrowIfNull(addressEditor);
+        ArgumentNullException.ThrowIfNull(panes);
         ArgumentNullException.ThrowIfNull(commandPalette);
         ArgumentNullException.ThrowIfNull(windowAdjustment);
-        ArgumentNullException.ThrowIfNull(locations);
         ArgumentNullException.ThrowIfNull(keyboardHelp);
-        AddressEditor = addressEditor;
+        _panes = panes;
         CommandPalette = commandPalette;
         WindowAdjustment = windowAdjustment;
-        Locations = locations;
         KeyboardHelp = keyboardHelp;
     }
 
-    /// <summary>Captures the current immutable state of these sole registered owners.</summary>
+    /// <summary>Captures exactly one current state from each composed owner.</summary>
     internal TransientScopeSnapshot Capture()
     {
-        return new TransientScopeSnapshot(AddressEditor.Current, CommandPalette.Current,
-            WindowAdjustment.Current, Locations.Current, KeyboardHelp.Current);
+        return new TransientScopeSnapshot(_panes.Capture(), CommandPalette.Current,
+            WindowAdjustment.Current, KeyboardHelp.Current);
     }
 
-    /// <summary>Gets the sole address editor scope owner.</summary>
-    public AddressEditorSession AddressEditor { get; }
+    /// <summary>Gets the sole AddressEditor scope owner.</summary>
+    public AddressEditorSession AddressEditor => _panes.AddressEditor;
 
-    /// <summary>Gets the sole command palette scope owner.</summary>
+    /// <summary>Gets the sole CommandPalette scope owner.</summary>
     public CommandPaletteSession CommandPalette { get; }
 
-    /// <summary>Gets the sole window adjustment scope owner.</summary>
+    /// <summary>Gets the sole WindowAdjustment scope owner.</summary>
     public WindowAdjustmentSession WindowAdjustment { get; }
 
-    /// <summary>Gets the sole Locations picker scope owner.</summary>
-    public LocationsSession Locations { get; }
+    /// <summary>Gets the sole Locations scope owner.</summary>
+    public LocationsSession Locations => _panes.Locations;
 
-    /// <summary>Gets the sole keyboard help scope owner.</summary>
+    /// <summary>Gets the sole KeyboardHelp scope owner.</summary>
     public KeyboardHelpSession KeyboardHelp { get; }
+
+    /// <summary>Gets the sole NameFilter scope owner.</summary>
+    public PaneFilterSession NameFilter => _panes.NameFilter;
 }

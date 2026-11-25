@@ -58,6 +58,30 @@ public abstract record UserIntent
     /// <summary>Gets the intent to open the current listed location in the opposite pane without activating it.</summary>
     public static UserIntent OpenCurrentLocationInOtherPane { get; } = new OpenCurrentLocationInOtherPaneIntent();
 
+    /// <summary>Gets the intent to edit the active pane's loaded-name query.</summary>
+    public static UserIntent OpenPaneFilter { get; } = new OpenPaneFilterIntent();
+
+    /// <summary>Gets the intent to clear the active pane's loaded-name query.</summary>
+    public static UserIntent ClearPaneFilter { get; } = new ClearPaneFilterIntent();
+
+    /// <summary>Qualifies native committed text by the exact rendered filter editor.</summary>
+    public static UserIntent ChangePaneFilterText(PaneFilterEditing expectedState, string rawText)
+    {
+        return new PaneFilterTextSubmission(expectedState, rawText);
+    }
+
+    /// <summary>Qualifies one native filter completion, cancellation or focus loss.</summary>
+    public static PaneFilterEditSubmission FinishPaneFilter(PaneFilterEditing expectedState, PaneFilterEditAction action, string rawText)
+    {
+        return new PaneFilterEditSubmission(expectedState, action, rawText);
+    }
+
+    /// <summary>Captures one explicit pane-surface filter request through existing pointer admission.</summary>
+    public static UserIntent RequestPaneFilter(PaneSide side, PaneSnapshot expectedSnapshot, PaneFilterEntryAction action)
+    {
+        return new PaneFilterEntryRequest(side, expectedSnapshot, action);
+    }
+
     /// <summary>Gets the intent to toggle explicit selection for the focus item.</summary>
     public static UserIntent ToggleSelection { get; } = new ToggleSelectionIntent();
 
@@ -625,6 +649,19 @@ public abstract record UserIntent
         }
     }
     private sealed record SelectRangeLastIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OpenPaneFilterIntent : UserIntent
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+
+    private sealed record ClearPaneFilterIntent : UserIntent
     {
         private protected override void RestrictDerivation()
         {

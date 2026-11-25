@@ -30,6 +30,8 @@ public static class CommandLabelCatalog
         new(UserIntent.SelectAll, "IntentLabelSelectAll"),
         new(UserIntent.InvertSelection, "IntentLabelInvertSelection"),
         new(UserIntent.ClearSelection, "IntentLabelClearSelection"),
+        new(UserIntent.OpenPaneFilter, "IntentLabelOpenPaneFilter"),
+        new(UserIntent.ClearPaneFilter, "IntentLabelClearPaneFilter"),
         new(UserIntent.SelectRangeNext, "IntentLabelSelectRangeNext"),
         new(UserIntent.SelectRangePrevious, "IntentLabelSelectRangePrevious"),
         new(UserIntent.SelectRangeHalfPageDown, "IntentLabelSelectRangeHalfPageDown"),

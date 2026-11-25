@@ -122,10 +122,8 @@ public sealed class OtherPaneNavigationHostTests
 
     private static CommanderSession CreateSession(DualPaneSession panes)
     {
-        return new CommanderSession(panes,
-            new SettingsSession(new SuccessfulSettingsStore(), SettingsReadOutcome.Absent(), static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(),
-                new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()), new KeyboardHelpSession()));
+        SettingsSession bookmarkSettings = new(new SuccessfulSettingsStore(), SettingsReadOutcome.Absent(), static _ => { });
+        return new CommanderSession(panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new PendingDriveCatalog(), new PendingWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(panes, bookmarkSettings));
     }
 
     private sealed class SuccessfulSettingsStore : ISettingsStore

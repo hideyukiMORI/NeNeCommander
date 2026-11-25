@@ -217,9 +217,8 @@ public sealed class PaletteScopeEntryTests
             VisiblePageCapacity capacity = Assert.IsInstanceOfType<VisiblePageCapacityAccepted>(VisiblePageCapacity.Create(4)).Capacity;
             PaneSessionConfiguration configuration = PaneSessionConfiguration.Create(capacity, DirectoryListing.EntryBoundaryLimit, HiddenItemVisibility.Hidden, PaneSortOrder.Default);
             Panes = new DualPaneSession(new PaneSession(Left, new ScriptedFileLauncher(), configuration), new PaneSession(Right, new ScriptedFileLauncher(), configuration), _gateway);
-            Session = new CommanderSession(Panes,
-                new SettingsSession(Store, SettingsReadOutcome.Absent(), static exception => throw new AssertFailedException("Unexpected storage fault.", exception)),
-                new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(), new WindowAdjustmentSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new KeyboardHelpSession()));
+            SettingsSession bookmarkSettings = new(Store, SettingsReadOutcome.Absent(), static exception => throw new AssertFailedException("Unexpected storage fault.", exception));
+            Session = new CommanderSession(Panes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(new ScriptedDriveCatalog(), new ScriptedWslDistributionCatalog()), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(Panes, bookmarkSettings));
         }
 
         internal async Task ListEmptyAsync(PaneSide side)

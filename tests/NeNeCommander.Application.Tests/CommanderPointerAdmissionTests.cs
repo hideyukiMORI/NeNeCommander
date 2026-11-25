@@ -111,15 +111,13 @@ public sealed class CommanderPointerAdmissionTests
         PaneSessionConfiguration configuration = PaneSessionConfiguration.Create(
             CommanderSessionTestValues.Capacity(), DirectoryListing.EntryBoundaryLimit,
             HiddenItemVisibility.Hidden, PaneSortOrder.Default);
-        return new CommanderSession(new DualPaneSession(new PaneSession(left, launcher, configuration),
-            new PaneSession(right, launcher, configuration), gateway),
-            new SettingsSession(new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
-                SettingsReadOutcome.Absent(), static _ => { }),
-            new TransientScopeOwners(new AddressEditorSession(), new CommandPaletteSession(),
-                new WindowAdjustmentSession(), new LocationsSession(
+        DualPaneSession bookmarkPanes = new(new PaneSession(left, launcher, configuration),
+            new PaneSession(right, launcher, configuration), gateway);
+        SettingsSession bookmarkSettings = new(new ScriptedSettingsStore(SettingsReadOutcome.Absent()),
+                SettingsReadOutcome.Absent(), static _ => { });
+        return new CommanderSession(bookmarkPanes, bookmarkSettings, new TransientScopeOwners(new PaneScopeOwners(new AddressEditorSession(), new LocationsSession(
                     ScriptedDriveCatalog.Completed(DriveCatalogOutcome.Succeeded([], 0)),
-                    ScriptedWslDistributionCatalog.Completed(WslDistributionCatalogOutcome.Succeeded([]))),
-                new KeyboardHelpSession()));
+                    ScriptedWslDistributionCatalog.Completed(WslDistributionCatalogOutcome.Succeeded([]))), new PaneFilterSession()), new CommandPaletteSession(), new WindowAdjustmentSession(), new KeyboardHelpSession()), new CommanderBookmarkCommands(bookmarkPanes, bookmarkSettings));
     }
 
     private static async Task AssertPointerFrozenAsync(CommanderSession session, CommanderSnapshot before, DirectoryEntry entry)

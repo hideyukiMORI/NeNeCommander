@@ -129,7 +129,7 @@ public sealed class BookmarkKeyboardMappingTests
     {
         KeyboardIntentMapper mapper = KeyboardMappingTestContext.CreateMapper();
 
-        foreach (KeyboardKey key in new[] { KeyboardKey.A, KeyboardKey.E, KeyboardKey.Slash })
+        foreach (KeyboardKey key in new[] { KeyboardKey.A, KeyboardKey.E })
         {
             _ = Assert.IsInstanceOfType<KeyboardPassThrough>(mapper.Map(KeyboardMappingTestContext.Input(key)));
         }

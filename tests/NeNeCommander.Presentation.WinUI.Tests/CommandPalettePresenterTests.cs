@@ -179,6 +179,8 @@ public sealed class CommandPalettePresenterTests
             (UserIntent.SelectAll, "IntentLabelSelectAll", "KeyLabelCtrlA"),
             (UserIntent.InvertSelection, "IntentLabelInvertSelection", "KeyLabelStar"),
             (UserIntent.ClearSelection, "IntentLabelClearSelection", string.Empty),
+            (UserIntent.OpenPaneFilter, "IntentLabelOpenPaneFilter", "KeyLabelSlash"),
+            (UserIntent.ClearPaneFilter, "IntentLabelClearPaneFilter", string.Empty),
         ];
     }
 }

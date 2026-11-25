@@ -4,6 +4,7 @@ using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Sessions;
 using NeNeCommander.Presentation.WinUI.Panes;
+using NeNeCommander.Presentation.WinUI.Commands;
 
 namespace NeNeCommander.Presentation.WinUI.Input;
 
@@ -118,6 +119,21 @@ public sealed class PanePointerMapper
             after.Panes.ActiveSide == interaction.Side && PaneInputOwnership.IsAvailable(after)
                 ? interaction.Side
                 : null;
+    }
+
+    /// <summary>Admits a captured focus effect only while its active pane and native input context still own it.</summary>
+    /// <param name="snapshot">Current session after rendering and any synchronous native callback.</param>
+    /// <param name="side">The accepted pane focus target.</param>
+    /// <param name="context">Current native keyboard owner.</param>
+    /// <returns>Whether the host may apply the native focus effect now.</returns>
+    public static bool CanReturnFocus(CommanderSnapshot snapshot, PaneSide side, KeyboardContext context)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(side);
+        ArgumentNullException.ThrowIfNull(context);
+        return snapshot.Panes.ActiveSide == side &&
+            (context == KeyboardContext.FileList || context == KeyboardContext.CommandEntry) &&
+            CommandEntryPresenter.Present(snapshot).IsEnabled;
     }
 
     private static PanePointerCandidate? AcceptedCandidate(PaneRowInteraction row, CommanderSnapshot before, CommanderSnapshot after)
