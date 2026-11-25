@@ -315,3 +315,5 @@ Stage 30 completes all three Release locked restores and App build with exit 0 a
 and four normal/frozen/runtime DLL hashes remain exact after those restores/build.
 All new document links resolve. Successful layer25, adversarial26 and native proof
 are reused on these unchanged inputs. No runtime or test source changed after proof.
+
+The complete 91-file feature is saved locally as 08008241aecdafaeed6e3989c9c5be0edb04107f. Normal Commit-mode conformance/security/message hooks pass and the worktree is clean. local-commit-32.json/log preserve the exact result. No public update, PR, main integration or cleanup is performed. This documentation-only follow-up reuses all unchanged product proof.

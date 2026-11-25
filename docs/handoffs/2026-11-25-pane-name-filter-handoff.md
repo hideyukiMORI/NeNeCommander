@@ -30,7 +30,7 @@ wide/narrow images are inspected. Final source parity is 185 original App inputs
 The [quality record](../quality/2026-11-25-pane-name-filter.md) owns exact commands,
 results, discarded fixture assumptions, measurement scope and environmental limits.
 
-Next: normal-hook local commit; prepare a concrete public payload only within current
+Implementation is saved as 08008241aecdafaeed6e3989c9c5be0edb04107f with normal Commit-mode conformance/security/message hooks, exit 0 and a clean worktree. Next: prepare a concrete public payload only within current
 authorization, then PR/integration when permitted. Physical keys, actual IME and hide's
 visible acceptance remain separate. Do not rerun successful proof without changed
 relevant inputs. Never edit the beta.5 frozen copy for this feature.

@@ -22,3 +22,5 @@ The [quality record](../quality/2026-11-25-pane-name-filter.md) preserves every 
 attempt, exact command and source/diagnostic parity. The [handoff](../handoffs/2026-11-25-pane-name-filter-handoff.md)
 records the invariant, ownership changes, unfinished publication/integration and
 retained D work. No cleanup is due for this unfinished task.
+
+Implementation commit: 08008241aecdafaeed6e3989c9c5be0edb04107f; normal local hooks pass. Public publication and main integration remain pending.
