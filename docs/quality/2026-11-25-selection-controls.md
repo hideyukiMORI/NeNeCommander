@@ -1,4 +1,4 @@
-# Selection controls investigation — 2026-11-25
+﻿# Selection controls investigation — 2026-11-25
 
 Current status: selected technical proof complete; local commit/publication remain.
 The chronological proposal and initial failures below remain historical records.
@@ -159,3 +159,21 @@ Commands: `dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommand
 `dotnet format tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj --verify-no-changes --no-restore --include tests/NeNeCommander.Presentation.WinUI.Tests/SelectionTranslationTests.cs`;
 `pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect`.
 No new source-publication permission, native acceptance, integration or cleanup is claimed.
+
+## Current publication checkpoint — November 25, 21:31 JST
+
+The earlier Issue-body permission hold is resolved. hide explicitly approved the
+exact saved issue-body-02.md at 19:59 JST, and the publication completed at 20:07 JST.
+issue-readback-03.json retains the exact matching body. A fresh read-only GitHub
+connector observation at 21:29 JST confirms the same open Issue #562 and published
+scope. That historical proposal body is not a claim that feature source was pushed.
+
+The local implementation and final test-only correction are saved at fa5422b.
+Source publication, PR/main integration and physical/visible acceptance remain
+pending. beta.5 is separately published from 5727258 and excludes this feature.
+Its completed-copy cleanup explicitly excludes issue-562 and selection outputs.
+This checkpoint changes documentation only: successful product/build evidence is
+reused without additional product tests or CI. No new public write is performed.
+The first documentation script failed before writing because universal-newline
+reading altered one CRLF in the comparison; raw UTF-8 decoding confirms exact text.
+That failed attempt and its no-change commit result remain recorded separately.
