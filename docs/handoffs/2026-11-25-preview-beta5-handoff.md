@@ -1,37 +1,38 @@
 # Preview beta.5 active handoff — 2026-11-25
 
-Status: active milestone work, no new stop. See [quality](../quality/2026-11-25-preview-beta5.md)
-for the exact scope, failed stages, correction and remaining release conditions.
+Status: active; final candidate proof running, no new stop.
+Worktree D:/NeNeCommander/worktrees/issue-580; branch chore/580-preview-beta5;
+base0e0829c. Current six-file CodeQL correction is independently reviewed with no
+required change and selected proof complete. See [quality](../quality/2026-11-25-preview-beta5.md)
+and D:/NeNeCommander/evidence/release-beta5-20261125 for exact commands/failed receipts.
 
-Worktree D:/NeNeCommander/worktrees/issue-580, branch chore/580-preview-beta5.
-Base43e8320 contains accepted trial features plus581 and Version beta.5. Current
-correction is one Application routing body plus two tests and documentation; all
-1360relevant inputs are frozen in evidence/release-beta5-20261125/proof-inputs-04.json.
-No input changes while mutation runs. CodeQL must use the final committed input set.
+proof-inputs-05.json freezes1360inputs, six changed from04. Do not change them during
+mutation04. Domain/Infrastructure/common/provider evidence remains mapped to prior
+individual successful stages, never a relabeled whole failed run. Oldest reused-stage
+conservative expiry: November27 23:34:56JST; recheck before publication. Selection562
+at2cfc3b2is separate and excluded from the accepted beta.5cutoff.
 
-Final Application1187/branch100%, Presentation508/97.2611077%, App Architecture29
-pass. Integrated build/format/theme/restore/record closure passed. Original failures
-remain. Domain/Infrastructure/audit and unchanged proof stages are mapped to old
-successful raw receipts, not to the original whole failed workflow. Independent
-review accepts the corrections and reuse scope; supplemental negative/hook/workflow
-input correspondence is being finalized.
+Application1187/100%branches, Presentation508/97.2611077%, App build, closure/conformance/
+format pass. Complexity03has exactly the prior3findings, exit1explicit. Native menu2
+passes52checks/four combinations; all callbacks are inside outer Render.182App inputs
+reconcile as179exact+3declared composition/project/diagnostic-lock substitutions; four
+normal-product DLLs match. Normal settings/input desktop unchanged. Failed diagnostic
+setup and observer uniqueness assumption remain; product source unchanged by attempts.
 
-Evidence driver25800 starts08:43:24JST. Both tiers'3adversarial repetitions pass;
-Application mutation is running, Presentation queues after success. Inspect
-remaining-progress-03.json and exact logs, not old PIDs from earlier tasks.
-CodeQL tool restore16096 starts08:25:19JST from verified beta.4 permanent archive;
-codeql-tool-progress-01.json owns progress. Prepared run-codeql-final-02.ps1 has
-not launched and must be updated from old43e8320 to the final committed candidate
-and proof-inputs-04 before use. Final canonical buildless and supplemental compiler
-extraction, candidate-ref/open alerts and release freshness remain unproved.
+remaining-progress-04.json owns current mutation. Both3-repeat adversarial tiers pass;
+Application then Presentation Complete mutation run sequentially. Original CodeQL02has
+findings and is not acceptance: its owned snapshot is old0e0829c and its final worktree
+identity check fails on the expected later corrections. Preserve original SARIF and
+extractor diagnostics. Fresh final committed source analysis, ref/openalerts remain.
 
-Automatic approval rejects the initial exact43e8320/301file GitHub push before
-process creation. An explicit payload/destination question is pending. No retry or
-fallback write occurs. The subsequently corrected source is outside that initial
-proposal. Keep the final source/PR body concrete before any renewed publication.
-No main integration/tag/package/release is performed. Beta.4 remains unchanged.
+Automatic approval rejected exact43e8320/301file public push before execution. That
+payload/destination question is pending; current corrections are outside that payload.
+No alternate source/SARIF publication, PR, main integration, finalpackage/tag/release.
+Prepare final concrete source/PR body before renewed publication permission. Oldbeta.4
+permissions do not authorize different content. Accepted-main package/startup/freshness
+and downloaded-asset verification remain separate later steps.
 
-Normal settings/shared desktop input stay untouched. Preserve interactive03 and
-unfinished feature copies. Final accepted-main packaging, extracted startup,
-publication/download hashes and verified permanent-preservation cleanup remain.
-No cleanup has been rejected or is yet eligible for this unfinished release.
+No shared input/blue CUA, normal settings mutation or other-App termination. Probes use
+named non-input desktop/owned paths only. Keep interactive03and all unfinished copies
+until accepted integration and verified permanent preservation. No cleanup rejection
+or eligible cleanup. Follow the current quality record, not earlier stale running PIDs.

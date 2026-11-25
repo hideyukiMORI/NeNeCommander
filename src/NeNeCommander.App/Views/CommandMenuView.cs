@@ -65,6 +65,7 @@ internal sealed class CommandMenuView
     internal void Stop()
     {
         _stopping = true;
+        _renderOwner = null;
         Detach();
     }
 
@@ -78,7 +79,7 @@ internal sealed class CommandMenuView
         _renderOwner = renderOwner;
         bool wasOpen = _invocation is not null;
         Detach();
-        if (_stopping || !ReferenceEquals(_renderOwner, renderOwner))
+        if (!ReferenceEquals(_renderOwner, renderOwner))
         {
             return;
         }

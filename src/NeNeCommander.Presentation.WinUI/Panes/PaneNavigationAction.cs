@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using NeNeCommander.Application.Input;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Presentation.WinUI.Input;
@@ -39,7 +40,8 @@ public sealed record PaneNavigationAction
     public static string ComposeParentName(Func<string, string> localize)
     {
         ArgumentNullException.ThrowIfNull(localize);
-        return string.Format(CultureInfo.InvariantCulture, localize("CommandEntryToolTipFormat"),
+        CompositeFormat format = CompositeFormat.Parse(localize("CommandEntryToolTipFormat"));
+        return string.Format(CultureInfo.InvariantCulture, format,
             localize("PaneNavigateParent"), localize(ParentShortcutResourceKey));
     }
 
@@ -60,6 +62,7 @@ public sealed record PaneNavigationAction
     public string ComposeName(Func<string, string> localize)
     {
         ArgumentNullException.ThrowIfNull(localize);
-        return string.Format(CultureInfo.InvariantCulture, localize(NameResourceKey), localize(ShortcutResourceKey));
+        CompositeFormat format = CompositeFormat.Parse(localize(NameResourceKey));
+        return string.Format(CultureInfo.InvariantCulture, format, localize(ShortcutResourceKey));
     }
 }

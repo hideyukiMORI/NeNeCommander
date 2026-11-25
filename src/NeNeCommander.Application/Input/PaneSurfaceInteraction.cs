@@ -17,6 +17,13 @@ public sealed record PaneSurfaceInteraction : PaneInteraction
         Action = action;
     }
 
+    private protected override bool MatchesContent(PaneSnapshot current)
+    {
+        return Action != PaneSurfaceAction.NavigateParent || current.CanNavigateParent;
+    }
+
+    internal override UserIntent? NavigationIntent => Action == PaneSurfaceAction.NavigateParent ? UserIntent.NavigateParent : null;
+
     /// <summary>Gets the closed pane-surface action.</summary>
     public PaneSurfaceAction Action { get; }
 }

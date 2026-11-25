@@ -2,6 +2,8 @@
 
 Status: normative
 
+- November25 10:23 JST: beta.5 CodeQL findings receive a six-file reviewed correction. Application1187/100%branches, Presentation508/97.2611%, App build, closure/conformance/format and52native menu reentry assertions pass.1360inputs are fixed; changed-layer mutation04is running and final corrected CodeQL remains. Prior failures are retained. Publication/main/package/tag/release remain pending, and separately committed selection562is excluded. See [quality](quality/2026-11-25-preview-beta5.md) and [handoff](handoffs/2026-11-25-preview-beta5-handoff.md).
+
 - November25 08:46 JST: final beta.5 selected consumer proof passes Application1187/100%branch and Presentation508/97.2611%, with29additional App Architecture checks. Original coverage/fixture failures are retained; one redundant closed-case routing guard and two test files are corrected, with independent review requiring no further change. All1360inputs are frozen; adversarial3repetitions pass and affected mutation is running. Exact initial43e8320 publication is held by automatic approval pending hide consent; no new PR/main/tag/release occurs. See the [release record](quality/2026-11-25-preview-beta5.md).
 
 - November25 08:18 JST: accepted Issue581 correction b218587 is fast-forwarded into the approved Issue580 beta.5 candidate. The sole App version advances to0.1.0-beta.5. Final release evidence is being reconciled by changed inputs; original failures and unchanged successful proof remain separate. No new public source/PR/main/tag/release is claimed. See the [release record](quality/2026-11-25-preview-beta5.md).

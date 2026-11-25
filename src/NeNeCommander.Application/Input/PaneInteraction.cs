@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Input;
@@ -22,26 +21,14 @@ public abstract record PaneInteraction : UserIntent
     internal bool Matches(PaneSnapshot current)
     {
         return ReferenceEquals(current, ExpectedSnapshot) &&
-            current.Activity is not (PaneLoading or PaneLaunching) &&
-            (this is not PaneSurfaceInteraction surface || surface.Action != PaneSurfaceAction.NavigateParent || current.CanNavigateParent) &&
-            (this is not PaneRowInteraction row ||
-                (current.Content is PaneContentListed listed &&
-                    listed.State.VisibleEntries.Any(entry => ReferenceEquals(entry, row.Entry))));
+            current.Activity is not (PaneLoading or PaneLaunching) && MatchesContent(current);
     }
 
+    /// <summary>Checks the concrete interaction's owned content after common snapshot/activity admission.</summary>
+    private protected abstract bool MatchesContent(PaneSnapshot current);
+
     /// <summary>Names the existing pane command to run only after qualified admission.</summary>
-    internal UserIntent? NavigationIntent
-    {
-        get
-        {
-            if (this is PaneRowInteraction row)
-            {
-                return row.Action == PaneEntryAction.Open ? UserIntent.OpenFocused : null;
-            }
-            PaneSurfaceInteraction surface = (PaneSurfaceInteraction)this;
-            return surface.Action == PaneSurfaceAction.NavigateParent ? UserIntent.NavigateParent : null;
-        }
-    }
+    internal abstract UserIntent? NavigationIntent { get; }
 
     /// <summary>Gets the pane explicitly addressed by the gesture.</summary>
     public PaneSide Side { get; }

@@ -54,9 +54,9 @@ public sealed class WindowDisplayModelTests
             observed.Add(enumerator.Current);
         }
         CollectionAssert.AreEqual(snapshot.ToArray(), observed.ToArray());
-        Assert.IsFalse((object)snapshot is ICollection);
-        Assert.IsFalse((object)snapshot is IList<WindowDisplay>);
-        Assert.IsFalse((object)snapshot is ICollection<WindowDisplay>);
+        Assert.IsNotInstanceOfType<ICollection>(snapshot);
+        Assert.IsNotInstanceOfType<IList<WindowDisplay>>(snapshot);
+        Assert.IsNotInstanceOfType<ICollection<WindowDisplay>>(snapshot);
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => snapshot[-1]);
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => snapshot[2]);
     }

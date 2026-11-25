@@ -148,3 +148,107 @@ The first correction commit passes conformance/security, then its normal hook re
 a new blank line at the quality record's EOF. That documentation whitespace is
 removed; correction-commit-01.log stays failed and the next normal-hook attempt
 uses a separate log. Frozen product/test inputs and running mutation are unchanged.
+
+## Mutation completion and CodeQL correction
+
+Application mutation03completes09:20:22JST at95.99%, exit0:3664total mutants,
+2440Killed/27Timeout/101Survived/2NoCoverage/531CompileError/563Ignored; the score is
+2467of2570counted mutants. Presentation03completes09:41:20JST at92.23%, exit0.
+The original closed-stream cancellation/retry diagnostic remains in its raw log.
+All1360frozen inputs still match before the next correction. Together with the
+reconciled unchanged Domain/Infrastructure results, all four thresholds are met for
+0e0829c. They are not automatically evidence for subsequently changed source.
+
+Compiler-traced CodeQL02completes164rules/136results.123are generated obj findings;
+owned source has2errors/6warnings and5notes. Original SARIF and diagnostics remain.
+The separate canonical buildless extraction is still running on the unchanged owned
+snapshot, with its restore/native-assembly diagnostics retained; it is not yet a
+successful final CodeQL result. No SARIF upload or public source write occurs.
+
+Independent read-only review identifies the two formatting errors as analysis
+confusion between a test localizer's template and value returns, not incorrect
+shipped placeholders. All three locales carry the correct templates. The correction
+resolves each template to CompositeFormat before resolving argument values, keeping
+localization immediate and the same output contract without suppression.
+
+The menu's post-Detach guard must retain native Hide reentrancy. Stop now invalidates
+the existing render-owner token before detaching; the post-Detach check uses that
+same owner identity for both stopping and replacement. It does not simply remove
+stopping protection. PaneInteraction retains its single common owner/activity check,
+then delegates content admission and its existing NavigationIntent to the two closed
+concrete cases. This removes base-to-derived tests/casts and the new complex-condition
+note without a second validation or dispatch route. Three test-only interface casts
+become direct MSTest negative-type assertions, retaining snapshot immutability proof.
+The other four interop notes are pre-existing; no note is silently relabeled absent.
+
+codeql-correction-preflight-03.json records the original owned findings and exact
+1360-input identity immediately before these six file edits. Coverage/mutation for
+changed Application/Presentation, record closure for the added abstract contracts,
+changed build/format and the menu stopping/reentrant native boundary must be refreshed.
+Domain/Infrastructure/unchanged audit remain reusable. All earlier failures and the
+original successful mutation inputs are preserved. Final CodeQL/ref/open-alerts,
+public acceptance, accepted-main package/startup/freshness/tag/release remain pending.
+## Corrected native ownership proof and frozen release inputs
+
+Independent read-only review accepts the six corrected files with no required change.
+Corrected consumer/App builds, Application1187coverage100%, Presentation508coverage
+97.2611077298%, record closure, conformance and changed format all pass in
+codeql-correction-progress-03.json. Complexity03retains exactly the same three complete
+finding objects as01; its exit1 remains explicit.
+
+Native menu attempt2passes52assertions across four stop/replacement and open/closed-target
+combinations. All six native Closing callbacks occur synchronously inside outer
+Render/Detach before it returns. Stop clears invocation/menu/render owner, prevents
+later opening and forwards no stale command/focus after Dispatcher advancement.
+Nested replacement retains its exact invocation/menu and suppresses superseded focus.
+Attempt2exits0; normal settings/input desktop Default are unchanged. This is bounded
+native reentry proof, not physical input or visible acceptance.
+
+The diagnostic copy reconciles182App inputs:179exact plus the declared composition,
+project and copied-lock substitutions. Three added diagnostic files observe the
+unchanged menu implementation. Four normal-product DLLs are frozen and every final
+output DLL hash matches. menu-owner-final-parity-06.json owns the complete mapping.
+Its initial preflight expected only two substitutions and correctly stopped on the
+explicit diagnostic-only lock refresh; product source/locks remain unchanged.
+
+All preliminary failures remain. Diagnostic build03misses a namespace import.
+Build04overlaps the mutation driver's initial build cleanup and fails on two shared
+ref assemblies. Build05uses frozen product DLLs and succeeds; its stale restore graph
+still evaluates two project references. Final standalone graph06removes those and
+duplicate reference declarations, refreshes only its own lock, and preserves every
+remaining package version/content hash. Build06succeeds0warnings/errors with
+BuildProjectReferences=false and no shared dependency build. Future diagnostic builds
+use this standalone graph. No production or frozen proof input changes.
+
+Native1passes both stop combinations, then fails the observer's exactly-one-Closing
+assumption during replacement: nested ShowAt produces two synchronous notifications.
+The corrected observer requires at least one and verifies every callback is inside
+outer Render; all ownership/focus/no-replay assertions remain. Original failed fixture,
+receipt, event sequence and exit2 are preserved. No timeout/termination occurs.
+
+proof-inputs-05.json freezes1360release inputs; exactly six differ from04. The385
+reused layer/common/provider inputs and27Domain inputs still match. Driver04starts
+10:12JST; both tiers'three adversarial repetitions pass, then Application Complete
+mutation runs and Presentation follows. Thresholds95/90remain unchanged. Prior03
+mutations remain successful for their own prior inputs only.
+
+Original buildless CodeQL02also completes164rules/7owned results:6warnings/1note.
+Compiler-traced02has13owned results:2errors/6warnings/5notes plus123generated results.
+All original diagnostics/SARIF remain. That old driver's final root-identity check
+fails because the six reviewed corrections differ from its04freeze. Its independent
+snapshot remains old0e0829c; this is not final-candidate analysis or a successful whole
+driver. The final corrected commit needs fresh compiler-traced and buildless analysis.
+
+Additional exact commands/receipts:
+
+- `pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta5-20261125/run-codeql-correction-03.ps1`
+- `pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta5-20261125/prepare-proof-05.ps1`
+- `pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta5-20261125/run-remaining-stages-04.ps1`
+- In menu-owner-03: `dotnet build App/NeNeCommander.App.csproj -c Release --no-restore -p:BuildProjectReferences=false`, after recorded diagnostic restore06.
+- `pwsh -NoProfile -File D:/NeNeCommander/evidence/release-beta5-20261125/run-menu-owner-03.ps1 -Locale ja-JP -Attempt 2`
+- `pwsh -NoProfile -File eng/measure-complexity.ps1 -Mode Inspect` — same3findings.
+
+Source/PR/SARIF publication remains unperformed while the concrete permission question
+is pending. Main integration/final package/startup/tag/beta.5release remain unclaimed.
+Selection562is locally committed2cfc3b2with selected proof, outside the beta.5cutoff.
+No cleanup is eligible for either unfinished task.
