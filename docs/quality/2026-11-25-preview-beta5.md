@@ -255,66 +255,72 @@ No cleanup is eligible for either unfinished task.
 
 ## Final local stage acceptance at 11:07 JST
 
-Application Complete mutation04finishes10:48:49JST with96.03%/95%, exit0.
-Its3658raw mutants are2439Killed,28Timeout,100Survived,2NoCoverage,524CompileError
-and565Ignored:2467/2569counted. Presentation04finishes11:04:09JST with92.28%/90%,
-exit0:2995raw mutants,2193Killed,29Timeout,169Survived,17NoCoverage,239CompileError
-and348Ignored,2222/2408counted. Original retries and compiler failures remain in
-raw logs. The same1360inputs match at final completion. The driver names its start
-base0e0829c, but proof-inputs05contains the six corrections and exactly matches
-committedb72bbcc2c3086338b2a530d6004440efec334905; it does not measure old04inputs.
-The unchanged Domain result and Infrastructure92.28%from context-menu03are retained
-through the existing hash/consumer reconciliation. All four thresholds are satisfied.
-Original failed whole runs retain their failed status.
+Application Complete mutation 04 finishes at 10:48:49 JST with 96.03% against 95%,
+exit 0. Its 3,658 raw mutants are 2,439 Killed, 28 Timeout, 100 Survived, 2 NoCoverage,
+524 CompileError and 565 Ignored: 2,467 of 2,569 counted mutants. Presentation 04
+finishes at 11:04:09 JST with 92.28% against 90%, exit 0. Its 2,995 raw mutants are
+2,193 Killed, 29 Timeout, 169 Survived, 17 NoCoverage, 239 CompileError and 348 Ignored:
+2,222 of 2,408 counted mutants. Original retries and compiler failures remain in the
+raw logs. All 1,360 inputs match at final completion. The driver names its starting
+base `0e0829c`, but `proof-inputs-05.json` contains the six corrections and exactly
+matches committed `b72bbcc2c3086338b2a530d6004440efec334905`; it does not measure the
+old 04 inputs. The unchanged Domain result and Infrastructure 92.28% from context-menu
+03 are retained through the existing hash and consumer reconciliation. All four
+thresholds are satisfied. Original failed whole runs retain their failed status.
 
-Final CodeQL03uses the same exact cleanb72bbcc snapshot. Canonical buildless analysis
-uses SEC-008's build-mode:none,164security-and-quality rules and only **/obj/** exclusion.
-It reports0results and an extraction notification for every1160owned C# input. This is
-NOT complete diagnostic-free extraction:104compiler diagnostics,315extractor messages
-and15extraction-error-file notifications remain. In particular, the two Application/
-Presentation PaneNavigationAction types become ambiguous in the buildless compilation,
-producing42CS0104diagnostics and losing resolution in the App consumer and two tests.
-Eng complexity/record-closure files also retainCS0017/CS0234diagnostics. Keep all logs.
+Final CodeQL 03 uses the same exact clean `b72bbcc` snapshot. Canonical buildless
+analysis uses SEC-008's `build-mode: none`, 164 security-and-quality rules and only the
+`**/obj/**` exclusion. It reports 0 results and an extraction notification for every
+one of the 1,160 owned C# inputs. This is not complete, diagnostic-free extraction:
+104 compiler diagnostics, 315 extractor messages and 15 extraction-error-file
+notifications remain. In particular, the Application and Presentation types named
+`PaneNavigationAction` become ambiguous in the buildless compilation, producing 42
+CS0104 diagnostics and losing resolution in the App consumer and two tests. The eng
+complexity and record-closure files also retain CS0017/CS0234 diagnostics. All logs remain.
 
-The independent compiler-traced analysis supplements those specific missing product/
-test resolutions. It has1195successful notifications:1131owned src/tests paths,
-62generated obj paths and2notifications without a location. Every owned product/test
-path is represented; compiler/extractor error notifications are0and its42compiler
-notifications are Hidden CS8019. Eng's29owned files are not part of this supplementary
-build; their only analysis remains the canonical buildless run with limits above.
-No claim of a fully extracted, diagnostic-free repository is made.
+The independent compiler-traced analysis supplements those specific missing product
+and test resolutions. It has 1,195 successful notifications: 1,131 owned src/tests
+paths, 62 generated obj paths and 2 notifications without a location. Every owned
+product/test path is represented; compiler/extractor error notifications are 0 and
+its 42 compiler notifications are Hidden CS8019. The 29 owned eng files are not part
+of this supplementary build; their only analysis remains the canonical buildless run
+with the limits above. No claim of a fully extracted, diagnostic-free repository is made.
 
-Compiler-traced SARIF has129results,123generated and6owned. Two invalid-string-formatting
-results at PaneNavigationAction44/66are infeasible test-localizer branch combinations:
-the parent template is requested only with CommandEntryToolTipFormat, never the
-PaneNavigateParent/KeyLabelAltUp keys that return PARENT/ALT-UP; directional template
-keys never take the KeyLabelCtrlE branch returning canonical shortcut. All three
-actual locales have exactly the required{0}/{1}parent and{0}directional placeholders.
-The unchanged selected tests verify the real key choices and formatted results.
-CompositeFormat separation alone did not eliminate the analyzer's imprecise flow;
-that original attempt and both SARIFs remain. The four other owned results are
-call-to-unmanaged-code notes:CoInitializeEx/CoUninitialize/RtlNtStatusToDosError are
-already evaluated in ADR0063; SHOpenFolderAndSelectItems is the explicit accepted
-ADR0091/SEC014 boundary. None is silently suppressed, excluded or described as absent.
+Compiler-traced SARIF has 129 results: 123 generated and 6 owned. Two
+`invalid-string-formatting` results at `PaneNavigationAction` lines 44 and 66 are
+infeasible test-localizer branch combinations. The parent template is requested only
+with `CommandEntryToolTipFormat`, never the `PaneNavigateParent`/`KeyLabelAltUp` keys
+that return `PARENT`/`ALT-UP`. Directional template keys never take the `KeyLabelCtrlE`
+branch returning `canonical shortcut`. All three actual locales have exactly the
+required `{0}/{1}` parent and `{0}` directional placeholders. The unchanged selected
+tests verify the real key choices and formatted results. CompositeFormat separation
+alone did not eliminate the analyzer's imprecise flow; that original attempt and both
+SARIFs remain. The four other owned results are `call-to-unmanaged-code` notes:
+`CoInitializeEx`, `CoUninitialize` and `RtlNtStatusToDosError` are already evaluated in
+ADR-0063; `SHOpenFolderAndSelectItems` is the explicit accepted ADR-0091/SEC-014 boundary.
+None is silently suppressed, excluded or described as absent.
 
-Independent read-only review at11:07JST accepts this combined local evidence with the
-above extraction limits and six individual dispositions. It rechecks all1360input
-hashes in both worktree and snapshot. Additional product/test changes and repeated
-mutation are unnecessary. The suggested fake-localizer rewrite was therefore not
-applied: it would change accepted test inputs without fixing product behavior.
+Independent read-only review at 11:07 JST accepts this combined local evidence with
+the above extraction limits and six individual dispositions. It rechecks all 1,360
+input hashes in both worktree and snapshot. Additional product/test changes and
+repeated mutation are unnecessary. The suggested fake-localizer rewrite was therefore
+not applied: it would change accepted test inputs without fixing product behavior.
 CodeQL candidate-ref registration and API readback of zero open owned alerts remain
-unperformed and cannot be inferred from local0results.
+unperformed and cannot be inferred from the local 0 results.
 
-codeql-result-summary03distinguishes both hashes:manual69EC205017329856F143DC183F8013A15B4D891FD3C62D5B12E2A591240B917B;
-buildless74BCB8ED3F95952677EBBCB48B0A49312F88879C37916BF6F1EEFD945ACC17B1.
-The earlier completion receipt's sarifSha256 refers only to manual. Raw mutation
-counts/hashes are in mutation-final-summary04. All exact command arguments and
-start/end/exit results remain in remaining-progress04and codeql-*-03receipts.
+`codeql-result-summary-03.json` distinguishes both SHA-256 hashes:
+manual `69EC205017329856F143DC183F8013A15B4D891FD3C62D5B12E2A591240B917B`;
+buildless `74BCB8ED3F95952677EBBCB48B0A49312F88879C37916BF6F1EEFD945ACC17B1`.
+The earlier completion receipt's `sarifSha256` refers only to manual. Raw mutation
+counts and hashes are in `mutation-final-summary-04.json`. All exact command arguments,
+start/end times and exit results remain in `remaining-progress-04.json` and the
+`codeql-*-03` receipts.
 
-The original automatic-review hold for43e8320is not bypassed. Remote readback still
-shows mainccb303b and no chore/580-preview-beta5branch. Final source and Draft PR body
-are prepared for a new exact-payload permission question; no source/SARIF/PR write,
-main integration, accepted-main package, startup, tag or prerelease is claimed.
-Selection562and filter545remain separate and excluded. Oldest reused proof conservatively
-expires November27at23:34:56JST and must be checked again before publication.
-No cleanup is eligible, and ordinary settings/shared input desktop remain untouched.
+The original automatic-review hold for `43e8320` is not bypassed. Remote readback still
+shows main `ccb303b` and no `chore/580-preview-beta5` branch. Final source and Draft PR
+body are prepared for a new exact-payload permission question. No source/SARIF/PR
+write, main integration, accepted-main package, startup, tag or prerelease is claimed.
+Selection #562 and filter #545 remain separate and excluded. The oldest reused proof
+conservatively expires November 27 at 23:34:56 JST and must be checked again before
+publication. No cleanup is eligible; ordinary settings and the shared input desktop
+remain untouched.
