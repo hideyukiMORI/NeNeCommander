@@ -38,35 +38,39 @@ public sealed class SelectionTranslationTests
         Assert.IsFalse(KeyboardInputTranslator.RequiresShiftState(-1, context));
     }
 
+    /// <summary>Supplies each native text owner and every physical Shift navigation key.</summary>
+    public static IEnumerable<object[]> TextNavigationCases()
+    {
+        KeyboardContext[] contexts = [KeyboardContext.TextEntry, KeyboardContext.AddressEntry,
+            KeyboardContext.BookmarkSearch, KeyboardContext.BookmarkDraft];
+        VirtualKey[] keys = [VirtualKey.Up, VirtualKey.Down, VirtualKey.PageUp,
+            VirtualKey.PageDown, VirtualKey.Home, VirtualKey.End];
+        return contexts.SelectMany(context => keys.Select(key => new object[] { context, key }));
+    }
+
     /// <summary>Proves physical Shift navigation preserves native editors and the existing search exit.</summary>
     [TestMethod]
-    public void TranslateAndMapWhenTextOwnsShiftNavigationRetainsExistingRoutes()
+    [DynamicData(nameof(TextNavigationCases))]
+    public void TranslateAndMapWhenTextOwnsShiftNavigationRetainsExistingRoutes(KeyboardContext context, VirtualKey key)
     {
-        foreach (KeyboardContext context in new[] { KeyboardContext.TextEntry, KeyboardContext.AddressEntry,
-            KeyboardContext.BookmarkSearch, KeyboardContext.BookmarkDraft })
-        {
-            foreach (VirtualKey key in new[] { VirtualKey.Up, VirtualKey.Down, VirtualKey.PageUp,
-                VirtualKey.PageDown, VirtualKey.Home, VirtualKey.End })
-            {
-                KeyboardModifier modifier = KeyboardInputTranslator.RequiresShiftState((int)key, context)
-                    ? KeyboardInputTranslator.TranslateShiftModifierState(CoreVirtualKeyStates.None,
-                        CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down)
-                    : KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.None, CoreVirtualKeyStates.None);
-                KeyboardInput input = KeyboardInputTranslator.TranslateKeyData((int)key, KeyRepeatState.Initial, context, modifier);
-                KeyboardMappingOutcome outcome = KeyboardMappingTestContext.CreateMapper().Map(input);
+        KeyboardModifier modifier = KeyboardInputTranslator.RequiresShiftState((int)key, context)
+            ? KeyboardInputTranslator.TranslateShiftModifierState(CoreVirtualKeyStates.None,
+                CoreVirtualKeyStates.None, CoreVirtualKeyStates.Down)
+            : KeyboardInputTranslator.TranslateModifierState(CoreVirtualKeyStates.None, CoreVirtualKeyStates.None);
+        KeyboardInput input = KeyboardInputTranslator.TranslateKeyData((int)key, KeyRepeatState.Initial, context, modifier);
+        KeyboardMappingOutcome outcome = KeyboardMappingTestContext.CreateMapper().Map(input);
 
-                Assert.AreSame(KeyboardModifier.None, input.Modifier);
-                if (context == KeyboardContext.BookmarkSearch && key == VirtualKey.Down)
-                {
-                    Assert.AreSame(BookmarkManagerKeyAction.LeaveSearch, Assert.IsInstanceOfType<MappedBookmarkManagerAction>(outcome).Action);
-                }
-                else
-                {
-                    _ = Assert.IsInstanceOfType<KeyboardPassThrough>(outcome);
-                }
-            }
+        Assert.AreSame(KeyboardModifier.None, input.Modifier);
+        if (context == KeyboardContext.BookmarkSearch && key == VirtualKey.Down)
+        {
+            Assert.AreSame(BookmarkManagerKeyAction.LeaveSearch, Assert.IsInstanceOfType<MappedBookmarkManagerAction>(outcome).Action);
+        }
+        else
+        {
+            _ = Assert.IsInstanceOfType<KeyboardPassThrough>(outcome);
         }
     }
+
     /// <summary>Proves only FileList produced A aliases request an explicit Shift distinction.</summary>
     [TestMethod]
     [DynamicData(nameof(Contexts))]

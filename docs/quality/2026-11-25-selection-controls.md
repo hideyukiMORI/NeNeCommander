@@ -134,3 +134,28 @@ keyboard layouts, IME, screen-reader and hide's visible acceptance are unperform
 and are not inferred from these tests. This feature remains excluded from beta.5.
 The Issue-body publication question is still pending; no public change, PR, main
 integration or cleanup is claimed. No shared-desktop input/settings change occurs.
+
+## Final-test complexity correction at 10:59 JST
+
+The local feature was committed as2cfc3b2. The next-task inspection then discovers
+that final review's host-order text test was added after complexity03: its nested
+24-case loop has cognitive11/limit10. The earlier three-finding receipt is valid
+for its measured inputs, not the final test file. That final evidence gap is explicit.
+No production input or behavioral expectation changes. The exact same four contexts
+and six keys are now independent DynamicData cases; modifier classification, mapped
+BookmarkSearch Down exit and native pass-through assertions are unchanged.
+
+An initial edit attempt reads UTF-8 source with Python's default cp932 and fails before
+writing. Its following build/test/complexity09 therefore measures unchanged2cfc3b2;
+translation-setup-failure-09.json corrects the intended-scope wording in that original
+receipt. The original output stays. Explicit UTF-8 reading applies the real correction.
+Build10, SelectionTranslationTests57/57 and changed-file format10pass. Complexity05
+has exactly the same three complete pre-existing findings and no new finding; its
+exit1 remains explicit. All other code/tests/dependencies are unchanged and prior
+proof is reused. final-inputs02 records1366unchanged hashes and this one test change.
+
+Commands: `dotnet build tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-restore`;
+`dotnet test --project tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj -c Release --no-build --no-restore --filter "FullyQualifiedName~SelectionTranslationTests"`;
+`dotnet format tests/NeNeCommander.Presentation.WinUI.Tests/NeNeCommander.Presentation.WinUI.Tests.csproj --verify-no-changes --no-restore --include tests/NeNeCommander.Presentation.WinUI.Tests/SelectionTranslationTests.cs`;
+`pwsh -NoProfile -File ./eng/measure-complexity.ps1 -Mode Inspect`.
+No new source-publication permission, native acceptance, integration or cleanup is claimed.

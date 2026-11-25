@@ -34,3 +34,12 @@ permanent evidence preservation. No cleanup rejection or eligible cleanup exists
 
 Beta.5 remains the priority: its changed-input mutation and final CodeQL/native-menu
 proof are tracked in its own current quality/handoff, not this feature's evidence.
+
+Correction at10:59JST: feature source is committed2cfc3b2. Final review's host-order
+translation test came after complexity03and introduced cognitive11. Its identical
+24context/key cases are now parameterized; selected translation10passes57/57,
+build/format10pass and complexity05has exactly the original three findings, exit1.
+Only this test changes; final-inputs02maps1366unchanged hashes. Earlier complexity03
+must not be cited as measuring the final reviewed test. Initial UTF-8/cp932 setup
+failure and unchanged09execution are retained and explicitly corrected in the quality
+record. The following normal-hook correction commit is the latest local selection head.
