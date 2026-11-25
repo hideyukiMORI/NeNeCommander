@@ -1,8 +1,8 @@
 # Pane name-filter handoff — 2026-11-25
 
-Status: accepted-main reconciliation and selected technical proof complete locally; publication/main integration pending.
+Status: PR588 integrated; evidence preserved and completed cleanup verified; physical acceptance remains separate.
 
-Issue #545 uses D:/NeNeCommander/worktrees/issue-545, current branch feat/545-name-filter-integration. Original branch feat/545-pane-name-filter at27b92cd is preserved.
+Historical implementation used D:/NeNeCommander/worktrees/issue-545; this completed worktree is removed. Branch feat/545-name-filter-integration remains. Original branch feat/545-pane-name-filter at27b92cd is preserved.
 Its basis 6ba4a1f combines selection 2cfc3b2 and reviewed release correction b72bbcc;
 filter and selection remain excluded from the frozen beta.5 candidate. Preserve the
 independent release/selection publication approval holds and their exact payloads.
@@ -58,3 +58,21 @@ exit1. No full-suite/native/release rerun occurs. Current receipts are in
 evidence/pane-filter-20261126. Final independent reuse review at 08:14:39 JST accepts the scope without further correction; public payload,
 source push, PR/main integration and cleanup follow only after it is reconciled.
 Normal settings/input desktop and all prior explicit physical/IME limits are unchanged.
+
+
+## Completed checkpoint — November 26, 08:51 JST
+
+PR588 is merged asad85de1ce354c9e8ccef9cb05c5621b83eb53a5c; Issue545 is closed.
+main-sync-02 proves the whole accepted tree equals reviewed5dd10db and primary main
+fast-forwards cleanly. Normal hooks pass. Issue589 records completion documentation.
+
+All9,187 disposable files/1,146,169,557 bytes are permanently archived and individually
+hash-verified. Original/integration branches, commits and raw evidence remain.
+cleanup-completion-01 confirms the issue-545 worktree and pane-filter-20261125 outputs
+absent at08:50:51JST after source/main/inventory/metadata/link/process checks.
+No cleanup hold remains; no new release is part of this feature integration.
+
+Next milestone work is unfinished560 in its retained worktree. Read its latest
+resumption checkpoint and actual branch state. Physical keys/actual IME/speech and
+human visual acceptance remain separate. Do not rerun matching successful filter
+proof for this documentation-only follow-up. Historical failures remain recorded.

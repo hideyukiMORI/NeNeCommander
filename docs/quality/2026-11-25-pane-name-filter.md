@@ -1,6 +1,6 @@
 # Pane name-filter investigation — 2026-11-25
 
-Status: accepted-main reconciliation and selected technical proof complete locally; publication/main integration and physical/actual IME acceptance remain pending.
+Status: PR588 integrated; evidence preserved and completed cleanup verified; physical acceptance remains separate.
 Issue545 is confirmed open through the GitHub connector. The active milestone includes
 basic current-folder filtering; recursive search536and frozen beta.5remain separate.
 
@@ -370,3 +370,45 @@ new native invocation, product build/full suite, coverage, mutation, release or 
 desktop input occurs in this resumption. Physical input, actual IME, speech and hide's
 visible acceptance retain their prior explicit limits. Preserve the unfinished worktree
 and all output until integration and verified permanent preservation permit cleanup.
+
+
+## November 26 publication, preservation and completed cleanup
+
+Normal Commit-mode conformance112, security24 and message checks pass for5dd10db.
+Draft PR588's body, head and base match the saved payload on mainf44f6f0. It is
+mergeable/clean without applicable failing checks. After Ready, expected head
+5dd10db45d9f0b3768083fb7c58ddea0347fed11 is squash-merged at08:19:43 as
+ad85de1ce354c9e8ccef9cb05c5621b83eb53a5c. Issue545 is closed. The complete candidate
+and accepted trees match; primary main fast-forwards cleanly. No release is created.
+Authenticated gh writes use the fallback established after this session's earlier
+GitHub connector HTTP403; no automatic-approval rejection occurs for this work.
+
+Issue589 owns completion documentation and administrative cleanup. Exact targets:
+D:/NeNeCommander/worktrees/issue-545 and D:/NeNeCommander/outputs/pane-filter-20261125.
+Original/integration branches, commits and raw evidence remain. All9,187 ignored/output
+files,1,146,169,557 bytes, are saved in
+D:/NeNeCommander/evidence/pane-filter-20261126/completed-filter-artifacts-01.zip.
+SHA256: cd36e9aa5c2fe1a03a20c4b84963a765de0cd3be20a03bc3f286fd55b559fb2a.
+Every saved entry is individually size/hash-verified. The exact inventory and source
+metadata are unchanged before removal; clean source, accepted main/tree equality,
+absolute parents, zero links and zero active references are verified. Raw evidence
+in pane-filter-20261125 and pane-filter-20261126 remains permanently.
+
+Exact commands:
+- python D:/NeNeCommander/evidence/pane-filter-20261126/archive-filter-01.py
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/pane-filter-20261126/cleanup-filter-01.ps1
+
+Both exit0. cleanup-completion-01 confirms both targets absent at08:50:51JST; every
+unfinished task, including560, remains. No cleanup hold or user action is pending.
+A preceding inspection's terminal rg exit1 means no matching project references,
+not archive failure. The first completion-writer template failed before any tool
+execution or repository edit because its timestamp placeholder was interpreted as
+a JavaScript variable; the corrected data-only payload preserves that failed attempt.
+
+Receipts: publication-plan-02, pr-readback-02, pr-merged-readback-02, main-sync-02,
+completed-task-scope-01, completed-archive-manifest-01, archive-filter-command-01,
+completed-artifact-preflight-01, cleanup-preflight-01, cleanup-command-01 and
+cleanup-completion-01, all JSON under evidence/pane-filter-20261126.
+Completion changes documents only; matching successful product/native proof is reused.
+No product build/test/CI is repeated. Physical keys, actual IME, Narrator and hide's
+visible acceptance remain unrun, and no new release or human acceptance is claimed.
