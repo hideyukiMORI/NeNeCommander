@@ -258,3 +258,11 @@ success, failure and cancellation; after an artifact exists, an effects-empty
 AwaitingConflict cannot discard it. Move retains the existing verification and
 source-provider deletion path with stream/attribute admission added to its receipt.
 This is an implementation contract, not an enabled command or product-proof claim.
+
+
+The internal verified-file prerequisite now requires a closed FileVerificationRequirements
+value on every VerifiedCopyEntry.File. Ordinary producers explicitly retain DefaultStream;
+OverwriteContents requests the stricter native observations at the shared verifier and
+final source-deletion admission. This uses the same VerifiedCopyReceipt and deletion
+route. The overwrite producer, downgrade refusal in the gateway, visible choice and
+full destructive acceptance remain pending; no new command is enabled by this stage.

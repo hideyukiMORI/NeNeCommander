@@ -29,7 +29,7 @@ internal static class VerificationTestEvidence
         VerifiedCopyEntry entry = VerifiedCopyEntry.File(
             VerifiedEntrySnapshot.Create(source.Path, source.Identity, identity),
             VerifiedEntrySnapshot.Create(target, source.Identity, identity),
-            FileContentHash.Create(new string('0', 64)));
+            FileContentHash.Create(new string('0', 64)), FileVerificationRequirements.DefaultStream);
         return CopyVerificationOutcome.Succeeded(VerifiedCopyReceipt.Create(source, entry, VerifiedTreeBoundary.Create([], [])));
     }
 }

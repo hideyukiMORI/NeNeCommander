@@ -676,3 +676,28 @@ stream/attribute admission, causal source-retention tests and direct consumers.
 Source deletion, provider/UI activation, full ADR0095 destructive proof and directory
 merge remain unaccepted. Preserve normal settings/shared input and unfinished copies.
 Reuse successful proof for unchanged inputs. No publication or task cleanup is due.
+
+## Authoritative stopped checkpoint — November 26, 09:14 JST
+
+hide requests a suitable stop and daily report/handoff at 09:11. The internal mandatory
+VerifiedCopyEntry file-requirement and fresh source-delete admission stage is accepted;
+normal-hook local save and closing documentation finish this session. No next provider/
+scheduler/gateway/UI implementation starts. Resume only on hide's instruction.
+
+Read the [November26 stopped handoff](2026-11-26-milestone-handoff.md) and
+[daily report](../reports/2026-11-26-milestone-daily-report.md). Current branch is
+feat/560-transfer-resumption; original15499d8 remains. Commit16 receipt owns final HEAD
+and clean/hook results. Manifest14 freezes1548 inputs with the individually proved
+CRLF-only difference. Final review09:12:30 has no must-fix; final23 native cases,
+App/consumer builds, Presentation62, closure170/154/0 and conformance112 pass.
+Complexity remains one original Help nesting finding, exit1. Earlier failures remain.
+
+The SAME VerifiedCopyReceipt retains explicit DefaultStream or OverwriteContents
+requirements. Existing native held-path admission repeats exact source/target/source
+facts and rejects aliases; deletion checks again after final leaf captures. No new
+source-deletion API, provider success, overwrite UI choice or full destructive acceptance
+follows. Ordinary verification still emits DefaultStream. Strict producer/downgrade
+refusal, existing scheduler wiring, full ADR0095/case120/124 and folder merge remain.
+Selection/filter are integrated and their cleanup is complete. Main isf7c24b6; this
+feature stays local with basead85de1. All unfinished560/trial copies remain. No cleanup
+hold, shared-input action, ordinary-settings change or new release accompanies the stop.

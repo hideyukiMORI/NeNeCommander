@@ -243,3 +243,15 @@ exact initial-frame SHA-256 even when tokens repeat. Strict text/canonical schem
 four distinct local paths/objects prevent hidden aliases or normalized mapping changes
 (ADV-005). Its decoded observations authorize no live recovery or deletion. Native
 preparation, recovery-file I/O, mutation and cleanup remain unimplemented at this step.
+
+
+The internal ADR-0095 file-requirement stage now makes each verified file retain an
+explicit DefaultStream or OverwriteContents requirement. ADV-007's strict case uses
+the same held-path/native admission owner for local NTFS, regular/single-link shape,
+Normal/Archive attributes and only an unnamed stream. It compares complete source
+and target snapshots, refuses object aliases and repeats source after target. The
+existing deletion admission repeats these checks after its final leaf identities;
+failed queries and late stream/attribute/link changes retain source. Ordinary copies
+retain their existing contract. This prerequisite does not connect overwrite to a
+provider or establish the full ADR-0095 proof; ADR-0069's final-query-to-path-mutation
+interval and the stated metadata/mapped-writer limits remain.

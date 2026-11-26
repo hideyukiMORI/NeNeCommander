@@ -1717,3 +1717,135 @@ Read-only setup misses used Infrastructure instead of Infrastructure.Windows, a 
 verifier filename, a PowerShell native wildcard and one git query without its workdir.
 They changed no source; rg and explicit paths corrected them. Original failures remain.
 No feature publication or task cleanup is claimed.
+
+## November 26 mandatory verified-file requirements
+
+The next internal prerequisite adds FileVerificationRequirements to the same
+VerifiedCopyEntry.File factory and VerifiedFile evidence, with no optional/default
+compatibility path. All 15 prior callers explicitly retain DefaultStream. Strict
+OverwriteContents requires the existing native local-NTFS/regular/single-link/
+Normal-or-Archive/default-only admission. VerifiedTreeAccess reuses the exact same
+WindowsTransferPathLease and WindowsOverwriteFileAdmission; it compares full source,
+full target and source again, and explicitly refuses an object alias. The shared
+hash verifier checks requirements and VerifiedSourceDeletion repeats them after its
+final leaf Capture calls. No alternative deletion method or metadata/stream cleanup
+is added. The ordinary production verifier still emits DefaultStream; no overwrite
+provider/UI choice is enabled by this prerequisite.
+
+Tests use owned D files and real gateway copies; the fixture first asserts that the
+ordinary producer emits DefaultStream, then supplies strict internal evidence. Eight
+source/target variations cover hidden attributes, empty/nonempty ADS and hardlinks
+while restoring the exact recorded full identity, so failure depends on the new native
+shape check. Empty/nonempty strict success and ordinary ADS behavior are controls.
+Additional boundary tests cover foreign providers, full-identity changes, exact native
+source/target alias, source changes during target observation and late leaf changes.
+
+- shape-red-04: normal Infrastructure test build has zero warnings/errors; eight
+  strict-shape failures reproduce with three controls passing before admission exists.
+- shape-green-05: IDE0048 requires explicit logical parentheses; retained as a failed
+  build, corrected without suppression. shape-green-06 builds Infrastructure and
+  Application tests with zero warnings/errors; Infrastructure 52 and Application 33
+  selected cases pass. The Infrastructure selection includes the 11 new native cases
+  and the three directly affected verifier/deletion boundary classes.
+- shape-boundary-edits-07's initial JavaScript template syntax error occurs before
+  tool execution or file change. The corrected boundary tests are saved normally.
+- shape-causal-08 temporarily removes only the final-leaf requirement check. All four
+  late-Capture cases fail; finally restores the exact production SHA256. Restored
+  shape-boundary-09 builds with zero warnings/errors and passes all 12 boundary cases.
+- Independent review identifies that the first alias fixture mixed different snapshot
+  fields and could fail at another guard. The corrected test uses one actual file's
+  complete qualified snapshot for both sides. shape-alias-causal-10 removes only the
+  explicit alias guard and produces one failure, then restores the exact source hash.
+  shape-alias-11 builds with zero warnings/errors and passes the corrected alias plus
+  four directly affected cases. The other seven late-boundary test bodies are unchanged.
+- Final independent read-only review at 09:00:16 JST accepts this internal requirement/
+  admission scope with no mandatory correction. It confirms both causal failures,
+  restorations and final normal builds; provider/UI connection and full acceptance
+  remain explicitly separate.
+
+Both causal runners retain original source snapshots, their temporary mutation and
+restoration checks; no mutant source or built assembly remains. The 23 new native and
+two Application cases are distinct; overlapping run totals are not summed. Read-only
+setup misses (guessed plan/port/execution-directory filenames, early reads of unfinished
+logs, and a git ownership check under the sandbox identity) made no changes. Correct
+paths are obtained from rg; no global safe-directory configuration is changed.
+
+Executed entry points (permanent scripts retain exact commands, filters, times, exit
+codes and complete logs beneath D:/NeNeCommander/evidence/transfer-conflicts-20261126):
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-red-04.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-green-05.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-green-06.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-causal-08.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-alias-causal-10.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-consumers-12.ps1
+```
+
+ADR-0061 scope is the mandatory file evidence, fresh deletion admission and direct
+consumers. The final runner performs changed-file canonical whitespace/verify and body
+parity, normal App and Presentation-consumer builds, VerificationTestEvidenceTests and
+SelectionTranslationTests, record closure, conformance and complexity Inspect. Its
+result is recorded below after readback. Unchanged successful native/owner evidence
+is reused; no unrelated suite/coverage/mutation/full CI or physical-input test is run.
+
+ADR-0069's final-query-to-path-deletion interval remains; read-only admission does not
+freeze future streams/attributes or mapped writers. Strict receipt production and
+gateway downgrade refusal, provider/scheduler/UI wiring, full ADR-0095 destructive
+proof and actual case-sensitive environment 120/124 remain open. Directory merge is
+separate. No task publication or cleanup occurs; ordinary settings/shared input and
+all unfinished copies remain unchanged.
+
+
+### Final selected proof and requested stop — November 26, 09:14 JST
+
+shape-consumers-12 passes canonical changed-file whitespace and verify with all 18
+source bodies unchanged. Normal App and Presentation-consumer builds have zero warnings/
+errors. Presentation 62 cases pass (59 selection translation plus three evidence fixture
+cases). Record closure reports 170 abstract records, 154 visible closed roots, zero
+failures. Conformance then correctly rejects boolean mode parameters in three new
+fixture/test files; the failed log remains, and complexity was not reached in run 12.
+
+The fixture now accepts actual optional ADS content and a typed affected path. Test
+tables use validated source/target selectors; observation defects remain explicit test
+inputs. No production body changes. shape-final-13 passes format/verify, normal build
+with zero warnings/errors, all 23 affected native cases and conformance 112. Complexity
+Inspect exits 1 with the sole original KeyboardHelpPresenter nesting 4 / limit 3 finding.
+The accepted main selection-test parameterization removed its former cognitive finding;
+no unrelated product fix, threshold relaxation or clean-complexity claim is made.
+
+Exact final entry point:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261126/run-shape-final-13.ps1
+```
+
+Independent final read-only review at 09:12:30 JST accepts the correction without a
+mandatory change and confirms equivalent fixture meaning/injection phases, reusable
+causal proof and the final results. shape-independent-review-14.json retains that scope.
+shape-current-inputs-14.json freezes 1,548 inputs: 1,527 raw identical, 15 changed prior
+inputs, five new inputs and one CRLF-only difference in WindowsTransferArtifactRemoval.
+shape-line-ending-correspondence-14.json proves that file's prior raw hash equals the
+current LF normalization and both old/current Git blobs are identical. The accepted
+selection test is included among the 15 changes; it is covered by the 62-case consumer
+run. No unrelated test or the already successful App/closure is repeated for fixture edits.
+
+hide requests a suitable stop and daily report/handoff at 09:11. No next-stage provider,
+scheduler, gateway or UI source edits begin. The closing daily report and handoff below,
+this quality record and normal-hook local save form the stopping point. The final local
+HEAD, exact staged paths, Commit/message hook result and clean status are recorded in
+shape-commit-16.json/log. This feature remains local and incomplete; no push/PR/main
+merge/release or task cleanup accompanies the stop. Main is f7c24b6 after completed
+selection/filter documentation; this feature's integration base is ad85de1.
+
+See [November 26 daily report](../reports/2026-11-26-milestone-daily-report.md) and
+[stopped handoff](../handoffs/2026-11-26-milestone-handoff.md). Resume only when hide asks.
+
+
+The first normal-hook save15 passes conformance112 and security24 but rejects one new
+blank line at EOF in VerifiedFileRequirementBoundaryTests. The pre-stage diff check
+had not included this then-untracked file. No commit is created; the failed receipt/log
+remain. Only trailing newline bytes are corrected, with identical non-whitespace body.
+shape-current-inputs-16.json supersedes14 for final byte hashes, preserving14 unchanged.
+Successful behavior/build/format proof is reused; git diff --cached --check and the
+normal hooks are run again for save16. No hook is disabled and no product test rerun.

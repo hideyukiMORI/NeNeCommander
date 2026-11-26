@@ -41,7 +41,7 @@ public sealed class VerifiedCopyContractTests
     {
         FileEntrySnapshot source = Source();
         VerifiedEntrySnapshot observation = Observation(source.Path);
-        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash());
+        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash(), FileVerificationRequirements.DefaultStream);
         List<VerifiedCopyEntry> children = [file];
         List<VerifiedEntrySnapshot> ancestors = [observation];
         VerifiedCopyEntry.VerifiedDirectory directory = Assert.IsInstanceOfType<VerifiedCopyEntry.VerifiedDirectory>(
@@ -64,15 +64,15 @@ public sealed class VerifiedCopyContractTests
     {
         FileEntrySnapshot source = Source();
         VerifiedEntrySnapshot observation = Observation(source.Path);
-        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash());
+        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash(), FileVerificationRequirements.DefaultStream);
         VerifiedTreeBoundary boundary = VerifiedTreeBoundary.Create([], []);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => FileContentHash.Create(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(null!, source.Identity, observation.ObjectIdentity));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(source.Path, null!, observation.ObjectIdentity));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(source.Path, source.Identity, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(null!, observation, Hash()));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, null!, Hash()));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, observation, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(null!, observation, Hash(), FileVerificationRequirements.DefaultStream));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, null!, Hash(), FileVerificationRequirements.DefaultStream));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, observation, null!, FileVerificationRequirements.DefaultStream));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.Directory(observation, observation, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.Directory(observation, observation, [null!]));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedTreeBoundary.Create(null!, []));
@@ -99,7 +99,7 @@ public sealed class VerifiedCopyContractTests
             mismatch == "identity" ? VerifiedEntrySnapshot.Create(source.Path, Identity("other"), FileObjectIdentity.Create("identity")) :
             Observation(source.Path);
         VerifiedCopyEntry root = VerifiedCopyEntry.File(rootSource,
-            Observation(mismatch == "target" ? Path("C:\\elsewhere\\item") : Target()), Hash());
+            Observation(mismatch == "target" ? Path("C:\\elsewhere\\item") : Target()), Hash(), FileVerificationRequirements.DefaultStream);
 
         _ = Assert.ThrowsExactly<ArgumentException>(() => VerifiedCopyReceipt.Create(source, root, VerifiedTreeBoundary.Create([], [])));
     }

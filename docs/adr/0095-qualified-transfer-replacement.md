@@ -325,3 +325,27 @@ still grants no source deletion and supplies no provider Copy success.
 hide explicitly approved this internal integration and dedicated-file proof on November
 25 at 21:43. Source deletion and provider/UI activation were excluded. Focused internal
 acceptance does not satisfy the full destructive proof or activate OverwriteContents.
+
+
+### Internal verified-file requirements — November 26
+
+VerifiedCopyEntry.File now requires FileVerificationRequirements explicitly; there is
+no default overload. DefaultStream retains the ordinary copy verifier's existing
+contract. OverwriteContents carries the stricter local NTFS, regular, single-link,
+Normal/Archive and only-unnamed-stream observations through the SAME immutable
+VerifiedCopyReceipt. A requirement is neither consent nor deletion permission.
+
+The existing VerifiedTreeAccess reuses WindowsTransferPathLease and the native
+WindowsOverwriteFileAdmission owner to compare complete source/target snapshots,
+reject object aliases, and observe source again after target admission. The shared
+verifier checks requirements after content hashes. VerifiedSourceDeletion checks
+them again after its final source/target identity queries. Added empty or nonempty
+named streams, disallowed attributes, multiple links, a changed full identity, foreign
+providers or failed native queries retain source through the existing failure route.
+
+The existing final-query-to-path-deletion residual in ADR-0069 remains; disposing
+these read-only admission leases does not freeze future metadata or mapped writers.
+No new deletion API, stream removal, baseline refresh or atomic guarantee is added.
+The ordinary producer still emits DefaultStream. Provider/gateway integration must
+produce strict evidence for overwrite and reject a downgrade before Move deletion;
+that wiring, UI activation and full destructive acceptance remain future work.

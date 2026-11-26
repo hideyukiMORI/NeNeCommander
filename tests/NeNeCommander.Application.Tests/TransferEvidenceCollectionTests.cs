@@ -57,7 +57,7 @@ public sealed class TransferEvidenceCollectionTests
     {
         VerifiedEntrySnapshot source = Observation(@"C:\source");
         VerifiedEntrySnapshot target = Observation(@"D:\target");
-        VerifiedCopyEntry child = VerifiedCopyEntry.File(source, target, FileContentHash.Create(new string('0', 64)));
+        VerifiedCopyEntry child = VerifiedCopyEntry.File(source, target, FileContentHash.Create(new string('0', 64)), FileVerificationRequirements.DefaultStream);
         ChangingReceiptCollection<VerifiedCopyEntry> children = new(child, null!);
         ChangingReceiptCollection<VerifiedEntrySnapshot> sourceAncestors = new(source, null!);
         ChangingReceiptCollection<VerifiedEntrySnapshot> targetAncestors = new(target, null!);
@@ -123,7 +123,7 @@ public sealed class TransferEvidenceCollectionTests
         ConflictSet conflicts = Assert.IsInstanceOfType<ConflictSet>(TransferPreflightOutcome.Conflicted([conflict]));
         VerifiedEntrySnapshot source = Observation(@"C:\source");
         VerifiedEntrySnapshot target = Observation(@"D:\target");
-        VerifiedCopyEntry file = VerifiedCopyEntry.File(source, target, FileContentHash.Create(new string('0', 64)));
+        VerifiedCopyEntry file = VerifiedCopyEntry.File(source, target, FileContentHash.Create(new string('0', 64)), FileVerificationRequirements.DefaultStream);
         VerifiedTreeBoundary tree = VerifiedTreeBoundary.Create([source], [target]);
         return boundary switch
         {

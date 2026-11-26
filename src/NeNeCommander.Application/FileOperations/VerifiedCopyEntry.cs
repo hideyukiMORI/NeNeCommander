@@ -24,10 +24,12 @@ public abstract record VerifiedCopyEntry
     public VerifiedEntrySnapshot Target { get; }
 
     /// <summary>Creates file evidence after exact streamed comparison.</summary>
-    public static VerifiedCopyEntry File(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, FileContentHash content)
+    public static VerifiedCopyEntry File(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target,
+        FileContentHash content, FileVerificationRequirements requirements)
     {
         ArgumentNullException.ThrowIfNull(content);
-        return new VerifiedFile(source, target, content);
+        ArgumentNullException.ThrowIfNull(requirements);
+        return new VerifiedFile(source, target, content, requirements);
     }
 
     /// <summary>Creates directory evidence with an owned immutable child list.</summary>
@@ -49,14 +51,19 @@ public abstract record VerifiedCopyEntry
         {
         }
 
-        internal VerifiedFile(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target, FileContentHash content)
+        internal VerifiedFile(VerifiedEntrySnapshot source, VerifiedEntrySnapshot target,
+            FileContentHash content, FileVerificationRequirements requirements)
             : base(source, target)
         {
             Content = content;
+            Requirements = requirements;
         }
 
         /// <summary>Gets the content evidence agreed by both streams.</summary>
         public FileContentHash Content { get; }
+
+        /// <summary>Gets the required observations carried through verification and source deletion.</summary>
+        public FileVerificationRequirements Requirements { get; }
     }
 
     /// <summary>Represents a directory's complete directly verified entry set.</summary>

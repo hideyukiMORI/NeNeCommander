@@ -32,7 +32,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         WindowsLocalPath targetChild = Local(targetFile);
         VerifiedTreeAccess admitted = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed));
         VerifiedCopyEntry child = VerifiedCopyEntry.File(admitted.Capture(sourceChild), admitted.Capture(targetChild),
-            VerifiedFileContent.Compare(sourceFile, targetFile));
+            VerifiedFileContent.Compare(sourceFile, targetFile), FileVerificationRequirements.DefaultStream);
         VerifiedCopyEntry directory = VerifiedCopyEntry.Directory(admitted.Capture(sourcePath), admitted.Capture(targetPath), [child]);
         FrozenSourcePort port = new(FileEntrySnapshot.Create(sourcePath, directory.Source.Identity,
             DeletionCapability.PermanentOnly), targetPath);

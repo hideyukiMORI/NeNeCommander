@@ -109,7 +109,7 @@ internal sealed class VerifiedSourceDeletion
                     _access.Capture(file.Target.Path) == file.Target &&
                     VerifiedTreeEvidence.MatchesFile(file, _access) &&
                     _access.Capture(file.Source.Path) == file.Source &&
-                    _access.Capture(file.Target.Path) == file.Target
+                    _access.Capture(file.Target.Path) == file.Target && _access.MatchesRequirements(file)
                 : AdmitDirectory(entry));
     }
 

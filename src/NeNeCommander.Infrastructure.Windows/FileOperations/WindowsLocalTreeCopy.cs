@@ -294,7 +294,7 @@ public static partial class WindowsLocalTreeCopy
             ? VerifyDirectory(sourceBefore, targetBefore, access)
             : access.Find(target) is FileInfo
                 ? VerifiedCopyEntry.File(sourceBefore, targetBefore,
-                    VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)))
+                    VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)), FileVerificationRequirements.DefaultStream)
                 : throw new IOException("The copied entry kind differs.");
         return access.Capture(source) != sourceBefore || access.Capture(target) != targetBefore
             ? throw new IOException("An entry changed during verification.") : result;
