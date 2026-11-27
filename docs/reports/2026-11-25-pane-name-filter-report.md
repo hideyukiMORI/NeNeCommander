@@ -24,3 +24,18 @@ records the invariant, ownership changes, unfinished publication/integration and
 retained D work. No cleanup is due for this unfinished task.
 
 Implementation commit: 08008241aecdafaeed6e3989c9c5be0edb04107f; normal local hooks pass. Public publication and main integration remain pending.
+
+
+## 2026-11-26 統合・完了整理
+
+PR588で名前フィルターをmain ad85de1へ統合し、Issue545は完了した。候補5dd10dbと
+受理mainの全treeが一致する。製品・設定・ツール入力は不変で、main由来の選択テスト
+だけを通常build/59件成功で確認した。既存のApplication1273、Presentation570、
+Architecture35、native/画像/性能証拠は再利用した。独立レビューは必須修正なし。
+
+9,187ファイル/1,146,169,557 bytesを永久archiveへ保存し、全entryのhashを照合した。
+08:50:51、D:/NeNeCommander/worktrees/issue-545と
+D:/NeNeCommander/outputs/pane-filter-20261125の不在を確認した。branch/commit/raw evidenceと
+未完了taskは保持済み。後片付け待ちはない。Issue589で文書専用の完了記録を収載する。
+元の失敗と実行コマンドはquality記録に保持。物理キー、実IME、音声、hideの目視受理、
+新releaseは別であり、実施済みとは扱わない。
