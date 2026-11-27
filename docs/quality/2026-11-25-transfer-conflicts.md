@@ -2336,3 +2336,87 @@ Exact scripts, original failures and observations are under the same evidence ro
 run-diagnostic-mutation-140.ps1, flush-observation-153.json,
 diagnostic140-interrupted-154.json, apply-verify-boundaries-151.ps1,
 run-boundaries-155.ps1 and run-diagnostic-mutation-156.ps1.
+
+## Saved local checkpoint and current runner — November 27, 22:03 JST
+
+Normal hooks saved the authorized unpublished checkpoint as7912f03 at21:18:58.
+All48paths are included and all1,602proof inputs remain exact;160records the clean
+post-commit tree. The initial159count guard stopped before staging because it omitted
+two already-104-snapshotted test files;160reviewed all48paths before saving. Complete
+Infrastructure acceptance remains pending. Diagnostic156/session19335started21:09:57
+and is still active; no completed verdict or overall mutation acceptance is claimed.
+
+Read-only observation163 confirms Stryker currently substitutes the test-consumer
+Infrastructure DLL (488,960bytes) while the source-bin and App copies remain identical
+normal333,312byte binaries. Before ordinary coverage, prepared149nowcompares those
+hashes and rebuilds the affected test project only if restoration is needed. It has
+not run, and no running binary was changed. No threshold, exclusion or baseline changed.
+Current running state, exact input manifest and next commands are indexed in
+D:/NeNeCommander/evidence/transfer-conflicts-20261127/active-acceptance-checkpoint-164.json.
+The next result reader is summarize-diagnostic-158.ps1 for156, not148forinterrupted140.
+All publication/main/release/directory-merge and cleanup limits remain unchanged.
+
+## Additional boundary proof and diagnostic correction — November 27, 22:25 JST
+
+Restricted diagnostic156 completes at22:06:18 with245Killed/3Timeout/201Survived/
+38NoCoverage and50.92% in its selected scope. It preserves all131detections from123
+and adds62more, for191new detections against101. The original full101 remains failed
+at81.56%; no aggregate passing score is inferred. All1602inputs remain exact.
+
+Diagnostic165 tests cleanup103's InvalidateTargetPath deletion with the existing two
+pending-observation cases and coverage selection off. It still survives(0%,exit2).
+The root assistant had mistaken cleanup103 for append89: append already invalidates
+that target path and cleanup123 repeats the action. The line correction and original
+hypothesis are preserved; this observation establishes no Stryker coverage defect.
+The diagnostic-only configuration follows the official Stryker option; canonical
+configuration, thresholds and inputs stay unchanged. Native/product proof is not
+replaced by this deliberately narrow diagnostic.
+
+Independent review identifies real omitted boundaries: the second cleanup target
+verification, the recovery read after metadata admission, direct writer cancellation
+after acknowledged initial flush, and first-rejection/disposal ordering. Four new
+test/helper files166 supply10passing cases167 and8adversarial cases3times, with no
+review must-fix. Three further test files168 supply9passing cases170 and2adversarial
+cases3times: closed borrowed parent rejection, explicit required owners/handle alias,
+and canonical directory/delete-pending observations separate from eligibility.
+Both builds have0warnings/errors; conformance112and whitespace pass. Complexity
+retains exactly the original Help nesting finding,exit1. No product source changes.
+
+Infrastructure additions since104 now total29test/helper files and96passing focused
+cases. The current manifest170has1609inputs, preserving all1602earlier inputs.
+CodeQL94still covers exactly its1579analyzed inputs; later Application1plus these29
+Infrastructure files are directly reviewed/tested but unscanned. All extraction
+limitations remain. Diagnostic171 now checks17selected residual mutations against
+the19new cases; its verdict is pending. Do not edit or rebuild fixed inputs while it
+runs.149has notrun and stillneeds its manifest updated from155after readiness.
+Old107/113/114and148remain stale. Current progress/session is indexed by
+active-acceptance-checkpoint-172.json in the same evidence root. No whole acceptance,
+new normal-hook save, publication, main integration, release, merge capability or
+eligible cleanup is claimed. All unfinished work remains on D.
+
+### Final added-test sensitivity — November 27, 22:32 JST
+
+The7new files now supply20focused cases(97Infrastructure additions since104).
+Run171passes its limited scope at90.91%:20Killed/2Survived across22span-selected
+mutations. The normal null-source case could be rescued by a downstream same-name
+guard. Independent review identifies that limit without treating it as destructive
+proof.173adds cancelled-null input to distinguish an owning ArgumentNullException
+from an incorrect Cancelled outcome: both changed cases pass, build0warnings/errors
+and whitespace pass.174tests only that one changed guard and kills it(100%,exit0).
+175maps all17intended mutations from171toKilled in171/174. The exception-wording
+survivor remains unchanged; no exact-message assertion, suppression or threshold
+change is introduced. None of these restricted percentages is whole-layer acceptance.
+
+The final input manifest is infra-inputs-173.json(1609inputs). All1608other inputs
+remain exact; earlier successful19-case observations are reused except the two
+freshly executed active/cancelled cases. Independent review has no test must-fix;
+borrowed-parent tests prove closed-owner rejection, not reference-count balance.
+Synthetic directory-length/delete-pending facts prove identity representation,
+not an actual native delete-pending observation or overwrite eligibility.
+
+The prepared full-layer runner149nowuses173and stillverifies/restores the normal
+consumer DLL before ordinary coverage. Its Infrastructure coverage and Complete
+mutation are the next required acceptance stage because full101remains failed;
+no other unchanged layer is repeated. This checkpoint is saved through normal
+hooks before that run. All CodeQL94scope/extraction limits and publication/main/
+release/directory-merge/unfinished-cleanup restrictions remain unchanged.
