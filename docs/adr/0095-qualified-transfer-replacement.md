@@ -5,8 +5,9 @@ Status: accepted
 Date: 2026-11-25
 
 Issue: #560. Design accepted under hide's autonomous milestone/design instruction,
-after independent read-only review of revision12. Production overwrite is not yet
-implemented or enabled. Folder-content merge remains a subsequent, unaccepted scope.
+after independent read-only review of revision12. Internal provider integration is
+implemented in stages; production overwrite remains unavailable pending activation
+and full proof. Folder-content merge remains a subsequent, unaccepted scope.
 The separately verified exact-modal-owner correction is commit11e25f1.
 
 ## One mechanism and activation boundary
@@ -349,3 +350,36 @@ No new deletion API, stream removal, baseline refresh or atomic guarantee is add
 The ordinary producer still emits DefaultStream. Provider/gateway integration must
 produce strict evidence for overwrite and reject a downgrade before Move deletion;
 that wiring, UI activation and full destructive acceptance remain future work.
+
+
+### Internal provider integration — November 27
+
+The existing WindowsLocalFileOperationAdapter.CopyAsync queues its operation through
+WindowsLocalIoExecutionBoundary and unwraps the inner task. WindowsOverwriteCopy
+owns the pair and the existing WindowsOverwriteAttempt until preparation, target
+write, completion append and cleanup all return. Expected I/O/access failures and
+cancellation return the same retained receipt after disposal; success requires the
+complete sequence. No new result abstraction, retry, fallback, rollback or deletion
+entry point is introduced.
+
+The closed OverwriteContents decision is available only on a conflict with qualified
+evidence. The resumed native preflight compares the exact original pair before adding
+the original ordinary target to the plan; it never refreshes consent after a mismatch.
+The copy boundary independently checks source, original target and destination binding.
+Both gateway selection and provider capability/execution refuse atomic move.
+
+WindowsLocalTreeCopy produces FileVerificationRequirements.OverwriteContents through
+the same verifier, with fresh strict native admission and original target-object binding.
+TransferExecution rejects ordinary requirements, directories and different source or
+target objects before the existing verified source-deletion call. Source retention on
+failed preparation/write/append/cleanup is preserved by the one attempt receipt.
+
+WindowsIdentifierSource is composed once at App startup and injected into settings and
+the provider router. Local adapter construction now requires that source explicitly;
+there is no ambient generator or constructor that silently supplies one. A cohesive
+local-adapter dependency holder supplies the existing platform owners to tests.
+
+This stage remains unexposed: initial production conflict construction still passes
+no overwrite evidence. Dedicated test ports supply the initial qualified conflict to
+exercise the real resumed provider/gateway path. Initial qualification and the explicit
+three-language consent UI, full ADR-0095 proof and separate directory merge remain.

@@ -148,7 +148,7 @@ public sealed class LiveWslEmptyFileTests
 
     private static FileOperationGateway CreateGateway()
     {
-        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary()));
+        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary(), new DeterministicIdentifierSource()));
     }
 
     private static FileOperationRequest Request(WslPath location, string name)

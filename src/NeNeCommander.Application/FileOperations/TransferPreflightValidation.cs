@@ -90,11 +90,15 @@ internal static class TransferPreflightValidation
             ? entry.Disposition == TransferDisposition.Transfer
             : choice.Decision == TransferConflictDecision.Skip
                 ? entry.Disposition == TransferDisposition.Skip
-                : choice.Decision == TransferConflictDecision.KeepBoth &&
-                    entry.Disposition == TransferDisposition.Transfer &&
-                    FileSystemPathIdentityComparer.Instance.Equals(
-                        choice.KeepBothCandidate,
-                        entry.Target);
+                : entry.Disposition == TransferDisposition.Transfer && MatchesTransferTarget(choice, entry.Target);
+    }
+
+    private static bool MatchesTransferTarget(TransferConflictChoice choice, FileSystemPath target)
+    {
+        return choice.Decision == TransferConflictDecision.KeepBoth
+            ? FileSystemPathIdentityComparer.Instance.Equals(choice.KeepBothCandidate, target)
+            : choice.Decision == TransferConflictDecision.OverwriteContents && choice.Target.OverwriteEvidence is not null &&
+                FileSystemPathIdentityComparer.Instance.Equals(choice.Target.Path, target);
     }
 
     private static bool IsDirectChild(FileSystemPath target, FileSystemPath destination)

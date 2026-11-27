@@ -247,7 +247,7 @@ readiness. Same-owner rendering retains focus and the selected scope; a new owne
 starts on Cancel with current-conflict scope. This preparation adds no Replace/Merge
 provider capability and does not change ADR-0039's supported transfer decisions.
 
-## Accepted content-overwrite design, pending implementation
+## Accepted content-overwrite design, activation pending
 
 ADR-0095 extends this same conflict/preflight/CopyAsync/verification route with an
 exact-target OverwriteContents choice. A source/target identity alias is refused;
@@ -264,5 +264,8 @@ The internal verified-file prerequisite now requires a closed FileVerificationRe
 value on every VerifiedCopyEntry.File. Ordinary producers explicitly retain DefaultStream;
 OverwriteContents requests the stricter native observations at the shared verifier and
 final source-deletion admission. This uses the same VerifiedCopyReceipt and deletion
-route. The overwrite producer, downgrade refusal in the gateway, visible choice and
-full destructive acceptance remain pending; no new command is enabled by this stage.
+route. The November 27 internal provider integration produces strict overwrite evidence
+and the gateway rejects downgraded requirements, directories or substituted objects
+before deletion. Resumed preflight preserves the exact original target and both the
+gateway and provider refuse atomic move. The initial production preflight still supplies
+no overwrite evidence; visible choice and full destructive acceptance remain pending.

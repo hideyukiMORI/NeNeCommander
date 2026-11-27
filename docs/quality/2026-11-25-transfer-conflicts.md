@@ -1849,3 +1849,117 @@ remain. Only trailing newline bytes are corrected, with identical non-whitespace
 shape-current-inputs-16.json supersedes14 for final byte hashes, preserving14 unchanged.
 Successful behavior/build/format proof is reused; git diff --cached --check and the
 normal hooks are run again for save16. No hook is disabled and no product test rerun.
+
+
+## Provider integration checkpoint — November 27, 14:25 JST
+
+hide requests resumption after reading the November 26 daily report/handoff. The
+1,548 saved input hashes all match d8e884c and the tree is clean. Accepted main
+f7c24b6 adds only four completion-document files. Their PROJECT_STATE insertion
+conflict is resolved by retaining both histories, without duplicating the old entry.
+Normal hooks save the documentation reconciliation as b2908fb.
+
+The first commit attempt03 shows no progress after security-check entry. Only its
+owned child PID3220 is interrupted after verifying parent29716 and the exact script
+path; the failed log and process receipt04 remain. Normal retry05 passes all hooks
+in approximately 107 seconds. A separate, unchanged security-check invocation06
+passes in 6,202 ms. The attempted phase breakpoints emit no events, so no phase
+timing, confirmed root cause or permanent performance fix is claimed. No hook,
+security rule or threshold is changed. hide asks about reliable shortening; this
+work groups coherent changes/checks, reuses successful unchanged proof, and does not
+repeat the successful App build after test-only corrections.
+
+### Implemented boundary
+
+The single WindowsLocalFileOperationAdapter.CopyAsync queues work in the existing
+WindowsLocalIoExecutionBoundary and unwraps the inner task. WindowsOverwriteCopy
+retains WindowsOverwriteAttempt before effects and awaits prepare, overwrite,
+completion append and cleanup before disposal and the final canonical receipt.
+Expected I/O/access failure and cancellation retain target/artifact knowledge.
+Copy success requires complete cleanup; no retry, fallback or rollback is added.
+
+OverwriteContents is a closed conflict decision only when qualified evidence exists.
+Resumed preflight reopens/revalidates the exact original pair and reserves the original
+ordinary target, refusing changed bytes, added streams and disappeared targets before
+allocating artifacts. Copy independently checks source, target and destination binding.
+Gateway and provider both refuse atomic move. The existing tree verifier emits strict
+OverwriteContents requirements; the gateway rejects default-only requirements, a
+directory or substituted source/target objects before the existing deletion step.
+
+The App composes one WindowsIdentifierSource for settings and provider operations.
+Local adapter/router constructors require explicit injection. The migration receipt11
+records 70 old test calls supplied with deterministic identifiers; direct step tests
+are also updated. The dependency holder contains only the existing local platform
+owners and the overwrite dependencies. No dependency/package, tool policy or UI
+resource is added.
+
+### Selected proof and retained failures
+
+- Infrastructure build07 passes; test build07 refuses an unused using. Build08 then
+  refuses an unused TrySetResult return. Both test-only style defects are corrected.
+  Build09 has zero warnings/errors and all 12 new orchestration cases pass: empty and
+  ordinary content, stale target, cancellation, partial writes, completion flush and
+  partial cleanup. Source remains after every incomplete step.
+- Product build12 passes with zero warnings/errors. Application build/test13 passes
+  33 selected cases, including four strict-proof downgrade/object/directory refusals,
+  the accepted strict deletion path and the original-target plan binding.
+- Infrastructure build13 exposes four missed direct-step constructor updates and
+  inappropriate test access to an Application-internal snapshot mutation. No friend
+  permission or public product API is widened: OverwriteSnapshotPort obtains the
+  bound snapshot through the real gateway and stops at the declared test port.
+- Build/test14 passes 85 directly affected native/ordinary-copy/move/scheduler/
+  constructor/router cases, zero warnings/errors.
+- Format/verify15 proves whitespace-only body parity for all changed C# files.
+  The normal App build15 succeeds with zero warnings/errors in 130.41 seconds.
+  Test build15 refuses a constant array in the new resumption assertion. The same
+  order is asserted individually; only that file is formatted again in16.
+- Build/test16 passes 19 cases: the real resumed move through preflight/copy/strict
+  verification/deletion, four changed-original refusals, directly affected existing
+  conflict/preflight cases, and the revised inner-await observer. These overlap
+  earlier selections; counts are not summed as unique cases.
+- Record closure16: 170 abstract records, 154 visible closed roots, zero failures.
+  Conformance16: 112 rules pass. Complexity16 exits1 with exactly the original
+  KeyboardHelpPresenter nesting4/limit3 finding; its complete finding object equals
+  shape-complexity-13 from November26. No new finding or threshold change.
+- Architecture build/test17 succeeds with zero warnings/errors; the one compiled
+  dependency-direction case passes. No unrelated architecture or UI suite runs.
+
+The frozen successful code inputs and explicit formatting/body correspondence support
+reuse. Application33 and Infrastructure85 are not repeated after unrelated later
+preflight/test/document edits. The full App build is not repeated for a test assertion.
+The changed resumption path receives its own19-case proof. Prior native attempt,
+receipt, cleanup and strict-delete proofs remain applicable to unchanged owners.
+
+Exact scripts and direct-command metadata are preserved under
+D:/NeNeCommander/evidence/transfer-conflicts-20261127:
+
+```powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-copy-proof-09.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-provider-final-15.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-provider-final-16.ps1
+```
+
+application-proof-13.json, infrastructure-proof-14.json and
+provider-architecture-17.json retain each exact build/test command, project and filter.
+All failed attempts07/08/13/15, the interrupted commit03, retry05, profiling limits06
+and read-only setup misses remain distinct from successful results.
+
+### Activation, publication and preservation limits
+
+This is the bounded internal provider/gateway integration from the stopped handoff.
+Initial production conflict construction still supplies null overwrite evidence;
+only dedicated test ports introduce the qualified initial conflict. No visible
+overwrite choice, normal-settings change, shared-desktop input or release occurs.
+A focused source self-review checks lifetime, original binding and proof downgrade
+admission; no new independent/full destructive acceptance is claimed.
+
+Initial qualification and explicit three-locale consent UI, full ADR0095 native/race/
+coverage/mutation/deep-review proof, actual case-sensitive environment120/124 and the
+separate directory merge scope remain. This stage is not review-ready release proof
+and cannot close #560. Main/public beta.5 stay unchanged.
+
+Keep the unfinished issue-560 worktree and outputs, all original branches/commits and
+permanent evidence. No cleanup is eligible or blocked. Current inputs are recorded in
+provider-current-inputs-18.json; normal-hook local save and final clean state are
+recorded in provider-commit-19.json/log. No push/PR/main integration accompanies this
+internal checkpoint. See the latest entry in the transfer handoff.

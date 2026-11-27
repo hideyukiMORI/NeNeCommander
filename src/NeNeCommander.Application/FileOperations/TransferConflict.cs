@@ -8,8 +8,7 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Describes one source whose ordinary target already exists.</summary>
 public sealed record TransferConflict
 {
-    private readonly ImmutableList<TransferConflictDecision> _allowedDecisions =
-        [TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.Cancel];
+    private readonly ImmutableList<TransferConflictDecision> _allowedDecisions;
 
     private TransferConflict(
         FileEntrySnapshot source,
@@ -19,6 +18,9 @@ public sealed record TransferConflict
         Source = source;
         Target = target;
         KeepBothCandidate = keepBothCandidate;
+        _allowedDecisions = target.OverwriteEvidence is null
+            ? [TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.Cancel]
+            : [TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.OverwriteContents, TransferConflictDecision.Cancel];
     }
 
     /// <summary>Gets the original frozen source.</summary>

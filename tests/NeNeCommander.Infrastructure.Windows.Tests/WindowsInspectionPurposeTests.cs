@@ -25,7 +25,7 @@ public sealed class WindowsInspectionPurposeTests
         CountingScheduler ordinary = new();
         CountingScheduler shellScheduler = new();
         ScriptedWindowsRecycleShell shell = new();
-        WindowsLocalFileOperationAdapter adapter = new(new(ordinary, shellScheduler), new WindowsRecycleBin(shell));
+        WindowsLocalFileOperationAdapter adapter = new(new(ordinary, shellScheduler), new WindowsRecycleBin(shell), new DeterministicIdentifierSource());
         FileInspectionPurpose purpose = choice == "Deletion" ? FileInspectionPurpose.Deletion : FileInspectionPurpose.IdentityOnly;
 
         FileEntrySnapshot snapshot = Assert.IsInstanceOfType<FileInspectionSucceeded>(await adapter.InspectAsync(path, purpose, CancellationToken.None)).Snapshot;
@@ -54,7 +54,7 @@ public sealed class WindowsInspectionPurposeTests
         CountingScheduler ordinary = new();
         CountingScheduler shellScheduler = new();
         ScriptedWindowsRecycleShell shell = new();
-        WindowsLocalFileOperationAdapter adapter = new(new(ordinary, shellScheduler), new WindowsRecycleBin(shell));
+        WindowsLocalFileOperationAdapter adapter = new(new(ordinary, shellScheduler), new WindowsRecycleBin(shell), new DeterministicIdentifierSource());
         DeletionExecutionMode mode = choice == "Recycle" ? DeletionExecutionMode.Recycle : DeletionExecutionMode.Permanent;
 
         ProviderStepOutcome result = await adapter.DeleteAsync(source, mode, CancellationToken.None);

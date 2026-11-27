@@ -18,6 +18,12 @@ internal sealed class WindowsOverwriteDependencies
         Removal = removal;
     }
 
+    internal static WindowsOverwriteDependencies Native(IIdentifierSource identifiers)
+    {
+        return new WindowsOverwriteDependencies(identifiers, WindowsTransferContentIo.Native,
+            WindowsTransferArtifactQueries.Native, WindowsTransferArtifactRemoval.Native);
+    }
+
     internal IIdentifierSource Identifiers { get; }
     internal WindowsTransferContentIo Content { get; }
     internal WindowsTransferArtifactQueries Artifacts { get; }

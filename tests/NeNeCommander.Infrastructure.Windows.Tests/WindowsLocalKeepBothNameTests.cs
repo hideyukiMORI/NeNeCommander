@@ -19,7 +19,7 @@ public sealed class WindowsLocalKeepBothNameTests
         FileSystemPath source = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("tree.v2"));
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("destination"));
         _ = root.CreateDirectory("destination\\tree.v2");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
         CopyRequest request = (CopyRequest)((FileOperationRequestAccepted)CopyRequest.Create([source], destination)).Request;
 
         FileOperationOutcome awaiting = await gateway.ExecuteAsync(

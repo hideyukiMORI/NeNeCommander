@@ -12,6 +12,9 @@ public abstract record TransferConflictDecision
     /// <summary>Transfers to the conflict's provider-allocated alternate target.</summary>
     public static TransferConflictDecision KeepBoth { get; } = new KeepBothDecision();
 
+    /// <summary>Updates the exact qualified existing file object's default-stream contents after explicit consent.</summary>
+    public static TransferConflictDecision OverwriteContents { get; } = new OverwriteContentsDecision();
+
     /// <summary>Cancels the whole operation without starting another effect.</summary>
     public static TransferConflictDecision Cancel { get; } = new CancelDecision();
 
@@ -26,6 +29,12 @@ public abstract record TransferConflictDecision
         }
     }
     private sealed record KeepBothDecision : TransferConflictDecision
+    {
+        private protected override void RestrictDerivation()
+        {
+        }
+    }
+    private sealed record OverwriteContentsDecision : TransferConflictDecision
     {
         private protected override void RestrictDerivation()
         {

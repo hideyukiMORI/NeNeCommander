@@ -31,7 +31,7 @@ public sealed class VerifiedAdapterBoundaryTests
         FileEntrySnapshot source = FileEntrySnapshot.Create(sourcePath, access.Capture(sourcePath).Identity, DeletionCapability.PermanentOnly);
         VerifiedCopyReceipt receipt = Assert.IsInstanceOfType<CopyVerified>(VerificationTestEvidence.ForTarget(source, target)).Receipt;
         WindowsLocalIoExecutionBoundary execution = new();
-        IFileOperationPort adapter = owner == "windows-owner" ? new WindowsLocalFileOperationAdapter(execution, fixture.FileSystem)
+        IFileOperationPort adapter = owner == "windows-owner" ? new WindowsLocalFileOperationAdapter(execution, fixture.FileSystem, new DeterministicIdentifierSource())
             : new WslFileOperationAdapter(execution, fixture.FileSystem);
 
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, DeletionExecutionMode.VerifiedCopy(receipt), CancellationToken.None);

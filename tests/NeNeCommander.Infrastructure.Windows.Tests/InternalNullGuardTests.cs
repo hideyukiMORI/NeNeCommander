@@ -116,9 +116,9 @@ public sealed class InternalNullGuardTests
             "VerifiedTreeAccess.wsl" => () => _ = new VerifiedTreeAccess(null!, boundary),
             "VerifiedTreeAccess.driveBoundary" => () => _ = new VerifiedTreeAccess(wsl, null!),
             "WindowsLocalFileOperationAdapter.recycleBin" => () => _ = new WindowsLocalFileOperationAdapter(
-                execution, null!, wsl, boundary),
-            "WindowsLocalOperationSteps.wslFileSystem" => () => _ = new WindowsLocalOperationSteps(null!, boundary),
-            "WindowsLocalOperationSteps.driveBoundary" => () => _ = new WindowsLocalOperationSteps(wsl, null!),
+                execution, new WindowsLocalAdapterDependencies(null!, wsl, boundary, WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource()))),
+            "WindowsLocalOperationSteps.wslFileSystem" => () => _ = new WindowsLocalOperationSteps(null!, boundary, WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource())),
+            "WindowsLocalOperationSteps.driveBoundary" => () => _ = new WindowsLocalOperationSteps(wsl, null!, WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource())),
             "WindowsRecycleBin.driveBoundary" => () => _ = new WindowsRecycleBin(new ScriptedWindowsRecycleShell(), null!),
             "WindowsRecycleProgress.driveBoundary" => () => _ = new WindowsRecycleProgress(
                 Snapshot(), null!, CancellationToken.None),

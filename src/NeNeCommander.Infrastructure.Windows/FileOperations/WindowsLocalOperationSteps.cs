@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Drives;
@@ -12,13 +14,16 @@ internal sealed class WindowsLocalOperationSteps
 {
     private readonly IWslFileSystem _wslFileSystem;
     private readonly WindowsDriveBoundary _driveBoundary;
+    private readonly WindowsOverwriteCopy _overwrite;
 
-    internal WindowsLocalOperationSteps(IWslFileSystem wslFileSystem, WindowsDriveBoundary driveBoundary)
+    internal WindowsLocalOperationSteps(IWslFileSystem wslFileSystem, WindowsDriveBoundary driveBoundary,
+        WindowsOverwriteDependencies overwrite)
     {
         ArgumentNullException.ThrowIfNull(wslFileSystem);
         ArgumentNullException.ThrowIfNull(driveBoundary);
         _wslFileSystem = wslFileSystem;
         _driveBoundary = driveBoundary;
+        _overwrite = new WindowsOverwriteCopy(overwrite, driveBoundary);
     }
 
     internal ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
@@ -32,6 +37,10 @@ internal sealed class WindowsLocalOperationSteps
         FileEntrySnapshot source,
         FileSystemPath destination)
     {
+        if (source.ConflictChoice?.Decision == TransferConflictDecision.OverwriteContents)
+        {
+            return AtomicMoveCapabilityOutcome.Unsupported;
+        }
         if (destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination))
         {
             return AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
@@ -72,7 +81,8 @@ internal sealed class WindowsLocalOperationSteps
 
     internal ProviderStepOutcome Move(FileEntrySnapshot source, FileSystemPath destination)
     {
-        return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
+        return source.ConflictChoice?.Decision == TransferConflictDecision.OverwriteContents ||
+            destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
             ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(source, _driveBoundary, entry => MoveEntry(entry, source, localDestination));
     }
@@ -201,7 +211,30 @@ internal sealed class WindowsLocalOperationSteps
         return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
-    internal ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
+    internal Task<ProviderStepOutcome> CopyAsync(FileEntrySnapshot source, FileSystemPath destination, CancellationToken cancellationToken)
+    {
+        if (source.ConflictChoice?.Decision == TransferConflictDecision.OverwriteContents)
+        {
+            TransferOverwriteEvidence? original = source.ConflictChoice.Target.OverwriteEvidence;
+            return original is not null && MatchesOverwriteDestination(source, destination, original)
+                ? _overwrite.CopyAsync(source, original, cancellationToken)
+                : Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty));
+        }
+        return Task.FromResult(WindowsLocalFileOperationAdapter.Guarded(
+            () => Copy(source, destination), FileOperationFailureKind.Copy));
+    }
+
+    private static bool MatchesOverwriteDestination(FileEntrySnapshot source, FileSystemPath destination, TransferOverwriteEvidence original)
+    {
+        return FileSystemPathIdentityComparer.Instance.Equals(source.Path, source.ConflictChoice?.Source) &&
+            FileSystemPathIdentityComparer.Instance.Equals(source.Path, original.Source.Observation.Entry.Path) &&
+            source.Identity == original.Source.Observation.Entry.Identity &&
+            FileSystemPathIdentityComparer.Instance.Equals(source.TransferTarget, original.Target.Observation.Entry.Path) &&
+            FileSystemPathIdentityComparer.Instance.Equals(source.TransferTarget, source.ConflictChoice?.Target.Path) &&
+            FileSystemPathIdentityComparer.Instance.Equals(original.Target.Observation.Entry.Path.Parent, destination);
+    }
+
+    private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WindowsLocalPath localDestination || !_driveBoundary.AdmitsLocal(localDestination)
             ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)

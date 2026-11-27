@@ -182,7 +182,7 @@ public sealed class WindowsToWslTransferPreflightTests
 
     private static async Task<FileEntrySnapshot> SnapshotAsync(string path)
     {
-        FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter().InspectAsync(
+        FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()).InspectAsync(
             Local(path),
             FileInspectionPurpose.Deletion,
             CancellationToken.None);

@@ -344,7 +344,7 @@ public sealed class LiveWslTransferTests
     private static FileOperationGateway CreateGateway()
     {
         WindowsLocalIoExecutionBoundary execution = new();
-        return new FileOperationGateway(new ProviderFileOperationPort(execution));
+        return new FileOperationGateway(new ProviderFileOperationPort(execution, new DeterministicIdentifierSource()));
     }
 
     private static CopyRequest Copy(FileSystemPath source, WslPath destination)

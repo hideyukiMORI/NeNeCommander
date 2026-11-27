@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Execution;
 using NeNeCommander.Infrastructure.Windows.Drives;
@@ -21,25 +22,21 @@ public sealed class ProviderFileOperationPort : IFileOperationPort
     private readonly IFileOperationPort _windowsLocalToWsl;
     private readonly IFileOperationPort _wslToWindows;
 
-    /// <summary>Initializes the provider router over the shared Windows I/O execution boundary.</summary>
-    public ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(executionBoundary, new WindowsDriveBoundary())
+    /// <summary>Initializes the provider router over explicitly composed I/O and identifier boundaries.</summary>
+    public ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsDriveBoundary(), identifiers)
     {
     }
 
-    private ProviderFileOperationPort(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsDriveBoundary driveBoundary)
-        : this(executionBoundary, new WindowsWslFileSystem(driveBoundary), driveBoundary)
+    private ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsDriveBoundary driveBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsWslFileSystem(driveBoundary), driveBoundary, identifiers)
     {
     }
 
-    private ProviderFileOperationPort(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsWslFileSystem wslFileSystem,
-        WindowsDriveBoundary driveBoundary)
-        : this(
-            new WindowsLocalFileOperationAdapter(executionBoundary, wslFileSystem, driveBoundary),
+    private ProviderFileOperationPort(WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsWslFileSystem wslFileSystem, WindowsDriveBoundary driveBoundary, IIdentifierSource identifiers)
+        : this(new WindowsLocalFileOperationAdapter(executionBoundary, wslFileSystem, driveBoundary, identifiers),
             new WslFileOperationAdapter(executionBoundary, wslFileSystem),
             new WindowsToWslTransfer(executionBoundary, wslFileSystem, driveBoundary),
             new WslToWindowsTransfer(executionBoundary, wslFileSystem, driveBoundary))

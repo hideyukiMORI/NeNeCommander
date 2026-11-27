@@ -17,7 +17,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task CreateDirectoryAsyncWhenLocationIsDirectoryCreatesOnceThenConflicts()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot location = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("parent")));
         FileSystemPath target = WindowsLocalOperationTestContext.ParsePath(root.Resolve("parent\\child"));
 
@@ -37,7 +37,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task CreateDirectoryAsyncWhenLocationOrTargetIsUnsafeFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("file.txt", "x")));
         _ = root.CreateDirectory("real");
         FileEntrySnapshot junction = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.CreateJunction("link", "real")));
@@ -61,7 +61,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task RenameAsyncWhenEntryIsFileOrDirectoryRenamesInsideTheParent()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("before.txt", "abc")));
         FileEntrySnapshot directory = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("docs")));
 
@@ -81,7 +81,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task RenameAsyncWhenOnlyCaseChangesRenamesToTheNewCase()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("notes.txt", "abc")));
 
         ProviderStepOutcome outcome = await adapter.RenameAsync(file, WindowsLocalOperationTestContext.ParsePath(root.Resolve("Notes.TXT")), CancellationToken.None);
@@ -97,7 +97,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task RenameAsyncWhenTargetIsTakenOrSourceChangedFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot taken = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("b.txt", "keep");
         FileEntrySnapshot rewritten = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("c.txt", "abc")));
@@ -124,7 +124,7 @@ public sealed class WindowsLocalNameEntryTests
     public async Task RenameAsyncWhenTargetLeavesTheParentFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         _ = root.CreateDirectory("parent");
         _ = root.CreateDirectory("other");
         FileEntrySnapshot child = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("parent\\a.txt", "abc")));

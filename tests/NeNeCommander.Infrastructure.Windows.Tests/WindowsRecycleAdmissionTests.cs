@@ -66,7 +66,7 @@ public sealed class WindowsRecycleAdmissionTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsLocalPath path = WindowsRecycleBinTests.Path(root.WriteFile("source", "owned"));
         ScriptedWindowsRecycleShell shell = new();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(shell));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(shell), new DeterministicIdentifierSource());
         FileInspectionSucceeded inspected = Assert.IsInstanceOfType<FileInspectionSucceeded>(await adapter.InspectAsync(path, FileInspectionPurpose.Deletion, CancellationToken.None));
         Assert.AreSame(DeletionCapability.Recycle, inspected.Snapshot.DeletionCapability);
         Assert.IsNull((await adapter.DeleteAsync(inspected.Snapshot, DeletionExecutionMode.Recycle, CancellationToken.None)).Failure);

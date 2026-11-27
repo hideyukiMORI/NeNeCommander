@@ -85,7 +85,7 @@ public sealed class TransferOverwriteEvidenceTests
             GatewayTestContext.ParsePath(@"D:\destination\target (2).txt"), evidence));
     }
 
-    /// <summary>Proves complete evidence survives choice and plan without adding a destructive choice.</summary>
+    /// <summary>Proves qualified evidence alone permits the explicit content-overwrite decision and retains the original binding.</summary>
     [TestMethod]
     public void CreateWhenEvidenceMatchesRetainsExactObjectsThroughThePlan()
     {
@@ -104,7 +104,7 @@ public sealed class TransferOverwriteEvidenceTests
         Assert.AreSame(DirectoryEntryKind.File, evidence.Source.Kind);
         Assert.AreEqual(17L, evidence.Source.Size.Bytes);
         Assert.AreEqual(new DateTimeOffset(2026, 11, 25, 0, 0, 0, TimeSpan.Zero), evidence.Target.Modified.Utc);
-        CollectionAssert.AreEqual(new[] { TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.Cancel },
+        CollectionAssert.AreEqual(new[] { TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.OverwriteContents, TransferConflictDecision.Cancel },
             System.Linq.Enumerable.ToArray(conflict.AllowedDecisions));
     }
 

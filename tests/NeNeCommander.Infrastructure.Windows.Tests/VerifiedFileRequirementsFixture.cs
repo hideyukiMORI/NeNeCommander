@@ -88,7 +88,7 @@ internal sealed class VerifiedFileRequirementsFixture : IDisposable
     private static async Task<VerifiedCopyReceipt> CopyAsync(TestOwnedTemporaryRoot root)
     {
         WindowsLocalFileOperationAdapter adapter = new(new(),
-            new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+            new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot? frozen = null;
         StepHookPort port = new(adapter)
         {

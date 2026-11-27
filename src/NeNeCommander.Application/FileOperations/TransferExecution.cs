@@ -115,7 +115,7 @@ internal sealed class TransferExecution
             }
             AtomicMoveCapabilityOutcome capability = _transfer.Request is MoveRequest &&
                 entry.Disposition == TransferDisposition.Transfer &&
-                entry.Source.ConflictChoice?.Decision != TransferConflictDecision.KeepBoth
+                entry.Source.ConflictChoice is null
                 ? await _port.GetAtomicMoveCapabilityAsync(
                     entry.Source.WithTransferTarget(entry.Target),
                     _transfer.Destination,
@@ -164,12 +164,23 @@ internal sealed class TransferExecution
         VerifiedCopyReceipt receipt = ((CopyVerified)verification).Receipt;
         if (receipt.Source.Identity != snapshot.Identity ||
             !FileSystemPathIdentityComparer.Instance.Equals(receipt.Source.Path, snapshot.Path) ||
-            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Root.Target.Path, snapshot.TransferTarget))
+            !FileSystemPathIdentityComparer.Instance.Equals(receipt.Root.Target.Path, snapshot.TransferTarget) ||
+            !MatchesOverwriteVerification(snapshot.ConflictChoice, receipt.Root))
         {
             return CopyExecution.Stop(FileOperationOutcome.Failed(_effects.Snapshot(_notTransferred), FileOperationFailureKind.Verification));
         }
         _effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Verified));
         return CopyExecution.Complete(receipt);
+    }
+
+    private static bool MatchesOverwriteVerification(TransferConflictChoice? choice, VerifiedCopyEntry root)
+    {
+        return choice?.Decision != TransferConflictDecision.OverwriteContents ||
+            (choice.Target.OverwriteEvidence is TransferOverwriteEvidence original &&
+                root is VerifiedCopyEntry.VerifiedFile file &&
+                file.Requirements == FileVerificationRequirements.OverwriteContents &&
+                file.Source.ObjectIdentity == original.Source.Observation.Entry.ObjectIdentity &&
+                file.Target.ObjectIdentity == original.Target.Observation.Entry.ObjectIdentity);
     }
 
     private void AddCopyProviderEffect(

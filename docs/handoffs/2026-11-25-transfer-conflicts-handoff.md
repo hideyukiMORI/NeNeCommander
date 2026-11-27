@@ -701,3 +701,53 @@ refusal, existing scheduler wiring, full ADR0095/case120/124 and folder merge re
 Selection/filter are integrated and their cleanup is complete. Main isf7c24b6; this
 feature stays local with basead85de1. All unfinished560/trial copies remain. No cleanup
 hold, shared-input action, ordinary-settings change or new release accompanies the stop.
+
+
+## Current provider integration checkpoint — November 27, 14:25 JST
+
+hide's current request resumes the November26 stopped work. Original15499d8 and
+resumption d8e884c remain preserved; all1548 stopped input hashes matched. Accepted
+main completion docs are merged as b2908fb with normal hooks and both histories.
+
+The bounded provider integration is implemented and focused proof is complete:
+one CopyAsync -> existing I/O scheduler -> awaited WindowsOverwriteCopy/Attempt ->
+prepare/write/append/cleanup -> same receipt after disposal. Cancellation and
+expected platform failures retain all observations; success requires every stage.
+Resumed preflight revalidates original consent without refreshing it. The copy
+boundary repeats source/target/destination binding. Atomic move is refused in both
+gateway and provider. The sole verifier produces strict OverwriteContents receipts;
+the gateway rejects weak requirements, directory evidence and substituted objects
+before passing the exact receipt to existing source deletion.
+
+App composition explicitly injects one identifier source into settings/router/local
+adapter; 70 old test constructor calls receive deterministic tokens. This changes
+public construction signatures and requires the documented breaking-change footer.
+No alternate operation, identifier source, deletion API, dependency or visual style.
+
+Proof: initial12 orchestration cases, Application33, direct Infrastructure85, final19
+resumption/changed-original/observer cases and Architecture1 pass. Counts overlap.
+All final builds have zero warnings/errors, including normal App15. Closure170/154/0,
+conformance112, and exact original single Help nesting finding in complexity16.
+Failed test/compiler/style attempts remain in the quality record and raw evidence.
+No successful unaffected suite/App build is rerun for later fixture or document edits.
+
+Current code is still unexposed: initial WindowsLocalTransferPreflight conflicts
+pass null overwrite evidence. Dedicated test ports alone provide initial eligibility.
+Next implement and prove initial native qualification plus explicit three-locale
+consent in the existing modal owner, preserving Cancel focus and late-alias wording.
+Then reconcile full ADR0095 destructive/shared-contract/native/coverage/mutation/deep
+proof and case-sensitive environment120/124. Folder merge remains a separate unaccepted
+scope; do not close560 or describe this checkpoint as the completed feature.
+
+Quality and exact commands: docs/quality/2026-11-25-transfer-conflicts.md, November27.
+Raw scripts/logs/receipts: D:/NeNeCommander/evidence/transfer-conflicts-20261127.
+Input manifest18 and normal-hook commit19 own final hashes/HEAD/clean state.
+The first docs commit's security child stopped progressing and was interrupted only
+after owned PID/parent/path checks; normal retry succeeded. Unchanged standalone
+security passed6.2s; no per-phase trace/root cause or performance patch was established.
+hide's efficiency request is applied through changed-input reuse and grouped checks,
+without changing thresholds or hooks.
+
+Keep D:/NeNeCommander/worktrees/issue-560 and unfinished outputs/evidence from25/26/27.
+Main remains f7c24b6; no new publication/merge/release or cleanup occurs. Ordinary settings,
+shared input, other unfinished worktrees and interactive03 remain unchanged.

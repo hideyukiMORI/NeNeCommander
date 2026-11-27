@@ -17,7 +17,7 @@ public sealed class WindowsEmptyFileCreationTests
     public async Task CreateEmptyFileAsyncWhenTargetIsAbsentCreatesZeroBytesAndSecondAttemptConflictsAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath parent = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("parent"));
         FileEntrySnapshot location = await WindowsLocalOperationTestContext.InspectAsync(adapter, parent);
         FileSystemPath target = WindowsLocalOperationTestContext.ParsePath(root.Resolve("parent\\notes.txt"));
@@ -56,7 +56,7 @@ public sealed class WindowsEmptyFileCreationTests
         {
             targetText = root.CreateHardLink("alias.txt", "notes.txt");
         }
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot location = await WindowsLocalOperationTestContext.InspectAsync(adapter, root.Path);
 
         FileAttributes attributes = File.GetAttributes(targetText);

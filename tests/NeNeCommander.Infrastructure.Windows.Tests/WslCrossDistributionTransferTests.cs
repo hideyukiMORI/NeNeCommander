@@ -178,7 +178,7 @@ public sealed class WslCrossDistributionTransferTests
     {
         WindowsLocalIoExecutionBoundary boundary = new();
         return new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(boundary),
+            new WindowsLocalFileOperationAdapter(boundary, new DeterministicIdentifierSource()),
             new WslFileOperationAdapter(boundary, fileSystem),
             new WindowsToWslTransfer(boundary, fileSystem),
             new WslToWindowsTransfer(boundary, fileSystem));

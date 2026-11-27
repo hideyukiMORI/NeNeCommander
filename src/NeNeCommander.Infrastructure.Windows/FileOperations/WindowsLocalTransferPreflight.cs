@@ -92,9 +92,29 @@ internal sealed class WindowsLocalTransferPreflight
             _plan.Add(TransferPlanEntry.Skip(source, ordinaryTarget));
             return null;
         }
+        if (choice?.Decision == TransferConflictDecision.OverwriteContents)
+        {
+            return ReserveOverwrite(source, ordinaryTarget, choice);
+        }
         TransferConflictChoice? keepBothChoice = choice is not null &&
             choice.Decision == TransferConflictDecision.KeepBoth ? choice : null;
         return ReserveCandidate(source, entry, ordinaryTarget, keepBothChoice);
+    }
+
+    private FileOperationFailureKind? ReserveOverwrite(FileEntrySnapshot source, FileSystemPath ordinaryTarget, TransferConflictChoice choice)
+    {
+        if (ordinaryTarget is not WindowsLocalPath target || choice.Target.OverwriteEvidence is not TransferOverwriteEvidence original ||
+            !FileSystemPathIdentityComparer.Instance.Equals(choice.Source, source.Path) ||
+            !FileSystemPathIdentityComparer.Instance.Equals(choice.Target.Path, ordinaryTarget) ||
+            _reservations.Contains(ordinaryTarget.CanonicalText))
+        {
+            return FileOperationFailureKind.Conflict;
+        }
+        using WindowsOverwritePairLease pair = WindowsOverwritePairLease.Open(source, target, _driveBoundary);
+        pair.Revalidate(original);
+        _ = _reservations.Add(ordinaryTarget.CanonicalText);
+        _plan.Add(TransferPlanEntry.Transfer(source, ordinaryTarget));
+        return null;
     }
 
     private FileOperationFailureKind? ReserveCandidate(

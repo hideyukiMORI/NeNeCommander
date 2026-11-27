@@ -59,7 +59,7 @@ public sealed class WindowsLocalKeepBothNameBoundaryTests
         FileSystemPath source = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("source\\" + name, "incoming"));
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("destination"));
         _ = root.WriteFile("destination\\" + name, "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
         CopyRequest request = (CopyRequest)((FileOperationRequestAccepted)CopyRequest.Create([source], destination)).Request;
         return await gateway.ExecuteAsync(request, IgnoredFileOperationProgress.Create(), CancellationToken.None);
     }

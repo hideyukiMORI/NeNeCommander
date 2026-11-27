@@ -216,7 +216,7 @@ value-equal foreign owner. Native controls belong to one owner and cannot rebind
 gestures after revalidation. Cancel buttons are qualified; the existing current-key
 Escape route is unchanged. No new filesystem effect or provider capability is enabled.
 
-ADR-0095's accepted, not-yet-implemented OverwriteContents contract extends the existing
+ADR-0095's accepted, not-yet-exposed OverwriteContents contract extends the existing
 ADV-003/004/005/006/007/014/016/017/018/024 boundaries. Exact target consent, ordinary
 NTFS/default-only admission, original backup/content revalidation and source-delete
 stream/attribute checks precede destructive acceptance. The canonical receipt must
@@ -255,3 +255,22 @@ failed queries and late stream/attribute/link changes retain source. Ordinary co
 retain their existing contract. This prerequisite does not connect overwrite to a
 provider or establish the full ADR-0095 proof; ADR-0069's final-query-to-path-mutation
 interval and the stated metadata/mapped-writer limits remain.
+
+
+### Internal provider integration — November 27
+
+ADV-005/006 now exercise the existing CopyAsync entry point awaiting every inner
+preparation/write/append/cleanup task inside WindowsLocalIoExecutionBoundary.
+WindowsOverwriteCopy retains the same attempt before effects, returns its receipt
+after disposal on normalized I/O failure or cancellation, and reports success only
+after all cleanup completes. No failure is retried or converted into a new conflict.
+Original consent is compared again in resumed preflight and immediately before effects.
+
+ADV-007 exercises strict receipt production in the existing tree verifier and gateway
+refusal of DefaultStream, directory evidence or foreign source/target objects.
+OverwriteContents never requests atomic move and the provider rejects it independently.
+Explicit identifier composition uses the same injected boundary; 70 existing test
+constructor calls supply deterministic tokens. Initial production preflight still
+offers no overwrite evidence, so this integration does not expose a new command.
+Full ADR-0095 destructive acceptance, initial admission/UI and case-sensitive proof
+remain required. The older stage-specific limits above describe their own checkpoints.
