@@ -383,3 +383,21 @@ This stage remains unexposed: initial production conflict construction still pas
 no overwrite evidence. Dedicated test ports supply the initial qualified conflict to
 exercise the real resumed provider/gateway path. Initial qualification and the explicit
 three-language consent UI, full ADR-0095 proof and separate directory merge remain.
+
+### Unexposed initial qualification and disclosure — November 27
+
+Closed TransferOverwriteCapability replaces nullable evidence with one qualified or
+unavailable value. The initial inspector uses existing native/pair owners; both
+production sites still supply Unavailable(Unconfirmed). Automatic approval rejected
+connecting it before complete destructive acceptance; that action did not execute.
+
+Gateway and choice construction refuse unavailable overwrite. Overwrite-all includes
+only already disclosed eligible original pairs. The same exact-owner modal retains
+Cancel focus, separate scopes, original metadata and three-language late-alias/
+partial-stop wording. The operation bar discloses the same retained receipt, including
+uncertain cleanup and unacknowledged Move deletion, without a recovery executor.
+
+Focused tests and three-locale isolated presentation proof pass, with full scope still
+pending. The next requested authorization is limited to local initial-preflight wiring
+and dedicated-file integration/full ADR0095 proof before publication/main integration.
+No gate waiver, feature acceptance or release follows from this checkpoint.

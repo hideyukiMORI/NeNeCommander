@@ -39,15 +39,17 @@ public sealed record TransferConflict
         FileEntrySnapshot source,
         FileSystemPath existingTarget,
         FileSystemPath keepBothCandidate,
-        TransferOverwriteEvidence? overwriteEvidence)
+        TransferOverwriteCapability overwrite)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(existingTarget);
         ArgumentNullException.ThrowIfNull(keepBothCandidate);
+        ArgumentNullException.ThrowIfNull(overwrite);
+        TransferOverwriteEvidence? overwriteEvidence = (overwrite as TransferOverwriteCapability.QualifiedOverwrite)?.Evidence;
         return overwriteEvidence is not null &&
             (source.Identity != overwriteEvidence.Source.Observation.Entry.Identity ||
                 !FileSystemPathIdentityComparer.Instance.Equals(source.Path, overwriteEvidence.Source.Observation.Entry.Path))
-            ? throw new ArgumentException("The overwrite evidence does not describe the frozen source.", nameof(overwriteEvidence))
-            : new TransferConflict(source, TransferConflictTarget.Create(existingTarget, overwriteEvidence), keepBothCandidate);
+            ? throw new ArgumentException("The overwrite evidence does not describe the frozen source.", nameof(overwrite))
+            : new TransferConflict(source, TransferConflictTarget.Create(existingTarget, overwrite), keepBothCandidate);
     }
 }

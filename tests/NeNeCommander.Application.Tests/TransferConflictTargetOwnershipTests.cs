@@ -23,7 +23,7 @@ public sealed class TransferConflictTargetOwnershipTests
         TransferConflict shown = TransferConflictTestContext.Conflict(sourcePath, destination, "source (2).txt");
         FileSystemPath foreignTarget = replacement == "differentPath"
             ? TransferConflictTestContext.ParsePath(@"D:\target\other.txt") : shown.ExistingTarget;
-        TransferConflict foreign = TransferConflict.Create(shown.Source, foreignTarget, shown.KeepBothCandidate, null);
+        TransferConflict foreign = TransferConflict.Create(shown.Source, foreignTarget, shown.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         FileEntrySnapshot substituted = shown.Source.WithConflictChoice(
             TransferConflictChoice.Create(foreign, TransferConflictDecision.KeepBoth));
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);

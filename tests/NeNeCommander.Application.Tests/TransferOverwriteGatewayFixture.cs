@@ -16,7 +16,7 @@ internal sealed class TransferOverwriteGatewayFixture
         TransferOverwriteEvidence original = TransferOverwriteEvidence.Create(Observation(@"C:\source.txt"), Observation(@"D:\destination\source.txt"));
         FileEntrySnapshot source = FileEntrySnapshot.Create(original.Source.Observation.Entry.Path, original.Source.Observation.Entry.Identity, DeletionCapability.NotRequested);
         Conflict = TransferConflict.Create(source, original.Target.Observation.Entry.Path,
-            GatewayTestContext.ParsePath(@"D:\destination\source (2).txt"), original);
+            GatewayTestContext.ParsePath(@"D:\destination\source (2).txt"), TransferOverwriteCapability.Available(original));
         ResolvedSource = source.WithConflictChoice(TransferConflictChoice.Create(Conflict, TransferConflictDecision.OverwriteContents));
     }
 

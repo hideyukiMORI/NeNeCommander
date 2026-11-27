@@ -28,7 +28,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
 
@@ -132,7 +132,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -163,7 +163,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(
@@ -194,7 +194,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             rightListing.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), null);
+            DualPaneSessionTestContext.ParsePath("C:\\right\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         _ = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -231,7 +231,7 @@ public sealed class DualPaneConflictSessionTests
         TransferConflict repeatedConflict = TransferConflict.Create(
             resolvedCurrent,
             conflict.ExistingTarget,
-            conflict.KeepBothCandidate, null);
+            conflict.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([repeatedConflict]));
         DualPaneSnapshot repeatedSnapshot = await fixture.Panes.HandleAsync(
             UserIntent.ResolveConflict(Assert.IsInstanceOfType<OperationAwaitingConflict>(fixture.Panes.Current.Operation), TransferConflictDecision.Skip, TransferConflictScope.Current),

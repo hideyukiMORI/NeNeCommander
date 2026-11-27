@@ -928,4 +928,69 @@
   <data name="PaneFilterNoMatches" xml:space="preserve"><value>No visible items match this name filter.</value></data>
   <data name="PaneFilterEditingHint" xml:space="preserve"><value>All words must occur in the name. {0}: keep filter. {1}: clear filter.</value></data>
   <data name="PaneFilterAppliedHint" xml:space="preserve"><value>Name filter active. Click the field to edit it.</value></data>
+  <data name="ConflictSourcePath" xml:space="preserve"><value>Source: {0}</value></data>
+  <data name="ConflictTargetPath" xml:space="preserve"><value>Destination: {0}</value></data>
+  <data name="ConflictCandidatePath" xml:space="preserve"><value>Keep both as: {0}</value></data>
+  <data name="ConflictOverwriteSourceDetails" xml:space="preserve"><value>Source: {0}
+File · {1} · Modified: {2}</value></data>
+  <data name="ConflictOverwriteTargetDetails" xml:space="preserve"><value>Destination: {0}
+File · {1} · Modified: {2}</value></data>
+  <data name="ConflictOverwriteActionName" xml:space="preserve"><value>Overwrite contents of {0}</value></data>
+  <data name="ConflictOverwriteScope" xml:space="preserve"><value>Also overwrite the {0} other eligible files listed below</value></data>
+  <data name="ConflictOverwriteUnavailableFolder" xml:space="preserve"><value>Contents overwrite is unavailable for folders.</value></data>
+  <data name="ConflictOverwriteUnavailableLocation" xml:space="preserve"><value>Contents overwrite requires files on a supported local NTFS drive.</value></data>
+  <data name="ConflictOverwriteUnavailableAlias" xml:space="preserve"><value>Source and destination refer to the same file. Contents overwrite is unavailable.</value></data>
+  <data name="ConflictOverwriteUnavailableLinks" xml:space="preserve"><value>A file has multiple hardlinks. Contents overwrite is unavailable.</value></data>
+  <data name="ConflictOverwriteUnavailableAttributes" xml:space="preserve"><value>A file or folder has unsupported attributes or a link. Contents overwrite is unavailable.</value></data>
+  <data name="ConflictOverwriteUnavailableStreams" xml:space="preserve"><value>The file could not be confirmed to have only its ordinary contents. Additional data streams are not supported.</value></data>
+  <data name="ConflictOverwriteUnavailableReservation" xml:space="preserve"><value>Another selected item reserves this destination. No existing file has been confirmed for overwrite.</value></data>
+  <data name="ConflictOverwriteUnavailableUnconfirmed" xml:space="preserve"><value>The required file conditions could not be confirmed. Contents overwrite is unavailable.</value></data>
+  <data name="ConflictOverwriteConsent" xml:space="preserve"><value>Writes the source contents into the destination file shown above.</value></data>
+  <data name="ConflictOverwriteAliasNotice" xml:space="preserve"><value>Other names for this same file, including names created during the operation, will show the changed contents too.</value></data>
+  <data name="ConflictOverwritePartialNotice" xml:space="preserve"><value>A backup is saved before writing. If the operation stops partway, contents may have changed; nothing is restored automatically.</value></data>
+  <data name="ConflictOverwriteLaterNotice" xml:space="preserve"><value>Conflicts found later are not included.</value></data>
+  <data name="ConflictOverwrite.Content" xml:space="preserve"><value>Overwrite contents</value></data>
+  <data name="TransferObservedCurrentPath" xml:space="preserve"><value>Observed path: {0}</value></data>
+  <data name="TransferObservedLastKnownPath" xml:space="preserve"><value>Last known path: {0}</value></data>
+  <data name="TransferTargetUntouched" xml:space="preserve"><value>Destination not changed by this operation.
+{0}</value></data>
+  <data name="TransferTargetOriginalVerified" xml:space="preserve"><value>Destination contents checked: unchanged.
+{0}</value></data>
+  <data name="TransferTargetMayHaveChanged" xml:space="preserve"><value>Destination contents may have changed. Not verified.
+{0}</value></data>
+  <data name="TransferTargetDesiredVerified" xml:space="preserve"><value>Destination contents verified against the source.
+{0}</value></data>
+  <data name="TransferOverwriteSourceRetained" xml:space="preserve"><value>Source not removed by this operation. Original path: {0}</value></data>
+  <data name="TransferOverwriteSourceRemoved" xml:space="preserve"><value>Source removal completed. Original path: {0}</value></data>
+  <data name="TransferArtifactOriginalTitle" xml:space="preserve"><value>Earlier-content backup</value></data>
+  <data name="TransferArtifactPreparedTitle" xml:space="preserve"><value>Prepared copy</value></data>
+  <data name="TransferArtifactRecoveryTitle" xml:space="preserve"><value>Recovery record</value></data>
+  <data name="TransferArtifactContentsVerified" xml:space="preserve"><value>Contents were verified.</value></data>
+  <data name="TransferArtifactMappingVerified" xml:space="preserve"><value>The initial recovery record was checked; it may describe an incomplete operation.</value></data>
+  <data name="TransferArtifactContentsPartial" xml:space="preserve"><value>Contents are incomplete.</value></data>
+  <data name="TransferArtifactContentsUnverified" xml:space="preserve"><value>Contents were not verified.</value></data>
+  <data name="TransferArtifactKept" xml:space="preserve"><value>Kept by this operation.</value></data>
+  <data name="TransferArtifactRemoved" xml:space="preserve"><value>This operation removed its saved file entry.</value></data>
+  <data name="TransferArtifactRemovalUnconfirmed" xml:space="preserve"><value>Removal was attempted; whether the saved file remains is unconfirmed.</value></data>
+  <data name="TransferArtifactObservedFormat" xml:space="preserve"><value>{0}
+{1}
+{2}
+{3}</value></data>
+  <data name="TransferArtifactAttemptedFormat" xml:space="preserve"><value>{0}
+Creation could not be confirmed. Attempted path: {1}</value></data>
+  <data name="TransferRecoveryInspectionNotice" xml:space="preserve"><value>Saved observations may be outdated. Compare retained files with the current files before recovery. Nothing is restored automatically.</value></data>
+  <data name="TransferFailureCopy" xml:space="preserve"><value>The copy stage did not complete.</value></data>
+  <data name="TransferFailureMove" xml:space="preserve"><value>The move stage did not complete.</value></data>
+  <data name="TransferFailureVerification" xml:space="preserve"><value>The copied contents could not be verified.</value></data>
+  <data name="TransferFailureDelete" xml:space="preserve"><value>Source removal did not complete.</value></data>
+  <data name="TransferFailureConflict" xml:space="preserve"><value>The destination conflicts with another entry.</value></data>
+  <data name="TransferFailureIdentityChanged" xml:space="preserve"><value>A file or its location changed after confirmation.</value></data>
+  <data name="TransferFailureReentrant" xml:space="preserve"><value>Another operation already owns this request.</value></data>
+  <data name="TransferFailureInspection" xml:space="preserve"><value>Required file facts could not be inspected.</value></data>
+  <data name="TransferFailureConfirmation" xml:space="preserve"><value>Required deletion confirmation is missing.</value></data>
+  <data name="TransferFailureUnavailable" xml:space="preserve"><value>The required file operation is unavailable.</value></data>
+  <data name="TransferFailureAccessDenied" xml:space="preserve"><value>Access to a required file or folder was denied.</value></data>
+  <data name="TransferFailureNotFound" xml:space="preserve"><value>A required file or folder was not found.</value></data>
+  <data name="TransferOverwriteSourcePartlyRemoved" xml:space="preserve"><value>Source removal is incomplete; some source items were removed. Original path: {0}</value></data>
+  <data name="TransferOverwriteSourceUnconfirmed" xml:space="preserve"><value>Complete source removal was not confirmed. Check the source before retrying. Original path: {0}</value></data>
 </root>

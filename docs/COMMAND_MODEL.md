@@ -268,4 +268,6 @@ route. The November 27 internal provider integration produces strict overwrite e
 and the gateway rejects downgraded requirements, directories or substituted objects
 before deletion. Resumed preflight preserves the exact original target and both the
 gateway and provider refuse atomic move. The initial production preflight still supplies
-no overwrite evidence; visible choice and full destructive acceptance remain pending.
+explicit Unavailable(Unconfirmed). The unexposed consent/result view and internal
+qualification have focused proof; production connection and full destructive
+acceptance remain pending after the recorded automatic-approval rejection.

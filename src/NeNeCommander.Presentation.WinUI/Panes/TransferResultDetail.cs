@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Presentation.WinUI.Panes;
 
@@ -11,11 +12,13 @@ public sealed record TransferResultDetail : OperationDetail
     {
     }
 
-    internal TransferResultDetail(FileOperationOutcome outcome)
+    internal TransferResultDetail(OperationKind kind, FileOperationOutcome outcome)
     {
+        ArgumentNullException.ThrowIfNull(kind);
         ArgumentNullException.ThrowIfNull(outcome);
+        Kind = RequireTransferKind(kind);
+        Outcome = outcome;
         NotTransferred = outcome.NotTransferred.Count;
-        ProviderSteps = outcome.ProviderSteps;
         int deleted = 0;
         int partlyDeleted = 0;
         foreach (FileOperationEffect effect in outcome.Effects)
@@ -28,8 +31,17 @@ public sealed record TransferResultDetail : OperationDetail
         SourceDeletion = SourceDeletionCounts.Create(deleted, partlyDeleted);
     }
 
+    private static OperationKind RequireTransferKind(OperationKind kind)
+    {
+        return kind == OperationKind.Copy || kind == OperationKind.Move ? kind
+            : throw new ArgumentException("Transfer details require a copy or move operation.", nameof(kind));
+    }
+
+    internal FileOperationOutcome Outcome { get; }
+    internal OperationKind Kind { get; }
+
     /// <summary>Gets the exact immutable provider facts retained for result disclosure.</summary>
-    public IReadOnlyList<OperationProviderStep> ProviderSteps { get; }
+    public IReadOnlyList<OperationProviderStep> ProviderSteps => Outcome.ProviderSteps;
 
     /// <summary>Gets the explicit Skip count.</summary>
     public int NotTransferred { get; }

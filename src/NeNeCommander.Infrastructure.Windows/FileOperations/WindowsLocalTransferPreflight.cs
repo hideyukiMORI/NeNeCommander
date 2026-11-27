@@ -137,7 +137,7 @@ internal sealed class WindowsLocalTransferPreflight
                 return FileOperationFailureKind.ProviderUnavailable;
             }
             _ = _reservations.Add(replacement.CanonicalText);
-            _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, replacement, null));
+            _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, replacement, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
             return null;
         }
         if (keepBothChoice is not null)
@@ -147,7 +147,7 @@ internal sealed class WindowsLocalTransferPreflight
             return null;
         }
         _ = _reservations.Add(candidate.CanonicalText);
-        _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, candidate, null));
+        _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, candidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
         return null;
     }
 

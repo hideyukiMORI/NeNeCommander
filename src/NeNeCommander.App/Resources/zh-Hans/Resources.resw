@@ -928,4 +928,69 @@
   <data name="PaneFilterNoMatches" xml:space="preserve"><value>没有可见项目的名称符合此筛选条件。</value></data>
   <data name="PaneFilterEditingHint" xml:space="preserve"><value>名称必须包含所有词语。{0}：保留筛选。{1}：清除筛选。</value></data>
   <data name="PaneFilterAppliedHint" xml:space="preserve"><value>名称筛选已启用。点击输入框进行编辑。</value></data>
+  <data name="ConflictSourcePath" xml:space="preserve"><value>源：{0}</value></data>
+  <data name="ConflictTargetPath" xml:space="preserve"><value>目标：{0}</value></data>
+  <data name="ConflictCandidatePath" xml:space="preserve"><value>保留两者，保存为：{0}</value></data>
+  <data name="ConflictOverwriteSourceDetails" xml:space="preserve"><value>源：{0}
+文件 · {1} · 修改时间：{2}</value></data>
+  <data name="ConflictOverwriteTargetDetails" xml:space="preserve"><value>目标：{0}
+文件 · {1} · 修改时间：{2}</value></data>
+  <data name="ConflictOverwriteActionName" xml:space="preserve"><value>覆盖 {0} 的内容</value></data>
+  <data name="ConflictOverwriteScope" xml:space="preserve"><value>同时覆盖下方列出的其他 {0} 个符合条件的文件的内容</value></data>
+  <data name="ConflictOverwriteUnavailableFolder" xml:space="preserve"><value>文件夹不支持覆盖内容。</value></data>
+  <data name="ConflictOverwriteUnavailableLocation" xml:space="preserve"><value>覆盖内容需要文件位于受支持的本地 NTFS 驱动器上。</value></data>
+  <data name="ConflictOverwriteUnavailableAlias" xml:space="preserve"><value>源和目标指向同一文件，无法覆盖内容。</value></data>
+  <data name="ConflictOverwriteUnavailableLinks" xml:space="preserve"><value>文件存在多个硬链接，无法覆盖内容。</value></data>
+  <data name="ConflictOverwriteUnavailableAttributes" xml:space="preserve"><value>文件或文件夹具有不支持的属性或链接，无法覆盖内容。</value></data>
+  <data name="ConflictOverwriteUnavailableStreams" xml:space="preserve"><value>无法确认文件仅包含普通内容。不支持附加数据流。</value></data>
+  <data name="ConflictOverwriteUnavailableReservation" xml:space="preserve"><value>另一个所选项目已预留此目标，尚未确认可覆盖的现有文件。</value></data>
+  <data name="ConflictOverwriteUnavailableUnconfirmed" xml:space="preserve"><value>无法确认所需文件条件，不能覆盖内容。</value></data>
+  <data name="ConflictOverwriteConsent" xml:space="preserve"><value>将源文件的内容写入上方显示的目标文件。</value></data>
+  <data name="ConflictOverwriteAliasNotice" xml:space="preserve"><value>同一文件的其他名称（包括操作期间新建的名称）也会显示更改后的内容。</value></data>
+  <data name="ConflictOverwritePartialNotice" xml:space="preserve"><value>写入前会备份原内容。中途停止时，内容可能已更改，且不会自动还原。</value></data>
+  <data name="ConflictOverwriteLaterNotice" xml:space="preserve"><value>不包括之后发现的冲突。</value></data>
+  <data name="ConflictOverwrite.Content" xml:space="preserve"><value>覆盖内容</value></data>
+  <data name="TransferObservedCurrentPath" xml:space="preserve"><value>已确认的路径：{0}</value></data>
+  <data name="TransferObservedLastKnownPath" xml:space="preserve"><value>上次确认的路径：{0}</value></data>
+  <data name="TransferTargetUntouched" xml:space="preserve"><value>此操作未更改目标文件。
+{0}</value></data>
+  <data name="TransferTargetOriginalVerified" xml:space="preserve"><value>已验证目标文件的内容未更改。
+{0}</value></data>
+  <data name="TransferTargetMayHaveChanged" xml:space="preserve"><value>目标文件的内容可能已更改（未验证）。
+{0}</value></data>
+  <data name="TransferTargetDesiredVerified" xml:space="preserve"><value>已验证目标文件的内容与源文件一致。
+{0}</value></data>
+  <data name="TransferOverwriteSourceRetained" xml:space="preserve"><value>此操作未删除源文件。原路径：{0}</value></data>
+  <data name="TransferOverwriteSourceRemoved" xml:space="preserve"><value>源文件删除已完成。原路径：{0}</value></data>
+  <data name="TransferArtifactOriginalTitle" xml:space="preserve"><value>原内容的备份</value></data>
+  <data name="TransferArtifactPreparedTitle" xml:space="preserve"><value>准备好的副本</value></data>
+  <data name="TransferArtifactRecoveryTitle" xml:space="preserve"><value>恢复记录</value></data>
+  <data name="TransferArtifactContentsVerified" xml:space="preserve"><value>内容已验证。</value></data>
+  <data name="TransferArtifactMappingVerified" xml:space="preserve"><value>初始恢复记录已验证；它可能描述尚未完成的操作。</value></data>
+  <data name="TransferArtifactContentsPartial" xml:space="preserve"><value>内容不完整。</value></data>
+  <data name="TransferArtifactContentsUnverified" xml:space="preserve"><value>内容未经验证。</value></data>
+  <data name="TransferArtifactKept" xml:space="preserve"><value>此操作保留了此文件。</value></data>
+  <data name="TransferArtifactRemoved" xml:space="preserve"><value>此操作已删除其创建的文件条目。</value></data>
+  <data name="TransferArtifactRemovalUnconfirmed" xml:space="preserve"><value>已尝试删除，但尚未确认文件是否仍然存在。</value></data>
+  <data name="TransferArtifactObservedFormat" xml:space="preserve"><value>{0}
+{1}
+{2}
+{3}</value></data>
+  <data name="TransferArtifactAttemptedFormat" xml:space="preserve"><value>{0}
+无法确认创建结果。尝试创建的路径：{1}</value></data>
+  <data name="TransferRecoveryInspectionNotice" xml:space="preserve"><value>记录后状态可能已改变。恢复前请将保留的文件与当前文件进行比较。不会自动还原。</value></data>
+  <data name="TransferFailureCopy" xml:space="preserve"><value>复制阶段未完成。</value></data>
+  <data name="TransferFailureMove" xml:space="preserve"><value>移动阶段未完成。</value></data>
+  <data name="TransferFailureVerification" xml:space="preserve"><value>无法验证复制的内容。</value></data>
+  <data name="TransferFailureDelete" xml:space="preserve"><value>源文件删除未完成。</value></data>
+  <data name="TransferFailureConflict" xml:space="preserve"><value>目标与另一个条目冲突。</value></data>
+  <data name="TransferFailureIdentityChanged" xml:space="preserve"><value>确认后文件或其位置发生了变化。</value></data>
+  <data name="TransferFailureReentrant" xml:space="preserve"><value>另一个操作正在处理此请求。</value></data>
+  <data name="TransferFailureInspection" xml:space="preserve"><value>无法检查所需的文件信息。</value></data>
+  <data name="TransferFailureConfirmation" xml:space="preserve"><value>缺少必要的删除确认。</value></data>
+  <data name="TransferFailureUnavailable" xml:space="preserve"><value>所需的文件操作不可用。</value></data>
+  <data name="TransferFailureAccessDenied" xml:space="preserve"><value>对所需文件或文件夹的访问被拒绝。</value></data>
+  <data name="TransferFailureNotFound" xml:space="preserve"><value>未找到所需文件或文件夹。</value></data>
+  <data name="TransferOverwriteSourcePartlyRemoved" xml:space="preserve"><value>源文件删除未完成，部分项目已被删除。原路径：{0}</value></data>
+  <data name="TransferOverwriteSourceUnconfirmed" xml:space="preserve"><value>尚未确认源文件已完全删除。重试前请检查源文件。原路径：{0}</value></data>
 </root>

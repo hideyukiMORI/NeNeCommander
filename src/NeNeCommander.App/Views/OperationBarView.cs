@@ -17,6 +17,7 @@ internal sealed class OperationBarView
     private readonly Grid _root;
     private readonly ViewTextResources _resources;
     private readonly ConflictModalView _conflict;
+    private readonly TransferResultView _transferResult;
     private readonly Border _operationBar;
     private readonly Path _operationWarningIcon;
     private readonly Path _operationNameEntryIcon;
@@ -47,7 +48,8 @@ internal sealed class OperationBarView
         _root = root;
         _resources = resources;
         _conflict = new ConflictModalView(Find<Border>("ConflictModal"),
-            (DataTemplate)root.Resources["ConflictModalTemplate"], forward);
+            (DataTemplate)root.Resources["ConflictModalTemplate"], forward, resources);
+        _transferResult = new TransferResultView(Find<ScrollViewer>("TransferResultFacts"), Find<ItemsControl>("TransferResultEvidence"), resources);
         _operationBar = Find<Border>("OperationBar");
         _operationWarningIcon = Find<Path>("OperationWarningIcon");
         _operationNameEntryIcon = Find<Path>("OperationNameEntryIcon");
@@ -122,6 +124,7 @@ internal sealed class OperationBarView
 
     private void RenderDetail(OperationDetail detail)
     {
+        _transferResult.Render(detail);
         _operationProgressSegments.Visibility = detail is OperationProgressDetail
             ? Visibility.Visible
             : Visibility.Collapsed;

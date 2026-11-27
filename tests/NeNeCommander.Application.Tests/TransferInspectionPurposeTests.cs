@@ -18,7 +18,7 @@ public sealed class TransferInspectionPurposeTests
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(GatewayTestContext.Inspection(path, DeletionCapability.NotRequested)).Snapshot;
         FileSystemPath target = GatewayTestContext.ParsePath("D:\\destination\\source.txt");
         FileSystemPath candidate = GatewayTestContext.ParsePath("D:\\destination\\source (2).txt");
-        TransferConflict conflict = TransferConflict.Create(source, target, candidate, null);
+        TransferConflict conflict = TransferConflict.Create(source, target, candidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         TransferConflictChoice choice = TransferConflictChoice.Create(conflict, TransferConflictDecision.KeepBoth);
 
         FileEntrySnapshot annotated = source.WithTransferTarget(candidate).WithConflictChoice(choice);
@@ -43,7 +43,7 @@ public sealed class TransferInspectionPurposeTests
         FileSystemPath path = GatewayTestContext.ParsePath("C:\\source.txt");
         FileEntrySnapshot source = Assert.IsInstanceOfType<FileInspectionSucceeded>(GatewayTestContext.Inspection(path, DeletionCapability.NotRequested)).Snapshot;
         FileSystemPath target = GatewayTestContext.ParsePath("D:\\destination\\source.txt");
-        TransferConflict conflict = TransferConflict.Create(source, target, GatewayTestContext.ParsePath("D:\\destination\\source (2).txt"), null);
+        TransferConflict conflict = TransferConflict.Create(source, target, GatewayTestContext.ParsePath("D:\\destination\\source (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         DeletionCapability capability = supplied == "Recycle" ? DeletionCapability.Recycle
             : supplied == "Permanent" ? DeletionCapability.PermanentOnly : DeletionCapability.NotRequested;
         FileEntrySnapshot resolved = FileEntrySnapshot.Create(path, source.Identity, capability)

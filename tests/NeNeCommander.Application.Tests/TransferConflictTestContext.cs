@@ -19,7 +19,7 @@ internal static class TransferConflictTestContext
         return TransferConflict.Create(
             Inspection(source).Snapshot,
             ((PathParseSuccess)destination.Child(sourceName)).Path,
-            ((PathParseSuccess)destination.Child(candidateName)).Path, null);
+            ((PathParseSuccess)destination.Child(candidateName)).Path, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
     }
 
     internal static FileInspectionSucceeded Inspection(FileSystemPath source)

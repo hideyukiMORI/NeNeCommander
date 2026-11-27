@@ -1,6 +1,6 @@
 # Transfer-conflict active handoff — 2026-11-25
 
-Status: owner correction saved; ADR-0095 overwrite policy accepted; destructive implementation and directory merge remain open.
+Status: internal provider and unexposed consent/result implementation recorded; production activation is held; full destructive acceptance and directory merge remain open.
 
 Current work: D:/NeNeCommander/worktrees/issue-560, feat/560-transfer-resumption.
 Original15499d8 is preserved. hide resumes on November26; beta.5 publication and
@@ -751,3 +751,38 @@ without changing thresholds or hooks.
 Keep D:/NeNeCommander/worktrees/issue-560 and unfinished outputs/evidence from25/26/27.
 Main remains f7c24b6; no new publication/merge/release or cleanup occurs. Ordinary settings,
 shared input, other unfinished worktrees and interactive03 remain unchanged.
+
+## Current held checkpoint — November 27, 15:36 JST
+
+Provider integration is saved as705d392. Closed capability/refusal, native initial
+qualification, exact eligible overwrite-all and three-locale consent/result disclosure
+are now implemented locally. Both initial production sites remain Unavailable(Unconfirmed).
+Automatic approval rejected their connection at15:06 before execution; retain38 and
+do not retry it through another mechanism.
+
+qualification25 passesInfrastructure106/Application32; consent31's25 successes plus
+the corrected2 in32 cover its27-case selection; consent33 passes13. Final43 passes
+Infrastructure49/Presentation41, App and conformance112. Closure40 is172/156/0.
+Complexity retains only the original Help finding. Final XAML-only App52 and
+conformance52 pass; unchanged successful layer/closure/complexity proof is reused.
+
+Native1–4 isolate a footer placement defect; two XAML values fix it without changing
+the shared panel. Final7/8/9 pass52each at745.6/529.6DIP in actual en-US/ja-JP/zh-Hans.
+Synthetic qualified states use capture-only callbacks and never execute overwrite.
+Earlier build/observer failures and limited5/6 remain. Parity54 proves187App inputs
+(184exact+3declared substitutions),4DLL matches and689keys per locale. Normal settings,
+input desktop and owned source/target bytes are unchanged.
+
+Freeze55 has1575inputs. Normal local-hook save follows; consent-commit-57.json owns
+final HEAD/clean state. Read the latest quality section for exact commands and limits.
+This is direct source review, not new independent or full destructive acceptance.
+
+Obtain hide's explicit approval for local initial-preflight connection and dedicated-
+file integration/full ADR0095 proof. Cover reservation-only/duplicate targets, later
+conflicts, native races/crash, coverage, changed-layer mutation/deep review and
+case-sensitive120/124. Directory merge stays separate. No gate waiver,560closure,
+publication/main integration or release is inferred.
+
+Keep D:/NeNeCommander/worktrees/issue-560 and unfinished outputs/evidence25/26/27,
+including outputs/transfer-conflicts-20261127/consent-controls-44. No cleanup is eligible
+or rejected. Main remainsf7c24b6; normal settings/shared input/interactive03 are unchanged.

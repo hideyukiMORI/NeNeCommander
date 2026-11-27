@@ -39,7 +39,7 @@ public sealed class WindowsOverwriteFileAdmissionTests
     [TestProperty("ThreatId", "ADV-004")]
     public void RequireShapeWhenFileAttributesAreUnsupportedRefusesThem(FileAttributes attributes)
     {
-        _ = Assert.ThrowsExactly<IOException>(() => WindowsOverwriteFileAdmission.RequireShape(
+        _ = Assert.ThrowsExactly<WindowsOverwriteRefusalException>(() => WindowsOverwriteFileAdmission.RequireShape(
             Facts(attributes, new WindowsLocalStandardFacts(1, 1, 0, 0), "NTFS")));
     }
 
@@ -54,7 +54,7 @@ public sealed class WindowsOverwriteFileAdmissionTests
     [DataRow(0L, 1u, (byte)0, (byte)2)]
     public void RequireShapeWhenFileFactsAreUnsupportedRefusesThem(long length, uint links, byte deleted, byte directory)
     {
-        _ = Assert.ThrowsExactly<IOException>(() => WindowsOverwriteFileAdmission.RequireShape(
+        _ = Assert.ThrowsExactly<WindowsOverwriteRefusalException>(() => WindowsOverwriteFileAdmission.RequireShape(
             Facts(FileAttributes.Archive, new WindowsLocalStandardFacts(length, links, deleted, directory), "NTFS")));
     }
 
@@ -66,7 +66,7 @@ public sealed class WindowsOverwriteFileAdmissionTests
     [DataRow("ntfs")]
     public void RequireShapeWhenFileSystemIsUnsupportedRefusesIt(string fileSystem)
     {
-        _ = Assert.ThrowsExactly<IOException>(() => WindowsOverwriteFileAdmission.RequireShape(
+        _ = Assert.ThrowsExactly<WindowsOverwriteRefusalException>(() => WindowsOverwriteFileAdmission.RequireShape(
             Facts(FileAttributes.Normal, new WindowsLocalStandardFacts(0, 1, 0, 0), fileSystem)));
     }
 

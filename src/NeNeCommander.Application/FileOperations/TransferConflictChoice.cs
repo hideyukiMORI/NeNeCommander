@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -35,10 +36,12 @@ public sealed record TransferConflictChoice
     {
         ArgumentNullException.ThrowIfNull(conflict);
         ArgumentNullException.ThrowIfNull(decision);
-        return new TransferConflictChoice(
-            conflict.Source.Path,
-            decision,
-            conflict.KeepBothCandidate,
-            conflict.Target);
+        return !conflict.AllowedDecisions.Contains(decision)
+            ? throw new ArgumentException("The conflict does not admit this decision.", nameof(decision))
+            : new TransferConflictChoice(
+                conflict.Source.Path,
+                decision,
+                conflict.KeepBothCandidate,
+                conflict.Target);
     }
 }

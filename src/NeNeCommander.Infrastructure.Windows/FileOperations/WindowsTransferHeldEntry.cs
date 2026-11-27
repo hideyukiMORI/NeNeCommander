@@ -71,7 +71,7 @@ internal sealed class WindowsTransferHeldEntry : IDisposable
     {
         WindowsLocalHandleFacts facts = ReadMatched();
         return facts.Standard.Directory != 0
-            ? throw new IOException("The held transfer object is not a file.") : facts;
+            ? throw new WindowsOverwriteRefusalException(TransferOverwriteUnavailableReason.Folder, null) : facts;
     }
 
     private WindowsLocalHandleFacts ReadMatched()
@@ -88,10 +88,12 @@ internal sealed class WindowsTransferHeldEntry : IDisposable
     private static WindowsLocalHandleFacts ReadAdmitted(SafeFileHandle handle)
     {
         WindowsLocalHandleFacts facts = WindowsFileIdentifier.ReadLocalFacts(handle);
-        return !string.Equals(facts.FileSystemName, "NTFS", StringComparison.Ordinal) ||
-            (facts.Basic.Attributes & (uint)FileAttributes.ReparsePoint) != 0 || facts.Standard.DeletePending != 0
-            ? throw new IOException("The transfer entry is not an admitted non-link NTFS object.")
-            : facts;
+        TransferOverwriteUnavailableReason? refusal = !string.Equals(facts.FileSystemName, "NTFS", StringComparison.Ordinal)
+            ? TransferOverwriteUnavailableReason.UnsupportedLocation
+            : (facts.Basic.Attributes & (uint)FileAttributes.ReparsePoint) != 0
+                ? TransferOverwriteUnavailableReason.SpecialAttributes
+                : facts.Standard.DeletePending != 0 ? TransferOverwriteUnavailableReason.Unconfirmed : null;
+        return refusal is not null ? throw new WindowsOverwriteRefusalException(refusal, null) : facts;
     }
 
     public void Dispose()

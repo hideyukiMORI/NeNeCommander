@@ -157,7 +157,7 @@ internal sealed class CommanderWindowAdjustmentTestContext : System.IDisposable
         TransferConflict conflict = TransferConflict.Create(
             inspection.Snapshot,
             ParsePath("C:\\right\\item.txt"),
-            ParsePath("C:\\right\\item (2).txt"), null);
+            ParsePath("C:\\right\\item (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         Port.EnqueueInspection(inspection);
         Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         return Assert.IsInstanceOfType<OperationAwaitingConflict>(

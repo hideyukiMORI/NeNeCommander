@@ -194,9 +194,9 @@ public sealed class TransferConflictContractTests
 
     private static void AssertConflictFactories(FileEntrySnapshot source, TransferConflict conflict)
     {
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(null!, conflict.ExistingTarget, conflict.KeepBothCandidate, null));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, null!, conflict.KeepBothCandidate, null));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, conflict.ExistingTarget, null!, null));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(null!, conflict.ExistingTarget, conflict.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, null!, conflict.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, conflict.ExistingTarget, null!, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictChoice.Create(null!, TransferConflictDecision.Skip));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictChoice.Create(conflict, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferPlanEntry.Transfer(null!, conflict.ExistingTarget));

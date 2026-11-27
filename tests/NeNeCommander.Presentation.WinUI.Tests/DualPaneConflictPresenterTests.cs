@@ -42,7 +42,7 @@ public sealed class DualPaneConflictPresenterTests
         FileSystemPath candidate = Assert.IsInstanceOfType<PathParseSuccess>(rightListing.Location.Child("a (2).txt")).Path;
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(source));
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([
-            TransferConflict.Create(source, target, candidate, null)]));
+            TransferConflict.Create(source, target, candidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed))]));
 
         DualPaneSnapshot snapshot = await panes.HandleAsync(
             UserIntent.Copy,
@@ -81,7 +81,7 @@ public sealed class DualPaneConflictPresenterTests
             rightListing.Location.Child("a (2).txt")).Path;
         FileSystemPath racedCandidate = Assert.IsInstanceOfType<PathParseSuccess>(
             rightListing.Location.Child("a (3).txt")).Path;
-        TransferConflict firstConflict = TransferConflict.Create(source, target, firstCandidate, null);
+        TransferConflict firstConflict = TransferConflict.Create(source, target, firstCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         EnqueueConflictRace(port, firstConflict, racedCandidate);
 
         DualPaneSnapshot firstSnapshot = await panes.HandleAsync(
@@ -128,7 +128,7 @@ public sealed class DualPaneConflictPresenterTests
         Assert.AreSame(OperationStatus.CopyAwaitingConflict, presentation.OperationStatus);
         Assert.AreEqual(string.Empty, presentation.DeletionConfirmationAutomationId);
         Assert.AreSame(OperationBarTone.AwaitingConfirmation, presentation.Tone);
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ActiveConflictModal(null!, TestMetadataFormats.Utc));
     }
 
     private static void EnqueueConflictRace(
@@ -139,6 +139,6 @@ public sealed class DualPaneConflictPresenterTests
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(firstConflict.Source));
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([firstConflict]));
         port.EnqueuePreflight((sources, _) => TransferPreflightOutcome.Conflicted([
-            TransferConflict.Create(sources[0], firstConflict.ExistingTarget, racedCandidate, null)]));
+            TransferConflict.Create(sources[0], firstConflict.ExistingTarget, racedCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed))]));
     }
 }

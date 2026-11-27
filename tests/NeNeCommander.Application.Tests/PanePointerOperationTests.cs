@@ -40,7 +40,7 @@ public sealed class PanePointerOperationTests
         await fixture.ListBothAsync(listing, destination);
         FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(DualPaneSessionTestContext.Inspection(listing.Entries[0].Path));
         TransferConflict conflict = TransferConflict.Create(inspection.Snapshot, destination.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\other\\a (2).txt"), null);
+            DualPaneSessionTestContext.ParsePath("C:\\other\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         DualPaneSnapshot before = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);

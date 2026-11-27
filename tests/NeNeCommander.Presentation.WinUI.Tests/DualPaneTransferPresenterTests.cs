@@ -213,7 +213,7 @@ public sealed class DualPaneTransferPresenterTests
         Assert.AreSame(OperationStatus.MovePartiallyCompleted, presentation.OperationStatus);
         Assert.AreSame(OperationBarTone.Failure, presentation.Tone);
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SourceDeletionCounts.Create(0, -1));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new TransferResultDetail(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new TransferResultDetail(OperationKind.Move, null!));
     }
 
     /// <summary>Proves failed preparation reaches the existing result presentation without inventing copied or verified counts.</summary>

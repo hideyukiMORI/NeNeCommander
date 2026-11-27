@@ -271,6 +271,7 @@ refusal of DefaultStream, directory evidence or foreign source/target objects.
 OverwriteContents never requests atomic move and the provider rejects it independently.
 Explicit identifier composition uses the same injected boundary; 70 existing test
 constructor calls supply deterministic tokens. Initial production preflight still
-offers no overwrite evidence, so this integration does not expose a new command.
-Full ADR-0095 destructive acceptance, initial admission/UI and case-sensitive proof
-remain required. The older stage-specific limits above describe their own checkpoints.
+offers explicit Unavailable(Unconfirmed), so this integration does not expose a new
+command. Initial qualification and consent/result adapters have focused proof, but
+production connection is held after automatic approval rejected it. Full ADR0095
+destructive acceptance, integrated initial admission and case-sensitive proof remain. The older stage-specific limits above describe their own checkpoints.

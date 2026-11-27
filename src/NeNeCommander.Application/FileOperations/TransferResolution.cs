@@ -33,6 +33,10 @@ public sealed record TransferResolution
         IEnumerable<TransferConflict> selected = scope == TransferConflictScope.All
             ? conflicts.Conflicts
             : conflicts.Conflicts.Take(1);
+        if (decision == TransferConflictDecision.OverwriteContents && scope == TransferConflictScope.All)
+        {
+            selected = selected.Where(conflict => conflict.AllowedDecisions.Contains(decision));
+        }
         return new TransferResolution(_choices.AddRange(
             selected.Select(conflict => TransferConflictChoice.Create(conflict, decision))));
     }

@@ -30,7 +30,7 @@ internal static class WindowsOverwriteFileAdmission
         RequireShape(before);
         VerifiedEntrySnapshot entry = WindowsLocalEntryIdentity.CaptureHeld(lease.Path, before);
         revalidate();
-        WindowsFileIdentifier.RequireUnnamedStream(lease.Handle, before.Standard.EndOfFile);
+        RequireStream(lease, before.Standard.EndOfFile);
         return before != WindowsFileIdentifier.ReadLocalFacts(lease.Handle)
             ? throw new IOException("The overwrite file facts changed during stream observation.")
             : TransferOverwriteFileObservation.Create(
@@ -39,15 +39,42 @@ internal static class WindowsOverwriteFileAdmission
             (KnownEntryTimestamp)EntryTimestamp.Create(new DateTimeOffset(DateTime.FromFileTimeUtc(before.Basic.LastWriteFileTimeUtc))));
     }
 
+    private static void RequireStream(WindowsTransferPathLease lease, long length)
+    {
+        try
+        {
+            WindowsFileIdentifier.RequireUnnamedStream(lease.Handle, length);
+        }
+        catch (IOException exception)
+        {
+            throw new WindowsOverwriteRefusalException(TransferOverwriteUnavailableReason.StreamsUnconfirmed, exception);
+        }
+    }
+
     internal static void RequireShape(WindowsLocalHandleFacts facts)
     {
         ArgumentNullException.ThrowIfNull(facts);
-        if (!string.Equals(facts.FileSystemName, "NTFS", StringComparison.Ordinal) ||
-            facts.Standard.Directory != 0 || facts.Standard.DeletePending != 0 ||
-            facts.Standard.NumberOfLinks != 1 || facts.Standard.EndOfFile < 0 ||
-            facts.Basic.Attributes is not ((uint)FileAttributes.Normal) and not ((uint)FileAttributes.Archive))
+        TransferOverwriteUnavailableReason? refusal = ShapeRefusal(facts);
+        if (refusal is not null)
         {
-            throw new IOException("The overwrite file is not a single-link regular NTFS file with admitted attributes.");
+            throw new WindowsOverwriteRefusalException(refusal, null);
         }
+    }
+
+    private static TransferOverwriteUnavailableReason? ShapeRefusal(WindowsLocalHandleFacts facts)
+    {
+        return facts switch
+        {
+            _ when !string.Equals(facts.FileSystemName, "NTFS", StringComparison.Ordinal)
+                => TransferOverwriteUnavailableReason.UnsupportedLocation,
+            _ when facts.Standard.Directory == 1 => TransferOverwriteUnavailableReason.Folder,
+            _ when facts.Standard.Directory != 0 || facts.Standard.DeletePending != 0 ||
+                facts.Standard.EndOfFile < 0 || facts.Standard.NumberOfLinks == 0
+                => TransferOverwriteUnavailableReason.Unconfirmed,
+            _ when facts.Standard.NumberOfLinks > 1 => TransferOverwriteUnavailableReason.MultipleLinks,
+            _ when facts.Basic.Attributes is not ((uint)FileAttributes.Normal) and not ((uint)FileAttributes.Archive)
+                => TransferOverwriteUnavailableReason.SpecialAttributes,
+            _ => null,
+        };
     }
 }

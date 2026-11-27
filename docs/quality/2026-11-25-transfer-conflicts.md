@@ -1963,3 +1963,120 @@ permanent evidence. No cleanup is eligible or blocked. Current inputs are record
 provider-current-inputs-18.json; normal-hook local save and final clean state are
 recorded in provider-commit-19.json/log. No push/PR/main integration accompanies this
 internal checkpoint. See the latest entry in the transfer handoff.
+
+## November 27: initial qualification and unexposed consent/result checkpoint
+
+### Canonical mechanism and held activation
+
+Prior provider integration is saved as705d392. The follow-up retains the SAME gateway,
+exact conflict owner, provider receipt and operation bar. Closed TransferOverwriteCapability
+now contains either original evidence or a TransferOverwriteUnavailableReason; every
+factory/caller migrates without a compatibility overload. WindowsOverwriteEligibility
+uses the existing pair/held/native owners, verifies the case-insensitive target parent
+and artifact candidate shape, and creates neither a file nor an operation token.
+
+The inspector remains UNCONNECTED to initial production preflight. Both conflict
+sites explicitly supply Unavailable(Unconfirmed). Automatic approval rejected the
+connection before execution at15:06JST: initial production activation could expose
+irreversible overwrite before complete repository acceptance proof. The exact decision
+is activation-review-rejection-38.json. No rejected edit/script ran and the connection
+was not retried through another mechanism.
+
+The gateway and choice factory refuse an unavailable overwrite. Overwrite-all includes
+only eligible original objects already in the displayed conflict set. Unsupported
+rows and later discoveries cannot inherit it. The existing modal shows full original
+paths, file size/time, in-place effect, late-alias visibility and partial-stop/no-auto-
+restore wording in three languages. Separate ordinary/overwrite scopes start unchecked;
+Cancel keeps initial focus. Same-owner text updates retain controls/focus/scope.
+
+The operation bar discloses the existing target/source/artifact facts: untouched,
+original/desired verified or potentially changed target; source not deleted, removed,
+partly removed or deletion unconfirmed; artifact role, verified/partial/unknown content,
+retained/removed/uncertain link and current/last-known path. Content verification does
+not hide overall failure. Unacknowledged Move deletion is not called retained.
+Recovery advice requires fresh manual comparison; there is no recovery executor,
+new result abstraction, visual token, package or ordinary-settings write.
+
+### Selected proof and failures
+
+- qualification25 passes Infrastructure106 and Application32. It includes native
+  empty/nonempty eligibility, streams, aliases, attributes, changed identities and
+  existing held-path/pair/post-content boundaries.
+- consent31 passes25/27. Two observers incorrectly included pre-Resume read-only
+  inspection/preflight calls in their no-new-provider-work assertion. Corrected32
+  compares calls immediately before/after Resume; only those2cases rerun and pass.
+  The unchanged25 successes are reused. consent33 passes13 presentation cases.
+- result37 passes41 result/presenter cases after retained build36 diagnostics.
+- App39 has0warnings/errors. Closure40 is172abstract/156visible/0failures;
+  conformance40 passes112. Complexity40 finds4new violations in3methods plus the
+  original Help finding. Flat ordered switches and separate kind validation correct
+  them; style failures41/42 remain. Final43 passes Infrastructure49, Presentation41,
+  App build and conformance112. Complexity43 retains exactly the original
+  KeyboardHelpPresenter nesting4/limit3 object, exit1. Counts overlap prior scopes.
+- Final XAML-only App52 has0warnings/errors; conformance52 passes112. Unchanged C#
+  tests, closure and complexity proof are reused.
+
+Exact commands/project/filter/results remain in qualification-proof-25.json,
+consent-proof-31/32/33.json, result-proof-37.json, consent-static-40.json,
+consent-correction-43.json and consent-app-52.json. The retained commands include:
+
+~~~powershell
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-qualification-proof-25.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-consent-proof-32.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-consent-proof-33.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-result-proof-37.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-consent-correction-43.ps1
+dotnet build src/NeNeCommander.App/NeNeCommander.App.csproj -c Release --no-restore
+pwsh -NoProfile -File eng/conformance.ps1
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/run-consent-locales-53.ps1
+python D:/NeNeCommander/evidence/transfer-conflicts-20261127/verify-consent-parity-54.py
+~~~
+
+### Native layout, observer limits and parity
+
+The diagnostic copy is outputs/transfer-conflicts-20261127/consent-controls-44 under
+D:/NeNeCommander. It obtains a real unavailable conflict, then gives synthetic
+qualified/result states to the unmodified view adapters/XAML with capture-only
+callbacks. No synthetic overwrite invokes a provider. This is native presentation
+proof, not activation or complete overwrite acceptance.
+
+Native1 finds Cancel outside the viewport. Native2 repeats it after awaited bitmap
+rendering; the one-Grid wrapper experiment3 does not help. Observer4 identifies a
+one-row KeyHintWrapPanel measurement followed by a second-row Cancel arrangement
+at its right-aligned final width. Only the footer's allocated width and modal
+stacking order are corrected. The wrapper experiment is discarded and the shared
+wrapping panel is unchanged. Native5 passes49 and its images confirm the correction.
+
+Diagnostic builds44/46 have retained C# errors with consequent XAML diagnostics;
+corrected45/47 build cleanly. Native6 passes49 but inherits narrowed private settings,
+so it is not two-width proof. Final53 explicitly sets wide size, verifies actual
+locale and strictly smaller narrow width, and awaits captures before scrolling.
+Earlier top/bottom image labels are not used as scroll-position proof.
+
+Final native7/8/9 pass52each for en-US/ja-JP/zh-Hans at actual root widths745.6/529.6DIP.
+They cover Cancel geometry/focus, independent scopes, original-owner submission,
+stale peers, refresh, unavailable rows, long paths, scroll access and result focus.
+English wide/narrow/result and Japanese/Chinese narrow consent/result images are
+inspected. Ordinary settings length/timestamp/hash and input desktop remain unchanged.
+Physical keys, speech and full interactive/operation acceptance remain separate.
+
+parity54 proves187App inputs=184raw exact+3declared diagnostic substitutions
+(project, lockfile, composition), with individually matched composition replacements
+and4normal/frozen/runtime DLL hashes. Three689-key catalogs have equal key sets;
+new conflict/result keys and format placeholders match. Source review is direct;
+no new independent/full destructive acceptance or external source review is claimed.
+
+### Save and next authorization
+
+Freeze55 records1575inputs:1520unchanged from provider18,37changed,18new, plus the two
+still-unavailable production sites. Normal Commit/message hooks save this coherent
+checkpoint; consent-commit-57.json owns final HEAD, exact staged list and clean state.
+
+Next ask hide to approve connecting the existing inspector to the sole initial
+preflight in this unpublished branch, followed by dedicated-file integration and
+full ADR0095 proof before publication/main integration. Approval does not waive gates
+or authorize ordinary-file experiments. Include reservation-only/duplicate destinations
+and later conflicts, original binding, native races/crash, coverage, changed-layer
+mutation/deep-review and case-sensitive120/124. Directory merge remains a separate
+unaccepted scope;560stays open. No push/PR/merge/release or eligible cleanup occurs.
+Keep the unfinished worktree, outputs25/26/27, permanent evidence and original branches.

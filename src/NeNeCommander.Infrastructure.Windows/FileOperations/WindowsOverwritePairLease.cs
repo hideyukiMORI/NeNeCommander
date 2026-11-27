@@ -74,7 +74,7 @@ internal sealed class WindowsOverwritePairLease : IDisposable
         return sourceObservation != WindowsOverwriteFileAdmission.Observe(source)
             ? throw new IOException("The original overwrite source changed during target observation.")
             : sourceObservation.Observation.Entry.ObjectIdentity == targetObservation.Observation.Entry.ObjectIdentity
-                ? throw new IOException("The overwrite source and target identify the same native object.")
+                ? throw new WindowsOverwriteRefusalException(TransferOverwriteUnavailableReason.SameObject, null)
                 : TransferOverwriteEvidence.Create(sourceObservation, targetObservation);
     }
 

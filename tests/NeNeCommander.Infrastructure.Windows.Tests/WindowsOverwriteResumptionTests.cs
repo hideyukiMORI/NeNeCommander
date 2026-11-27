@@ -87,7 +87,7 @@ public sealed class WindowsOverwriteResumptionTests
         }
         Assert.HasCount(1, set.Conflicts);
         TransferConflict conflict = set.Conflicts[0];
-        return TransferPreflightOutcome.Conflicted([TransferConflict.Create(conflict.Source, conflict.ExistingTarget, conflict.KeepBothCandidate, original)]);
+        return TransferPreflightOutcome.Conflicted([TransferConflict.Create(conflict.Source, conflict.ExistingTarget, conflict.KeepBothCandidate, TransferOverwriteCapability.Available(original))]);
     }
 
     private static void CreateFiles(TestOwnedTemporaryRoot root)

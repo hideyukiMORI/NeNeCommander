@@ -82,7 +82,7 @@ public sealed class TransferOverwriteEvidenceTests
             ? GatewayTestContext.ParsePath(@"D:\destination\different.txt") : evidence.Target.Observation.Entry.Path;
 
         _ = Assert.ThrowsExactly<ArgumentException>(() => TransferConflict.Create(source, target,
-            GatewayTestContext.ParsePath(@"D:\destination\target (2).txt"), evidence));
+            GatewayTestContext.ParsePath(@"D:\destination\target (2).txt"), TransferOverwriteCapability.Available(evidence)));
     }
 
     /// <summary>Proves qualified evidence alone permits the explicit content-overwrite decision and retains the original binding.</summary>
@@ -93,7 +93,7 @@ public sealed class TransferOverwriteEvidenceTests
         FileEntrySnapshot source = FileEntrySnapshot.Create(evidence.Source.Observation.Entry.Path,
             evidence.Source.Observation.Entry.Identity, DeletionCapability.NotRequested);
         TransferConflict conflict = TransferConflict.Create(source, evidence.Target.Observation.Entry.Path,
-            GatewayTestContext.ParsePath(@"D:\destination\target (2).txt"), evidence);
+            GatewayTestContext.ParsePath(@"D:\destination\target (2).txt"), TransferOverwriteCapability.Available(evidence));
         TransferConflictChoice choice = TransferConflictChoice.Create(conflict, TransferConflictDecision.KeepBoth);
         TransferPlanEntry plan = TransferPlanEntry.Transfer(source.WithConflictChoice(choice), conflict.KeepBothCandidate);
 
@@ -136,7 +136,7 @@ public sealed class TransferOverwriteEvidenceTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferOverwriteFileObservation.Create(entry, DirectoryEntryKind.File, Size(), null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferOverwriteEvidence.Create(null!, source));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferOverwriteEvidence.Create(source, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictTarget.Create(null!, null));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictTarget.Create(null!, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
     }
 
     private static TransferOverwriteFileObservation FileObservation(string path)

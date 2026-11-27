@@ -23,7 +23,7 @@ internal sealed class OverwriteSnapshotPort : IFileOperationPort
     {
         FileEntrySnapshot source = WindowsOverwriteCopyTests.Snapshot(fixture);
         TransferConflict conflict = TransferConflict.Create(source, fixture.Pair.Target.Path,
-            Assert.IsInstanceOfType<PathParseSuccess>(fixture.Root.Path.Child("alternate")).Path, fixture.Pair.Evidence);
+            Assert.IsInstanceOfType<PathParseSuccess>(fixture.Root.Path.Child("alternate")).Path, TransferOverwriteCapability.Available(fixture.Pair.Evidence));
         OverwriteSnapshotPort port = new(conflict);
         using FileOperationGateway gateway = new(port);
         CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(Assert.IsInstanceOfType<FileOperationRequestAccepted>(

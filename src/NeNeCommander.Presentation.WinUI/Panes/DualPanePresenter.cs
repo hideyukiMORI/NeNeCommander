@@ -51,7 +51,7 @@ public static class DualPanePresenter
                 PresentHints(inputContext, keyHintVisibility, previous?.KeyHints)),
             OperationInteractionPresentation.Create(
                 TranslateNameEntry(snapshot.Operation),
-                TranslateConflictModal(snapshot.Operation, previous?.ConflictModal),
+                TranslateConflictModal(snapshot.Operation, format, previous?.ConflictModal),
                 inputContext));
     }
 
@@ -117,7 +117,7 @@ public static class DualPanePresenter
             OperationAwaitingConfirmation pending => new OperationItemCountDetail(pending.Request.Sources.Count),
             OperationRunning running => new OperationProgressDetail(running.Progress),
             OperationCompleted completed when completed.Kind == OperationKind.Copy || completed.Kind == OperationKind.Move =>
-                new TransferResultDetail(completed.Outcome),
+                new TransferResultDetail(completed.Kind, completed.Outcome),
             _ => OperationDetail.None,
         };
     }
@@ -140,14 +140,15 @@ public static class DualPanePresenter
 
     private static ConflictModalPresentation TranslateConflictModal(
         OperationActivity activity,
+        EntryMetadataFormat format,
         ConflictModalPresentation? previous)
     {
         return activity is not OperationAwaitingConflict awaiting
             ? ConflictModalPresentation.Hidden
             : previous is ActiveConflictModal active &&
-                ReferenceEquals(active.SourceState, awaiting)
+                ReferenceEquals(active.SourceState, awaiting) && ReferenceEquals(active.MetadataFormat, format)
                 ? active
-                : new ActiveConflictModal(awaiting);
+                : new ActiveConflictModal(awaiting, format);
     }
 
     private static OperationStatus TranslateAwaitingName(OperationKind kind)

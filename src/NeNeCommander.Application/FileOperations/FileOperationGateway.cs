@@ -99,6 +99,10 @@ public sealed class FileOperationGateway : IDisposable
             {
                 return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
             }
+            if (!continuation.PendingConflicts.Conflicts[0].AllowedDecisions.Contains(response.Decision))
+            {
+                return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.ProviderUnavailable);
+            }
             TransferResolution resolution = continuation.Resolution.Add(
                 continuation.PendingConflicts,
                 response.Decision,
