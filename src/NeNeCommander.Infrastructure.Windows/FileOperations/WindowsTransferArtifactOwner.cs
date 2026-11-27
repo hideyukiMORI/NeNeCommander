@@ -93,7 +93,6 @@ internal sealed class WindowsTransferArtifactOwner : IDisposable
         RequireCurrentPath(revalidateParent);
         WindowsFileIdentifier.RequireUnnamedStream(Handle, before.Standard.EndOfFile);
         WindowsLocalHandleFacts after = CaptureFacts();
-        WindowsOverwriteFileAdmission.RequireShape(after);
         if (before != after)
         {
             throw new IOException("The artifact facts changed during stream observation.");
@@ -151,7 +150,6 @@ internal sealed class WindowsTransferArtifactOwner : IDisposable
             throw new InvalidOperationException("An established artifact content baseline cannot be rewritten.");
         }
         InvalidatePathObservation();
-        RecordContent(ArtifactContentObservation.Unknown);
     }
 
     /// <summary>Retains completed byte verification immediately, before further fallible metadata observations.</summary>

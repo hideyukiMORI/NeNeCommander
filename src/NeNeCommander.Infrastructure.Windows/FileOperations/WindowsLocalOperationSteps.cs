@@ -226,11 +226,9 @@ internal sealed class WindowsLocalOperationSteps
 
     private static bool MatchesOverwriteDestination(FileEntrySnapshot source, FileSystemPath destination, TransferOverwriteEvidence original)
     {
-        return FileSystemPathIdentityComparer.Instance.Equals(source.Path, source.ConflictChoice?.Source) &&
-            FileSystemPathIdentityComparer.Instance.Equals(source.Path, original.Source.Observation.Entry.Path) &&
+        return FileSystemPathIdentityComparer.Instance.Equals(source.Path, original.Source.Observation.Entry.Path) &&
             source.Identity == original.Source.Observation.Entry.Identity &&
             FileSystemPathIdentityComparer.Instance.Equals(source.TransferTarget, original.Target.Observation.Entry.Path) &&
-            FileSystemPathIdentityComparer.Instance.Equals(source.TransferTarget, source.ConflictChoice?.Target.Path) &&
             FileSystemPathIdentityComparer.Instance.Equals(original.Target.Observation.Entry.Path.Parent, destination);
     }
 

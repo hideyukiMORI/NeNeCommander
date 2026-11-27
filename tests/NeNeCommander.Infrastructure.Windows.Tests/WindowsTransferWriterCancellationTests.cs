@@ -84,6 +84,45 @@ public sealed class WindowsTransferWriterCancellationTests
         Assert.AreEqual("target", files.Read(files.Pair.Target.Path));
     }
 
+    /// <summary>A completion flush acknowledgement remains confirmed while cancellation stops before another metadata readmission.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    [TestProperty("ThreatId", "ADV-005")]
+    public async Task AppendCompletionAsyncWhenFlushAcknowledgementCancelsStopsBeforeMetadataReadmissionAsync()
+    {
+        using WindowsOverwritePreparationFixture files = WindowsOverwritePreparationFixture.Create("source", "target");
+        WindowsTransferRecoveryMapping mapping = WindowsTransferRecoveryTestFixture.Mapping(files.Pair.Source.Path.CanonicalText, files.Pair.Target.Path.CanonicalText);
+        int facts = 0;
+        WindowsTransferArtifactQueries native = WindowsTransferArtifactQueries.Native;
+        WindowsTransferArtifactQueries observations = new(native.ReadIdentity, handle => { facts++; return native.ReadFacts(handle); }, native.RequirePath);
+        using WindowsTransferSecurityDescriptor security = WindowsTransferSecurityDescriptor.CaptureCurrent();
+        using WindowsTransferArtifactOwner owner = WindowsTransferArtifactOwner.Prepare(TransferArtifactRole.RecoveryRecord,
+            mapping.Names.Recovery, files.Pair.Target, observations);
+        owner.CreateNative(security);
+        _ = await WindowsTransferRecoveryWriter.WriteInitialAsync(owner, mapping, WindowsTransferContentIo.Native, CancellationToken.None);
+        RecoveryMappingContent initial = Assert.IsInstanceOfType<RecoveryMappingContent>(Assert.IsInstanceOfType<IdentifiedTransferArtifact>(owner.Receipt).Content);
+        using CancellationTokenSource cancellation = new();
+        int flushes = 0;
+        WindowsTransferContentIo io = new(RandomAccess.ReadAsync, RandomAccess.WriteAsync, RandomAccess.SetLength, handle =>
+        {
+            RandomAccess.FlushToDisk(handle);
+            flushes++;
+            facts = 0;
+            cancellation.Cancel();
+        });
+
+        _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
+            WindowsTransferRecoveryWriter.AppendCompletionAsync(owner, mapping, io, cancellation.Token));
+
+        Assert.AreEqual(1, flushes);
+        Assert.AreEqual(0, facts);
+        RecoveryMappingContent saved = Assert.IsInstanceOfType<RecoveryMappingContent>(Assert.IsInstanceOfType<IdentifiedTransferArtifact>(owner.Receipt).Content);
+        Assert.AreEqual(initial.InitialFrame, saved.InitialFrame);
+        Assert.AreEqual(RecoveryFlushObservation.Confirmed, Assert.IsInstanceOfType<VerifiedRecoveryAppend>(saved.Append).Frame.Flush);
+        Assert.AreEqual("source", files.Read(files.Pair.Source.Path));
+        Assert.AreEqual("target", files.Read(files.Pair.Target.Path));
+    }
+
     private static async Task EstablishAsync(WindowsTransferArtifactOwner owner, WindowsTransferRecoveryMapping mapping, string operation)
     {
         if (operation != "initial")

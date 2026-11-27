@@ -35,9 +35,11 @@ public sealed class WindowsOverwritePreparedIdentityTests
         IdentifiedTransferArtifact original = WindowsOverwritePreparationFixture.Artifact(attempt, role);
         string artifactName = Path.GetFileName(original.Artifact.Path.CanonicalText);
         bool changedAtRead = false;
+        int forbiddenReads = 0;
 
         if (timing == "before")
         {
+            calls.Read = (handle, bytes, offset, token) => { forbiddenReads++; return RandomAccess.ReadAsync(handle, bytes, offset, token); };
             Change(files, artifactName);
         }
         else
@@ -57,14 +59,19 @@ public sealed class WindowsOverwritePreparedIdentityTests
 
         _ = await Assert.ThrowsExactlyAsync<IOException>(() => attempt.OverwritePreparedAsync(CancellationToken.None));
 
+        Assert.AreEqual(0, forbiddenReads);
         Assert.AreEqual(timing == "afterRead", changedAtRead);
         files.RequireUntouched(attempt, "source", "target");
         Assert.HasCount(3, attempt.Receipt.Artifacts);
-        IdentifiedTransferArtifact retained = WindowsOverwritePreparationFixture.Artifact(attempt, role);
+        RequireRetained(original, WindowsOverwritePreparationFixture.Artifact(attempt, role));
+        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => attempt.OverwritePreparedAsync(CancellationToken.None));
+    }
+
+    private static void RequireRetained(IdentifiedTransferArtifact original, IdentifiedTransferArtifact retained)
+    {
         Assert.AreEqual(original.Artifact.ObjectIdentity, retained.Artifact.ObjectIdentity);
         Assert.AreEqual(original.Content, retained.Content);
         Assert.AreEqual(ArtifactLinkObservation.Retained, retained.Link);
-        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => attempt.OverwritePreparedAsync(CancellationToken.None));
     }
 
     private static void Change(WindowsOverwritePreparationFixture files, string artifactName)

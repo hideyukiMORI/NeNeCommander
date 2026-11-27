@@ -57,7 +57,6 @@ internal static class WindowsTransferRecoveryWriter
         WindowsTransferRecoveryCompleted decoded = (WindowsTransferRecoveryCompleted)WindowsTransferRecoveryCodec.Inspect(expected);
         await RequireConfirmedInitialAsync(owner, initial, io, cancellationToken).ConfigureAwait(false);
         _ = owner.AdmitAfterTargetMutation();
-        cancellationToken.ThrowIfCancellationRequested();
         await WriteCompletionBytesAsync(owner, completion, io, cancellationToken).ConfigureAwait(false);
         await RequireBytesAsync(owner, expected, io, cancellationToken).ConfigureAwait(false);
         owner.RecordCompletionFrame(decoded.Completion);
@@ -125,13 +124,7 @@ internal static class WindowsTransferRecoveryWriter
         long start = mapping.InitialFrame.Frame.Size.Bytes;
         cancellationToken.ThrowIfCancellationRequested();
         owner.BeginCompletionAppend();
-        int offset = 0;
-        while (offset < bytes.Length)
-        {
-            int count = Math.Min(WindowsTransferContentIo.BufferSize, bytes.Length - offset);
-            await io.WriteAsync(owner.Handle, bytes.Slice(offset, count), checked(start + offset), cancellationToken).ConfigureAwait(false);
-            offset += count;
-        }
+        await io.WriteAsync(owner.Handle, bytes, start, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
     }
 

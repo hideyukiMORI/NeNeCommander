@@ -67,9 +67,7 @@ internal sealed record WindowsTransferRecoveryFrame
             throw new InvalidDataException("The recovery frame header is incomplete.");
         }
         uint payload = uint.Parse(Encoding.ASCII.GetString(record[..8]), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-        return payload is 0 or > MaximumPayloadLength
-            ? throw new InvalidDataException("The declared recovery payload exceeds its bound.")
-            : checked((int)payload + HeaderLength + 1);
+        return checked((int)payload + HeaderLength + 1);
     }
 
     internal static void RequireHeaderPrefix(ReadOnlySpan<byte> record)

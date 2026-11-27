@@ -116,7 +116,9 @@ public sealed class WindowsTransferArtifactContentReceiptTests
         _ = Assert.ThrowsExactly<InvalidOperationException>(owner.BeginCompletionAppend);
         owner.ConfirmInitialFlush();
         _ = Assert.ThrowsExactly<InvalidOperationException>(() => owner.RecordCompletionFrame(decoded.Completion));
+        Assert.AreEqual(TransferPathObservation.CurrentPathVerified, Known(owner).Artifact.PathObservation);
         owner.BeginCompletionAppend();
+        RequirePendingAppend(owner, decoded.Initial);
         _ = Assert.ThrowsExactly<InvalidOperationException>(owner.BeginCompletionFlush);
         _ = Assert.ThrowsExactly<InvalidOperationException>(owner.ConfirmCompletionFlush);
         owner.RecordCompletionFrame(decoded.Completion);
@@ -139,6 +141,14 @@ public sealed class WindowsTransferArtifactContentReceiptTests
         Assert.AreEqual(decoded.Completion, Assert.IsInstanceOfType<VerifiedRecoveryAppend>(saved.Append).Frame.Frame);
     }
 
+    private static void RequirePendingAppend(WindowsTransferArtifactOwner owner, RecoveryFrameEvidence initial)
+    {
+        Assert.AreEqual(TransferPathObservation.LastKnownPath, Known(owner).Artifact.PathObservation);
+        RecoveryMappingContent pending = Assert.IsInstanceOfType<RecoveryMappingContent>(Known(owner).Content);
+        Assert.AreEqual(initial, pending.InitialFrame.Frame);
+        Assert.AreEqual(RecoveryFlushObservation.Confirmed, pending.InitialFrame.Flush);
+        Assert.AreEqual(RecoveryAppendObservation.OutcomeUnconfirmed, pending.Append);
+    }
     private static WindowsTransferPathLease OpenParent(TestOwnedTemporaryRoot root)
     {
         return WindowsTransferPathLease.Open(Parse(root.WriteFile("anchor", "original")), FileAccess.Read, new WindowsDriveBoundary());

@@ -2420,3 +2420,142 @@ mutation are the next required acceptance stage because full101remains failed;
 no other unchanged layer is repeated. This checkpoint is saved through normal
 hooks before that run. All CodeQL94scope/extraction limits and publication/main/
 release/directory-merge/unfinished-cleanup restrictions remain unchanged.
+
+## Saved checkpoint and full Infrastructure run — November 27, 22:40 JST
+
+Normal Commit/message hooks saved the ten changed paths as local 03d4158 at
+22:33:31. The tree was clean, and all 1,609 frozen inputs matched. This is an
+unpublished checkpoint, not completed destructive acceptance.
+
+Run149 stopped before coverage or mutation. Its targeted ordinary build succeeded
+with zero warnings/errors, but the guard compared both outputs against the old
+pre-build source DLL hash. The new commit changed generated informational-version
+metadata. Both post-build ordinary source and test-consumer DLLs actually matched
+8B386E2B... (333,312 bytes). Resolution178 preserves the original stop, rechecks
+frozen inputs, and compares the current post-build source/consumer hashes. No
+ordinary coverage ran against the earlier unmatched consumer.
+
+Run178 then passes all 1,659 Infrastructure cases, with no failures and 20 explicit
+environmental skips: 17 opt-in WSL cases and three opt-in live recycle cases. Branch
+coverage is 93.49258649093904%, above the unchanged 90% threshold. Complete mutation
+starts at22:37:40 and is still running against the canonical configuration and fixed
+inputs; its verdict is not yet known. Other unchanged layers are not rerun.
+
+Read-only observation180 compares the existing App copies with current normal
+assemblies: all 18,286 managed-method IL/signature/flag/local-signature/exception-
+region records and native import descriptors match across four layers. Three
+normal assemblies carry revision03d4158 while the App copies retain4ff2203;
+Presentation remains at4ff2203. This complements exact source-input reuse. It does
+not assert byte-identical binaries, resource/custom-attribute/field-data equality,
+or a new execution of native behavior. The previously frozen native run remains
+its own evidence.
+
+The current continuation pointer is active-acceptance-checkpoint-181.json, session
+55260, run-infra-acceptance-178.ps1. Keep its source/test/tool inputs and test binaries
+fixed until completion. Scripts107/113/114/148 are stale;149 is a preserved failure.
+No public write, main integration, release, folder merge, or cleanup is authorized.
+
+## Recovery boundaries and justified simplification — November 28, 02:03 JST
+
+Full Infrastructure178 finishes at01:28:47 with 2,752Killed/31Timeout,
+279Survived/95NoCoverage and88.15331010452962%, below the unchanged90% threshold.
+Summary182 confirms all1,609inputs and the identical4,555mutation set;209new
+mutations are detected against101 and one prior detection is lost. Both whole-layer
+failures remain. No restricted diagnostic percentage substitutes for acceptance.
+
+Four new test files and two changed tests now exercise the explicit protected
+current-user security request, three recovery metadata admissions before content
+I/O, total-input rejection before snapshot allocation, maximum escaped completion
+size, append-path invalidation and cancellation immediately after completion-flush
+acknowledgement. The security owner retains its actual allocated ByteLength for
+bounded inspection; no native test import, unsafe switch or suppression is added.
+The max-size completion test confirms one existing 64KiB transport write suffices.
+
+The existing recovery owners are simplified without weakening their accepted
+inputs: header-prefix validation already establishes the complete payload bound;
+canonical reserialization already rejects schema/phase variants and validates
+text through WriteText; matching complete before/after facts already preserves
+artifact shape. InvalidateContent already has Unknown content after rejecting its
+only other reachable cases. Completion uses one WriteAsync at the initial-frame
+end. Cancellation remains after final admission and before BeginCompletionAppend,
+and after its I/O. All path invalidations, native admissions, total allocation/
+JSON depth/UTF-8 limits and initial/readback chunking remain. Independent read-only
+review of the corrected final diff has no mandatory correction.
+
+Original failures are preserved:185/186native-test compiler restrictions;189's
+MemoryManager.Dispose(bool) conformance rejection and42-line receipt test;191's
+PowerShell replacement-array construction error, caught by compilation and diff
+before tests;193's redundant test cast.192 restores the four product originals
+and applies exact named blocks with occurrence-count1. The allocation fixture
+now measures only one warmed synchronous API call using the thread-local allocated
+byte counter and a real maximum-length-plus-one input. It proves refusal before
+the whole snapshot allocation, not absence of every backing-memory access. The
+receipt assertion extraction observes state without changing it. Gate rules,
+thresholds and exception-message matching are not weakened.
+
+Final194 normal Infrastructure build has0warnings/errors,462focused recovery/
+artifact/writer/overwrite cases pass with0skips in35.849s, conformance112passes,
+and whitespace passes. Complexity retains exactly the original Help nesting
+finding,exit1. The five changed product inputs and added/changed tests invalidate
+their earlier exact CodeQL/native-consumer mapping; other unchanged evidence is
+still reusable. Changed-product native consumers are included in462, but no new
+App/native-UI or whole-layer acceptance is claimed. Selected sensitivity proof,
+full Infrastructure acceptance and final CodeQL/input reconciliation remain.
+
+Evidence is under D:/NeNeCommander/evidence/transfer-conflicts-20261127:
+infra-summary-182.json, recovery-boundaries-build-185/186/187.json,
+recovery-verification-189.json, recovery-simplification-190.json,
+recovery-correction-192.json, recovery-stages-191/193/194.json,
+recovery-verification-194.json and original before/failed copies.
+No publication/main/release/directory-merge or cleanup occurs; all unfinished work
+and original evidence remain on D.
+
+## Refusal ordering and final local checkpoint — November 28, 02:25 JST
+
+Seven additional test files add16cases and the existing prepared-identity test
+strengthens its three before-read cases.200passes22cases; after assertion/helper
+extraction,201passes the9affected cases again. Builds have0warnings/errors,
+conformance112and whitespace pass, and complexity returns to the exact existing
+Help nesting finding.199's unused using and200's three test-complexity findings
+remain in the evidence. Original source/target bytes, historical receipts and
+retained links are asserted alongside zero forbidden reads or drive queries.
+The tests use actual dedicated files and existing injection boundaries only.
+
+196's restricted sensitivity records15Killed among26effective mutations(57.69%,
+exit2).203adds27adversarial cases repeated3times and19Killed among23effective
+mutations(82.61%,exit2). All eight intended Attempt guards, first Cleanup identity
+admission, retained-ancestor revalidation, first artifact-shape guard and whole
+snapshot-limit deletion are detected.196's earlier condition-only codec selection
+is explicitly expanded to the whole Snapshot expression in203. Neither limited
+percentage replaces failed full178 or represents whole-layer acceptance.
+
+The access exception fixture is consumed by WindowsDriveBoundary and proves an
+Unconfirmed capability without effects; it does NOT execute Eligibility's own
+UnauthorizedAccessException catch. That mutation remains NoCoverage. The other
+residual203items are two exception strings and the max-bound relational change;
+no exact-message assertion or suppression is introduced. Independent read-only
+review finds no required source/test correction and retains this proof limit.
+
+WindowsLocalOperationSteps now checks source path, source identity, transfer target
+and destination parent once. Two extra path checks repeated immutable bindings
+already enforced by TransferConflict.Create/TransferConflictTarget.Create and
+retained by TransferConflictChoice.Create. The same sole caller obtains evidence
+from that same overwrite choice; private constructors/get-only sealed records
+and the same transitive comparer preserve the implication. Independent review
+confirms the four remaining checks reject a substituted snapshot/identity/target/
+destination. No native admission is removed. Existing Application factory mismatch
+proof is reused.205normal build and37related provider/copy/preflight/conflict cases
+pass, with whitespace passing.204's LF/CRLF verification stop is retained;205only
+normalizes the required line endings before continuing.
+
+There are now six changed Infrastructure product inputs, three changed existing
+Infrastructure tests and eleven new test files since03d4158. The product correction
+and new tests require new Infrastructure coverage/Complete mutation and updated
+CodeQL/source-consumer reconciliation. Earlier194's462recovery/owner cases remain
+valid for their unchanged inputs;205owns the later consent-binding boundary.
+No whole acceptance, public write, main integration, release, directory merge or
+cleanup is claimed. Normal Commit/message hooks save this unpublished checkpoint
+before the next fixed-input full-layer run. All unfinished D copies and evidence
+remain. Exact commands/results are in recovery-mutation-196.json,
+read-admission-stages-199/200/201.json, read-admission-adversarial-203.json,
+read-admission-mutation-203.json and consent-binding-stages-204/205.json.

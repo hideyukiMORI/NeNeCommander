@@ -9,11 +9,15 @@ namespace NeNeCommander.Infrastructure.Windows.FileOperations;
 /// <summary>Owns the initial protected artifact descriptor, granting access only to the captured current user.</summary>
 internal sealed class WindowsTransferSecurityDescriptor : SafeHandle
 {
-    private WindowsTransferSecurityDescriptor(IntPtr descriptor)
+    private WindowsTransferSecurityDescriptor(IntPtr descriptor, int byteLength)
         : base(IntPtr.Zero, true)
     {
         SetHandle(descriptor);
+        ByteLength = byteLength;
     }
+
+    /// <summary>Gets the exact owned allocation extent for bounded observation of the native request.</summary>
+    internal int ByteLength { get; }
 
     public override bool IsInvalid => handle == IntPtr.Zero;
 
@@ -30,7 +34,7 @@ internal sealed class WindowsTransferSecurityDescriptor : SafeHandle
         try
         {
             Marshal.Copy(bytes, 0, memory, bytes.Length);
-            WindowsTransferSecurityDescriptor descriptor = new(memory);
+            WindowsTransferSecurityDescriptor descriptor = new(memory, bytes.Length);
             memory = IntPtr.Zero;
             return descriptor;
         }

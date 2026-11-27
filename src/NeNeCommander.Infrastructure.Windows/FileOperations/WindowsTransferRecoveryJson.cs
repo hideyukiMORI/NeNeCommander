@@ -74,10 +74,6 @@ internal static class WindowsTransferRecoveryJson
 
     private static WindowsTransferRecoveryMapping ReadMapping(JsonElement root)
     {
-        if (Property(root, "schemaVersion").GetInt32() != 1 || Text(root, "phase") != "PreparedWithTargetPossiblyChanging")
-        {
-            throw new InvalidDataException("The recovery schema or initial phase is unsupported.");
-        }
         Guid token = Guid.ParseExact(Text(root, "operation"), "N");
         WindowsTransferRecoveryFiles files = WindowsTransferRecoveryFiles.Create(ReadEntry(Property(root, "source")),
             ReadEntry(Property(root, "target")), ReadEntry(Property(root, "backup")), ReadEntry(Property(root, "prepared")));
@@ -112,7 +108,6 @@ internal static class WindowsTransferRecoveryJson
     private static string Text(JsonElement entry, string name)
     {
         string text = Property(entry, name).GetString() ?? throw new InvalidDataException("Recovery text cannot be null.");
-        WindowsTransferRecoveryFrame.RequireText(text);
         return text;
     }
 
