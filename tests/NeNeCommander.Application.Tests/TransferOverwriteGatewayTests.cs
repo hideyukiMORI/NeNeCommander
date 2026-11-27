@@ -47,6 +47,21 @@ public sealed class TransferOverwriteGatewayTests
         Assert.IsFalse(fixture.Port.Calls.Any(call => call.StartsWith("Atomic", System.StringComparison.Ordinal)));
     }
 
+    /// <summary>A cancellation choice cannot authorize either transfer or skip in a provider plan.</summary>
+    [TestMethod]
+    [TestCategory("Adversarial")]
+    public void IsValidPlanWhenChoiceIsCancelledRejectsTransferAndSkip()
+    {
+        TransferOverwriteGatewayFixture fixture = new();
+        FileEntrySnapshot cancelled = fixture.Conflict.Source.WithConflictChoice(
+            TransferConflictChoice.Create(fixture.Conflict, TransferConflictDecision.Cancel));
+
+        Assert.IsFalse(TransferPreflightValidation.IsValidPlan(
+            [TransferPlanEntry.Transfer(cancelled, fixture.Conflict.ExistingTarget)], [cancelled], fixture.Destination));
+        Assert.IsFalse(TransferPreflightValidation.IsValidPlan(
+            [TransferPlanEntry.Skip(cancelled, fixture.Conflict.ExistingTarget)], [cancelled], fixture.Destination));
+    }
+
     /// <summary>Only the original ordinary target can be used with the same overwrite consent.</summary>
     [TestMethod]
     public void IsValidPlanWhenOverwriteTargetIsSubstitutedRejectsIt()

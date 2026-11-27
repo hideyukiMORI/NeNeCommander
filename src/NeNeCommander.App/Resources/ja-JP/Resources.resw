@@ -993,4 +993,5 @@
   <data name="TransferFailureNotFound" xml:space="preserve"><value>必要なファイルまたはフォルダーが見つかりません。</value></data>
   <data name="TransferOverwriteSourcePartlyRemoved" xml:space="preserve"><value>コピー元の削除は未完了で、一部の項目を削除済みです。元のパス: {0}</value></data>
   <data name="TransferOverwriteSourceUnconfirmed" xml:space="preserve"><value>コピー元の削除完了は確認されていません。再試行する前にコピー元を確認してください。元のパス: {0}</value></data>
+  <data name="TransferResultDetailsName" xml:space="preserve"><value>転送結果の詳細</value></data>
 </root>

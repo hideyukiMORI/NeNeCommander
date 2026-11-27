@@ -9,7 +9,7 @@ public abstract record KeyboardContext
     /// <summary>Gets the file-list context with file commands enabled.</summary>
     public static KeyboardContext FileList { get; } = new FileListContext();
 
-    /// <summary>Gets the native command-button focus context without file commands.</summary>
+    /// <summary>Gets the native command-entry focus group, including visible read-only transfer details, without file commands.</summary>
     public static KeyboardContext CommandEntry { get; } = new CommandEntryContext();
 
     /// <summary>Gets a non-file navigation surface where refresh remains available.</summary>

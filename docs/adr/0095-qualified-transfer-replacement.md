@@ -6,8 +6,8 @@ Date: 2026-11-25
 
 Issue: #560. Design accepted under hide's autonomous milestone/design instruction,
 after independent read-only review of revision12. Internal provider integration is
-implemented in stages; production overwrite remains unavailable pending activation
-and full proof. Folder-content merge remains a subsequent, unaccepted scope.
+implemented in stages; hide approved unpublished local activation on November 27.
+The local initial inspector is connected and full acceptance is in progress. Folder-content merge remains a subsequent, unaccepted scope.
 The separately verified exact-modal-owner correction is commit11e25f1.
 
 ## One mechanism and activation boundary
@@ -401,3 +401,23 @@ Focused tests and three-locale isolated presentation proof pass, with full scope
 pending. The next requested authorization is limited to local initial-preflight wiring
 and dedicated-file integration/full ADR0095 proof before publication/main integration.
 No gate waiver, feature acceptance or release follows from this checkpoint.
+
+### Read-only result keyboard access
+
+Visible result evidence joins the existing F10 command-entry native Tab cycle.
+It retains the same CommandEntry input classification, native scrolling and
+F10/Escape return to the active pane; no new shortcut or execution route exists.
+The result viewport has a localized accessible name. The additional overwrite
+list keeps its native ItemsControl focus and names its disclosed scope; native
+PageDown/End must reach its final row before keyboard acceptance is claimed.
+
+### Authorized unpublished activation — November 27
+
+hide's15:41 approval supersedes the preceding held connection only for the unpublished
+branch and dedicated-file full proof. Initial preflight now invokes the existing
+eligibility owner. Batch reservation alone cannot authorize overwrite. Native malformed
+recovery text refuses before effects, and expected provider InvalidDataException retains
+the same receipt. The immutable choice factory owns qualification admission; plan
+validation keeps decision/exact-target checks without an unreachable duplicate null
+condition. Full final mutation and CodeQL acceptance are still in progress. Publication,
+main integration, release and directory merge are not authorized by this local checkpoint.

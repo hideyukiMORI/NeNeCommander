@@ -119,7 +119,7 @@ public sealed partial class CommanderWindow : Window, ICommanderProgressObserver
 
     private CommandEntryView CreateCommandEntry()
     {
-        CommandEntryView view = new(CommandEntryButtons, _resources, ForwardIntent);
+        CommandEntryView view = new(CommandEntryButtons, TransferResultFacts, _resources, ForwardIntent);
         view.Render(CommandEntryPresenter.Present(_session.Current));
         return view;
     }

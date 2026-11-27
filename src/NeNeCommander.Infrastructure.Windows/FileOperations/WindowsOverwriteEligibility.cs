@@ -25,6 +25,8 @@ internal static class WindowsOverwriteEligibility
     {
         try
         {
+            WindowsTransferRecoveryFrame.RequireText(source.Path.CanonicalText);
+            WindowsTransferRecoveryFrame.RequireText(target.CanonicalText);
             using WindowsOverwritePairLease pair = WindowsOverwritePairLease.Open(source, target, driveBoundary);
             WindowsFileIdentifier.RequireCaseInsensitiveDirectory(pair.Target.ParentHandle);
             WindowsTransferArtifactNames.RequireCandidateShape(target);
@@ -34,6 +36,10 @@ internal static class WindowsOverwriteEligibility
         catch (WindowsOverwriteRefusalException exception)
         {
             return TransferOverwriteCapability.Unavailable(exception.Reason);
+        }
+        catch (InvalidDataException)
+        {
+            return TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed);
         }
         catch (IOException)
         {

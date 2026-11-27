@@ -10,7 +10,7 @@ using NeNeCommander.Infrastructure.Windows.FileOperations;
 
 namespace NeNeCommander.Infrastructure.Windows.Tests;
 
-/// <summary>Supplies qualified initial consent only at the declared test port, then exercises real resumed preflight, copy, verification and deletion.</summary>
+/// <summary>Exercises native initial qualification and real resumed preflight, copy, verification and deletion.</summary>
 [TestClass]
 public sealed class WindowsOverwriteResumptionTests
 {
@@ -22,7 +22,7 @@ public sealed class WindowsOverwriteResumptionTests
         CreateFiles(root);
         TransferOverwriteEvidence original = Original(root);
         WindowsLocalFileOperationAdapter adapter = new(new(), new DeterministicIdentifierSource());
-        StepHookPort port = new(adapter) { TransformPreflight = outcome => Qualify(outcome, original) };
+        StepHookPort port = new(adapter);
         using FileOperationGateway gateway = new(port);
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(Assert.IsInstanceOfType<FileOperationRequestAccepted>(
             MoveRequest.Create([original.Source.Observation.Entry.Path], Destination(root))).Request);
@@ -58,7 +58,7 @@ public sealed class WindowsOverwriteResumptionTests
         CreateFiles(root);
         TransferOverwriteEvidence original = Original(root);
         DeterministicIdentifierSource identifiers = new();
-        StepHookPort port = new(new WindowsLocalFileOperationAdapter(new(), identifiers)) { TransformPreflight = outcome => Qualify(outcome, original) };
+        StepHookPort port = new(new WindowsLocalFileOperationAdapter(new(), identifiers));
         using FileOperationGateway gateway = new(port);
         CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(Assert.IsInstanceOfType<FileOperationRequestAccepted>(
             CopyRequest.Create([original.Source.Observation.Entry.Path], Destination(root))).Request);
@@ -77,17 +77,6 @@ public sealed class WindowsOverwriteResumptionTests
         {
             Assert.AreEqual(defect == "targetBytes" ? "later" : "original", File.ReadAllText(root.Resolve("destination/source")));
         }
-    }
-
-    private static TransferPreflightOutcome Qualify(TransferPreflightOutcome outcome, TransferOverwriteEvidence original)
-    {
-        if (outcome is not ConflictSet set)
-        {
-            return outcome;
-        }
-        Assert.HasCount(1, set.Conflicts);
-        TransferConflict conflict = set.Conflicts[0];
-        return TransferPreflightOutcome.Conflicted([TransferConflict.Create(conflict.Source, conflict.ExistingTarget, conflict.KeepBothCandidate, TransferOverwriteCapability.Available(original))]);
     }
 
     private static void CreateFiles(TestOwnedTemporaryRoot root)

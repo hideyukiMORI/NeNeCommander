@@ -22,6 +22,7 @@ public sealed class TransferOverwriteCapabilityTests
         Assert.AreSame(TransferOverwriteUnavailableReason.ReservedTarget,
             Assert.IsInstanceOfType<TransferOverwriteCapability.UnavailableOverwrite>(conflict.Target.Overwrite).Reason);
         Assert.IsNull(conflict.Target.OverwriteEvidence);
+        _ = Assert.ThrowsExactly<ArgumentException>(() => TransferConflictChoice.Create(conflict, TransferConflictDecision.OverwriteContents));
         CollectionAssert.DoesNotContain(System.Linq.Enumerable.ToArray(conflict.AllowedDecisions), TransferConflictDecision.OverwriteContents);
     }
 

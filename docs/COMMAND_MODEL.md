@@ -271,3 +271,16 @@ gateway and provider refuse atomic move. The initial production preflight still 
 explicit Unavailable(Unconfirmed). The unexposed consent/result view and internal
 qualification have focused proof; production connection and full destructive
 acceptance remain pending after the recorded automatic-approval rejection.
+
+## Locally connected overwrite qualification — November 27
+
+hide approved the unpublished local activation at15:41. The sole initial preflight
+now uses WindowsOverwriteEligibility, with original/alternate destination reservations
+owned by the existing set. No reserved or later undisclosed object inherits overwrite
+consent. Complete acceptance remains in progress; earlier unconnected descriptions
+above are dated implementation checkpoints, not the current branch state.
+
+TransferConflictChoice's sole factory guarantees qualified evidence for any accepted
+OverwriteContents decision. Plan validation retains decision and exact target checks
+without repeating that immutable construction invariant. Cancel choices cannot create
+Transfer or Skip plans. The existing receipt and native provider revalidation remain.

@@ -40,7 +40,7 @@
                                 </CheckBox>
                                 <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictOverwriteLaterNotice" TextWrapping="Wrap" />
                                 <ScrollViewer MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="False" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="ConflictOverwriteOtherRows" AutomationProperties.AutomationId="ConflictOverwriteOtherRows">
+                                    <ItemsControl x:Name="ConflictOverwriteOtherRows" AutomationProperties.LabeledBy="{Binding ElementName=ConflictOverwriteScope}" AutomationProperties.AutomationId="ConflictOverwriteOtherRows">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="panes:ConflictOverwriteRow">
                                                 <StackPanel Margin="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationDetailGap}">
@@ -1764,8 +1764,8 @@
                         </StackPanel>
                     </views:KeyHintWrapPanel>
                 </views:KeyHintWrapPanel>
-                <ScrollViewer x:Name="TransferResultFacts" MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="False" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
-                    <ItemsControl x:Name="TransferResultEvidence" AutomationProperties.AutomationId="TransferResultEvidence">
+                <ScrollViewer x:Name="TransferResultFacts" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="TransferResultDetailsName" MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="True" UseSystemFocusVisuals="True" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <ItemsControl x:Name="TransferResultEvidence" IsTabStop="False" AutomationProperties.AutomationId="TransferResultEvidence">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}" Margin="{StaticResource SpacingOperationBar}" TextWrapping="Wrap" />

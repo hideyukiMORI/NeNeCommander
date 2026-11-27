@@ -97,7 +97,7 @@ internal static class TransferPreflightValidation
     {
         return choice.Decision == TransferConflictDecision.KeepBoth
             ? FileSystemPathIdentityComparer.Instance.Equals(choice.KeepBothCandidate, target)
-            : choice.Decision == TransferConflictDecision.OverwriteContents && choice.Target.OverwriteEvidence is not null &&
+            : choice.Decision == TransferConflictDecision.OverwriteContents &&
                 FileSystemPathIdentityComparer.Instance.Equals(choice.Target.Path, target);
     }
 

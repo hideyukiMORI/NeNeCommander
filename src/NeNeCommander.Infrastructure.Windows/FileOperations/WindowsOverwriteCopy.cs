@@ -52,6 +52,10 @@ internal sealed class WindowsOverwriteCopy
         {
             completion = ProviderStepCompletion.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Copy));
         }
+        catch (InvalidDataException)
+        {
+            completion = ProviderStepCompletion.Failed(FileOperationFailureKind.Copy);
+        }
         catch (IOException exception)
         {
             completion = ProviderStepCompletion.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Copy));

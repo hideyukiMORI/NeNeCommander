@@ -116,6 +116,7 @@ public sealed class WindowsTransferPathLeaseTests
         WindowsLocalPath path = Parse(root.WriteFile("parent/file.txt", "original"));
         using (SafeFileHandle writer = File.OpenHandle(path.CanonicalText, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
         {
+            Assert.IsFalse(writer.IsInvalid);
             _ = Assert.Throws<IOException>(() =>
             {
                 using WindowsTransferPathLease lease = WindowsTransferPathLease.Open(path, FileAccess.Read, new WindowsDriveBoundary());
@@ -146,7 +147,7 @@ public sealed class WindowsTransferPathLeaseTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         _ = root.CreateDirectory("parent");
         WindowsLocalPath path = Parse(root.WriteFile("parent/file.txt", "original"));
-        WindowsTransferPathLease lease = WindowsTransferPathLease.Open(path, FileAccess.Read, new WindowsDriveBoundary());
+        using WindowsTransferPathLease lease = WindowsTransferPathLease.Open(path, FileAccess.Read, new WindowsDriveBoundary());
         lease.Dispose();
         lease.Dispose();
         _ = Assert.Throws<ObjectDisposedException>(lease.Revalidate);

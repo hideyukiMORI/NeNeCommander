@@ -275,3 +275,19 @@ offers explicit Unavailable(Unconfirmed), so this integration does not expose a 
 command. Initial qualification and consent/result adapters have focused proof, but
 production connection is held after automatic approval rejected it. Full ADR0095
 destructive acceptance, integrated initial admission and case-sensitive proof remain. The older stage-specific limits above describe their own checkpoints.
+
+### Authorized local activation and final proof — November 27
+
+The15:41 explicit authorization connects only the unpublished local initial preflight.
+Reservation-only/duplicate/later targets have no qualified original overwrite evidence.
+Native invalid recovery path text refuses before effects; expected InvalidDataException
+returns the existing retained provider receipt. ADV-005/006 boundary tests and the
+independent review cover those corrections. The choice factory owns evidence admission;
+removing its duplicate immutable null guard in plan validation changes no admitted
+state, and explicit unavailable/Cancel/foreign-target refusal tests remain.
+
+Enabled case-sensitive native refusal and bounded owned process-crash proof now pass;
+see the exact limits and commands in the quality record. Full final mutation/CodeQL
+acceptance remains in progress. Earlier unconnected/provider-future statements above
+describe their earlier checkpoints. No ordinary-file experiment, copied security,
+privilege-enabled runtime, automatic recovery, directory merge or release is authorized.

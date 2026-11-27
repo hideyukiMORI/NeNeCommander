@@ -136,8 +136,7 @@ internal sealed class WindowsLocalTransferPreflight
             {
                 return FileOperationFailureKind.ProviderUnavailable;
             }
-            _ = _reservations.Add(replacement.CanonicalText);
-            _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, replacement, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+            RecordConflict(source, ordinaryTarget, replacement);
             return null;
         }
         if (keepBothChoice is not null)
@@ -146,9 +145,18 @@ internal sealed class WindowsLocalTransferPreflight
             _plan.Add(TransferPlanEntry.Transfer(source, candidate));
             return null;
         }
-        _ = _reservations.Add(candidate.CanonicalText);
-        _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, candidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+        RecordConflict(source, ordinaryTarget, candidate);
         return null;
+    }
+
+    private void RecordConflict(FileEntrySnapshot source, FileSystemPath ordinaryTarget, FileSystemPath candidate)
+    {
+        TransferOverwriteCapability overwrite = _reservations.Contains(ordinaryTarget.CanonicalText)
+            ? TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.ReservedTarget)
+            : WindowsOverwriteEligibility.Inspect(source, ordinaryTarget, _driveBoundary);
+        _ = _reservations.Add(ordinaryTarget.CanonicalText);
+        _ = _reservations.Add(candidate.CanonicalText);
+        _conflicts.Add(TransferConflict.Create(source, ordinaryTarget, candidate, overwrite));
     }
 
     private FileSystemPath? AllocateKeepBoth(FileSystemInfo entry)

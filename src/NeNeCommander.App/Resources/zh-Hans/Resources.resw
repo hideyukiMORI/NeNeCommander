@@ -993,4 +993,5 @@
   <data name="TransferFailureNotFound" xml:space="preserve"><value>未找到所需文件或文件夹。</value></data>
   <data name="TransferOverwriteSourcePartlyRemoved" xml:space="preserve"><value>源文件删除未完成，部分项目已被删除。原路径：{0}</value></data>
   <data name="TransferOverwriteSourceUnconfirmed" xml:space="preserve"><value>尚未确认源文件已完全删除。重试前请检查源文件。原路径：{0}</value></data>
+  <data name="TransferResultDetailsName" xml:space="preserve"><value>传输结果详情</value></data>
 </root>

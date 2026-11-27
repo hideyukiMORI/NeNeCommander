@@ -786,3 +786,311 @@ publication/main integration or release is inferred.
 Keep D:/NeNeCommander/worktrees/issue-560 and unfinished outputs/evidence25/26/27,
 including outputs/transfer-conflicts-20261127/consent-controls-44. No cleanup is eligible
 or rejected. Main remainsf7c24b6; normal settings/shared input/interactive03 are unchanged.
+
+## Current authorization — November 27, 15:41 JST
+
+hide explicitly approves the concrete held action: local initial-preflight connection
+in the unpublished #560 branch, followed by dedicated-file integration and complete
+ADR0095 acceptance proof. activation-approval-58.json records the exact question,
+answer and scope. This supersedes the approval hold above only for that bounded action.
+No gate waiver, publication/main integration/release, ordinary-file experiment or
+directory merge is authorized. Current saved HEAD is4ff2203; connection is not yet
+edited. Continue the sole initial inspector path and reservation/duplicate/later-
+conflict integration cases, then full impact proof. Preserve unchanged successful
+evidence and all existing desktop/settings/D-drive restrictions.
+
+## Active activation and review corrections — November 27, 16:16 JST
+
+hide's explicit15:41 authorization is recorded in activation-approval-58.json.
+The sole initial inspector is now connected in WindowsLocalTransferPreflight.
+RecordConflict uses the existing reservation set for original and alternate targets;
+reservation-only and later duplicate targets cannot obtain overwrite evidence. Native
+resumption tests no longer inject qualification. Initial selected41cases pass60.
+This remains unpublished, without main/release or directory-merge authorization.
+
+Independent read-only review finds one concrete provider exception gap:
+InvalidDataException is not IOException. Native unpaired-surrogate source/target paths
+reproduce four failures62. Initial eligibility now uses the existing strict codec
+text check; the provider explicitly normalizes InvalidDataException while retaining
+its same disposed attempt receipt. New WindowsOverwriteRecoveryTextTests and related
+55cases pass63. The reviewer accepts this correction with no further safety must-fix.
+Full canonical61 was deliberately interrupted during negative gate proofs before
+this correction; do not claim a gate pass. Narrow conformance112, format body parity
+and the original single Help complexity finding were observed. No child remains from
+that cancelled run. The full acceptance scope is still required.
+
+The review's native-focus question is investigated on the existing non-input desktop.
+Observers10/11/12 use unsupported WinUI Desktop focus-search APIs and are retained as
+invalid observations. Actual owned-HWND native key messages in13 show the additional
+consent ItemsControl is tabbable (the observer's exact-parent match was wrong), but
+F10/Tab cycles only the three header buttons and cannot reach result evidence.
+No global SendInput or SwitchDesktop is used. Baseline binaries and four dependency
+DLLs are retained in evidence/consent-baseline-before-focus-70.
+
+The result viewport now participates in the SAME CommandEntryView focus owner and
+input context. Native Next/Previous toolbar wrap visits visible details; leaving the
+viewport by Tab returns to first/last enabled command button. The viewport is a tab
+stop with system focus visuals; its inner ItemsControl is not. No new key map, intent,
+shortcut or file-execution route exists. F10/Escape keep their canonical pane return.
+App69 passes with0warnings/errors after retained enum-style diagnostics68. Independent
+read-only correction review requires no further change.
+
+Native14 proves reachability and scroll but its pane-state observer incorrectly uses
+reference equality against a getter that creates a new snapshot. Value comparison
+corrects only that observer. Native15 passes the complete real-key path: additional
+consent PageDown/End, result Tab/PageDown/End, unchanged pane/operation state on F8,
+Shift+Tab to Help, Tab to details and F10 return. Its ordinary settings/input desktop
+and owned source/target bytes are unchanged. Physical input and speech remain separate.
+
+Final72 adds localized result accessible naming in three catalogs, labels the consent
+list by its scope and documents the focus contract. run-result-focus-72.ps1 is collecting
+normal App and final native locale16/17/18 proof; read it back before claiming success.
+The diagnostic copy remains outputs/transfer-conflicts-20261127/consent-controls-44,
+with current App changes and four product DLLs synchronized. Only synthetic callbacks
+execute capture; the real eligible native conflict is cancelled before result proof.
+
+Next: finish final native proof and parity (187App inputs, three declared diagnostic
+substitutions, four DLLs; updated catalog key count), format/conformance/complexity and
+record exact local checkpoint. Then complete the required full canonical/coverage,
+changed-layer mutation/deep-security/adversarial/CodeQL and actual product process-crash
+proof. Enabled-case-directory120/124 remains an environmental requirement; its prior
+fsutil access denial was not acceptance. Prepare a concrete bounded dedicated-root
+procedure before any administrator request. Keep all unfinished D work/evidence; no
+cleanup, public write, main merge, release or directory merge is due.
+
+
+## Active full-acceptance checkpoint — November 27, 17:02 JST
+
+Current unpublished source remains based on4ff2203 with local activation authorized by
+hide at15:41. Final native16/17/18 pass66each;parity74 proves187App inputs(184exact and
+3declared diagnostic substitutions),4DLL matches and690keys per locale. Product
+process-crash78 uses exact compiled gateway/provider DLLs with diagnostic native-call
+barriers:8terminated owned processes plus normal verified Move pass124checks. This is
+bounded process termination, not power-loss, all timing, full WinUI operation or automatic
+recovery. Cleanup stops after native close before receipt acknowledgement; mapping
+checks stableID/path/hash/length, without independent pre-captured complete identities.
+
+hide ran the dedicated administrator setup81 at16:45:44 and supplied its enabled output.
+Normal-user native flag1 and14actual case-sensitive refusal/unchanged-file checks pass85.
+No administrator step is pending. Keep its dedicated root/files for eventual verified
+cleanup; no ordinary directory setting changed.
+
+Canonical75 fails at the missing final newline after passing conformance112,all negative
+gate and security proofs,24threat registry,theme parity and locked restore. Preserve the
+original failure and reuse successful unchanged stages. Correction88 adds exception-safe
+using ownership and a writer-handle premise assertion to WindowsTransferPathLeaseTests.
+Its newline helper introduced extra blank lines through CRLF translation; the intermediate
+is retained and89 restores exactly the frozen original bytes plus one final newline.
+Product nonwhitespace bodies never change. Full build88/89 has0warnings/errors;
+record closure and41Architecture cases pass88 and need no whitespace-only repetition.
+
+Coverage89 completes all three affected suites:Application1373pass but99.90128331688055%
+versus100%;Infrastructure1562pass/20skip/0failure at93.08072487644151%;Presentation643pass
+at97.3753280839895%. Only Application still lacks two branch outcomes, both at
+TransferPreflightValidation.cs:98(4/6). Inspect the20environmental skips before any wider
+claim. Next cover those meaningful cases and rerun only changed Application coverage.
+
+CodeQL82 completed both canonical buildless(164rules/35results) and compiler-traced
+supplement(164rules/170results,127generated).1579inputs stayed fixed;all1341owned product/
+test C# sources occur in both archives. Buildless has8unresolved types;source presence
+is not complete semantic resolution. Detailed87/86 triage preserves every raw result,
+69actualresourceargument checks, native/ownership reasons and two corrected test findings.
+Independent review accepts the native reentrancy and null-record short-circuit guards;
+retain them without suppression. Final correction analysis/reconciliation remains.
+
+Domain83 maps27exact inputs to unchanged mutation/3-repeat proof;original overall failed
+report stays failed. Record its available146-case/100%coverage reuse separately. Remaining:
+Application100%,changed3layer adversarial/mutation,audit,finalCodeQL/current documentation,
+input freeze and normal-hook local save. No public/main/release/directory merge or cleanup
+is due. All scripts,raw logs,limits and next actions are indexed in
+D:/NeNeCommander/evidence/transfer-conflicts-20261127/active-acceptance-checkpoint-90.json.
+
+## Mutation correction checkpoint — November 27, 17:38 JST
+
+Final CodeQL94 completes both analyses: manual168results (41owned/127generated) and
+buildless33, each164rules. Comparison97/100 confirms only the two corrected test
+findings disappear and every retained rule/location/message matches its prior review.
+Input99 verifies all1579inputs and all1341product/test C# raw hashes in BOTH source
+archives. Buildless retains6234notifications/8unresolved types; compiler-traced analysis
+warns that C# path filters have no effect. Raw results stay unchanged; no diagnostic-free,
+zero-alert, full CI or new-test extraction claim is made.
+
+Application Complete mutation93 fails at94.53% against95:2744Killed,22Timeout,
+158Survived,2NoCoverage. The original failure/report remains. Its script stops before
+Infrastructure/Presentation. Review finds a role-duplication fixture also duplicated
+object identity, masking removal of the role guard. Missing-component tests did not
+always distinguish the public owning parameter, and an unavailable current overwrite
+could be silently filtered by a mutant. New TransferReceiptAdmissionTests adds8bounded
+cases; no product source, literal exception-message assertion or mutation exclusion
+changes. Initial102 has a test API-name compile error; retained and corrected103 passes8.
+
+Final Application104 has1382successful cases/100%branches, conformance112, format and
+new8adversarial cases3times passing. Full Application mutation104 is running. Separate
+101 runs Infrastructure then Presentation Complete mutation against fixed product/own
+test inputs; Application.Tests is not a dependency of either project. At17:38,
+Infrastructure is testing3049mutants. All earlier unchanged successful proof is retained.
+New test103 postdates CodeQL94 and is explicitly not claimed as scanned there; independent
+read-only review is assessing its direct boundary proof and the relevant reuse scope.
+
+See active-acceptance-checkpoint-105.json for running script/session identities and
+next steps. Full local acceptance and normal-hook save remain pending. Main/public
+state stays unchanged; no directory merge or eligible cleanup occurs.
+
+## Application mutation accepted, other layers running — November 27, 18:23 JST
+
+Application104 completes at17:54:13 with95.11% against95. All1382tests and100%branch
+coverage pass, including the new8adversarial cases3times. Comparison108 identifies
+17previous survivors nowKilled and one priorTimeout nowKilled, with no verdict
+regression. Original94.53%run93 staysfailed; no product/config/threshold/exclusion
+change occurred. ParamName-only assertions prove diagnosis, not extra destructive
+safety. Independent review106 requires no correction.
+
+CodeQL product proof94 is reused only for its exact1579inputs; the additional pure
+test file is directly reviewed and NOT CodeQL analyzed. No1580input analysis or
+unchanged result claim for that new file is made. All extraction limitations remain.
+
+At18:23, run-other-mutation-101.ps1 is still running Infrastructure Complete mutation
+on3049testable mutants, followed automatically by Presentation. Its relevant product/
+own-test inputs are fixed; Application.Tests is no dependency. Keep this process.
+After both pass, run prepared compile-acceptance-reconciliation-107.ps1, inspect its
+raw evidence, finalize current documentation and save through normal local hooks.
+No further public/main/release/directory-merge/cleanup action is authorized. Exact
+running state and evidence pointers are in active-acceptance-checkpoint-110.json.
+## Infrastructure mutation failure and assertion strengthening — November 27, 19:57 JST
+
+Infrastructure Complete mutation101 finishes at19:42:45 after2:10:20 with81.56%, below
+90:2,547Killed,28Timeout,474Survived,108NoCoverage,720CompileError,678Ignored. The
+original log and report remain failed. Run101 therefore never starts Presentation.
+Independent Presentation117 then completes at19:54:14 with92.34%, above90, after its
+787 relevant inputs match. Application104 remains accepted at95.11%/1,382tests/100%
+branches. No whole local acceptance is claimed; no final commit has been made.
+
+Infrastructure survivors include60await-context changes,109null guards,139string
+changes and274other changes across the complete layer. These are review categories,
+not declarations of equivalence. Additional tests target behavior instead of fixed
+exception-message strings. The first8new test/helper files are indexed with hashes in
+infra-new-tests-121.json; all1,580previous product/test/tool inputs still match104.
+
+Four continuation cases118 independently suspend each observed I/O acknowledgement
+in prepare/overwrite/append/cleanup, prove no calling SynchronizationContext dependency,
+and verify source/target content and receipt. Captured callbacks are drained before
+assertion so even a failed probe does not abandon work. All4pass in17.638seconds.
+Sixteen admission cases120 exercise missing recovery facts, dependency composition,
+path/handle ownership, foreign-parent rejection and absence of creation/content effects.
+All16pass; both builds have0warnings/errors. Initial119's26analyzer errors (unused
+constructed values and one using) are retained with original files; explicit discard
+and unused-import removal correct them without suppression. ParamName distinctions
+are diagnosis, not extra destructive safety proof. Independent read-only review of the
+8files is running; mutation sensitivity and remaining state/cleanup gaps are next.
+
+The earlier prepared reconciliation107/documentation113/save114 scripts have NOT run
+and are now stale: they assume successful Infrastructure101 and27changed paths.
+Do not execute them unchanged. No threshold/exclusion/config/product changes, public
+write, main integration, release, directory merge or eligible cleanup have occurred.
+Keep all unfinished D roots. Current progress is in active-acceptance-checkpoint-121.json.
+
+## Assertion-strength checkpoint — 2026-11-27 20:41 JST
+
+Infrastructure Complete mutation101 remains failed at81.56% against90. No complete
+local acceptance is claimed. Application104 remains95.11% and Presentation11792.34%.
+All1,580previous product/test/tool inputs remain hash-exact. Nineteen additional
+Infrastructure test/helper files now supply72passing cases, with normal builds having
+zero warnings/errors. Independent read-only review requires no further correction.
+
+The new proof covers caller-context-independent continuations at internal and provider
+stages, owning-parameter admission, one-shot owned-link removal, reentrant disposal,
+noncooperative I/O cancellation, independent version-one recovery JSON, borrowed native
+handle release, changed names, metadata-only preparation/cleanup changes, final cleanup
+reverification, backup/prepared EOFs, actual source/candidate collisions, cancellation
+at metadata acknowledgements around flush, and pending path qualification. ParamName
+checks prove diagnosis, not extra destructive safety. Single suspended acknowledgements
+and specified callback boundaries do not establish all possible concurrency timings.
+
+An independent review found that two test doubles could acknowledge close without
+actually closing a real handle when a guard mutant entered unexpectedly. Correction125
+makes those delegates return a failed disposition and never a false close success.
+The original source is retained. Style/API failures126/130/131/135 and the observer-only
+shared-read failure136 remain;137 supplies a compatible shared reader and passes3cases.
+Additional metadata6, cleanup10 and frame/pending5 cases pass independently. Refactoring
+142/144 preserves the test contracts and corrects the new43/42-line method findings;
+143's intermediate41-line finding is also retained. Final145 has exactly the original
+Help nesting finding from75, with no new complexity finding. CRLF-only correction141
+retains pre-format source copies. Conformance112 and final whitespace verification pass.
+New45adversarial cases pass3times; after the bounded refactor, only the changed9cases
+run3more times, reusing the unchanged36. Final manifest145 contains1,599inputs.
+
+Diagnostic122 used an incorrect filter and tested zero mutants; its exit0 is NOT a
+successful result. Corrected123 uses repeated --mutate arguments with UTF-16 character
+spans, as documented at https://stryker-mutator.io/docs/stryker-net/configuration/.
+It records131Killed/18NoCoverage/17Survived and78.92% in that restricted scope;129are
+new detections compared with101. Both failed results remain unchanged, and this is
+not a recomputed whole-layer score. Diagnostic140 is now running on the fixed145
+inputs, selecting287remaining overwrite/transfer mutations and related tests.
+Its verdict is pending. Do not rebuild its normal test binaries while it runs.
+
+CodeQL94's product analysis and individually reviewed findings are reused for the
+exact1,579analyzed inputs. The later Application1and Infrastructure19test/helper
+files are independently reviewed but have NOT been CodeQL analyzed. Do not describe
+the1,580unchanged-input check or the current1,599-input snapshot as a complete scan.
+All prior extraction/type-resolution limitations remain. No new product/native proof
+is invented by these test additions, and no threshold, exclusion or baseline changes.
+
+Exact latest commands include run-infra-new-tests-132.ps1, run-cleanup-observations-133.ps1,
+run-prepared-identities-134.ps1, run-additional-boundaries-136.ps1, run-source-candidates-137.ps1,
+run-infra-static-141.ps1, run-length-correction-142.ps1, run-final-length-144.ps1,
+run-infra-final-145.ps1 and run-diagnostic-mutation-140.ps1, all under the evidence root
+D:/NeNeCommander/evidence/transfer-conflicts-20261127. Their logs, original failures,
+arguments, source snapshots and hashes remain. Active progress is indexed by
+active-acceptance-checkpoint-146.json. Aggregate107/docs113/save114 remain stale and
+unexecuted. Full Infrastructure acceptance and normal-hook local save are still pending.
+No public write, main integration, release, directory merge or eligible cleanup occurs.
+## Measured continuation-test rationalization — 2026-11-27 21:10 JST
+
+Infrastructure Complete101 remains failed at81.56%; no complete local acceptance is
+claimed. A dedicated FileStream write/flush observation153 records50operations per
+sample: native flush averages125.22ms and108.56ms, versus0.234ms and0.012ms without
+that request. This is a small observation under current load, not a whole-test speedup
+or hardware-durability claim. The file is owned, new and retained for verified cleanup.
+
+Diagnostic140 is deliberately interrupted at21:06:02 after26m10s, with exit-1 and no
+complete mutation report. The command/creation-time-verified controller and descendants
+end;154 preserves the owned-process snapshot, logs and1,599unchanged inputs. This is
+not a failed verdict retried into success: the next snapshot changes the reviewed
+continuation fixtures, and the interrupted attempt supplies no mutation conclusion.
+
+The sole TransferSuspensionIo constructor now requires an explicit flush delegate.
+Only the two caller-context continuation classes inject a successful acknowledgement;
+the wrapper checks a live/noninvalid handle and counts successful calls. Expected
+cumulative counts1/2are asserted. Every independently suspended read/write acknowledgement,
+Release-then-Drain, Posts==0, native read/write/truncate/close, content and receipt check
+remains. PendingObservation explicitly keeps RandomAccess.FlushToDisk. The two context
+classes no longer establish actual native flush; the unchanged native/flush-failure,
+cancellation and process-crash evidence owns that proof. Independent read-only review
+of all four diffs requires no correction, but does not itself establish runtime speedup.
+
+Three new test files add5cases: an otherwise valid gateway snapshot with a different
+destination refuses before token/artifact allocation; a partial injected read refuses
+64-bit offset overflow before another callback; and a valid GUID tail cannot qualify
+three wrong native-volume prefixes. Offset proof concerns the injected transport's
+arithmetic, not an actual native read at long.MaxValue. Candidate147/150 sources and
+before-copies remain. A PowerShell quoting parse error executes no edits. Original
+build151's CA1062 failure is preserved;155 adds the test-data nonnull assertion.
+
+Final155 normal build has0warnings/errors; all15affected cases pass (10.802s runner
+summary,8.969s assembly), new5adversarial cases pass3times, conformance112and whitespace
+pass. Complexity retains exactly the original Help nesting finding, exit1. All1,580
+previous inputs are exact. Infrastructure additions now total22test/helper files and
+77passing focused cases, with changed10cases freshly checked and unchanged proof reused.
+Final manifest155 contains1,602inputs. Diagnostic156 starts21:09:57, selects431mutations
+including all131prior123kills, and remains pending. Do not rebuild/edit its fixed inputs.
+
+CodeQL94's1,579analyzed inputs/product findings remain mapped exactly. The later
+Application1plus Infrastructure22test/helper files are directly reviewed but unscanned;
+all previous extraction limitations remain. Prepared full-layer runner149 consumes
+infra-inputs-155 but has NOT run. Old107/113/114remain stale, and148cannot summarize
+interrupted140. Full Infrastructure coverage/Complete mutation, reconciliation and
+normal-hook save remain. No publication/main/release/directory merge or cleanup occurs.
+Exact scripts, original failures and observations are under the same evidence root:
+run-diagnostic-mutation-140.ps1, flush-observation-153.json,
+diagnostic140-interrupted-154.json, apply-verify-boundaries-151.ps1,
+run-boundaries-155.ps1 and run-diagnostic-mutation-156.ps1.

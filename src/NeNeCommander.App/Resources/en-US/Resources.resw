@@ -993,4 +993,5 @@ Creation could not be confirmed. Attempted path: {1}</value></data>
   <data name="TransferFailureNotFound" xml:space="preserve"><value>A required file or folder was not found.</value></data>
   <data name="TransferOverwriteSourcePartlyRemoved" xml:space="preserve"><value>Source removal is incomplete; some source items were removed. Original path: {0}</value></data>
   <data name="TransferOverwriteSourceUnconfirmed" xml:space="preserve"><value>Complete source removal was not confirmed. Check the source before retrying. Original path: {0}</value></data>
+  <data name="TransferResultDetailsName" xml:space="preserve"><value>Transfer result details</value></data>
 </root>
