@@ -2559,3 +2559,122 @@ before the next fixed-input full-layer run. All unfinished D copies and evidence
 remain. Exact commands/results are in recovery-mutation-196.json,
 read-admission-stages-199/200/201.json, read-admission-adversarial-203.json,
 read-admission-mutation-203.json and consent-binding-stages-204/205.json.
+
+## Current saved candidate and running acceptance — November28 02:31 JST
+
+Normal hooks save23reviewed paths as1851031 at02:26:50; the tree is clean and
+all1620inputs match final-infra-inputs-206.json.208normal App build and ordinary
+consumer restoration have0warnings/errors. Normal source, test-consumer and App
+Infrastructure DLLs match exactly before coverage. Full Infrastructure coverage
+passes1684cases with0failures and20explicit environmental skips (17opt-in WSL,
+threeopt-inlive recycle). Branch coverage is93.72923588039868%, above unchanged90%.
+Complete mutation begins02:30:20 with canonical configuration/alltests/90threshold;
+its result is pending. No other unchanged layer is repeated.
+
+209snapshots the same1620inputs/2116files fromclean1851031 into a separate D-side
+source copy, then runs compiler-traced and canonical buildless CodeQL. It is still
+running; no result or finding closure is claimed. Earlier94's extraction limits
+and individually retained findings remain distinct until current reconciliation.
+
+Continuation is indexed by active-acceptance-checkpoint-210.json in the same
+evidence root. Full208session50947 and CodeQL209session2211 are active. Keep all
+source/test/tool inputs and test binaries fixed until208ends. No public write,
+main integration, release, directory merge or cleanup is authorized.
+
+## Final input reuse and refreshed process-crash proof — November28 02:46 JST
+
+All1620frozen inputs and their complete path set still match clean saved1851031
+and the independent CodeQL209snapshot. Reconciliation212confirms all101Domain,
+726Application and787Presentation relevant inputs/path sets against successful
+prior proof. Domain's original coverage/mutation receipt hashes also match.211's
+Domain path-set selector omitted the .Tests suffix;212corrects that observer,
+retains211and checks the complete test path set. No product test is rerun for this
+observer correction.
+
+Compiler-traced CodeQL209completes164rules/169findings:168prior rule/location/message
+findings match, with unchanged tracked owning source. One new test finding suggests
+a ternary for the two different typed receipt assertions in continuation proof.
+Review213retains the separate Untouched/Desired assertions with an explicit reason;
+no correction or suppression is introduced.42findings are in owned source and127
+in generated source. The2903notifications include42hidden unused-using messages;
+path filtering is unsupported in this mode. Canonical buildless209and source-archive
+reconciliation remain pending; this is not a zero-findings/exhaustive-extraction claim.
+
+Because six Infrastructure product inputs changed,214refreshes the existing nine
+process-crash conditions against the exact normal208App dependency DLLs in a fresh
+D-side diagnostic root. Eight owned child processes are terminated only after exact
+PID/start/command/checkpoint admission; the ninth completes ordinary Move. All124
+checks pass: original target identity, original/desired/partial bytes, source retention,
+backup/prepared contents, framed mapping and partial append, staged cleanup and normal
+verified source deletion. Harness build has0warnings/errors; its only source change
+is the dedicated root. All1620inputs and three normal/copied/runtime DLL hashes remain
+fixed. This proves process termination with diagnostic native-call barriers, not power
+loss, hardware durability, physical input, automatic recovery or full acceptance.
+
+Infrastructure208Complete mutation is still running. No source/test/tool inputs or
+mutation binaries are changed. Current pointer is active-acceptance-checkpoint-215.json.
+No public write, main integration, release, directory merge or cleanup occurs.
+## CodeQL reconciliation and final affected boundaries — November28 03:00 JST
+
+209finishes both analyses on the same1620fixed inputs. Manual213retains168prior
+findings and individually reviews one new typed receipt-assertion suggestion
+(169total,42owned/127generated); canonical buildless217retains33prior findings
+and the same additional test suggestion(34total,allowned). Both execute164rules.
+There is no additional product correction.216individually hash-verifies all1382
+owned C# files in each source archive and all1620live/snapshot inputs.
+
+Buildless217retains6330notifications and8unresolved types. The115compilation-error,
+18extraction-error and322extraction-message entries match prior94by descriptor,
+path and normalized message with multiplicity. General compilation messages grow
+3034to3048, with14nullable-context warnings in6newtestfiles. CS0436source/import
+ambiguity and CS1701assembly-version warnings each retain1000observations but their
+per-path/message distributions differ; no identical or complete diagnostic claim
+is made. The normal compiler-traced209solution build and208normal build both have
+0warnings/errors. Manual extraction is complementary; raw diagnostics, unsupported
+manual path filtering and semantic-resolution limits remain explicit. No baseline,
+suppression, zero-findings, diagnostic-free extraction, CI/open-alert or release
+claim is introduced.
+
+218runs only affected recovery/artifact/overwrite/security-owner adversarial cases
+against the independent209normal compiled source snapshot:298cases pass3times,
+0failures/0skips, then the compiled inward dependency graph passes1case. All1620
+inputs and the normal source/test-consumer DLL and test binary hashes remain fixed.
+Its source/consumer Infrastructure SHA256 is22068DBF...; this is the separately
+compiled exact-source snapshot, not byte equality with the git-revision-bearing
+normal208App DLL used by crash214. No208mutation input or binary is touched.
+
+The remaining required verdict is full Infrastructure208Complete mutation. Earlier
+whole101/178failures remain failures. Other-layer reuse is exactly mapped in212;
+closure/format/security/negative/coverage stages retain their own original results
+and scope rather than representing a new single all-green script invocation.
+Current continuation pointer is active-acceptance-checkpoint-219.json. All work
+remains unpublished; no main/release/directory merge or cleanup occurs.
+## Stopped on explicit instruction — November28 03:33 JST
+
+hide first requested a clean stopping point and closing documents, then explicitly
+said "途中で止めよう。". That later instruction supersedes waiting for208completion.
+The exact mutation208launcher was admitted by PID/parent/command/UTC creation ticks
+and stopped with its process tree at03:31:55. All14recorded owned processes and
+subsequent children are absent. All1620frozen inputs remain unchanged. Initial
+observer admission refused because reparsing a DateTime through culture text lost
+fractional seconds; no process was stopped by that refused check.223preserves it
+and the corrected exact-tick observation.
+
+208mutation exits-1; its wrapper exits1because no completed mutation report exists.
+There is no final score, survivor verdict or whole-acceptance result. Full178's
+88.15331%failure and101's81.56%failure remain. Successful208coverage,209CodeQL,
+214process-crash and218affected boundaries remain their separate evidence.
+No correction, retry, new build/product test, public write or cleanup follows.
+224confirms the ordinary Infrastructure and App DLLs still match AF9170A6...,
+while the test-consumer hash1360A2CB... differs. It must be restored/checked before
+any future ordinary test; nothing tests against it now. Unfinished roots/logs and
+all earlier results remain on D. No owned verification process remains running.
+
+Exact stop command: pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261127/stop-mutation-223.ps1 (exit0).
+Evidence: mutation-stop-owned-processes-223.json, mutation-interrupted-223.json,
+stopped-consumer-224.json and stopped-checkpoint-224.json.
+Read the [closing daily report](../reports/2026-11-28-transfer-conflicts-daily-report.md)
+and [closing handoff](../handoffs/2026-11-28-transfer-conflicts-handoff.md).
+Normal-hook local documentation save is the remaining closure step. Resume only
+on hide's new instruction; directory merge/publication/main/release remain outside
+current authority. There is no new cleanup rejection or hide-execution hold.
