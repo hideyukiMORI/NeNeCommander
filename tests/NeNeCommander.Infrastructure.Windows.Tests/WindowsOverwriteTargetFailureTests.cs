@@ -116,14 +116,9 @@ public sealed class WindowsOverwriteTargetFailureTests
 
     private static async Task RequireStopAsync(WindowsOverwriteAttempt attempt, string failure, CancellationToken cancellationToken)
     {
-        if (failure == "throw")
-        {
-            _ = await Assert.ThrowsAsync<IOException>(() => attempt.OverwritePreparedAsync(cancellationToken));
-        }
-        else
-        {
-            _ = await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.OverwritePreparedAsync(cancellationToken));
-        }
+        _ = failure == "throw"
+            ? (Exception)await Assert.ThrowsAsync<IOException>(() => attempt.OverwritePreparedAsync(cancellationToken))
+            : await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.OverwritePreparedAsync(cancellationToken));
     }
 
     private static string ExpectedTarget(string failure)

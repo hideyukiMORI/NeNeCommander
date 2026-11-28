@@ -27,25 +27,19 @@ internal sealed class WindowsOverwritePreparationFixture : IDisposable
     {
         TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsOverwritePairLease? pair = null;
-        bool completed = false;
         try
         {
             WindowsLocalPath sourcePath = Parse(root.WriteFile("source", source));
             WindowsLocalPath targetPath = Parse(root.WriteFile(targetName, target));
             FileEntrySnapshot snapshot = FileEntrySnapshot.Create(sourcePath, WindowsLocalEntryIdentity.Describe(new FileInfo(sourcePath.CanonicalText)), DeletionCapability.NotRequested);
             pair = WindowsOverwritePairLease.Open(snapshot, targetPath, driveBoundary ?? new WindowsDriveBoundary());
-            WindowsOverwritePreparationFixture fixture = new(root, pair);
-            pair = null;
-            completed = true;
-            return fixture;
+            return new WindowsOverwritePreparationFixture(root, pair);
         }
-        finally
+        catch
         {
             pair?.Dispose();
-            if (!completed)
-            {
-                root.Dispose();
-            }
+            root.Dispose();
+            throw;
         }
     }
 

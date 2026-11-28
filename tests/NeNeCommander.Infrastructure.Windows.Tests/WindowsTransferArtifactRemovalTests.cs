@@ -91,6 +91,14 @@ public sealed class WindowsTransferArtifactRemovalTests
     public void RemoveWhenCloseReentersDisposeKeepsReferenceUntilInvalidation()
     {
         using WindowsTransferRemovalFixture fixture = WindowsTransferRemovalFixture.Create();
+        using SafeFileHandle replacement = RemoveWithReentrantClose(fixture);
+        Assert.IsTrue(fixture.Handle.IsClosed);
+        fixture.Handle.Dispose();
+        Assert.AreEqual(7L, RandomAccess.GetLength(replacement));
+    }
+
+    private static SafeFileHandle RemoveWithReentrantClose(WindowsTransferRemovalFixture fixture)
+    {
         SafeFileHandle? replacement = null;
         WindowsTransferArtifactRemoval removal = new(WindowsTransferArtifactRemoval.Native.RequestDisposition, native =>
         {
@@ -105,14 +113,13 @@ public sealed class WindowsTransferArtifactRemovalTests
         try
         {
             removal.Remove(fixture.Handle);
-            Assert.IsTrue(fixture.Handle.IsClosed);
             Assert.IsNotNull(replacement);
-            fixture.Handle.Dispose();
-            Assert.AreEqual(7L, RandomAccess.GetLength(replacement));
+            return replacement;
         }
-        finally
+        catch
         {
             replacement?.Dispose();
+            throw;
         }
     }
 }

@@ -24,22 +24,17 @@ internal sealed class WindowsTransferHeldEntry : IDisposable
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(handle);
-        bool accepted = false;
         try
         {
             WindowsLocalHandleFacts facts = ReadAdmitted(handle);
             WindowsTransferPathObservation.Require(handle, path);
             VerifiedEntrySnapshot baseline = WindowsLocalEntryIdentity.CaptureHeld(path, facts);
-            WindowsTransferHeldEntry entry = new(path, handle, baseline);
-            accepted = true;
-            return entry;
+            return new WindowsTransferHeldEntry(path, handle, baseline);
         }
-        finally
+        catch
         {
-            if (!accepted)
-            {
-                handle.Dispose();
-            }
+            handle.Dispose();
+            throw;
         }
     }
 

@@ -32,9 +32,18 @@ public sealed class TransferResultFactsTests
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
         Assert.HasCount(3, rows);
-        Assert.AreEqual("TransferFailureCopy", rows[0]);
-        Assert.AreEqual(kind + "|" + pathKind + ":D:\\right\\source", rows[1]);
-        Assert.AreEqual("source-kept|C:\\left\\source", rows[2]);
+        Assert.AreEqual("The copy stage did not complete.", rows[0]);
+        string expectedPath = pathKind == "current" ? "Observed path: D:\\right\\source" : "Last known path: D:\\right\\source";
+        string expectedTarget = kind switch
+        {
+            "untouched" => "Destination not changed by this operation.",
+            "original" => "Destination contents checked: unchanged.",
+            "uncertain" => "Destination contents may have changed. Not verified.",
+            "desired" => "Destination contents verified against the source.",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+        Assert.AreEqual(expectedTarget + "\n" + expectedPath, rows[1]);
+        Assert.AreEqual("Source not removed by this operation. Original path: C:\\left\\source", rows[2]);
         Assert.AreEqual(0, detail.Copied);
         Assert.AreEqual(0, detail.SourceDeleted);
     }
@@ -58,13 +67,13 @@ public sealed class TransferResultFactsTests
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
         Assert.HasCount(7, rows);
-        Assert.AreEqual("TransferFailureCopy", rows[0]);
-        Assert.AreEqual("desired|last:D:\\right\\source", rows[1]);
-        Assert.AreEqual("source-kept|C:\\left\\source", rows[2]);
-        Assert.AreEqual("TransferArtifactOriginalTitle|TransferArtifactContentsVerified|TransferArtifactKept|last:D:\\right\\original", rows[3]);
-        Assert.AreEqual("TransferArtifactPreparedTitle|TransferArtifactContentsPartial|TransferArtifactRemovalUnconfirmed|last:D:\\right\\prepared", rows[4]);
-        Assert.AreEqual("TransferArtifactRecoveryTitle|TransferArtifactMappingVerified|TransferArtifactRemoved|last:D:\\right\\recovery", rows[5]);
-        Assert.AreEqual("TransferRecoveryInspectionNotice", rows[6]);
+        Assert.AreEqual("The copy stage did not complete.", rows[0]);
+        Assert.AreEqual("Destination contents verified against the source.\nLast known path: D:\\right\\source", rows[1]);
+        Assert.AreEqual("Source not removed by this operation. Original path: C:\\left\\source", rows[2]);
+        Assert.AreEqual("Earlier-content backup\nContents were verified.\nKept by this operation.\nLast known path: D:\\right\\original", rows[3]);
+        Assert.AreEqual("Prepared copy\nContents are incomplete.\nRemoval was attempted; whether the saved file remains is unconfirmed.\nLast known path: D:\\right\\prepared", rows[4]);
+        Assert.AreEqual("Recovery record\nThe initial recovery record was checked; it may describe an incomplete operation.\nThis operation removed its saved file entry.\nLast known path: D:\\right\\recovery", rows[5]);
+        Assert.AreEqual("Saved observations may be outdated. Compare retained files with the current files before recovery. Nothing is restored automatically.", rows[6]);
         Assert.AreSame(FileOperationCompletionKind.PartiallyCompleted, detail.Outcome.Completion);
     }
 
@@ -81,9 +90,9 @@ public sealed class TransferResultFactsTests
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
         Assert.HasCount(4, rows);
-        Assert.AreEqual("untouched|last:D:\\right\\source", rows[0]);
-        Assert.AreEqual("TransferArtifactOriginalTitle|unidentified|candidate:D:\\right\\candidate", rows[2]);
-        Assert.AreEqual("TransferRecoveryInspectionNotice", rows[3]);
+        Assert.AreEqual("Destination not changed by this operation.\nLast known path: D:\\right\\source", rows[0]);
+        Assert.AreEqual("Earlier-content backup\nCreation could not be confirmed. Attempted path: D:\\right\\candidate", rows[2]);
+        Assert.AreEqual("Saved observations may be outdated. Compare retained files with the current files before recovery. Nothing is restored automatically.", rows[3]);
         Assert.AreSame(FileOperationCompletionKind.Cancelled, detail.Outcome.Completion);
     }
 
@@ -100,7 +109,7 @@ public sealed class TransferResultFactsTests
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
         Assert.HasCount(3, rows);
-        Assert.AreEqual("TransferArtifactOriginalTitle|TransferArtifactContentsUnverified|TransferArtifactRemoved|last:D:\\right\\original", rows[2]);
+        Assert.AreEqual("Earlier-content backup\nContents were not verified.\nThis operation removed its saved file entry.\nLast known path: D:\\right\\original", rows[2]);
         Assert.AreSame(FileOperationCompletionKind.Succeeded, detail.Outcome.Completion);
     }
 

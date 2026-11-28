@@ -3,8 +3,8 @@ NeNe Commander Preview — Windows 11 x64
 This is an early prerelease. The one-time display, keyboard and high-contrast
 confirmation was reported complete by the maintainer on 2026-11-19 (Issue #94).
 The exact selected display scale and independent captures were not recorded.
-Launch and all live provider environments have not been verified for this shipping
-package. Report problems through the project issue tracker.
+Not every live provider environment has been verified. See the release notes for
+the checks performed on this package. Report problems through the issue tracker.
 
 Start
 1. Extract the whole ZIP into a folder where this account can read and run files.
@@ -47,6 +47,22 @@ Windows association launch. UNC mutations and mapped-network-drive mutations are
 not supported. WSL/UNC launch rejects incompatible names and paths of 260 or more
 UTF-16 code units. Provider capabilities and failures are reported by the app.
 There is no embedded editor, terminal, archive tool, FTP client or cloud protocol.
+
+Changes in beta.6
+Ctrl+A selects all visible entries, * inverts their selection, and Shift with
+Up/Down, PageUp/PageDown, Home/End extends a range. Escape clears file-list marks.
+Press / to filter the current folder's loaded names. Every entered word must
+occur in the name. Enter keeps the filter and returns to the list; Escape in
+the filter editor clears it. This is not recursive or fuzzy search.
+
+Copy and move conflicts can explicitly overwrite an eligible existing file's
+contents on a supported local NTFS drive. The confirmation shows the original
+source and destination details and any other eligible files included by the
+all-conflicts choice. Folder merging is not available.
+Before destination writes, the app prepares retained files and a recovery record.
+An interrupted operation may have changed destination contents. Read the result's
+separate source, destination and retained-file observations before retrying or
+recovering; saved observations can become outdated. There is no automatic restore.
 
 Changes in beta.4
 The command palette uses a smaller width and one shared target-pane description.

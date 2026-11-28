@@ -28,7 +28,6 @@ internal sealed class WindowsTransferRemovalFixture : IDisposable
         TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         WindowsTransferPathLease? parent = null;
         SafeFileHandle? handle = null;
-        bool completed = false;
         try
         {
             parent = WindowsTransferPathLease.Open(Parse(root.WriteFile("anchor", "original")), FileAccess.Read, new WindowsDriveBoundary());
@@ -36,18 +35,14 @@ internal sealed class WindowsTransferRemovalFixture : IDisposable
             using WindowsTransferSecurityDescriptor security = WindowsTransferSecurityDescriptor.CaptureCurrent();
             handle = WindowsTransferEntryOpen.CreateArtifact(parent, path, security);
             RandomAccess.Write(handle, [1, 2, 3], 0);
-            WindowsTransferRemovalFixture fixture = new(root, parent, handle, path);
-            completed = true;
-            return fixture;
+            return new WindowsTransferRemovalFixture(root, parent, handle, path);
         }
-        finally
+        catch
         {
-            if (!completed)
-            {
-                handle?.Dispose();
-                parent?.Dispose();
-                root.Dispose();
-            }
+            handle?.Dispose();
+            parent?.Dispose();
+            root.Dispose();
+            throw;
         }
     }
 

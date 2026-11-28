@@ -30,12 +30,12 @@ public sealed class ConflictModalTextTests
         Assert.AreSame(TransferConflictDecision.Cancel, active.InitialFocus);
         Assert.HasCount(1, active.OtherOverwriteConflicts);
         Assert.AreSame(last, active.OtherOverwriteConflicts[0]);
-        Assert.AreEqual("Source: C:\\left\\first\nFile / 17 B / 2026-11-25 00:00", text.SourceText);
-        Assert.AreEqual("Target: D:\\right\\first\nFile / 17 B / 2026-11-25 00:00", text.TargetText);
-        Assert.AreEqual("Overwrite: D:\\right\\first", text.OverwriteActionName);
-        Assert.AreEqual("Other eligible files: 1", text.OverwriteScopeText);
+        Assert.AreEqual("Source: C:\\left\\first\nFile · 17 B · Modified: 2026-11-25 00:00", text.SourceText);
+        Assert.AreEqual("Destination: D:\\right\\first\nFile · 17 B · Modified: 2026-11-25 00:00", text.TargetText);
+        Assert.AreEqual("Overwrite contents of D:\\right\\first", text.OverwriteActionName);
+        Assert.AreEqual("Also overwrite the 1 other eligible files listed below", text.OverwriteScopeText);
         Assert.HasCount(1, text.OtherOverwriteRows);
-        Assert.AreEqual("Source: C:\\left\\last\nFile / 17 B / 2026-11-25 00:00", text.OtherOverwriteRows[0].SourceText);
+        Assert.AreEqual("Source: C:\\left\\last\nFile · 17 B · Modified: 2026-11-25 00:00", text.OtherOverwriteRows[0].SourceText);
         Assert.AreEqual(string.Empty, text.UnavailableText);
     }
 
@@ -57,7 +57,7 @@ public sealed class ConflictModalTextTests
         Assert.AreSame(((ActiveConflictModal)first.ConflictModal).SourceState, active.SourceState);
         Assert.AreSame(((ActiveConflictModal)first.ConflictModal).Overwrite, active.Overwrite);
         Assert.IsFalse(active.CanOverwriteAll);
-        Assert.AreEqual("Target: D:\\right\\first\nFile / 17 B / 2026-11-25 09:00", text.TargetText);
+        Assert.AreEqual("Destination: D:\\right\\first\nFile · 17 B · Modified: 2026-11-25 09:00", text.TargetText);
     }
 
     /// <summary>Unavailable first rows cannot expose overwrite-all even when another row is eligible.</summary>
@@ -84,9 +84,9 @@ public sealed class ConflictModalTextTests
         Assert.IsFalse(active.CanOverwriteAll);
         Assert.IsEmpty(active.OtherOverwriteConflicts);
         Assert.IsEmpty(text.OtherOverwriteRows);
-        Assert.AreEqual(ReasonKey(kind), text.UnavailableText);
+        Assert.AreEqual(ReasonText(kind), text.UnavailableText);
         Assert.AreEqual("Source: C:\\left\\first", text.SourceText);
-        Assert.AreEqual("Target: D:\\right\\first", text.TargetText);
+        Assert.AreEqual("Destination: D:\\right\\first", text.TargetText);
     }
 
     /// <summary>Absent display inputs are rejected instead of producing incomplete consent text.</summary>
@@ -118,18 +118,18 @@ public sealed class ConflictModalTextTests
         };
     }
 
-    private static string ReasonKey(string kind)
+    private static string ReasonText(string kind)
     {
         return kind switch
         {
-            "Folder" => "ConflictOverwriteUnavailableFolder",
-            "UnsupportedLocation" => "ConflictOverwriteUnavailableLocation",
-            "SameObject" => "ConflictOverwriteUnavailableAlias",
-            "MultipleLinks" => "ConflictOverwriteUnavailableLinks",
-            "SpecialAttributes" => "ConflictOverwriteUnavailableAttributes",
-            "StreamsUnconfirmed" => "ConflictOverwriteUnavailableStreams",
-            "ReservedTarget" => "ConflictOverwriteUnavailableReservation",
-            "Unconfirmed" => "ConflictOverwriteUnavailableUnconfirmed",
+            "Folder" => "Contents overwrite is unavailable for folders.",
+            "UnsupportedLocation" => "Contents overwrite requires files on a supported local NTFS drive.",
+            "SameObject" => "Source and destination refer to the same file. Contents overwrite is unavailable.",
+            "MultipleLinks" => "A file has multiple hardlinks. Contents overwrite is unavailable.",
+            "SpecialAttributes" => "A file or folder has unsupported attributes or a link. Contents overwrite is unavailable.",
+            "StreamsUnconfirmed" => "The file could not be confirmed to have only its ordinary contents. Additional data streams are not supported.",
+            "ReservedTarget" => "Another selected item reserves this destination. No existing file has been confirmed for overwrite.",
+            "Unconfirmed" => "The required file conditions could not be confirmed. Contents overwrite is unavailable.",
             _ => throw new ArgumentOutOfRangeException(nameof(kind)),
         };
     }

@@ -91,14 +91,9 @@ public sealed class WindowsOverwritePreparationBaselineTests
         using WindowsOverwriteAttempt attempt = fixture.Attempt(new DeterministicIdentifierSource(), io, WindowsTransferArtifactQueries.Native);
         observed = attempt;
 
-        if (failure == "throw")
-        {
-            _ = await Assert.ThrowsAsync<IOException>(() => attempt.PrepareAsync(cancellation.Token));
-        }
-        else
-        {
-            _ = await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.PrepareAsync(cancellation.Token));
-        }
+        _ = failure == "throw"
+            ? (Exception)await Assert.ThrowsAsync<IOException>(() => attempt.PrepareAsync(cancellation.Token))
+            : await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.PrepareAsync(cancellation.Token));
         RequireHistoricalEvidence(WindowsOverwritePreparationFixture.Artifact(attempt, role), before);
         fixture.RequireUntouched(attempt, "source", "target");
     }

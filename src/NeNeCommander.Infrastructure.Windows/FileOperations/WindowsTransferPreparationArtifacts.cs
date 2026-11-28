@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NeNeCommander.Application.FileOperations;
 
@@ -25,20 +26,13 @@ internal sealed class WindowsTransferPreparationArtifacts : IDisposable
     {
         ArgumentNullException.ThrowIfNull(names);
         ArgumentNullException.ThrowIfNull(parent);
-        ArgumentNullException.ThrowIfNull(queries);
         return new WindowsTransferPreparationArtifacts(names, parent, queries);
     }
 
     internal ProviderStepReceipt Snapshot(ProviderTargetObservation target)
     {
-        List<TransferArtifactReceipt> receipts = [];
-        foreach (WindowsTransferArtifactOwner owner in new[] { Recovery, Backup, Prepared })
-        {
-            if (owner.Receipt is TransferArtifactReceipt receipt)
-            {
-                receipts.Add(receipt);
-            }
-        }
+        List<TransferArtifactReceipt> receipts = [.. new[] { Recovery, Backup, Prepared }
+            .Select(owner => owner.Receipt).OfType<TransferArtifactReceipt>()];
         return ProviderStepReceipt.Create([], target, receipts);
     }
 

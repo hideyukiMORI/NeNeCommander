@@ -35,8 +35,8 @@ public sealed class PaneNavigationActionTests
         Assert.IsTrue(rightAction.IsVisible && rightAction.IsEnabled);
         Assert.IsFalse(rightHidden.IsVisible || rightHidden.IsEnabled);
         Assert.IsFalse(leftHidden.IsVisible || leftHidden.IsEnabled);
-        Assert.AreEqual("RIGHT (canonical shortcut)", leftAction.ComposeName(Localize));
-        Assert.AreEqual("LEFT (canonical shortcut)", rightAction.ComposeName(Localize));
+        Assert.AreEqual("Open this folder in the right pane (Ctrl+E)", leftAction.ComposeName(PresentationResourceCatalog.English.Get));
+        Assert.AreEqual("Open this folder in the left pane (Ctrl+E)", rightAction.ComposeName(PresentationResourceCatalog.English.Get));
         Assert.AreSame(before.Left, activated.Left);
         Assert.AreSame(before.Right, activated.Right);
     }
@@ -161,17 +161,6 @@ public sealed class PaneNavigationActionTests
 
         TargetInvocationException failure = Assert.ThrowsExactly<TargetInvocationException>(() => compose.Invoke(action, [null]));
         _ = Assert.IsInstanceOfType<ArgumentNullException>(failure.InnerException);
-    }
-
-    private static string Localize(string key)
-    {
-        return key switch
-        {
-            "OpenFolderInRightPaneFormat" => "RIGHT ({0})",
-            "OpenFolderInLeftPaneFormat" => "LEFT ({0})",
-            "KeyLabelCtrlE" => "canonical shortcut",
-            _ => throw new AssertFailedException("Unexpected resource " + key),
-        };
     }
 
     private static async Task ListAsync(DualPaneSession panes, ScriptedDirectoryReadPort left, ScriptedDirectoryReadPort right)

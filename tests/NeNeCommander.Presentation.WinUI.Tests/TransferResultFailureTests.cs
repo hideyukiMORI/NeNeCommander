@@ -24,7 +24,7 @@ public sealed class TransferResultFailureTests
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
         Assert.AreEqual(expected, rows[0]);
-        Assert.AreEqual("desired|last:D:\\right\\source", rows[1]);
+        Assert.AreEqual("Destination contents verified against the source.\nLast known path: D:\\right\\source", rows[1]);
     }
 
     /// <summary>Supplies all twelve closed canonical operation failures.</summary>
@@ -32,18 +32,18 @@ public sealed class TransferResultFailureTests
     {
         return
         [
-            [FileOperationFailureKind.Copy, "TransferFailureCopy"],
-            [FileOperationFailureKind.Move, "TransferFailureMove"],
-            [FileOperationFailureKind.Verification, "TransferFailureVerification"],
-            [FileOperationFailureKind.Delete, "TransferFailureDelete"],
-            [FileOperationFailureKind.Conflict, "TransferFailureConflict"],
-            [FileOperationFailureKind.IdentityChanged, "TransferFailureIdentityChanged"],
-            [FileOperationFailureKind.Reentrant, "TransferFailureReentrant"],
-            [FileOperationFailureKind.Inspection, "TransferFailureInspection"],
-            [FileOperationFailureKind.ConfirmationRequired, "TransferFailureConfirmation"],
-            [FileOperationFailureKind.ProviderUnavailable, "TransferFailureUnavailable"],
-            [FileOperationFailureKind.AccessDenied, "TransferFailureAccessDenied"],
-            [FileOperationFailureKind.NotFound, "TransferFailureNotFound"],
+            [FileOperationFailureKind.Copy, "The copy stage did not complete."],
+            [FileOperationFailureKind.Move, "The move stage did not complete."],
+            [FileOperationFailureKind.Verification, "The copied contents could not be verified."],
+            [FileOperationFailureKind.Delete, "Source removal did not complete."],
+            [FileOperationFailureKind.Conflict, "The destination conflicts with another entry."],
+            [FileOperationFailureKind.IdentityChanged, "A file or its location changed after confirmation."],
+            [FileOperationFailureKind.Reentrant, "Another operation already owns this request."],
+            [FileOperationFailureKind.Inspection, "Required file facts could not be inspected."],
+            [FileOperationFailureKind.ConfirmationRequired, "Required deletion confirmation is missing."],
+            [FileOperationFailureKind.ProviderUnavailable, "The required file operation is unavailable."],
+            [FileOperationFailureKind.AccessDenied, "Access to a required file or folder was denied."],
+            [FileOperationFailureKind.NotFound, "A required file or folder was not found."],
         ];
     }
 }

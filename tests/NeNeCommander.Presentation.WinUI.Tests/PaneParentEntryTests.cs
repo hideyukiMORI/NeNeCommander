@@ -81,13 +81,7 @@ public sealed class PaneParentEntryTests
     [TestMethod]
     public void ComposeParentNameUsesLocalizedCommandAndCanonicalShortcut()
     {
-        Assert.AreEqual("PARENT [ALT-UP]", PaneNavigationAction.ComposeParentName(key => key switch
-        {
-            "PaneNavigateParent" => "PARENT",
-            "KeyLabelAltUp" => "ALT-UP",
-            "CommandEntryToolTipFormat" => "{0} [{1}]",
-            _ => throw new AssertFailedException("Unexpected resource " + key),
-        }));
+        Assert.AreEqual("Go to parent folder (Alt+↑)", PaneNavigationAction.ComposeParentName(PresentationResourceCatalog.English.Get));
     }
 
     /// <summary>Proves missing mapping or localization inputs fail at their declared boundary.</summary>

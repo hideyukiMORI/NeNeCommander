@@ -63,16 +63,16 @@ public sealed class PaneKeyboardSelectionTests
         PaneState first = CreateState(1);
         PaneState last = PaneReducer.Apply(first, UserIntent.FocusLast);
 
-        foreach (UserIntent intent in new[] { UserIntent.SelectRangePrevious, UserIntent.SelectRangeHalfPageUp, UserIntent.SelectRangeFirst })
+        foreach (PaneState ranged in new[] { UserIntent.SelectRangePrevious, UserIntent.SelectRangeHalfPageUp, UserIntent.SelectRangeFirst }
+            .Select(intent => PaneReducer.Apply(first, intent)))
         {
-            PaneState ranged = PaneReducer.Apply(first, intent);
             Assert.AreSame(first.FocusItem, ranged.FocusItem);
             Assert.AreSame(first.FocusItem, ranged.SelectionAnchor);
             CollectionAssert.AreEqual(new[] { first.FocusItem }, ranged.Selection.ToArray());
         }
-        foreach (UserIntent intent in new[] { UserIntent.SelectRangeNext, UserIntent.SelectRangeHalfPageDown, UserIntent.SelectRangeLast })
+        foreach (PaneState ranged in new[] { UserIntent.SelectRangeNext, UserIntent.SelectRangeHalfPageDown, UserIntent.SelectRangeLast }
+            .Select(intent => PaneReducer.Apply(last, intent)))
         {
-            PaneState ranged = PaneReducer.Apply(last, intent);
             Assert.AreSame(last.FocusItem, ranged.FocusItem);
             Assert.AreSame(last.FocusItem, ranged.SelectionAnchor);
             CollectionAssert.AreEqual(new[] { last.FocusItem }, ranged.Selection.ToArray());

@@ -53,14 +53,8 @@ public sealed class WindowsOverwriteContinuationTests
         Assert.AreEqual(0, context.Posts, $"The {stage} stage depended on its caller context at suspension {suspension}.");
         Assert.AreEqual("source", fixture.Read(fixture.Pair.Source.Path));
         Assert.AreEqual(stage == "prepare" ? "target" : "source", fixture.Read(fixture.Pair.Target.Path));
-        if (stage == "prepare")
-        {
-            _ = Assert.IsInstanceOfType<UntouchedTransferTarget>(attempt.Receipt.Target);
-        }
-        else
-        {
-            _ = Assert.IsInstanceOfType<DesiredTargetContentVerified>(attempt.Receipt.Target);
-        }
+        Assert.IsInstanceOfType(attempt.Receipt.Target,
+            stage == "prepare" ? typeof(UntouchedTransferTarget) : typeof(DesiredTargetContentVerified));
         if (stage == "cleanup")
         {
             Assert.IsTrue(attempt.Receipt.Artifacts.OfType<IdentifiedTransferArtifact>().All(artifact => artifact.Link == ArtifactLinkObservation.Removed));

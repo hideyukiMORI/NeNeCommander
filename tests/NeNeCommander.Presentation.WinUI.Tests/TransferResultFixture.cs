@@ -64,22 +64,7 @@ internal static class TransferResultFixture
 
     internal static string Localize(string key)
     {
-        return key switch
-        {
-            "TransferObservedCurrentPath" => "current:{0}",
-            "TransferObservedLastKnownPath" => "last:{0}",
-            "TransferTargetUntouched" => "untouched|{0}",
-            "TransferTargetOriginalVerified" => "original|{0}",
-            "TransferTargetMayHaveChanged" => "uncertain|{0}",
-            "TransferTargetDesiredVerified" => "desired|{0}",
-            "TransferOverwriteSourceRetained" => "source-kept|{0}",
-            "TransferOverwriteSourceRemoved" => "source-removed|{0}",
-            "TransferOverwriteSourcePartlyRemoved" => "source-partly-removed|{0}",
-            "TransferOverwriteSourceUnconfirmed" => "source-unconfirmed|{0}",
-            "TransferArtifactObservedFormat" => "{0}|{1}|{2}|{3}",
-            "TransferArtifactAttemptedFormat" => "{0}|unidentified|candidate:{1}",
-            _ => key,
-        };
+        return PresentationResourceCatalog.English.Get(key);
     }
     private sealed class ProgressSink : IFileOperationProgressObserver
     {

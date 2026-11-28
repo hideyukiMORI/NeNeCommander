@@ -171,10 +171,12 @@ public sealed class WindowsTransferPathLeaseTests
             "invalid" => (FileAccess)42,
             _ => FileAccess.Read
         };
-        _ = Assert.Throws<ArgumentException>(() =>
+        ArgumentException failure = Assert.ThrowsExactly<ArgumentException>(() =>
         {
             using WindowsTransferPathLease lease = WindowsTransferPathLease.Open(path, access, new WindowsDriveBoundary());
         });
+        Assert.AreEqual("path", failure.ParamName);
+        Assert.Contains("file path and read or read-write access", failure.Message);
     }
 
     /// <summary>Proves drive reclassification is rejected both initially and when an existing lease revalidates.</summary>
