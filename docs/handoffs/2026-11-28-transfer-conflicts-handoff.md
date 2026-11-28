@@ -1,5 +1,51 @@
 # 2026-11-28 引き継ぎ — Issue #560 上書き処理
 
+## 現在 — 2026-11-28 15:54 JST
+
+未公開のファイル上書き実装に対するローカル検証結果を整理済み。全Infrastructure
+mutation 225は90.21739130434783%で90%基準を満たした。11:14:34〜15:42:24、
+元logの所要時間は04:27:49。Killed 2,648、Timeout 174、Survived 214、
+NoCoverage 92、Ignored 676、CompileError 719。全1,620入力は不変。
+通常consumer復元buildも警告/エラー0で完了し、通常DLLとのhash一致を確認した。
+
+現在の証拠rootは D:/NeNeCommander/evidence/transfer-conflicts-20261128。
+mutation-complete-225.json、normal-consumer-after-225.json、元report/logを正本とし、
+final-evidence-ledger-232.jsonで今回の実測と既存21記録を対応づけた。
+225は終了済み。成功済みで入力が変わらない検証を再実行しない。
+最終文書は通常hookでローカル保存し、確定SHAはcommit-receipt-234.jsonで確認する。
+
+hideの指摘を受け、開発手順に層内での検証分割・必要項目の選択・完了証拠再利用・
+所要時間/完了件数/根拠あるETAを明記した。runnerの分割・中断再開機能を実装した
+ものではない。閾値・除外・canonical commandは変更していない。
+
+次の具体的な作業案は publication-draft-233.md。確認したファイル実体の内容上書きと
+対応する検証・文書を公開し、Draft PRからmain統合まで進める案として準備する。
+hideの既存許可は未公開の接続・専用ファイル検証までなので、実行前に公開/mainの
+許可を確認する。フォルダー内容mergeと新releaseは含めず、Issue #560を閉じない。
+15:49:58のGitHub再読取ではmain f7c24b6、Issue #560 open、当該headのPRなし。
+
+元の失敗・途中停止・CodeQLの診断と8未解決型・既存Helpの複雑度findingを保持する。
+単一の全canonical/deep-review成功、物理キー/IME/音声/画面受入れ/電源断を主張しない。
+未統合のworktreeと11月25〜28日の一時出力、恒久証拠を保持する。後片付け待ちはない。
+以下の再開・停止記述は各時点の履歴であり、現在の実行状態ではない。
+
+## 再開 — 2026-11-28 11:18 JST
+
+hideの「日報と引き継ぎ書を読んで対応を続けて」で再開。停止時の製品1,620入力と
+現在のpath/hashを照合し、作業ツリーは522b779でclean。通常consumerを対象buildで
+復元し、警告/エラー0、通常製品DLLとのhash一致を確認した。全Infrastructure
+mutation225を11:14:35に開始。Complete/VSTest/concurrency4/90%基準は不変で、
+通常テスト・coverage・他層・CodeQL・nativeの変更していない成功証拠を再利用する。
+
+現在の証拠は D:/NeNeCommander/evidence/transfer-conflicts-20261128。
+run-infra-mutation-225.ps1、started-225.json、stages-225.jsonと元logが実行を記録する。
+完了判定はmutation-complete-225.jsonと元report、通常consumer復元は
+normal-consumer-after-225.jsonを確認する。未生成を成功としない。実行中は製品・
+テスト・tool入力やtest binaryを変更せず、同じ検証を重複起動しない。
+今回の専用一時領域はD:/NeNeCommander/outputs/transfer-conflicts-20261128/proof-temp-225。
+公開/main/新release/フォルダー内容mergeは引き続き未承認。以下は今朝の停止時点の履歴。
+
+
 状態: 停止。最終更新: 2026-11-28 03:33 JST。hideの「途中で止めよう」に従い、全Infrastructure mutation208を中断した。新たな修正・再実行は始めていない。再開はhideの指示を待つ。
 
 ## 正本と許可範囲

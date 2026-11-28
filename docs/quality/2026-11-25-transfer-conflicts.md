@@ -1,6 +1,6 @@
 # Transfer conflict investigation — 2026-11-25
 
-Status: resumed on November 26; internal owned-artifact cleanup accepted; source deletion, provider activation, full destructive acceptance and directory merge remain pending.
+Status: unpublished file-overwrite implementation and local evidence reconciliation complete on November 28. Infrastructure Complete mutation passes 90.217%; publication/main integration, a new release and directory merge remain unapproved. Environmental and analysis limits below remain.
 
 Issue #560; current branch feat/560-transfer-resumption on accepted main ad85de1.
 Original feat/560-transfer-conflicts at15499d8 and every historical record remain.
@@ -2678,3 +2678,100 @@ and [closing handoff](../handoffs/2026-11-28-transfer-conflicts-handoff.md).
 Normal-hook local documentation save is the remaining closure step. Resume only
 on hide's new instruction; directory merge/publication/main/release remain outside
 current authority. There is no new cleanup rejection or hide-execution hold.
+## Resumed unchanged Infrastructure acceptance — November28 11:18 JST
+
+hide requests continuation from the daily report/handoff. Current local522b779 is
+clean and all1620final-infra-inputs-206 hashes match. Remote main remainsf7c24b6;
+Issue560 is open and no PR exists for feat/560-transfer-resumption at readback.
+The prior208interruption is not a final score;101/178remain original failures.
+
+Command: pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261128/run-infra-mutation-225.ps1.
+The new dedicated output preserves every previous run. Targeted normal test-consumer
+build passes0warnings/errors, and normal/test Infrastructure DLLs match before
+mutation (F6B9E7FB35C91E5271741BAD071F5FD9AE49D99918F25B5D8D0D33214E385E3C).
+The informational revision differs from208App binaries; no exact-byte native reuse
+claim is added. Product/test/tool source inputs remain unchanged.
+
+Full Infrastructure Complete mutation begins11:14:35 using the unchanged repository
+VSTest/concurrency4/90threshold configuration, with no new exclusions or baseline.
+1704tests are discovered and4523mutants are created. The final verdict is pending.
+The driver verifies fixed inputs, records the original report even on threshold
+failure, and restores/checks the ordinary consumer afterward. Ordinary tests,
+coverage, other-layer mutation, CodeQL and native proof are not repeated.
+
+Evidence: started-225.json, normal-consumer-before-225.json, stages-225.json and
+mutation-infrastructure-225.log in the November28evidence root. Final expected
+receipts are mutation-complete-225.json and normal-consumer-after-225.json; absence
+is not success. Unfinished source/output/evidence remain on D. No public write,
+main integration, release, folder merge, shared input or settings change occurs.
+
+## Final unchanged mutation and local evidence reconciliation — November 28, 15:54 JST
+
+Run 225 completes at 15:42:24 with exit 0 and a Complete Infrastructure score of
+90.21739130434783%, above the unchanged 90% threshold. The original log reports
+04:27:49; stage timestamps span 11:14:34.396 to 15:42:24.728 JST. All 4,523 generated
+mutants have a terminal status: Killed 2,648, Timeout 174, Survived 214, NoCoverage 92,
+Ignored 676 and CompileError 719. The score denominator is 3,128; the report's
+ignored/compile-error statuses are preserved, not newly introduced exclusions.
+The raw report SHA256 is
+E878C5E8B79B85AD1DFDD5FB29577B1F50EB8FC2BF920172C8CBA21931A21F30.
+
+The driver restores the normal Infrastructure test consumer at 15:42:56; the build
+has 0 warnings/errors, and normal/consumer SHA256 both equal
+F6B9E7FB35C91E5271741BAD071F5FD9AE49D99918F25B5D8D0D33214E385E3C.
+Final reconciliation 232 independently reads the raw counts/report hash, checks
+all 1,620 fixed source/test/tool hashes and normal DLL parity, and indexes 21 prior
+receipts. There are no changed proof inputs or repeated ordinary tests.
+
+Evidence is under D:/NeNeCommander/evidence/transfer-conflicts-20261128:
+run-infra-mutation-225.ps1, stages-225.json, mutation-complete-225.json,
+normal-consumer-after-225.json and final-evidence-ledger-232.json.
+
+Exact executed wrapper:
+pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261128/run-infra-mutation-225.ps1
+
+Its recorded commands are:
+
+- From the worktree: dotnet build tests/NeNeCommander.Infrastructure.Windows.Tests/NeNeCommander.Infrastructure.Windows.Tests.csproj --configuration Release --no-restore (before/after mutation, both exit 0).
+- From tests/NeNeCommander.Infrastructure.Windows.Tests: dotnet stryker --config-file ../../stryker-config.json --project NeNeCommander.Infrastructure.Windows.csproj --break-at 90 --output D:/NeNeCommander/evidence/transfer-conflicts-20261128/mutation-225/NeNeCommander.Infrastructure.Windows --skip-version-check (exit 0).
+
+Final stage mapping retains each original result:
+
+- Canonical 75 passes conformance, negative/security and deterministic prerequisites
+  before its preserved newline failure. Corrected 88 supplies format/build/record
+  closure/Architecture 41; 201/205 supply final affected format/build/conformance.
+  Dependency audit 93 is reused with unchanged dependency inputs.
+- Domain 83/95, Application 104 and Presentation 89/117 retain their successful
+  ordinary tests, coverage, adversarial and Complete mutation, mapped by 212's
+  complete relevant path/hash sets (101/726/787 inputs).
+- Infrastructure 208 retains 1,684 passed tests, 20 environmental skips and
+  93.72923588039868% branches. Its interrupted mutation has no final score;
+  completed 225 supplies the new whole-layer result. Affected 218 supplies
+  298 adversarial cases repeated three times plus one compiled dependency check.
+- CodeQL 209/213/216/217 retains both 164-rule analyses, all 1,382 owned C# source
+  hashes in both archives, reviewed 169/34 findings and the explicit extraction
+  limits, including eight unresolved types. No zero-findings/complete-resolution
+  or CI/open-alert claim follows.
+- Process-crash 214 retains eight owned stops plus normal Move, 124 checks, against
+  exact normal 208 App dependencies. Revision-bearing 225 DLLs differ; source
+  equivalence does not claim byte equality between these runs.
+
+Original 101/178 whole Infrastructure failures, interrupted 208, Application 93's
+corrected failure and the existing Help complexity finding (exit 1) remain recorded.
+This closes the missing local mutation verdict. It is not a new successful
+single canonical/deep-review invocation, release or physical/IME/speech acceptance.
+
+hide's within-layer selection direction is recorded in DEVELOPMENT_WORKFLOW:
+select actual dependency units, reuse unchanged completed proof, focus corrections
+before broad acceptance, and record duration/completed units with evidence-based
+ETA. This is documentation, not an implemented runner partition/resume facility.
+No thresholds, exclusions, compiler policy or canonical command changes.
+
+Read-only GitHub observation at 15:49:58 confirms main f7c24b6, Issue #560 open
+and no PR for feat/560-transfer-resumption. The publication body is prepared locally
+as publication-draft-233.md; no public write/main/release/folder merge occurs.
+The five-document closure uses git diff --check and normal Commit/message hooks,
+whose exact completion is stored in commit-receipt-234.json. Product proof is reused.
+All unfinished worktree/output roots, including November 28 outputs, remain.
+The first closure-writer tool submission failed JavaScript parsing before executing
+any shell command or editing files; the corrected literal payload follows it.
