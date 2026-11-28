@@ -1,33 +1,37 @@
 # 2026-11-28 引き継ぎ — Issue #560 上書き処理
 
-## 現在 — 2026-11-28 15:54 JST
+## 現在 — 2026-11-28 17:18 JST
 
-未公開のファイル上書き実装に対するローカル検証結果を整理済み。全Infrastructure
-mutation 225は90.21739130434783%で90%基準を満たした。11:14:34〜15:42:24、
-元logの所要時間は04:27:49。Killed 2,648、Timeout 174、Survived 214、
-NoCoverage 92、Ignored 676、CompileError 719。全1,620入力は不変。
-通常consumer復元buildも警告/エラー0で完了し、通常DLLとのhash一致を確認した。
+ファイル上書き部分は[PR #591](https://github.com/hideyukiMORI/NeNeCommander/pull/591)で
+main 03ec283へ統合済み。承認候補736a0ffと全treeが一致し、本体mainもcleanに同期した。
+独立した最終レビューは必須修正なし。1,620入力不変、全Infrastructure mutation
+90.21739130434783%と通常consumer復元、各層・CodeQL・nativeの成功証拠を再利用した。
+単一の全canonical/deep成功や実機受入れへ読み替えない。
 
-現在の証拠rootは D:/NeNeCommander/evidence/transfer-conflicts-20261128。
-mutation-complete-225.json、normal-consumer-after-225.json、元report/logを正本とし、
-final-evidence-ledger-232.jsonで今回の実測と既存21記録を対応づけた。
-225は終了済み。成功済みで入力が変わらない検証を再実行しない。
-最終文書は通常hookでローカル保存し、確定SHAはcommit-receipt-234.jsonで確認する。
+90,223ファイル / 6,055,518,292 bytesを含む元の25ディレクトリを、同じNTFS内の
+恒久証拠領域へ移設済み。全ディレクトリIDと全相対ファイルmetadata、37リンク定義が
+前後一致した。保存先は証拠root内のcompleted-overwrite-files-252。
+コピーした全内容のhash検証を主張しない。絶対リンクは旧targetを保持し、移設後の
+到達性を保証しない。中断したZIPは成功証拠として使わず、元記録を保持する。
 
-hideの指摘を受け、開発手順に層内での検証分割・必要項目の選択・完了証拠再利用・
-所要時間/完了件数/根拠あるETAを明記した。runnerの分割・中断再開機能を実装した
-ものではない。閾値・除外・canonical commandは変更していない。
+生成物のなくなったcleanな作業worktreeだけを削除した。cleanup-completion-253が
+worktreeと11月25〜28日の4つの元output rootの不在を確認している。4つのoutputは
+恒久領域へ移設したもので、内容を消去していない。branch・commit・元evidence、
+他の未完了作業と試遊版は保持した。後片付け待ちはない。
 
-次の具体的な作業案は publication-draft-233.md。確認したファイル実体の内容上書きと
-対応する検証・文書を公開し、Draft PRからmain統合まで進める案として準備する。
-hideの既存許可は未公開の接続・専用ファイル検証までなので、実行前に公開/mainの
-許可を確認する。フォルダー内容mergeと新releaseは含めず、Issue #560を閉じない。
-15:49:58のGitHub再読取ではmain f7c24b6、Issue #560 open、当該headのPRなし。
+追加の完了Issue公開は一度自動承認に拒否されたが、具体案にhideが
+「追加公開を許可」と明示した。[Issue #592](https://github.com/hideyukiMORI/NeNeCommander/issues/592)
+とこの完了文書の公開/main反映は承認済み。証拠rootは
+D:/NeNeCommander/evidence/transfer-conflicts-20261128。
+236 publication、238 review、239 merge、240 main-sync、247 approval、252 preservation、
+253 cleanupを参照する。存在しない旧worktree・output pathを作業先に使わない。
+検証の正本はmutation-complete-225.json、normal-consumer-after-225.json、
+final-evidence-ledger-232.jsonと対応する元report/log。入力不変の成功証拠は再実行しない。
 
-元の失敗・途中停止・CodeQLの診断と8未解決型・既存Helpの複雑度findingを保持する。
-単一の全canonical/deep-review成功、物理キー/IME/音声/画面受入れ/電源断を主張しない。
-未統合のworktreeと11月25〜28日の一時出力、恒久証拠を保持する。後片付け待ちはない。
-以下の再開・停止記述は各時点の履歴であり、現在の実行状態ではない。
+Issue #560はフォルダー内容統合が残るためopenを維持する。新releaseは作成していない。
+残範囲へ着手するには別の設計・範囲確認が必要。物理キー/IME/音声/目視受入れ、電源断、
+CodeQL抽出診断と8未解決型、既存Help findingの制約を維持する。
+以下は各時点の履歴であり、停止・未公開・実行中の記載を現在の状態とみなさない。
 
 ## 再開 — 2026-11-28 11:18 JST
 

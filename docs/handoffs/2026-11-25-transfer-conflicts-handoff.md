@@ -1,5 +1,15 @@
 # Transfer-conflict active handoff — 2026-11-25
 
+Current state — 2026-11-28 17:18 JST: file-overwrite PR #591 is merged as main 03ec283,
+with candidate tree equality and independent final review. Original generated
+artifacts/output trees are preserved by same-volume NTFS rename with directory ID
+and complete metadata reconciliation. The clean worktree is removed; original
+November 25–28 output paths are absent after relocation. Branches/commits/raw
+evidence remain. Issue #560 stays open for separate folder merge. Read the
+[November 28 current handoff](2026-11-28-transfer-conflicts-handoff.md).
+All older state/instruction paragraphs below are historical; they do not override this checkpoint.
+
+
 Current closing state — November28 03:33JST: hide explicitly ordered interruption. Full208is stopped without a final verdict; no owned verification process remains. Read the [November28 stopped handoff](2026-11-28-transfer-conflicts-handoff.md) and stopped-checkpoint-224.json. The older wait-for-completion and continuation instructions below are historical and do not authorize resumption.
 
 Latest instruction — November28 03:16JST: hide requests a clean stopping point, daily report and handoff. Finish only the already running Infrastructure208; even if it fails, start no correction or rerun. Finalize the [closing handoff](2026-11-28-transfer-conflicts-handoff.md) and [daily report](../reports/2026-11-28-transfer-conflicts-daily-report.md), save locally and stop. Resume only on hide's instruction. Read active-acceptance-checkpoint-222.json and stop-request-221.json before older continuation steps.
