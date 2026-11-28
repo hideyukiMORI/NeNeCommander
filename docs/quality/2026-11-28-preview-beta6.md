@@ -2,7 +2,7 @@
 
 Issue: [#594](https://github.com/hideyukiMORI/NeNeCommander/issues/594)
 
-Status: local release evidence accepted; source/main publication and shipping-package proof remain pending.
+Status: published and verified. [Preview 0.1.0-beta.6](https://github.com/hideyukiMORI/NeNeCommander/releases/tag/v0.1.0-beta.6) was published at 2026-11-28 19:55:40 JST from accepted main e25186725441c8c81e16a5e09f38c9f3422bcb62; completed-task cleanup is confirmed.
 
 ## Scope and invariant
 
@@ -30,8 +30,9 @@ now reads the shipped catalogs while keeping independent fixed expected sentence
 ## Verification selection and evidence
 
 Evidence root: D:/NeNeCommander/evidence/release-beta6-20261128.
-Working copy: D:/NeNeCommander/worktrees/issue-594.
-Temporary output: D:/NeNeCommander/outputs/release-beta6-20261128.
+Completed working copy: D:/NeNeCommander/worktrees/issue-594 (removed after preservation).
+Original temporary output: D:/NeNeCommander/outputs/release-beta6-20261128 (relocated below).
+Permanent distribution: D:/NeNeCommander/releases/0.1.0-beta.6/candidate-20261128-01.
 
 ADR-0061 and the November 28 within-layer procedure apply. Required release
 freshness remains 96 hours. Unchanged stages are mapped to their original
@@ -39,8 +40,9 @@ successful source/test/dependency/tool inputs; a commit or packaging step does n
 trigger another complete product gate. Individual stages are not advertised as a
 new all-green invocation of eng/check.ps1 or eng/deep-review.ps1.
 
-All runner commands below use pwsh -NoProfile -File and their absolute path under
-the evidence root. Their JSON receipts preserve exact arguments and timestamps.
+PowerShell runners below use pwsh -NoProfile -File and their absolute path under
+the evidence root. Python reconcilers use the existing local Python interpreter.
+Their JSON receipts preserve exact arguments and timestamps.
 
 | Command or record | Result and exact scope |
 | --- | --- |
@@ -97,12 +99,36 @@ actual release freshness. The earliest applicable positive stage is November27
 or interrupted commands are identified individually. No new single successful
 full-gate invocation or synthetic combined mutation score is claimed.
 
-## Release status and remaining proof
+## Published release and completed cleanup
 
-Source/PR/main publication, final current-tree CodeQL alert read-back, release
-packaging, extracted payload/PRI/notices verification, unmodified package startup,
-GitHub asset publication, public download hashes and cleanup are still pending.
-Do not infer their completion from preparatory scripts.
+[PR #595](https://github.com/hideyukiMORI/NeNeCommander/pull/595) was squash-merged
+as e25186725441c8c81e16a5e09f38c9f3422bcb62, exactly tree-equal to reviewed candidate
+175ebd7be7f5dafbdda41256e9a1e564dc89c1c1. Candidate and main CodeQL analyses
+2267898755 / 2267904411 each completed with 164 rules, zero results and zero open
+alerts in API read-back. The dependency-review workflow 46136970508 succeeded.
+No full quality/deep-review workflow was started for unchanged inputs.
+
+| Command or record | Observed result |
+| --- | --- |
+| eng/publish-release.ps1 -OutputDirectory D:/NeNeCommander/outputs/release-beta6-20261128/candidate-01 -WindowsSdkLicensePath D:/NeNeCommander/evidence/release-beta6-20261128/Windows-SDK-license.rtf | Official locked restore/publish from clean accepted source; exit 0 in 84.5 seconds. The cache is the pinned original from the prior official ZIP, hash-verified in record 46. |
+| verify-candidate.ps1 / candidate-verified-58.json | All 588 payload and ZIP files, 2,129 tracked source inputs, ten lock files, 51 original package notice files across 21 packages, executable metadata, 132 embedded XBF resources and 125 theme attributions match. |
+| verify-extracted-final.ps1 / extraction-verified-58.json | Independent extraction: 588 files / 300,938,115 bytes, zero mismatches. |
+| verify-pri-locales.ps1 / candidate-01-pri-locales.json | All 690 resources in each of en-US, ja-JP and zh-Hans match the final source catalog; zero mismatches. |
+| verify-unmodified-startup.ps1 / startup-verified-59.json | The unmodified extracted binary creates a visible responsive WinUI window on its owned non-input desktop. First response 836.8 ms, two observations at least 3 seconds apart; owned child terminated and desktop closed. Input desktop and settings unchanged. This is not physical input or normal-shutdown proof. |
+| release-preflight60 / release-create61 / published-tag62 | Annotated v0.1.0-beta.6 points to the exact accepted source; GitHub prerelease has exactly the verified ZIP/manifest/checksum assets. |
+| published-assets-63.json | Unauthenticated public asset URLs are downloaded again. All three SHA-256 values and sizes match their pre-publication originals. ZIP 114,434,436 bytes, SHA-256 955e54f06b20d5551a8297d6ca5b77ea2ec50c9fc19e5fc2169165414e9421e9. |
+| permanent-release-64.json | The three public bytes are preserved under D:/NeNeCommander/releases/0.1.0-beta.6/candidate-20261128-01 and their hashes rechecked. |
+| preserve-original-trees-65.ps1 / cleanup-preserved-worktree-66.ps1 | All 47,571 files / 4,044,696,998 bytes and five link definitions are preserved by 23 same-volume NTFS directory renames. Every root ID and complete relative metadata inventory matches. The clean accepted worktree is removed; both original task paths are absent. Branches/commits and unrelated unfinished work remain. |
+
+Permanent raw material is below
+D:/NeNeCommander/evidence/release-beta6-20261128/completed-release-files-65.
+The old output prefix maps to its outputs/release-beta6-20261128 child; generated
+worktree roots map to worktree-ignored followed by their original relative path.
+Earlier JSON/log paths remain historical observations. The original directory
+objects and link definitions are retained, with no copied-byte hash claim for
+this relocation and no guarantee that absolute old link targets remain reachable.
+There is no cleanup approval hold. Completion documentation changes no product
+input and starts no CI or product test.
 
 Issue #94's one-time maintainer check was completed on November 19; its exact
 display scale and independent captures were not recorded. Current physical
