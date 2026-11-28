@@ -175,7 +175,7 @@ internal sealed class TransferExecution
 
     private static bool MatchesOverwriteVerification(TransferConflictChoice? choice, VerifiedCopyEntry root)
     {
-        return choice?.Decision != TransferConflictDecision.OverwriteContents ||
+        return choice is null || choice.Decision != TransferConflictDecision.OverwriteContents ||
             (choice.Target.OverwriteEvidence is TransferOverwriteEvidence original &&
                 root is VerifiedCopyEntry.VerifiedFile file &&
                 file.Requirements == FileVerificationRequirements.OverwriteContents &&

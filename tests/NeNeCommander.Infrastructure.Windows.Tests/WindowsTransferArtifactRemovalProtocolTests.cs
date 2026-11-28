@@ -51,7 +51,11 @@ public sealed class WindowsTransferArtifactRemovalProtocolTests
         WindowsTransferArtifactRemoval removal = new(WindowsTransferArtifactRemoval.Native.RequestDisposition, _ =>
         {
             closes++;
-            return defect == "false" ? false : throw new IOException("Injected close failure before native close.");
+            return defect switch
+            {
+                "false" => false,
+                _ => throw new IOException("Injected close failure before native close."),
+            };
         });
 
         _ = Assert.ThrowsExactly<IOException>(() => removal.Remove(fixture.Handle));

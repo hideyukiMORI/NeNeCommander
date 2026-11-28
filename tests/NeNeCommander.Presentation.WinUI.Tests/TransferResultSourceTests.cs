@@ -14,11 +14,11 @@ public sealed class TransferResultSourceTests
 {
     /// <summary>Copy retains source; moves distinguish acknowledged, partial and unconfirmed deletion.</summary>
     [TestMethod]
-    [DataRow("copy", "source-kept")]
-    [DataRow("removed", "source-removed")]
-    [DataRow("partial", "source-partly-removed")]
-    [DataRow("failed", "source-unconfirmed")]
-    [DataRow("cancelled", "source-unconfirmed")]
+    [DataRow("copy", "Source not removed by this operation.")]
+    [DataRow("removed", "Source removal completed.")]
+    [DataRow("partial", "Source removal is incomplete; some source items were removed.")]
+    [DataRow("failed", "Complete source removal was not confirmed. Check the source before retrying.")]
+    [DataRow("cancelled", "Complete source removal was not confirmed. Check the source before retrying.")]
     public async Task ComposeAsyncWhenDeletionKnowledgeVariesDoesNotInventSourceRetention(string mode, string expected)
     {
         ProviderStepReceipt receipt = ProviderStepReceipt.Create([], TransferResultFixture.Target("desired", TransferPathObservation.LastKnownPath), []);
@@ -28,7 +28,7 @@ public sealed class TransferResultSourceTests
 
         IReadOnlyList<string> rows = TransferResultFacts.Compose(detail, TransferResultFixture.Localize);
 
-        string source = expected + "|C:\\left\\source";
+        string source = expected + " Original path: C:\\left\\source";
         CollectionAssert.Contains(System.Linq.Enumerable.ToArray(rows), source);
         Assert.AreEqual(1, detail.Verified);
         Assert.AreEqual(mode == "removed" ? 1 : 0, detail.SourceDeleted);

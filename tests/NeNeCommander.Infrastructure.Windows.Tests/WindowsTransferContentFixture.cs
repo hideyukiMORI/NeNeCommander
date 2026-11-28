@@ -8,9 +8,13 @@ namespace NeNeCommander.Infrastructure.Windows.Tests;
 
 internal sealed class WindowsTransferContentFixture : IDisposable
 {
+    private readonly SafeFileHandle _source;
+    private readonly SafeFileHandle _target;
     private WindowsTransferContentFixture(TestOwnedTemporaryRoot root, SafeFileHandle source, SafeFileHandle target, KnownEntrySize size)
     {
         Root = root;
+        _source = source;
+        _target = target;
         Pair = WindowsTransferContentPair.Create(source, target, size);
     }
 
@@ -24,7 +28,6 @@ internal sealed class WindowsTransferContentFixture : IDisposable
         TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         SafeFileHandle? sourceHandle = null;
         SafeFileHandle? targetHandle = null;
-        bool completed = false;
         try
         {
             string sourcePath = root.WriteFile("source", source);
@@ -32,19 +35,14 @@ internal sealed class WindowsTransferContentFixture : IDisposable
             sourceHandle = File.OpenHandle(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             targetHandle = File.OpenHandle(targetPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete);
             WindowsTransferContentFixture fixture = new(root, sourceHandle, targetHandle, (KnownEntrySize)EntrySize.Create(expectedLength));
-            sourceHandle = null;
-            targetHandle = null;
-            completed = true;
             return fixture;
         }
-        finally
+        catch
         {
             targetHandle?.Dispose();
             sourceHandle?.Dispose();
-            if (!completed)
-            {
-                root.Dispose();
-            }
+            root.Dispose();
+            throw;
         }
     }
 
@@ -57,8 +55,8 @@ internal sealed class WindowsTransferContentFixture : IDisposable
 
     public void Dispose()
     {
-        Pair.Target.Dispose();
-        Pair.Source.Dispose();
+        _target.Dispose();
+        _source.Dispose();
         Root.Dispose();
     }
 }

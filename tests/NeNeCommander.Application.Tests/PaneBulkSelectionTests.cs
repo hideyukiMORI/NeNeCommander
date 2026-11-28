@@ -98,16 +98,15 @@ public sealed class PaneBulkSelectionTests
             UserIntent.SelectRangeHalfPageDown, UserIntent.SelectRangeHalfPageUp,
             UserIntent.SelectRangeFirst, UserIntent.SelectRangeLast];
 
-        foreach (UserIntent intent in ranges.Concat([UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection]))
+        foreach (PaneState unchanged in ranges.Concat([UserIntent.SelectAll, UserIntent.InvertSelection, UserIntent.ClearSelection])
+            .Select(intent => PaneReducer.Apply(empty, intent)))
         {
-            PaneState unchanged = PaneReducer.Apply(empty, intent);
             Assert.IsNull(unchanged.FocusItem);
             Assert.IsEmpty(unchanged.Selection);
             Assert.IsNull(unchanged.SelectionAnchor);
         }
-        foreach (UserIntent intent in ranges)
+        foreach (PaneState ranged in ranges.Select(intent => PaneReducer.Apply(single, intent)))
         {
-            PaneState ranged = PaneReducer.Apply(single, intent);
             Assert.AreSame(single.FocusItem, ranged.FocusItem);
             Assert.AreSame(single.FocusItem, ranged.SelectionAnchor);
             CollectionAssert.AreEqual(new[] { single.FocusItem }, ranged.Selection.ToArray());

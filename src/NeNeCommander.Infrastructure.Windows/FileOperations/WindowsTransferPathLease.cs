@@ -39,20 +39,16 @@ internal sealed class WindowsTransferPathLease : IDisposable
             throw new WindowsDriveBoundaryRejectedException();
         }
         WindowsTransferPathLease lease = new(driveBoundary);
-        bool completed = false;
         try
         {
             lease.OpenEntries(path, access);
             lease.Revalidate();
-            completed = true;
             return lease;
         }
-        finally
+        catch
         {
-            if (!completed)
-            {
-                lease.Dispose();
-            }
+            lease.Dispose();
+            throw;
         }
     }
 
@@ -109,15 +105,15 @@ internal sealed class WindowsTransferPathLease : IDisposable
 
     private void AddEntry(WindowsLocalPath path, Func<SafeFileHandle> open)
     {
-        SafeFileHandle? handle = open();
+        WindowsTransferHeldEntry entry = WindowsTransferHeldEntry.Take(path, open());
         try
         {
-            _entries.Add(WindowsTransferHeldEntry.Take(path, handle));
-            handle = null;
+            _entries.Add(entry);
         }
-        finally
+        catch
         {
-            handle?.Dispose();
+            entry.Dispose();
+            throw;
         }
     }
 

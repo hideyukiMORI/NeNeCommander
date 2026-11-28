@@ -26,25 +26,21 @@ internal sealed class WindowsOverwritePairLease : IDisposable
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(driveBoundary);
         WindowsLocalPath sourcePath = RequirePaths(source.Path, target);
-        WindowsTransferPathLease? sourceLease = WindowsTransferPathLease.Open(sourcePath, FileAccess.Read, driveBoundary);
+        WindowsTransferPathLease sourceLease = WindowsTransferPathLease.Open(sourcePath, FileAccess.Read, driveBoundary);
         WindowsTransferPathLease? targetLease = null;
         try
         {
             targetLease = WindowsTransferPathLease.Open(target, FileAccess.ReadWrite, driveBoundary);
             TransferOverwriteEvidence evidence = ReadEvidence(sourceLease, targetLease);
-            if (evidence.Source.Observation.Entry.Identity != source.Identity)
-            {
-                throw new IOException("The frozen overwrite source identity changed.");
-            }
-            WindowsOverwritePairLease pair = new(sourceLease, targetLease, evidence);
-            sourceLease = null;
-            targetLease = null;
-            return pair;
+            return evidence.Source.Observation.Entry.Identity != source.Identity
+                ? throw new IOException("The frozen overwrite source identity changed.")
+                : new WindowsOverwritePairLease(sourceLease, targetLease, evidence);
         }
-        finally
+        catch
         {
             targetLease?.Dispose();
-            sourceLease?.Dispose();
+            sourceLease.Dispose();
+            throw;
         }
     }
 

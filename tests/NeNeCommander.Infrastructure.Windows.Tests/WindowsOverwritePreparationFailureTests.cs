@@ -70,14 +70,9 @@ public sealed class WindowsOverwritePreparationFailureTests
         using WindowsOverwriteAttempt attempt = fixture.Attempt(new DeterministicIdentifierSource(), io, WindowsTransferArtifactQueries.Native);
         observed = attempt;
 
-        if (failure == "throw")
-        {
-            _ = await Assert.ThrowsAsync<IOException>(() => attempt.PrepareAsync(cancellation.Token));
-        }
-        else
-        {
-            _ = await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.PrepareAsync(cancellation.Token));
-        }
+        _ = failure == "throw"
+            ? (Exception)await Assert.ThrowsAsync<IOException>(() => attempt.PrepareAsync(cancellation.Token))
+            : await Assert.ThrowsAsync<OperationCanceledException>(() => attempt.PrepareAsync(cancellation.Token));
         RecoveryMappingContent after = Assert.IsInstanceOfType<RecoveryMappingContent>(WindowsOverwritePreparationFixture.Artifact(attempt, TransferArtifactRole.RecoveryRecord).Content);
         Assert.AreEqual(failure == "throw" ? RecoveryFlushObservation.OutcomeUnconfirmed : RecoveryFlushObservation.Confirmed, after.InitialFrame.Flush);
         Assert.IsTrue(after.InitialFrame.Frame.Size.Bytes > 0);

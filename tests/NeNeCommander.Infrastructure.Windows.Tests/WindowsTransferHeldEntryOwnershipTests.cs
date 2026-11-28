@@ -39,7 +39,8 @@ public sealed class WindowsTransferHeldEntryOwnershipTests
         using SafeFileHandle handle = File.OpenHandle(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         using WindowsTransferHeldEntry entry = WindowsTransferHeldEntry.Take(WindowsTransferRecoveryTestFixture.Path(path), handle);
 
-        _ = Assert.ThrowsExactly<IOException>(entry.RequireDirectory);
+        IOException failure = Assert.ThrowsExactly<IOException>(entry.RequireDirectory);
+        Assert.Contains("directory", failure.Message);
 
         Assert.IsFalse(handle.IsClosed);
         Assert.AreEqual("original", File.ReadAllText(path));

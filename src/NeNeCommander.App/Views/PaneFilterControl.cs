@@ -66,7 +66,7 @@ internal sealed class PaneFilterControl
         {
             RenderControls(presentation);
             if (presentation.FocusEditor && _input.FocusState == FocusState.Unfocused &&
-                _input.Focus(FocusState.Programmatic) && ReferenceEquals(_rendered, presentation))
+                _input.Focus(FocusState.Programmatic) && IsCurrent(presentation))
             {
                 _input.SelectAll();
             }
@@ -75,7 +75,13 @@ internal sealed class PaneFilterControl
         {
             _renderDepth--;
         }
-        return ReferenceEquals(_rendered, presentation) && !_stopping ? presentation.FileListFocusSide : null;
+        return IsCurrent(presentation) ? presentation.FileListFocusSide : null;
+    }
+
+    // Native setters and Focus can synchronously stop or replace this render owner.
+    private bool IsCurrent(PaneFilterPresentation presentation)
+    {
+        return !_stopping && ReferenceEquals(_rendered, presentation);
     }
 
     private void RenderControls(PaneFilterPresentation presentation)

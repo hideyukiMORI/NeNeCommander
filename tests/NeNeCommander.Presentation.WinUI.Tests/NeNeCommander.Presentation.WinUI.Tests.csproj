@@ -12,4 +12,9 @@
   <ItemGroup>
     <ProjectReference Include="../../src/NeNeCommander.Presentation.WinUI/NeNeCommander.Presentation.WinUI.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../src/NeNeCommander.App/Resources/en-US/Resources.resw" LogicalName="PresentationResources.en-US.resw" />
+    <EmbeddedResource Include="../../src/NeNeCommander.App/Resources/ja-JP/Resources.resw" LogicalName="PresentationResources.ja-JP.resw" />
+    <EmbeddedResource Include="../../src/NeNeCommander.App/Resources/zh-Hans/Resources.resw" LogicalName="PresentationResources.zh-Hans.resw" />
+  </ItemGroup>
 </Project>

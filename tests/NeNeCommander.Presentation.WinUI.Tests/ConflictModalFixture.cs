@@ -50,17 +50,7 @@ internal static class ConflictModalFixture
 
     internal static string Localize(string key)
     {
-        return key switch
-        {
-            "ConflictOverwriteSourceDetails" => "Source: {0}\nFile / {1} / {2}",
-            "ConflictOverwriteTargetDetails" => "Target: {0}\nFile / {1} / {2}",
-            "ConflictSourcePath" => "Source: {0}",
-            "ConflictTargetPath" => "Target: {0}",
-            "ConflictCandidatePath" => "Candidate: {0}",
-            "ConflictOverwriteActionName" => "Overwrite: {0}",
-            "ConflictOverwriteScope" => "Other eligible files: {0}",
-            _ => key,
-        };
+        return PresentationResourceCatalog.English.Get(key);
     }
 
     private static TransferOverwriteFileObservation Observation(string text)
