@@ -19,7 +19,7 @@ public sealed class WindowsLocalDeletionTests
     public async Task DeleteAsyncWhenModeIsPermanentDeletesAndRecycleIsRefused()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.CreateDirectory("tree");
         _ = root.WriteFile("tree\\top.txt", "top");
@@ -45,7 +45,7 @@ public sealed class WindowsLocalDeletionTests
     public async Task DeleteAsyncWhenSourceChangedAfterInspectionKeepsEntry()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("a.txt", "rewritten");
 
@@ -63,7 +63,7 @@ public sealed class WindowsLocalDeletionTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath source = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource()));
         DeleteRequest unconfirmed = Assert.IsInstanceOfType<DeleteRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(DeleteRequest.Create([source], null)).Request);
         DeleteRequest confirmed = Assert.IsInstanceOfType<DeleteRequest>(

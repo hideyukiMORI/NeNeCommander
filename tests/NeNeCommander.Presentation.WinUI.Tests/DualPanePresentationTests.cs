@@ -31,9 +31,6 @@ public sealed class DualPanePresentationTests
         PaneRows rows = new([row], TestMetadataFormats.Utc);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => rows.Replace(0, null!));
 
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(-1, 0, 0, SourceDeletionCounts.Create(0, 0)));
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, -1, 0, SourceDeletionCounts.Create(0, 0)));
-        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TransferResultDetail(0, 0, -1, SourceDeletionCounts.Create(0, 0)));
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => SourceDeletionCounts.Create(-1, 0));
         _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new OperationItemCountDetail(0));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new OperationProgressDetail(null!));

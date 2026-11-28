@@ -104,7 +104,7 @@ public sealed class FileOperationSourceOwnershipTests
             ScriptedCallbackPoint.AfterDeletion,
             () => TryClearThroughSyncRoot(request.Sources));
         port.EnqueueInspection(GatewayTestContext.Inspection(path, DeletionCapability.Recycle));
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
         using FileOperationGateway gateway = new(port);
 

@@ -8,6 +8,7 @@ using NeNeCommander.App.Views;
 using NeNeCommander.App.Windowing;
 using NeNeCommander.Application.Directories;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Application.Launching;
 using NeNeCommander.Application.Panes;
 using NeNeCommander.Application.Settings;
@@ -80,17 +81,18 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     private async Task StartAsync(CancellationToken cancellationToken)
     {
         WindowsLocalIoExecutionBoundary ioExecutionBoundary = new();
+        WindowsIdentifierSource identifiers = new();
         WindowsLocalSettingsStore settingsStore = new(
             WindowsLocalSettingsLocation.Resolve(),
             ioExecutionBoundary,
-            new WindowsIdentifierSource());
+            identifiers);
         SettingsReadOutcome settingsOutcome = await settingsStore.ReadAsync(cancellationToken).ConfigureAwait(true);
         cancellationToken.ThrowIfCancellationRequested();
         UserSettings settings = settingsOutcome is SettingsRead read ? read.Settings : UserSettings.Default;
         InitializeComponent();
         ApplyColorScheme(settings.Display.ColorScheme);
         SettingsSession settingsSession = new(settingsStore, settingsOutcome, ReportDefect);
-        _window = CreateWindow(settings, ioExecutionBoundary, settingsSession);
+        _window = CreateWindow(settings, ioExecutionBoundary, settingsSession, identifiers);
         _window.ColorSchemeChanged += OnColorSchemeChanged;
         ApplyElementTheme(_window, settings.Display.ColorScheme.Appearance);
         _closeAdapter = new AppWindowCloseAdapter(_window, OnWindowCloseRequested);
@@ -132,17 +134,19 @@ public sealed partial class CommanderApplication : Microsoft.UI.Xaml.Application
     /// <param name="settings">Complete preferences composed into the two initial pane configurations.</param>
     /// <param name="ioExecutionBoundary">Shared scheduler for synchronous Windows filesystem work.</param>
     /// <param name="settingsSession">Sole settings state and write owner.</param>
+    /// <param name="identifiers">Shared source of untrusted operation candidate identifiers.</param>
     private CommanderWindow CreateWindow(
         UserSettings settings,
         WindowsLocalIoExecutionBoundary ioExecutionBoundary,
-        SettingsSession settingsSession)
+        SettingsSession settingsSession,
+        IIdentifierSource identifiers)
     {
         StopwatchClock clock = new();
         KeyboardIntentMapper keyboardIntentMapper = new(clock);
         ProviderDirectoryReadPort directoryReader = new(ioExecutionBoundary);
         WindowsShellFileLauncher fileLauncher = new(ioExecutionBoundary);
         VisiblePageCapacity capacity = CreateVisiblePageCapacity();
-        _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary));
+        _gateway = new FileOperationGateway(new ProviderFileOperationPort(ioExecutionBoundary, identifiers));
         DualPaneSession panes = new(
             CreatePaneSession(directoryReader, fileLauncher, PaneSessionConfiguration.Create(
                 capacity, DirectoryListing.EntryBoundaryLimit, settings.Display.HiddenItemVisibility, settings.PaneSortOrders.Left)),

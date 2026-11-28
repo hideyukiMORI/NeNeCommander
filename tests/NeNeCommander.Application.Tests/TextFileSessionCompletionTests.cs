@@ -25,7 +25,7 @@ public sealed class TextFileSessionCompletionTests
         _ = await fixture.Panes.HandleAsync(UserIntent.ToggleSelection, observer, CancellationToken.None);
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateTextFile, observer, CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(right.Location));
-        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing(@"C:\right",
             ("old.txt", DirectoryEntryKind.File), ("new.log", DirectoryEntryKind.File)), null));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(left, null));
@@ -53,7 +53,7 @@ public sealed class TextFileSessionCompletionTests
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateTextFile, observer, CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(left.Location));
-        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.AccessDenied));
         fixture.Right.Enqueue(DirectoryReadOutcome.Failed(FileOperationFailureKind.NotFound));
 
@@ -81,7 +81,7 @@ public sealed class TextFileSessionCompletionTests
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
         _ = await fixture.Panes.HandleAsync(UserIntent.CreateTextFile, observer, CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(left.Location));
-        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueFileCreation(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Cancelled());
         fixture.Right.Enqueue(DirectoryReadOutcome.Cancelled());
 

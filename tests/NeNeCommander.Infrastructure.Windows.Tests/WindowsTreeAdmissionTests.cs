@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -52,7 +53,7 @@ public sealed class WindowsTreeAdmissionTests
 
         Assert.AreSame(FileOperationFailureKind.Conflict, preflight);
         Assert.AreSame(FileOperationFailureKind.Conflict, copy.Failure);
-        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, copy.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.CopyTargetCreated }, new List<ProviderStepEffectKind>(copy.Receipt.Effects));
         Assert.HasCount(1, Directory.GetFileSystemEntries(root.Resolve("target")));
         Assert.IsTrue(first.Exists);
         Assert.IsTrue(second.Exists);
@@ -87,7 +88,7 @@ public sealed class WindowsTreeAdmissionTests
 
         Assert.AreSame(change == "missing-parent" ? FileOperationFailureKind.NotFound : FileOperationFailureKind.Conflict,
             outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("dest\\source\\payload.txt")));
         Assert.AreEqual("original", File.ReadAllText(root.Resolve("source\\payload.txt")));
     }
@@ -118,7 +119,7 @@ public sealed class WindowsTreeAdmissionTests
             source, target, LocalAccess(Resolve));
 
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("original", File.ReadAllText(source.FullName));
         if (kind == "file")
         {

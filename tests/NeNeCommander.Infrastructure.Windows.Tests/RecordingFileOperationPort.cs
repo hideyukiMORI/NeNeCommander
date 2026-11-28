@@ -64,7 +64,7 @@ internal sealed class RecordingFileOperationPort : IFileOperationPort
         CancellationToken cancellationToken)
     {
         Calls.Add("verify");
-        return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Succeeded(), source, destination));
+        return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty), source, destination));
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -102,6 +102,6 @@ internal sealed class RecordingFileOperationPort : IFileOperationPort
     private Task<ProviderStepOutcome> Step(string name)
     {
         Calls.Add(name);
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 }

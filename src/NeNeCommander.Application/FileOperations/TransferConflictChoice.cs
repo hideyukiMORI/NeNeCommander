@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -9,11 +10,13 @@ public sealed record TransferConflictChoice
     private TransferConflictChoice(
         FileSystemPath source,
         TransferConflictDecision decision,
-        FileSystemPath keepBothCandidate)
+        FileSystemPath keepBothCandidate,
+        TransferConflictTarget target)
     {
         Source = source;
         Decision = decision;
         KeepBothCandidate = keepBothCandidate;
+        Target = target;
     }
 
     /// <summary>Gets the source identity addressed by the choice.</summary>
@@ -23,6 +26,9 @@ public sealed record TransferConflictChoice
     /// <summary>Gets the exact candidate accepted with KeepBoth.</summary>
     public FileSystemPath KeepBothCandidate { get; }
 
+    /// <summary>Gets the exact original conflict target binding accepted with this choice.</summary>
+    public TransferConflictTarget Target { get; }
+
     /// <summary>Creates a choice admitted by the supplied conflict.</summary>
     public static TransferConflictChoice Create(
         TransferConflict conflict,
@@ -30,9 +36,12 @@ public sealed record TransferConflictChoice
     {
         ArgumentNullException.ThrowIfNull(conflict);
         ArgumentNullException.ThrowIfNull(decision);
-        return new TransferConflictChoice(
-            conflict.Source.Path,
-            decision,
-            conflict.KeepBothCandidate);
+        return !conflict.AllowedDecisions.Contains(decision)
+            ? throw new ArgumentException("The conflict does not admit this decision.", nameof(decision))
+            : new TransferConflictChoice(
+                conflict.Source.Path,
+                decision,
+                conflict.KeepBothCandidate,
+                conflict.Target);
     }
 }

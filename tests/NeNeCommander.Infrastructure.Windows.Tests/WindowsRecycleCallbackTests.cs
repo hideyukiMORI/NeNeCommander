@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Threading;
@@ -35,7 +36,7 @@ public sealed class WindowsRecycleCallbackTests
         ProviderStepOutcome outcome = bin.Recycle(source, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual(1, operation.PerformCount);
         Assert.IsTrue(File.Exists(source.Path.CanonicalText));
     }
@@ -55,7 +56,7 @@ public sealed class WindowsRecycleCallbackTests
         Assert.AreEqual(0, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("completed owned receipt")));
         ProviderStepOutcome result = progress.Complete(0, 0, 1);
         Assert.AreSame(FileOperationFailureKind.Delete, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 
     /// <summary>A vetoed pre-delete cannot authorize a later receipt.</summary>
@@ -68,7 +69,7 @@ public sealed class WindowsRecycleCallbackTests
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80, entry));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("unadmitted receipt")));
-        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+        Assert.IsEmpty(progress.Complete(0, 0, 0).Receipt.Effects);
     }
 
     /// <summary>An earlier rejected mutation prevents later admission in the same operation.</summary>
@@ -115,7 +116,7 @@ public sealed class WindowsRecycleCallbackTests
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, progress.Complete(0, 0, 0).Failure);
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PreDeleteItem(0x80,
             new ScriptedWindowsShellEntry(source.Path.CanonicalText)));
-        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+        Assert.IsEmpty(progress.Complete(0, 0, 0).Receipt.Effects);
     }
 
     /// <summary>Harmless progress callbacks observe cancellation without inventing an effect.</summary>
@@ -133,7 +134,7 @@ public sealed class WindowsRecycleCallbackTests
         Assert.AreEqual(0, native.UpdateProgress(1, 0));
         cancellation.Cancel();
         Assert.AreEqual(WindowsRecycleProgress.Abort, native.UpdateProgress(1, 0));
-        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+        Assert.IsEmpty(progress.Complete(0, 0, 0).Receipt.Effects);
     }
 
     /// <summary>A repeated or invalid completion cannot replace the first confirmed receipt.</summary>
@@ -150,7 +151,7 @@ public sealed class WindowsRecycleCallbackTests
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, 0, new ScriptedWindowsShellEntry("unexpected receipt")));
         Assert.AreSame(receipt, progress.RecycledEntry);
         Assert.AreSame(receipt, progress.ObservedEntry);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, progress.Complete(0, 0, 0).Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(progress.Complete(0, 0, 0).Receipt.Effects));
     }
 
     /// <summary>An abort, unknown API status or finish failure does not erase a completed recycle.</summary>
@@ -168,6 +169,6 @@ public sealed class WindowsRecycleCallbackTests
         Assert.AreEqual(finished < 0 ? WindowsRecycleProgress.Abort : 0, native.FinishOperations(finished));
         ProviderStepOutcome result = progress.Complete(performed, queried, 0);
         Assert.AreSame(finished < 0 ? FileOperationFailureKind.AccessDenied : FileOperationFailureKind.ProviderUnavailable, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 }

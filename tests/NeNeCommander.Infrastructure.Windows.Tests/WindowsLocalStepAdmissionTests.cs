@@ -22,7 +22,7 @@ public sealed class WindowsLocalStepAdmissionTests
         string sourceText = root.WriteFile("source.txt", "source");
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("destination"));
         ScriptedDriveTypes drives = new(root.Resolve("destination\\source.txt"), 0);
-        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary());
+        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary(), WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource()));
 
         ProviderStepOutcome outcome = steps.Move(WindowsLocalOperationTestContext.LocalSnapshot(sourceText), destination);
 
@@ -39,7 +39,7 @@ public sealed class WindowsLocalStepAdmissionTests
         string sourceText = root.WriteFile("before.txt", "source");
         FileSystemPath target = WindowsLocalOperationTestContext.ParsePath(root.Resolve("after.txt"));
         ScriptedDriveTypes drives = new(sourceText, 1);
-        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary());
+        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary(), WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource()));
 
         ProviderStepOutcome outcome = steps.Rename(WindowsLocalOperationTestContext.LocalSnapshot(sourceText), target);
 
@@ -57,7 +57,7 @@ public sealed class WindowsLocalStepAdmissionTests
         string locationText = root.CreateDirectory("location");
         FileSystemPath target = WindowsLocalOperationTestContext.ParsePath(root.Resolve("location\\created"));
         ScriptedDriveTypes drives = new(locationText, 1);
-        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary());
+        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), drives.Boundary(), WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource()));
 
         ProviderStepOutcome outcome = steps.CreateDirectory(WindowsLocalOperationTestContext.LocalSnapshot(locationText), target);
 
@@ -72,7 +72,7 @@ public sealed class WindowsLocalStepAdmissionTests
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         string sourceText = root.WriteFile("kept.txt", "source");
-        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed));
+        WindowsLocalOperationSteps steps = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed), WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource()));
 
         ProviderStepOutcome outcome = steps.Delete(WindowsLocalOperationTestContext.LocalSnapshot(sourceText), DeletionExecutionMode.Recycle);
 

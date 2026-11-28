@@ -88,7 +88,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     public Task<AtomicMoveCapabilityOutcome> GetAtomicMoveCapabilityAsync(
@@ -104,7 +104,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     public Task<CopyVerificationOutcome> VerifyCopyAsync(
@@ -112,7 +112,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath destination,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Succeeded(), source, destination));
+        return Task.FromResult(VerificationTestEvidence.FromStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty), source, destination));
     }
 
     public Task<ProviderStepOutcome> CreateDirectoryAsync(
@@ -120,7 +120,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     public Task<ProviderStepOutcome> CreateEmptyFileAsync(
@@ -128,7 +128,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     public Task<ProviderStepOutcome> RenameAsync(
@@ -136,7 +136,7 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         FileSystemPath target,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     public Task<ProviderStepOutcome> DeleteAsync(
@@ -144,6 +144,6 @@ internal sealed class BlockingInspectionPort : IFileOperationPort
         DeletionExecutionMode mode,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(ProviderStepOutcome.Succeeded());
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 }

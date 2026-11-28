@@ -134,7 +134,7 @@ public sealed class LiveWslEmptyFileTests
             ProviderStepOutcome outcome = new WindowsWslFileSystem().CreateEmptyFile(link);
 
             Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
-            Assert.IsNull(outcome.Effect);
+            Assert.IsEmpty(outcome.Receipt.Effects);
             Assert.IsFalse(root.Exists("native/absent.txt"));
             Assert.AreEqual(linkBefore, root.ReadIdentity("native/link.txt"));
             context.WriteLine("LiveWsl empty-file=dangling-link-conflict target=absent link=unchanged");
@@ -148,7 +148,7 @@ public sealed class LiveWslEmptyFileTests
 
     private static FileOperationGateway CreateGateway()
     {
-        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary()));
+        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary(), new DeterministicIdentifierSource()));
     }
 
     private static FileOperationRequest Request(WslPath location, string name)

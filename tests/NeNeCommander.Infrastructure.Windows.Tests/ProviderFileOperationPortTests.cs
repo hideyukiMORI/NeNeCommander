@@ -122,7 +122,7 @@ public sealed class ProviderFileOperationPortTests
     [TestMethod]
     public async Task GetAtomicMoveCapabilityAsyncWhenComposedAllowsBothWindowsWslCompositeDirections()
     {
-        ProviderFileOperationPort router = new(new WindowsLocalIoExecutionBoundary());
+        ProviderFileOperationPort router = new(new WindowsLocalIoExecutionBoundary(), new DeterministicIdentifierSource());
         FileEntrySnapshot local = Snapshot("C:\\item", "local");
         FileEntrySnapshot ubuntu = Snapshot("\\\\wsl.localhost\\Ubuntu\\item", "ubuntu");
 
@@ -292,7 +292,7 @@ public sealed class ProviderFileOperationPortTests
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, null!, port, port));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, null!, port));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(port, port, port, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => new ProviderFileOperationPort(null!, new DeterministicIdentifierSource()));
     }
 
     private static void AssertTransferMembersRejectNull(

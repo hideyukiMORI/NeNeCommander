@@ -57,28 +57,28 @@ internal sealed class WindowsRecycleBin
         FileOperationFailureKind? refusal = WindowsRecycleAdmission.Revalidate(source, _driveBoundary);
         if (refusal is not null)
         {
-            return ProviderStepOutcome.Failed(refusal);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(refusal), ProviderStepReceipt.Empty);
         }
         try
         {
             if (GetCapability((WindowsLocalPath)source.Path) != DeletionCapability.Recycle)
             {
-                return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+                return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
             }
             using WindowsRecycleSession session = OpenSession(source, cancellationToken);
             return session.Execute(cancellationToken);
         }
         catch (COMException exception)
         {
-            return ProviderStepOutcome.Failed(WindowsFileFailureNormalizer.Normalize(exception.HResult));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsFileFailureNormalizer.Normalize(exception.HResult)), ProviderStepReceipt.Empty);
         }
         catch (UnauthorizedAccessException)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.AccessDenied), ProviderStepReceipt.Empty);
         }
         catch (IOException exception)
         {
-            return ProviderStepOutcome.Failed(WindowsFileFailureNormalizer.Normalize(exception.HResult));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsFileFailureNormalizer.Normalize(exception.HResult)), ProviderStepReceipt.Empty);
         }
     }
 

@@ -25,9 +25,9 @@ public sealed class PaneFilterOperationTests
         await ApplyAsync(fixture, "b.txt");
         PaneContentListed listed = Assert.IsInstanceOfType<PaneContentListed>(fixture.Session.Current.Panes.Left.Content);
         fixture.Panes.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(listed.State.Selection.Single()));
-        fixture.Panes.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Panes.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Panes.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Panes.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Panes.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Panes.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Panes.Left.Enqueue(DirectoryReadOutcome.Succeeded(listed.Listing, null));
         fixture.Panes.Right.Enqueue(DirectoryReadOutcome.Succeeded(CommanderContextTestContext.Listing("C:\\right"), null));
 

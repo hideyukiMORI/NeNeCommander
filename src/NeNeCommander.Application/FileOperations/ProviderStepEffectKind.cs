@@ -1,7 +1,7 @@
 namespace NeNeCommander.Application.FileOperations;
 
 /// <summary>
-/// Identifies a provider-side effect that completed before the provider step returned a failure.
+/// Identifies a completed provider-side effect independently of the step completion.
 /// </summary>
 public abstract record ProviderStepEffectKind
 {
@@ -14,7 +14,7 @@ public abstract record ProviderStepEffectKind
     /// </summary>
     public static ProviderStepEffectKind CopyTargetCreated { get; } = new CopyTargetCreatedEffect();
 
-    /// <summary>Gets a confirmed recycle completed before a later provider failure.</summary>
+    /// <summary>Gets a confirmed recycle recorded by the provider.</summary>
     public static ProviderStepEffectKind Recycled { get; } = new RecycledEffect();
 
     /// <summary>Gets confirmed descendant removal before verified source deletion stopped.</summary>

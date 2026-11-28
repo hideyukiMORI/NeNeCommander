@@ -72,6 +72,10 @@ internal sealed class QueuedFileOperationPort : IFileOperationPort
             return Task.FromResult(_preflights.Dequeue()(sources, destination));
         }
         ProviderStepOutcome step = _steps.Dequeue();
+        if (step.Completion == ProviderStepCompletion.Cancelled)
+        {
+            throw new InvalidOperationException("A cancelled mutation cannot supply preflight evidence.");
+        }
         if (step.Failure is FileOperationFailureKind failure)
         {
             return Task.FromResult(TransferPreflightOutcome.Rejected(failure));

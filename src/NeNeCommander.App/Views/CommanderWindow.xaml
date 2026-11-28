@@ -18,6 +18,55 @@
         PreviewKeyDown="OnKeyDown">
         <Grid.Resources>
             <views:ViewTextResources x:Key="ViewTextResources" />
+            <DataTemplate x:Key="ConflictModalTemplate">
+                <Grid TabFocusNavigation="Cycle">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="False" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
+                        <TextBlock x:Name="ConflictTitle" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictModalTitle.Text" FontSize="{StaticResource TypographyBodySize}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="ConflictOverwriteUnavailable" AutomationProperties.AutomationId="ConflictOverwriteUnavailable" TextWrapping="Wrap" />
+                        <StackPanel x:Name="ConflictOverwritePanel" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictOverwriteConsent" TextWrapping="Wrap" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictOverwriteAliasNotice" TextWrapping="Wrap" />
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictOverwritePartialNotice" TextWrapping="Wrap" />
+                            <StackPanel x:Name="ConflictOverwriteScopePanel" Spacing="{StaticResource SpacingOperationBarGap}" Visibility="Collapsed">
+                                <CheckBox x:Name="ConflictOverwriteAll" AutomationProperties.AutomationId="ConflictOverwriteAll" IsChecked="False" HorizontalContentAlignment="Stretch">
+                                    <TextBlock x:Name="ConflictOverwriteScope" TextWrapping="Wrap" />
+                                </CheckBox>
+                                <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictOverwriteLaterNotice" TextWrapping="Wrap" />
+                                <ScrollViewer MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="False" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ConflictOverwriteOtherRows" AutomationProperties.LabeledBy="{Binding ElementName=ConflictOverwriteScope}" AutomationProperties.AutomationId="ConflictOverwriteOtherRows">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="panes:ConflictOverwriteRow">
+                                                <StackPanel Margin="{StaticResource SpacingOperationBar}" Spacing="{StaticResource SpacingOperationDetailGap}">
+                                                    <TextBlock Text="{x:Bind SourceText}" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{x:Bind TargetText}" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </StackPanel>
+                            <Button x:Name="ConflictOverwrite" AutomationProperties.AutomationId="ConflictOverwrite" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictOverwrite.Content" HorizontalAlignment="Right" />
+                        </StackPanel>
+                        <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" TextWrapping="Wrap" />
+                        <CheckBox x:Name="ConflictApplyToAll" AutomationProperties.AutomationId="ConflictApplyToAll" IsChecked="False" HorizontalContentAlignment="Stretch">
+                            <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictApplyToAll.Content" TextWrapping="Wrap" />
+                        </CheckBox>
+                    </StackPanel>
+                    </ScrollViewer>
+                    <views:KeyHintWrapPanel Grid.Row="1" HorizontalAlignment="Stretch" Margin="{StaticResource SpacingOperationBar}">
+                            <Button x:Name="ConflictSkip" AutomationProperties.AutomationId="ConflictSkip" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictSkip.Content" />
+                            <Button x:Name="ConflictKeepBoth" AutomationProperties.AutomationId="ConflictKeepBoth" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictKeepBoth.Content" />
+                            <Button x:Name="ConflictCancel" AutomationProperties.AutomationId="ConflictCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictCancel.Content" />
+                    </views:KeyHintWrapPanel>
+                </Grid>
+            </DataTemplate>
             <Style x:Key="CommandEntryButtonStyle" TargetType="Button">
                 <Setter Property="MinWidth" Value="{StaticResource DensityNone}" />
                 <Setter Property="MinHeight" Value="{StaticResource DensityNone}" />
@@ -1051,29 +1100,20 @@
 
         <Border
             x:Name="ConflictModal"
+            Canvas.ZIndex="10"
             Grid.Row="0"
+            Grid.RowSpan="3"
+            MaxWidth="{StaticResource DensitySettingsModalMaxWidth}"
+            Margin="{StaticResource SpacingWindowOuter}"
             AutomationProperties.AutomationId="TransferConflictModal"
             Background="{StaticResource SurfacePaneBrush}"
             BorderBrush="{StaticResource FocusRingBrush}"
             BorderThickness="{StaticResource BorderActivePaneThickness}"
             CornerRadius="{StaticResource RadiusPane}"
-            HorizontalAlignment="Center"
+            HorizontalAlignment="Stretch"
             Padding="{StaticResource SpacingOperationBar}"
-            VerticalAlignment="Center"
-            Visibility="Collapsed">
-            <StackPanel Spacing="{StaticResource SpacingOperationBarGap}">
-                <TextBlock views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.TextKey="ConflictModalTitle.Text" FontSize="{StaticResource TypographyBodySize}" />
-                <TextBlock x:Name="ConflictSource" AutomationProperties.AutomationId="ConflictSource" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <TextBlock x:Name="ConflictExistingTarget" AutomationProperties.AutomationId="ConflictExistingTarget" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <TextBlock x:Name="ConflictKeepBothCandidate" AutomationProperties.AutomationId="ConflictKeepBothCandidate" FontFamily="{StaticResource TypographyMonospaceFamily}" />
-                <CheckBox x:Name="ConflictApplyToAll" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictApplyToAll.Content" IsChecked="False" />
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingOperationDetailGap}">
-                    <Button x:Name="ConflictSkip" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictSkip.Content" />
-                    <Button x:Name="ConflictKeepBoth" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictKeepBoth.Content" />
-                    <Button x:Name="ConflictCancel" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.ContentKey="ConflictCancel.Content" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
+            VerticalAlignment="Stretch"
+            Visibility="Collapsed" />
 
         <Border
             x:Name="SettingsWarning"
@@ -1724,6 +1764,15 @@
                         </StackPanel>
                     </views:KeyHintWrapPanel>
                 </views:KeyHintWrapPanel>
+                <ScrollViewer x:Name="TransferResultFacts" views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="TransferResultDetailsName" MaxHeight="{StaticResource DensitySettingsSchemeListMaxHeight}" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" IsTabStop="True" UseSystemFocusVisuals="True" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <ItemsControl x:Name="TransferResultEvidence" IsTabStop="False" AutomationProperties.AutomationId="TransferResultEvidence">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Margin="{StaticResource SpacingOperationBar}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
                 <ItemsControl
                     x:Name="OperationKeyHints"
                     views:LocalizedText.Resources="{StaticResource ViewTextResources}" views:LocalizedText.NameKey="OperationKeyHintsRegion.AutomationProperties.Name"

@@ -41,7 +41,7 @@ public sealed class VerifiedCopyContractTests
     {
         FileEntrySnapshot source = Source();
         VerifiedEntrySnapshot observation = Observation(source.Path);
-        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash());
+        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash(), FileVerificationRequirements.DefaultStream);
         List<VerifiedCopyEntry> children = [file];
         List<VerifiedEntrySnapshot> ancestors = [observation];
         VerifiedCopyEntry.VerifiedDirectory directory = Assert.IsInstanceOfType<VerifiedCopyEntry.VerifiedDirectory>(
@@ -64,15 +64,15 @@ public sealed class VerifiedCopyContractTests
     {
         FileEntrySnapshot source = Source();
         VerifiedEntrySnapshot observation = Observation(source.Path);
-        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash());
+        VerifiedCopyEntry file = VerifiedCopyEntry.File(observation, Observation(Target()), Hash(), FileVerificationRequirements.DefaultStream);
         VerifiedTreeBoundary boundary = VerifiedTreeBoundary.Create([], []);
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => FileContentHash.Create(null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(null!, source.Identity, observation.ObjectIdentity));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(source.Path, null!, observation.ObjectIdentity));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedEntrySnapshot.Create(source.Path, source.Identity, null!));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(null!, observation, Hash()));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, null!, Hash()));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, observation, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(null!, observation, Hash(), FileVerificationRequirements.DefaultStream));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, null!, Hash(), FileVerificationRequirements.DefaultStream));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.File(observation, observation, null!, FileVerificationRequirements.DefaultStream));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.Directory(observation, observation, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedCopyEntry.Directory(observation, observation, [null!]));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => VerifiedTreeBoundary.Create(null!, []));
@@ -99,7 +99,7 @@ public sealed class VerifiedCopyContractTests
             mismatch == "identity" ? VerifiedEntrySnapshot.Create(source.Path, Identity("other"), FileObjectIdentity.Create("identity")) :
             Observation(source.Path);
         VerifiedCopyEntry root = VerifiedCopyEntry.File(rootSource,
-            Observation(mismatch == "target" ? Path("C:\\elsewhere\\item") : Target()), Hash());
+            Observation(mismatch == "target" ? Path("C:\\elsewhere\\item") : Target()), Hash(), FileVerificationRequirements.DefaultStream);
 
         _ = Assert.ThrowsExactly<ArgumentException>(() => VerifiedCopyReceipt.Create(source, root, VerifiedTreeBoundary.Create([], [])));
     }
@@ -111,8 +111,8 @@ public sealed class VerifiedCopyContractTests
     public async Task ExecuteAsyncWhenVerifiedDeletionPartlyFailsReportsOnlyPartialSourceRemoval()
     {
         ScriptedFileOperationPort port = Port();
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.SourcePartiallyDeleted));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Create([ProviderStepEffectKind.SourcePartiallyDeleted], null, [])));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(Move(), RecordingFileOperationProgress.Create(), CancellationToken.None);
@@ -160,9 +160,9 @@ public sealed class VerifiedCopyContractTests
             TransferPlanEntry.Transfer(Source(), Target()),
             TransferPlanEntry.Transfer(second, Path("C:\\destination\\second")),
         ]));
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.FailedAfterEffect(FileOperationFailureKind.Delete, ProviderStepEffectKind.SourcePartiallyDeleted));
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Create([ProviderStepEffectKind.SourcePartiallyDeleted], null, [])));
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(Assert.IsInstanceOfType<FileOperationRequestAccepted>(
             MoveRequest.Create([Source().Path, second.Path], Path("C:\\destination"))).Request);
         using FileOperationGateway gateway = new(port);
@@ -181,7 +181,7 @@ public sealed class VerifiedCopyContractTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(FileInspectionOutcome.Succeeded(Source()));
         port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([TransferPlanEntry.Transfer(Source(), Target())]));
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         return port;
     }
 

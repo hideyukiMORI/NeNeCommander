@@ -92,7 +92,7 @@ public sealed class TransferAdmissionTests
             cancellation.Cancel);
         port.EnqueueInspection(TransferConflictTestContext.Inspection(first));
         port.EnqueueInspection(TransferConflictTestContext.Inspection(second));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         using FileOperationGateway gateway = new(port);
         MoveRequest request = (MoveRequest)((FileOperationRequestAccepted)MoveRequest.Create(

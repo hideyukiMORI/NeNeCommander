@@ -24,9 +24,9 @@ public sealed class PanePointerTransferTests
         _ = await fixture.Panes.HandleAsync(UserIntent.InteractWithPaneEntry(PaneSide.Right,
             fixture.Panes.Current.Right, right.Entries[1], PaneEntryAction.Select), RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(right.Entries[1].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\left", ("b.txt", DirectoryEntryKind.File)), null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(right, null));
 

@@ -18,7 +18,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenSourceIsFileOrTreeCopiesAndVerifies()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("tree");
         _ = root.CreateDirectory("tree\\inner");
@@ -49,7 +49,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenTreeContainsJunctionFailsClosedWithoutWriting()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("outside");
         _ = root.WriteFile("outside\\secret.txt", "secret");
@@ -74,7 +74,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenTargetExistsOrSourceChangedOrDestinationIsForeignFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         _ = root.WriteFile("dest\\a.txt", "existing");
@@ -98,7 +98,7 @@ public sealed class WindowsLocalCopyTests
     public async Task VerifyCopyAsyncWhenCopyIsDamagedOrSourceChangedFailsClosed()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         FileEntrySnapshot never = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("never.txt", "abc")));
@@ -129,7 +129,7 @@ public sealed class WindowsLocalCopyTests
     public async Task VerifyCopyAsyncWhenTargetKindOrEntrySetDiffersReturnsVerification()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         _ = root.CreateDirectory("tree");
         FileEntrySnapshot tree = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.Resolve("tree")));
@@ -156,7 +156,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenSourceListingIsDeniedReturnsAccessDenied()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileEntrySnapshot denied = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.DenyDirectoryListing("denied")));
 
@@ -177,7 +177,7 @@ public sealed class WindowsLocalCopyTests
         FileSystemPath source = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("tree"));
         string lockedPath = root.WriteFile("tree\\locked.txt", "content");
         using FileStream locked = new(lockedPath, FileMode.Open, FileAccess.Read, FileShare.None);
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource()));
         CopyRequest request = Assert.IsInstanceOfType<CopyRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(CopyRequest.Create([source], destination)).Request);
 
@@ -202,7 +202,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenLockedFileFailsBeforeTargetCreationReportsNoEffect()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         string sourcePath = root.WriteFile("locked.txt", "content");
         FileEntrySnapshot source = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(sourcePath));
@@ -211,7 +211,7 @@ public sealed class WindowsLocalCopyTests
         ProviderStepOutcome outcome = await adapter.CopyAsync(source, destination, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Copy, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("dest\\locked.txt")));
     }
 
@@ -220,7 +220,7 @@ public sealed class WindowsLocalCopyTests
     public async Task CopyAsyncWhenDestinationIsFileReturnsNotFound()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot file = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc")));
         FileSystemPath destinationFile = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("destfile", "x"));
 
@@ -242,7 +242,7 @@ public sealed class WindowsLocalCopyTests
             source, WindowsLocalOperationTestContext.ParsePath(target), new WindowsTreeCopyAccess(path => path.CanonicalText,
                 WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
         Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
 
         Assert.AreEqual("keep", File.ReadAllText(target));
     }

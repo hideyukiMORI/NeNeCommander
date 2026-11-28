@@ -282,7 +282,7 @@ public sealed class VerifiedTreeBoundaryTests
     {
         return Assert.IsInstanceOfType<VerifiedCopyEntry.VerifiedFile>(VerifiedCopyEntry.File(
             access.Capture(Path(root.Resolve("source"))), access.Capture(Path(root.Resolve("target"))),
-            VerifiedFileContent.Compare(root.Resolve("source"), root.Resolve("target"))));
+            VerifiedFileContent.Compare(root.Resolve("source"), root.Resolve("target")), FileVerificationRequirements.DefaultStream));
     }
 
     private static VerifiedCopyEntry.VerifiedDirectory DirectoryEvidence(TestOwnedTemporaryRoot root, VerifiedTreeAccess access)

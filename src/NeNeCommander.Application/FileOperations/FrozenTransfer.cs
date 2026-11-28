@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -8,9 +8,9 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Owns the original request, ordered source identities and destination across transfer attempts.</summary>
 internal sealed record FrozenTransfer
 {
-    private readonly ReadOnlyCollection<FileEntrySnapshot> _sources;
+    private readonly ImmutableList<FileEntrySnapshot> _sources;
 
-    private FrozenTransfer(FileOperationRequest request, ReadOnlyCollection<FileEntrySnapshot> sources, FileSystemPath destination)
+    private FrozenTransfer(FileOperationRequest request, ImmutableList<FileEntrySnapshot> sources, FileSystemPath destination)
     {
         Request = request;
         _sources = sources;
@@ -26,6 +26,11 @@ internal sealed record FrozenTransfer
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(destination);
-        return new FrozenTransfer(request, new List<FileEntrySnapshot>(sources).AsReadOnly(), destination);
+        ImmutableList<FileEntrySnapshot> snapshot = [.. sources];
+        foreach (FileEntrySnapshot source in snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+        }
+        return new FrozenTransfer(request, snapshot, destination);
     }
 }

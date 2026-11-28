@@ -103,7 +103,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
         return !source.DeletionCapability.IsInspected && mode is not DeletionExecutionMode.VerifiedCopyMode
-            ? Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection))
+            ? Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty))
             : _executionBoundary.ExecuteAsync(
                 () => Guarded(() => Delete(source, mode), FileOperationFailureKind.Delete));
     }
@@ -174,7 +174,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome CreateDirectory(FileEntrySnapshot location, FileSystemPath target)
     {
         return target is not WslPath wslTarget
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WithRevalidatedEntry(_fileSystem, location, entry => CreateDirectoryBeneath(entry, location.Path, wslTarget));
     }
 
@@ -182,10 +182,10 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         return entry switch
         {
-            _ when entry.Kind != DirectoryEntryKind.Directory => ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound),
+            _ when entry.Kind != DirectoryEntryKind.Directory => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty),
             _ when IsReparsePoint(entry) || !IsDirectChild(location, target) =>
-                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
-            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
+            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty),
             _ => CreateDirectory(target),
         };
     }
@@ -252,7 +252,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WslPath wslDestination
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WithRevalidatedEntry(_fileSystem, source, entry => Copy(entry, wslDestination));
     }
 
@@ -263,15 +263,15 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             _fileSystem.ContainsReparsePoint(source) ||
             BuildTarget(source.Name, destination) is not WslPath target)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (ProviderPathContainment.Evaluate(source.Path, destination) is ContainedPath)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         if (_fileSystem.TargetExists(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
 
         try
@@ -300,7 +300,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
             ProviderPathContainment.Evaluate(entry.Path, wslDestination) is not ContainedPath &&
             BuildTarget(entry.Name, wslDestination) is WslPath target &&
             _fileSystem.TargetExists(target) && !_fileSystem.ContainsReparsePoint(target)
-                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification));
+                ? ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty) : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Verification), ProviderStepReceipt.Empty));
         if (admission.Failure is FileOperationFailureKind failure)
         {
             return CopyVerificationOutcome.Failed(failure);
@@ -319,8 +319,8 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         FileOperationFailureKind failure)
     {
         return fileSystem.TargetExists(target)
-            ? ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated)
-            : ProviderStepOutcome.Failed(failure);
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.CopyTargetCreated], null, []))
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty);
     }
 
     /// <summary>Reports whether a step destination is still an existing non-link directory.</summary>
@@ -334,13 +334,13 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome CreateDirectory(WslPath target)
     {
         _fileSystem.CreateDirectory(target);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private ProviderStepOutcome Rename(FileEntrySnapshot source, FileSystemPath target)
     {
         return target is not WslPath wslTarget
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WithRevalidatedEntry(_fileSystem, source, entry => RenameWithinParent(entry, source.Path, wslTarget));
     }
 
@@ -349,8 +349,8 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         return entry switch
         {
             _ when IsReparsePoint(entry) || !SharesParent(source, target) =>
-                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
-            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
+            _ when _fileSystem.TargetExists(target) => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty),
             _ => Rename(entry, target),
         };
     }
@@ -358,7 +358,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome Rename(WslFileSystemEntry source, WslPath target)
     {
         _fileSystem.Rename(source, target);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private ProviderStepOutcome Delete(FileEntrySnapshot source, DeletionExecutionMode mode)
@@ -367,8 +367,8 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         {
             DeletionExecutionMode.VerifiedCopyMode verified => source.Path is WslPath
                 ? _fileSystem.DeleteVerifiedSource(source, verified.Receipt)
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
-            _ when mode != DeletionExecutionMode.Permanent => ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+                : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
+            _ when mode != DeletionExecutionMode.Permanent => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
             _ => WithRevalidatedEntry(_fileSystem, source, DeletePermanent),
         };
     }
@@ -376,14 +376,14 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     private ProviderStepOutcome DeletePermanent(WslFileSystemEntry entry)
     {
         return IsReparsePoint(entry) || _fileSystem.ContainsReparsePoint(entry)
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : Delete(entry);
     }
 
     private ProviderStepOutcome Delete(WslFileSystemEntry source)
     {
         _fileSystem.Delete(source);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     internal static ProviderStepOutcome WithRevalidatedEntry(
@@ -393,14 +393,14 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         if (source.Path is not WslPath wsl)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
 
         WslFileSystemEntry? current = fileSystem.Find(wsl);
         return current is null
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.NotFound)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.NotFound), ProviderStepReceipt.Empty)
             : current.Identity != source.Identity
-                ? ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged)
+                ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.IdentityChanged), ProviderStepReceipt.Empty)
                 : step(current);
     }
 
@@ -448,7 +448,7 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty));
     }
 
     internal static CopyVerificationOutcome GuardedVerification(Func<CopyVerificationOutcome> step)
@@ -477,11 +477,11 @@ internal sealed class WslFileOperationAdapter : IFileOperationPort
         }
         catch (UnauthorizedAccessException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
         catch (IOException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
     }
 

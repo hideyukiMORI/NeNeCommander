@@ -36,16 +36,16 @@ internal sealed class WindowsRecycleSession : IDisposable
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Delete);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Empty);
         }
         int result = _operation.SetOperationFlags(OperationFlags);
         if (result != 0)
         {
-            return ProviderStepOutcome.Failed(WindowsFileFailureNormalizer.Normalize(result));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsFileFailureNormalizer.Normalize(result)), ProviderStepReceipt.Empty);
         }
         result = _operation.DeleteItem(_entry, _progress);
         return result != 0
-            ? ProviderStepOutcome.Failed(WindowsFileFailureNormalizer.Normalize(result))
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsFileFailureNormalizer.Normalize(result)), ProviderStepReceipt.Empty)
             : Perform();
     }
 

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
@@ -8,24 +8,27 @@ namespace NeNeCommander.Application.FileOperations;
 /// <summary>Describes one source whose ordinary target already exists.</summary>
 public sealed record TransferConflict
 {
-    private readonly ReadOnlyCollection<TransferConflictDecision> _allowedDecisions;
+    private readonly ImmutableList<TransferConflictDecision> _allowedDecisions;
 
     private TransferConflict(
         FileEntrySnapshot source,
-        FileSystemPath existingTarget,
-        FileSystemPath keepBothCandidate,
-        ReadOnlyCollection<TransferConflictDecision> allowedDecisions)
+        TransferConflictTarget target,
+        FileSystemPath keepBothCandidate)
     {
         Source = source;
-        ExistingTarget = existingTarget;
+        Target = target;
         KeepBothCandidate = keepBothCandidate;
-        _allowedDecisions = allowedDecisions;
+        _allowedDecisions = target.OverwriteEvidence is null
+            ? [TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.Cancel]
+            : [TransferConflictDecision.Skip, TransferConflictDecision.KeepBoth, TransferConflictDecision.OverwriteContents, TransferConflictDecision.Cancel];
     }
 
     /// <summary>Gets the original frozen source.</summary>
     public FileEntrySnapshot Source { get; }
     /// <summary>Gets the ordinary target that already exists or is reserved.</summary>
-    public FileSystemPath ExistingTarget { get; }
+    public FileSystemPath ExistingTarget => Target.Path;
+    /// <summary>Gets the original target binding that every resulting choice must retain.</summary>
+    public TransferConflictTarget Target { get; }
     /// <summary>Gets the provider-validated alternate target shown to the user.</summary>
     public FileSystemPath KeepBothCandidate { get; }
     /// <summary>Gets the decisions the provider permits for this conflict.</summary>
@@ -35,18 +38,18 @@ public sealed record TransferConflict
     public static TransferConflict Create(
         FileEntrySnapshot source,
         FileSystemPath existingTarget,
-        FileSystemPath keepBothCandidate)
+        FileSystemPath keepBothCandidate,
+        TransferOverwriteCapability overwrite)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(existingTarget);
         ArgumentNullException.ThrowIfNull(keepBothCandidate);
-        return new TransferConflict(
-            source,
-            existingTarget,
-            keepBothCandidate,
-            Array.AsReadOnly([
-                TransferConflictDecision.Skip,
-                TransferConflictDecision.KeepBoth,
-                TransferConflictDecision.Cancel]));
+        ArgumentNullException.ThrowIfNull(overwrite);
+        TransferOverwriteEvidence? overwriteEvidence = (overwrite as TransferOverwriteCapability.QualifiedOverwrite)?.Evidence;
+        return overwriteEvidence is not null &&
+            (source.Identity != overwriteEvidence.Source.Observation.Entry.Identity ||
+                !FileSystemPathIdentityComparer.Instance.Equals(source.Path, overwriteEvidence.Source.Observation.Entry.Path))
+            ? throw new ArgumentException("The overwrite evidence does not describe the frozen source.", nameof(overwrite))
+            : new TransferConflict(source, TransferConflictTarget.Create(existingTarget, overwrite), keepBothCandidate);
     }
 }

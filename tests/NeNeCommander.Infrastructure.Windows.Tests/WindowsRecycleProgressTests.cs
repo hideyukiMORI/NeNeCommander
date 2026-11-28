@@ -62,7 +62,7 @@ public sealed class WindowsRecycleProgressTests
         Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, result, new ScriptedWindowsShellEntry("unconfirmed receipt")));
         Assert.IsNull(progress.RecycledEntry);
-        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+        Assert.IsEmpty(progress.Complete(0, 0, 0).Receipt.Effects);
     }
 
     /// <summary>A permanent delete proposal is rejected before Shell may affect the source.</summary>
@@ -130,7 +130,7 @@ public sealed class WindowsRecycleProgressTests
         ScriptedWindowsShellEntry entry = new(source.Path.CanonicalText);
         Assert.AreEqual(0, progress.PreDeleteItem(0x80, entry));
         Assert.AreEqual(WindowsRecycleProgress.Abort, progress.PostDeleteItem(0x80, entry, result, null));
-        Assert.IsNull(progress.Complete(0, 0, 0).Effect);
+        Assert.IsEmpty(progress.Complete(0, 0, 0).Receipt.Effects);
         Assert.AreSame(expected == "Delete" ? FileOperationFailureKind.Delete : FileOperationFailureKind.AccessDenied,
             progress.Complete(0, 0, 0).Failure);
     }

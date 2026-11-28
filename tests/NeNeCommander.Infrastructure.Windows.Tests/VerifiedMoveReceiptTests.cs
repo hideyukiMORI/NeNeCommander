@@ -117,7 +117,7 @@ public sealed class VerifiedMoveReceiptTests
             DeletionExecutionMode.VerifiedCopy(receipt), CancellationToken.None);
 
         Assert.IsNotNull(outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\nested\\a.txt")));
     }
 

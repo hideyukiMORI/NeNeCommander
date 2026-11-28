@@ -32,7 +32,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         WindowsLocalPath targetChild = Local(targetFile);
         VerifiedTreeAccess admitted = new(new ScriptedWslFileSystem(), new WindowsDriveBoundary(_ => DriveType.Fixed));
         VerifiedCopyEntry child = VerifiedCopyEntry.File(admitted.Capture(sourceChild), admitted.Capture(targetChild),
-            VerifiedFileContent.Compare(sourceFile, targetFile));
+            VerifiedFileContent.Compare(sourceFile, targetFile), FileVerificationRequirements.DefaultStream);
         VerifiedCopyEntry directory = VerifiedCopyEntry.Directory(admitted.Capture(sourcePath), admitted.Capture(targetPath), [child]);
         FrozenSourcePort port = new(FileEntrySnapshot.Create(sourcePath, directory.Source.Identity,
             DeletionCapability.PermanentOnly), targetPath);
@@ -55,7 +55,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
         Assert.IsTrue(driveQueried);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("kept", File.ReadAllText(sourceFile));
         Assert.AreEqual("kept", File.ReadAllText(targetFile));
         Assert.IsTrue(Directory.Exists(sourcePath.CanonicalText));
@@ -80,7 +80,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         ProviderStepOutcome outcome = fileSystem.DeleteVerifiedSource(receipt.Source, receipt);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.AreSame(ProviderStepEffectKind.SourcePartiallyDeleted, outcome.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.SourcePartiallyDeleted }, new List<ProviderStepEffectKind>(outcome.Receipt.Effects));
         Assert.IsFalse(File.Exists(firstLeaf));
         Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\b.txt")));
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\a.txt")));
@@ -108,7 +108,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         ProviderStepOutcome outcome = fixture.FileSystem.DeleteVerifiedSource(source, receipt);
 
         Assert.AreSame(FileOperationFailureKind.Verification, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\a.txt")));
         Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\b.txt")));
     }
@@ -147,7 +147,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
         Assert.IsTrue(observations >= (change == "capture-pair" ? 2 : 1));
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
-        Assert.AreSame(ProviderStepEffectKind.SourcePartiallyDeleted, outcome.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.SourcePartiallyDeleted }, new List<ProviderStepEffectKind>(outcome.Receipt.Effects));
         Assert.IsFalse(File.Exists(fixture.Root.Resolve("wsl\\directory\\a.txt")));
         Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\b.txt")));
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\a.txt")));
@@ -176,7 +176,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
         Assert.IsTrue(race.Changed);
         Assert.AreSame(FileOperationFailureKind.IdentityChanged, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\a.txt")));
         Assert.AreEqual(change == "bytes" ? "other" : "first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\a.txt")));
     }
@@ -204,7 +204,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
 
         Assert.IsTrue(denied);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\a.txt")));
         Assert.AreEqual("second", File.ReadAllText(fixture.Root.Resolve("wsl\\directory\\b.txt")));
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\directory\\a.txt")));
@@ -308,7 +308,7 @@ public sealed class VerifiedSourceDeletionBoundaryTests
         public Task<ProviderStepOutcome> CopyAsync(FileEntrySnapshot source, FileSystemPath destination, CancellationToken cancellationToken)
         {
             Frozen = source;
-            return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Copy));
+            return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Copy), ProviderStepReceipt.Empty));
         }
 
         public Task<CopyVerificationOutcome> VerifyCopyAsync(FileEntrySnapshot source, FileSystemPath destination, CancellationToken cancellationToken)

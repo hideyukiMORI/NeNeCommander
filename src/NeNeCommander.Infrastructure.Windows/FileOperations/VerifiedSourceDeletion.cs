@@ -29,25 +29,25 @@ internal sealed class VerifiedSourceDeletion
     {
         if (!BindingMatches(source, receipt))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Verification);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Verification), ProviderStepReceipt.Empty);
         }
         try
         {
             return !ValidStructure(receipt.Root, access)
-                ? ProviderStepOutcome.Failed(FileOperationFailureKind.Verification)
+                ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Verification), ProviderStepReceipt.Empty)
                 : new VerifiedSourceDeletion(receipt, access).Run(receipt.Root);
         }
         catch (UnauthorizedAccessException exception)
         {
-            return ProviderStepOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete)), ProviderStepReceipt.Empty);
         }
         catch (WindowsDriveBoundaryRejectedException)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         catch (IOException exception)
         {
-            return ProviderStepOutcome.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(WindowsLocalFileOperationAdapter.Normalize(exception.HResult, FileOperationFailureKind.Delete)), ProviderStepReceipt.Empty);
         }
     }
 
@@ -83,7 +83,7 @@ internal sealed class VerifiedSourceDeletion
                     return Failure(FileOperationFailureKind.IdentityChanged);
                 }
             }
-            return ProviderStepOutcome.Succeeded();
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -109,7 +109,7 @@ internal sealed class VerifiedSourceDeletion
                     _access.Capture(file.Target.Path) == file.Target &&
                     VerifiedTreeEvidence.MatchesFile(file, _access) &&
                     _access.Capture(file.Source.Path) == file.Source &&
-                    _access.Capture(file.Target.Path) == file.Target
+                    _access.Capture(file.Target.Path) == file.Target && _access.MatchesRequirements(file)
                 : AdmitDirectory(entry));
     }
 
@@ -181,7 +181,7 @@ internal sealed class VerifiedSourceDeletion
 
     private ProviderStepOutcome Failure(FileOperationFailureKind failure)
     {
-        return _deleted.Count == 0 ? ProviderStepOutcome.Failed(failure)
-            : ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.SourcePartiallyDeleted);
+        return _deleted.Count == 0 ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty)
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.SourcePartiallyDeleted], null, []));
     }
 }

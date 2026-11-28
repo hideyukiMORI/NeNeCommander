@@ -17,7 +17,7 @@ public sealed class WindowsEmptyFileCreationTests
     public async Task CreateEmptyFileAsyncWhenTargetIsAbsentCreatesZeroBytesAndSecondAttemptConflictsAsync()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath parent = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("parent"));
         FileEntrySnapshot location = await WindowsLocalOperationTestContext.InspectAsync(adapter, parent);
         FileSystemPath target = WindowsLocalOperationTestContext.ParsePath(root.Resolve("parent\\notes.txt"));
@@ -29,7 +29,7 @@ public sealed class WindowsEmptyFileCreationTests
         Assert.IsNull(created.Failure);
         Assert.AreEqual(0L, new FileInfo(target.CanonicalText).Length);
         Assert.AreSame(FileOperationFailureKind.Conflict, conflict.Failure);
-        Assert.IsNull(conflict.Effect);
+        Assert.IsEmpty(conflict.Receipt.Effects);
     }
 
     /// <summary>Proves ordinary, hidden, readonly and hard-linked files retain their exact bytes.</summary>
@@ -56,7 +56,7 @@ public sealed class WindowsEmptyFileCreationTests
         {
             targetText = root.CreateHardLink("alias.txt", "notes.txt");
         }
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot location = await WindowsLocalOperationTestContext.InspectAsync(adapter, root.Path);
 
         FileAttributes attributes = File.GetAttributes(targetText);
@@ -67,7 +67,7 @@ public sealed class WindowsEmptyFileCreationTests
             Assert.AreSame(FileOperationFailureKind.Conflict, outcome.Failure);
             Assert.AreEqual("preserved sentinel", File.ReadAllText(targetText));
             Assert.AreEqual(attributes, File.GetAttributes(targetText));
-            Assert.IsNull(outcome.Effect);
+            Assert.IsEmpty(outcome.Receipt.Effects);
         }
         finally
         {

@@ -359,7 +359,11 @@ framework selection owner or direct Shell route is added.
 Unmodified initial F10 from ordinary pane input enters the Bookmarks/Settings/Help
 button group. CommandEntry context exists only while those native controls own
 focus and loses precedence to every existing modal/editor/window scope. Native
-Tab/Shift+Tab cycles the three buttons; Enter/Space invokes their existing commands.
+Tab/Shift+Tab cycles the three buttons; when transfer-result evidence is visible,
+the same native focus group includes its read-only viewport after Help and before
+Bookmarks. Arrow/PageUp/PageDown/Home/End remain native scrolling there, and no file
+command maps. Hidden details leave the original three-button cycle unchanged.
+Enter/Space on a command button invokes its existing command.
 File-list commands do not map there. F10/Escape returns to the active pane. The
 canonical mapper supplies focus actions and hint declarations. Its existing repeat
 guard holds F10/Escape and native Enter/Space across context changes, so a held key

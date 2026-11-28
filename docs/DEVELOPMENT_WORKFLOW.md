@@ -59,6 +59,45 @@ Before merge, inspect the final diff, the selected evidence and all applicable c
 
 For verification-policy diagnostics, `eng/prove-gates.ps1 -Rule QLT-015` and `eng/prove-security.ps1 -Rule SEC-009` execute only those changed rules' negative fixtures. The default `All` still executes every fixture when the full gate is requested.
 
+## Verification units and reuse
+
+hide clarified on 2026-11-28 that impact selection must work within a layer, not
+only between projects. Use this procedure under ADR-0061 before an expensive run:
+
+1. Select the changed behavior and its direct contract/dependency boundaries.
+   Being in the same project is not, by itself, a reason to rerun other features.
+   For example, overwrite, settings persistence and WSL operations are separate
+   candidates unless their shared changes establish an actual dependency.
+2. Separate behavior tests, native failure/race proof, coverage, security analysis
+   and mutation into reviewable units. Record each selected unit's purpose,
+   exact command, relevant source/test/dependency/tool inputs and original result.
+   A common contract or tool change invalidates every unit that actually consumes
+   it; do not infer independence from directory names alone.
+3. Reuse completed successful units whose relevant inputs remain unchanged.
+   Repair a failure through focused cases first. Do not automatically restart a
+   whole project or full/deep gate after each correction, commit or handoff.
+4. Request a whole integration-level run only when the remaining wider impact
+   cannot be proved by the selected units. State that gap before starting it,
+   and consolidate local corrections before the expensive final acceptance run.
+5. Preserve results when each unit completes so an interruption does not discard
+   other completed units. An unfinished unit is unproved; never mark it passed
+   or imply the current tool can resume an unrecorded partial run.
+6. Record each unit's start/end time and elapsed duration, and expose completed
+   versus selected unit counts during long validation. Estimate remaining time
+   only from observed representative durations and a known remaining scope.
+   A live process or elapsed time alone is not a completion percentage or ETA.
+   If the current runner provides no intermediate counts, report that limitation
+   explicitly instead of presenting a prior run's duration as a current forecast.
+
+This is an execution and evidence-selection procedure, not a new gate or an
+implemented mutation checkpoint facility. The canonical commands, protected
+thresholds and required destructive-boundary proof remain unchanged. Focused
+mutation is diagnostic evidence for its stated scope, not a whole-project score.
+Do not combine incompatible or incomplete mutation reports into synthetic whole
+success. Splitting the canonical mutation runner or changing its aggregation
+requires its own ADR and focused positive/negative tooling proof; it must not
+start unrelated product suites merely to validate the tooling change.
+
 ## Review evidence
 
 Every handoff states:

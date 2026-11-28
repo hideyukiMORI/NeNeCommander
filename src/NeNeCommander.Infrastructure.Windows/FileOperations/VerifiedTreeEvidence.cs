@@ -29,7 +29,7 @@ internal static class VerifiedTreeEvidence
     {
         return access.Find(file.Source.Path) is FileInfo && access.Find(file.Target.Path) is FileInfo &&
             VerifiedFileContent.Read(access.Resolve(file.Source.Path)) == file.Content &&
-            VerifiedFileContent.Read(access.Resolve(file.Target.Path)) == file.Content;
+            VerifiedFileContent.Read(access.Resolve(file.Target.Path)) == file.Content && access.MatchesRequirements(file);
     }
 
     internal static bool Membership(FileSystemPath path, IEnumerable<FileSystemPath> expected, VerifiedTreeAccess access)

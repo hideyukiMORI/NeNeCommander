@@ -31,13 +31,13 @@ public sealed class VerifiedAdapterBoundaryTests
         FileEntrySnapshot source = FileEntrySnapshot.Create(sourcePath, access.Capture(sourcePath).Identity, DeletionCapability.PermanentOnly);
         VerifiedCopyReceipt receipt = Assert.IsInstanceOfType<CopyVerified>(VerificationTestEvidence.ForTarget(source, target)).Receipt;
         WindowsLocalIoExecutionBoundary execution = new();
-        IFileOperationPort adapter = owner == "windows-owner" ? new WindowsLocalFileOperationAdapter(execution, fixture.FileSystem)
+        IFileOperationPort adapter = owner == "windows-owner" ? new WindowsLocalFileOperationAdapter(execution, fixture.FileSystem, new DeterministicIdentifierSource())
             : new WslFileOperationAdapter(execution, fixture.FileSystem);
 
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, DeletionExecutionMode.VerifiedCopy(receipt), CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\file.txt")));
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("windows\\file.txt")));
     }
@@ -57,7 +57,7 @@ public sealed class VerifiedAdapterBoundaryTests
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, DeletionExecutionMode.Recycle, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.AreEqual("first", File.ReadAllText(fixture.Root.Resolve("wsl\\file.txt")));
     }
 
@@ -97,7 +97,7 @@ public sealed class VerifiedAdapterBoundaryTests
 
         Assert.IsTrue(injected);
         Assert.AreSame(kind == "access" ? FileOperationFailureKind.AccessDenied : FileOperationFailureKind.Copy, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("windows\\file.txt")));
         Assert.AreEqual("first", File.ReadAllText(root.Resolve("wsl\\file.txt")));
     }

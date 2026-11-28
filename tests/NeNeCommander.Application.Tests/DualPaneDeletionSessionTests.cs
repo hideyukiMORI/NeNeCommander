@@ -84,7 +84,7 @@ public sealed class DualPaneDeletionSessionTests
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
         _ = await fixture.Panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path, DeletionCapability.PermanentOnly));
-        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         DirectoryListing leftAfter = DualPaneSessionTestContext.Listing("C:\\left", ("b.txt", DirectoryEntryKind.File));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftAfter, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
@@ -113,7 +113,7 @@ public sealed class DualPaneDeletionSessionTests
         DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File));
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path, DeletionCapability.Recycle));
-        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\left"), null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
 

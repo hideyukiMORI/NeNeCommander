@@ -31,7 +31,7 @@ public sealed class DualPaneMoveFocusTests
         _ = await fixture.Panes.HandleAsync(UserIntent.MoveNext, RecordingDualPaneObserver.Create(), CancellationToken.None);
         DirectoryListing source = active == PaneSide.Left ? left : right;
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(source.Entries[1].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         EnqueueSuccessfulMove(fixture.Port);
         DirectoryListing remaining = Listing(activeSide, "a", "c", "d");
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(active == PaneSide.Left ? remaining : Listing("left", "b", "p", "q"), null));
@@ -61,9 +61,9 @@ public sealed class DualPaneMoveFocusTests
         _ = await fixture.Panes.HandleAsync(UserIntent.MovePrevious, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(before.Entries[1].Path));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(before.Entries[2].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         EnqueueSuccessfulMove(fixture.Port);
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.AccessDenied), ProviderStepReceipt.Empty));
         DirectoryListing remaining = Listing("left", "a", "c", "d");
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(remaining, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(Listing("right", "b"), null));
@@ -99,7 +99,7 @@ public sealed class DualPaneMoveFocusTests
         _ = await fixture.Panes.HandleAsync(UserIntent.MovePrevious, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(before.Entries[1].Path));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(before.Entries[3].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         EnqueueSuccessfulMove(fixture.Port);
         DirectoryListing remaining = Listing("left", "a", "c", "d", "e");
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(remaining, null));
@@ -116,9 +116,9 @@ public sealed class DualPaneMoveFocusTests
 
     private static void EnqueueSuccessfulMove(ScriptedFileOperationPort port)
     {
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
     }
 
     private static DirectoryListing Listing(string side, params string[] names)

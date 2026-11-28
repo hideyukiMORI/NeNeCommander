@@ -83,10 +83,10 @@ internal sealed class WindowsRecycleProgress : IWindowsRecycleSink
                 abortQueryResult != 0 ? WindowsFileFailureNormalizer.Normalize(abortQueryResult) :
                 aborted != 0 || RecycledEntry is null ? FileOperationFailureKind.Delete : null);
         return failure is null
-            ? ProviderStepOutcome.Succeeded()
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty)
             : RecycledEntry is null
-                ? ProviderStepOutcome.Failed(failure)
-                : ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.Recycled);
+                ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty)
+                : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.Recycled], null, []));
     }
 
     private bool MatchesSource(IWindowsShellEntry entry)

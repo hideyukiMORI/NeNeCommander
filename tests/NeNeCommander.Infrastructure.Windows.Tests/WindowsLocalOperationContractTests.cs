@@ -72,8 +72,8 @@ public sealed class WindowsLocalOperationContractTests
     public void PortMethodsWhenRequiredArgumentIsNullThrowArgumentNullException()
     {
         _ = Assert.ThrowsExactly<ArgumentNullException>(
-            () => new WindowsLocalFileOperationAdapter(null!));
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+            () => new WindowsLocalFileOperationAdapter(null!, new DeterministicIdentifierSource()));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath path = WindowsLocalOperationTestContext.ParsePath("C:\\source");
         FileIdentity identity = Assert.IsInstanceOfType<FileIdentityAccepted>(FileIdentity.Parse("file|0|0|0")).Identity;
         FileEntrySnapshot snapshot = FileEntrySnapshot.Create(path, identity, DeletionCapability.PermanentOnly);

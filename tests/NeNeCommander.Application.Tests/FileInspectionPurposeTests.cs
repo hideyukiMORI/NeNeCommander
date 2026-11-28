@@ -58,8 +58,8 @@ public sealed class FileInspectionPurposeTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.NotRequested));
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
         using FileOperationGateway gateway = new(port);
 

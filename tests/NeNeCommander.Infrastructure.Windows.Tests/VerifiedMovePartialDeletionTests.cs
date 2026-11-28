@@ -210,7 +210,7 @@ public sealed class VerifiedMovePartialDeletionTests
     private static ProviderFileOperationPort WindowsToWslPort(WindowsWslFileSystem fileSystem)
     {
         WindowsLocalIoExecutionBoundary execution = new();
-        return new ProviderFileOperationPort(new WindowsLocalFileOperationAdapter(execution, fileSystem),
+        return new ProviderFileOperationPort(new WindowsLocalFileOperationAdapter(execution, fileSystem, new DeterministicIdentifierSource()),
             new WslFileOperationAdapter(execution, fileSystem), new WindowsToWslTransfer(execution, fileSystem),
             new WslToWindowsTransfer(execution, fileSystem));
     }

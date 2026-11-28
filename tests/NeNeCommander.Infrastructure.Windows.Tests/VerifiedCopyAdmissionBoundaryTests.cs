@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -31,7 +32,7 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
             Path(targetText), access);
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, outcome.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.CopyTargetCreated }, new List<ProviderStepEffectKind>(outcome.Receipt.Effects));
         Assert.IsTrue(Directory.Exists(targetText));
         Assert.HasCount(0, Directory.GetFileSystemEntries(targetText));
         Assert.AreEqual("kept", File.ReadAllText(root.Resolve("source\\child.txt")));
@@ -57,7 +58,7 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
                 WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
 
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(Directory.Exists(root.Resolve("target")));
         Assert.AreEqual("unfollowed", File.ReadAllText(root.Resolve("linked\\kept")));
     }
@@ -83,7 +84,7 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
                 WindowsLocalTreeCopy.InspectLocalSource, new WindowsDriveBoundary()));
 
         Assert.AreSame(parent == "junction" ? FileOperationFailureKind.ProviderUnavailable : FileOperationFailureKind.NotFound, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsFalse(File.Exists(root.Resolve("linked\\target")));
         Assert.IsFalse(File.Exists(root.Resolve("parent\\target")));
         Assert.AreEqual("kept", File.ReadAllText(root.Resolve("source")));
@@ -121,7 +122,7 @@ public sealed class VerifiedCopyAdmissionBoundaryTests
 
         Assert.IsTrue(replaced);
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.AreSame(ProviderStepEffectKind.CopyTargetCreated, outcome.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.CopyTargetCreated }, new List<ProviderStepEffectKind>(outcome.Receipt.Effects));
         Assert.IsTrue(Directory.Exists(root.Resolve("target")));
         Assert.HasCount(0, Directory.GetFileSystemEntries(root.Resolve("target")));
         Assert.AreEqual("unfollowed", File.ReadAllText(root.Resolve("linked\\kept")));

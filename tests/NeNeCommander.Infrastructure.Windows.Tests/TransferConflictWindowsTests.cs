@@ -20,7 +20,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath source = PathOf(root.WriteFile("report.txt", "source"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         _ = root.WriteFile("destination\\report.txt", "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
 
         FileOperationOutcome awaiting = await gateway.ExecuteAsync(
             Copy([source], destination),
@@ -50,7 +50,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         _ = root.CreateDirectory("destination\\tree");
         _ = root.WriteFile("destination\\tree\\existing.txt", "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
 
         FileOperationOutcome awaiting = await gateway.ExecuteAsync(
             Copy([source], destination),
@@ -76,7 +76,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath source = PathOf(root.WriteFile("move.txt", "source"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         _ = root.WriteFile("destination\\move.txt", "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
         MoveRequest request = (MoveRequest)((FileOperationRequestAccepted)MoveRequest.Create([source], destination)).Request;
         FileOperationOutcome awaiting = await gateway.ExecuteAsync(
             request,
@@ -107,7 +107,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath source = PathOf(root.WriteFile("report.txt", "source"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         _ = root.WriteFile("destination\\report.txt", "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
         FileOperationOutcome awaiting = await gateway.ExecuteAsync(
             Copy([source], destination),
             IgnoredFileOperationProgress.Create(),
@@ -135,7 +135,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath source = PathOf(root.WriteFile("report.txt", "source"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         _ = root.WriteFile("destination\\report.txt", "existing");
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
         CopyRequest request = Copy([source], destination);
         FileOperationOutcome firstAwaiting = await gateway.ExecuteAsync(
             request,
@@ -168,7 +168,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath first = PathOf(root.WriteFile("one\\Report.txt", "first"));
         FileSystemPath second = PathOf(root.WriteFile("two\\report.txt", "second"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
             Copy([first, second], destination),
@@ -192,7 +192,7 @@ public sealed class TransferConflictWindowsTests
         FileSystemPath source = PathOf(root.Resolve("tree"));
         FileSystemPath destination = PathOf(root.CreateDirectory("destination"));
         FileSystemPath linkedDestination = PathOf(root.CreateJunction("destination-link", "destination"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter());
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()));
 
         FileOperationOutcome linkedSource = await gateway.ExecuteAsync(
             Copy([source], destination),

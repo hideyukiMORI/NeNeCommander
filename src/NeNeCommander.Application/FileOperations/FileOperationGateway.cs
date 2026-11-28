@@ -40,15 +40,13 @@ public sealed class FileOperationGateway : IDisposable
         ArgumentNullException.ThrowIfNull(progress);
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(Array.Empty<FileOperationEffect>());
+            return FileOperationOutcome.Cancelled(FileOperationEffectSummary.Empty);
         }
 
         bool entered = await _executionLease.WaitAsync(0, CancellationToken.None);
         if (!entered)
         {
-            return FileOperationOutcome.Failed(
-                Array.Empty<FileOperationEffect>(),
-                FileOperationFailureKind.Reentrant);
+            return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
         }
 
         try
@@ -82,24 +80,28 @@ public sealed class FileOperationGateway : IDisposable
         ArgumentNullException.ThrowIfNull(progress);
         if (!continuation.IsOwnedBy(_continuationOwner))
         {
-            return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+            return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
         }
         if (response.Decision == TransferConflictDecision.Cancel || cancellationToken.IsCancellationRequested)
         {
             return continuation.TryConsume()
-                ? FileOperationOutcome.Cancelled([])
-                : FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+                ? FileOperationOutcome.Cancelled(FileOperationEffectSummary.Empty)
+                : FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
         }
         bool entered = await _executionLease.WaitAsync(0, CancellationToken.None);
         if (!entered)
         {
-            return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+            return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
         }
         try
         {
             if (!continuation.TryConsume())
             {
-                return FileOperationOutcome.Failed([], FileOperationFailureKind.Reentrant);
+                return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.Reentrant);
+            }
+            if (!continuation.PendingConflicts.Conflicts[0].AllowedDecisions.Contains(response.Decision))
+            {
+                return FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, FileOperationFailureKind.ProviderUnavailable);
             }
             TransferResolution resolution = continuation.Resolution.Add(
                 continuation.PendingConflicts,
@@ -140,9 +142,9 @@ public sealed class FileOperationGateway : IDisposable
         }
         InspectionBatch inspection = await InspectAllAsync(sources, FileInspectionPurpose.IdentityOnly, cancellationToken);
         return inspection.Completion == InspectionBatchCompletion.Cancelled
-            ? FileOperationOutcome.Cancelled([])
+            ? FileOperationOutcome.Cancelled(FileOperationEffectSummary.Empty)
             : inspection.Failure is FileOperationFailureKind failedInspection
-            ? FileOperationOutcome.Failed([], failedInspection)
+            ? FileOperationOutcome.Failed(FileOperationEffectSummary.Empty, failedInspection)
             : await new TransferExecution(
                 _port,
                 FrozenTransfer.Create(request, inspection.Snapshots, destination),
@@ -154,15 +156,15 @@ public sealed class FileOperationGateway : IDisposable
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
-        List<FileOperationEffect> effects = [];
+        FileOperationEffectJournal effects = new();
         InspectionBatch inspection = await InspectAllAsync(request.Sources, FileInspectionPurpose.Deletion, cancellationToken);
         return inspection switch
         {
-            _ when inspection.Completion == InspectionBatchCompletion.Cancelled => FileOperationOutcome.Cancelled(effects),
-            { Failure: FileOperationFailureKind failure } => FileOperationOutcome.Failed(effects, failure),
+            _ when inspection.Completion == InspectionBatchCompletion.Cancelled => FileOperationOutcome.Cancelled(effects.Snapshot([])),
+            { Failure: FileOperationFailureKind failure } => FileOperationOutcome.Failed(effects.Snapshot([]), failure),
             _ when NeedsConfirmation(inspection.Snapshots) &&
                 (request.Confirmation is null || !request.Confirmation.Covers(request.Sources)) =>
-                FileOperationOutcome.Failed(effects, FileOperationFailureKind.ConfirmationRequired),
+                FileOperationOutcome.Failed(effects.Snapshot([]), FileOperationFailureKind.ConfirmationRequired),
             _ => await DeleteInspectedAsync(request, inspection.Snapshots, progress, cancellationToken),
         };
     }
@@ -173,12 +175,12 @@ public sealed class FileOperationGateway : IDisposable
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
-        List<FileOperationEffect> effects = [];
+        FileOperationEffectJournal effects = new();
         foreach (FileEntrySnapshot snapshot in snapshots)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return FileOperationOutcome.Cancelled(effects);
+                return FileOperationOutcome.Cancelled(effects.Snapshot([]));
             }
             FileOperationOutcome? stopped = await DeleteOneAsync(snapshot, effects, cancellationToken);
             if (stopped is not null)
@@ -187,27 +189,36 @@ public sealed class FileOperationGateway : IDisposable
             }
             progress.Report(FileOperationProgress.Create(effects.Count, request.Sources.Count));
         }
-        return FileOperationOutcome.Succeeded(effects);
+        return FileOperationOutcome.Succeeded(effects.Snapshot([]));
     }
 
     private async Task<FileOperationOutcome?> DeleteOneAsync(
         FileEntrySnapshot snapshot,
-        List<FileOperationEffect> effects,
+        FileOperationEffectJournal effects,
         CancellationToken cancellationToken)
     {
         DeletionExecutionMode mode = snapshot.DeletionCapability == DeletionCapability.PermanentOnly
             ? DeletionExecutionMode.Permanent
             : DeletionExecutionMode.Recycle;
         ProviderStepOutcome deletion = await _port.DeleteAsync(snapshot, mode, cancellationToken);
+        effects.RecordProvider(snapshot.Path, deletion.Receipt);
+        if (deletion.Completion == ProviderStepCompletion.Cancelled)
+        {
+            if (deletion.Receipt.Effects.Contains(ProviderStepEffectKind.Recycled))
+            {
+                effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Recycled));
+            }
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
+        }
         if (deletion.Failure is not null)
         {
-            if (deletion.Effect == ProviderStepEffectKind.Recycled)
+            if (deletion.Receipt.Effects.Contains(ProviderStepEffectKind.Recycled))
             {
                 effects.Add(FileOperationEffect.Create(snapshot.Path, FileOperationEffectKind.Recycled));
             }
             return cancellationToken.IsCancellationRequested
-                ? FileOperationOutcome.Cancelled(effects)
-                : FileOperationOutcome.Failed(effects, deletion.Failure);
+                ? FileOperationOutcome.Cancelled(effects.Snapshot([]))
+                : FileOperationOutcome.Failed(effects.Snapshot([]), deletion.Failure);
         }
         FileOperationEffectKind effect = mode == DeletionExecutionMode.Recycle
             ? FileOperationEffectKind.Recycled
@@ -221,26 +232,31 @@ public sealed class FileOperationGateway : IDisposable
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
-        List<FileOperationEffect> effects = [];
+        FileOperationEffectJournal effects = new();
         FileInspectionOutcome inspection = await _port.InspectAsync(request.Location, FileInspectionPurpose.IdentityOnly, cancellationToken);
         if (inspection is FileInspectionFailed failed)
         {
-            return FileOperationOutcome.Failed(effects, failed.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), failed.Failure);
         }
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(effects);
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
         }
 
         FileEntrySnapshot location = ((FileInspectionSucceeded)inspection).Snapshot;
         ProviderStepOutcome creation = await _port.CreateDirectoryAsync(location, request.Target, cancellationToken);
+        effects.RecordProvider(request.Target, creation.Receipt);
+        if (creation.Completion == ProviderStepCompletion.Cancelled)
+        {
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
+        }
         if (creation.Failure is not null)
         {
-            return FileOperationOutcome.Failed(effects, creation.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), creation.Failure);
         }
         effects.Add(FileOperationEffect.Create(request.Target, FileOperationEffectKind.DirectoryCreated));
         progress.Report(FileOperationProgress.Create(1, 1));
-        return FileOperationOutcome.Succeeded(effects);
+        return FileOperationOutcome.Succeeded(effects.Snapshot([]));
     }
 
     private async Task<FileOperationOutcome> ExecuteCreateTextFileAsync(
@@ -248,26 +264,31 @@ public sealed class FileOperationGateway : IDisposable
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
-        List<FileOperationEffect> effects = [];
+        FileOperationEffectJournal effects = new();
         FileInspectionOutcome inspection = await _port.InspectAsync(request.Location, FileInspectionPurpose.IdentityOnly, cancellationToken);
         if (inspection is FileInspectionFailed failed)
         {
-            return FileOperationOutcome.Failed(effects, failed.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), failed.Failure);
         }
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(effects);
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
         }
 
         FileEntrySnapshot location = ((FileInspectionSucceeded)inspection).Snapshot;
         ProviderStepOutcome creation = await _port.CreateEmptyFileAsync(location, request.Target, cancellationToken);
+        effects.RecordProvider(request.Target, creation.Receipt);
+        if (creation.Completion == ProviderStepCompletion.Cancelled)
+        {
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
+        }
         if (creation.Failure is not null)
         {
-            return FileOperationOutcome.Failed(effects, creation.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), creation.Failure);
         }
         effects.Add(FileOperationEffect.Create(request.Target, FileOperationEffectKind.FileCreated));
         progress.Report(FileOperationProgress.Create(1, 1));
-        return FileOperationOutcome.Succeeded(effects);
+        return FileOperationOutcome.Succeeded(effects.Snapshot([]));
     }
 
     private async Task<FileOperationOutcome> ExecuteRenameAsync(
@@ -275,26 +296,31 @@ public sealed class FileOperationGateway : IDisposable
         IFileOperationProgressObserver progress,
         CancellationToken cancellationToken)
     {
-        List<FileOperationEffect> effects = [];
+        FileOperationEffectJournal effects = new();
         FileInspectionOutcome inspection = await _port.InspectAsync(request.Source, FileInspectionPurpose.IdentityOnly, cancellationToken);
         if (inspection is FileInspectionFailed failed)
         {
-            return FileOperationOutcome.Failed(effects, failed.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), failed.Failure);
         }
         if (cancellationToken.IsCancellationRequested)
         {
-            return FileOperationOutcome.Cancelled(effects);
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
         }
 
         FileEntrySnapshot source = ((FileInspectionSucceeded)inspection).Snapshot;
         ProviderStepOutcome rename = await _port.RenameAsync(source, request.Target, cancellationToken);
+        effects.RecordProvider(request.Source, rename.Receipt);
+        if (rename.Completion == ProviderStepCompletion.Cancelled)
+        {
+            return FileOperationOutcome.Cancelled(effects.Snapshot([]));
+        }
         if (rename.Failure is not null)
         {
-            return FileOperationOutcome.Failed(effects, rename.Failure);
+            return FileOperationOutcome.Failed(effects.Snapshot([]), rename.Failure);
         }
         effects.Add(FileOperationEffect.Create(request.Source, FileOperationEffectKind.Renamed));
         progress.Report(FileOperationProgress.Create(1, 1));
-        return FileOperationOutcome.Succeeded(effects);
+        return FileOperationOutcome.Succeeded(effects.Snapshot([]));
     }
 
     private async Task<InspectionBatch> InspectAllAsync(

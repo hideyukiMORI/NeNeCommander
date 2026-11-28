@@ -100,10 +100,10 @@ public static partial class WindowsLocalTreeCopy
         return target switch
         {
             _ when !access.InspectSource(source) || !access.AdmitsTarget(target) || IsReparsePoint(source) =>
-                ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty),
             _ when TargetParentFailure(target, access) is FileOperationFailureKind failure =>
-                ProviderStepOutcome.Failed(failure),
-            _ when Exists(access.ResolveTarget(target)) => ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict),
+                ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Empty),
+            _ when Exists(access.ResolveTarget(target)) => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty),
             _ when source is DirectoryInfo directory => CopyDirectory(directory, target, access),
             _ => CopyFile(source, target, access),
         };
@@ -140,19 +140,19 @@ public static partial class WindowsLocalTreeCopy
     {
         if (!access.InspectSource(source) || !access.AdmitsTarget(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = access.ResolveTarget(target);
         try
         {
             File.Copy(source.FullName, targetText, overwrite: false);
-            return ProviderStepOutcome.Succeeded();
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
         }
         catch (IOException exception) when (
             exception.HResult is unchecked((int)0x80070050) or unchecked((int)0x800700B7) || Directory.Exists(targetText))
         {
             // Exclusive file creation cannot have created the competing file or directory.
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
     }
 
@@ -163,17 +163,17 @@ public static partial class WindowsLocalTreeCopy
     {
         if (!access.InspectSource(source) || !access.AdmitsTarget(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         string targetText = access.ResolveTarget(target);
         string nativeText = target is WindowsLocalPath ? @"\\?\" + targetText : targetText;
         if (!CreateDirectory(nativeText, IntPtr.Zero))
         {
             int error = Marshal.GetLastWin32Error();
-            return ProviderStepOutcome.Failed(error is 80 or 183
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(error is 80 or 183
                 ? FileOperationFailureKind.Conflict
                 : WindowsLocalFileOperationAdapter.Normalize(
-                    unchecked((int)(0x80070000u | (uint)error)), FileOperationFailureKind.Copy));
+                    unchecked((int)(0x80070000u | (uint)error)), FileOperationFailureKind.Copy)), ProviderStepReceipt.Empty);
         }
         return CopyChildren(Children(source), target, access);
     }
@@ -200,7 +200,7 @@ public static partial class WindowsLocalTreeCopy
                 return Partial(failure);
             }
         }
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     private static FileOperationFailureKind? TargetParentFailure(
@@ -222,7 +222,7 @@ public static partial class WindowsLocalTreeCopy
 
     private static ProviderStepOutcome Partial(FileOperationFailureKind failure)
     {
-        return ProviderStepOutcome.FailedAfterEffect(failure, ProviderStepEffectKind.CopyTargetCreated);
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(failure), ProviderStepReceipt.Create([ProviderStepEffectKind.CopyTargetCreated], null, []));
     }
 
     private static bool Exists(string path)
@@ -261,8 +261,10 @@ public static partial class WindowsLocalTreeCopy
         {
             IReadOnlyList<VerifiedEntrySnapshot> sourceAncestors = access.Ancestors(source.Path);
             IReadOnlyList<VerifiedEntrySnapshot> targetAncestors = access.Ancestors(target);
-            VerifiedCopyEntry root = VerifyEntry(source.Path, target, access);
-            return source.Identity == root.Source.Identity &&
+            FileVerificationRequirements requirements = source.ConflictChoice?.Decision == TransferConflictDecision.OverwriteContents
+                ? FileVerificationRequirements.OverwriteContents : FileVerificationRequirements.DefaultStream;
+            VerifiedCopyEntry root = VerifyEntry(source.Path, target, access, requirements);
+            return source.Identity == root.Source.Identity && MatchesOverwriteTarget(source, root) &&
                 access.MatchesAncestors(sourceAncestors) && access.MatchesAncestors(targetAncestors) &&
                 VerifiedTreeEvidence.Matches(root, access)
                 ? CopyVerificationOutcome.Succeeded(VerifiedCopyReceipt.Create(source, root,
@@ -285,16 +287,30 @@ public static partial class WindowsLocalTreeCopy
         }
     }
 
-    private static VerifiedCopyEntry VerifyEntry(FileSystemPath source, FileSystemPath target, VerifiedTreeAccess access)
+    private static bool MatchesOverwriteTarget(FileEntrySnapshot source, VerifiedCopyEntry root)
+    {
+        return source.ConflictChoice?.Decision != TransferConflictDecision.OverwriteContents ||
+            (source.ConflictChoice.Target.OverwriteEvidence is TransferOverwriteEvidence original &&
+                root.Source == original.Source.Observation.Entry &&
+                root.Target.ObjectIdentity == original.Target.Observation.Entry.ObjectIdentity &&
+                FileSystemPathIdentityComparer.Instance.Equals(root.Target.Path, original.Target.Observation.Entry.Path));
+    }
+
+    private static VerifiedCopyEntry VerifyEntry(FileSystemPath source, FileSystemPath target, VerifiedTreeAccess access,
+        FileVerificationRequirements requirements)
     {
         VerifiedEntrySnapshot sourceBefore = access.Capture(source);
         VerifiedEntrySnapshot targetBefore = access.Capture(target);
         FileSystemInfo entry = access.Find(source);
+        if (entry is DirectoryInfo && requirements == FileVerificationRequirements.OverwriteContents)
+        {
+            throw new IOException("Overwrite verification requires a regular file.");
+        }
         VerifiedCopyEntry result = entry is DirectoryInfo
             ? VerifyDirectory(sourceBefore, targetBefore, access)
             : access.Find(target) is FileInfo
                 ? VerifiedCopyEntry.File(sourceBefore, targetBefore,
-                    VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)))
+                    VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)), requirements)
                 : throw new IOException("The copied entry kind differs.");
         return access.Capture(source) != sourceBefore || access.Capture(target) != targetBefore
             ? throw new IOException("An entry changed during verification.") : result;
@@ -326,7 +342,7 @@ public static partial class WindowsLocalTreeCopy
             {
                 throw new IOException("The copied directory entry set differs.");
             }
-            children.Add(VerifyEntry(child, childTarget, access));
+            children.Add(VerifyEntry(child, childTarget, access, FileVerificationRequirements.DefaultStream));
         }
         return targets.Count != 0 ? throw new IOException("The copied directory contains an unexpected entry.")
             : children.AsReadOnly();

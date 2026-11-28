@@ -143,3 +143,5 @@ Number allocation includes these reservations as well as the records already in 
 - [ADR-0093: Extend visible selection through the existing pane reducer](0093-visible-selection-controls.md)
 
 - [ADR-0094: Filter loaded pane names through the existing visible-state owner](0094-pane-name-filter.md)
+
+- [ADR-0095: Overwrite confirmed file contents through the existing transfer gateway](0095-qualified-transfer-replacement.md) — accepted design; production implementation pending.

@@ -59,9 +59,9 @@ public sealed class DualPaneDeletionPresenterTests
         using CancellationTokenSource cancellation = new();
         await cancellation.CancelAsync();
         Assert.AreSame(OperationStatus.DeleteSucceeded, await DeleteStatusAsync(port =>
-            port.EnqueueStep(ProviderStepOutcome.Succeeded()), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.DeleteRejected, await DeleteStatusAsync(port =>
-            port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.AccessDenied)), CancellationToken.None));
+            port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.AccessDenied), ProviderStepReceipt.Empty)), CancellationToken.None));
         Assert.AreSame(OperationStatus.DeleteCancelled, await DeleteStatusAsync(port => { }, cancellation.Token));
     }
 
@@ -92,8 +92,8 @@ public sealed class DualPaneDeletionPresenterTests
             port.EnqueueInspection(FileInspectionOutcome.Succeeded(
                 FileEntrySnapshot.Create(entry.Path, identity.Identity, DeletionCapability.Recycle)));
         }
-        port.EnqueueStep(ProviderStepOutcome.Succeeded());
-        port.EnqueueStep(ProviderStepOutcome.Failed(FileOperationFailureKind.Delete));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueStep(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Delete), ProviderStepReceipt.Empty));
 
         DualPanePresentation presentation = DualPanePresenter.Present(
             await panes.HandleAsync(UserIntent.Delete, RecordingDualPaneObserver.Create(), CancellationToken.None), TestMetadataFormats.Utc, KeyHintVisibility.Shown);

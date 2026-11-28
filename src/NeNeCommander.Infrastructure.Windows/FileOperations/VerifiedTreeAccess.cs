@@ -108,6 +108,27 @@ internal sealed class VerifiedTreeAccess
             Capture(entry.Path).ObjectIdentity == entry.ObjectIdentity);
     }
 
+    /// <summary>Rechecks the same evidence's native file requirements without changing its baseline or authorizing a different deletion route.</summary>
+    internal bool MatchesRequirements(VerifiedCopyEntry.VerifiedFile file)
+    {
+        return file.Requirements == FileVerificationRequirements.DefaultStream ||
+            (file.Requirements == FileVerificationRequirements.OverwriteContents && MatchesOverwriteRequirements(file));
+    }
+
+    private bool MatchesOverwriteRequirements(VerifiedCopyEntry.VerifiedFile file)
+    {
+        if (file.Source.Path is not WindowsLocalPath source || file.Target.Path is not WindowsLocalPath target ||
+            file.Source.ObjectIdentity == file.Target.ObjectIdentity)
+        {
+            return false;
+        }
+        using WindowsTransferPathLease sourceLease = WindowsTransferPathLease.Open(source, FileAccess.Read, _driveBoundary);
+        using WindowsTransferPathLease targetLease = WindowsTransferPathLease.Open(target, FileAccess.Read, _driveBoundary);
+        return WindowsOverwriteFileAdmission.Observe(sourceLease).Observation.Entry == file.Source &&
+            WindowsOverwriteFileAdmission.Observe(targetLease).Observation.Entry == file.Target &&
+            WindowsOverwriteFileAdmission.Observe(sourceLease).Observation.Entry == file.Source;
+    }
+
     internal void Delete(FileSystemPath path)
     {
         FileSystemInfo entry = Find(path);

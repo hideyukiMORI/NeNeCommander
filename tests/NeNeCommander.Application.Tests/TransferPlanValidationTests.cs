@@ -125,7 +125,7 @@ public sealed class TransferPlanValidationTests
         TransferConflict sameTarget = TransferConflict.Create(
             firstConflict.Source,
             firstConflict.ExistingTarget,
-            firstConflict.ExistingTarget);
+            firstConflict.ExistingTarget, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
 
         await AssertConflictSetRejected(
             [first, second],

@@ -301,9 +301,7 @@ public sealed class MappedDriveLocalMutationBoundaryTests
 
     private static WindowsLocalFileOperationAdapter Adapter(WindowsDriveBoundary drives)
     {
-        return new WindowsLocalFileOperationAdapter(new WindowsLocalIoExecutionBoundary(),
-            new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }, drives),
-            new WindowsWslFileSystem(drives), drives);
+        return new WindowsLocalFileOperationAdapter(new WindowsLocalIoExecutionBoundary(), new WindowsLocalAdapterDependencies(new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }, drives), new WindowsWslFileSystem(drives), drives, WindowsOverwriteDependencies.Native(new DeterministicIdentifierSource())));
     }
 
     private static WindowsLocalPath Local(string text)
@@ -315,6 +313,6 @@ public sealed class MappedDriveLocalMutationBoundaryTests
     private static void AssertDenied(ProviderStepOutcome outcome)
     {
         Assert.AreSame(FileOperationFailureKind.ProviderUnavailable, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
     }
 }

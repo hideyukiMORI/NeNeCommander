@@ -125,8 +125,13 @@ public sealed class TransferConflictContractTests
             () => TransferResolution.None.Add(conflicts, null!, TransferConflictScope.Current),
             "decision");
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferResolution.None.Add(conflicts, TransferConflictDecision.Skip, null!));
-        TransferConflictTestContext.AssertNullParameter(() => UserIntent.ResolveConflict(null!, TransferConflictScope.Current), "decision");
-        TransferConflictTestContext.AssertNullParameter(() => UserIntent.ResolveConflict(TransferConflictDecision.Skip, null!), "scope");
+        TransferContinuation continuation = TransferContinuation.Create(
+            FrozenTransfer.Create(request, [source], destination), TransferResolution.None, conflicts, new object());
+        OperationAwaitingConflict expected = new(OperationKind.Copy, conflicts, continuation);
+        TransferConflictTestContext.AssertNullParameter(
+            () => UserIntent.ResolveConflict(null!, TransferConflictDecision.Skip, TransferConflictScope.Current), "expectedState");
+        TransferConflictTestContext.AssertNullParameter(() => UserIntent.ResolveConflict(expected, null!, TransferConflictScope.Current), "decision");
+        TransferConflictTestContext.AssertNullParameter(() => UserIntent.ResolveConflict(expected, TransferConflictDecision.Skip, null!), "scope");
     }
 
     /// <summary>Proves transfer outcome factories own their collections and preserve every state field.</summary>
@@ -137,16 +142,13 @@ public sealed class TransferConflictContractTests
         FileOperationEffect originalEffect = FileOperationEffect.Create(path, FileOperationEffectKind.Copied);
         FileOperationEffect[] callerEffects = [originalEffect];
         FileSystemPath[] callerSkipped = [path];
-        FileOperationOutcome succeeded = FileOperationOutcome.Succeeded(callerEffects, callerSkipped);
+        FileOperationOutcome succeeded = FileOperationOutcome.Succeeded(FileOperationEffectSummary.Create(callerEffects, callerSkipped, []));
         callerEffects[0] = FileOperationEffect.Create(path, FileOperationEffectKind.Verified);
         callerSkipped[0] = TransferConflictTestContext.ParsePath("C:\\other.txt");
-        FileOperationOutcome rejected = FileOperationOutcome.Failed([], FileOperationFailureKind.Copy);
-        FileOperationOutcome simpleSucceeded = FileOperationOutcome.Succeeded([originalEffect]);
-        FileOperationOutcome partial = FileOperationOutcome.Failed(
-            [originalEffect],
-            [path],
-            FileOperationFailureKind.Verification);
-        FileOperationOutcome cancelled = FileOperationOutcome.Cancelled([]);
+        FileOperationOutcome rejected = FileOperationOutcome.Failed(FileOperationEffectSummary.Create([], [], []), FileOperationFailureKind.Copy);
+        FileOperationOutcome simpleSucceeded = FileOperationOutcome.Succeeded(FileOperationEffectSummary.Create([originalEffect], [], []));
+        FileOperationOutcome partial = FileOperationOutcome.Failed(FileOperationEffectSummary.Create([originalEffect], [path], []), FileOperationFailureKind.Verification);
+        FileOperationOutcome cancelled = FileOperationOutcome.Cancelled(FileOperationEffectSummary.Create([], [], []));
 
         Assert.AreSame(originalEffect, succeeded.Effects[0]);
         Assert.AreSame(path, succeeded.NotTransferred[0]);
@@ -192,9 +194,9 @@ public sealed class TransferConflictContractTests
 
     private static void AssertConflictFactories(FileEntrySnapshot source, TransferConflict conflict)
     {
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(null!, conflict.ExistingTarget, conflict.KeepBothCandidate));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, null!, conflict.KeepBothCandidate));
-        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, conflict.ExistingTarget, null!));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(null!, conflict.ExistingTarget, conflict.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, null!, conflict.KeepBothCandidate, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
+        _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflict.Create(source, conflict.ExistingTarget, null!, TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed)));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictChoice.Create(null!, TransferConflictDecision.Skip));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferConflictChoice.Create(conflict, null!));
         _ = Assert.ThrowsExactly<ArgumentNullException>(() => TransferPlanEntry.Transfer(null!, conflict.ExistingTarget));

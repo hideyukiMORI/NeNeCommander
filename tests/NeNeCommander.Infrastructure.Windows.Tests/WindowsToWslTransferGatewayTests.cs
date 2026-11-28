@@ -214,7 +214,7 @@ public sealed class WindowsToWslTransferGatewayTests
         WindowsLocalIoExecutionBoundary execution = new();
         WindowsToWslTransfer transfer = new(execution, drvfs);
         using FileOperationGateway gateway = new(new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution, drvfs),
+            new WindowsLocalFileOperationAdapter(execution, drvfs, new DeterministicIdentifierSource()),
             new WslFileOperationAdapter(execution, drvfs),
             transfer,
             new WslToWindowsTransfer(execution, drvfs)));
@@ -231,7 +231,7 @@ public sealed class WindowsToWslTransferGatewayTests
         Assert.AreSame(FileOperationFailureKind.AccessDenied, outcome.Failure);
         Assert.HasCount(0, outcome.Effects);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, copy.Failure);
-        Assert.IsNull(copy.Effect);
+        Assert.IsEmpty(copy.Receipt.Effects);
         Assert.AreSame(FileOperationFailureKind.AccessDenied, verify.Failure);
         CollectionAssert.AreEquivalent(
             new[] { root.Resolve("tree\\top.txt") },
@@ -264,7 +264,7 @@ public sealed class WindowsToWslTransferGatewayTests
         WindowsWslFileSystem fileSystem = new(path => Resolve(root, path), OwnedWslNamespace.ReadFacts);
         WindowsLocalIoExecutionBoundary execution = new();
         return new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution, fileSystem),
+            new WindowsLocalFileOperationAdapter(execution, fileSystem, new DeterministicIdentifierSource()),
             new WslFileOperationAdapter(execution, fileSystem),
             new WindowsToWslTransfer(execution, fileSystem),
             new WslToWindowsTransfer(execution, fileSystem));
@@ -277,7 +277,7 @@ public sealed class WindowsToWslTransferGatewayTests
 
     private static async Task<FileEntrySnapshot> InspectAsync(FileSystemPath path)
     {
-        FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter().InspectAsync(
+        FileInspectionOutcome outcome = await new WindowsLocalFileOperationAdapter(new DeterministicIdentifierSource()).InspectAsync(
             path,
             FileInspectionPurpose.Deletion,
             CancellationToken.None);

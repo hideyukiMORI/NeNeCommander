@@ -21,7 +21,7 @@ public sealed class WindowsLocalMoveTests
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("Works\\Project"));
         FileSystemPath sql = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("Downloads\\query.sql", "SELECT 1;"));
         FileSystemPath text = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("Downloads\\notes.txt", "notes\r\nsecond line"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource()));
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(MoveRequest.Create([sql, text], destination)).Request);
 
@@ -44,7 +44,7 @@ public sealed class WindowsLocalMoveTests
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileSystemPath source = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc"));
-        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 })));
+        using FileOperationGateway gateway = new(new WindowsLocalFileOperationAdapter(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource()));
         MoveRequest request = Assert.IsInstanceOfType<MoveRequest>(
             Assert.IsInstanceOfType<FileOperationRequestAccepted>(MoveRequest.Create([source], destination)).Request);
 
@@ -65,7 +65,7 @@ public sealed class WindowsLocalMoveTests
     public async Task MoveAsyncWhenSourceAndDestinationShareVolumeMovesEntryAtomically()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileSystemPath filePath = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("a.txt", "abc"));
         FileSystemPath directoryPath = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("tree"));
@@ -100,7 +100,7 @@ public sealed class WindowsLocalMoveTests
     public async Task MoveAsyncWhenIdentityOrTargetChangesMovesNothing()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath destination = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("dest"));
         FileSystemPath changedPath = WindowsLocalOperationTestContext.ParsePath(root.WriteFile("changed.txt", "before"));
         FileEntrySnapshot changed = await WindowsLocalOperationTestContext.InspectAsync(adapter, changedPath);
@@ -126,7 +126,7 @@ public sealed class WindowsLocalMoveTests
     public async Task GetAtomicMoveCapabilityAsyncWhenPathIsReparsePointReportsUnsupported()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileSystemPath sourceTarget = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("source-target"));
         FileSystemPath sourceLink = WindowsLocalOperationTestContext.ParsePath(root.CreateJunction("source-link", "source-target"));
         FileSystemPath destinationTarget = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("destination-target"));
@@ -154,7 +154,7 @@ public sealed class WindowsLocalMoveTests
     public async Task GetAtomicMoveCapabilityAsyncWhenDestinationIsMissingReportsNotFound()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         FileEntrySnapshot source = await WindowsLocalOperationTestContext.InspectAsync(adapter, WindowsLocalOperationTestContext.ParsePath(root.WriteFile("source.txt", "source")));
         FileSystemPath missingDestination = WindowsLocalOperationTestContext.ParsePath(root.Resolve("missing"));
 
@@ -175,7 +175,7 @@ public sealed class WindowsLocalMoveTests
     public async Task MoveAsyncWhenPathIsReparsePointReportsProviderUnavailable()
     {
         using TestOwnedTemporaryRoot root = TestOwnedTemporaryRoot.Create();
-        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(new(), new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
         _ = root.CreateDirectory("source-target");
         FileSystemPath sourceLink = WindowsLocalOperationTestContext.ParsePath(root.CreateJunction("source-link", "source-target"));
         FileSystemPath destinationTarget = WindowsLocalOperationTestContext.ParsePath(root.CreateDirectory("destination-target"));

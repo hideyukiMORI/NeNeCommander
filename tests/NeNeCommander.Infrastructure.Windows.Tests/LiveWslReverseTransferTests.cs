@@ -166,7 +166,7 @@ public sealed class LiveWslReverseTransferTests
 
     private static FileOperationGateway CreateGateway()
     {
-        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary()));
+        return new FileOperationGateway(new ProviderFileOperationPort(new WindowsLocalIoExecutionBoundary(), new DeterministicIdentifierSource()));
     }
 
     private static void RequireOutcome(TestContext context, FileOperationOutcome outcome, FileOperationCompletionKind expected)

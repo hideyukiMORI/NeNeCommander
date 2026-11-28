@@ -51,7 +51,7 @@ public sealed class DualPaneRenameSessionTests
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueueRename(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueRename(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\left", ("b.txt", DirectoryEntryKind.File)), null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
         RecordingDualPaneObserver observer = RecordingDualPaneObserver.Create();
@@ -82,7 +82,7 @@ public sealed class DualPaneRenameSessionTests
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueueRename(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueueRename(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\left", ("A.TXT", DirectoryEntryKind.File)), null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
 
@@ -115,7 +115,7 @@ public sealed class DualPaneRenameSessionTests
 
         _ = await fixture.Panes.HandleAsync(UserIntent.Rename, RecordingDualPaneObserver.Create(), CancellationToken.None);
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueueRename(ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict));
+        fixture.Port.EnqueueRename(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\right"), null));
 

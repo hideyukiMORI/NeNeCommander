@@ -74,10 +74,10 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         WslFileSystemEntry? entry = source.Path is WslPath wsl ? Find(wsl) : null;
         if (entry is null || entry.Identity != source.Identity)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.IdentityChanged), ProviderStepReceipt.Empty);
         }
         Delete(entry);
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     public WslFileSystemEntry? Find(WslPath path)
@@ -126,7 +126,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         }
         return FailCopyAfterTarget
             ? throw new IOException("Synthetic copy failure after target creation.")
-            : ProviderStepOutcome.Succeeded();
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     public ProviderStepOutcome CopyFromWindowsLocal(FileSystemInfo source, WslPath target)
@@ -140,7 +140,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         Set(Entry(target, "copied", kind));
         return FailCopyAfterTarget
             ? throw CopyFailure ?? new IOException("Synthetic copy failure after target creation.")
-            : ProviderStepOutcome.Succeeded();
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     public FileOperationFailureKind? PreflightToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
@@ -150,7 +150,7 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
 
     public ProviderStepOutcome CopyToWindowsLocal(WslFileSystemEntry source, WindowsLocalPath target)
     {
-        return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
     }
 
     public void CreateDirectory(WslPath target)
@@ -165,11 +165,11 @@ internal sealed class ScriptedWslFileSystem : IWslFileSystem
         ThrowWhenConfigured();
         if (_entries.ContainsKey(target.CanonicalText))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
         CreatedFiles.Add(target);
         Set(Entry(target, "created-file", DirectoryEntryKind.File));
-        return ProviderStepOutcome.Succeeded();
+        return ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty);
     }
 
     public void Rename(WslFileSystemEntry source, WslPath target)

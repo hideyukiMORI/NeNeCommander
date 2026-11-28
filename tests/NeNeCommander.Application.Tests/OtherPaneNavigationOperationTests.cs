@@ -61,7 +61,7 @@ public sealed class OtherPaneNavigationOperationTests
         await ListAsync(fixture);
         FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(DualPaneSessionTestContext.Inspection(DualPaneSessionTestContext.ParsePath(@"C:\source\a.txt")));
         TransferConflict conflict = TransferConflict.Create(inspection.Snapshot,
-            DualPaneSessionTestContext.ParsePath(@"D:\target\a.txt"), DualPaneSessionTestContext.ParsePath(@"D:\target\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath(@"D:\target\a.txt"), DualPaneSessionTestContext.ParsePath(@"D:\target\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         DualPaneSnapshot before = await HandleAsync(fixture, UserIntent.Copy);

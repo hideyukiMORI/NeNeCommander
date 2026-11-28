@@ -60,19 +60,65 @@ public static class WindowsLocalEntryIdentity
 
     private static FileIdentity Compose(FileSystemInfo entry, string objectIdentity)
     {
-        string kind = entry is DirectoryInfo ? "directory" : "file";
-        long length = entry is FileInfo file ? file.Length : 0;
+        IdentityMetadata metadata = new(entry is DirectoryInfo ? "directory" : "file",
+            entry is FileInfo file ? file.Length : 0, entry.CreationTimeUtc.Ticks, entry.LastWriteTimeUtc.Ticks);
+        return Compose(objectIdentity, metadata);
+    }
+
+    /// <summary>Associates a caller-qualified path with the exact held object's existing windows-v2 identity; it does not prove the current pathname.</summary>
+    internal static VerifiedEntrySnapshot CaptureHeld(WindowsLocalPath path, WindowsLocalHandleFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(facts);
+        bool directoryAttribute = (facts.Basic.Attributes & (uint)FileAttributes.Directory) != 0;
+        if (facts.Standard.EndOfFile < 0 || facts.Standard.Directory > 1 || facts.Standard.DeletePending > 1 ||
+            directoryAttribute != (facts.Standard.Directory != 0))
+        {
+            throw new IOException("The held entry metadata is inconsistent.");
+        }
+        try
+        {
+            IdentityMetadata metadata = new(facts.Standard.Directory != 0 ? "directory" : "file",
+                facts.Standard.Directory != 0 ? 0 : facts.Standard.EndOfFile,
+                DateTime.FromFileTimeUtc(facts.Basic.CreationFileTimeUtc).Ticks,
+                DateTime.FromFileTimeUtc(facts.Basic.LastWriteFileTimeUtc).Ticks);
+            return VerifiedEntrySnapshot.Create(path, Compose(facts.ObjectIdentity.Value, metadata), facts.ObjectIdentity);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            throw new IOException("The held entry timestamps cannot be represented.", exception);
+        }
+    }
+
+    private static FileIdentity Compose(string objectIdentity, IdentityMetadata metadata)
+    {
         string value = string.Join(
             '|',
             "windows-v2",
             objectIdentity,
-            kind,
-            length.ToString(CultureInfo.InvariantCulture),
-            entry.CreationTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture),
-            entry.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture));
+            metadata.Kind,
+            metadata.Length.ToString(CultureInfo.InvariantCulture),
+            metadata.CreationTicks.ToString(CultureInfo.InvariantCulture),
+            metadata.LastWriteTicks.ToString(CultureInfo.InvariantCulture));
         return FileIdentity.Parse(value) is FileIdentityAccepted accepted
             ? accepted.Identity
             : throw new InvalidOperationException("The metadata identity exceeds the identity boundary.");
+    }
+
+    private sealed record IdentityMetadata
+    {
+        internal IdentityMetadata(string kind, long length, long creationTicks, long lastWriteTicks)
+        {
+            Kind = kind;
+            Length = length;
+            CreationTicks = creationTicks;
+            LastWriteTicks = lastWriteTicks;
+        }
+
+        internal string Kind { get; }
+        internal long Length { get; }
+        internal long CreationTicks { get; }
+        internal long LastWriteTicks { get; }
     }
 
     /// <summary>

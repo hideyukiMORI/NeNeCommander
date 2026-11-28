@@ -1,5 +1,6 @@
 using System;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Panes;
 
 namespace NeNeCommander.Application.Input;
 
@@ -10,14 +11,19 @@ public sealed record ConflictDecisionSubmission : UserIntent
     {
     }
 
-    internal ConflictDecisionSubmission(TransferConflictDecision decision, TransferConflictScope scope)
+    internal ConflictDecisionSubmission(
+        OperationAwaitingConflict expectedState, TransferConflictDecision decision, TransferConflictScope scope)
     {
+        ArgumentNullException.ThrowIfNull(expectedState);
         ArgumentNullException.ThrowIfNull(decision);
         ArgumentNullException.ThrowIfNull(scope);
+        ExpectedState = expectedState;
         Decision = decision;
         Scope = scope;
     }
 
+    /// <summary>Gets the exact rendered operation that owns this decision.</summary>
+    public OperationAwaitingConflict ExpectedState { get; }
     /// <summary>Gets the selected collision decision.</summary>
     public TransferConflictDecision Decision { get; }
     /// <summary>Gets whether the decision addresses one or all currently shown conflicts.</summary>

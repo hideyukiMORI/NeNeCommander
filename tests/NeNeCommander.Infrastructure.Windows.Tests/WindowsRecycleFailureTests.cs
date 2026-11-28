@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -21,7 +22,7 @@ public sealed class WindowsRecycleFailureTests
         ScriptedWindowsRecycleShell shell = new() { OperationFailure = new FileNotFoundException("owned missing source") };
         ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(source, CancellationToken.None);
         Assert.AreSame(FileOperationFailureKind.NotFound, result.Failure);
-        Assert.IsNull(result.Effect);
+        Assert.IsEmpty(result.Receipt.Effects);
         Assert.AreEqual(0, shell.Operation.PerformCount);
     }
 
@@ -43,7 +44,7 @@ public sealed class WindowsRecycleFailureTests
         };
         ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(WindowsRecycleBinTests.Source(root), CancellationToken.None);
         Assert.AreSame(FileOperationFailureKind.NotFound, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 
     /// <summary>Copy-engine permission, missing-path and recycle-policy failures stay distinct.</summary>
@@ -69,7 +70,7 @@ public sealed class WindowsRecycleFailureTests
         FileOperationFailureKind failure = expected == "Denied" ? FileOperationFailureKind.AccessDenied :
             expected == "Missing" ? FileOperationFailureKind.NotFound : FileOperationFailureKind.ProviderUnavailable;
         Assert.AreSame(failure, result.Failure);
-        Assert.IsNull(result.Effect);
+        Assert.IsEmpty(result.Receipt.Effects);
         Assert.AreEqual("owned", File.ReadAllText(source.Path.CanonicalText));
     }
 
@@ -93,7 +94,7 @@ public sealed class WindowsRecycleFailureTests
         };
         ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(WindowsRecycleBinTests.Source(root), CancellationToken.None);
         Assert.AreSame(failureKind == "AccessDenied" ? FileOperationFailureKind.AccessDenied : FileOperationFailureKind.ProviderUnavailable, result.Failure);
-        Assert.AreSame(ProviderStepEffectKind.Recycled, result.Effect);
+        CollectionAssert.AreEqual(new[] { ProviderStepEffectKind.Recycled }, new List<ProviderStepEffectKind>(result.Receipt.Effects));
     }
 
     /// <summary>A disappeared recycle capability never selects a permanent-delete implementation.</summary>
@@ -122,7 +123,7 @@ public sealed class WindowsRecycleFailureTests
         };
         ProviderStepOutcome result = new WindowsRecycleBin(shell).Recycle(WindowsRecycleBinTests.Source(root), CancellationToken.None);
         Assert.AreSame(failureKind == "AccessDenied" ? FileOperationFailureKind.AccessDenied : FileOperationFailureKind.ProviderUnavailable, result.Failure);
-        Assert.IsNull(result.Effect);
+        Assert.IsEmpty(result.Receipt.Effects);
     }
 
     /// <summary>A cancellation before queuing never calls the destructive Shell operation.</summary>

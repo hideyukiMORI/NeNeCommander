@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NeNeCommander.Application.FileOperations;
+using NeNeCommander.Application.Identifiers;
 using NeNeCommander.Domain.Paths;
 using NeNeCommander.Infrastructure.Windows.Drives;
 using NeNeCommander.Infrastructure.Windows.Execution;
@@ -23,70 +24,58 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     private readonly WindowsLocalOperationSteps _steps;
     private readonly WindowsDriveBoundary _driveBoundary;
 
-    /// <summary>Initializes an adapter with the default Windows local I/O execution boundary.</summary>
-    public WindowsLocalFileOperationAdapter()
-        : this(new WindowsLocalIoExecutionBoundary())
+    /// <summary>Initializes an adapter with explicitly composed operation identifiers and the default I/O boundary.</summary>
+    public WindowsLocalFileOperationAdapter(IIdentifierSource identifiers)
+        : this(new WindowsLocalIoExecutionBoundary(), identifiers)
     {
     }
 
-    /// <summary>Initializes an adapter with the composed Windows local I/O execution boundary.</summary>
-    /// <param name="executionBoundary">Shared boundary for synchronous Windows filesystem work.</param>
-    public WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary)
-        : this(executionBoundary, new WindowsDriveBoundary())
+    /// <summary>Initializes an adapter over the shared I/O and identifier boundaries.</summary>
+    public WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsDriveBoundary(), identifiers)
     {
     }
 
-    internal WindowsLocalFileOperationAdapter(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsDriveBoundary driveBoundary)
-        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
-            new WindowsWslFileSystem(driveBoundary), driveBoundary)
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsDriveBoundary driveBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsLocalAdapterDependencies(new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
+            new WindowsWslFileSystem(driveBoundary), driveBoundary, WindowsOverwriteDependencies.Native(identifiers)))
     {
     }
 
-    internal WindowsLocalFileOperationAdapter(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsRecycleBin recycleBin)
-        : this(executionBoundary, recycleBin, new WindowsDriveBoundary())
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsRecycleBin recycleBin, IIdentifierSource identifiers)
+        : this(executionBoundary, recycleBin, new WindowsDriveBoundary(), identifiers)
     {
     }
 
-    private WindowsLocalFileOperationAdapter(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsRecycleBin recycleBin,
-        WindowsDriveBoundary driveBoundary)
-        : this(executionBoundary, recycleBin,
-            new WindowsWslFileSystem(driveBoundary), driveBoundary)
+    private WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary,
+        WindowsRecycleBin recycleBin, WindowsDriveBoundary driveBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsLocalAdapterDependencies(recycleBin, new WindowsWslFileSystem(driveBoundary),
+            driveBoundary, WindowsOverwriteDependencies.Native(identifiers)))
     {
     }
 
-    internal WindowsLocalFileOperationAdapter(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        WindowsRecycleBin recycleBin,
-        IWslFileSystem wslFileSystem,
-        WindowsDriveBoundary driveBoundary)
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary, WindowsLocalAdapterDependencies dependencies)
     {
         ArgumentNullException.ThrowIfNull(executionBoundary);
-        ArgumentNullException.ThrowIfNull(recycleBin);
-        ArgumentNullException.ThrowIfNull(wslFileSystem);
-        ArgumentNullException.ThrowIfNull(driveBoundary);
+        ArgumentNullException.ThrowIfNull(dependencies);
         _executionBoundary = executionBoundary;
-        _recycleBin = recycleBin;
-        _steps = new WindowsLocalOperationSteps(wslFileSystem, driveBoundary);
-        _driveBoundary = driveBoundary;
+        _recycleBin = dependencies.RecycleBin;
+        _steps = new WindowsLocalOperationSteps(dependencies.FileSystem, dependencies.Drives, dependencies.Overwrite);
+        _driveBoundary = dependencies.Drives;
     }
 
-    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary, IWslFileSystem wslFileSystem)
-        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell()), wslFileSystem, new WindowsDriveBoundary())
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary,
+        IWslFileSystem wslFileSystem, IIdentifierSource identifiers)
+        : this(executionBoundary, wslFileSystem, new WindowsDriveBoundary(), identifiers)
     {
     }
 
-    internal WindowsLocalFileOperationAdapter(
-        WindowsLocalIoExecutionBoundary executionBoundary,
-        IWslFileSystem wslFileSystem,
-        WindowsDriveBoundary driveBoundary)
-        : this(executionBoundary, new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
-            wslFileSystem, driveBoundary)
+    internal WindowsLocalFileOperationAdapter(WindowsLocalIoExecutionBoundary executionBoundary,
+        IWslFileSystem wslFileSystem, WindowsDriveBoundary driveBoundary, IIdentifierSource identifiers)
+        : this(executionBoundary, new WindowsLocalAdapterDependencies(new WindowsRecycleBin(new WindowsRecycleShell(), driveBoundary),
+            wslFileSystem, driveBoundary, WindowsOverwriteDependencies.Native(identifiers)))
     {
     }
 
@@ -120,8 +109,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
-        return _executionBoundary.ExecuteAsync(
-            () => Guarded(() => _steps.Copy(source, destination), FileOperationFailureKind.Copy));
+        return _executionBoundary.ExecuteAsync(() => _steps.CopyAsync(source, destination, cancellationToken)).Unwrap();
     }
 
     /// <inheritdoc />
@@ -168,7 +156,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(mode);
         return !source.DeletionCapability.IsInspected && mode is not DeletionExecutionMode.VerifiedCopyMode
-            ? Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.Inspection))
+            ? Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Inspection), ProviderStepReceipt.Empty))
             : ScheduleDeletionAsync(source, mode, cancellationToken);
     }
 
@@ -185,7 +173,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return source.Path is WindowsLocalPath local && _driveBoundary.AdmitsLocal(local)
             ? _recycleBin.Recycle(source, cancellationToken)
-            : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
     }
 
     /// <inheritdoc />
@@ -277,7 +265,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
     {
         return RevalidateLocal(source, driveBoundary) switch
         {
-            EntryRejected rejected => ProviderStepOutcome.Failed(rejected.Failure),
+            EntryRejected rejected => ProviderStepOutcome.Create(ProviderStepCompletion.Failed(rejected.Failure), ProviderStepReceipt.Empty),
             EntryMatched matched => step(matched.Entry),
             _ => throw new InvalidOperationException("The revalidation outcome variant is not executable."),
         };
@@ -290,7 +278,7 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
             : WindowsLocalEntryIdentity.Revalidate(source);
     }
 
-    private static ProviderStepOutcome Guarded(Func<ProviderStepOutcome> step, FileOperationFailureKind fallback)
+    internal static ProviderStepOutcome Guarded(Func<ProviderStepOutcome> step, FileOperationFailureKind fallback)
     {
         try
         {
@@ -298,11 +286,11 @@ public sealed class WindowsLocalFileOperationAdapter : IFileOperationPort
         }
         catch (UnauthorizedAccessException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
         catch (IOException exception)
         {
-            return ProviderStepOutcome.Failed(Normalize(exception.HResult, fallback));
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(Normalize(exception.HResult, fallback)), ProviderStepReceipt.Empty);
         }
     }
 

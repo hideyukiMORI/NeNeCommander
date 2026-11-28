@@ -54,7 +54,7 @@ public sealed class InspectionPurposeBoundaryTests
         ProviderStepOutcome outcome = await adapter.DeleteAsync(source, mode, CancellationToken.None);
 
         Assert.AreSame(FileOperationFailureKind.Inspection, outcome.Failure);
-        Assert.IsNull(outcome.Effect);
+        Assert.IsEmpty(outcome.Receipt.Effects);
         Assert.IsEmpty(fileSystem.Deleted);
     }
 
@@ -64,7 +64,7 @@ public sealed class InspectionPurposeBoundaryTests
     {
         WindowsLocalIoExecutionBoundary execution = new();
         ScriptedWslFileSystem fileSystem = new();
-        WindowsLocalFileOperationAdapter local = new(execution, fileSystem);
+        WindowsLocalFileOperationAdapter local = new(execution, fileSystem, new DeterministicIdentifierSource());
         WslFileOperationAdapter wsl = new(execution, fileSystem);
         WindowsToWslTransfer outward = new(execution, fileSystem);
         WslToWindowsTransfer inward = new(execution, fileSystem);

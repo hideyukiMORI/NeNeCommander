@@ -20,9 +20,9 @@ public sealed class DualPaneCopySessionTests
         DirectoryListing leftListing = DualPaneSessionTestContext.Listing("C:\\left", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File));
         await fixture.ListBothAsync(leftListing, DualPaneSessionTestContext.Listing("C:\\right"));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(leftListing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         DirectoryListing rightAfter = DualPaneSessionTestContext.Listing("C:\\right", ("a.txt", DirectoryEntryKind.File));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(leftListing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(rightAfter, null));

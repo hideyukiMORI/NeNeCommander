@@ -21,13 +21,13 @@ public sealed class GatewayAtomicMoveTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Unsupported);
-        port.EnqueueAtomicMove(ProviderStepOutcome.Succeeded());
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueAtomicMove(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
 
@@ -38,6 +38,10 @@ public sealed class GatewayAtomicMoveTests
 
         Assert.AreSame(FileOperationCompletionKind.Succeeded, outcome.Completion);
         Assert.HasCount(4, outcome.Effects);
+        Assert.HasCount(3, outcome.ProviderSteps);
+        Assert.AreSame(first, outcome.ProviderSteps[0].Source);
+        Assert.AreSame(second, outcome.ProviderSteps[1].Source);
+        Assert.AreSame(second, outcome.ProviderSteps[2].Source);
         Assert.AreSame(FileOperationEffectKind.AtomicallyMoved, outcome.Effects[0].Kind);
         Assert.AreEqual("AtomicCapability:C:\\first", port.Calls[3]);
         Assert.AreEqual("AtomicCapability:C:\\second", port.Calls[4]);
@@ -60,7 +64,7 @@ public sealed class GatewayAtomicMoveTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.Inspection));
         using FileOperationGateway gateway = new(port);
@@ -90,7 +94,7 @@ public sealed class GatewayAtomicMoveTests
             cancellation.Cancel);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         using FileOperationGateway gateway = new(port);
@@ -118,7 +122,7 @@ public sealed class GatewayAtomicMoveTests
             ScriptedCallbackPoint.AfterAtomicCapability,
             cancellation.Cancel);
         port.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Failed(FileOperationFailureKind.Inspection));
         using FileOperationGateway gateway = new(port);
 
@@ -142,9 +146,9 @@ public sealed class GatewayAtomicMoveTests
         FileSystemPath source = GatewayTestContext.ParsePath("C:\\source");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
-        port.EnqueueAtomicMove(ProviderStepOutcome.Failed(FileOperationFailureKind.Move));
+        port.EnqueueAtomicMove(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Move), ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -173,10 +177,10 @@ public sealed class GatewayAtomicMoveTests
             cancellation.Cancel);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.Recycle));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.Recycle));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
-        port.EnqueueAtomicMove(ProviderStepOutcome.Succeeded());
+        port.EnqueueAtomicMove(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(
@@ -198,10 +202,10 @@ public sealed class GatewayAtomicMoveTests
         FileSystemPath source = GatewayTestContext.ParsePath("C:\\source");
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(source, DeletionCapability.PermanentOnly));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         port.EnqueueAtomicMoveCapability(AtomicMoveCapabilityOutcome.Supported);
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(

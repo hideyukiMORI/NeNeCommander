@@ -185,7 +185,7 @@ All non-text keyboard shortcuts are mapped by one `KeyboardIntentMapper`. Pages,
 | color scheme | sole fixed ColorScheme catalog and constant resource projection, copied into the existing merged brushes by the composition root (ADR-0087); transient theme search never applies or saves |
 | file activation and Explorer reveal | `PaneSession` through `IFileLauncher` and one purpose-qualified `PaneLaunching` lifecycle; `WindowsShellFileLauncher` owns admission; activation retains `ExecuteAsync`, while reveal uses the existing STA `ExecuteShellAsync` boundary (ADR-0091) |
 | time | `IClock` boundary |
-| identifiers | `IIdentifierSource` boundary, composed with `WindowsIdentifierSource`; settings writes request one candidate token per attempt (ADR-0070) |
+| identifiers | `IIdentifierSource` boundary, composed with `WindowsIdentifierSource`; settings writes and admitted transfer preparations request one candidate token per attempt (ADR-0070, ADR-0095) |
 | object construction | `NeNeCommander.App` composition root |
 
 A new row requires an accepted ADR. Replacing a row is one migration: the old mechanism and compatibility path are removed in the same change.
@@ -230,3 +230,57 @@ adapter preserves pending text during ordinary render and excludes IME intermedi
 Enter/Cancel return file-list focus through an exact current closed receipt; Blur has
 no focus effect. An external qualified entry finishes that exact editor before its
 original request and never rebinds a now-stale request to a newer pane snapshot.
+
+## Exact conflict-modal ownership
+
+ConflictDecisionSubmission carries the exact OperationAwaitingConflict displayed by
+ActiveConflictModal. DualPaneSession checks reference identity before resuming that
+continuation, including Cancel button requests. Value-equal clones, previous conflict
+owners and completed submissions cannot decide or cancel a later operation. Keyboard
+Escape continues through the existing current-operation interrupt route.
+
+The presenter reuses a modal only for that exact operation. ConflictModalView loads
+the existing XAML template into fresh controls for a new owner, so a delayed gesture
+or UIAutomation callback retains its old owner and checkbox. Native forwarding requires
+the current owner, child and completed render. Native reentry cannot restore old
+readiness. Same-owner rendering retains focus and the selected scope; a new owner
+starts on Cancel with current-conflict scope. This preparation adds no Replace/Merge
+provider capability and does not change ADR-0039's supported transfer decisions.
+
+## Accepted content-overwrite design, activation pending
+
+ADR-0095 extends this same conflict/preflight/CopyAsync/verification route with an
+exact-target OverwriteContents choice. A source/target identity alias is refused;
+known multiple links and named streams are unavailable. Only the already displayed
+eligible targets can share explicit overwrite-all consent. Preparation artifacts and
+uncertain target effects must remain in the one typed provider/outcome receipt on
+success, failure and cancellation; after an artifact exists, an effects-empty
+AwaitingConflict cannot discard it. Move retains the existing verification and
+source-provider deletion path with stream/attribute admission added to its receipt.
+This is an implementation contract, not an enabled command or product-proof claim.
+
+
+The internal verified-file prerequisite now requires a closed FileVerificationRequirements
+value on every VerifiedCopyEntry.File. Ordinary producers explicitly retain DefaultStream;
+OverwriteContents requests the stricter native observations at the shared verifier and
+final source-deletion admission. This uses the same VerifiedCopyReceipt and deletion
+route. The November 27 internal provider integration produces strict overwrite evidence
+and the gateway rejects downgraded requirements, directories or substituted objects
+before deletion. Resumed preflight preserves the exact original target and both the
+gateway and provider refuse atomic move. The initial production preflight still supplies
+explicit Unavailable(Unconfirmed). The unexposed consent/result view and internal
+qualification have focused proof; production connection and full destructive
+acceptance remain pending after the recorded automatic-approval rejection.
+
+## Locally connected overwrite qualification — November 27
+
+hide approved the unpublished local activation at15:41. The sole initial preflight
+now uses WindowsOverwriteEligibility, with original/alternate destination reservations
+owned by the existing set. No reserved or later undisclosed object inherits overwrite
+consent. Complete acceptance remains in progress; earlier unconnected descriptions
+above are dated implementation checkpoints, not the current branch state.
+
+TransferConflictChoice's sole factory guarantees qualified evidence for any accepted
+OverwriteContents decision. Plan validation retains decision and exact target checks
+without repeating that immutable construction invariant. Cancel choices cannot create
+Transfer or Skip plans. The existing receipt and native provider revalidation remain.

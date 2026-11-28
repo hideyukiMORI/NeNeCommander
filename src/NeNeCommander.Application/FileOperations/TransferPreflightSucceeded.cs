@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 
 namespace NeNeCommander.Application.FileOperations;
 
@@ -10,7 +10,7 @@ public sealed record TransferPreflightSucceeded : TransferPreflightOutcome
     {
     }
 
-    internal TransferPreflightSucceeded(ReadOnlyCollection<TransferPlanEntry> plan)
+    internal TransferPreflightSucceeded(ImmutableList<TransferPlanEntry> plan)
     {
         Plan = plan;
     }

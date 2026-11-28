@@ -40,7 +40,7 @@ public sealed class PanePointerOperationTests
         await fixture.ListBothAsync(listing, destination);
         FileInspectionSucceeded inspection = Assert.IsInstanceOfType<FileInspectionSucceeded>(DualPaneSessionTestContext.Inspection(listing.Entries[0].Path));
         TransferConflict conflict = TransferConflict.Create(inspection.Snapshot, destination.Entries[0].Path,
-            DualPaneSessionTestContext.ParsePath("C:\\other\\a (2).txt"));
+            DualPaneSessionTestContext.ParsePath("C:\\other\\a (2).txt"), TransferOverwriteCapability.Unavailable(TransferOverwriteUnavailableReason.Unconfirmed));
         fixture.Port.EnqueueInspection(inspection);
         fixture.Port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         DualPaneSnapshot before = await fixture.Panes.HandleAsync(UserIntent.Copy, RecordingDualPaneObserver.Create(), CancellationToken.None);
@@ -65,9 +65,9 @@ public sealed class PanePointerOperationTests
         running = fixture;
         await fixture.ListBothAsync(listing, DualPaneSessionTestContext.Listing("C:\\other", ("a.txt", DirectoryEntryKind.File), ("b.txt", DirectoryEntryKind.File)));
         fixture.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(listing.Entries[0].Path));
-        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        fixture.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+        fixture.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        fixture.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         fixture.Left.Enqueue(DirectoryReadOutcome.Succeeded(listing, null));
         fixture.Right.Enqueue(DirectoryReadOutcome.Succeeded(DualPaneSessionTestContext.Listing("C:\\other"), null));
 

@@ -199,7 +199,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
     private ProviderStepOutcome Copy(FileEntrySnapshot source, FileSystemPath destination)
     {
         return destination is not WslPath wslDestination
-            ? ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable)
+            ? ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty)
             : WindowsLocalFileOperationAdapter.WithRevalidatedEntry(
                 source, _driveBoundary,
                 entry => CopyEntry(entry, wslDestination));
@@ -212,18 +212,18 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
                 entry => WindowsLocalTreeCopy.InspectLocalSource(entry, _driveBoundary)) ||
             WslFileOperationAdapter.BuildTarget(source.Name, destination) is not WslPath target)
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         if (_destination.TargetExists(target))
         {
-            return ProviderStepOutcome.Failed(FileOperationFailureKind.Conflict);
+            return ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Conflict), ProviderStepReceipt.Empty);
         }
 
         try
         {
             return WindowsLocalTreeCopy.InspectLocalSource(source, _driveBoundary)
                 ? _destination.CopyFromWindowsLocal(source, target)
-                : ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable);
+                : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty);
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -256,7 +256,7 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
         ProviderStepOutcome admission = WslFileOperationAdapter.IsUsableDestination(_destination, wslDestination) &&
             WslFileOperationAdapter.BuildTarget(entry.Name, wslDestination) is WslPath target &&
             _destination.TargetExists(target) && !_destination.ContainsReparsePoint(target)
-                ? ProviderStepOutcome.Succeeded() : ProviderStepOutcome.Failed(FileOperationFailureKind.Verification);
+                ? ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty) : ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Verification), ProviderStepReceipt.Empty);
         return admission.Failure is FileOperationFailureKind failure
             ? CopyVerificationOutcome.Failed(failure)
             : VerifyAdmittedSource(source, wslDestination, entry);
@@ -292,6 +292,6 @@ internal sealed class WindowsToWslTransfer : IFileOperationPort
 
     private static Task<ProviderStepOutcome> FailedStep()
     {
-        return Task.FromResult(ProviderStepOutcome.Failed(FileOperationFailureKind.ProviderUnavailable));
+        return Task.FromResult(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.ProviderUnavailable), ProviderStepReceipt.Empty));
     }
 }

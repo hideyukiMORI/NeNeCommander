@@ -17,7 +17,7 @@ internal sealed class WslToWindowsTransferFixture : IDisposable
         WindowsLocalIoExecutionBoundary execution = new();
         Transfer = new WslToWindowsTransfer(execution, fileSystem);
         Router = new ProviderFileOperationPort(
-            new WindowsLocalFileOperationAdapter(execution, fileSystem),
+            new WindowsLocalFileOperationAdapter(execution, fileSystem, new DeterministicIdentifierSource()),
             new WslFileOperationAdapter(execution, fileSystem),
             new WindowsToWslTransfer(execution, fileSystem),
             Transfer);

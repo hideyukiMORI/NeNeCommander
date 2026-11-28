@@ -158,9 +158,9 @@ public sealed class TransferResumeChoiceTests
         port.EnqueuePreflight(TransferPreflightOutcome.Conflicted([conflict]));
         port.EnqueuePreflight(TransferPreflightOutcome.Succeeded([
             TransferPlanEntry.Transfer(resolvedSource, conflict.KeepBothCandidate)]));
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-        port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
         MoveRequest request = (MoveRequest)((FileOperationRequestAccepted)MoveRequest.Create(
             [source],

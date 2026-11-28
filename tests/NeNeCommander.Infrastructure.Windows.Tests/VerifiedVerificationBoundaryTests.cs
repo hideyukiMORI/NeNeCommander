@@ -117,7 +117,7 @@ public sealed class VerifiedVerificationBoundaryTests
         FileSystemPath source = side == "source" ? WslToWindowsTransferFixture.Source("file.txt") : Path(root.Resolve("local.txt"));
         FileSystemPath target = side == "target" ? WslToWindowsTransferFixture.Source("file.txt") : Path(root.Resolve("local.txt"));
         VerifiedCopyEntry evidence = VerifiedCopyEntry.File(access.Capture(source), access.Capture(target),
-            VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)));
+            VerifiedFileContent.Compare(access.Resolve(source), access.Resolve(target)), FileVerificationRequirements.DefaultStream);
         active = true;
 
         bool matches = VerifiedTreeEvidence.Matches(evidence, access);

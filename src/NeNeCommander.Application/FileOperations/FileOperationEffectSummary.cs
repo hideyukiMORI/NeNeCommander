@@ -1,29 +1,56 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
+using System.Linq;
 using NeNeCommander.Domain.Paths;
 
 namespace NeNeCommander.Application.FileOperations;
 
-/// <summary>Owns the exact ordered effects and explicitly skipped sources reported by an outcome.</summary>
+/// <summary>Owns gateway effects, explicit skips and all provider receipts in one immutable outcome snapshot.</summary>
 internal sealed record FileOperationEffectSummary
 {
-    private readonly ReadOnlyCollection<FileOperationEffect> _effects;
-    private readonly ReadOnlyCollection<FileSystemPath> _notTransferred;
-
-    private FileOperationEffectSummary(ReadOnlyCollection<FileOperationEffect> effects, ReadOnlyCollection<FileSystemPath> notTransferred)
+    private FileOperationEffectSummary(
+        ImmutableList<FileOperationEffect> effects,
+        ImmutableList<FileSystemPath> notTransferred,
+        ImmutableList<OperationProviderStep> providerSteps)
     {
-        _effects = effects;
-        _notTransferred = notTransferred;
+        Effects = effects;
+        NotTransferred = notTransferred;
+        ProviderSteps = providerSteps;
     }
 
-    internal IReadOnlyList<FileOperationEffect> Effects => _effects;
-    internal IReadOnlyList<FileSystemPath> NotTransferred => _notTransferred;
+    internal static FileOperationEffectSummary Empty { get; } = Create([], [], []);
+    internal IReadOnlyList<FileOperationEffect> Effects { get; }
+    internal IReadOnlyList<FileSystemPath> NotTransferred { get; }
+    internal IReadOnlyList<OperationProviderStep> ProviderSteps { get; }
+    internal bool HasEffects => Effects.Count != 0 || ProviderSteps.Any(step => step.Receipt.HasReportedEffects);
 
-    internal static FileOperationEffectSummary Create(IReadOnlyList<FileOperationEffect> effects, IReadOnlyList<FileSystemPath> notTransferred)
+    internal static FileOperationEffectSummary Create(
+        IReadOnlyList<FileOperationEffect> effects,
+        IReadOnlyList<FileSystemPath> notTransferred,
+        IReadOnlyList<OperationProviderStep> providerSteps)
     {
         ArgumentNullException.ThrowIfNull(effects);
         ArgumentNullException.ThrowIfNull(notTransferred);
-        return new FileOperationEffectSummary(new List<FileOperationEffect>(effects).AsReadOnly(), new List<FileSystemPath>(notTransferred).AsReadOnly());
+        ArgumentNullException.ThrowIfNull(providerSteps);
+        ImmutableList<FileOperationEffect> effectSnapshot = [.. effects];
+        ImmutableList<FileSystemPath> skippedSnapshot = [.. notTransferred];
+        ImmutableList<OperationProviderStep> stepSnapshot = [.. providerSteps];
+        foreach (FileOperationEffect effect in effectSnapshot)
+        {
+            ArgumentNullException.ThrowIfNull(effect);
+        }
+        foreach (FileSystemPath source in skippedSnapshot)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+        }
+        foreach (OperationProviderStep step in stepSnapshot)
+        {
+            ArgumentNullException.ThrowIfNull(step);
+        }
+        return new FileOperationEffectSummary(
+            effectSnapshot,
+            skippedSnapshot,
+            stepSnapshot);
     }
 }

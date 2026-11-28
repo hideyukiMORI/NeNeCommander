@@ -29,11 +29,11 @@ public sealed class CommanderContextDispatchTests
         foreach (FileSystemPath path in original.Selection)
         {
             fixture.Panes.Port.EnqueueInspection(DualPaneSessionTestContext.Inspection(path));
-            fixture.Panes.Port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-            fixture.Panes.Port.EnqueueVerification(ProviderStepOutcome.Succeeded());
-            fixture.Panes.Port.EnqueueDeletion(ProviderStepOutcome.Succeeded());
+            fixture.Panes.Port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+            fixture.Panes.Port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+            fixture.Panes.Port.EnqueueDeletion(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         }
-        fixture.Panes.Port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        fixture.Panes.Port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         DirectoryListing remaining = command == "move"
             ? DualPaneSessionTestContext.Listing(@"C:\left", ("b.txt", DirectoryEntryKind.File))
             : CommanderContextTestContext.Listing(@"C:\left");

@@ -118,7 +118,7 @@ public sealed class NullGuardTests
 
     private static void AssertFileOperationFailureArguments()
     {
-        NullGuardAssertions.AssertStaticNullGuard(typeof(ProviderStepOutcome), nameof(ProviderStepOutcome.Failed), [null]);
+        NullGuardAssertions.AssertStaticNullGuard(typeof(ProviderStepOutcome), nameof(ProviderStepOutcome.Create), [null, null]);
         NullGuardAssertions.AssertStaticNullGuard(
             typeof(AtomicMoveCapabilityOutcome),
             nameof(AtomicMoveCapabilityOutcome.Failed),
@@ -126,12 +126,8 @@ public sealed class NullGuardTests
         NullGuardAssertions.AssertInternalConstructorNullGuard(typeof(AtomicMoveCapabilityFailed), [null]);
         NullGuardAssertions.AssertStaticNullGuard(
             typeof(ProviderStepOutcome),
-            nameof(ProviderStepOutcome.FailedAfterEffect),
-            [null, ProviderStepEffectKind.CopyTargetCreated]);
-        NullGuardAssertions.AssertStaticNullGuard(
-            typeof(ProviderStepOutcome),
-            nameof(ProviderStepOutcome.FailedAfterEffect),
-            [FileOperationFailureKind.Copy, null]);
+            nameof(ProviderStepOutcome.Create),
+            [ProviderStepCompletion.Failed(FileOperationFailureKind.Copy), null]);
     }
 
     private static void AssertPaneAndEntryArguments(FileSystemPath path, DirectoryEntry entry, VisiblePageCapacity capacity, PaneState state)

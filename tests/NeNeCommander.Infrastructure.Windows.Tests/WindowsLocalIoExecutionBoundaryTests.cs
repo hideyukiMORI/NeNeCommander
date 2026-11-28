@@ -25,7 +25,7 @@ public sealed class WindowsLocalIoExecutionBoundaryTests
         ManualIoScheduler scheduler = new();
         WindowsLocalIoExecutionBoundary boundary = new(scheduler, scheduler);
         WindowsLocalDirectoryReader reader = new(boundary);
-        WindowsLocalFileOperationAdapter adapter = new(boundary, new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }));
+        WindowsLocalFileOperationAdapter adapter = new(boundary, new WindowsRecycleBin(new ScriptedWindowsRecycleShell { BinQueryResult = -1 }), new DeterministicIdentifierSource());
 
         Task<DirectoryReadOutcome> read = reader.ReadAsync(
             Request(root.Path),

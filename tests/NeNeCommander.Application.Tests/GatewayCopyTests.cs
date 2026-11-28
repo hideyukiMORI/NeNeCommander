@@ -20,11 +20,11 @@ public sealed class GatewayCopyTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.PermanentOnly));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.PermanentOnly));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         for (int index = 0; index < 2; index++)
         {
-            port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-            port.EnqueueVerification(ProviderStepOutcome.Succeeded());
+            port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+            port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
         }
         using FileOperationGateway gateway = new(port);
 
@@ -57,9 +57,9 @@ public sealed class GatewayCopyTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.PermanentOnly));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.PermanentOnly));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        port.EnqueueCopy(ProviderStepOutcome.Succeeded());
-        port.EnqueueVerification(ProviderStepOutcome.Failed(FileOperationFailureKind.IdentityChanged));
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueVerification(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.IdentityChanged), ProviderStepReceipt.Empty));
         using FileOperationGateway gateway = new(port);
 
         FileOperationOutcome outcome = await gateway.ExecuteAsync(GatewayTestContext.CreateCopy([first, second]), RecordingFileOperationProgress.Create(), CancellationToken.None);
@@ -83,10 +83,8 @@ public sealed class GatewayCopyTests
         ScriptedFileOperationPort port = ScriptedFileOperationPort.Create(null, null);
         port.EnqueueInspection(GatewayTestContext.Inspection(first, DeletionCapability.PermanentOnly));
         port.EnqueueInspection(GatewayTestContext.Inspection(second, DeletionCapability.PermanentOnly));
-        port.EnqueuePreflight(ProviderStepOutcome.Succeeded());
-        port.EnqueueCopy(ProviderStepOutcome.FailedAfterEffect(
-            FileOperationFailureKind.Copy,
-            ProviderStepEffectKind.CopyTargetCreated));
+        port.EnqueuePreflight(ProviderStepOutcome.Create(ProviderStepCompletion.Succeeded, ProviderStepReceipt.Empty));
+        port.EnqueueCopy(ProviderStepOutcome.Create(ProviderStepCompletion.Failed(FileOperationFailureKind.Copy), ProviderStepReceipt.Create([ProviderStepEffectKind.CopyTargetCreated], null, [])));
         using FileOperationGateway gateway = new(port);
         RecordingFileOperationProgress progress = RecordingFileOperationProgress.Create();
 
