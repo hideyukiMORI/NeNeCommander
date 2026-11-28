@@ -1,8 +1,9 @@
 # Transfer conflict investigation — 2026-11-25
 
-Status: unpublished file-overwrite implementation and local evidence reconciliation complete on November 28. Infrastructure Complete mutation passes 90.217%; publication/main integration, a new release and directory merge remain unapproved. Environmental and analysis limits below remain.
+Status: file-overwrite PR #591 integrated; original artifact preservation and completed-task cleanup verified. Issue #560 remains open for separate folder merge; a new release and physical acceptance remain separate.
 
-Issue #560; current branch feat/560-transfer-resumption on accepted main ad85de1.
+Issue #560; file-overwrite source is integrated through PR #591 at main 03ec283.
+Issue #592 records completion. Earlier branch/base references below are historical.
 Original feat/560-transfer-conflicts at15499d8 and every historical record remain.
 beta.5 is published; selection and name filtering are integrated separately.
 FileOperationGateway / its existing continuation and provider port remain the single
@@ -2775,3 +2776,93 @@ whose exact completion is stored in commit-receipt-234.json. Product proof is re
 All unfinished worktree/output roots, including November 28 outputs, remain.
 The first closure-writer tool submission failed JavaScript parsing before executing
 any shell command or editing files; the corrected literal payload follows it.
+
+## Publication, preservation and completed cleanup — 2026-11-28 17:18 JST
+
+hide approved candidate 736a0ff for public branch, Draft PR, review and main
+integration. The branch was pushed without force. GitHub connector PR creation
+returned HTTP 403, so authenticated gh CLI submitted the same approved payload.
+PR #591's body, head/base and all 387 changed filenames match the local candidate.
+Dependency inputs are unchanged; no applicable check is failing.
+
+Independent read-only review 238 reconciles all 1,620 actual input hashes, the raw
+4,523 mutant statuses and score, normal/test consumer DLL parity, all 21 reused
+receipt hashes and the final six Infrastructure owner corrections. No must-fix
+remains. This was a targeted final delta/evidence review, not a repeated review of
+all 387 files or a new product test run. Prior broader reviews remain recorded.
+
+After Ready, PR #591 was squash-merged at 16:26:54 JST as
+03ec283a6e191b85a5320de2b929f701f445c1bc. Its complete tree equals approved
+736a0ff0c72f9046abeb5284df4491c5e6d015f0: dd169f5d875988603847d2c0aa06f4604562fd21.
+main-sync-240 confirms clean primary-main synchronization. Issue #560 remains open:
+folder-content merge and a new release are outside this approval.
+
+Automatic approval initially rejected supplemental completion Issue creation,
+because the earlier approval did not cover a new Issue with internal cleanup
+details. That command did not execute. After a concrete local proposal, hide
+explicitly selected「追加公開を許可」for the Issue and completion-document PR/main
+integration. Issue #592 was then created with the approved body (247).
+
+Permanent preservation 252 moved the original 21 ignored worktree directory owners
+and four output roots into completed-overwrite-files-252 under the evidence root.
+All 90,223 regular files / 6,055,518,292 bytes, 37 reparse definitions and directory
+entries are included. The worktree generated set is exactly 5,805 ignored files;
+tracked files are excluded from these moved owners and remain in Git.
+
+Before moving, the helper verifies clean candidate/main tree equality, exact source
+and destination boundaries, nonlink ancestors, same fixed NTFS volume, absent
+destinations and no observed executable/command-line process references. Each of
+the 25 directory renames records an identical before/after directory file ID and
+source absence. A complete post-move inventory matches every relative file path,
+size, nanosecond mtime, directory and link target/type. raw-preservation-complete-252
+records success at 17:12:17 JST; its command exits 0. This is preservation of the
+same NTFS objects with complete metadata reconciliation, not a claim of copied-file
+hash verification or a portable NTFS restoration image. Link definitions remain
+unchanged; absolute old targets may no longer resolve after relocation. Links were
+not traversed or removed.
+
+Earlier ZIP attempts 241/244/245 were interrupted and their original scripts,
+logs and partial output remain. No complete ZIP manifest exists and those ZIPs
+are not the preservation proof. At the measured ZIP rate, remaining work exceeded
+an hour; same-volume rename avoided copying the 6.06 GB original dataset.
+The final helper stopped before any rename for an explanatory path suffix, a
+parent command containing a source path, a count typo (5,804 versus original
+inventory245's correct 5,805), and an unpaired-surrogate test filename that needed
+JSON Unicode escaping. Each original failure is retained; guards were not relaxed.
+No incomplete attempt is relabeled successful.
+
+Cleanup253 then rechecks permanent directory identities, all relocated-source
+absences, accepted candidate/main tree equality, clean tracked/untracked/ignored
+state, nonlink absolute worktree ancestors and no observed process reference.
+Only the clean original worktree is removed by git worktree remove. At
+2026-11-28T17:18:40.6164451+09:00, all five original task paths are absent:
+
+- D:/NeNeCommander/worktrees/issue-560
+- D:/NeNeCommander/outputs/transfer-conflicts-20261125
+- D:/NeNeCommander/outputs/transfer-conflicts-20261126
+- D:/NeNeCommander/outputs/transfer-conflicts-20261127
+- D:/NeNeCommander/outputs/transfer-conflicts-20261128
+
+The four output directories remain as original objects at their mapped permanent
+locations; they were relocated, not erased. Branches/commits, original evidence,
+ordinary app/settings, interactive trials and unrelated unfinished work remain.
+No cleanup hold remains. The plan and final preservation/cleanup implementation
+receive bounded independent read-only review; product testing is not repeated.
+
+Exact commands and original exit results are under
+D:/NeNeCommander/evidence/transfer-conflicts-20261128:
+
+- git push --set-upstream origin feat/560-transfer-resumption: exit 0 (236).
+- gh pr create with saved title/body, --draft --base main --head feat/560-transfer-resumption: exit 0 (236/237).
+- gh pr ready 591 and gh pr merge 591 --squash --match-head-commit 736a0ff0c72f9046abeb5284df4491c5e6d015f0 with saved message: exit 0 (239).
+- git fetch origin main and git merge --ff-only origin/main: exit 0 (240).
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261128/preserve-original-trees-252.ps1: exit 0; calls inventory-raw-preservation-252.py before/after.
+- pwsh -NoProfile -File D:/NeNeCommander/evidence/transfer-conflicts-20261128/cleanup-preserved-worktree-253.ps1: exit 0; cleanup-completion-253 records actual absence.
+
+The six-file completion documentation receives git diff --check, relative-link and
+diff review plus normal Commit/message hooks. Matching successful product evidence
+is reused. No new full gate, CI, coverage, mutation, native or release invocation
+is required for these docs. Original failures/interruption, CodeQL 169/34 findings,
+extraction limits/eight unresolved types and the existing Help nesting finding
+remain. Physical keys/IME/speech/human visual acceptance and power-loss proof are
+not added.

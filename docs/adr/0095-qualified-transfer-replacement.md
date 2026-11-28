@@ -7,7 +7,7 @@ Date: 2026-11-25
 Issue: #560. Design accepted under hide's autonomous milestone/design instruction,
 after independent read-only review of revision12. Internal provider integration is
 implemented in stages; hide approved unpublished local activation on November 27.
-The local initial inspector is connected and full acceptance is in progress. Folder-content merge remains a subsequent, unaccepted scope.
+The initial inspector and file-overwrite implementation are integrated by PR #591 on November 28. Required local evidence stages are reconciled with their explicit environmental/analysis limits; see the current quality record. Folder-content merge remains a subsequent, unaccepted scope.
 The separately verified exact-modal-owner correction is commit11e25f1.
 
 ## One mechanism and activation boundary
